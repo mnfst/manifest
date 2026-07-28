@@ -1,0 +1,902 @@
+.changeset/wise-moons-repeat.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+.changeset/bright-lions-spark.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 10-18,69-75,87-88,230-306
+  s_5d83b83640b533::t_c0f0a3ed116f78 307
+.changeset/drop-success-message-dedup.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-11
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9,343-423,496-661,715-775,918-978
+  s_5d83b83640b533::t_cb6a9b56b6dd02 979
+packages/backend/src/billing/plan.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 202-204,222-233,235-244,248
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 16-24,109-111,115,118-119,128-136,151-204,221-227,233-246,255-276,278-280,306
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 112-128
+packages/frontend/src/pages/AgentMessagesRedirect.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1,7-8,12-18
+packages/backend/src/analytics/services/message-details.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,6-8,17,55-57,61,65-87,96-98,105-143,145,149-170,172-220,224,227-256,259
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-517
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 29-30
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 7,251-257
+integrations/n8n-nodes-manifest/.gitignore
+  s_5d83b83640b533::t_546dc82a0018b0 2-3
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_5d83b83640b533::t_546dc82a0018b0 3-26
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 45-46,49,73-79,81,83-87,97-103,119-121,194-196,265-266,268,272-273,275,277-279,281,283-292,294-295,303,312,316-317,322-323,337-339,355-356,369-382,406-453,492,589-598,602-615,713,715,717,719-755
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 40,43,51-52,63-72,84-116,124-126,135-137,150-152,171-173,210
+packages/frontend/src/components/ErrorClassCard.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-62
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2-3,61-75,127-129,132-133,136-140,155-156,158-164,170-171,173,175-184
+packages/frontend/src/components/MessageDetails.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 11,112,116,231,262-264,266-272,278-282,292,298-301,431,433,435,572,689,734-765
+  s_5d83b83640b533::t_8e365c02d5bc51 766-767
+packages/frontend/src/components/MultiSelect.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-136
+packages/frontend/src/styles/custom-select.css
+  s_5d83b83640b533::t_546dc82a0018b0 115-151
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,7,9,16,29-30,35
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-3,5,12,17-18,21,57-64,77,96,100-150,173-184,193,208,225,238,247,267,332-378,386-402,439,445-448,511-564,664-677,705-710,745-746,848-849,886-887,937-958
+  s_5d83b83640b533::t_f4a51ff8562a1c 959-960
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,36,42-45,52,58,349,367
+packages/backend/src/database/backfills/backfill.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,14
+packages/backend/src/database/backfills/request-backfill.datasource.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-32
+packages/backend/src/playground/playground.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,23
+packages/backend/src/routing/provider.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 17,29,74-78,515-518,524-547
+  s_5d83b83640b533::t_83b6414953e2aa 548
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,6,18,55-101,106-147,220-221,223-233,248-249,256-260,306-311,314,317-318,345-349,360-363,402,408,414-429,439-442,462-464,474-475,508-526,549,571,593-599,610,624,648,652,654,669,708,736,810-811,814,817-820,837,846-848,869-880
+docs/glossary.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-184
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-355
+packages/shared/src/index.ts
+  s_5d83b83640b533::t_546dc82a0018b0 34-41,47-49,57-58,172-173
+packages/backend/src/main.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-2,97-105
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,9,23-29,57,60,63,101,109-139,144,164
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 68,121,158,163,165,167-168,170,296-488
+packages/frontend/tests/components/Header.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 58-65
+packages/backend/src/cors-csp-config.ts
+  s_5d83b83640b533::t_546dc82a0018b0 111,141-160
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 236
+.changeset/seroval-critical-bump.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_5d83b83640b533::t_546dc82a0018b0 1-295
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-63
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-185
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9,25-30,39-45,52,197-222
+  s_5d83b83640b533::t_b16101c1167b79 223
+packages/backend/src/setup/setup.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,54-61
+  s_5d83b83640b533::t_711e39060cd55b 62-63
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-156
+.changeset/capture-provider-wire-exchanges.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/database/database-seeder.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 11,37-38,227
+packages/backend/src/telemetry/telemetry.config.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 44-63
+packages/frontend/src/components/WingmanDevTools.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 42-47,195-200,206
+packages/backend/src/analytics/controllers/attempt-analytics.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-53
+nodes/LmChatManifest/manifest-logo.dark.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_5d83b83640b533::t_546dc82a0018b0 59-83,135-136,150-156
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2-6,100-152
+  s_5d83b83640b533::t_b9419fcfdaaf59 153
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 89,107,143-147,155-166,222-250,581-594,606,612,622,629,641-679,682,693,699,713,750-773,1635,1950-1953,1958,2155,2160,2537,2542
+packages/backend/src/notifications/services/email-providers/send-email.ts
+  s_5d83b83640b533::t_546dc82a0018b0 66-76
+.changeset/models-cost-projection.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/analytics/services/specificity-feedback.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 87-96
+packages/backend/src/sentry/__tests__/sentry-options.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-52
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-738
+packages/backend/src/routing/tenant-providers.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,9-17,110-130
+  s_5d83b83640b533::t_6aff04198cf80d 131
+packages/frontend/src/components/message-table-types.ts
+  s_5d83b83640b533::t_546dc82a0018b0 37,56-57,60-62,67-68,80-81
+packages/frontend/src/services/setup-status.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,21,39,48-50,59,91-92
+  s_5d83b83640b533::t_9f7a09d9600040 93-94
+.changeset/oauth-lock-e2e.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 88,110
+.changeset/m100-credential-fallback.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 429
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 10-11,104-105,109,115-119,122-126,129-132,134,136-150,153-166,169,171,173-174,222,227-228,232,236-238,241,251-252,257,262,265,272-273,284-295,308,324-325
+packages/frontend/tests/components/DuplicateAgentModal.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 94
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.d.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-10
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,6,81-157,175-181,194-200,229-230,238-239,242-244,338
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,35-41,49-54
+packages/backend/src/instrument.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-9
+packages/backend/src/routing/tier.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 161-162,165,195-196,202
+packages/backend/test/playground-flow.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 150,191
+packages/frontend/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 15,17-19,22-23,29-32,35-36
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_5d83b83640b533::t_546dc82a0018b0 526
+packages/frontend/tests/components/MultiSelect.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-116
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 2,248-251,271,282,286,297,301,306,311,316,321,323,328,335,341,343,351,354,359,380,384,395,401,411,457,491,496,556,567,575,586,593,604,610,637,648,674,687,713,720,731
+.github/workflows/publish-n8n-node.yml
+  s_5d83b83640b533::t_546dc82a0018b0 3-8,11-15,23,44-55,57,61,67-75
+packages/backend/src/setup/setup.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 18,28
+package.json
+  s_5d83b83640b533::t_546dc82a0018b0 65,71-72,74,78
+.github/dependabot.yml
+  s_5d83b83640b533::t_546dc82a0018b0 29-35,41-43,53-55
+  s_5d83b83640b533::t_856875dec8d56f 56
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,7,31-34
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,11,15,20-24,31-49,79-103,718,747-748,1276-1279,1430-1471,3501-3523
+  s_5d83b83640b533::t_fcce906fc896fa 3524
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 57,83,556-635,899-902,929-932
+packages/frontend/src/styles/controls.css
+  s_5d83b83640b533::t_546dc82a0018b0 377-423
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5-9,186-234,519,521-522,1037-1052
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-2,25-39,56-62,67
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 295-296,298-301,303
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,8-23,33-78,267,272-278,284,288-291,293,319-323,326,338,343-345,354,362-365,393,401,416,430-433,436
+packages/backend/src/sentry/debug-sentry.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-11
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 8-12,309-315
+  s_5d83b83640b533::t_be150be957a6d8 7
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/manifest-logo.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 18,22-24,27-34,36-37,39-42,44,47-48,50-53,61,63,68,70,74,79,99
+packages/backend/src/analytics/services/message-feedback.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,5,12-14,24-25,29-34,38-39,43-76,86,89-90
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_5d83b83640b533::t_546dc82a0018b0 32-63,128-129
+packages/frontend/src/pages/Workspace.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 116,213
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 7-12,59-66,70-85,91-94,118-459,498,504,506,514-548,576,622,708-712,764,790
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 43,48-53,138,141-144,229-231,256-352
+  s_5d83b83640b533::t_3c0d3c79e08b94 353-354
+packages/frontend/tests/wingman-dev-proxy.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-42
+packages/backend/src/notifications/emails/doctor-release.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-217
+packages/frontend/src/styles/reliability-card.css
+  s_5d83b83640b533::t_546dc82a0018b0 1-27
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-18
+packages/frontend/tests/pages/AgentRedirects.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 10,52,59
+packages/backend/src/setup/setup.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 225-267
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 10,21-26,66-155,158,220-225,314-318,334-337,340,343,349,410,427-432,434,455,468,470-478,480-483,485-491,493-495,497-500,544,551,553-573,682,686,689-692,695-706,708-753,759-771,923-928,930,1090,1094,1144-1149,1152,1260,1295-1296,1298,1389,1391,1394-1395,1397,1565-1566,1568,1712,1738,1878,1883,1892,1928,1948,1958-1969
+packages/manifest/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 3
+packages/backend/src/entities/agent-message.entity.ts
+  s_5d83b83640b533::t_546dc82a0018b0 15-17,31-41,78,110-112,237-241
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-48
+packages/backend/src/error-pages/error-discovery.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 59-68
+packages/frontend/src/components/MessageTable.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 21-24,62-63,67-71,78,82-97,99,139
+dashboard-redesign-brief.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-238
+packages/backend/src/routing/proxy/sse-parser.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,15,36
+packages/frontend/src/pages/Account.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 24-72,74-76,257-324
+  s_5d83b83640b533::t_62c11d29869023 325
+packages/backend/src/database/database.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,79
+packages/frontend/tests/services/api/autofix.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-59
+packages/shared/src/subscription/configs.ts
+  s_5d83b83640b533::t_546dc82a0018b0 19-21,33,160,164-166,337
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9-11,256-304,549-551,555-556,559,565
+packages/frontend/vite.config.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,51-58,68-73,77
+packages/shared/src/autofix-status.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-54
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js
+  s_5d83b83640b533::t_546dc82a0018b0 1-56
+packages/shared/__tests__/autofix-status.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-70
+packages/frontend/tests/pages/AgentProviders.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 179-203
+docker/.env.example
+  s_5d83b83640b533::t_546dc82a0018b0 16-24,50-51,98-132,142-144
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-901
+packages/backend/test/overview.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9-13,24-39,45-119,188-235
+docker/docker-compose.yml
+  s_5d83b83640b533::t_546dc82a0018b0 70-75,99-135,137
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,40-43,50-53,435
+docker/DOCKER_README.md
+  s_5d83b83640b533::t_546dc82a0018b0 37,40,68,72,101-103,117-118,124-128,137,141-142,202-233,246-258,267-268,399-401,404-407,409-414,416-417
+packages/frontend/wingman-dev-proxy.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-104
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,28,45-46,56-62,98,148-159,170-178,187-196,206-222,252-262,302-304,306-315,332-333,379-446,459,468-469,471-472,478-525,552-553,555-565,587-592,601-604,619,627-632,652-653,655-665,677-680,693-696,723-725,729,732,734,737,742-743,749,768-770,780,789-791,800-801,931-945,949-950,953-977,979,1001-1003,1018-1024,1049-1050,1096-1099,1156-1160,1243-1254,1256-1360
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-190
+packages/frontend/src/services/api/analytics.ts
+  s_5d83b83640b533::t_546dc82a0018b0 56-137,246-473
+  s_5d83b83640b533::t_2c1e125c54700e 474
+packages/backend/src/database/data-source-definitions.ts
+  s_5d83b83640b533::t_546dc82a0018b0 7,33,150-151,155,300-302
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,15-16,103-114,122,140,143-202,206-215
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,20-21,23,26-30
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 244-287,295,301-332,476,621,634,649,799,812,825
+deploy/apple-containers/TUTORIAL.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-271
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_5d83b83640b533::t_546dc82a0018b0 328-338,353-378
+deploy/apple-containers/start.sh
+  s_5d83b83640b533::t_546dc82a0018b0 1-357
+packages/backend/src/routing/model.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 34,47,98-102,168-176,305-312
+  s_5d83b83640b533::t_52c231347e360a 313-314
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_5d83b83640b533::t_546dc82a0018b0 390-393
+packages/backend/src/model-discovery/known-model-modalities.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-33
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-34,53-148
+  s_5d83b83640b533::t_d565720bf1d02a 149
+packages/backend/src/routing/autofix/autofix-cohort.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-77
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,40,56-96,167-197
+  s_5d83b83640b533::t_11efce550efce6 198-199
+nodes/Manifest/Manifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-18
+packages/backend/src/routing/tier.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 162,164-165,167-168,193
+packages/backend/test/message-error-code-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9,107-109
+  s_5d83b83640b533::t_82a009acb97204 110
+packages/frontend/public/icons/openrouter.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1
+packages/frontend/src/components/message-table-cells.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 22,84,93-94,152-154,270,332-334,336-338,340,342-367,392-393,397,401,405-414,416-417,459-463,504-507
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 275
+nodes/LmChatManifest/LmChatManifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-22
+packages/frontend/src/components/ReliabilityChart.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-281
+packages/frontend/src/components/Sidebar.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 106,119-134,247
+packages/backend/test/seed-playground-agents-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,37-39
+  s_5d83b83640b533::t_96e1599569f002 40
+packages/frontend/src/pages/AgentProviders.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 158-159,212-224
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/manifest-logo.dark.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/frontend/src/components/DuplicateAgentModal.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 124,178
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 665-698
+packages/frontend/tests/components/MessageTable.onOpenMessage.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 163
+integrations/n8n-nodes-manifest/dist/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-74
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 83-85,125-127
+packages/frontend/tests/pages/Settings.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 10
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_5d83b83640b533::t_546dc82a0018b0 1-213
+packages/frontend/tests/services/formatters.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 126
+packages/backend/src/routing/autofix/__tests__/autofix-cohort.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-88
+packages/backend/src/database/migrations/1801200000000-ExtendDashboardCoveringIndex.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-141
+packages/frontend/src/components/FilterSelect.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 101
+packages/frontend/tests/services/api/analytics.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 45-122
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_5d83b83640b533::t_546dc82a0018b0 62-70,297,397,459-461
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 34,64-83,87-107,142-145,263-271,320,323,366-413,422-424
+packages/backend/src/routing/proxy/route-credentials.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-277
+packages/backend/src/error-pages/error-cluster-seeder.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 98
+.changeset/resume-self-host-install.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 59,74,98-102,1076-1087
+  s_5d83b83640b533::t_5f007e127bfb12 1088
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_5d83b83640b533::t_546dc82a0018b0 23-27,121-124,126,128-129,302-308
+packages/frontend/src/components/ChartHoverTooltip.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-123
+integrations/n8n-nodes-manifest/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 3,36,44,50-51,55,59,63,65-72
+packages/backend/src/routing/proxy/chatgpt-response-qualifier.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-384
+packages/backend/src/telemetry/telemetry.config.ts
+  s_5d83b83640b533::t_546dc82a0018b0 30-33
+AGENTS.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-10
+packages/backend/test/tenant-scoping-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6-9,17,71
+  s_5d83b83640b533::t_c53be2b2b098a6 72
+packages/backend/src/routing/model.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,14,21-24,110-112,136-140,142
+packages/backend/src/database/backfills/backfill-requests.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-323
+packages/backend/src/common/errors/__tests__/manifest-error.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 95-104
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 34-35,85-96,120,127
+packages/frontend/tests/components/MessageTableStatus.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 45,57
+packages/backend/src/database/data-source-definitions.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-18
+packages/frontend/tests/pages/Account.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 26-27,39-40,127-128,172-282
+  s_5d83b83640b533::t_8e64b2083ebe2e 283
+packages/backend/src/routing/oauth/core/index.ts
+  s_5d83b83640b533::t_546dc82a0018b0 18,24
+packages/frontend/src/styles/filter-select.css
+  s_5d83b83640b533::t_546dc82a0018b0 65-70
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6-16,22,25-26,51-72
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 89-126
+CLAUDE.md
+  s_5d83b83640b533::t_546dc82a0018b0 3,7,9,60,70,86-87,91,130-134,152-154,156-157,161,164,223,268,295,324,330-331,354-355,359-368,370,372-374,384,394,406-407,410,419,423-426,433-434,438,440-443,445-449,453,464,466,470,476,485,505,510-511,533-558,570,625-626,640,652,676,719-720,801
+packages/frontend/tests/components/SocialFollowBanner.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 18
+.changeset/heal-native-google-requests.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/app.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2-3,36,60-67,70,107,112
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 34,54,68
+packages/backend/src/entities/request.entity.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-94
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,28-30,33,38,43,54-59,63,65,76-84,92-110,131-132,138-139,141-142,147-148,163,168-184,226,234-235,241-279,292,299,303,309,313,341,369-372,378-386,405-406,419,459-469,483-485,489,495,499,501-503,519,524-525,531,540-543,548,554,558,560-563,565-573,580,582-586,590-593,603,610,613-617,622,629,634,637-639,659,665-671,719-755,799,806,811,823
+packages/backend/src/analytics/controllers/provider-analytics.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6-7,16-19,23,30-31,38-120,138,162-170,180-212,225,248,271,346-350,360,423-424,449
+packages/backend/src/common/utils/provider-availability.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-24
+packages/backend/src/routing/dto/routing.dto.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,77
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 217,219
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 353-383
+packages/frontend/src/services/api/providers.ts
+  s_5d83b83640b533::t_546dc82a0018b0 39-40,44-47,79,83-84,94-121,133-141,144-163,166-173
+packages/frontend/tests/services/setup-status.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 8,259-301
+  s_5d83b83640b533::t_cec994fcc92711 302-303
+packages/shared/package.json
+  s_5d83b83640b533::t_546dc82a0018b0 23
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-78
+packages/backend/src/notifications/emails/doctor-release.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-37
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 229,235,245-247,249-250
+nodes/LmChatManifest/manifest-logo.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 92-93,530-593,672,686,688-689,691-700,705,712,716-717,720,722-729,731-735,737-742,747-755,757-769,772,774-776,780,782,784,870,874,884,895-896,898-904,906,908-910
+packages/backend/src/database/backfills/request-backfill.cli.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-196
+railway.toml
+  s_5d83b83640b533::t_546dc82a0018b0 11-14
+packages/backend/src/database/seed-messages.ts
+  s_5d83b83640b533::t_546dc82a0018b0 3-8,10,21-26,28-53,55-56,58-59,61,63-106,121,133-144,218,226,228,230,241-250,252-266,268-324,326-330,335-344,347-350
+packages/backend/src/error-pages/error-discovery.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 86,88,104,106,129
+.changeset/heal-unavailable-model.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-22
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.js
+  s_5d83b83640b533::t_546dc82a0018b0 1-214
+packages/backend/.env.example
+  s_5d83b83640b533::t_546dc82a0018b0 25-26,42-45,118-123
+packages/backend/src/notifications/services/email-providers/send-email.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,8-43
+  s_5d83b83640b533::t_1beb44d7c97eb0 44
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-72
+packages/backend/src/routing/oauth/__tests__/mock-subscription-lock.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-37
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,42-45,53,60
+docker/Dockerfile
+  s_5d83b83640b533::t_546dc82a0018b0 37,62,73
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 331-340,367,372-378,454-460,469,474-540,1186-1289,1361,1376-1384
+packages/frontend/src/styles/analytics-overview.css
+  s_5d83b83640b533::t_546dc82a0018b0 46,56-255
+  s_5d83b83640b533::t_63bb8eb7035660 256
+packages/backend/src/error-pages/error-cluster-seeder.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,193,208
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 1-22
+packages/backend/src/analytics/services/provider-usage.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 227-279
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_5d83b83640b533::t_546dc82a0018b0 7,15-17,46-50,53,58-76
+packages/frontend/tests/components/DevAutofixToggle.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-63
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 19
+packages/backend/src/routing/proxy/__tests__/chatgpt-response-qualifier.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-521
+packages/frontend/src/services/providers.ts
+  s_5d83b83640b533::t_546dc82a0018b0 114,155,163,183,195,218,223,228,250,262,280,309,338,349,371,376,382,393,417,431,441,449
+packages/shared/src/request-params-snapshot.ts
+  s_5d83b83640b533::t_546dc82a0018b0 54-58,62-134
+  s_5d83b83640b533::t_ac75af62277af3 135
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,228-234
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 110,162,323-327,329-331,348-350,353,356-358,361,374-412,414-440,595-597,613,616-624,734-753,763-930,933-934,936-938,1164-1318,1909-1937,2121,2142-2143,2150,2155-2158,2184,2187-2188,2201-2203,2206
+.changeset/oauth-refresh-row-lock.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-337
+packages/backend/src/routing/provider.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 35-38,115-120
+packages/backend/src/sentry/sentry-options.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-29
+packages/backend/src/database/seed-messages.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 82-150,387,391-392,394-395,404,408,413,427-429,440-445,447,457,461,473,486-488,490-492,494-495,514-516,526-527,536-537,539
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.security.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,33-36,42-45
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 394-400,413-419,426-441
+packages/backend/test/setup.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 44
+packages/backend/src/analytics/services/query-helpers.ts
+  s_5d83b83640b533::t_546dc82a0018b0 38-43,49,52-76,92-95,205-209,217-252
+  s_5d83b83640b533::t_84008fd99883aa 253
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5-13,15,24,28-38,40-42,49,52,59,67-70,84-87,93,97-100,108-113,149-151,167-193,197-200,229-230,234-236,258-260,293-368,381-393,397,427-498,516-609,617-621,641-651,661-692,713,723-725,734-775,786-787,803-804,817,850-852,855-859,863-867,887-897,910-915,924-925,932-933,941-984,986,997-1000,1017,1046-1075,1088-1090,1107,1131,1138-1170,1174-1175,1177,1184-1186,1193-1226
+.changeset/895be6f75eea.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+.github/workflows/dependency-review.yml
+  s_5d83b83640b533::t_546dc82a0018b0 1-20
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 29-33,53,81-100,109-116,118-130,167-168,174,176-179,183,188-189,195,198-254,380,383,730,759,765-789,821,823,879,891,921,999,1019,1027-1029,1031-1064,1066-1070,1072-1090,1093-1094,1096-1112,1114-1116,1118-1162,1211,1481
+packages/frontend/tests/components/MessageDetails.autofix.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 44,77,88,103,120-134,154,192,340,346,373,391-392,409,417,422-423
+.changeset/snapshot-specless-knobs.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+.gitignore
+  s_5d83b83640b533::t_546dc82a0018b0 14
+integrations/n8n-nodes-manifest/credentials/ManifestApi.credentials.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-6,43-50
+  s_5d83b83640b533::t_0820f90cbe5cee 51
+packages/backend/src/analytics/services/agent-lifecycle.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 153
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-360
+packages/backend/src/database/backfills/request-backfill.boot.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-351
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-3,6,13,15-21,31,85-86,93-95,103-149,168-176,180,241-629,674,710-711,716,761,763-775,956,972
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-200
+packages/backend/src/setup/setup.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 17,26,40,59,72,86,101,116,128-132
+  s_5d83b83640b533::t_4377640027d734 133-134
+packages/frontend/src/components/SocialFollowBanner.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 34
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,15-16,46-47,56-61,63-120,123-126,141
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6-9,104-156,163-176,369-470
+packages/frontend/src/pages/MessageLog.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 16,19-20,23,35,82-93,97-115,119-128,159,190-277,332-354,368,370,374,387,389,393,403-408,419,426-428,434-457,459-463,467,487,489,493,515-517,521,560-596,605-621,623-659,681-706,708,711-712,718-719,722-724,726,738-743,749-755,770-775,809,821,881,886-888,899-901,913,922,938,950,957,971,977,991-992,1021-1025
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 21-28,30-31,48-49,78-79,118,188-193,224,239-240,250-270,331-417,438-443,472-473,525,825-918,932-938,944-954,959-1009,1015,1021,1027,1036,1160-1167,1213-1222
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,23
+nodes/Manifest/manifest-logo.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+nodes/LmChatManifest/LmChatManifest.node.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-221
+packages/backend/src/routing/proxy/__tests__/provider-client.timeout.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 45-46,62,120,143,149-174
+  s_5d83b83640b533::t_ee7bce14dbc7ad 175-176
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-166
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 208
+packages/frontend/src/services/formatters.ts
+  s_5d83b83640b533::t_546dc82a0018b0 125
+integrations/n8n-nodes-manifest/README.md
+  s_5d83b83640b533::t_546dc82a0018b0 5-17,23-43,76-78,80-81,83-85,87-88
+packages/frontend/src/services/api.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6
+packages/frontend/src/styles/auth.css
+  s_5d83b83640b533::t_546dc82a0018b0 176-191,364-366,423-424
+packages/frontend/tests/components/CostByModelTable.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 25-44,282-310
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 11,14-15,24-26,37,92-100,380-381,384,386-400,453,476,485-487,489-496,499,502-503
+packages/frontend/src/styles/theme.css
+  s_5d83b83640b533::t_546dc82a0018b0 240-290,447-490,558-571,625-629,1693-1718
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 61-79,83-104,171
+packages/backend/src/otlp/interfaces/ingestion-context.interface.ts
+  s_5d83b83640b533::t_546dc82a0018b0 7
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 125,127,190-191,522,527-528
+packages/frontend/tests/pages/ResetPassword.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 7,26-29,35,111-143,147
+packages/backend/src/routing/routing-core/__tests__/provider.service.subscription-lock.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-184
+packages/frontend/src/styles/agents.css
+  s_5d83b83640b533::t_546dc82a0018b0 203-221,371-380
+  s_5d83b83640b533::t_6f31eef0f69d1d 381
+packages/frontend/src/styles/request-drawer.css
+  s_5d83b83640b533::t_546dc82a0018b0 1-298
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-342
+packages/backend/src/analytics/analytics.module.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,37-41,43,49,64,76-77,91-93
+packages/backend/src/analytics/services/agent-lifecycle.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 297,307,314
+packages/backend/src/analytics/services/provider-usage.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5-10,20-21,28-31,47,53-54,107,114-118,121,124,136,140-141,153-154,161,165-166,177-178,199,203-204
+packages/backend/src/playground/playground.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 185-188,282,434-448,490-491,498-501,511-514,716-753,769-775,783-788,825,906
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,96-114,145-146,149,187-189,220-222,291-532,570-680,718,1048,1106,1140-1145,1186,1235,1326-1424,1563-1564,1585,1602,1804,1869,1970,1981-2070,2107,2148-2149,2187,2309,2641-2649,2651-2656,2658-2661,2663-2684,2687-2691,2696-2701,2708,2711-2740,2742-2752,2756-2766,2768,2771-2783,2786-2788,2793-2826,2829-2831,2840,2845,3293-3294,3306-3308,3318,3429-3430,3441,3507-3508,3514-3515,3555,3642-3643,3650,3858-3859,3865-3866,3871,3927-3928
+packages/backend/src/routing/proxy/stream-protocol.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-160
+packages/backend/src/routing/tenant-providers.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 8,39-41
+packages/backend/src/routing/proxy/openai-model-capabilities.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-35
+packages/frontend/src/components/MultiAgentTokenChart.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1,4-9,52,62,141,155,163,230
+packages/backend/test/helpers.ts
+  s_5d83b83640b533::t_546dc82a0018b0 21,64
+packages/frontend/tests/components/WingmanDevTools.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 82-95
+packages/shared/__tests__/subscription.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 66-77,400-406,523-524,594
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.ts
+  s_5d83b83640b533::t_546dc82a0018b0 12,17,19,21-27,45-52,67-72,85-112,144-154,156-157,159-162,167,173,182-184
+packages/backend/src/common/errors/manifest-error.ts
+  s_5d83b83640b533::t_546dc82a0018b0 13,21,52,60
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 70,99-101
+  s_5d83b83640b533::t_576245d32da5b6 102
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 54-81
+README.md
+  s_5d83b83640b533::t_05732013e72aa2 84,118
+  s_5d83b83640b533::t_546dc82a0018b0 9,45,47-48,50,70-76,88-117,119-121
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_5d83b83640b533::t_546dc82a0018b0 3-11,22-25,27,57-66,105-116,118-119,121
+  s_5d83b83640b533::t_086d5a9082704b 2
+packages/backend/src/entities/agent-message.entity.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-26
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 44,46-50,135,355-359,391-398,405-409,413-423,427,432-476,528-532,631-642
+packages/backend/src/analytics/services/specificity-feedback.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 59-82
+docker/install.sh
+  s_5d83b83640b533::t_546dc82a0018b0 5-7,15,19-22,62-65,72,80-82,98-106,108-112,115-119,121,127,130-132,152,154-155,157,159-161,163-196,198-205,207-233,257-263,268-270
+.changeset/preserve-deepseek-reasoning-effort.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/frontend/src/components/NotificationBell.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-202
+packages/frontend/src/components/DevAutofixToggle.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-45
+packages/shared/__tests__/request-params-snapshot.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 121-187
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,42,48,51-55,87-280,292,308,345,362,544-554,562,573,581-582,666,697,705-800,860,882,892,907-908,913-1009,1102-1104,1120-1122,1146-1156,1229,1236,1241-1266,1294-1307,1321,1329,1332-1333,1336-1337,1400,1405-1415,1417,1419-1420,1423-1430,1432-1433,1435,1444,1461-1469,1477,1480,1482,1485-1487,1491,1501,1513,1532,1593,1604-1612,1619,1627-1640,1642-1645,1649,1653-1707,1715-1716,1722-1725,1728,1736-1739,1743-1744,1752,1755,1769-1771,1779,1792,1808-1810,1818,1820-1821,1834-1835,1838-1839,1846-1853,1855,1869-1876,1883
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1,11-12,15-18,21,35-37,44,46-47,51-78,186,198-200,213-342,392,402
+packages/frontend/src/styles/notifications-bell.css
+  s_5d83b83640b533::t_546dc82a0018b0 1-92
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-413
+packages/frontend/src/styles/cards.css
+  s_5d83b83640b533::t_546dc82a0018b0 137
+packages/backend/src/common/errors/error-codes.ts
+  s_5d83b83640b533::t_546dc82a0018b0 38-42,75-79,88-93,105-118
+  s_5d83b83640b533::t_43c959c81d4edc 119
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/manifest-logo.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 134-135,144,193-199
+nodes/Manifest/manifest-logo.dark.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/src/database/backfills/message-provider-backfill.boot.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,16,18-24,38-39,62,65,72-77,79,81,92-93,98,106
+packages/backend/test/proxy.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 17,22,163-209
+  s_5d83b83640b533::t_b0c2400e274383 210-211
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-185
+packages/frontend/src/pages/Overview.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 12-14,29-30,48-49,71-78,113,150,180-189,270-321,389,415,482-538,540-543,549,559-563,565-567,571-575
+packages/backend/src/analytics/services/error-breakdown.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 11,17,21-25,29-30,100-120
+  s_5d83b83640b533::t_53795144e34a20 121
+packages/backend/src/routing/autofix/__tests__/noop-healing-client.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 11
+packages/frontend/tests/pages/AgentMessagesRedirect.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 5,8,17,24,27-36
+packages/frontend/tests/pages/ProviderUsageLive.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 37
+packages/backend/src/routing/autofix/dev-autofix-seeder.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-137
+packages/frontend/tests/services/sse.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 20-22,165-167
+packages/backend/src/routing/proxy/__tests__/stream-protocol.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-151
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 17-20
+packages/frontend/src/components/Header.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 2-11,17,29-30,58-62,164,312
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 593-613
+packages/backend/src/analytics/services/message-feedback.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 131-252
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/manifest-logo.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/backend/src/routing/oauth/openai/openai-oauth.service.coverage.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,42-45,52-55,290
+packages/backend/src/model-discovery/known-model-modalities.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-50
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 171-186,2202-2228
+packages/backend/src/database/backfills/request-backfill.cli.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-84
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.d.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-13
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,60,88-107
+packages/backend/src/common/errors/__tests__/error-codes.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,53-62,77-114,116
+  s_5d83b83640b533::t_3dce2d2dc492a6 115,117
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 216
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 710,714,719,721,744-746,766,1008,1021
+packages/frontend/src/services/api/messages.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,11-23,31,88-89,92-114,122-125
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/manifest-logo.dark.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/frontend/src/components/CostByModelTable.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 13-19,34-38,63-64,67,69,78-89,174-190
+packages/backend/src/routing/proxy/provider-client.ts
+  s_5d83b83640b533::t_546dc82a0018b0 2,27-32,38-40,44-57,78-94,253-256,270-271,325-339,342-371,717-721,742-749
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 126-127,129-137,150,152-159,173,501-502,505-506,510-512,515,518-519,523-538,540-564,624
+packages/frontend/tests/pages/Overview.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 3-7,41,77-78,80-98,102-123,267,269-271,276-284,317,324,329-348,373,378,388,412,422,454,469,522,528,535,538,540,543,545-547,550-551,553,556,558-562,565,568-569,571-574,576,578,580,582-585,588,590-592,1065,1164-1165,1167,1205-1218
+packages/frontend/tests/services/api/providers.test.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,162-192
+  s_5d83b83640b533::t_da35fc9c81b005 193
+packages/backend/src/playground/playground.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 37,70,87,94-96,114-116,136-138,162-171,248-259,445-497,514,519-593,598-601,603-606,608-617,622,627-638
+  s_5d83b83640b533::t_d7bc087b8206ea 639
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 198-201,257,262,436,442,446,451,456,461,471,504
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.coverage.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 4,44-47,54-57
+packages/backend/src/routing/autofix/__tests__/mock-healing-client.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 13
+packages/backend/src/database/migrations/1801100000000-AddProviderAttemptOrdering.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-45
+packages/backend/src/database/migrations/1800300000000-DropUnusedAgentMessageIndexes.ts
+  s_5d83b83640b533::t_546dc82a0018b0 31-33
+packages/backend/src/routing/proxy/__tests__/openai-model-capabilities.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-56
+packages/frontend/src/styles/data.css
+  s_5d83b83640b533::t_546dc82a0018b0 89-93,117,122,168-202,752-755,1361-1364,1371-1384,1391,1404
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-248
+packages/backend/src/billing/plan.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 164,308-316,417,432-433,464,477,483
+.changeset/calm-stream-timeouts.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/sentry/__tests__/debug-sentry.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-7
+packages/backend/test/custom-provider-fk-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,12,16-18
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 38-41,60-76,110-117,207,211,224-226,254-262,305-371,494-502,673,684-687,689,691-696,698-739,741-784,788-793,799,819-820,838-845,911,914-931,958,961-972,976-985,990,1039-1041,1067-1121,1129,1149-1160,1191-1205,1207-1227,1229-1267
+packages/frontend/src/pages/ResetPassword.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 3,5,12-15,19-22,48-52,56-69
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,73-76,83-86,247
+credentials/ManifestApi.credentials.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-62
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-2,46-54,58
+packages/manifest/CHANGELOG.md
+  s_5d83b83640b533::t_546dc82a0018b0 3-40
+packages/shared/src/error-taxonomy.ts
+  s_5d83b83640b533::t_546dc82a0018b0 42-106,147-148,171-178,238-245
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.json
+  s_5d83b83640b533::t_546dc82a0018b0 2,5
+nodes/Manifest/Manifest.node.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-375
+.changeset/current-provider-catalogs.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/database/backfills/backfill-requests.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-207
+packages/backend/test/user-provider-backfill-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 9,50-53,120-122
+  s_5d83b83640b533::t_1f13514519a7f4 123
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-364
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 10,31,106-109,115,133-136,141-142,155,159,163
+packages/backend/test/attempt-analytics.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-82
+packages/backend/test/custom-providers-lift-migrations.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 6,100-102
+packages/frontend/src/components/RequestDrawer.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-772
+packages/backend/test/oauth-subscription-lock.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-258
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-476
+packages/frontend/src/pages/Login.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 156
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 21,36,41-46,48,405-420,428-440,443-447,450-455,542-583,598,603-610,722-724,728-744,751,755-776,780-781
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-350
+packages/frontend/src/services/api/autofix.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-35
+packages/frontend/tests/components/ErrorClassCard.preserved.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-90
+packages/backend/test/custom-provider-fk-data-loss.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,61-63
+  s_5d83b83640b533::t_09f9a4dce3c40e 64
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.d.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-8
+packages/backend/src/analytics/controllers/attempt-analytics.controller.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-32
+packages/backend/src/database/backfills/request-backfill.boot.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-748
+packages/backend/src/routing/oauth/openai/openai-oauth.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 5,35-36,38,41-45,296
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 7-9,13,19,21-36,39,60,62,71,76,93,102
+packages/backend/src/analytics/controllers/provider-analytics.controller.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 52-56,77-94,99-100,136-143,173-186,297-304
+  s_5d83b83640b533::t_b81fe1bbd5ae67 305-309
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-221
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/manifest-logo.dark.svg
+  s_5d83b83640b533::t_546dc82a0018b0 1-80
+packages/frontend/src/components/OverviewSkeleton.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 8,35,44
+packages/backend/src/routing/autofix/__tests__/dev-autofix-seeder.service.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-69
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 58-86,171-172,182,224-283,326,371,373,621-657,686-745,779-785,805-809,847-851,921,1004-1006,1058,1099,1123,1151,1243-1244,1408,2206-2211,2214-2230,2246-2248,2255,2328-2343,2416,2423-2465,2491,2536,2541,2565,2581
+.changeset/clean-stream-lifecycle.md
+  s_5d83b83640b533::t_546dc82a0018b0 1-5
+packages/backend/src/routing/proxy/__tests__/route-credentials.spec.ts
+  s_5d83b83640b533::t_546dc82a0018b0 1-192
+packages/frontend/src/components/UnifiedChartCard.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 1-246
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_5d83b83640b533::t_546dc82a0018b0 87,97-124,225,229-230,265-279,703,841,845-846
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js.map
+  s_5d83b83640b533::t_71b31fcdd4fd3f 1
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.js.map
+  s_5d83b83640b533::t_f76cd72ee813fb 1
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_5d83b83640b533::t_f30a278089848c 1
+integrations/n8n-nodes-manifest/package-lock.json
+  s_5d83b83640b533::t_08e626237740a9 3,9,12,16,20,97-99,511-513,526-528,532,536-538,542-545,548,560-562,566-567,570,582-584,588-590,592-594,597,609-611,615-617,620,632-634,638-639,642,654-656,661,664,693-695,699,703-705,709-710,713,725-727,731-732,735,747-749,753-755,758,770-772,776-785,788,800-802,806-807,810,822-824,828-830,833,845-847,851-854,857,869-871,875,962-964,1516-1518,1586-1588,1593,1619-1621,1660-1662,1708-1710,1802-1804,1813-1815,1819,1823-1825,1834-1838,1843,1852-1854,1858-1860,1868-1870,1874-1878,1882,1891-1893,1897-1901,1908,1917-1919,1927-1929,1933-1934,1940-1942,1946-1948,1952-1955,1957,1961-1963,1971-1973,1980-1982,1985-1986,2083-2097,2101,2104-2107,2109-2130,2132-2135,2137,2139-2145,2148-2151,2153,2155-2386,2443-2479,2481-2483,2491-2493,2502-2504,2509-2511,2514,3076-3078,3083,3089,3557,3561-3562,3565-3569,3572-3575,3577-3583,3585,3587-3588,3590,3596,3995-3997,4002-4004,4006,4010,4012,4362-4364,4385-4387,4503-4505,4509,4632-4634,4643-4646,5193-5195,5289-5315,5692-5694,5698-5699,5703,5707-5709,5923-5925,6116-6118,6236-6248,6365-6367,6371,6447-6449,6731-6733,7162-7164,7168,7172-7174,7178-7181,7365,7460-7462,7466,7468,7470-7471,7474,7538-7540,7550-7551,7587-7589,7604-7606,7610-7611,7614,7709-7711,7715,7717-7722,7725-7765,7769-7771,7775,7779-7782,7975-7977,7982,7988,7995-7997,8005,8027-8039,8088-8090,8094,8096-8097,8099-8101,8104-8162,8175-8184,8261-8267,8269-8271,8275-8276,8344-8346,8360,8364-8367,8369,8373-8379,8381,8387,8418-8420,8424,8843-8845,8849,8854-8864,8914-8916,9354-9356,9490-9492,9499,9597-9599,9603,9606-9619,9737-9739,9760-9762,9766-9767,9770,9897-9899
+package-lock.json
+  s_5d83b83640b533::t_ce47f4c090944e 16-17,19,23,94-96,100,103,123-124,132-134,138,151-153,157-158,173-176,180-189,203-206,208,210,213-217,219-224,226-227,230-233,236-239,242,245-248,251-258,260,263-278,281-285,288,291-305,308-311,314,317-330,334-336,339,342-345,349,352-355,359-373,376,378-380,383-396,400-404,407,410-413,417-418,429-430,438-440,448-450,454-455,462-464,468-470,480-482,490-493,500-503,510-512,520-522,526-527,534-537,540,551-552,564-565,577-578,590-591,605-607,611,622-623,635-636,647-649,653,664-665,677-678,690-691,703-704,716-717,729-730,742-743,758-759,773-775,779,789-791,799-801,805-807,814-816,820-825,833-836,839-840,847-854,857-859,867-868,871,873,886-888,891-892,902-904,907-909,918-920,923-924,928-930,933-934,944-946,949-950,964-966,973-975,980-982,985-987,991-993,1000-1003,1007-1008,1015-1027,1029-1031,1034,1041-1043,1051-1053,1057,1074-1075,1089-1091,1096,1105-1106,1114-1116,1120-1121,1123,1125-1126,1152-1154,1159,1170-1171,1179-1181,1192-1194,1198-1199,1208-1209,1215-1216,1229-1230,1239-1240,1250-1251,1263-1264,1279-1280,1290-1291,1297-1298,1310-1311,1352-1368,1371-1372,1382-1383,1395-1396,1405-1407,1421,1425-1427,1441,1444-1445,1449-1451,1465-1466,1469,1472-1473,1477-1479,1493,1496-1521,1525-1527,1541,1545-1547,1562-1564,1579-1581,1596-1598,1613-1615,1630-1634,1647-1649,1664-1666,1681-1683,1698-1700,1715-1717,1732-1734,1749-1751,1766-1768,1783-1785,1800-1802,1818-1819,1828,1834-1836,1851-1853,1868-1870,1885-1887,1902-1904,1919-1921,1936-1938,1953-1955,1970-1972,1987-1989,2007-2008,2016-2018,2022,2024,2027,2031-2033,2037,2040,2044-2046,2053,2056-2059,2061,2063,2066-2069,2071,2073-2074,2077,2080-2084,2087,2089-2090,2092-2095,2098-2101,2105,2108,2111-2114,2117-2121,2126-2129,2138-2139,2152-2153,2166-2167,2174-2177,2181-2185,2199-2202,2205-2208,2211-2218,2221-2226,2228-2235,2238-2246,2249-2531,2533-2534,2545-2546,2557-2558,2563-2564,2580-2581,2595-2596,2612-2613,2629-2630,2638-2640,2652-2654,2663-2664,2681-2682,2729-2730,2742-2743,2757-2758,2764-2765,2780-2781,2794-2795,2807-2808,2825-2826,2841-2842,2883-2886,2888,2892-2894,2914-2915,2927-2928,2940-2941,2955-2956,2971-2972,2987-2988,3014-3015,3032-3033,3043-3044,3054-3055,3064-3065,3075-3076,3081-3082,3108-3109,3114-3115,3123-3124,3136-3137,3143-3144,3158-3159,3173-3174,3180-3181,3194-3196,3207-3209,3213-3215,3223,3229,3239,3251-3254,3256-3268,3271-3275,3277-3279,3282-3285,3288-3291,3296-3299,3302-3304,3307-3308,3311-3314,3317-3321,3324-3328,3331-3336,3339-3345,3350-3353,3356-3360,3362-3364,3367-3368,3371-3374,3377,3380-3381,3384-3387,3391-3395,3398-3399,3402,3407-3410,3414-3419,3422-3424,3427,3430,3435-3438,3442-3446,3449-3451,3454-3457,3459-3467,3470,3473-3477,3480-3486,3491-3494,3498,3500-3502,3505-3508,3511-3514,3519-3546,3549,3551-3561,3563-3564,3567-3570,3574-3575,3578,3581-3584,3588-3599,3601-3602,3605-3608,3610,3612,3615-3618,3622-3628,3631,3634-3638,3641-3642,3644-3645,3648-3652,3655-3657,3659-3660,3663-3674,3677,3683,3686-3690,3693,3695-3696,3699,3702-3706,3709-3714,3716-3717,3720-3723,3727,3729-3730,3733-3736,3740-3747,3749,3752-3756,3758,3761,3764-3768,3770,3772-3776,3779-3782,3785-3793,3796-3800,3802-3803,3805-3806,3808-3809,3812-3816,3818-3820,3822-3823,3826,3829-3842,3844,3847-3853,3856-3860,3862-3863,3866,3868-3869,3879-3882,3884,3886,3889-3893,3896-3899,3902-3906,3909-3912,3915-3919,3922,3924-3925,3927-3936,3938-3941,3944-3948,3951-3954,3957-3961,3979,3982,3992-4008,4011-4013,4024-4026,4037-4039,4050-4052,4063-4065,4076-4078,4089-4091,4102-4104,4115-4117,4129-4140,4143-4145,4155-4157,4160,4162,4175-4177,4188-4190,4200-4203,4206,4260-4262,4272-4274,4286-4288,4299-4312,4314-4316,4328-4330,4342-4344,4356-4358,4370-4372,4384-4386,4398-4400,4412-4414,4426-4428,4440-4442,4454-4456,4468-4470,4482-4484,4496-4498,4510-4512,4524-4526,4538-4540,4552-4554,4566-4568,4580-4582,4594-4596,4608-4610,4623-4624,4634-4641,4643-4781,4788-4789,4798-4799,4806-4808,4816-4817,4838-4839,4850-4851,4870-4871,4887-4888,4893-4894,4900-4901,4907-4908,4914-4915,4920-4922,4934-4936,4948-4950,4962-4964,4976-4978,4990-4992,5005-5006,5012-5013,5026-5027,5036-5037,5047-5048,5057-5058,5068-5069,5079-5080,5090-5091,5100-5101,5107-5108,5113-5116,5120,5125-5126,5136-5137,5145-5151,5153-5155,5160-5161,5171-5173,5185-5186,5195-5196,5202-5203,5209-5210,5219-5220,5229-5230,5240-5241,5253-5254,5268-5269,5282-5283,5288-5290,5295-5296,5301-5303,5307,5312-5313,5323-5325,5331-5332,5337-5339,5348-5349,5358-5359,5368-5369,5379-5380,5385-5387,5399-5400,5412-5413,5417-5418,5424-5425,5430-5431,5440-5441,5446-5448,5453-5456,5459,5469,5471,5475-5477,5481-5484,5496,5500-5502,5506-5507,5518,5522-5524,5528-5529,5540-5542,5553,5557-5559,5563-5565,5567,5578,5582-5584,5596-5598,5602-5605,5610,5620,5624-5626,5631-5633,5644,5648-5650,5654,5667-5668,5679-5682,5686-5687,5690-5694,5700-5701,5710-5712,5716,5718-5721,5728-5730,5734,5736,5743,5754-5763,5765-5767,5771,5778-5780,5784-5785,5792-5794,5798-5800,5807-5810,5814-5822,5828-5830,5834-5836,5844-5845,5855-5856,5862-5863,5869-5870,5876-5877,5888-5889,5895-5896,5908-5909,5918-5919,5928-5929,5935-5936,5952-5953,5966-5967,5979-5980,5994-5995,6005-6006,6012-6013,6019-6020,6032-6033,6040-6042,6054-6055,6067-6068,6077-6078,6089-6091,6125-6126,6138-6139,6148-6149,6164-6165,6173-6174,6188-6190,6198-6199,6212-6213,6221-6222,6227-6228,6234-6235,6241-6242,6258-6259,6268-6269,6275-6276,6284-6287,6297-6299,6302-6310,6313-6314,6320-6321,6335-6336,6357-6358,6374-6375,6391-6392,6401-6402,6416-6418,6434-6435,6445-6470,6473-6474,6500-6501,6517-6518,6535-6541,6545-6546,6564-6566,6584-6597,6600,6603,6689-6691,6710-6711,6721-6731,6733-6734,6744-6746,6750,6752-6753,6755-6757,6768-6770,6773-6776,6781-6782,6793-6795,6813-6817,6828-6829,6841-6842,6851-6852,6876-6877,6882-6883,6893-6894,6901-6903,6906-6907,6911-6913,6916-6917,6924-6926,6929-6931,6943-6944,6956-6957,6972-6973,6982-6983,6991-6993,7012-7014,7023-7024,7040-7041,7049-7051,7057-7058,7073-7074,7083-7084,7098-7100,7105-7106,7110-7112,7122-7123,7138-7139,7151-7152,7167-7168,7184-7185,7196-7198,7214-7215,7230-7231,7240-7241,7254-7255,7271-7272,7281-7282,7292-7293,7299-7300,7311-7312,7317-7318,7324-7325,7337-7338,7361-7362,7371-7372,7383-7384,7401-7402,7410-7411,7416-7417,7430-7432,7443-7445,7448-7452,7457-7459,7464-7465,7473-7474,7482-7483,7489-7490,7506-7507,7533-7534,7555-7556,7562-7563,7579-7580,7591-7594,7598-7599,7602,7607-7608,7612-7614,7618-7619,7622-7637,7641-7643,7648-7649,7665-7666,7672-7673,7686-7687,7693-7694,7702-7703,7715-7716,7738-7739,7748-7749,7757-7758,7767-7768,7777-7778,7787-7788,7798-7799,7808-7809,7818-7819,7831-7832,7838-7839,7852-7853,7864-7865,7878-7880,7888-7889,7901-7903,7914-7915,7929-7930,7941-7942,7955-7956,7961-7962,7966-7968,7974-7975,7987-7988,7990-7994,7997,8000-8003,8006-8009,8011,8014-8017,8020-8023,8025,8028-8032,8034-8037,8040-8043,8048-8050,8053-8056,8059-8067,8069,8072-8075,8078,8081-8090,8092-8094,8096,8099-8102,8105-8110,8112,8115,8117-8120,8122-8124,8127-8154,8159-8160,8168-8169,8174-8175,8186-8188,8191-8193,8196-8200,8209-8212,8222,8230,8246-8247,8261-8263,8267-8268,8273,8281-8282,8293-8295,8310-8312,8316,8324-8325,8341-8342,8351-8352,8358-8359,8374-8375,8389-8391,8395,8397,8400,8407-8409,8413,8421-8422,8435-8436,8447-8448,8460-8461,8469-8470,8479-8480,8489-8490,8498-8499,8505-8506,8524-8525,8546-8552,8555-8556,8564-8565,8580-8582,8591-8592,8632-8659,8662-8663,8669-8670,8676-8677,8693-8694,8706-8707,8713-8714,8720-8721,8725-8727,8743-8744,8753-8754,8763-8764,8781-8782,8793-8795,8812-8813,8825-8826,8846-8847,8860-8861,8874-8875,8883-8885,8891-8892,8906-8907,8922-8923,8950-8951,8964-8966,8978-8979,8991-8992,9018-9019,9028-9029,9041-9042,9059-9060,9068-9069,9077-9078,9092-9093,9099-9100,9120-9121,9129-9130,9139-9140,9147-9149,9161-9162,9185-9186,9195-9196,9208-9209,9220-9222,9226-9228,9231,9239-9240,9252-9253,9259-9260,9280-9281,9290-9291,9302-9303,9309-9310,9331-9332,9341-9343,9351-9352,9363-9364,9375-9376,9390-9391,9413-9415,9419-9421,9435-9436,9440-9442,9446,9449,9454-9455,9461-9463,9468-9469,9482-9487,9490-9491,9509-9510,9528-9530,9539-9540,9549-9550,9564-9566,9581-9582,9600-9602,9611-9612,9628-9629,9636-9649,9652-9653,9672-9673,9682-9684,9694-9695,9698-9706,9709-9710,9718-9719,9725-9726,9736-9738,9742,9753-9754,9763-9764,9779-9780,9789-9790,9802-9803,9812-9813,9822-9823,9829-9830,9835-9836,9848-9849,9861-9862,9876-9877,9889-9890,9902-9903,9912-9913,9918-9919,9924-9926,9934-9935,9951-9953,9966-9967,9981-9982,9991-9993,10005-10006,10014-10015,10029-10030,10056-10057,10071-10072,10103-10104,10116-10117,10131-10132,10138-10139,10172-10173,10218-10219,10231-10233,10253-10254,10266-10267,10281-10282,10288-10289,10304-10305,10317-10318,10332-10333,10339-10340,10352-10353,10369-10370,10382-10383,10397-10398,10404-10405,10422-10423,10432-10433,10458-10459,10472-10473,10485-10486,10500-10501,10507-10508,10523-10524,10536-10537,10551-10552,10558-10559,10579-10580,10592-10593,10607-10608,10614-10615,10629-10630,10647-10648,10657-10658,10678-10679,10692-10693,10725-10726,10757-10760,10762,10766-10768,10788-10789,10801-10802,10833-10834,10846-10847,10861-10862,10868-10869,10886-10887,10904-10905,10917-10918,10930-10931,10945-10946,10952-10953,10972-10973,10988-10989,11003-11005,11013-11014,11019-11021,11023-11032,11042-11044,11048-11056,11058-11059,11062-11063,11065-11067,11071,11074,11082-11091,11094-11095,11107-11108,11114-11115,11121-11122,11128-11129,11134-11136,11142-11143,11155-11156,11162-11163,11181-11182,11190-11192,11195,11200-11201,11209-11210,11219-11220,11232-11234,11239-11240,11246-11247,11262-11341,11344,11347-11350,11353-11355,11357-11360,11363-11366,11370-11372,11375-11378,11383-11384,11401-11403,11416-11417,11435-11436,11442-11443,11449-11450,11466-11467,11486-11487,11502-11503,11515-11516,11526-11532,11535-11536,11550-11567,11570-11571,11584-11600,11604-11605,11614-11615,11623-11624,11633-11635,11642-11645,11648-11650,11655-11657,11671-11672,11678-11679,11703-11705,11711,11716-11717,11723-11729,11731-11733,11737-11740,11745-11746,11758-11759,11774-11775,11786-11787,11793-11794,11801-11809,11812-11813,11822-11823,11836-11837,11849-11850,11858-11859,11874-11875,11884-11885,11896-11898,11902,11913-11914,11923-11924,11931-11933,11939-11944,11947-11948,11957-11958,11962-11964,11982-11983,11991-11992,12000-12001,12012-12013,12025-12026,12034-12036,12053-12055,12069-12070,12076-12077,12085-12086,12092-12093,12099-12100,12109-12110,12115-12117,12119-12122,12126-12127,12136-12137,12149-12150,12158-12159,12168-12181,12184-12185,12196-12197,12205-12206,12214-12215,12230-12231,12248-12249,12272-12273,12285-12286,12297-12303,12306-12307,12313-12314,12326-12327,12342-12343,12355-12356,12371-12372,12381-12382,12391-12392,12397-12398,12407-12408,12420-12421,12438-12440,12444,12451-12453,12457,12465-12466,12478-12479,12487-12488,12497-12498,12507-12508,12516-12517,12523-12524,12539-12541,12560-12561,12570-12571,12577-12578,12585-12587,12590-12592,12600,12612-12614,12619-12621,12626-12627,12634-12636,12643-12645,12650-12651,12666-12667,12675-12676,12681-12683,12695-12696,12705-12706,12715-12716,12728-12729,12738-12739,12746-12748,12766,12776-12777,12785-12786,12794-12795,12803-12804,12815-12816,12824-12826,12840-12841,12855-12856,12868-12869,12877-12878,12891-12892,12904-12905,12914-12915,12948-12950,12953-12954,12965-12966,12982-12983,13002-13004,13008-13011,13016-13017,13030-13032,13039-13041,13047,13052-13053,13059-13060,13075-13076,13084-13086,13099-13100,13109-13110,13123-13124,13137-13138,13143-13144,13152-13154,13160-13172,13174-13176,13180,13197-13198,13210-13211,13220-13221,13230-13231,13247-13248,13263-13264,13274-13275,13280-13282,13286,13296-13320,13332-13333,13348-13349,13372-13373,13381-13382,13401-13402,13407-13408,13420-13421,13426-13427,13444-13446,13462-13463,13472-13473,13479-13480,13489-13494,13496-13499,13510-13511,13535-13537,13544-13546,13557-13558,13575-13577,13582-13583,13599-13600,13605-13606,13625-13626,13637-13638,13645-13647,13651-13652,13664-13666,13670,13681-13682,13699-13700,13718-13719,13724-13733,13737-13738,13744-13745,13754-13755,13771-13772,13783-13785,13789-13790,13795-13796,13810-13811,13820-13821,13830-13831,13841-13842,13851-13852,13862-13863,13871-13872,13878-13879,13894-13895,13907-13908,13917-13918,13924-13925,13932-13934,13940-13941,13948-13949,13957-13958,13967-13968,13981-13982,13996-13997,14010-14011,14019-14020,14028-14029,14041-14042,14053-14054,14063-14064,14073-14074,14081-14082,14106-14107,14122-14123,14143-14144,14158-14160,14171-14172,14184-14185,14194-14195,14200-14202,14206-14208,14221-14222,14233-14235,14252-14254,14274-14276,14280-14294,14298-14306,14314-14315,14332-14333,14347-14348,14367-14368,14383-14384,14390-14391,14400-14401,14411-14412,14426-14428,14448-14449,14461-14462,14467-14470,14477-14479,14484,14494-14496,14504-14506,14510,14517-14519,14525-14526,14532-14533,14546-14547,14559-14560,14568-14569,14585-14587,14591,14598-14600,14607,14612-14613,14624-14626,14632,14636,14653,14678-14679,14691-14692,14735-14736,14750-14751,14766-14767,14776-14777,14791-14793,14800-14805,14810-14811,14823-14824,14833-14834,14845-14847,14850,14855-14859,14864-14865,14878-14879,14883-14885,14889,14892,14894,14901-14902,14923,14929,14984-14988,14990,14995-14996,15019-15020,15031-15033,15052-15053,15058-15059,15073-15074,15088-15090,15093,15104-15105,15118-15119,15130-15131,15141-15144,15152-15154,15166-15167,15176-15177,15199-15200,15230-15231,15236-15237,15246-15247,15265-15266,15272-15273,15286-15288,15296-15297,15304-15306,15310-15315,15321,15330,15332,15334-15337,15378-15382,15384-15387,15389-15390,15392-15395,15399-15401,15405-15415,15417-15418,15420-15423,15430,15437-15444,15446-15447,15453,15459-15471,15482-15484,15488-15491,15493-15496,15500-15501,15513-15514,15522-15524,15536-15537,15545-15547,15551,15555-15557,15567,15571,15578,15582-15584,15604-15605,15613-15615,15631-15632,15649-15650,15663-15664,15673-15674,15681,15684-15688,15692-15694,15698,15702-15704,15708-15710,15713,15718-15719,15732-15734,15738,15754-15755,15771-15772,15781-15782,15787-15789,15793-15795,15798,15804-15805,15821-15822,15827-15828,15839-15844,15848-15849,15858-15859,15865-15866,15874-15875,15883-15884,15889-15891,15905-15907,15924-15925,15933-15934,15943-15944,15956-15957,15968-15970,15980-15987,15989-15990,15992-15995,15997,16000-16001,16003-16006,16014,16016,16021,16023,16027,16032,16037-16040,16042-16045,16048,16055,16057-16059,16062-16063,16069-16072,16075-16076,16079-16082,16084,16086-16087,16090,16094-16096,16110,16119,16127,16131-16139,16141-16142
+packages/frontend/src/components/ProviderIcon.tsx
+  s_2917deb1d5505f::t_38d97b69673fea 473-477
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "60d5516cdfd87087c1c8ce19383ca31998ae2b9b",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5d83b83640b533": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8d0-f755-7781-b0eb-59e819118db4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
