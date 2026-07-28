@@ -1,5 +1,4 @@
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
-import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
@@ -57,9 +56,6 @@ describe('ProxyMessageRecorder', () => {
     const pricingCache = {
       getByModel: getByModelMock,
     } as unknown as ModelPricingCacheService;
-    const dedup = {
-      normalizeSessionKey: jest.fn((sessionKey: string | undefined) => sessionKey),
-    } as unknown as ProxyMessageDedup;
     const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
     const customProviders = {
       canonicalizeAgentMessageKeys: jest
@@ -78,7 +74,6 @@ describe('ProxyMessageRecorder', () => {
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
-      dedup,
       eventBus,
       customProviders,
       opencodeGoCatalog,
@@ -1243,54 +1238,6 @@ describe('ProxyMessageRecorder', () => {
   });
 
   describe('recordSuccessMessage', () => {
-    let dedupWithLock: ProxyMessageDedup;
-
-    beforeEach(() => {
-      dedupWithLock = {
-        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
-        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
-        withSuccessWriteLock: jest
-          .fn()
-          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
-        withAgentMessageTransaction: jest
-          .fn()
-          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: jest.fn() }),
-          ),
-        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
-      } as unknown as ProxyMessageDedup;
-      const repo = { insert: insertMock } as never;
-      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
-      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
-      recorder.onModuleDestroy();
-      const passthroughCustomProviders = {
-        canonicalizeAgentMessageKeys: jest
-          .fn()
-          .mockImplementation(
-            async (_agentId: string, provider: string | null, model: string | null) => ({
-              provider: provider ?? null,
-              model: model ?? null,
-            }),
-          ),
-      } as never;
-      const opencodeGoCatalog = {
-        getCostPerRequest: jest.fn().mockReturnValue(null),
-        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
-      } as never;
-      recorder = new ProxyMessageRecorder(
-        repo,
-        pricingCache,
-        dedupWithLock,
-        eventBus,
-        passthroughCustomProviders,
-        opencodeGoCatalog,
-      );
-    });
-
-    afterEach(() => {
-      recorder.onModuleDestroy();
-    });
-
     it('records success message and emits SSE event', async () => {
       await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
         prompt_tokens: 100,
@@ -1338,86 +1285,37 @@ describe('ProxyMessageRecorder', () => {
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
     });
 
-    it('updates existing zero-token message and emits SSE event', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-1',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
+    it('produces N separate inserts for N successive calls with identical usage, model and agent', async () => {
+      // The regression pinned by mnfst/manifest#2513: ProxyMessageDedup used to
+      // treat "same tenant/agent/model/usage within a short window" as a
+      // duplicate and silently drop it via an update-into-existing-row path.
+      // Distinct requests that happen to look alike must each persist their
+      // own row.
+      const usage = { prompt_tokens: 100, completion_tokens: 50 };
+      const callCount = 12;
+      for (let i = 0; i < callCount; i++) {
+        await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', usage);
+      }
 
-      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
-        prompt_tokens: 100,
-        completion_tokens: 50,
-      });
-
-      expect(updateMock).toHaveBeenCalledTimes(1);
-      expect(updateMock.mock.calls[0][0]).toEqual({ id: 'existing-msg-1' });
-      expect(updateMock.mock.calls[0][1]).toMatchObject({
-        model: 'gpt-4o',
-        routing_tier: 'standard',
-        routing_reason: 'scored',
-        input_tokens: 100,
-        output_tokens: 50,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        user_id: 'user-1',
-      });
-      expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
-    });
-
-    it('skips update when existing message already has recorded tokens', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-2',
-        timestamp: new Date().toISOString(),
-        input_tokens: 200,
-        output_tokens: 100,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: 500,
-      });
-
-      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
-        prompt_tokens: 100,
-        completion_tokens: 50,
-      });
-
+      expect(insertMock).toHaveBeenCalledTimes(callCount);
       expect(updateMock).not.toHaveBeenCalled();
-      expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).not.toHaveBeenCalled();
+      const ids = insertMock.mock.calls.map((call) => (call[0] as { id?: string }).id);
+      expect(new Set(ids).size).toBe(callCount);
     });
 
-    it('includes session_key in update payload when normalizeSessionKey returns a value', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.normalizeSessionKey as jest.Mock).mockReturnValue('session-abc');
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
+    it('collapses the "default" placeholder session key to null on the persisted row', async () => {
+      await recorder.recordSuccessMessage(
+        ctx,
+        'gpt-4o',
+        'standard',
+        'scored',
+        { prompt_tokens: 50, completion_tokens: 25 },
+        { sessionKey: 'default' },
       );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-3',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
+      expect(insertMock.mock.calls[0][0].session_key).toBeNull();
+    });
 
+    it('persists a real session_key on the inserted row', async () => {
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
@@ -1426,66 +1324,8 @@ describe('ProxyMessageRecorder', () => {
         { prompt_tokens: 50, completion_tokens: 25 },
         { sessionKey: 'session-abc' },
       );
-
-      expect(updateMock).toHaveBeenCalledTimes(1);
-      expect(updateMock.mock.calls[0][1]).toMatchObject({
-        session_key: 'session-abc',
-      });
+      expect(insertMock.mock.calls[0][0].session_key).toBe('session-abc');
       expect(emitMock).toHaveBeenCalledWith('tenant-1', 'message', 'user-1');
-    });
-
-    it('skips update when existing has only output_tokens > 0 (covers short-circuit OR branch)', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      // input_tokens is 0, output_tokens > 0 — the second clause of the
-      // (existing.input_tokens ?? 0) > 0 || (existing.output_tokens ?? 0) > 0
-      // guard must short-circuit the write.
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-output-only',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 42,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: 100,
-      });
-
-      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
-        prompt_tokens: 100,
-        completion_tokens: 50,
-      });
-
-      expect(updateMock).not.toHaveBeenCalled();
-      expect(insertMock).not.toHaveBeenCalled();
-      expect(emitMock).not.toHaveBeenCalled();
-    });
-
-    it('handles existing rows whose token counts are null', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      // Nullish coalescing: `(input_tokens ?? 0) > 0` and likewise for output.
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-null-tokens',
-        timestamp: new Date().toISOString(),
-        input_tokens: null,
-        output_tokens: null,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
-
-      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'standard', 'scored', {
-        prompt_tokens: 10,
-        completion_tokens: 5,
-      });
-
-      expect(updateMock).toHaveBeenCalledTimes(1);
     });
 
     it('persists the provider column on insert path', async () => {
@@ -1501,21 +1341,15 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0].provider).toBe('ollama-cloud');
     });
 
-    it('persists the provider column on update path', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-prov',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
+    it('updates the pending attempt row instead of inserting when the attempt has a pending write', async () => {
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-success-update-payload',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_200,
+        pendingWrite: Promise.resolve(true),
+      };
 
       await recorder.recordSuccessMessage(
         ctx,
@@ -1523,31 +1357,21 @@ describe('ProxyMessageRecorder', () => {
         'standard',
         'scored',
         { prompt_tokens: 50, completion_tokens: 25 },
-        { provider: 'ollama-cloud' },
+        { provider: 'ollama-cloud', sessionKey: 'session-xyz', attempt },
       );
 
+      expect(insertMock).not.toHaveBeenCalled();
       expect(updateMock).toHaveBeenCalledTimes(1);
+      expect(updateMock.mock.calls[0][0]).toEqual({ id: 'attempt-success-update-payload' });
       expect(updateMock.mock.calls[0][1]).toMatchObject({
         provider: 'ollama-cloud',
+        session_key: 'session-xyz',
+        duration_ms: 200,
+        status: 'success',
       });
     });
 
-    it('includes durationMs in update payload when provided', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-4',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
-
+    it('includes durationMs in the inserted row when provided (no in-flight attempt)', async () => {
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
@@ -1557,7 +1381,7 @@ describe('ProxyMessageRecorder', () => {
         { durationMs: 1500 },
       );
 
-      expect(updateMock.mock.calls[0][1]).toMatchObject({
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
         duration_ms: 1500,
       });
     });
@@ -1592,39 +1416,6 @@ describe('ProxyMessageRecorder', () => {
         error_message: null,
         error_origin: null,
       });
-    });
-
-    it('normalizes success status on the dedup-update path', async () => {
-      const updateMock = jest.fn();
-      (dedupWithLock.withAgentMessageTransaction as jest.Mock).mockImplementation(
-        (_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock, update: updateMock }),
-      );
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-row',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
-
-      await recorder.recordSuccessMessage(ctx, 'gpt-4o', 'simple', 'scored', {
-        prompt_tokens: 3,
-        completion_tokens: 4,
-      });
-
-      expect(updateMock).toHaveBeenCalledTimes(1);
-      expect(updateMock.mock.calls[0][0]).toEqual({ id: 'existing-row' });
-      expect(updateMock.mock.calls[0][1]).toMatchObject({
-        status: 'success',
-        error_message: null,
-        error_origin: null,
-        error_class: null,
-        superseded: false,
-      });
-      expect(insertMock).not.toHaveBeenCalled();
     });
   });
 
@@ -1682,48 +1473,7 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('recordSuccessMessage persists request_headers on insert and update paths', async () => {
-      const dedupWithLock = {
-        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
-        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
-        withSuccessWriteLock: jest
-          .fn()
-          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
-        withAgentMessageTransaction: jest
-          .fn()
-          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: updateMock }),
-          ),
-        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
-      } as unknown as ProxyMessageDedup;
-      const updateMock = jest.fn();
-      const repo = { insert: insertMock } as never;
-      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
-      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
-      recorder.onModuleDestroy();
-      const passthroughCustomProviders = {
-        canonicalizeAgentMessageKeys: jest
-          .fn()
-          .mockImplementation(
-            async (_agentId: string, provider: string | null, model: string | null) => ({
-              provider: provider ?? null,
-              model: model ?? null,
-            }),
-          ),
-      } as never;
-      const opencodeGoCatalog = {
-        getCostPerRequest: jest.fn().mockReturnValue(null),
-        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
-      } as never;
-      recorder = new ProxyMessageRecorder(
-        repo,
-        pricingCache,
-        dedupWithLock,
-        eventBus,
-        passthroughCustomProviders,
-        opencodeGoCatalog,
-      );
-
-      // Insert path
+      // Insert path — no in-flight attempt.
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
@@ -1734,23 +1484,22 @@ describe('ProxyMessageRecorder', () => {
       );
       expect(insertMock.mock.calls.at(-1)![0].request_headers).toEqual({ 'x-d': '4' });
 
-      // Update path — flip findExistingSuccessMessage to return a zero-token row.
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-msg-hdr',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
+      // Update path — a pending Attempt whose write already landed.
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-headers-update',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_050,
+        pendingWrite: Promise.resolve(true),
+      };
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
         'standard',
         'scored',
         { prompt_tokens: 5, completion_tokens: 5 },
-        { requestHeaders: { 'x-e': '5' } },
+        { requestHeaders: { 'x-e': '5' }, attempt },
       );
       expect(updateMock.mock.calls[0][1].request_headers).toEqual({ 'x-e': '5' });
     });
@@ -1987,47 +1736,6 @@ describe('ProxyMessageRecorder', () => {
     });
 
     it('recordSuccessMessage persists the autofix audit on insert and update paths', async () => {
-      const updateMock = jest.fn();
-      const dedupWithLock = {
-        normalizeSessionKey: jest.fn().mockReturnValue(undefined),
-        getSuccessWriteLockKey: jest.fn().mockReturnValue('lock-key'),
-        withSuccessWriteLock: jest
-          .fn()
-          .mockImplementation((_k: string, fn: () => Promise<void>) => fn()),
-        withAgentMessageTransaction: jest
-          .fn()
-          .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-            fn({ insert: insertMock, update: updateMock }),
-          ),
-        findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
-      } as unknown as ProxyMessageDedup;
-      const repo = { insert: insertMock } as never;
-      const pricingCache = { getByModel: getByModelMock } as unknown as ModelPricingCacheService;
-      const eventBus = { emit: emitMock } as unknown as IngestEventBusService;
-      recorder.onModuleDestroy();
-      const passthroughCustomProviders = {
-        canonicalizeAgentMessageKeys: jest
-          .fn()
-          .mockImplementation(
-            async (_agentId: string, provider: string | null, model: string | null) => ({
-              provider: provider ?? null,
-              model: model ?? null,
-            }),
-          ),
-      } as never;
-      const opencodeGoCatalog = {
-        getCostPerRequest: jest.fn().mockReturnValue(null),
-        resolveCostPerRequest: jest.fn().mockResolvedValue(null),
-      } as never;
-      recorder = new ProxyMessageRecorder(
-        repo,
-        pricingCache,
-        dedupWithLock,
-        eventBus,
-        passthroughCustomProviders,
-        opencodeGoCatalog,
-      );
-
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
@@ -2041,22 +1749,21 @@ describe('ProxyMessageRecorder', () => {
       expect(inserted.autofix_role).toBe('retry');
       expect(inserted.autofix_group_id).toBe('grp-1');
 
-      (dedupWithLock.findExistingSuccessMessage as jest.Mock).mockResolvedValue({
-        id: 'existing-autofix',
-        timestamp: new Date().toISOString(),
-        input_tokens: 0,
-        output_tokens: 0,
-        cache_read_tokens: 0,
-        cache_creation_tokens: 0,
-        duration_ms: null,
-      });
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-autofix-update',
+        attemptNumber: 1,
+        startedAtMs: 1_000,
+        startedAt: '1970-01-01T00:00:01.000Z',
+        completedAtMs: 1_050,
+        pendingWrite: Promise.resolve(true),
+      };
       await recorder.recordSuccessMessage(
         ctx,
         'gpt-4o',
         'standard',
         'scored',
         { prompt_tokens: 5, completion_tokens: 5 },
-        { autofix: sampleAutofix },
+        { autofix: sampleAutofix, attempt },
       );
       expect(updateMock.mock.calls[0][1].autofix_applied).toBe(true);
       expect(updateMock.mock.calls[0][1].autofix_role).toBe('retry');
@@ -2228,7 +1935,6 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
       getByModel: jest.fn().mockReturnValue(undefined),
       reload: jest.fn(),
     } as never;
-    const dedup = {} as ProxyMessageDedup;
     const eventBus = { emit: jest.fn() } as never;
 
     const customProviderRepo = {
@@ -2259,7 +1965,6 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     const recorder = new ProxyMessageRecorder(
       messageRepo,
       pricingCache,
-      dedup,
       eventBus,
       customProviders,
       mockOpencodeGoCatalog,
@@ -2317,7 +2022,6 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
 describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
   let recorder: ProxyMessageRecorder;
   let insertMock: jest.Mock;
-  let dedupWithLock: ProxyMessageDedup;
   let getCostPerRequestMock: jest.Mock;
 
   beforeEach(() => {
@@ -2326,19 +2030,6 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
     const pricingCache = {
       getByModel: jest.fn().mockReturnValue(undefined),
     } as unknown as ModelPricingCacheService;
-    dedupWithLock = {
-      normalizeSessionKey: jest.fn().mockReturnValue(null),
-      getSuccessWriteLockKey: jest.fn().mockReturnValue('lock'),
-      withSuccessWriteLock: jest
-        .fn()
-        .mockImplementation(async (_key: string, fn: () => Promise<void>) => fn()),
-      withAgentMessageTransaction: jest
-        .fn()
-        .mockImplementation((_repo: unknown, _ctx: unknown, fn: (r: unknown) => Promise<void>) =>
-          fn({ insert: insertMock }),
-        ),
-      findExistingSuccessMessage: jest.fn().mockResolvedValue(null),
-    } as unknown as ProxyMessageDedup;
     const eventBus = { emit: jest.fn() } as unknown as IngestEventBusService;
     const customProviders = {
       canonicalizeAgentMessageKeys: jest
@@ -2358,7 +2049,6 @@ describe('ProxyMessageRecorder OpenCode Go subscription cost', () => {
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
-      dedupWithLock,
       eventBus,
       customProviders,
       opencodeGoCatalog,
