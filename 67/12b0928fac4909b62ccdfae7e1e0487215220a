@@ -1,0 +1,151 @@
+.github/workflows/db-diagram.yml
+  s_da4a6957073020::t_9e72b23a888f40 96-97
+.changeset/exact-request-usage-counter.md
+  s_da4a6957073020::t_6c207d1be8ed1e 5
+README.md
+  s_da4a6957073020::t_9ed32ac3d54b76 9,45,47-48,50,70-76,84,88-121
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_da4a6957073020::t_f8b6bb3baf49a7 109-111,151-153,183,188-207,221-227,233-246,255-276,278-280,306
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_da4a6957073020::t_8ae7ea46bc1584 56-61,81-83,88-102,113,116-118
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_da4a6957073020::t_e6414b597f216c 6-9,163-176,369-382,431-455
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_da4a6957073020::t_14b6b539749172 11-12,44,52-54,73,186,198-200,219,259-266,279,289,392,402
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_da4a6957073020::t_0d814ec7d573ed 468-516
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_da4a6957073020::t_5122a706dc68b9 18-19,104-111,266-268,506-508
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_da4a6957073020::t_684398c73dbe63 9-11,256-304
+packages/backend/src/analytics/services/query-helpers.ts
+  s_da4a6957073020::t_fc25990035bc73 217-253
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_da4a6957073020::t_b8a4a025370875 9,343-423
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_da4a6957073020::t_76264ab069bc9d 12,77,96,193,208,225,238,247,267,705-710,745-746,848-849
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_da4a6957073020::t_377985742532f7 46,110
+packages/backend/src/billing/plan.service.spec.ts
+  s_da4a6957073020::t_e2776735a414df 8,164-165,222-229,305-306,309-311,314-315,325,329,332-333,336,339-340,344,347-370,373-428,431,438,440,449,451,459,462-463,477-480,509,513,522,528
+packages/backend/src/billing/plan.service.ts
+  s_da4a6957073020::t_df2a1f87f7e5bc 15,21,35-37,74,171-174,178-188,190-192,194-201,205-219,221-302,305-307,330,367
+packages/backend/src/billing/request-quota-window.spec.ts
+  s_da4a6957073020::t_30292aeae6325b 1-42
+packages/backend/src/billing/request-quota-window.ts
+  s_da4a6957073020::t_2b4f772c922be2 1-13
+packages/backend/src/common/constants/providers.spec.ts
+  s_da4a6957073020::t_a8cce5f9fe331a 121-131
+packages/backend/src/database/data-source-definitions.ts
+  s_da4a6957073020::t_5eb77564cf5a24 30,37,182,310
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_da4a6957073020::t_f69e552e6935d9 195
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_da4a6957073020::t_6ab26571ae85d6 156-162
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_da4a6957073020::t_0e55c16f5315d1 1-108
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_da4a6957073020::t_5c416e4f27e267 1-230
+packages/backend/src/entities/tenant-request-usage.entity.spec.ts
+  s_da4a6957073020::t_d16eb301977783 1-24
+packages/backend/src/entities/tenant-request-usage.entity.ts
+  s_da4a6957073020::t_18ba1829369cff 1-19
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_da4a6957073020::t_22b2484d217f91 28
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_da4a6957073020::t_8b1bdbf6c4cc2f 29,58-185
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_da4a6957073020::t_f5fd860e8ebda6 27-32,47,138-156,178-247,741-745
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_da4a6957073020::t_48ebcdfc073a5d 3341-3355,4054
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_da4a6957073020::t_2797ea3d441495 77,105-110,169,230-240
+packages/backend/src/routing/proxy/provider-client.ts
+  s_da4a6957073020::t_d16e9ef866500a 203,211
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_da4a6957073020::t_7ae6903cae5691 122,235-241
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_da4a6957073020::t_54935a7a44c9a5 343,353
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_da4a6957073020::t_8c8a3c93bc346c 1,1640-1667
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_da4a6957073020::t_433833ee0a9cc0 25
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_da4a6957073020::t_8f322d102972d1 6,70-75,111-113,137-139
+packages/backend/test/helpers.ts
+  s_da4a6957073020::t_a81bdcab89c5ee 44,89
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_da4a6957073020::t_237de1bfd202c4 4,82-83,88-89,93-98,114,154-156
+packages/backend/test/oauth-subscription-lock.e2e-spec.ts
+  s_da4a6957073020::t_8607f8c7dd586f 1-258
+packages/backend/test/overview.e2e-spec.ts
+  s_da4a6957073020::t_8a37ba160ac40f 9-13,24-39,45-119,188-235
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_da4a6957073020::t_233980d89925ff 1-358
+packages/frontend/public/logos/gemini.svg
+  s_da4a6957073020::t_46c4fc23db8ea0 1-52
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_da4a6957073020::t_8829084f5cc81b 2
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_da4a6957073020::t_27a28a15735d60 1,3,74-84,122-147,622,642
+packages/frontend/src/components/ProviderIcon.tsx
+  s_da4a6957073020::t_f89b88826871e6 209-221,473-477
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_da4a6957073020::t_5f813d2718be4a 13,31
+packages/frontend/src/components/UserDiscoveryBanner.tsx
+  s_da4a6957073020::t_52288f7bbaa355 3-5,9,17,23,33-36,38,41,43,48,73
+packages/frontend/src/components/UserDiscoveryModal.tsx
+  s_da4a6957073020::t_7baca7dc5c1cf1 1-139
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_da4a6957073020::t_3d665070441ead 42-46,591-612,620,622
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_da4a6957073020::t_0681b6163163a0 11
+packages/frontend/src/services/providers.ts
+  s_da4a6957073020::t_3695a1c5c1a6a1 114,155,163,183,195,218,223,228,250,262,280-285,309,338,349,371,376,382,393,417,431,441,449,496
+packages/frontend/src/styles/modals.css
+  s_da4a6957073020::t_02c20208d600b9 1013-1147
+packages/frontend/src/styles/overview.css
+  s_da4a6957073020::t_9c4a10c1918325 103-104,110,124,131-134,144-145,150,163,168,171,176,182,187
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_da4a6957073020::t_0630f5a860f0b0 53-60,66,130,145,164,173-250
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_da4a6957073020::t_ac2e08adc15786 63,401-418
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_da4a6957073020::t_d30bfcb28caf56 65-73
+packages/frontend/tests/components/UserDiscoveryBanner.test.tsx
+  s_da4a6957073020::t_527b400f697a02 3-6,8,14-15,17,19,22-26,28-43,47,51-54,57-58,66,70
+packages/frontend/tests/components/UserDiscoveryModal.test.tsx
+  s_da4a6957073020::t_c8cd54d369f0b1 1-112
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_da4a6957073020::t_d87ba3749d561b 434-451
+packages/frontend/tests/services/providers.test.ts
+  s_da4a6957073020::t_7c2f4b6651546e 209-225,595-606,828-833
+packages/manifest/CHANGELOG.md
+  s_da4a6957073020::t_171bebf2669ceb 3-38
+packages/manifest/package.json
+  s_da4a6957073020::t_2ee940c408e01d 3
+packages/shared/__tests__/providers.spec.ts
+  s_da4a6957073020::t_42deed4945574e 75-84,170-179
+packages/shared/src/index.ts
+  s_da4a6957073020::t_8ff8ca88ee0172 117
+packages/shared/src/provider-limits.ts
+  s_da4a6957073020::t_300871d9590bc9 1-7
+packages/shared/src/providers.ts
+  s_da4a6957073020::t_bfe6a46d1c67e3 162-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6712b0928fac4909b62ccdfae7e1e0487215220a",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
