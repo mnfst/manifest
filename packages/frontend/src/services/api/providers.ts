@@ -1,5 +1,6 @@
 import type { AuthType } from 'manifest-shared';
-import { fetchJson } from './core.js';
+import { invalidateAll } from './cache.js';
+import { BASE_URL, fetchJson, parseErrorMessage } from './core.js';
 
 export interface TenantProviderConnection {
   id: string;
@@ -65,9 +66,63 @@ export interface ProviderUsageResponse {
   providers: TenantProviderUsage[];
 }
 
-/** Fetch provider CONFIG only (cheap; paints immediately). */
+export interface ManifestEnsureResponse {
+  connected: boolean;
+  connection_id: string | null;
+  source: 'existing' | 'auto' | 'manual' | 'none';
+  auto_available: boolean;
+}
+
+let manifestEnsureInflight: Promise<ManifestEnsureResponse> | null = null;
+
+/**
+ * Ensure a Manifest Credits connection exists. Auto-mints a credit key when
+ * the backend has a master key and the user is eligible; otherwise pass `apiKey`
+ * for the gifted-key path. Dedupes concurrent calls.
+ */
+export async function ensureManifestProvider(apiKey?: string): Promise<ManifestEnsureResponse> {
+  if (!apiKey && manifestEnsureInflight) return manifestEnsureInflight;
+
+  const run = (async () => {
+    const res = await fetch(`${BASE_URL}/providers/manifest/ensure`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(apiKey ? { apiKey } : {}),
+    });
+    if (!res.ok) {
+      throw new Error(await parseErrorMessage(res));
+    }
+    const data = (await res.json()) as ManifestEnsureResponse;
+    // Only bust GET cache when a connection was actually created.
+    if (data.source === 'auto' || data.source === 'manual') {
+      invalidateAll();
+    }
+    return data;
+  })();
+
+  if (!apiKey) {
+    manifestEnsureInflight = run.finally(() => {
+      manifestEnsureInflight = null;
+    });
+    return manifestEnsureInflight;
+  }
+  return run;
+}
+
+/**
+ * Fetch provider CONFIG only (cheap; paints immediately).
+ * Best-effort auto-provision of the managed Manifest gateway connection so
+ * eligible users see it in routing without visiting the BYOK page first.
+ */
 export function getProviders() {
-  return fetchJson<ProvidersResponse>('/providers');
+  const providers = fetchJson<ProvidersResponse>('/providers');
+  if (import.meta.env.VITE_MANIFEST_SELFHOSTED !== 'true') {
+    // Provision in the background so a slow or unavailable credits gateway never
+    // blocks provider configuration, routing screens, or agent creation.
+    void ensureManifestProvider().catch(() => undefined);
+  }
+  return providers;
 }
 
 /** Fetch provider USAGE stats (the expensive 30d aggregation). */

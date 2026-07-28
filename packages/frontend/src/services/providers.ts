@@ -20,6 +20,7 @@ export interface ProviderDef {
   keyPlaceholder: string;
   noKeyRequired?: boolean;
   localOnly?: boolean;
+  cloudOnly?: boolean;
   /** Provider supports agent-side OAuth/subscription auth (setup-token, OAuth, device-login). */
   supportsSubscription?: boolean;
   /** Label shown in the subscription tab for this provider. */
@@ -193,6 +194,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
   cerebras: {
     initial: 'Cb',
     subtitle: 'GPT-OSS, GLM, Gemma on Cerebras inference',
+    models: [],
+  },
+  manifest: {
+    initial: 'M',
+    subtitle: 'Managed models via Manifest gateway',
     models: [],
   },
   'cline-pass': {
@@ -474,6 +480,7 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
     minKeyLength: shared.minKeyLength,
     keyPlaceholder: shared.keyPlaceholder,
     localOnly: shared.localOnly || undefined,
+    cloudOnly: shared.cloudOnly || undefined,
     ...overlay,
   };
 }
@@ -498,6 +505,7 @@ const PROVIDER_ORDER = [
   'kiro',
   'llamacpp',
   'lmstudio',
+  'manifest',
   'minimax',
   'mistral',
   'moonshot',

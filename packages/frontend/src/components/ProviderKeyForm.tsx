@@ -120,8 +120,10 @@ const ProviderKeyForm: Component<ProviderKeyFormProps> = (props) => {
 
   // Multi-key chains are supported for api_key and subscription. Local
   // providers (Ollama / LM Studio) don't carry credentials, so they stay
-  // on the single-row surface.
-  const supportsMultiKey = () => props.selectedAuthType() !== 'local';
+  // on the single-row surface. Managed Manifest keys are also limited to one
+  // connection per workspace by the backend.
+  const supportsMultiKey = () =>
+    props.selectedAuthType() !== 'local' && props.provId !== 'manifest';
 
   const activeKeys = createMemo<RoutingProvider[]>(() => {
     if (!props.providers) return [];

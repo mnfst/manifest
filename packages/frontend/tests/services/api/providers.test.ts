@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as api from '../../../src/services/api';
 import {
   connectionUsage,
+  ensureManifestProvider,
   getProviders,
   getProviderUsage,
   mergeUsage,
@@ -27,6 +28,7 @@ describe('providers API client', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -50,6 +52,86 @@ describe('providers API client', () => {
     expect(url).toContain('/api/v1/providers');
     expect(url).not.toContain('/api/v1/providers/usage');
     expect((init as RequestInit).credentials).toBe('include');
+  });
+
+  it('does not wait for background Manifest provisioning before returning config', async () => {
+    const response = { providers: [], model_counts: {} };
+    let resolveEnsure!: (response: unknown) => void;
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return new Promise((resolve) => {
+          resolveEnsure = resolve;
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => response,
+        text: async () => JSON.stringify(response),
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(getProviders()).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      expect.objectContaining({ method: 'POST' }),
+    );
+
+    resolveEnsure({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        connected: false,
+        connection_id: null,
+        source: 'none',
+        auto_available: false,
+      }),
+    });
+    await ensureManifestProvider();
+  });
+
+  it('does not provision Manifest Credits in a self-hosted build', async () => {
+    vi.stubEnv('VITE_MANIFEST_SELFHOSTED', 'true');
+    const response = { providers: [], model_counts: {} };
+    const fetchMock = setupFetch(response);
+
+    await expect(getProviders()).resolves.toEqual(response);
+    expect(
+      fetchMock.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === 'POST'),
+    ).toBe(false);
+  });
+
+  it('stores a manually gifted Manifest key through the direct path', async () => {
+    const response = {
+      connected: true,
+      connection_id: 'conn-gifted',
+      source: 'manual',
+      auto_available: false,
+    };
+    const fetchMock = setupFetch(response);
+
+    await expect(ensureManifestProvider('sk-gifted')).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ apiKey: 'sk-gifted' }),
+      }),
+    );
+  });
+
+  it('surfaces Manifest provisioning errors', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ message: 'Invalid gifted key' }),
+      }),
+    );
+
+    await expect(ensureManifestProvider('bad-key')).rejects.toThrow('Invalid gifted key');
   });
 
   it('GETs provider USAGE from the dedicated endpoint', async () => {
