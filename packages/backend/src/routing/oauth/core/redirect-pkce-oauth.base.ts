@@ -114,11 +114,15 @@ export abstract class RedirectPkceOauthBaseService {
     protected readonly oauthConfig: RedirectPkceOauthConfig,
   ) {
     this.logger = new Logger(oauthConfig.serviceName);
+    // `||`, not `??`: docker-compose forwards unset optional vars as an empty
+    // string, and `??` would take `''` as a deliberate override — leaving the
+    // provider with a blank client id and an OAuth flow that fails at the
+    // authorize redirect instead of falling back to the shipped default.
     this.clientId =
-      configService.get<string>(oauthConfig.clientIdEnvVar) ?? oauthConfig.defaultClientId;
+      configService.get<string>(oauthConfig.clientIdEnvVar)?.trim() || oauthConfig.defaultClientId;
     this.clientSecret = oauthConfig.clientSecretEnvVar
-      ? (configService.get<string>(oauthConfig.clientSecretEnvVar) ??
-        oauthConfig.defaultClientSecret)
+      ? configService.get<string>(oauthConfig.clientSecretEnvVar)?.trim() ||
+        oauthConfig.defaultClientSecret
       : oauthConfig.defaultClientSecret;
     this.redirectUri =
       oauthConfig.redirectUri ?? `http://localhost:${oauthConfig.callbackPort}/auth/callback`;
