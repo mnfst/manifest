@@ -31,7 +31,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
     const storageTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
     const storageTimeZoneSql = storageTimeZone.replaceAll("'", "''");
 
-    await queryRunner.query(`SET lock_timeout = '5s'`);
+    await queryRunner.query(`SET lock_timeout = '1s'`);
     try {
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS "tenant_request_usage" (
@@ -46,12 +46,11 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
       await queryRunner.query(
         `ALTER TABLE "tenant_request_usage" ADD COLUMN IF NOT EXISTS "baseline_counted" boolean NOT NULL DEFAULT false`,
       );
-      await queryRunner.query(
-        `ALTER TABLE "requests" ADD COLUMN IF NOT EXISTS "quota_counted" boolean NOT NULL DEFAULT false`,
-      );
-      await queryRunner.query(
-        `ALTER TABLE "requests" ADD COLUMN IF NOT EXISTS "quota_window_start" timestamp`,
-      );
+      await queryRunner.query(`
+        ALTER TABLE "requests"
+          ADD COLUMN IF NOT EXISTS "quota_counted" boolean NOT NULL DEFAULT false,
+          ADD COLUMN IF NOT EXISTS "quota_window_start" timestamp
+      `);
 
       await queryRunner.query(`
         CREATE OR REPLACE FUNCTION "count_tenant_request_usage"()
@@ -171,7 +170,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
 
       // The lock makes cutover publication and trigger installation atomic:
       // rows committed before the lock are historical; rows after commit see
-      // the trigger. Five-second lock_timeout makes a busy deploy retry instead
+      // the trigger. A one-second lock timeout makes a busy deploy retry instead
       // of pausing writes indefinitely.
       await queryRunner.startTransaction();
       try {
@@ -211,7 +210,7 @@ export class AddTenantRequestUsage1801300000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`SET lock_timeout = '5s'`);
+    await queryRunner.query(`SET lock_timeout = '1s'`);
     try {
       await queryRunner.query(
         `DROP TRIGGER IF EXISTS "TRG_agent_messages_count_tenant_request_usage" ON "agent_messages"`,

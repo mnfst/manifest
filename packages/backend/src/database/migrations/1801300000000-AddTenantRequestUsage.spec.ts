@@ -25,7 +25,7 @@ describe('AddTenantRequestUsage1801300000000', () => {
 
     const sql = statements.map((statement) => statement.sql).join('\n');
     expect(migration.transaction).toBe(false);
-    expect(statements[0].sql).toContain("SET lock_timeout = '5s'");
+    expect(statements[0].sql).toContain("SET lock_timeout = '1s'");
     expect(statements.at(-1)?.sql).toContain('RESET lock_timeout');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS "tenant_request_usage"');
     expect(sql).toContain('PRIMARY KEY ("tenant_id", "window_start")');

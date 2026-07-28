@@ -271,4 +271,23 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
 
     expect(await usageRow(ds, futureWindow)).toEqual({ count: 1, initialized: true });
   });
+
+  it('fails within the lock timeout instead of queueing a busy deployment', async () => {
+    const blocker = ds.createQueryRunner();
+    await blocker.connect();
+    await blocker.startTransaction();
+    try {
+      await blocker.query(`LOCK TABLE "requests" IN ACCESS SHARE MODE`);
+      const startedAt = Date.now();
+
+      await expect(runMigration(ds, 'up')).rejects.toMatchObject({ code: '55P03' });
+
+      const elapsedMs = Date.now() - startedAt;
+      expect(elapsedMs).toBeGreaterThanOrEqual(900);
+      expect(elapsedMs).toBeLessThan(3_000);
+    } finally {
+      await blocker.rollbackTransaction();
+      await blocker.release();
+    }
+  });
 });
