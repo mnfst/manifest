@@ -1,0 +1,91 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 198
+packages/backend/src/routing/provider.controller.ts
+  s_3c4ddbd1f15e8e::t_3229c5f471483a 37,39,117-124
+packages/frontend/tests/services/api/providers.test.ts
+  s_3c4ddbd1f15e8e::t_c3abf292c0edf6 31,94-102
+  s_2917deb1d5505f::t_57f69c1310b9be 103-104
+packages/backend/src/routing/manifest-provider/manifest-provider.controller.spec.ts
+  s_3c4ddbd1f15e8e::t_3229c5f471483a 1,12,16,20-24,80-90,92
+  s_2917deb1d5505f::t_2ad06509d49287 91
+packages/frontend/src/services/api/providers.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 79,81
+  s_3c4ddbd1f15e8e::t_c3abf292c0edf6 120-124
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 1,427,430
+packages/frontend/tests/services/providers.test.ts
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 472-478
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_3c4ddbd1f15e8e::t_b3deb1cb5c345e 66,372-380
+  s_2917deb1d5505f::t_cd313b7986def9 381-382
+packages/backend/src/common/constants/manifest-credits.spec.ts
+  s_3c4ddbd1f15e8e::t_fb4d410cc7ce24 37
+  s_3c4ddbd1f15e8e::t_c71a65ac252da6 6-7,33-36
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 66
+  s_3c4ddbd1f15e8e::t_ec6a595aa2f6ed 2-5,8-9,11,16-19,26-27,31-32,41,45-50,54-55,59-61,65,67-69
+packages/frontend/src/components/ProviderSelectContent.tsx
+  s_3c4ddbd1f15e8e::t_3118db58981de5 73-80
+packages/shared/src/providers.ts
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 28-29,263,267,271
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 13
+packages/backend/src/routing/manifest-provider/manifest-provider.service.spec.ts
+  s_3c4ddbd1f15e8e::t_7258de84989896 22-24,162,175,190,206,219,236
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 3,166,168,170,394,893-894,896
+packages/backend/src/common/utils/provider-availability.ts
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 17-24,26,30-31,33-34
+  s_3c4ddbd1f15e8e::t_3229c5f471483a 6-7
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 32
+packages/backend/src/routing/manifest-provider/manifest-provider.service.ts
+  s_3c4ddbd1f15e8e::t_7258de84989896 5-8,10,22,47,50,60,150,152,155-156,169,176,180,182,187-190,196
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 50
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 3,24-26,36,48,51-54
+packages/shared/__tests__/providers.spec.ts
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 158-164
+packages/backend/src/common/constants/manifest-credits.ts
+  s_3c4ddbd1f15e8e::t_ec6a595aa2f6ed 1,5,8,13-14,18-19,26-27,35-37,44-45,48-49
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 9
+packages/backend/src/routing/manifest-provider/manifest-provider.controller.ts
+  s_3c4ddbd1f15e8e::t_3229c5f471483a 1,6-10,38-41
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 14
+.changeset/managed-manifest-provider.md
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 5
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 45
+packages/frontend/src/services/providers.ts
+  s_3c4ddbd1f15e8e::t_1fe4f50d1d27a6 23,483
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_3c4ddbd1f15e8e::t_b3deb1cb5c345e 47,121-124,127-129,234-235,852,900
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 125
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_3c4ddbd1f15e8e::t_3118db58981de5 148-163
+  s_3c4ddbd1f15e8e::t_d6fb618e2631c3 24-25
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_3c4ddbd1f15e8e::t_ec973853bc6db6 216,233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "8335c546e1ac4079b2f7359bf95cb6989b60edac",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
