@@ -1,15 +1,15 @@
 import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
+import { resolveHttpHealingUrl } from './autofix-healing-config';
 
 const PROBE_TIMEOUT_MS = 5_000;
 
 /**
- * On boot, if a Phoenix healer is configured (`AUTOFIX_HEALING_URL`), ping its
- * public `GET /api/health` once and log the result. This surfaces a wrong URL, a
- * down Phoenix, or a network gap at deploy time — instead of silently on the
- * first repairable 4xx, where it would look like the healer is "down" and trip
- * the circuit breaker. Fire-and-forget and never throws, so it can never delay
- * or fail app boot.
+ * On boot, ping the resolved Phoenix healer's public `GET /api/health` once.
+ * This includes the hosted self-hosted default, but excludes `off`, cloud
+ * production without a URL, and the in-process dev mock. The probe never
+ * registers or sends credentials, and never delays or fails app boot.
  */
 @Injectable()
 export class AutofixHealthProbe implements OnApplicationBootstrap {
@@ -23,7 +23,11 @@ export class AutofixHealthProbe implements OnApplicationBootstrap {
   }
 
   async probe(): Promise<void> {
-    const url = this.config.get<string>('AUTOFIX_HEALING_URL')?.trim();
+    const url = resolveHttpHealingUrl(
+      this.config.get<string>('AUTOFIX_HEALING_URL'),
+      this.config.get<string>('NODE_ENV'),
+      isSelfHosted(),
+    );
     if (!url) return; // No external healer wired — nothing to probe.
 
     const target = `${url.replace(/\/+$/, '')}/api/health`;

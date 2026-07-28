@@ -25,7 +25,7 @@ function makeForward(body: string, status: number): ForwardResult {
 }
 
 type HealingClientMock = {
-  heal: jest.Mock<Promise<HealResponse>, [unknown]>;
+  heal: jest.Mock<Promise<HealResponse>, [unknown, unknown?]>;
   reportOutcome: jest.Mock;
 };
 
@@ -294,6 +294,21 @@ describe('AutofixService', () => {
   const neither = () => ({ autofix_access_granted_at: null, autofix_waitlist_at: null });
 
   describe('hasAccess three-phase gate', () => {
+    it('grants self-hosted tenants without consulting the cloud rollout table', async () => {
+      const previous = process.env.MANIFEST_MODE;
+      process.env.MANIFEST_MODE = 'selfhosted';
+      try {
+        const { repo: tenantRepo, findOne } = makeTenantRepo(neither);
+        const service = makeService({ tenantRepo });
+
+        expect(await service.hasAccess('t1')).toBe(true);
+        expect(findOne).not.toHaveBeenCalled();
+      } finally {
+        if (previous === undefined) delete process.env.MANIFEST_MODE;
+        else process.env.MANIFEST_MODE = previous;
+      }
+    });
+
     it('everyone phase: grants any tenant with no DB read', async () => {
       const { repo: tenantRepo, findOne } = makeTenantRepo(neither);
       const service = makeService({
@@ -518,7 +533,7 @@ describe('AutofixService', () => {
       // real-DB regression in test/autofix-null-flag.e2e-spec.ts.
       expect(findOne).toHaveBeenCalledWith({
         where: { id: 'a-9', tenant_id: 't-9' },
-        select: ['id', 'autofix_enabled'],
+        select: ['id', 'autofix_enabled', 'agent_platform'],
       });
     });
   });
@@ -544,7 +559,7 @@ describe('AutofixService', () => {
 
       const result = await service.maybeHeal(makeParams({ forward }));
 
-      expect(client.heal).toHaveBeenCalledWith(
+      expect(client.heal.mock.calls[0][0]).toEqual(
         expect.objectContaining({
           providerExchange: {
             format: 'anthropic_messages',
@@ -577,7 +592,7 @@ describe('AutofixService', () => {
 
       await service.maybeHeal(makeParams({ forward }));
 
-      expect(client.heal).toHaveBeenCalledWith(
+      expect(client.heal.mock.calls[0][0]).toEqual(
         expect.objectContaining({
           providerExchange: {
             format: 'anthropic_messages',
@@ -589,6 +604,34 @@ describe('AutofixService', () => {
           },
         }),
       );
+    });
+
+    it('coerces the cached agent platform into the Phoenix harness context', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-1' });
+      const { repo } = makeAgentRepo(() => ({
+        autofix_enabled: true,
+        agent_platform: 'claude-code',
+      }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({}));
+
+      expect(client.heal.mock.calls[0][1]).toEqual({ harness: 'claude-code' });
+    });
+
+    it('never sends an unknown persisted platform value to Phoenix', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-1' });
+      const { repo } = makeAgentRepo(() => ({
+        autofix_enabled: true,
+        agent_platform: 'customer-specific-name',
+      }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({}));
+
+      expect(client.heal.mock.calls[0][1]).toEqual({ harness: 'other' });
     });
 
     it('heals on the patched retry, reports the cleared retry, and records the chain', async () => {
@@ -616,7 +659,11 @@ describe('AutofixService', () => {
 
       // reportOutcome called once with the cleared 2xx retry status and no error.
       expect(client.reportOutcome).toHaveBeenCalledTimes(1);
-      expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', { retryStatusCode: 200 });
+      expect(client.reportOutcome).toHaveBeenCalledWith(
+        'heal-1',
+        { retryStatusCode: 200 },
+        { harness: 'other' },
+      );
       // The success report carries no `error` key.
       expect(client.reportOutcome.mock.calls[0][1]).not.toHaveProperty('error');
 
@@ -754,7 +801,7 @@ describe('AutofixService', () => {
         }),
       );
 
-      expect(client.heal).toHaveBeenCalledWith(
+      expect(client.heal.mock.calls[0][0]).toEqual(
         expect.objectContaining({
           model: 'gemini-2.5-flash',
           request: requestBody,
@@ -887,10 +934,14 @@ describe('AutofixService', () => {
       expect(reforward).toHaveBeenCalledTimes(1);
       // The single failed retry is reported to Phoenix with its status + error.
       expect(client.reportOutcome).toHaveBeenCalledTimes(1);
-      expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', {
-        retryStatusCode: 400,
-        error: { message: 'still-broken', type: null, param: null, code: 'dup' },
-      });
+      expect(client.reportOutcome).toHaveBeenCalledWith(
+        'heal-1',
+        {
+          retryStatusCode: 400,
+          error: { message: 'still-broken', type: null, param: null, code: 'dup' },
+        },
+        { harness: 'other' },
+      );
 
       // The original is linked to the distinct failed retry that Phoenix produced.
       expect(result!.record.chain).toHaveLength(2);
@@ -1098,7 +1149,11 @@ describe('AutofixService', () => {
 
       // Let the fire-and-forget .catch run; must not surface as an unhandled rejection.
       await flushMicrotasks();
-      expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', { retryStatusCode: 200 });
+      expect(client.reportOutcome).toHaveBeenCalledWith(
+        'heal-1',
+        { retryStatusCode: 200 },
+        { harness: 'other' },
+      );
     });
   });
 

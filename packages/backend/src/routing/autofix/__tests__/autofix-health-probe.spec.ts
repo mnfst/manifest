@@ -16,12 +16,17 @@ function fakeResponse(ok: boolean, status: number): Response {
 
 describe('AutofixHealthProbe', () => {
   let fetchSpy: jest.SpyInstance;
+  let previousMode: string | undefined;
 
   beforeEach(() => {
+    previousMode = process.env.MANIFEST_MODE;
+    process.env.MANIFEST_MODE = 'cloud';
     fetchSpy = jest.spyOn(global, 'fetch');
   });
 
   afterEach(() => {
+    if (previousMode === undefined) delete process.env.MANIFEST_MODE;
+    else process.env.MANIFEST_MODE = previousMode;
     jest.restoreAllMocks();
   });
 
@@ -32,6 +37,28 @@ describe('AutofixHealthProbe', () => {
 
   it('does nothing when AUTOFIX_HEALING_URL is blank/whitespace', async () => {
     await makeProbe({ AUTOFIX_HEALING_URL: '   ' }).probe();
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('probes the hosted default when self-hosted production leaves the URL unset', async () => {
+    process.env.MANIFEST_MODE = 'selfhosted';
+    fetchSpy.mockResolvedValue(fakeResponse(true, 200));
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+
+    await makeProbe({ NODE_ENV: 'production' }).probe();
+
+    expect(fetchSpy.mock.calls[0][0]).toBe('https://autofix.manifest.build/api/health');
+    expect(fetchSpy.mock.calls[0][1].headers).toBeUndefined();
+  });
+
+  it('does not probe when AUTOFIX_HEALING_URL is explicitly off', async () => {
+    process.env.MANIFEST_MODE = 'selfhosted';
+
+    await makeProbe({
+      NODE_ENV: 'production',
+      AUTOFIX_HEALING_URL: 'off',
+    }).probe();
+
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

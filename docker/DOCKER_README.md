@@ -407,6 +407,8 @@ sets this automatically).
 | `SENTRY_DSN`         | No       | unset                   | Opt-in error monitoring. Sentry is not initialised unless set |
 | `MANIFEST_TELEMETRY_DISABLED` | No | `0`               | Set `1` to disable anonymous usage telemetry  |
 | `TELEMETRY_ENDPOINT` | No       | `https://telemetry.manifest.build/v1/report` | Send the usage report to your own collector instead |
+| `AUTOFIX_HEALING_URL` | No       | hosted service          | Autofix healing endpoint. Set `off` to disable all calls to the Autofix service |
+| `AUTOFIX_GLOBAL_ENABLED` | No    | `true`                  | Deployment-wide Autofix kill switch             |
 
 `NODE_ENV` and `SEED_DATA` are deliberately fixed by the compose file and are
 not knobs here: the image is a production artifact, and the demo-data seeder
@@ -428,6 +430,39 @@ platform, OS, and arch.
 To disable, set `MANIFEST_TELEMETRY_DISABLED=1` in your `.env` file and
 restart the container. The full field list is published at
 [manifest.build/docs/self-hosted#telemetry](https://manifest.build/docs/self-hosted#telemetry).
+
+## Autofix privacy and instance identity
+
+Autofix is off by default for every agent in self-hosted Manifest. When you turn
+it on for an agent, the install lazily registers with the hosted healing service
+and stores a random anonymous instance credential in PostgreSQL. Autofix calls
+identify the instance, the Manifest version, and the agent platform from a fixed
+list; custom platform names are sent as `other`.
+
+Autofix works by sending a failed request to the healing service so it can
+produce a corrected body. The failing request body, provider error, provider,
+and API mode are therefore sent after known secrets are scrubbed. Secret
+scrubbing does not remove arbitrary personal information from prompts. Successful
+traffic is not sent. If `AUTOFIX_REPORT_ALL_4XX=true`, scrubbed bodies for other
+request-side 4xx failures are also sent as diagnostic observations (up to
+256 KiB), under the same per-agent opt-in.
+
+If no agent has Autofix enabled, no registration or healing call is made; only
+the public, unauthenticated boot-time health check may contact the configured
+service. Set `AUTOFIX_HEALING_URL=off` to disable every Autofix service call.
+`AUTOFIX_GLOBAL_ENABLED=false` disables registration and healing but leaves that
+health check intact. `MANIFEST_TELEMETRY_DISABLED` controls only the separate
+aggregate telemetry report; it does not control Autofix, and the two systems use
+unrelated instance identifiers.
+
+After restoring or cloning a database, you can force a fresh Autofix identity:
+
+```sql
+DELETE FROM instance_credential;
+```
+
+The next Autofix use registers again. There is no background registration loop
+and the boot-time health check never creates an identity.
 
 ## Links
 

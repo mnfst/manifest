@@ -1,16 +1,27 @@
 import { Logger } from '@nestjs/common';
-import { HealContractError, type HealingClient } from './healing-client';
-import type { ConfirmResponse, HealOutcome, HealRequest, HealResponse } from './phoenix.types';
+import {
+  INSTANCE_CREDENTIAL_SCHEMA_VERSION,
+  InstanceCredentialService,
+} from './instance-credential.service';
+import {
+  HealContractError,
+  type HealingClient,
+  type HealingRequestContext,
+} from './healing-client';
+import type {
+  ConfirmResponse,
+  HealOutcome,
+  HealRequest,
+  HealResponse,
+  RegisterInstanceRequest,
+  RegisterInstanceResponse,
+} from './phoenix.types';
 
 /**
- * Talks to a real Phoenix deployment over HTTP. Constructed by the module
- * factory when `AUTOFIX_HEALING_URL` is set. `heal()` throws a
- * {@link HealContractError} on a 4xx (Phoenix is up but rejected us — bad
- * contract or a missing/invalid key) and a plain Error on a 5xx/transport
- * failure, so the service can tell a bug apart from an outage; either way the
- * loop treats it as "no fix available" and stops. `reportOutcome()` swallows
- * failures and returns null so a missed learning signal never breaks the user's
- * request.
+ * HTTP client for Phoenix. Static API keys retain the cloud path unchanged.
+ * Self-hosted clients without a static key lazily register an encrypted
+ * instance credential, refresh it once on 401, and attach bounded identity
+ * headers to every protected call.
  */
 export class HttpHealingClient implements HealingClient {
   private readonly logger = new Logger(HttpHealingClient.name);
@@ -20,36 +31,23 @@ export class HttpHealingClient implements HealingClient {
     baseUrl: string,
     private readonly timeoutMs: number,
     private readonly apiKey?: string,
+    private readonly instanceCredentials?: InstanceCredentialService,
+    private readonly manifestVersion?: string,
   ) {
-    // Trim before stripping trailing slashes so a value like `"…/ "` (slash +
-    // stray whitespace, common in env files) still normalises to a clean base —
-    // otherwise the slash survives and every `/api/heal` call hits a bad path.
     this.baseUrl = baseUrl.trim().replace(/\/+$/, '');
   }
 
-  /**
-   * Phoenix guards `/api/heal*` behind an API key and, in production, fails
-   * closed without one. Send `x-api-key` when `AUTOFIX_HEALING_API_KEY` is set;
-   * omit it otherwise so a keyless dev/test Phoenix still works.
-   */
-  private headers(): Record<string, string> {
-    const headers: Record<string, string> = { 'content-type': 'application/json' };
-    if (this.apiKey) headers['x-api-key'] = this.apiKey;
-    return headers;
-  }
-
-  async heal(input: HealRequest): Promise<HealResponse> {
-    const res = await fetch(`${this.baseUrl}/api/heal`, {
-      method: 'POST',
-      headers: this.headers(),
-      body: JSON.stringify(input),
-      signal: AbortSignal.timeout(this.timeoutMs),
-    });
+  async heal(input: HealRequest, context?: HealingRequestContext): Promise<HealResponse> {
+    const res = await this.authenticatedFetch(
+      '/api/heal',
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+      },
+      context,
+    );
     if (!res.ok) {
       const message = `Phoenix /api/heal responded ${res.status}`;
-      // 4xx = Phoenix rejected the request itself (contract/auth) — a bug to fix,
-      // not an outage; keep it off the circuit breaker. 5xx falls through to a
-      // plain Error and is treated as a transient availability failure.
       if (res.status >= 400 && res.status < 500) {
         throw new HealContractError(res.status, message);
       }
@@ -58,22 +56,17 @@ export class HttpHealingClient implements HealingClient {
     return (await res.json()) as HealResponse;
   }
 
-  /**
-   * Bulk-report evidence. Phoenix answers `207`-style per-item results we don't
-   * consume — a non-OK status only tells us the batch was lost, which is a
-   * warning, never an error the proxy should see.
-   */
-  async observe(observations: HealRequest[]): Promise<void> {
+  async observe(observations: HealRequest[], context?: HealingRequestContext): Promise<void> {
     if (observations.length === 0) return;
     try {
-      const res = await fetch(`${this.baseUrl}/api/heal/observe`, {
-        method: 'POST',
-        headers: this.headers(),
-        body: JSON.stringify({ observations }),
-        signal: AbortSignal.timeout(this.timeoutMs),
-      });
-      // We never read the per-item results, but an unconsumed body keeps the
-      // undici socket checked out — over many flushes that exhausts the pool.
+      const res = await this.authenticatedFetch(
+        '/api/heal/observe',
+        {
+          method: 'POST',
+          body: JSON.stringify({ observations }),
+        },
+        context,
+      );
       await res.body?.cancel();
       if (!res.ok) {
         this.logger.warn(`Phoenix /api/heal/observe responded ${res.status}`);
@@ -86,16 +79,17 @@ export class HttpHealingClient implements HealingClient {
   async reportOutcome(
     healAttemptId: string,
     outcome: HealOutcome,
+    context?: HealingRequestContext,
   ): Promise<ConfirmResponse | null> {
     try {
-      const res = await fetch(
-        `${this.baseUrl}/api/heal-attempts/${encodeURIComponent(healAttemptId)}`,
+      const path = `/api/heal-attempts/${encodeURIComponent(healAttemptId)}`;
+      const res = await this.authenticatedFetch(
+        path,
         {
           method: 'PATCH',
-          headers: this.headers(),
           body: JSON.stringify(outcome),
-          signal: AbortSignal.timeout(this.timeoutMs),
         },
+        context,
       );
       if (!res.ok) {
         this.logger.warn(`Phoenix heal-attempt ${healAttemptId} responded ${res.status}`);
@@ -106,5 +100,87 @@ export class HttpHealingClient implements HealingClient {
       this.logger.warn(`Phoenix heal-attempt ${healAttemptId} failed: ${(err as Error).message}`);
       return null;
     }
+  }
+
+  private async authenticatedFetch(
+    path: string,
+    init: Omit<RequestInit, 'headers' | 'signal'>,
+    context?: HealingRequestContext,
+  ): Promise<Response> {
+    if (this.apiKey) {
+      return this.request(path, init, {
+        'content-type': 'application/json',
+        'x-api-key': this.apiKey,
+      });
+    }
+    if (!this.instanceCredentials) {
+      return this.request(path, init, { 'content-type': 'application/json' });
+    }
+    if (!context) {
+      throw new Error('Autofix harness is required for instance-authenticated requests');
+    }
+
+    let credential = await this.instanceCredentials.getOrRegister(() => this.register());
+    let res = await this.request(path, init, this.instanceHeaders(credential, context));
+    if (res.status !== 401) return res;
+
+    await res.body?.cancel();
+    await this.instanceCredentials.clear(credential.instanceId);
+    credential = await this.instanceCredentials.getOrRegister(() => this.register());
+    return this.request(path, init, this.instanceHeaders(credential, context));
+  }
+
+  private request(
+    path: string,
+    init: Omit<RequestInit, 'headers' | 'signal'>,
+    headers: Record<string, string>,
+  ): Promise<Response> {
+    return fetch(`${this.baseUrl}${path}`, {
+      ...init,
+      headers,
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+  }
+
+  private instanceHeaders(
+    credential: { instanceId: string; secret: string },
+    context: HealingRequestContext,
+  ): Record<string, string> {
+    return {
+      'content-type': 'application/json',
+      Authorization: `Bearer ${credential.secret}`,
+      'X-Manifest-Instance': credential.instanceId,
+      'X-Manifest-Version': this.manifestVersion ?? 'unknown',
+      'X-Manifest-Harness': context.harness,
+    };
+  }
+
+  private async register(): Promise<RegisterInstanceResponse> {
+    const body: RegisterInstanceRequest = {
+      version: this.manifestVersion ?? 'unknown',
+      schema_version: INSTANCE_CREDENTIAL_SCHEMA_VERSION,
+    };
+    const res = await this.request(
+      '/api/instances/register',
+      { method: 'POST', body: JSON.stringify(body) },
+      { 'content-type': 'application/json' },
+    );
+    if (res.status !== 201) {
+      const message = `Phoenix /api/instances/register responded ${res.status}`;
+      if (res.status >= 400 && res.status < 500) {
+        throw new HealContractError(res.status, message);
+      }
+      throw new Error(message);
+    }
+    const issued = (await res.json()) as Partial<RegisterInstanceResponse>;
+    if (
+      typeof issued.instance_id !== 'string' ||
+      issued.instance_id.length === 0 ||
+      typeof issued.secret !== 'string' ||
+      issued.secret.length === 0
+    ) {
+      throw new HealContractError(201, 'Phoenix registration response was malformed');
+    }
+    return issued as RegisterInstanceResponse;
   }
 }

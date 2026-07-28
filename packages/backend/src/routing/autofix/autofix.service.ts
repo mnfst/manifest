@@ -3,13 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import {
+  coerceAgentPlatform,
+  type AgentPlatform,
+  type AuthType,
+} from 'manifest-shared';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
-import type { AuthType } from 'manifest-shared';
-import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
+import {
+  HEALING_CLIENT,
+  HealContractError,
+  type HealingClient,
+  type HealingRequestContext,
+} from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { scrubProviderUrl } from './observation-payload';
@@ -41,6 +50,7 @@ export interface AutofixAttempt {
 
 interface AgentAutofixConfig {
   enabled: boolean;
+  harness: AgentPlatform;
 }
 
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
@@ -124,6 +134,7 @@ export class AutofixService {
   // Effective default when an agent has no explicit choice (autofix_enabled NULL):
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
+  private readonly selfHosted: boolean;
   private readonly repairableStatuses: Set<number>;
   private readonly configCache = new Map<
     string,
@@ -145,7 +156,8 @@ export class AutofixService {
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
     this.rollout = parseRollout(config.get<string>('AUTOFIX_ROLLOUT'));
-    this.defaultAgentEnabled = !isSelfHosted();
+    this.selfHosted = isSelfHosted();
+    this.defaultAgentEnabled = !this.selfHosted;
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
     // Boot-time snapshot of the resolved gates. Logged once so an operator can
     // confirm what the process actually loaded — e.g. whether the global kill
@@ -173,6 +185,9 @@ export class AutofixService {
   async hasAccess(tenantId: string | null): Promise<boolean> {
     // No tenant context → no agent, so nothing to heal; deny in every phase.
     if (!tenantId) return false;
+    // The early-access grant is a cloud product concern. Self-hosted installs
+    // opt in per agent and are controlled by Phoenix's instance limits.
+    if (this.selfHosted) return true;
     // Phase 3 — general availability: everyone, no DB read.
     if (this.rollout === 'everyone') return true;
     const now = Date.now();
@@ -232,10 +247,18 @@ export class AutofixService {
    * resolves false on a DB hiccup, so callers fail closed on purpose.
    */
   async isActiveFor(tenantId: string, agentId: string): Promise<boolean> {
-    if (!this.globalEnabled) return false;
-    if (!(await this.hasAccess(tenantId))) return false;
+    return (await this.getHealingContext(tenantId, agentId)) !== null;
+  }
+
+  /** Resolve consent and the bounded per-agent metadata needed by Phoenix. */
+  async getHealingContext(
+    tenantId: string,
+    agentId: string,
+  ): Promise<HealingRequestContext | null> {
+    if (!this.globalEnabled) return null;
+    if (!(await this.hasAccess(tenantId))) return null;
     const cfg = await this.loadAgentConfig(agentId, tenantId);
-    return cfg.enabled;
+    return cfg.enabled ? { harness: cfg.harness } : null;
   }
 
   /** A heal call reached the healer (any decision) — clear the failure streak. */
@@ -333,7 +356,7 @@ export class AutofixService {
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {
-      return await this.runHealOnce(params, status, originalText, originalForward);
+      return await this.runHealOnce(params, cfg, status, originalText, originalForward);
     } catch (err) {
       // Defensive backstop: the common reforward failure is handled inside
       // runHealOnce (which preserves the chain), so this only fires on a truly
@@ -355,6 +378,7 @@ export class AutofixService {
    */
   private async runHealOnce(
     params: MaybeHealParams,
+    config: AgentAutofixConfig,
     status: number,
     originalText: string,
     originalForward: ForwardResult,
@@ -373,32 +397,35 @@ export class AutofixService {
 
     let heal: HealResponse;
     try {
-      heal = await this.client.heal({
-        traceId: groupId,
-        tenantId: params.tenantId,
-        provider: params.provider,
-        model: params.model,
-        authType: params.authType,
-        api: params.apiMode,
-        url: params.url,
-        request: params.requestBody,
-        response: { statusCode: status, error: normalized },
-        ...(originalForward.wireFormat
-          ? {
-              providerExchange: {
-                format: originalForward.wireFormat,
-                ...(originalForward.wireRequestUrl
-                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
-                  : {}),
-                request: { body: params.requestBody, redactedFields: [] },
-                response: {
-                  statusCode: status,
-                  body: parseProviderBody(originalText),
+      heal = await this.client.heal(
+        {
+          traceId: groupId,
+          tenantId: params.tenantId,
+          provider: params.provider,
+          model: params.model,
+          authType: params.authType,
+          api: params.apiMode,
+          url: params.url,
+          request: params.requestBody,
+          response: { statusCode: status, error: normalized },
+          ...(originalForward.wireFormat
+            ? {
+                providerExchange: {
+                  format: originalForward.wireFormat,
+                  ...(originalForward.wireRequestUrl
+                    ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                    : {}),
+                  request: { body: params.requestBody, redactedFields: [] },
+                  response: {
+                    statusCode: status,
+                    body: parseProviderBody(originalText),
+                  },
                 },
-              },
-            }
-          : {}),
-      });
+              }
+            : {}),
+        },
+        { harness: config.harness },
+      );
     } catch (err) {
       if (err instanceof HealContractError) {
         // Phoenix is reachable but rejected the request (4xx) — a contract or
@@ -469,7 +496,7 @@ export class AutofixService {
 
     if (ok) {
       // Report the cleared retry so Phoenix can promote the patch.
-      this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status });
+      this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status }, config.harness);
       chain.push({
         attempt: 1,
         origin: 'autofix',
@@ -494,10 +521,14 @@ export class AutofixService {
       http_status: next.response.status,
       error: retryError,
     });
-    this.reportOutcome(healAttemptId, {
-      retryStatusCode: next.response.status,
-      error: retryError,
-    });
+    this.reportOutcome(
+      healAttemptId,
+      {
+        retryStatusCode: next.response.status,
+        error: retryError,
+      },
+      config.harness,
+    );
     return {
       forward: rebuildForward(next, retryText, next.response.status),
       record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
@@ -518,12 +549,13 @@ export class AutofixService {
       // default "inherit the mode default" state) look not-found — which then
       // resolves to `enabled: false` below and silently disables Auto-fix for it.
       // The always-present `id` keeps the row materialized so the NULL flag is read.
-      select: ['id', 'autofix_enabled'],
+      select: ['id', 'autofix_enabled', 'agent_platform'],
     });
     // Unknown agent → off. Known agent → its explicit flag, or the mode default
     // when unset (NULL).
     const value: AgentAutofixConfig = {
       enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
+      harness: coerceAgentPlatform(agent?.agent_platform),
     };
 
     // Only the failure path reaches here; caching keeps a 4xx storm from doing a
@@ -534,8 +566,8 @@ export class AutofixService {
   }
 
   /** Fire-and-forget the learning signal so it never delays the client. */
-  private reportOutcome(healAttemptId: string, outcome: HealOutcome): void {
-    void this.client.reportOutcome(healAttemptId, outcome).catch((err: unknown) => {
+  private reportOutcome(healAttemptId: string, outcome: HealOutcome, harness: AgentPlatform): void {
+    void this.client.reportOutcome(healAttemptId, outcome, { harness }).catch((err: unknown) => {
       this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
     });
   }

@@ -17,6 +17,13 @@ export const AGENT_PLATFORMS = [
 ] as const;
 export type AgentPlatform = (typeof AGENT_PLATFORMS)[number];
 
+const AGENT_PLATFORM_SET = new Set<string>(AGENT_PLATFORMS);
+
+/** Coerce persisted or untrusted platform values to the closed public enum. */
+export function coerceAgentPlatform(value: string | null | undefined): AgentPlatform {
+  return value && AGENT_PLATFORM_SET.has(value) ? (value as AgentPlatform) : 'other';
+}
+
 export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
   personal: 'AI agents',
   app: 'App AI SDK',

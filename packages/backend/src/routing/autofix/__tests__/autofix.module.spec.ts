@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Agent } from '../../../entities/agent.entity';
 import { AgentMessage } from '../../../entities/agent-message.entity';
+import { InstanceCredential } from '../../../entities/instance-credential.entity';
 import { Tenant } from '../../../entities/tenant.entity';
 import { ManifestRequest } from '../../../entities/request.entity';
 import { AutofixModule } from '../autofix.module';
@@ -20,25 +21,34 @@ import { NoopHealingClient } from '../noop-healing-client';
  * module.
  */
 async function resolveHealingClient(configValues: Record<string, string>) {
-  const moduleRef = await Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, load: [() => configValues] }),
-      AutofixModule,
-    ],
-  })
-    .overrideProvider(getRepositoryToken(Agent))
-    .useValue({})
-    .overrideProvider(getRepositoryToken(AgentMessage))
-    .useValue({})
-    .overrideProvider(getRepositoryToken(ManifestRequest))
-    .useValue({})
-    .overrideProvider(getRepositoryToken(Tenant))
-    .useValue({})
-    .compile();
+  const previousMode = process.env.MANIFEST_MODE;
+  process.env.MANIFEST_MODE = configValues.MANIFEST_MODE ?? 'cloud';
+  try {
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true, load: [() => configValues] }),
+        AutofixModule,
+      ],
+    })
+      .overrideProvider(getRepositoryToken(Agent))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(AgentMessage))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(ManifestRequest))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(Tenant))
+      .useValue({})
+      .overrideProvider(getRepositoryToken(InstanceCredential))
+      .useValue({})
+      .compile();
 
-  const client = moduleRef.get(HEALING_CLIENT);
-  await moduleRef.close();
-  return client;
+    const client = moduleRef.get(HEALING_CLIENT);
+    await moduleRef.close();
+    return client;
+  } finally {
+    if (previousMode === undefined) delete process.env.MANIFEST_MODE;
+    else process.env.MANIFEST_MODE = previousMode;
+  }
 }
 
 describe('AutofixModule HEALING_CLIENT factory', () => {
@@ -66,6 +76,28 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
     // The dev-only mock must never mutate real traffic: with no healer wired,
     // production falls to the inert Noop client, not the Mock.
     const client = await resolveHealingClient({ NODE_ENV: 'production' });
+
+    expect(client).toBeInstanceOf(NoopHealingClient);
+  });
+
+  it('uses the hosted Phoenix default in self-hosted production', async () => {
+    const client = await resolveHealingClient({
+      NODE_ENV: 'production',
+      MANIFEST_MODE: 'selfhosted',
+    });
+
+    expect(client).toBeInstanceOf(HttpHealingClient);
+    expect((client as unknown as { baseUrl: string }).baseUrl).toBe(
+      'https://autofix.manifest.build',
+    );
+  });
+
+  it('provides an inert NoopHealingClient for the explicit off sentinel', async () => {
+    const client = await resolveHealingClient({
+      NODE_ENV: 'production',
+      MANIFEST_MODE: 'selfhosted',
+      AUTOFIX_HEALING_URL: ' off ',
+    });
 
     expect(client).toBeInstanceOf(NoopHealingClient);
   });

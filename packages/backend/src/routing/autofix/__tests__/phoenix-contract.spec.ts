@@ -4,6 +4,7 @@ import Ajv2020 from 'ajv/dist/2020';
 import type { ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
 import { load } from 'js-yaml';
+import { AGENT_PLATFORMS } from 'manifest-shared';
 import { HEAL_STATUSES, ISSUE_STATUSES, OUTCOME_STATUSES } from '../phoenix.types';
 
 /**
@@ -22,7 +23,13 @@ interface SchemaObject {
   properties?: Record<string, { enum?: string[] }>;
 }
 interface OpenApiDoc {
-  components: { schemas: Record<string, SchemaObject> };
+  security: Array<Record<string, unknown[]>>;
+  paths: Record<string, Record<string, { security?: Array<Record<string, unknown[]>> }>>;
+  components: {
+    schemas: Record<string, SchemaObject>;
+    parameters: Record<string, { schema?: { enum?: string[] } }>;
+    securitySchemes: Record<string, unknown>;
+  };
 }
 
 const doc = load(readFileSync(SPEC_PATH, 'utf8')) as OpenApiDoc;
@@ -99,6 +106,42 @@ describe('Phoenix wire contract (vendored OpenAPI)', () => {
 
     it('rejects an auth type outside the enum', () => {
       expect(validate({ ...valid, authType: 'oauth' })).toBe(false);
+    });
+  });
+
+  describe('instance registration and authentication', () => {
+    it('validates the register request and response shapes', () => {
+      const validateRequest = validator('InstanceRegistration');
+      const validateResponse = validator('InstanceCredential');
+      const UUID = '11111111-1111-4111-8111-111111111111';
+
+      expect(validateRequest({ version: '6.15.1', schema_version: 1 })).toBe(true);
+      expect(validateRequest({ version: 'unknown', schema_version: 1 })).toBe(false);
+      expect(validateRequest({ version: '6.15.1', schema_version: 2 })).toBe(false);
+      expect(validateResponse({ instance_id: UUID, secret: 'opaque-token' })).toBe(true);
+      expect(validateResponse({ instance_id: 'not-a-uuid', secret: 'opaque-token' })).toBe(false);
+    });
+
+    it('keeps registration public and protects other endpoints with either auth mode', () => {
+      expect(doc.paths['/api/instances/register'].post.security).toEqual([]);
+      expect(doc.security).toEqual([{ ApiKeyAuth: [] }]);
+      for (const operation of [
+        doc.paths['/api/heal'].post,
+        doc.paths['/api/heal/observe'].post,
+        doc.paths['/api/heal-attempts/{id}'].patch,
+      ]) {
+        expect(operation.security).toEqual([
+          { ApiKeyAuth: [] },
+          { InstanceBearerAuth: [], ManifestInstanceAuth: [] },
+        ]);
+      }
+      expect(doc.components.securitySchemes).toHaveProperty('ApiKeyAuth');
+      expect(doc.components.securitySchemes).toHaveProperty('InstanceBearerAuth');
+      expect(doc.components.securitySchemes).toHaveProperty('ManifestInstanceAuth');
+    });
+
+    it('keeps the harness header allowlist in lockstep with AGENT_PLATFORMS', () => {
+      expect(doc.components.parameters.ManifestHarness.schema?.enum).toEqual([...AGENT_PLATFORMS]);
     });
   });
 
