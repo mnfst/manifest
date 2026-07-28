@@ -10,7 +10,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   groq: 'https://console.groq.com/keys',
   huggingface: 'https://huggingface.co/settings/tokens',
   kilo: 'https://app.kilo.ai',
-  manifest: 'https://credits.manifest.build',
+  manifest: 'https://calendly.com/sebastien-manifest/30min',
   minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',
   moonshot: 'https://platform.moonshot.ai/',

@@ -1056,6 +1056,12 @@ describe('getRoutingProviderApiKeyUrl', () => {
     expect(getRoutingProviderApiKeyUrl('openai')).toBe('https://platform.openai.com/api-keys');
   });
 
+  it('returns the booking page for Manifest keys', () => {
+    expect(getRoutingProviderApiKeyUrl('manifest')).toBe(
+      'https://calendly.com/sebastien-manifest/30min',
+    );
+  });
+
   it('returns the ClinePass API-key settings URL', () => {
     expect(getRoutingProviderApiKeyUrl('cline-pass')).toBe(
       'https://app.cline.bot/settings/api-keys',
