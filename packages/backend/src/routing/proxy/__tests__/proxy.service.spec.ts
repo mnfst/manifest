@@ -261,6 +261,19 @@ describe('ProxyService — orchestration', () => {
       ).rejects.toMatchObject({ code: 'M300', status: 400 });
     });
 
+    it('accepts string and object items in Responses input arrays', () => {
+      const validatePayload = (
+        svc as unknown as {
+          validatePayload: (body: Record<string, unknown>, apiMode: string) => void;
+        }
+      ).validatePayload.bind(svc);
+
+      expect(() => validatePayload({ input: ['Hello'] }, 'responses')).not.toThrow();
+      expect(() =>
+        validatePayload({ input: [{ role: 'user', content: 'Hello' }] }, 'responses'),
+      ).not.toThrow();
+    });
+
     it('forwards long message arrays unchanged', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -2530,6 +2543,46 @@ describe('ProxyService — orchestration', () => {
 
       expect(resolveService.resolveForTier).toHaveBeenCalledWith('agent-1', 'tenant-1', 'simple');
       expect(convertSpy).not.toHaveBeenCalled();
+    });
+
+    it('detects Responses heartbeats across native input item shapes', () => {
+      const detectHeartbeatBody = (
+        svc as unknown as {
+          detectHeartbeatBody: (body: Record<string, unknown>, apiMode: string) => boolean;
+        }
+      ).detectHeartbeatBody.bind(svc);
+
+      expect(detectHeartbeatBody({}, 'responses')).toBe(false);
+      expect(detectHeartbeatBody({ input: ['HEARTBEAT_OK'] }, 'responses')).toBe(true);
+      expect(
+        detectHeartbeatBody({ input: [{ role: 'user', content: 'HEARTBEAT_OK' }] }, 'responses'),
+      ).toBe(true);
+      expect(
+        detectHeartbeatBody(
+          {
+            input: [
+              null,
+              [],
+              { type: 'function_call' },
+              { type: 'function_call_output' },
+              { role: 'assistant', content: 'HEARTBEAT_OK' },
+              {
+                role: 'user',
+                content: [null, 'ignored', [], { text: 'HEARTBEAT_OK' }],
+              },
+            ],
+          },
+          'responses',
+        ),
+      ).toBe(true);
+      expect(
+        detectHeartbeatBody(
+          {
+            input: [{ type: 'function_call' }, { role: 'assistant', content: 'HEARTBEAT_OK' }],
+          },
+          'responses',
+        ),
+      ).toBe(false);
     });
 
     it('detects HEARTBEAT_OK in array-content user messages', async () => {
