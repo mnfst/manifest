@@ -220,10 +220,9 @@ export class ProviderService {
 
   /**
    * Read the freshest persisted subscription credential straight from the DB,
-   * decrypted, bypassing the routing cache. The OAuth refresh coordinator uses
-   * this so a lazy token refresh never rotates based on a stale cached blob
-   * (see issue #2012). Returns the decrypted raw stored value, or null when
-   * there is no row / no stored credential / it cannot be decrypted.
+   * decrypted, bypassing the routing cache. Prefer
+   * {@link withSubscriptionCredentialLock} for OAuth refresh — that path
+   * holds a row lock so multi-replica refreshes cannot collide.
    */
   async getFreshSubscriptionCredential(
     tenantId: string,
@@ -246,6 +245,65 @@ export class ProviderService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Run OAuth refresh work while holding a row lock on the subscription
+   * credential (`SELECT … FOR UPDATE`). Multi-replica backends serialize on
+   * this lock so two instances cannot rotate the same refresh token.
+   *
+   * Keep the critical section short: re-read → maybe refresh → write. The
+   * provider HTTP call runs while the lock is held (simple and correct).
+   */
+  async withSubscriptionCredentialLock<T>(
+    tenantId: string,
+    provider: string,
+    label: string | undefined,
+    fn: (ops: {
+      readFreshRaw: () => Promise<string | null>;
+      writeRaw: (raw: string) => Promise<void>;
+    }) => Promise<T>,
+  ): Promise<T> {
+    const wantedLabel = (label ?? DEFAULT_LABEL).toLowerCase();
+    return this.providerRepo.manager.transaction(async (manager) => {
+      const repo = manager.getRepository(TenantProvider);
+      // Lock the matching subscription row for this tenant/provider/label.
+      // LOWER(label) matches the unique index and pinned-route casing quirks.
+      const row =
+        (await repo
+          .createQueryBuilder('tp')
+          .setLock('pessimistic_write')
+          .where('tp.tenant_id = :tenantId', { tenantId })
+          .andWhere('tp.provider = :provider', { provider })
+          .andWhere(`tp.auth_type = 'subscription'`)
+          .andWhere('LOWER(tp.label) = :label', { label: wantedLabel })
+          .getOne()) ?? null;
+
+      return fn({
+        readFreshRaw: async () => {
+          if (!row?.api_key_encrypted) return null;
+          try {
+            return decrypt(row.api_key_encrypted, getEncryptionSecret());
+          } catch {
+            return null;
+          }
+        },
+        writeRaw: async (raw: string) => {
+          if (!row) {
+            throw new Error(
+              `No subscription credential row to persist for ${provider}/${wantedLabel}`,
+            );
+          }
+          row.api_key_encrypted = encrypt(raw, getEncryptionSecret());
+          row.key_prefix = raw.substring(0, 8);
+          row.updated_at = new Date().toISOString();
+          await repo.save(row);
+          // Bust key/provider caches so the next hop doesn't refresh from
+          // a pre-rotation blob.
+          this.routingCache.invalidateTenant(tenantId);
+        },
+      });
+    });
   }
 
   async upsertProvider(
