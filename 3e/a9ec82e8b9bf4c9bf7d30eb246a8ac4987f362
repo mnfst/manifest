@@ -1,0 +1,23 @@
+.changeset/manifest-key-booking-link.md
+  s_3c4ddbd1f15e8e::t_ff29a5e8221130 1-5
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_3c4ddbd1f15e8e::t_ff29a5e8221130 13
+packages/frontend/tests/services/providers.test.ts
+  s_3c4ddbd1f15e8e::t_ff29a5e8221130 1059-1064
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3ea9ec82e8b9bf4c9bf7d30eb246a8ac4987f362",
+  "prompts": {},
+  "sessions": {
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
