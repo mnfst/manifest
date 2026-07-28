@@ -166,7 +166,7 @@ describe('TelemetryService', () => {
       expect(install.markSent).toHaveBeenCalledTimes(1);
     });
 
-    it('skips when the last send was less than 24h ago', async () => {
+    it('skips when the last send was less than 23h ago', async () => {
       const { service, install, payloadBuilder } = makeService();
       const now = new Date('2026-04-20T12:00:00');
       const recent = new Date(now.getTime() - 1000).toISOString();
@@ -179,6 +179,62 @@ describe('TelemetryService', () => {
       await service.tick(now);
 
       expect(payloadBuilder.build).not.toHaveBeenCalled();
+    });
+
+    it('skips one millisecond before the 23h interval elapses (boundary)', async () => {
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-20T12:00:00.000Z');
+      const almost = new Date(now.getTime() - (23 * 60 * 60 * 1000 - 1)).toISOString();
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: '2026-04-01T00:00:00',
+        last_sent_at: almost,
+      });
+
+      await service.tick(now);
+
+      expect(payloadBuilder.build).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('sends at exactly 23h since the last send (boundary)', async () => {
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-20T12:00:00.000Z');
+      const exactly = new Date(now.getTime() - 23 * 60 * 60 * 1000).toISOString();
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: '2026-04-01T00:00:00',
+        last_sent_at: exactly,
+      });
+      payloadBuilder.build.mockResolvedValue(payloadStub());
+      fetchSpy.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await service.tick(now);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(install.markSent).toHaveBeenCalledWith(now);
+    });
+
+    it('sends at the same-hour tick the next day even when a hair under 24h has elapsed', async () => {
+      // Regression for the +1h/day send drift: markSent stamps a moment after
+      // the tick, so the same-hour tick the next day sees slightly *less* than
+      // 24h elapsed. A 24h guard skipped it and pushed every send one hour
+      // later per day until it crossed UTC midnight; the 23h guard fires here.
+      const { service, install, payloadBuilder } = makeService();
+      const now = new Date('2026-04-21T12:00:00.000Z');
+      const justUnder24h = new Date(now.getTime() - (24 * 60 * 60 * 1000 - 100)).toISOString();
+      install.getOrCreate.mockResolvedValue({
+        ...baseInstall,
+        first_send_at: '2026-04-01T00:00:00',
+        last_sent_at: justUnder24h,
+      });
+      payloadBuilder.build.mockResolvedValue(payloadStub());
+      fetchSpy.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await service.tick(now);
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(install.markSent).toHaveBeenCalledWith(now);
     });
 
     it('sends when no previous send exists and jitter has elapsed', async () => {
@@ -196,7 +252,7 @@ describe('TelemetryService', () => {
       expect(install.markSent).toHaveBeenCalledTimes(1);
     });
 
-    it('sends again when 24h have elapsed since last send', async () => {
+    it('sends again when more than a day has elapsed since last send', async () => {
       const { service, install, payloadBuilder } = makeService();
       const now = new Date('2026-04-20T12:00:00');
       const old = new Date(now.getTime() - 25 * 60 * 60 * 1000).toISOString();

@@ -119,6 +119,20 @@ describe('PayloadBuilderService', () => {
     expect(payload.arch).toBe(process.arch);
   });
 
+  it('declares the exact 24h aggregation window it covered', async () => {
+    const service = await makeService({});
+    const before = Date.now();
+
+    const payload = await service.build('inst-123', '5.47.0');
+
+    const after = Date.now();
+    const start = new Date(payload.window_start!).getTime();
+    const end = new Date(payload.window_end!).getTime();
+    expect(end - start).toBe(24 * 60 * 60 * 1000);
+    expect(end).toBeGreaterThanOrEqual(before);
+    expect(end).toBeLessThanOrEqual(after);
+  });
+
   it('aggregates message counts and token totals across the 24h window', async () => {
     const service = await makeService({
       providers: [
