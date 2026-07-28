@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
 import { computeTrend } from '../services/query-helpers';
 import { MessagesQueryService } from '../services/messages-query.service';
+import { RequestVolumeService } from '../services/request-volume.service';
 
 /** Sum the timeseries buckets into current-window totals for the summary cards. */
 function sumTimeseries(tsData: {
@@ -45,6 +46,8 @@ export class OverviewController {
     private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
     @Optional()
     private readonly messagesQuery?: MessagesQueryService,
+    @Optional()
+    private readonly requestVolume?: RequestVolumeService,
   ) {}
 
   @Get('overview')
@@ -180,6 +183,57 @@ export class OverviewController {
     return this.timeseries.getProviderUsageTimeseries(range, ctx.tenantId, hourly, agentName);
   }
 
+  /**
+   * Request-level volume per provider (terminal attribution): one logical
+   * request counts once, under the provider that served its concluding
+   * attempt — so the Requests chart's By provider view stacks to the same
+   * total as By request status and the Requests KPI. Distinct from
+   * `overview/providers/usage`, which is served-attempt tokens/cost.
+   */
+  @Get('overview/providers/request-usage')
+  async getOverviewProvidersRequestUsage(
+    @Query() query: RangeQueryDto,
+    @TenantCtx() ctx: TenantContext,
+  ) {
+    const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
+    if (!this.requestVolume) return { agents: [], timeseries: [] };
+    const rows = await this.requestVolume.getVolumeByDimensionTimeseries(
+      'provider',
+      range,
+      ctx.tenantId,
+      hourly,
+      agentName,
+    );
+    return pivotRequestVolume(rows, hourly ? 'hour' : 'date', 'provider');
+  }
+
+  @Get('overview/models/usage')
+  async getOverviewModelsUsage(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
+    const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
+    return this.timeseries.getModelUsageTimeseries(range, ctx.tenantId, hourly, agentName);
+  }
+
+  /**
+   * Request-level volume per model (terminal attribution), the Requests
+   * chart's By model view. Same contract as providers/request-usage.
+   */
+  @Get('overview/models/request-usage')
+  async getOverviewModelsRequestUsage(
+    @Query() query: RangeQueryDto,
+    @TenantCtx() ctx: TenantContext,
+  ) {
+    const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
+    if (!this.requestVolume) return { agents: [], timeseries: [] };
+    const rows = await this.requestVolume.getVolumeByDimensionTimeseries(
+      'model',
+      range,
+      ctx.tenantId,
+      hourly,
+      agentName,
+    );
+    return pivotRequestVolume(rows, hourly ? 'hour' : 'date', 'model');
+  }
+
   @Get('overview/per-model-cost-timeseries')
   async getPerModelCostTimeseries(@Query() query: RangeQueryDto, @TenantCtx() ctx: TenantContext) {
     const { range, hourly, agentName } = this.deriveTimeseriesArgs(query);
@@ -232,4 +286,34 @@ export class OverviewController {
       return false;
     }
   }
+}
+
+/**
+ * Pivot RequestVolumeService rows into the { agents, timeseries } shape the
+ * frontend's pivoted-timeseries charts consume: one numeric column per
+ * distinct series key, zero-filled so stacked bars stay aligned.
+ */
+function pivotRequestVolume(
+  rows: Array<Record<string, unknown>>,
+  bucketAlias: string,
+  keyField: string,
+): { agents: string[]; timeseries: Array<Record<string, number | string>> } {
+  const keySet = new Set<string>();
+  for (const r of rows) keySet.add(String(r[keyField]));
+  const keys = [...keySet].sort();
+
+  const byBucket = new Map<string, Record<string, number>>();
+  for (const r of rows) {
+    const bucket = String(r[bucketAlias]);
+    if (!byBucket.has(bucket)) byBucket.set(bucket, {});
+    byBucket.get(bucket)![String(r[keyField])] = Number(r['messages'] ?? 0);
+  }
+
+  const timeseries = [...byBucket.entries()].map(([bucket, map]) => {
+    const row: Record<string, number | string> = { [bucketAlias]: bucket };
+    for (const k of keys) row[k] = map[k] ?? 0;
+    return row;
+  });
+
+  return { agents: keys, timeseries };
 }

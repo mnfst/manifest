@@ -294,6 +294,39 @@ export class RequestVolumeService {
   }
 
   /**
+   * Request volume per dimension bucket (terminal attribution, requests
+   * level): one request counts once, under its terminal attempt's provider or
+   * model — so the By provider / By model Requests charts stack to the same
+   * total as By request status and the Requests KPI. Requests that concluded
+   * without any provider attempt (zero-attempt rejections) read 'No provider'
+   * / 'No model' instead of vanishing. Deliberately NOT used by usage
+   * (tokens/cost) surfaces, which keep served-only semantics.
+   */
+  async getVolumeByDimensionTimeseries(
+    dim: 'provider' | 'model',
+    range: string,
+    tenantId: string | null,
+    hourly: boolean,
+    agentName?: string,
+  ): Promise<Array<Record<string, unknown>>> {
+    if (!tenantId) return [];
+    const bucketExpr = hourly ? sqlHourBucket('t.ts') : sqlDateBucket('t.ts');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const keyExpr =
+      dim === 'provider' ? `COALESCE(t.provider, 'No provider')` : `COALESCE(t.model, 'No model')`;
+    const sql = `${this.terminalCte(agentName)}
+      SELECT ${bucketExpr} AS ${bucketAlias},
+        ${keyExpr} AS ${dim},
+        COUNT(*)::int AS messages
+      FROM terminal t
+      GROUP BY 1, 2
+      ORDER BY 1 ASC`;
+    return (await this.messageRepo.query(sql, this.params(tenantId, range, agentName))) as Array<
+      Record<string, unknown>
+    >;
+  }
+
+  /**
    * Request-level totals per dimension for the Overview trio tables
    * (Total requests / Healed / Success rate). `succeeded` counts requests
    * whose terminal outcome is ok (recovered included), so Success rate =

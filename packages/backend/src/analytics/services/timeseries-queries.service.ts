@@ -900,6 +900,43 @@ export class TimeseriesQueriesService {
     return pivotByKey(rows, bucketAlias, 'model', 'cost');
   }
 
+  /**
+   * Per-model tokens/messages/cost from ONE query, like
+   * getProviderUsageTimeseries. Serves the By model lens on the usage tabs.
+   * The Requests tab does NOT read this: its By provider / By model views are
+   * request-level (terminal attribution) and come from the dedicated
+   * endpoints backed by RequestVolumeService.
+   */
+  async getModelUsageTimeseries(
+    range: string,
+    tenantId: string | null,
+    hourly: boolean,
+    agentName?: string,
+  ): Promise<UsageTimeseries> {
+    const interval = rangeToInterval(range);
+    const cutoff = computeCutoff(interval);
+    const bucketExpr = hourly ? sqlHourBucket('at.timestamp') : sqlDateBucket('at.timestamp');
+    const bucketAlias = hourly ? 'hour' : 'date';
+    const costExpr = sqlCastFloat(sqlSanitizeCost('at.cost_usd'));
+    const qb = this.turnRepo
+      .createQueryBuilder('at')
+      .select(bucketExpr, bucketAlias)
+      .addSelect('at.model', 'model')
+      .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'tokens')
+      .addSelect(sqlCountMessages(), 'messages')
+      .addSelect(`COALESCE(SUM(${costExpr}), 0)`, 'cost')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere('at.model IS NOT NULL');
+    excludePlaygroundAgents(qb);
+    addTenantFilter(qb, tenantId, agentName);
+    const rows = await qb
+      .groupBy(bucketAlias)
+      .addGroupBy('at.model')
+      .orderBy(bucketAlias, 'ASC')
+      .getRawMany();
+    return pivotUsageRows(rows, bucketAlias, 'model');
+  }
+
   async getAgentNamesByAuthType(authType: string, tenantId: string | null): Promise<string[]> {
     const qb = this.turnRepo
       .createQueryBuilder('at')

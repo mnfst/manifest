@@ -78,6 +78,32 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain('AS hour');
   });
 
+  it('keys the per-provider request volume by terminal attribution', async () => {
+    await service.getVolumeByDimensionTimeseries('provider', '7d', 't1', false);
+    const sql = lastSql();
+    // One row per logical request (request-level, not attempt-level).
+    expect(sql).toContain('DISTINCT ON (r.id)');
+    // Zero-attempt conclusions stay visible instead of vanishing.
+    expect(sql).toContain("COALESCE(t.provider, 'No provider') AS provider");
+    expect(sql).toContain('AS date');
+    expect(sql).toContain('COUNT(*)::int AS messages');
+  });
+
+  it('keys the per-model request volume by terminal attribution', async () => {
+    await service.getVolumeByDimensionTimeseries('model', '24h', 't1', true);
+    const sql = lastSql();
+    expect(sql).toContain('DISTINCT ON (r.id)');
+    expect(sql).toContain("COALESCE(t.model, 'No model') AS model");
+    expect(sql).toContain('AS hour');
+  });
+
+  it('scopes the per-dimension request volume to the live agent when given', async () => {
+    await service.getVolumeByDimensionTimeseries('provider', '7d', 't1', false, 'demo-agent');
+    const sql = lastSql();
+    expect(sql).toContain('deleted_at IS NULL');
+    expect(lastParams()).toEqual(['t1', expect.any(String), 'demo-agent']);
+  });
+
   it('computes per-dimension request totals with terminal outcomes', async () => {
     messageRepo.query.mockResolvedValue([
       { key: 'openai', requests: '10', failed: '2', succeeded: '8', healed: '1', fallback: '2' },
@@ -148,6 +174,12 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     ).resolves.toEqual([]);
     await expect(service.getVolumeByAgentTimeseries('7d', null, false)).resolves.toEqual([]);
     await expect(service.getVolumeByDimension('model', { tenantId: null })).resolves.toEqual([]);
+    await expect(
+      service.getVolumeByDimensionTimeseries('provider', '7d', null, false),
+    ).resolves.toEqual([]);
+    await expect(
+      service.getVolumeByDimensionTimeseries('model', '7d', null, false),
+    ).resolves.toEqual([]);
     await expect(
       service.getDispositionTotals({ tenantId: null, from: '2026-01-01' }),
     ).resolves.toEqual({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 });

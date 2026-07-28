@@ -21,6 +21,9 @@ const apiMocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
+  getOverviewProviderRequestUsage: vi.fn(),
+  getOverviewModelUsage: vi.fn(),
+  getOverviewModelRequestUsage: vi.fn(),
   getBillingStatus: vi.fn(),
   getConnectionDetail: vi.fn(),
   getProviderAnalytics: vi.fn(),
@@ -101,6 +104,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+  getOverviewProviderRequestUsage: (...args: unknown[]) =>
+    apiMocks.getOverviewProviderRequestUsage(...args),
+  getOverviewModelUsage: (...args: unknown[]) => apiMocks.getOverviewModelUsage(...args),
+  getOverviewModelRequestUsage: (...args: unknown[]) =>
+    apiMocks.getOverviewModelRequestUsage(...args),
   getConnectionDetail: (...args: unknown[]) => apiMocks.getConnectionDetail(...args),
   getProviderAnalytics: (...args: unknown[]) => apiMocks.getProviderAnalytics(...args),
   getPerAgentTimeseries: (...args: unknown[]) => apiMocks.getPerAgentTimeseries(...args),
@@ -638,6 +646,17 @@ const providerUsageTimeseries = {
   costUsage: providerTimeseries,
 };
 
+const modelTimeseries = {
+  agents: ['gpt-5'],
+  timeseries: [{ hour: '2026-06-04 10:00:00', 'gpt-5': 1200 }],
+};
+
+const modelUsageTimeseries = {
+  tokenUsage: modelTimeseries,
+  messageUsage: modelTimeseries,
+  costUsage: modelTimeseries,
+};
+
 const connectionDetail = {
   connection: {
     id: 'conn-openai',
@@ -748,6 +767,9 @@ beforeEach(() => {
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getOverviewAgentUsage.mockResolvedValue(agentUsageTimeseries);
   apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getOverviewProviderRequestUsage.mockResolvedValue(providerTimeseries);
+  apiMocks.getOverviewModelUsage.mockResolvedValue(modelUsageTimeseries);
+  apiMocks.getOverviewModelRequestUsage.mockResolvedValue(modelTimeseries);
   apiMocks.getBillingStatus.mockResolvedValue({
     enabled: false,
     plan: 'free',

@@ -16,6 +16,9 @@ const apiMocks = vi.hoisted(() => ({
   getOverview: vi.fn(),
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
+  getOverviewProviderRequestUsage: vi.fn(),
+  getOverviewModelUsage: vi.fn(),
+  getOverviewModelRequestUsage: vi.fn(),
   getBillingStatus: vi.fn(),
 }));
 
@@ -27,9 +30,11 @@ const sseMocks = vi.hoisted(() => ({
 }));
 
 let filterSelectProps: {
+  noun: string;
   onUnselectAll: () => void;
   onSelectAll: () => void;
   items: string[];
+  displayName?: (item: string) => string;
 } | null = null;
 let providerChartProps: Record<string, unknown> | null = null;
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -84,6 +89,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+  getOverviewProviderRequestUsage: (...args: unknown[]) =>
+    apiMocks.getOverviewProviderRequestUsage(...args),
+  getOverviewModelUsage: (...args: unknown[]) => apiMocks.getOverviewModelUsage(...args),
+  getOverviewModelRequestUsage: (...args: unknown[]) =>
+    apiMocks.getOverviewModelRequestUsage(...args),
   getAttemptStats: () =>
     Promise.resolve({
       total_attempts: { value: 20, previous: 10 },
@@ -168,14 +178,17 @@ vi.mock('../../src/components/Select.jsx', () => ({
 // Stub FilterSelect to surface the otherwise-unreachable onUnselectAll handler.
 vi.mock('../../src/components/FilterSelect.jsx', () => ({
   default: (props: {
+    noun: string;
     items: string[];
     onUnselectAll: () => void;
     onSelectAll: () => void;
     onToggle: (item: string) => void;
+    displayName?: (item: string) => string;
   }) => {
     filterSelectProps = props;
     return (
       <div data-testid="filter-select">
+        <span data-testid="filter-noun">{props.noun}</span>
         <span data-testid="filter-item-count">{props.items.length}</span>
         <button data-testid="filter-unselect-all" onClick={() => props.onUnselectAll()}>
           Unselect all
@@ -330,6 +343,15 @@ beforeEach(() => {
   apiMocks.getOverview.mockResolvedValue(overviewResponse);
   apiMocks.getOverviewAgentUsage.mockResolvedValue(providerUsageTimeseries);
   apiMocks.getOverviewProviderUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getOverviewProviderRequestUsage.mockResolvedValue({
+    agents: ['openai', 'anthropic'],
+    timeseries: [{ hour: '2026-06-04 10:00:00', openai: 10, anthropic: 8 }],
+  });
+  apiMocks.getOverviewModelUsage.mockResolvedValue(providerUsageTimeseries);
+  apiMocks.getOverviewModelRequestUsage.mockResolvedValue({
+    agents: ['gpt-4o', 'claude-3.5-sonnet'],
+    timeseries: [{ hour: '2026-06-04 10:00:00', 'gpt-4o': 10, 'claude-3.5-sonnet': 8 }],
+  });
   apiMocks.getBillingStatus.mockResolvedValue({
     enabled: false,
     plan: 'free',
@@ -430,5 +452,56 @@ describe('GlobalOverview filter onUnselectAll', () => {
     } finally {
       replaceState.mockRestore();
     }
+  });
+
+  it('fires the request-level provider fetcher when By provider is active on mount', async () => {
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(apiMocks.getOverviewProviderRequestUsage).toHaveBeenCalled());
+  });
+
+  it('switches the Requests tab to By model and fires getOverviewModelRequestUsage', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(apiMocks.getOverviewProviderRequestUsage).toHaveBeenCalled());
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement | undefined;
+
+    // Wait for the chart-card filter buttons to render.
+    await waitFor(() => expect(groupBtn('By model')).toBeDefined());
+
+    fireEvent.click(groupBtn('By model')!);
+
+    await waitFor(() => expect(apiMocks.getOverviewModelRequestUsage).toHaveBeenCalled());
+    expect(apiMocks.getOverviewModelRequestUsage.mock.calls[0]![0]).toBe('7d');
+  });
+
+  it('fires getOverviewModelUsage for the Tokens tab under By model', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement | undefined;
+
+    fireEvent.click(groupBtn('By model')!);
+    // The usage resource refetches on groupBy change; model usage fires
+    // regardless of which stat tab is active.
+    await waitFor(() => expect(apiMocks.getOverviewModelUsage).toHaveBeenCalled());
+  });
+
+  it('uses the "models" noun for FilterSelect when grouped By model', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+
+    const groupBtn = (label: string) =>
+      [...container.querySelectorAll('.chart-card__filter-btn')].find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement | undefined;
+
+    fireEvent.click(groupBtn('By model')!);
+    await waitFor(() => expect(filterSelectProps?.noun).toBe('models'));
   });
 });

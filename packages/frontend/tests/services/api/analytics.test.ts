@@ -224,9 +224,12 @@ describe('analytics API client', () => {
       [analytics.getGlobalPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
       [analytics.getGlobalPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
       [analytics.getOverviewProviderUsage, 'providers/usage'],
+      [analytics.getOverviewProviderRequestUsage, 'providers/request-usage'],
       [analytics.getGlobalPerModelTimeseries, 'per-model-timeseries'],
       [analytics.getGlobalPerModelMessageTimeseries, 'per-model-message-timeseries'],
       [analytics.getGlobalPerModelCostTimeseries, 'per-model-cost-timeseries'],
+      [analytics.getOverviewModelUsage, 'models/usage'],
+      [analytics.getOverviewModelRequestUsage, 'models/request-usage'],
     ];
     for (const [fn, path] of fns) {
       const fetchMock = setupFetch({ agents: [], timeseries: [] });
@@ -242,6 +245,11 @@ describe('analytics API client', () => {
       [analytics.getPerProviderTimeseries, 'per-provider-timeseries'],
       [analytics.getPerProviderMessageTimeseries, 'per-provider-message-timeseries'],
       [analytics.getPerProviderCostTimeseries, 'per-provider-cost-timeseries'],
+      [analytics.getPerModelTimeseries, 'per-model-timeseries'],
+      [analytics.getPerModelMessageTimeseries, 'per-model-message-timeseries'],
+      [analytics.getPerModelCostTimeseries, 'per-model-cost-timeseries'],
+      [analytics.getPerProviderRequestUsage, 'providers/request-usage'],
+      [analytics.getPerModelRequestUsage, 'models/request-usage'],
     ];
     for (const [fn, path] of fns) {
       const fetchMock = setupFetch({ agents: [], timeseries: [] });

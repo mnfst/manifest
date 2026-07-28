@@ -1126,6 +1126,30 @@ describe('TimeseriesQueriesService', () => {
       expect(out.timeseries).toEqual([{ hour: '01', 'gpt-4o': 0.9 }]);
     });
 
+    it('getModelUsageTimeseries pivots tokens, messages, and cost from one query', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { hour: '01', model: 'gpt-4o', tokens: 10, messages: 2, cost: 1.5 },
+        { hour: '01', model: 'claude-4', tokens: 5, messages: 1, cost: 0.5 },
+      ]);
+      const out = await service.getModelUsageTimeseries('24h', 'u1', true);
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ hour: '01', 'claude-4': 5, 'gpt-4o': 10 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ hour: '01', 'claude-4': 1, 'gpt-4o': 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ hour: '01', 'claude-4': 0.5, 'gpt-4o': 1.5 });
+      expect(mockGetRawMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('getModelUsageTimeseries supports date buckets and agent scope', async () => {
+      mockGetRawMany.mockResolvedValue([
+        { date: '2026-01-01', model: 'gpt-4o', tokens: 10, messages: 2, cost: 1.5 },
+      ]);
+      const out = await service.getModelUsageTimeseries('7d', 'u1', false, 'agent-x');
+
+      expect(out.tokenUsage.timeseries[0]).toEqual({ date: '2026-01-01', 'gpt-4o': 10 });
+      expect(out.messageUsage.timeseries[0]).toEqual({ date: '2026-01-01', 'gpt-4o': 2 });
+      expect(out.costUsage.timeseries[0]).toEqual({ date: '2026-01-01', 'gpt-4o': 1.5 });
+    });
+
     it('zero-fills missing values from null', async () => {
       mockGetRawMany.mockResolvedValue([{ hour: '01', provider: 'openai', tokens: null }]);
       const out = await service.getPerProviderTimeseries('24h', 'u1', true);

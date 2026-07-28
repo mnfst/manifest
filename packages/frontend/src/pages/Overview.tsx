@@ -31,8 +31,13 @@ import {
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
+  getPerProviderRequestUsage,
+  getPerModelTimeseries,
+  getPerModelMessageTimeseries,
+  getPerModelCostTimeseries,
+  getPerModelRequestUsage,
 } from '../services/api/analytics.js';
-import { preloadModelDisplayNames } from '../services/model-display.js';
+import { preloadModelDisplayNames, getModelDisplayName } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
 import { messagePing } from '../services/sse.js';
 import {
@@ -267,6 +272,35 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
+  // ── Group-by state (status / provider / model) ──────────────────────
+  // A request may touch several providers, so the Requests tab's provider and
+  // model views are request-level (terminal attribution); usage tabs are
+  // served-attempt. One stored groupBy drives both.
+  const [groupBy, setGroupBy] = createSignal<'status' | 'provider' | 'model'>('status');
+  const isGrouped = () => groupBy() !== 'status';
+
+  const [modelTokenTs] = createResource(
+    () => (groupBy() === 'model' && tokenChartRequested() && !billing.loading ? tsKey() : false),
+    (p) => getPerModelTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+  const [modelMessageTs] = createResource(
+    () => (groupBy() === 'model' && !billing.loading ? tsKey() : false),
+    (p) => getPerModelMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+  const [modelCostTs] = createResource(
+    () => (groupBy() === 'model' && costChartRequested() && !billing.loading ? tsKey() : false),
+    (p) => getPerModelCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+  // Request-level per-provider / per-model volume (terminal attribution).
+  const [providerRequestTs] = createResource(
+    () => (groupBy() === 'provider' && !billing.loading ? tsKey() : false),
+    (p) => getPerProviderRequestUsage(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+  const [modelRequestTs] = createResource(
+    () => (groupBy() === 'model' && !billing.loading ? tsKey() : false),
+    (p) => getPerModelRequestUsage(p.agent, p.range) as Promise<PivotedTimeseries>,
+  );
+
   // ── Auto-fix resources (conditional on tenant cohort) ───────────────
   const [autofixCohort] = createResource(
     () => ({ _ping: messagePing() }),
@@ -324,6 +358,11 @@ const Overview: Component = () => {
       ...(providerTokenTs()?.agents ?? []),
       ...(providerMessageTs()?.agents ?? []),
       ...(providerCostTs()?.agents ?? []),
+      ...(modelTokenTs()?.agents ?? []),
+      ...(modelMessageTs()?.agents ?? []),
+      ...(modelCostTs()?.agents ?? []),
+      ...(providerRequestTs()?.agents ?? []),
+      ...(modelRequestTs()?.agents ?? []),
     ]);
     return [...set].sort();
   });
@@ -372,12 +411,27 @@ const Overview: Component = () => {
       }),
     };
   };
-  const filteredTokenTs = createMemo(() => filterTs(providerTokenTs()));
-  const filteredMessageTs = createMemo(() => filterTs(providerMessageTs()));
-  const filteredCostTs = createMemo(() => filterTs(providerCostTs()));
 
   const providerDisplayName = (provId: string): string =>
     PROVIDERS.find((p) => p.id === provId)?.name ?? provId;
+
+  // The filter dropdown reads provider display names in provider mode and
+  // model display names in model mode.
+  const seriesDisplayName = (key: string): string =>
+    groupBy() === 'model' ? getModelDisplayName(key) : providerDisplayName(key);
+
+  // The chart series for the active grouping: usage tabs read the
+  // served-attempt provider/model series; the Requests tab reads the
+  // request-level provider/model volume.
+  const activeTokenTs = createMemo(() =>
+    filterTs(groupBy() === 'model' ? modelTokenTs() : providerTokenTs()),
+  );
+  const activeCostTs = createMemo(() =>
+    filterTs(groupBy() === 'model' ? modelCostTs() : providerCostTs()),
+  );
+  const activeRequestTs = createMemo(() =>
+    filterTs(groupBy() === 'model' ? modelRequestTs() : providerRequestTs()),
+  );
 
   return (
     <div class="container--lg">
@@ -515,23 +569,59 @@ const Overview: Component = () => {
                         tokensValue={d().summary?.tokens_today?.value ?? 0}
                         tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                         range={effectiveRange()}
-                        requestStatusTimeseries={statusTimeseries()}
-                        agentTimeseries={filteredTokenTs() ?? undefined}
-                        agentCostTimeseries={filteredCostTs() ?? undefined}
+                        requestStatusTimeseries={
+                          groupBy() === 'status' ? statusTimeseries() : undefined
+                        }
+                        agentRequestTimeseries={
+                          groupBy() === 'provider' || groupBy() === 'model'
+                            ? (activeRequestTs() ?? undefined)
+                            : undefined
+                        }
+                        agentTimeseries={activeTokenTs() ?? undefined}
+                        agentCostTimeseries={activeCostTs() ?? undefined}
                         colorMap={providerColorMap()}
                         seriesFilters={
-                          <Show when={activeView() !== 'requests' && allProviders().length > 1}>
-                            <FilterSelect
-                              noun="providers"
-                              items={allProviders()}
-                              selected={effectiveSelected()}
-                              colorMap={providerColorMap()}
-                              displayName={providerDisplayName}
-                              onToggle={toggleProvider}
-                              onSelectAll={() => setAllProviders(true)}
-                              onUnselectAll={() => setAllProviders(false)}
-                            />
-                          </Show>
+                          <>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'status',
+                              }}
+                              onClick={() => setGroupBy('status')}
+                            >
+                              By request status
+                            </button>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'provider',
+                              }}
+                              onClick={() => setGroupBy('provider')}
+                            >
+                              By provider
+                            </button>
+                            <button
+                              class="chart-card__filter-btn"
+                              classList={{
+                                'chart-card__filter-btn--active': groupBy() === 'model',
+                              }}
+                              onClick={() => setGroupBy('model')}
+                            >
+                              By model
+                            </button>
+                            <Show when={isGrouped() && allProviders().length > 1}>
+                              <FilterSelect
+                                noun={groupBy() === 'model' ? 'models' : 'providers'}
+                                items={allProviders()}
+                                selected={effectiveSelected()}
+                                colorMap={providerColorMap()}
+                                displayName={seriesDisplayName}
+                                onToggle={toggleProvider}
+                                onSelectAll={() => setAllProviders(true)}
+                                onUnselectAll={() => setAllProviders(false)}
+                              />
+                            </Show>
+                          </>
                         }
                       />
                     );
