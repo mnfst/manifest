@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, waitFor, cleanup } from '@solidjs/testing-library';
+import { render, fireEvent, waitFor, cleanup, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 
 const mockGetAutofix = vi.fn();
 const mockUpdateAutofix = vi.fn();
+const mockCheckIsSelfHosted = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   getAutofix: (...args: unknown[]) => mockGetAutofix(...args),
   updateAutofix: (...args: unknown[]) => mockUpdateAutofix(...args),
+}));
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: () => mockCheckIsSelfHosted(),
 }));
 
 const mockToastError = vi.fn();
@@ -36,6 +40,7 @@ async function waitForLoaded(container: HTMLElement): Promise<HTMLButtonElement>
 describe('SettingsAutofixSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCheckIsSelfHosted.mockResolvedValue(false);
   });
   afterEach(() => {
     cleanup();
@@ -118,7 +123,43 @@ describe('SettingsAutofixSection', () => {
     });
   });
 
+  it('asks self-hosted users to agree before enabling Auto-fix', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, available: true });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    const btn = await waitForLoaded(container);
+    fireEvent.click(btn);
+
+    const dialog = screen.getByRole('dialog', { name: 'Enable hosted Auto-fix?' });
+    expect(dialog.textContent).toContain('Provider authorization credentials are not sent.');
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+
+    const terms = screen.getByRole('link', { name: 'Terms' });
+    const privacy = screen.getByRole('link', { name: 'Privacy Policy' });
+    expect(terms.getAttribute('href')).toBe('https://manifest.build/terms');
+    expect(privacy.getAttribute('href')).toBe('https://manifest.build/privacy');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Agree & enable Auto-fix' }));
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
+    await waitFor(() => expect(btn.getAttribute('aria-checked')).toBe('true'));
+  });
+
+  it('does not enable self-hosted Auto-fix when the confirmation is cancelled', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockGetAutofix.mockResolvedValue({ enabled: false, available: true });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    fireEvent.click(await waitForLoaded(container));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
   it('toggles Auto-fix off when currently enabled', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
     mockGetAutofix.mockResolvedValue({ enabled: true, available: true });
     mockUpdateAutofix.mockResolvedValue({ enabled: false, available: true });
     const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
@@ -127,6 +168,7 @@ describe('SettingsAutofixSection', () => {
     fireEvent.click(btn);
 
     expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: false });
+    expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() => {
       expect(btn.classList.contains('settings-switch--on')).toBe(false);
     });

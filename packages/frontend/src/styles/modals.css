@@ -186,6 +186,19 @@
   font-weight: 600;
 }
 
+.autofix-consent__legal {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.autofix-consent__legal a {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .modal-card__note {
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
