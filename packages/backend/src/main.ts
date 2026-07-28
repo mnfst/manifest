@@ -1,3 +1,5 @@
+// Keep this first so opt-in Sentry error monitoring initializes before Nest.
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
@@ -92,12 +94,15 @@ export async function bootstrap() {
         wingmanPort,
       })
     : buildProdAllowedOrigins({ extraOrigins: process.env['WINGMAN_CORS_ORIGINS'] });
-  // Chrome's Private Network Access preflight must be answered before the cors
-  // middleware ends the OPTIONS response, so register this first. It only echoes
-  // the allow-private-network header for already-allow-listed origins, so it's a
-  // no-op for a public gateway and only matters when a browser-hosted Wingman
-  // targets a gateway on a loopback / LAN address (local dev, or a self-hosted
-  // gateway on a private network).
+  // Legacy Private Network Access support, for browsers older than Chrome 138.
+  // Newer Chrome replaced PNA with Local Network Access, a user permission that
+  // no response header can satisfy — so this does *not* fix a blocked
+  // public-HTTPS → loopback request on a current browser, however much the
+  // browser's "CORS error" wording suggests it should. See the note on
+  // `applyPrivateNetworkAllow` before reaching for it. Registered ahead of the
+  // cors middleware because the preflight has to be answered before that
+  // middleware ends the OPTIONS response; it only echoes the header for
+  // already-allow-listed origins, so it's a no-op for a public gateway.
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     applyPrivateNetworkAllow(req, corsAllowedOrigins, (name, value) => res.setHeader(name, value));
     next();

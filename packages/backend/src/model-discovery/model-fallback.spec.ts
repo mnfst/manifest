@@ -350,6 +350,37 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(model!.contextWindow).toBe(1000000);
   });
 
+  it('uses the Anthropic Opus 5 subscription context override', () => {
+    const cache = new Map([
+      [
+        'anthropic/claude-opus-5',
+        {
+          input: 0.005,
+          output: 0.025,
+          contextWindow: 200000,
+          displayName: 'Claude Opus 5',
+        },
+      ],
+    ]);
+
+    const model = buildSubscriptionFallbackModels(makePricingSync(cache), 'anthropic').find(
+      (m) => m.id === 'claude-opus-5',
+    );
+
+    expect(model).toBeDefined();
+    expect(model!.contextWindow).toBe(1000000);
+  });
+
+  it('surfaces claude-opus-5 even when the pricing cache lacks it', () => {
+    // The 5 generation dropped the claude-opus-4 prefix, so Opus 5 reaches the
+    // curated catalog only via its own knownModels entry.
+    const ids = buildSubscriptionFallbackModels(makePricingSync(new Map()), 'anthropic').map(
+      (m) => m.id,
+    );
+
+    expect(ids).toContain('claude-opus-5');
+  });
+
   it('surfaces claude-fable-5 even when the pricing cache lacks it', () => {
     // claude-fable-5 is a valid Anthropic subscription model with no pricing
     // cache entry; the knownModels fallback must still offer it.

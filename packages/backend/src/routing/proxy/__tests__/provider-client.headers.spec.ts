@@ -292,10 +292,15 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
   });
 
   it('replays the x-codex-turn-state token captured from the previous response', async () => {
+    const completed =
+      'event: response.completed\ndata: {"response":{"output":[{"type":"message","content":[{"type":"output_text","text":"ok"}]}]}}\n\n';
     mockFetch.mockResolvedValueOnce(
-      new Response('{}', { status: 200, headers: { 'x-codex-turn-state': 'turn-abc' } }),
+      new Response(completed, {
+        status: 200,
+        headers: { 'x-codex-turn-state': 'turn-abc' },
+      }),
     );
-    mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+    mockFetch.mockResolvedValueOnce(new Response(completed, { status: 200 }));
 
     await client.forward({ ...subscriptionOpts });
     await client.forward({ ...subscriptionOpts });

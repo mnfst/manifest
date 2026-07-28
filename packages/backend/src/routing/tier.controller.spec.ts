@@ -158,8 +158,11 @@ describe('TierController', () => {
   });
 
   it('GET autofix reports available=false for a tenant without early access', async () => {
+    resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
+    autofixService.resolveEnabled.mockReturnValueOnce(true);
     autofixService.hasAccess.mockResolvedValueOnce(false);
     expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, available: false });
+    expect(autofixService.resolveEnabled).not.toHaveBeenCalled();
   });
 
   it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
@@ -189,11 +192,14 @@ describe('TierController', () => {
   });
 
   it('PATCH autofix does not write when the tenant lacks early access', async () => {
+    resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
+    autofixService.resolveEnabled.mockReturnValueOnce(true);
     autofixService.hasAccess.mockResolvedValueOnce(false);
     const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
     expect(out).toEqual({ enabled: false, available: false });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(autofixService.invalidateConfig).not.toHaveBeenCalled();
+    expect(autofixService.resolveEnabled).not.toHaveBeenCalled();
   });
 
   it('PATCH response-mode sets the mode for a valid tier', async () => {

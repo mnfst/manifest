@@ -15,7 +15,7 @@ describe('SocialFollowBanner', () => {
 
     expect(container.querySelector('.overview-social-banner')).not.toBeNull();
     expect(
-      screen.getByText(/Introducing Self-healing requests and paid plans for Manifest Cloud/),
+      screen.getByText(/Introducing request recovery and paid plans for Manifest Cloud/),
     ).toBeDefined();
 
     const readMore = screen.getByText('Read more') as HTMLAnchorElement;

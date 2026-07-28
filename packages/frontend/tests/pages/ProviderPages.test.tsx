@@ -84,6 +84,7 @@ vi.mock('../../src/services/api/providers.js', async () => {
     getProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
     getProviderUsage: (...args: unknown[]) => mockGetProviderUsage(...args),
     mergeUsage: actual.mergeUsage,
+    connectionUsage: actual.connectionUsage,
   };
 });
 
@@ -91,6 +92,34 @@ vi.mock('../../src/services/api.js', () => ({
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getProviders: (...args: unknown[]) => mockGetAgentProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
+}));
+
+vi.mock('../../src/services/api/analytics.js', () => ({
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
+  totalAttemptsTooltip: (doctor: boolean) =>
+    doctor
+      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
+  MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
+  PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D:
+    'Successful attempts over all attempts for this connection, over the last 30 days.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this connection, on the filtered period.',
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this harness on this connection.',
+  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
+  HARNESS_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
+    !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
+  getPerProviderReliability: () => Promise.resolve([]),
+}));
+
+vi.mock('../../src/services/api/autofix.js', () => ({
+  getAutofixCohort: () => Promise.resolve({ eligible: false }),
 }));
 
 // SSE ping signals drive the usage resource's source; stub them to no-op
@@ -193,9 +222,12 @@ describe('provider pages', () => {
       providers: globalProvidersResponse.providers.map((p) => ({
         provider: p.provider,
         auth_type: p.auth_type,
+        key_label: 'Default',
         consumption_tokens: p.consumption_tokens,
         consumption_messages: p.consumption_messages,
         consumption_cost: p.consumption_cost,
+        attempts_30d: p.auth_type === 'subscription' ? 129 : 188,
+        succeeded_30d: p.auth_type === 'subscription' ? 119 : 148,
         last_used_at: p.last_used_at,
         sparkline_7d: p.sparkline_7d,
       })),
@@ -229,6 +261,21 @@ describe('provider pages', () => {
       ).toBe(true),
     );
   };
+
+  it('shows each connection its OWN attempt rate, never the provider blend', async () => {
+    // The bug this pins: OpenAI subscription at 92.2% was displayed as ~83%
+    // because the list read a provider-level rate blending in the api_key
+    // connection's failures. Rows must read their (provider, auth_type) grain.
+    render(() => <Subscriptions />);
+    await waitFor(() => expect(screen.getByText('ChatGPT')).toBeDefined());
+
+    // 119 / 129 = 92.2%, the subscription connection's own rate.
+    // Appears on the header card AND the row: both read the same grain.
+    await waitFor(() => expect(screen.getAllByText('92.2%').length).toBeGreaterThan(0));
+    expect(screen.getAllByText('129').length).toBeGreaterThan(0);
+    // The blended provider rate (267/317 = 84.2%) must appear nowhere.
+    expect(screen.queryByText('84.2%')).toBeNull();
+  });
 
   it('renders the subscriptions page and opens the connect modal', async () => {
     render(() => <Subscriptions />);
@@ -653,10 +700,7 @@ describe('provider pages', () => {
           provider: 'openai',
           auth_type: 'subscription',
           connection_count: 2,
-          connections: [
-            connection('sub-1', 'Plan A'),
-            connection('sub-2', 'Plan B'),
-          ],
+          connections: [connection('sub-1', 'Plan A'), connection('sub-2', 'Plan B')],
           total_models: 3,
           consumption_tokens: 42,
           consumption_messages: 2,
@@ -794,9 +838,12 @@ describe('provider pages', () => {
         {
           provider: 'openai',
           auth_type: 'subscription',
+          key_label: 'Sparkly',
           consumption_tokens: 1200,
           consumption_messages: 5,
           consumption_cost: 0,
+          attempts_30d: 5,
+          succeeded_30d: 5,
           last_used_at: '2026-06-01T00:00:00Z',
           sparkline_7d: [1, 2, 3, 4],
         },

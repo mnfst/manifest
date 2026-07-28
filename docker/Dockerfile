@@ -34,7 +34,7 @@ RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filte
 # optionalDependencies; without it, npm hoists @esbuild/linux-x64 (a Go
 # binary) into node_modules even though `--omit=dev` strips its parent,
 # and CVE scanners then flag the embedded Go stdlib.
-FROM node:24-slim@sha256:03eae3ef7e88a9de535496fb488d67e02b9d96a063a8967bae657744ecd513f2 AS prod-deps
+FROM node:24-slim@sha256:24dc26ef1e3c3690f27ebc4136c9c186c3133b25563ae4d7f0692e4d1fe5db0e AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
@@ -59,7 +59,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Stage 4: Distroless runtime. Runs as the built-in `nonroot` user (UID
 # 65532) by default. No shell, no apk/apt, minimal CVE surface.
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:f16acace4aa70086d4a2caad6c716f01e3e2fe0dd8274c4530c7c17d987bdb1a AS runtime
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:b087b405441cd3e8eab9bd53ae3dd1c2b824e7ce13f25c5e9bb353fbdb3f4544 AS runtime
 WORKDIR /app
 
 LABEL org.opencontainers.image.title="Manifest" \
@@ -70,7 +70,7 @@ LABEL org.opencontainers.image.title="Manifest" \
       org.opencontainers.image.vendor="MNFST Inc." \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.base.name="gcr.io/distroless/nodejs24-debian13:nonroot" \
-      org.opencontainers.image.base.digest="sha256:f16acace4aa70086d4a2caad6c716f01e3e2fe0dd8274c4530c7c17d987bdb1a"
+      org.opencontainers.image.base.digest="sha256:b087b405441cd3e8eab9bd53ae3dd1c2b824e7ce13f25c5e9bb353fbdb3f4544"
 
 ENV NODE_ENV=production
 ENV BIND_ADDRESS=0.0.0.0
@@ -79,7 +79,6 @@ ENV BIND_ADDRESS=0.0.0.0
 ENV PATH=/nodejs/bin:$PATH
 
 COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules node_modules
-COPY --from=prod-deps --chown=nonroot:nonroot /app/packages/backend/node_modules packages/backend/node_modules
 COPY --from=prod-deps --chown=nonroot:nonroot /app/package.json package.json
 COPY --from=build --chown=nonroot:nonroot /app/packages/shared/dist packages/shared/dist
 COPY --from=build --chown=nonroot:nonroot /app/packages/backend/dist packages/backend/dist

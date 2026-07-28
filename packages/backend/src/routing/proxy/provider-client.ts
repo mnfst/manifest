@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
@@ -24,15 +24,37 @@ import {
   createAnthropicTransformer,
   createReasoningContentStreamTransformer as reasoningContentStreamTransformer,
 } from './provider-client-converters';
-import { ForwardOptions } from './proxy-types';
+import {
+  ForwardOptions,
+  ProxyApiMode,
+  ProviderWireFormat,
+  type ProviderAttemptRef,
+} from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
+import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
+import { ManifestError } from '../../common/errors/manifest-error';
 
 export interface ForwardResult {
   response: Response;
+  /** Exact JSON body sent to the resolved provider transport. */
+  wireRequestBody?: Record<string, unknown>;
+  /** Exact URL used by the resolved provider transport. */
+  wireRequestUrl?: string;
+  /** Provider-native protocol emitted at the transport boundary. */
+  wireFormat?: ProviderWireFormat;
+  /** Provider-facing API shape of {@link wireRequestBody}. */
+  wireApiMode?: ProxyApiMode;
+  /** Re-send a healed wire body through the already-resolved transport. */
+  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  /** False only when Manifest produced a response without invoking provider transport. */
+  providerCallStarted?: boolean;
+  /** Persisted provider-call identity, when request tracking is available. */
+  attempt?: ProviderAttemptRef;
   /** True when we converted from Google format (needs SSE transform). */
   isGoogle: boolean;
   /** True when we converted from Anthropic format (needs SSE transform). */
@@ -51,6 +73,23 @@ export interface ForwardResult {
   structuredOutputToolName?: string;
   /** Internal: original Responses text.format metadata for synthesized Responses bodies. */
   responsesTextFormat?: Record<string, unknown>;
+}
+
+function wireApiMode(endpoint: ProviderEndpoint): ProxyApiMode | undefined {
+  if (endpoint.format === 'openai') return 'chat_completions';
+  if (endpoint.format === 'anthropic') return 'messages';
+  if (endpoint.format === 'chatgpt') return 'responses';
+  return undefined;
+}
+
+function wireFormat(endpoint: ProviderEndpoint): ProviderWireFormat | undefined {
+  if (endpoint.format === 'openai') return 'openai_chat_completions';
+  if (endpoint.format === 'anthropic') return 'anthropic_messages';
+  if (endpoint.format === 'chatgpt') return 'openai_responses';
+  if (endpoint.format === 'google') {
+    return endpoint.codeAssistEnvelope ? 'google_code_assist' : 'google_generate_content';
+  }
+  return undefined;
 }
 
 interface BuiltProviderRequest {
@@ -211,6 +250,10 @@ export class ProviderClient {
       authType,
     } = opts;
 
+    if (!customEndpoint && !isProviderAvailableForDeployment(provider)) {
+      throw new ManifestError('M303', HttpStatus.BAD_REQUEST);
+    }
+
     const { endpoint, endpointKey } = await this.resolveEndpoint(
       customEndpoint,
       provider,
@@ -224,6 +267,8 @@ export class ProviderClient {
     const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
     const isCodeAssist = !!endpoint.codeAssistEnvelope;
     const textFormat = responsesTextFormat(body, opts.apiMode);
+    const resolvedWireApiMode = wireApiMode(endpoint);
+    const resolvedWireFormat = wireFormat(endpoint);
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
@@ -277,32 +322,53 @@ export class ProviderClient {
     const finalHeaders =
       affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
 
-    this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
+    const retryWireBody = async (
+      wireRequestBody: Record<string, unknown>,
+    ): Promise<ForwardResult> => {
+      this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
-    // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
-    // subscription resource URLs). validatePublicUrl was called when the URL
-    // was stored, but DNS for the hostname may have rebound to a private or
-    // cloud-metadata address since then. Re-resolve and re-check now.
-    if (endpoint.requiresSsrfRevalidation) {
-      try {
-        await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+      // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
+      // subscription resource URLs). Re-check every actual forward, including
+      // an immediate Auto-fix retry, because DNS may have rebound in between.
+      if (endpoint.requiresSsrfRevalidation) {
+        try {
+          await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+        }
       }
-    }
 
-    const result = await this.executeFetch(url, finalHeaders, requestBody, signal, stream, {
-      isGoogle,
-      isAnthropic,
-      isChatGpt,
-      isResponses,
-      isCodeAssist,
-      structuredOutputToolName,
-      responsesTextFormat: textFormat,
-    });
-    if (affinity) this.codexAffinity.capture(affinity.storeKey, result.response);
-    return result;
+      const result = await this.executeFetch(url, finalHeaders, wireRequestBody, signal, stream, {
+        isGoogle,
+        isAnthropic,
+        isChatGpt,
+        isResponses,
+        isCodeAssist,
+        structuredOutputToolName,
+        responsesTextFormat: textFormat,
+      });
+      const qualifiedResult =
+        endpointKey === 'openai-subscription'
+          ? {
+              ...result,
+              response: await qualifyChatGptResponse(result.response, {
+                downstreamFormat: isResponses ? 'responses' : 'chat-completions',
+              }),
+            }
+          : result;
+      if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
+      return {
+        ...qualifiedResult,
+        wireRequestBody,
+        wireRequestUrl: url,
+        wireFormat: resolvedWireFormat,
+        wireApiMode: resolvedWireApiMode,
+        retryWireBody,
+      };
+    };
+
+    return retryWireBody(requestBody);
   }
 
   private async resolveEndpoint(
@@ -648,7 +714,11 @@ export class ProviderClient {
     let timeoutController: AbortController | undefined;
     if (stream) {
       timeoutController = new AbortController();
-      timeout = setTimeout(() => timeoutController?.abort(), PROVIDER_TIMEOUT_MS);
+      timeout = setTimeout(() => {
+        const timeoutError = new Error('Upstream provider request timed out');
+        timeoutError.name = 'TimeoutError';
+        timeoutController?.abort(timeoutError);
+      }, PROVIDER_TIMEOUT_MS);
       fetchSignal = signal
         ? AbortSignal.any([timeoutController.signal, signal])
         : timeoutController.signal;
@@ -669,8 +739,14 @@ export class ProviderClient {
         redirect: 'error',
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      const errorLike =
+        err !== null && typeof err === 'object'
+          ? (err as { message?: unknown; name?: unknown })
+          : undefined;
+      const message = typeof errorLike?.message === 'string' ? errorLike.message : String(err);
+      const sanitizedError = new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
+      if (typeof errorLike?.name === 'string') sanitizedError.name = errorLike.name;
+      throw sanitizedError;
     } finally {
       if (timeout) clearTimeout(timeout);
     }

@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { OLLAMA_HOST } from '../common/constants/ollama';
 import { getContainerHostAlias, isSelfHosted } from '../common/utils/detect-self-hosted';
+import { isEmailConfigured } from '../notifications/services/email-providers/send-email';
 
 /**
  * Postgres advisory lock key reserved for the first-run setup wizard.
@@ -48,6 +49,16 @@ export class SetupService {
     if (process.env['DISCORD_CLIENT_ID'] && process.env['DISCORD_CLIENT_SECRET'])
       providers.push('discord');
     return providers;
+  }
+
+  /**
+   * Returns true when a transactional email provider is configured, meaning the
+   * email-based password reset flow can actually deliver a link. The reset page
+   * reads this to warn (and point to Change Password) instead of silently
+   * pretending an email was sent on installs with no provider wired in.
+   */
+  isEmailConfigured(): boolean {
+    return isEmailConfigured();
   }
 
   /**

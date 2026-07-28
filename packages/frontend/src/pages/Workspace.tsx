@@ -113,7 +113,7 @@ const Workspace: Component = () => {
       <Title>My Harnesses - Manifest</Title>
       <Meta
         name="description"
-        content="View and manage all your harnesses. Monitor usage, messages, and costs."
+        content="View and manage all your harnesses. Monitor usage, requests, and costs."
       />
       <div class="page-header">
         <div>
@@ -210,7 +210,7 @@ const Workspace: Component = () => {
                           </span>
                         </div>
                         <div class="agent-card__stat">
-                          <span class="agent-card__stat-label">Messages</span>
+                          <span class="agent-card__stat-label">Requests</span>
                           <span class="agent-card__stat-value">{agent.message_count}</span>
                         </div>
                       </div>

@@ -205,7 +205,7 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       [TEST_AGENT_ID],
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0].status).toBe('ok');
+    expect(rows[0].status).toBe('success');
     // input_tokens stores the chat-shape total (uncached + cache reads + creation).
     expect(Number(rows[0].input_tokens)).toBe(3013);
     expect(Number(rows[0].cache_read_tokens)).toBe(0);

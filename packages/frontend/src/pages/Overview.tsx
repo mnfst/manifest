@@ -9,7 +9,9 @@ import {
   Show,
   type Component,
 } from 'solid-js';
-import ProviderChartCard from '../components/ProviderChartCard.jsx';
+import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
+import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
+
 import FilterSelect from '../components/FilterSelect.jsx';
 import { AGENT_COLORS } from '../components/MultiAgentTokenChart.jsx';
 import CostByModelTable from '../components/CostByModelTable.jsx';
@@ -24,6 +26,8 @@ import { agentPlatform, agentCategory } from '../services/agent-platform-store.j
 import { PROVIDERS } from '../services/providers.js';
 import { getOverview } from '../services/api.js';
 import {
+  getAutofixTimeseries,
+  getPerModelReliability,
   getPerProviderTimeseries,
   getPerProviderMessageTimeseries,
   getPerProviderCostTimeseries,
@@ -41,6 +45,8 @@ import { getBillingStatus } from '../services/api/billing.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
+import { getAutofixStats } from '../services/api/analytics.js';
+import { getAutofixCohort } from '../services/api/autofix.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGE_OPTIONS = [
@@ -61,6 +67,14 @@ interface OverviewData {
     cost_today: { value: number; trend_pct: number };
     messages: { value: number; trend_pct: number };
     services_hit: { total: number; healthy: number; issues: number };
+  };
+  request_reliability: {
+    total: number;
+    successful: number;
+    success_rate: number;
+    attempt_success_rate: number;
+    manifest_lift_pct: number;
+    recovered: number;
   };
   token_usage: Array<{
     hour?: string;
@@ -96,7 +110,7 @@ type PivotedTimeseries = {
   timeseries: Array<Record<string, number | string>>;
 };
 
-type ProviderView = 'cost' | 'tokens' | 'messages';
+type ProviderView = 'requests' | 'selfheal' | 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
 const Overview: Component = () => {
@@ -133,7 +147,7 @@ const Overview: Component = () => {
     markUserSelected: () => setUserSelectedRange(true),
   });
   const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
-  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('messages');
+  const [activeView, setActiveViewRaw] = createSignal<ProviderView>('requests');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
   const setActiveView = (view: ProviderView) => {
@@ -162,6 +176,16 @@ const Overview: Component = () => {
         : { range: effectiveRange(), agentName: params.agentName, _ping: messagePing() },
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
+
+  // The resource re-fetches on range, agent, and every SSE `_ping`. We only want
+  // the loading skeleton on a range change — not on the frequent background ping
+  // refetches (which should update in place). Track the range the visible data
+  // belongs to; while a newer range is loading, treat it as a range change.
+  const [loadedRange, setLoadedRange] = createSignal(effectiveRange());
+  createEffect(() => {
+    if (!data.loading && data() !== undefined) setLoadedRange(effectiveRange());
+  });
+  const rangeChanging = () => data.loading && loadedRange() !== effectiveRange();
 
   const showDashboard = () => {
     const d = data();
@@ -243,6 +267,58 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
+  // ── Auto-fix resources (conditional on tenant cohort) ───────────────
+  const [autofixCohort] = createResource(
+    () => ({ _ping: messagePing() }),
+    () => getAutofixCohort(),
+  );
+  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+  const [autofixStats] = createResource(
+    () =>
+      autofixEligible()
+        ? {
+            range: effectiveRange(),
+            agent: decodeURIComponent(params.agentName),
+            _ping: messagePing(),
+          }
+        : false,
+    (p) => getAutofixStats(p.range, p.agent),
+  );
+  // Disposition timeseries: the Requests chart's ONLY view on this page (an
+  // agent is the harness, and a request may touch several providers, so no
+  // other grouping is meaningful) + the Healed requests tab subset.
+  const [statusTimeseries] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: messagePing(),
+    }),
+    (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
+  );
+  const [modelReliability] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: messagePing(),
+    }),
+    (p) => getPerModelReliability(p.range, p.agent),
+  );
+  const selfHealedTs = () => {
+    const ts = statusTimeseries();
+    if (!ts) return undefined;
+    const picked = ts.keys
+      .map((k, i) => ({ k, i }))
+      .filter(({ k }) => k === 'healed' || k === 'fallback');
+    return {
+      ...ts,
+      keys: picked.map(({ k }) => k),
+      buckets: ts.buckets.map((b) => ({
+        bucket: b.bucket,
+        counts: picked.map(({ i }) => b.counts[i] ?? 0),
+      })),
+    };
+  };
+
   const allProviders = createMemo(() => {
     const set = new Set<string>([
       ...(providerTokenTs()?.agents ?? []),
@@ -310,25 +386,13 @@ const Overview: Component = () => {
       </Title>
       <Meta
         name="description"
-        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance — costs, tokens, and activity.`}
+        content={`Monitor ${agentDisplayName() ?? decodeURIComponent(params.agentName)} performance, costs, tokens, and activity.`}
       />
       <div
         class="page-header"
         style="justify-content: flex-end; border-bottom: none; padding-bottom: 0;"
       >
         <div class="header-controls">
-          <Show when={showDashboard() && allProviders().length > 1}>
-            <FilterSelect
-              noun="providers"
-              items={allProviders()}
-              selected={effectiveSelected()}
-              colorMap={providerColorMap()}
-              displayName={providerDisplayName}
-              onToggle={toggleProvider}
-              onSelectAll={() => setAllProviders(true)}
-              onUnselectAll={() => setAllProviders(false)}
-            />
-          </Show>
           <Show when={showDashboard()}>
             <Select
               value={range()}
@@ -348,7 +412,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={!billing.loading && (data() !== undefined || !data.loading)}
+        when={!billing.loading && (data() !== undefined || !data.loading) && !rangeChanging()}
         fallback={<OverviewSkeleton />}
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
@@ -415,30 +479,74 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  <ProviderChartCard
-                    activeView={activeView()}
-                    onViewChange={setActiveView}
-                    costValue={d().summary?.cost_today?.value ?? 0}
-                    costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
-                    tokensValue={d().summary?.tokens_today?.value ?? 0}
-                    tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
-                    messagesValue={d().summary?.messages?.value ?? 0}
-                    messagesTrendPct={d().summary?.messages?.trend_pct ?? 0}
-                    costInfoTooltip="Actual API key costs only. Subscription usage is not included."
-                    range={effectiveRange()}
-                    agentTimeseries={filteredTokenTs() ?? undefined}
-                    agentMessageTimeseries={filteredMessageTs() ?? undefined}
-                    agentCostTimeseries={filteredCostTs() ?? undefined}
-                    colorMap={providerColorMap()}
-                  />
+                  <Show when={autofixEligible()}>
+                    <AutofixKpiCards
+                      stats={autofixStats()}
+                      agentName={decodeURIComponent(params.agentName)}
+                      range={effectiveRange()}
+                    />
+                  </Show>
+                  {(() => {
+                    return (
+                      <UnifiedChartCard
+                        activeTab={activeView()}
+                        onTabChange={setActiveView}
+                        requestsValue={d().summary?.messages?.value ?? 0}
+                        requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
+                        selfHealedValue={
+                          (autofixStats()?.autofix_saves.value ?? 0) +
+                          (autofixStats()?.fallback_saves?.value ?? 0)
+                        }
+                        selfHealedTrendPct={(() => {
+                          const s = autofixStats();
+                          if (!s) return 0;
+                          const cur = s.autofix_saves.value + (s.fallback_saves?.value ?? 0);
+                          const prev = s.autofix_saves.previous + (s.fallback_saves?.previous ?? 0);
+                          if (prev === 0) return 0;
+                          return Math.max(
+                            -999,
+                            Math.min(999, Math.round(((cur - prev) / prev) * 100)),
+                          );
+                        })()}
+                        selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+                        costValue={d().summary?.cost_today?.value ?? 0}
+                        costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
+                        costInfoTooltip="Actual API key costs only. Subscription usage is not included."
+                        tokensValue={d().summary?.tokens_today?.value ?? 0}
+                        tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
+                        range={effectiveRange()}
+                        requestStatusTimeseries={statusTimeseries()}
+                        agentTimeseries={filteredTokenTs() ?? undefined}
+                        agentCostTimeseries={filteredCostTs() ?? undefined}
+                        colorMap={providerColorMap()}
+                        seriesFilters={
+                          <Show when={activeView() !== 'requests' && allProviders().length > 1}>
+                            <FilterSelect
+                              noun="providers"
+                              items={allProviders()}
+                              selected={effectiveSelected()}
+                              colorMap={providerColorMap()}
+                              displayName={providerDisplayName}
+                              onToggle={toggleProvider}
+                              onSelectAll={() => setAllProviders(true)}
+                              onUnselectAll={() => setAllProviders(false)}
+                            />
+                          </Show>
+                        }
+                      />
+                    );
+                  })()}
 
-                  {/* Recent Messages */}
+                  {/* "Error classes by frequency" stays unmounted until the
+                      backend has real error_class data (preservation spec). */}
+
+                  {/* Recent Requests */}
                   <div class="panel">
                     <div
                       class="panel__title"
                       style="display: flex; justify-content: space-between; align-items: center;"
                     >
-                      Recent Messages
+                      Recent Requests
                       <A href={`/harnesses/${params.agentName}/messages`} class="view-more-link">
                         View more
                       </A>
@@ -448,13 +556,23 @@ const Overview: Component = () => {
                       columns={columns()}
                       agentName={params.agentName}
                       customProviderName={() => undefined}
-                      // A row you can see is a row you can open: without this the
-                      // panel showed failures whose detail was unreachable.
+                      // No inline accordion here: a click lands on the Requests
+                      // page with the request opened in the side panel.
+                      // (`expandable` keeps the rows clickable; `onRowSelect`
+                      // switches them to drawer mode, which we point at the
+                      // Requests page.)
                       expandable
+                      onRowSelect={(id) =>
+                        navigate(`/harnesses/${params.agentName}/messages?request=${id}`)
+                      }
                     />
                   </div>
 
-                  <CostByModelTable rows={d().cost_by_model ?? []} />
+                  <CostByModelTable
+                    rows={d().cost_by_model ?? []}
+                    reliability={modelReliability()}
+                    doctorAvailable={autofixEligible()}
+                  />
                 </>
               );
             }}

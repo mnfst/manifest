@@ -14,6 +14,10 @@ vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: (...args: unknown[]) => mockToastError(...args) },
 }));
 
+vi.mock('@solidjs/router', () => ({
+  useSearchParams: () => [{}],
+}));
+
 import SettingsAutofixSection from '../../src/pages/SettingsAutofixSection';
 
 /** Wait for the initial `getAutofix` resource to settle so the switch's

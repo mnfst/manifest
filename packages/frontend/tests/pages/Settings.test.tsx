@@ -7,6 +7,7 @@ vi.mock("@solidjs/router", () => ({
   useParams: () => ({ agentName: mockAgentName }),
   useNavigate: () => mockNavigate,
   useLocation: () => ({ pathname: `/harnesses/${mockAgentName}/settings`, state: null }),
+  useSearchParams: () => [{}],
 }));
 
 vi.mock("@solidjs/meta", () => ({
