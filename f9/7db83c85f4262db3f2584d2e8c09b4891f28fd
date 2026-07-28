@@ -1,0 +1,21 @@
+packages/frontend/tests/services/sse.test.ts
+  s_d719e55e391d03::t_da63df108e3930 20-22,165-167
+packages/frontend/tests/components/ErrorClassCard.preserved.test.tsx
+  s_d719e55e391d03::t_d7c062ccee99ca 50-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f97db83c85f4262db3f2584d2e8c09b4891f28fd",
+  "prompts": {},
+  "sessions": {
+    "s_d719e55e391d03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee4a3753-ce72-4604-8b5f-21b838872d8e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

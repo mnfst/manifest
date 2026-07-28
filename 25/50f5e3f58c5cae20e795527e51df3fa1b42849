@@ -1,0 +1,31 @@
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_8b2a2ccaff9d01::t_ef38d808375c71 74
+  s_8b2a2ccaff9d01::t_1d05c9635dfd19 82
+  s_8b2a2ccaff9d01::t_4085a5bf1e9f04 32-34,69,76-78
+packages/frontend/src/components/RequestDrawer.tsx
+  s_8b2a2ccaff9d01::t_4085a5bf1e9f04 356-363
+  s_8b2a2ccaff9d01::t_962ba849fd3f20 375-422,424-447,449-475,477-485,488-489,492-496,498-503,505-506,508-555,557-558,561-562,565,574-617,619-635,637-647,649-654,656-661,663-676,678,680-683,685,687,689-697,699-737,739,741-762,764-809,811-812
+packages/frontend/src/components/RequestMessages.tsx
+  s_8b2a2ccaff9d01::t_4085a5bf1e9f04 20
+packages/frontend/src/styles/request-drawer.css
+  s_8b2a2ccaff9d01::t_4085a5bf1e9f04 433
+  s_8b2a2ccaff9d01::t_aac1e35308743b 428-432,434-445,490-513,611-628
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_8b2a2ccaff9d01::t_4085a5bf1e9f04 245-246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2550f5e3f58c5cae20e795527e51df3fa1b42849",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

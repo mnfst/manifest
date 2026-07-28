@@ -1,0 +1,44 @@
+packages/backend/src/routing/proxy/request-recording.service.spec.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 12-15,32,36,43,51
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 36-40,235-236
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 610-615
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 270
+packages/backend/src/routing/proxy/request-recording.service.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 20,27
+.changeset/record-request-payloads.md
+  s_8b2a2ccaff9d01::t_d851600f875633 5
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 14,109-111
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_8b2a2ccaff9d01::t_d851600f875633 225,228,235-266
+  s_7da3e727228214::t_6f937f533730ec 267
+docker/DOCKER_README.md
+  s_8b2a2ccaff9d01::t_d851600f875633 352-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "575c48c134b0ea6797e333c06773d659e8e6ea4f",
+  "prompts": {},
+  "sessions": {
+    "s_7da3e727228214": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c661a9d-a3ae-40d6-992c-f6d78e46c6d5",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

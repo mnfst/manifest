@@ -1,0 +1,109 @@
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_9ac16c4697fb01::t_5bf52251c6b1c4 921,1004-1006,1058,1099,1123,1151,1244,1408
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_9ac16c4697fb01::t_d3f04a8e83d3b9 143-199,520-530
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_9ac16c4697fb01::t_43ab3cc465c67c 8,10,39-40,185-192,295-301,544,546-562
+  s_9ac16c4697fb01::t_595cb0e6f64175 328-333,347
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 545,582
+  s_9ac16c4697fb01::t_016fb317082605 563-564
+packages/shared/src/error-taxonomy.ts
+  s_9ac16c4697fb01::t_c1eb0b6cf9918e 51,64,68-73,76-81,92,233
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_9ac16c4697fb01::t_44736068474ec4 221-273
+packages/frontend/src/styles/theme.css
+  s_9ac16c4697fb01::t_ca29ed702555db 625-629
+packages/backend/src/routing/proxy/sse-parser.ts
+  s_9ac16c4697fb01::t_b7e39bfea30cb7 12,15,36
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_9ac16c4697fb01::t_07223de7d6be3b 54-59,65,234-235,265-266,303,492,505-506,551,564-566,568-576,583,595,617,669,725,728,730,734,740,748
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_9ac16c4697fb01::t_53ebcddd184aa6 92
+  s_9ac16c4697fb01::t_d44c7c29ca899a 29
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_9ac16c4697fb01::t_ae850d225fe55b 2773-2816
+packages/backend/src/analytics/services/provider-usage.service.spec.ts
+  s_9ac16c4697fb01::t_68b8f1d0d577f0 278
+packages/frontend/src/components/RequestDrawer.tsx
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 383,428
+  s_9ac16c4697fb01::t_d44c7c29ca899a 687
+  s_9ac16c4697fb01::t_44736068474ec4 180
+  s_9ac16c4697fb01::t_2269d6cfbb7706 12-17,77-78,88-89,96,100-105,110-117,139
+  s_9ac16c4697fb01::t_47f6906b98c7c7 106-109
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_9ac16c4697fb01::t_6ee7b438ba131d 146,195-201
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_9ac16c4697fb01::t_586b736fc50f73 287-289
+  s_9ac16c4697fb01::t_68b8f1d0d577f0 278
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_9ac16c4697fb01::t_c1eb0b6cf9918e 12,232-244,246,257-260,286,293
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_9ac16c4697fb01::t_f1a610fd7aaad3 54,56-57
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_9ac16c4697fb01::t_586b736fc50f73 151
+packages/frontend/src/components/message-table-cells.tsx
+  s_9ac16c4697fb01::t_ca29ed702555db 392-393,405-410
+  s_9ac16c4697fb01::t_bead04993bbc78 411
+packages/backend/src/database/backfills/backfill-requests.gateway.ts
+  s_9ac16c4697fb01::t_c1eb0b6cf9918e 49
+packages/shared/src/index.ts
+  s_9ac16c4697fb01::t_c1eb0b6cf9918e 37
+packages/frontend/src/styles/data.css
+  s_9ac16c4697fb01::t_ca29ed702555db 89-93
+packages/backend/src/analytics/services/query-helpers.ts
+  s_9ac16c4697fb01::t_c1eb0b6cf9918e 69,72,74
+  s_9ac16c4697fb01::t_d44c7c29ca899a 95
+packages/backend/src/routing/proxy/stream-protocol.ts
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 2,31-33,81-82,152
+  s_9ac16c4697fb01::t_d1a70eb8f6cdae 123-126,128
+  s_9ac16c4697fb01::t_d44c7c29ca899a 94
+  s_9ac16c4697fb01::t_b7e39bfea30cb7 1,3-30,34-80,83-93,95-122,127,129-151,155-163
+  s_9ac16c4697fb01::t_43ab3cc465c67c 153-154
+packages/backend/src/routing/proxy/__tests__/stream-protocol.spec.ts
+  s_9ac16c4697fb01::t_e8d5601d548638 1-31,33-72,74-98,112-151
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 32
+  s_9ac16c4697fb01::t_9261c7cd3ddc35 99-111
+  s_9ac16c4697fb01::t_d44c7c29ca899a 73
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_9ac16c4697fb01::t_586b736fc50f73 211
+packages/frontend/src/styles/request-drawer.css
+  s_9ac16c4697fb01::t_2269d6cfbb7706 96-99,210-213
+packages/backend/.env.example
+  s_9ac16c4697fb01::t_ae850d225fe55b 42-43
+docs/glossary.md
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 43-48,160
+  s_9ac16c4697fb01::t_623a5b206fb2ef 50,54-56,85-89,127
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 652
+  s_9ac16c4697fb01::t_d2959d97f275ba 514-526,549,571,593-599,610,624,648,654
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_9ac16c4697fb01::t_ca29ed702555db 284-294
+.changeset/clean-stream-lifecycle.md
+  s_9ac16c4697fb01::t_623a5b206fb2ef 1-5
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_9ac16c4697fb01::t_d2959d97f275ba 2,73-75
+  s_9ac16c4697fb01::t_b7e39bfea30cb7 8-23,33,35-38,43,45,47-52,54,56-57,61-64,70-72,76-78,267,272-278,284,319,321-322,326,338,343-345,354,362-365,401,416,431-432,436
+  s_9ac16c4697fb01::t_43ab3cc465c67c 288-291,293,393
+  s_9ac16c4697fb01::t_f0a52ef14ec3b3 66-69
+  s_9ac16c4697fb01::t_5812f75ef11cd0 65
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_9ac16c4697fb01::t_e8d5601d548638 6-9,186-234
+packages/frontend/src/components/MessageDetails.tsx
+  s_9ac16c4697fb01::t_ca29ed702555db 266-271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a43bd5c8290e4b8f805270d19f0607d85b682c7e",
+  "prompts": {},
+  "sessions": {
+    "s_9ac16c4697fb01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa292-b4d6-7120-b36a-18cf22b7b85a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

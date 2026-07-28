@@ -1,0 +1,21 @@
+.changeset/seroval-critical-bump.md
+  s_d719e55e391d03::t_25de9ddaa2f486 1-5
+package-lock.json
+  s_d719e55e391d03::t_a4a0ed9313141d 12433-12435,12442-12444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "04bc1c9e54a8ee4330317ec119bab0957b983869",
+  "prompts": {},
+  "sessions": {
+    "s_d719e55e391d03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee4a3753-ce72-4604-8b5f-21b838872d8e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

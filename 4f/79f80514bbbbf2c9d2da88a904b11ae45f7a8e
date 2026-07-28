@@ -1,0 +1,32 @@
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 212-216
+  s_8b2a2ccaff9d01::t_bfc91fad76b6ee 218
+packages/frontend/src/components/RequestDrawer.tsx
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 319-322,357,366-367,448,459
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 302,307-308,358-439,511-542
+  s_8b2a2ccaff9d01::t_289c43d4fcb9e3 543
+.changeset/895be6f75eea.md
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 1-5
+.changeset/models-cost-projection.md
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 1-5
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_8b2a2ccaff9d01::t_c9ac148e60249a 79-86,94-112,145,148,153,186-188
+  s_8b2a2ccaff9d01::t_50d6140fd4ea28 189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4f79f80514bbbbf2c9d2da88a904b11ae45f7a8e",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

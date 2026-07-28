@@ -1,0 +1,21 @@
+.github/workflows/docker-smoke.yml
+  s_8b2a2ccaff9d01::t_5fe6cdccc2318d 161
+.github/workflows/db-diagram.yml
+  s_8b2a2ccaff9d01::t_5fe6cdccc2318d 96-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "66d4abc3c6ec143c468200ecdbd149866e073106",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

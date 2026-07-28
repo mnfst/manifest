@@ -1,0 +1,49 @@
+.changeset/heal-unavailable-model.md
+  s_725b8b258f559a::t_cbd73aa58ae53e 1-5
+CLAUDE.md
+  s_725b8b258f559a::t_6d28826e5d9ad3 566-567
+package-lock.json
+  s_902c8898662750::t_79fd372490c914 15017
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_725b8b258f559a::t_041da5a8691521 7,55-68
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_725b8b258f559a::t_ac732044eca3d8 495-562
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_725b8b258f559a::t_0e49f933b36593 59,2199-2252
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_725b8b258f559a::t_7d39bfa620ff5b 1587-1642
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_725b8b258f559a::t_86af9cbd330d46 912-1042
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_725b8b258f559a::t_b6c55bccb9a725 125-131,375,388-390,395-397
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_725b8b258f559a::t_ab050d08967bb9 45,699,701-731
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_725b8b258f559a::t_e0380284607b0b 29,335-343,389,403-404
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_725b8b258f559a::t_0a7c399b3dcee3 32,154-162,171-179,190-204,276-278,280-288,310-311,606,626-627,637,1110-1121,1123-1210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "34d5bd673239131c3ae5969c6cd3763c141eedd5",
+  "prompts": {},
+  "sessions": {
+    "s_725b8b258f559a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1ead2d87-f11e-4bda-8983-ae79739abf37",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_902c8898662750": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9ed49f95-2788-4a27-886b-e9ba39292715",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

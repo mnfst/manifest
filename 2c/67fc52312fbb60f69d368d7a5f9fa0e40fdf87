@@ -1,0 +1,43 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 1635,1950-1953,1958,2155,2160,2537,2542
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 353-383
+.changeset/bright-lions-spark.md
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 1-5
+packages/frontend/package.json
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 31-32,36
+packages/frontend/tests/services/sse.test.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 20-22,165-167
+packages/frontend/tests/components/ErrorClassCard.preserved.test.tsx
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 50-52
+.changeset/seroval-critical-bump.md
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 1-5
+packages/backend/src/main.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 97-105
+packages/shared/__tests__/subscription.spec.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 66-77,523-524
+packages/shared/src/subscription/configs.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 19-21,33
+packages/backend/src/cors-csp-config.ts
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 111,141-160
+docker/Dockerfile
+  s_8b2a2ccaff9d01::t_6969de34dd2bad 74
+package-lock.json
+  s_8b2a2ccaff9d01::t_d1b55dc95f67f1 543-544,555-583,1509-1521,1848-1849,1867-1868,1890-1891,1917-1918,1926-1950,1964-1965,2500-2517,5165-5167,5179-5181,5193-5195,5207-5209,5221-5223,5235-5237,5824-5825,5842-5843,5870-5871,5884-5885,5900-5901,5916-5917,5930-5931,6146-6147,6682-6691,6838-6839,6944-6945,6988-6989,7450-7454,7456-7468,7484-7485,7533-7534,9491-9492,9562-9563,9575-9576,10923-10924,11285-11287,11379-11385,11742-11744,11763-11776,12104-12105,12792-12794,12959-12961,12968-12970,13303-13305,13432-13433,13445-13447,13806-13807,13815-13816,13826-13827,13835-13836,13846-13848,13904-13905,13916-13917,14090-14092,14099-14104,14557-14558,14631-14632,14652-14654,14679-14680,14721-14722,14794-14796,14840-14841,14992-14993,15004-15005,15016-15017,15025-15026,15205-15206,15455-15456,15460,15463-15466,15470-15474,15477,15480-15483,15486-15487,15490-15494,15497,15500-15503,15507,15510,15513,15516-15519,15523-15524,15526-15527,15530-16151,16168-16319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2c67fc52312fbb60f69d368d7a5f9fa0e40fdf87",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

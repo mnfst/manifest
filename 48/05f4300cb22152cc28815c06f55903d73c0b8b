@@ -1,0 +1,24 @@
+.github/dependabot.yml
+  s_d719e55e391d03::t_e32cf823f9597d 29-35,41-43
+  s_d719e55e391d03::t_8690c69693dc04 53-56
+.github/workflows/dependency-review.yml
+  s_d719e55e391d03::t_e9e5c0502765a6 1-20
+.github/workflows/dependabot-auto-merge.yml
+  s_d719e55e391d03::t_404105bf14087b 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4805f4300cb22152cc28815c06f55903d73c0b8b",
+  "prompts": {},
+  "sessions": {
+    "s_d719e55e391d03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee4a3753-ce72-4604-8b5f-21b838872d8e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

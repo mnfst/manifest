@@ -1,0 +1,19 @@
+docker/Dockerfile
+  s_d719e55e391d03::t_834f705f5eafab 73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c77fec4874d2f972c11d1845ffccc9036154412c",
+  "prompts": {},
+  "sessions": {
+    "s_d719e55e391d03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee4a3753-ce72-4604-8b5f-21b838872d8e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

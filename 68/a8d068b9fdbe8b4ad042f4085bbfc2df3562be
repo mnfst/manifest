@@ -1,0 +1,52 @@
+integrations/n8n-nodes-manifest/credentials/ManifestApi.credentials.ts
+  s_63dcf43eedb8bd::t_ad48df8e755e14 1-6
+  s_63dcf43eedb8bd::t_6f25b076fe9632 43-51
+integrations/n8n-nodes-manifest/package.json
+  s_63dcf43eedb8bd::t_fccfde70feaee9 54
+  s_63dcf43eedb8bd::t_1443ea172a8d86 49
+  s_63dcf43eedb8bd::t_db825dff773d9e 62
+  s_63dcf43eedb8bd::t_27fb446573d06d 3
+  s_d719e55e391d03::t_d15d9c67085813 43,50
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_63dcf43eedb8bd::t_1ef85e157e56f2 3-8
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.ts
+  s_63dcf43eedb8bd::t_781e5f8419f69c 96-102
+  s_63dcf43eedb8bd::t_365ade09060094 161-167,169
+  s_63dcf43eedb8bd::t_613bd5ec695f84 1-95,103-160,168,170-221
+integrations/n8n-nodes-manifest/README.md
+  s_63dcf43eedb8bd::t_85e0c3fe06bb37 5-17,23
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_63dcf43eedb8bd::t_6cb0afc3ced8b9 158-160
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.json
+  s_63dcf43eedb8bd::t_0fe322a272e22e 1-22
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/manifest-logo.dark.svg
+  s_63dcf43eedb8bd::t_6fd67b56d040c0 1-80
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/manifest-logo.svg
+  s_63dcf43eedb8bd::t_dd9c0814e2857e 1-80
+integrations/n8n-nodes-manifest/package-lock.json
+  s_63dcf43eedb8bd::t_c025346690189c 3,9,12,20,97-99,545-547,1040-1042,1594-1596,1664-1666,1671,1697-1699,1738-1740,1786-1788,1880-1882,1891-1893,1897,1901-1903,1912-1916,1921,1930-1932,1936-1938,1946-1948,1952-1956,1960,1969-1971,1975-1979,1986,1995-1997,2005-2007,2011-2012,2018-2020,2024-2026,2030-2033,2035,2039-2041,2049-2051,2058-2060,2063-2064,2161-2337,2354-2418,2521-2571,2573-2575,2583-2585,2594-2596,2601-2603,2606,3197-3199,3204,3210,4810-4812,4833-4835,6422-6424,7258-7260,7719-7721,7725-7728,8552-8554,8559,8565,8572-8574,8582,9938-9940,10323-10325
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "68a8d068b9fdbe8b4ad042f4085bbfc2df3562be",
+  "prompts": {},
+  "sessions": {
+    "s_63dcf43eedb8bd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dc6fec7f-ee5a-4f08-97a9-7de8bb347291",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d719e55e391d03": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ee4a3753-ce72-4604-8b5f-21b838872d8e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

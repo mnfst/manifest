@@ -1,0 +1,23 @@
+.changeset/disable-cloud-telemetry.md
+  s_da4a6957073020::t_1cee39d5c4dc1f 1-5
+packages/backend/src/telemetry/telemetry.config.spec.ts
+  s_da4a6957073020::t_467071e7c57bb1 30-41
+packages/backend/src/telemetry/telemetry.config.ts
+  s_da4a6957073020::t_08af385f5a6101 21-26,32-36,40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1fa8d38195c3d35962f60875ed73adb95922f96a",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+packages/backend/src/common/errors/error-codes.ts
+  s_8b2a2ccaff9d01::t_8df0cca2abb90f 38-42
+packages/backend/src/common/errors/manifest-error.ts
+  s_8b2a2ccaff9d01::t_b95ede27003c85 13,52
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_8b2a2ccaff9d01::t_04ffea8c01f779 1361,1376-1384
+packages/frontend/src/services/formatters.ts
+  s_8b2a2ccaff9d01::t_38551af8061662 125
+packages/shared/src/error-taxonomy.ts
+  s_8b2a2ccaff9d01::t_d67b023bad657a 147,171-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "14ee0b029ee22a73362338ddc8edba4ea6e93398",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

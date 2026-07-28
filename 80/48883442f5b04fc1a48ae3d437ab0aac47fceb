@@ -1,0 +1,21 @@
+packages/frontend/src/pages/SettingsRecordingSection.tsx
+  s_8b2a2ccaff9d01::t_f20d2c938709ac 37
+packages/frontend/tests/pages/SettingsRecordingSection.test.tsx
+  s_8b2a2ccaff9d01::t_f20d2c938709ac 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "8048883442f5b04fc1a48ae3d437ab0aac47fceb",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

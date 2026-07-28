@@ -1,0 +1,44 @@
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_59e4a92070941c::t_0010dc81ad71fa 92,720-769
+  s_59e4a92070941c::t_3b53cc18078136 770-771
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_59e4a92070941c::t_0010dc81ad71fa 405-417,420-423,432-440
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 127-128,170
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 24-25,380
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 29
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 370,373
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_59e4a92070941c::t_0010dc81ad71fa 15,164-165,172,174
+  s_59e4a92070941c::t_52a46bc7f3faed 173
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 328-334
+.changeset/heal-native-google-requests.md
+  s_59e4a92070941c::t_1a8ac62e25d7ae 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_59e4a92070941c::t_0010dc81ad71fa 1456,1471,1504,1506,1514
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 414,416,424,426,432,1214
+  s_59e4a92070941c::t_52a46bc7f3faed 418
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_59e4a92070941c::t_22cc5dfb2e1cb5 56-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d2a0c79eb72e34a7ef9e669080e563c29a308309",
+  "prompts": {},
+  "sessions": {
+    "s_59e4a92070941c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f940a-f9c7-74a0-8908-791721c17e9b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

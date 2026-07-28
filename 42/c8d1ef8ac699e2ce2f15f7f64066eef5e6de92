@@ -1,0 +1,21 @@
+packages/frontend/src/components/RequestDrawer.tsx
+  s_9ac16c4697fb01::t_d7108bbe6c174c 88
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_9ac16c4697fb01::t_d7108bbe6c174c 222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "42c8d1ef8ac699e2ce2f15f7f64066eef5e6de92",
+  "prompts": {},
+  "sessions": {
+    "s_9ac16c4697fb01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa292-b4d6-7120-b36a-18cf22b7b85a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

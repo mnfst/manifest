@@ -1,0 +1,28 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_1b534f12db29db::t_42783eca0708f8 745
+  s_1b534f12db29db::t_c2d79fb170f222 716-720,746,748
+  s_1b534f12db29db::t_d2be7c72219472 741-744,747
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_1b534f12db29db::t_c2d79fb170f222 1695-1723
+packages/backend/src/routing/proxy/__tests__/provider-client.timeout.spec.ts
+  s_1b534f12db29db::t_c2d79fb170f222 45-46,62,120,143,149-174
+  s_1b534f12db29db::t_4d022781eade74 175-176
+.changeset/calm-stream-timeouts.md
+  s_1b534f12db29db::t_ca9f4a8c96834e 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c10a89ef091ac5d834da7121ae72c906a7c5dd95",
+  "prompts": {},
+  "sessions": {
+    "s_1b534f12db29db": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9dd3-c3ca-7940-b4d2-f8d2721b610a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

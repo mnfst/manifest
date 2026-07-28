@@ -1,0 +1,33 @@
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_9665b6f12519a4 4,36,42-45,52,58,349,367
+.changeset/oauth-refresh-row-lock.md
+  s_8b2a2ccaff9d01::t_dd3bd6ea7d9297 1-5
+packages/backend/src/routing/oauth/__tests__/mock-subscription-lock.ts
+  s_8b2a2ccaff9d01::t_3e90afd07cf23b 1-37
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.security.spec.ts
+  s_8b2a2ccaff9d01::t_f64dfa6bceb0d3 2,33-36,42-45
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_e475a95f859831 2,40-43,50-53,435
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.coverage.spec.ts
+  s_8b2a2ccaff9d01::t_76b0ae5a4faac1 4,44-47,54-57
+packages/backend/src/routing/oauth/openai/openai-oauth.service.coverage.spec.ts
+  s_8b2a2ccaff9d01::t_72dbee2afb3bc9 4,42-45,52-55,290
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_d288ff524ec62b 5,73-76,83-86,247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4458b6dbca43066226c22b9e9773d45cc3018f8b",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

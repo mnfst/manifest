@@ -1,0 +1,27 @@
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_8b2a2ccaff9d01::t_e3027ea3390f0f 245-246
+packages/frontend/src/components/RequestDrawer.tsx
+  s_8b2a2ccaff9d01::t_e3027ea3390f0f 356-363
+packages/frontend/src/components/RequestMessages.tsx
+  s_8b2a2ccaff9d01::t_e3027ea3390f0f 20
+packages/frontend/src/styles/request-drawer.css
+  s_8b2a2ccaff9d01::t_e3027ea3390f0f 433,483
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_8b2a2ccaff9d01::t_e3027ea3390f0f 32-34,69,74,76-78,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c72e4b4612201c41e69887ff663cac3211fe6a06",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}

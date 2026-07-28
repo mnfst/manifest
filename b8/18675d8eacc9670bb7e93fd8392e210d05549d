@@ -1,0 +1,19 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_33bd43dc2796c1::t_6cc5ac1fba9033 1635,1950-1953,1958,2155,2160,2537,2542
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b818675d8eacc9670bb7e93fd8392e210d05549d",
+  "prompts": {},
+  "sessions": {
+    "s_33bd43dc2796c1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa38c-2c28-74c1-8217-90f5c5d6b62c",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_19dafa76275683::t_b210eb08e5ce62 317-318,323-350
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_19dafa76275683::t_171dc7758abf0e 748-833
+.changeset/m100-credential-fallback.md
+  s_19dafa76275683::t_cf02b99acaeb39 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c546b864ccc27c91622039b081c4537ffacbf709",
+  "prompts": {},
+  "sessions": {
+    "s_19dafa76275683": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "12dc76df-6d38-443d-bc08-d6b93f82aaa9",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

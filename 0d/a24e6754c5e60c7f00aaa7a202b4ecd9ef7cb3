@@ -1,0 +1,21 @@
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.json
+  s_def502c24487ca::t_5d8f6bb2088474 2-17
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.json
+  s_def502c24487ca::t_5d8f6bb2088474 2-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "0da24e6754c5e60c7f00aaa7a202b4ecd9ef7cb3",
+  "prompts": {},
+  "sessions": {
+    "s_def502c24487ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa3de-0b96-7030-98ca-9514df7d7992",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
