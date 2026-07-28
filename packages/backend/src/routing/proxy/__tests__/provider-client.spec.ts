@@ -1350,6 +1350,27 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBeUndefined();
     });
 
+    it('resolves a Responses conversion once for a Gemini endpoint', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const resolveChatBody = jest
+        .fn()
+        .mockResolvedValue({ messages: [{ role: 'user', content: 'Hello' }] });
+
+      await client.forward({
+        provider: 'google',
+        apiKey: 'AIza-test',
+        model: 'gemini-2.0-flash',
+        body: { input: 'Hello' },
+        resolveChatBody,
+        apiMode: 'responses',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.contents).toEqual([{ role: 'user', parts: [{ text: 'Hello' }] }]);
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
+    });
+
     it('maps image parts onto the Google request body', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

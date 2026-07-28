@@ -92,6 +92,12 @@ function wireFormat(endpoint: ProviderEndpoint): ProviderWireFormat | undefined 
   return undefined;
 }
 
+function inputWireFormat(apiMode: ProxyApiMode): ProviderWireFormat {
+  if (apiMode === 'responses') return 'openai_responses';
+  if (apiMode === 'messages') return 'anthropic_messages';
+  return 'openai_chat_completions';
+}
+
 interface BuiltProviderRequest {
   url: string;
   headers: Record<string, string>;
@@ -272,7 +278,7 @@ export class ProviderClient {
     const needsChatBody =
       opts.apiMode !== undefined &&
       opts.apiMode !== 'chat_completions' &&
-      opts.apiMode !== resolvedWireApiMode;
+      inputWireFormat(opts.apiMode) !== resolvedWireFormat;
     const chatBody = needsChatBody ? await opts.resolveChatBody?.() : undefined;
 
     const bareModel = stripModelPrefix(model, endpointKey);
