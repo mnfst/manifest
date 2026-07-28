@@ -1358,7 +1358,7 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
-    it('skips models with no API key', async () => {
+    it('records a credential failure when a model has no API key', async () => {
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
       providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
@@ -1373,7 +1373,15 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.success).toBeNull();
-      expect(result.failures).toHaveLength(0);
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures[0]).toMatchObject({
+        provider: 'Anthropic',
+        model: 'claude-sonnet-4',
+        status: 401,
+        providerCallStarted: true,
+      });
+      expect(result.failures[0].errorBody).toContain('M100');
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
     it('resolves custom provider from model prefix', async () => {

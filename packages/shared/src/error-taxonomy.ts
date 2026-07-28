@@ -144,6 +144,7 @@ export const ERROR_CLASSES = [
   // manifest (config / policy / internal / request)
   'no_provider',
   'no_provider_key',
+  'subscription_credentials_unusable',
   'local_provider_unavailable',
   'limit_exceeded',
   'plan_request_limit_exceeded',
@@ -167,6 +168,10 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
 > = {
   no_provider: { origin: 'config', errorClass: 'no_provider' },
   no_provider_key: { origin: 'config', errorClass: 'no_provider_key' },
+  subscription_credentials_unusable: {
+    origin: 'config',
+    errorClass: 'subscription_credentials_unusable',
+  },
   local_provider_unavailable: {
     origin: 'config',
     errorClass: 'local_provider_unavailable',

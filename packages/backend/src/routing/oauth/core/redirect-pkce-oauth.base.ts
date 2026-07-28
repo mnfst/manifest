@@ -20,7 +20,11 @@ import { generatePkce, generateState } from './pkce';
 import { oauthDoneHtml } from './callback-page';
 import { PendingStore } from './pending-store';
 import { parseOAuthTokenBlob, serializeOAuthTokenBlob, type OAuthTokenBlob } from './oauth-blob';
-import { coordinateOAuthRefresh, oauthRefreshKey } from './oauth-refresh-coordinator';
+import {
+  coordinateOAuthRefresh,
+  oauthRefreshKey,
+  subscriptionCredentialLock,
+} from './oauth-refresh-coordinator';
 
 export interface RedirectPkceOauthConfig {
   /** Provider id stored on `tenant_providers.provider_id`. */
@@ -293,22 +297,15 @@ export abstract class RedirectPkceOauthBaseService {
         key: oauthRefreshKey(providerId, tenantId, keyLabel),
         logger: this.logger,
         callerBlob: blob,
-        readFreshRaw: () =>
-          this.providerService.getFreshSubscriptionCredential(tenantId, providerId, keyLabel),
         parse: parseOAuthTokenBlob,
         refresh: (current) => this.refreshAccessToken(current.r, current.u),
-        persist: (refreshed) =>
-          this.providerService
-            .upsertProvider(
-              agentId,
-              tenantId,
-              providerId,
-              serializeOAuthTokenBlob(refreshed),
-              'subscription',
-              undefined,
-              keyLabel,
-            )
-            .then(() => undefined),
+        withLock: subscriptionCredentialLock(
+          (t, p, l, fn) => this.providerService.withSubscriptionCredentialLock(t, p, l, fn),
+          tenantId,
+          providerId,
+          keyLabel,
+          serializeOAuthTokenBlob,
+        ),
       });
       return resolved.t;
     } catch (err) {

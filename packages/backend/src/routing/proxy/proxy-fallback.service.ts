@@ -46,10 +46,7 @@ interface ForwardProviderOptions {
   startProviderAttempt?: StartProviderAttempt;
 }
 
-import {
-  ProviderKeyService,
-  SYNTHETIC_OLLAMA_PROVIDER_ID,
-} from '../routing-core/provider-key.service';
+import { ProviderKeyService } from '../routing-core/provider-key.service';
 import { CustomProvider } from '../../entities/custom-provider.entity';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { resolveForwardEndpoint } from './forward-endpoint-resolver';
@@ -81,11 +78,13 @@ import type {
   StartProviderAttempt,
 } from './proxy-types';
 import type { ProxyApiMode } from './proxy-types';
+import { refreshRejectedOAuthCredential } from './oauth-credentials';
 import {
-  isRefreshableOAuthCredential,
-  refreshRejectedOAuthCredential,
-  resolveApiKey,
-} from './oauth-credentials';
+  buildCredentialFailureFallback,
+  presentCredentialFailure,
+  resolveRouteCredentials,
+  type RouteCredentialDeps,
+} from './route-credentials';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -193,6 +192,8 @@ export class ProxyFallbackService {
     paramMergeContext?: ParamMergeContext,
     reasoningContentLookup?: ReasoningContentLookup,
     startProviderAttempt?: StartProviderAttempt,
+    /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
+    credentialDashboardUrl?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -261,67 +262,37 @@ export class ProxyFallbackService {
         )) as AuthType;
       }
       const model = normalizeProviderModel(provider, requestedModel);
-      // Single key selection per attempt: the forwarded apiKey, the stamped
-      // tenant_provider_id, the recorded key label, and the region are all
-      // projected from this one row, so they can never diverge. With no
-      // pinned label this returns the priority-0 (default) key.
-      const key = await this.providerKeyService.selectProviderKey(
+      // Same credential resolution as primary (select key + OAuth unwrap).
+      const credentials = await resolveRouteCredentials(this.routeCredentialDeps(), {
+        agentId,
         tenantId,
         provider,
         authType,
         providerKeyLabel,
-        agentId,
-      );
-      if (!key || key.apiKey === null) {
+      });
+      if (!credentials.ok) {
         this.logger.debug(
-          `Fallback ${i}: skipping model=${model} provider=${provider} (no API key)`,
+          `Fallback ${i}: credential failure model=${model} provider=${provider} reason=${credentials.reason}`,
         );
-        continue;
-      }
-      const apiKey = key.apiKey;
-      // NULL for synthetic Ollama — no persisted row to stamp.
-      const tenantProviderId = key.id === SYNTHETIC_OLLAMA_PROVIDER_ID ? null : key.id;
-      // Resolve an unpinned subscription label to the selected row's label so
-      // OAuth refresh persistence updates the same key the selection used.
-      if (!providerKeyLabel && authType === 'subscription') {
-        providerKeyLabel = key.label;
-      }
-
-      const resolvedCredentials = await resolveApiKey(
-        provider,
-        apiKey,
-        authType,
-        agentId,
-        tenantId,
-        this.openaiOauth,
-        this.minimaxOauth,
-        this.anthropicOauth,
-        this.geminiOauth,
-        this.kiroOauth,
-        this.xaiOauth,
-        providerKeyLabel,
-      );
-      if (resolvedCredentials.apiKey === null) {
-        this.logger.debug(
-          `Fallback ${i}: skipping model=${model} provider=${provider} (OAuth token unavailable)`,
-        );
-        continue;
-      }
-      let rawApiKey = apiKey;
-      if (authType === 'subscription' && isRefreshableOAuthCredential(apiKey)) {
-        // Deliberate re-read: resolveApiKey may have refreshed + persisted a
-        // rotated OAuth blob (which also invalidates the key cache), so the
-        // freshest stored value is fetched for the 401-retry path.
-        rawApiKey =
-          (await this.providerKeyService.getProviderApiKey(
-            tenantId,
+        failures.push(
+          buildCredentialFailureFallback({
+            model,
             provider,
+            fallbackIndex: i,
             authType,
-            providerKeyLabel,
-            agentId,
-          )) ?? apiKey;
+            tenantProviderId: credentials.tenantProviderId,
+            presentation: presentCredentialFailure(
+              credentials.reason,
+              provider,
+              credentialDashboardUrl ?? 'the dashboard',
+            ),
+            startProviderAttempt,
+          }),
+        );
+        continue;
       }
-      const providerRegion = key.region;
+      providerKeyLabel = credentials.keyLabel ?? providerKeyLabel;
+      const tenantProviderId = credentials.tenantProviderId;
 
       this.logger.log(
         `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
@@ -329,7 +300,7 @@ export class ProxyFallbackService {
 
       const forward = await this.tryForwardToProvider({
         provider,
-        apiKey: resolvedCredentials.apiKey,
+        apiKey: credentials.apiKey,
         model,
         body,
         chatBody,
@@ -338,12 +309,12 @@ export class ProxyFallbackService {
         signal,
         agentId,
         tenantId,
-        rawApiKey,
+        rawApiKey: credentials.rawApiKey,
         providerKeyLabel,
         authType,
         apiMode,
-        resourceUrl: resolvedCredentials.resourceUrl,
-        providerRegion,
+        resourceUrl: credentials.resourceUrl,
+        providerRegion: credentials.providerRegion,
         signatureLookup,
         thinkingLookup,
         reasoningContentLookup,
@@ -363,7 +334,9 @@ export class ProxyFallbackService {
             // Label of the connection row that served the attempt — stamped
             // alongside its tenant_provider_id so the pair always matches.
             // Synthetic rows (Ollama) keep the pinned label, if any.
-            keyLabel: tenantProviderId ? key.label : providerKeyLabel,
+            keyLabel: tenantProviderId
+              ? (credentials.keyLabel ?? providerKeyLabel)
+              : providerKeyLabel,
             tenantProviderId,
           },
           failures,
@@ -391,6 +364,20 @@ export class ProxyFallbackService {
       if (!shouldTriggerFallback(forward.response.status)) break;
     }
     return { success: null, failures };
+  }
+
+  private routeCredentialDeps(): RouteCredentialDeps {
+    return {
+      providerKeyService: this.providerKeyService,
+      oauth: {
+        openaiOauth: this.openaiOauth,
+        minimaxOauth: this.minimaxOauth,
+        anthropicOauth: this.anthropicOauth,
+        geminiOauth: this.geminiOauth,
+        kiroOauth: this.kiroOauth,
+        xaiOauth: this.xaiOauth,
+      },
+    };
   }
 
   async tryForwardToProvider(opts: ForwardProviderOptions): Promise<ForwardResult> {

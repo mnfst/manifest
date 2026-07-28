@@ -25,8 +25,12 @@ import type { ProviderAttemptRef, ProviderAttemptStart } from './proxy-types';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
-import type { ManifestErrorCode } from '../../common/errors/error-codes';
-import type { ManifestBlockedRequestReason } from '../../common/errors/manifest-error';
+import { extractManifestErrorCode, type ManifestErrorCode } from '../../common/errors/error-codes';
+import {
+  MANIFEST_CODE_TO_REASON,
+  isRecordableManifestCode,
+  type ManifestBlockedRequestReason,
+} from '../../common/errors/manifest-error';
 import {
   getAutofixRetry,
   type AutofixChainEntry,
@@ -377,10 +381,20 @@ function classifyRow(row: Partial<AgentMessage>): {
   if (normalizeStatus(row.status) === PENDING_STATUS) {
     return { error_origin: null, error_class: null, superseded: false };
   }
+  // A stamped Manifest error_code is the authoritative origin signal. A
+  // credential-hop failure (M100/M102) carries a synthetic 401 and rides the
+  // fallback recorder, whose routing_reason is the *tier* reason ('scored',
+  // 'default', …) — classifying off that alone would bucket a Manifest config
+  // error as a provider 401 and inflate provider_error_rate / billing. Derive
+  // the reason from the code so it classifies as config even though
+  // routing_reason keeps the tier reason for display.
+  const code = row.error_code as ManifestErrorCode | null | undefined;
+  const codeReason =
+    code && isRecordableManifestCode(code) ? MANIFEST_CODE_TO_REASON[code] : undefined;
   return classifyMessageError({
     status: row.status ?? 'ok',
     errorHttpStatus: row.error_http_status,
-    routingReason: row.routing_reason,
+    routingReason: codeReason ?? row.routing_reason,
   });
 }
 
@@ -579,11 +593,13 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       status: richStatus,
       error_http_status: status,
     });
+    const errorMessage = scrubSecrets(errorBody).trim().slice(0, 2000) || FAILED_WITHOUT_MESSAGE;
     await this.messageRepo.update(
       { id: attempt.id },
       {
         status: normalizeStatus(richStatus),
-        error_message: scrubSecrets(errorBody).trim().slice(0, 2000) || FAILED_WITHOUT_MESSAGE,
+        error_message: errorMessage,
+        error_code: extractManifestErrorCode(errorMessage),
         error_http_status: status,
         duration_ms: Math.max(0, (attempt.completedAtMs ?? Date.now()) - attempt.startedAtMs),
         ...classified,
@@ -831,6 +847,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       // Falling back to the primary auth keeps behavior identical for rows
       // that haven't been backfilled with routes.
       const recordedAuth = f.authType ?? authType ?? null;
+      const errorMessage = scrubSecrets(
+        normalizeProviderErrorForStorage(f.status, f.errorBody),
+      ).slice(0, 2000);
       rows.push(
         buildMessageRow(ctx, {
           request_id: requestId,
@@ -841,9 +860,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           trace_id: traceId ?? null,
           timestamp: ts,
           status,
-          error_message: scrubSecrets(
-            normalizeProviderErrorForStorage(f.status, f.errorBody),
-          ).slice(0, 2000),
+          error_message: errorMessage,
+          // Credential hop failures embed M100/M102 in the body; stamp the
+          // code so filters/analytics do not have to parse error_message.
+          error_code:
+            extractManifestErrorCode(errorMessage) ?? extractManifestErrorCode(f.errorBody),
           error_http_status: f.status,
           model: canonical.model,
           provider: canonical.provider,
@@ -918,6 +939,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
     );
     const requestId = opts?.requestId ?? uuid();
+    const errorMessage = scrubSecrets(
+      normalizeProviderErrorForStorage(opts?.httpStatus, errorBody),
+    ).slice(0, 2000);
     const row = buildMessageRow(ctx, {
       request_id: requestId,
       ...attemptIdentity(opts?.attempt, opts?.attemptNumber),
@@ -925,9 +949,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       duration_ms: opts?.requestDurationMs ?? null,
       status: 'fallback_error',
       ...autofixColumns(opts?.autofix, terminalAutofixRole(opts?.autofix)),
-      error_message: scrubSecrets(
-        normalizeProviderErrorForStorage(opts?.httpStatus, errorBody),
-      ).slice(0, 2000),
+      error_message: errorMessage,
+      // Credential failures (M100/M102) land here with a peacock body; stamp
+      // error_code so Messages filters and analytics can group on it.
+      error_code: extractManifestErrorCode(errorMessage) ?? extractManifestErrorCode(errorBody),
       error_http_status: opts?.httpStatus ?? null,
       model: canonical.model,
       provider: canonical.provider,

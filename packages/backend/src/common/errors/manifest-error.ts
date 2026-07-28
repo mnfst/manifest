@@ -10,6 +10,7 @@ import { formatManifestError, MANIFEST_ERRORS, type ManifestErrorCode } from './
 export const MANIFEST_BLOCKED_REQUEST_REASONS = [
   'no_provider',
   'no_provider_key',
+  'subscription_credentials_unusable',
   'key_expired',
   'limit_exceeded',
   'plan_request_limit_exceeded',
@@ -48,6 +49,7 @@ export const MANIFEST_CODE_TO_REASON: Record<RecordableManifestCode, ManifestBlo
     M004: 'key_expired',
     M100: 'no_provider_key',
     M101: 'no_provider',
+    M102: 'subscription_credentials_unusable',
     M200: 'limit_exceeded',
     M201: 'manifest_rate_limited',
     M202: 'manifest_ip_rate_limited',
