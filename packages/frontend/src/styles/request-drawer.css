@@ -5,9 +5,9 @@
   top: 0;
   right: 0;
   bottom: 0;
-  width: 50%;
-  min-width: 400px;
-  max-width: 1084px;
+  width: 55%;
+  min-width: 600px;
+  max-width: 1284px;
   background: hsl(var(--card));
   border-left: 1px solid hsl(var(--border));
   z-index: 200;
@@ -425,12 +425,24 @@
 .conv-rail__role-pill--off {
   opacity: 0.28;
 }
-.conv-rail__role-pill--user      { color: #1cc4bf; }
-.conv-rail__role-pill--assistant { color: #2430f0; }
-.dark .conv-rail__role-pill--assistant { color: #6e7aff; }
-.conv-rail__role-pill--system    { color: hsl(var(--foreground)); }
-.conv-rail__role-pill--tool      { color: #ff006e; }
-.conv-rail__role-pill--unknown   { color: hsl(var(--muted-foreground)); }
+.conv-rail__role-pill--user {
+  color: #1cc4bf;
+}
+.conv-rail__role-pill--assistant {
+  color: #2430f0;
+}
+.dark .conv-rail__role-pill--assistant {
+  color: #6e7aff;
+}
+.conv-rail__role-pill--system {
+  color: hsl(var(--foreground));
+}
+.conv-rail__role-pill--tool {
+  color: #ff006e;
+}
+.conv-rail__role-pill--unknown {
+  color: hsl(var(--muted-foreground));
+}
 .conv-rail__list {
   flex: 1;
   overflow-y: auto;
@@ -475,12 +487,30 @@
   font-weight: 700;
   font-family: var(--font-mono);
 }
-.conv-outline-row__badge--user      { background: hsl(173 65% 45% / 0.15); color: #1cc4bf; }
-.conv-outline-row__badge--assistant { background: hsl(231 72% 50% / 0.12); color: #2430f0; }
-.dark .conv-outline-row__badge--assistant { background: hsl(231 72% 60% / 0.15); color: #6e7aff; }
-.conv-outline-row__badge--system    { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.conv-outline-row__badge--tool      { background: hsl(330 100% 50% / 0.12); color: #ff006e; }
-.conv-outline-row__badge--unknown   { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.conv-outline-row__badge--user {
+  background: hsl(173 65% 45% / 0.15);
+  color: #1cc4bf;
+}
+.conv-outline-row__badge--assistant {
+  background: hsl(231 72% 50% / 0.12);
+  color: #2430f0;
+}
+.dark .conv-outline-row__badge--assistant {
+  background: hsl(231 72% 60% / 0.15);
+  color: #6e7aff;
+}
+.conv-outline-row__badge--system {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.conv-outline-row__badge--tool {
+  background: hsl(330 100% 50% / 0.12);
+  color: #ff006e;
+}
+.conv-outline-row__badge--unknown {
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
 .conv-outline-row__num {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -582,12 +612,24 @@
   letter-spacing: 0.06em;
   flex-shrink: 0;
 }
-.request-message__role--user    { color: #1cc4bf; }
-.request-message__role--assistant { color: #2430f0; }
-.dark .request-message__role--assistant { color: #6e7aff; }
-.request-message__role--system  { color: hsl(var(--foreground)); }
-.request-message__role--tool    { color: #ff006e; }
-.request-message__role--unknown { color: hsl(var(--muted-foreground)); }
+.request-message__role--user {
+  color: #1cc4bf;
+}
+.request-message__role--assistant {
+  color: #2430f0;
+}
+.dark .request-message__role--assistant {
+  color: #6e7aff;
+}
+.request-message__role--system {
+  color: hsl(var(--foreground));
+}
+.request-message__role--tool {
+  color: #ff006e;
+}
+.request-message__role--unknown {
+  color: hsl(var(--muted-foreground));
+}
 /* Inline meta codes (name, tool_call_id) */
 .request-message__meta-code {
   overflow: hidden;
@@ -609,17 +651,24 @@
   color: hsl(var(--muted-foreground));
   min-width: 0;
 }
-/* Chevron */
+/* Chevron — always anchored to the right, rotates when open */
 .request-message__chevron {
+  margin-left: auto;
   flex-shrink: 0;
-  font-size: 8px;
+  display: inline-flex;
+  align-items: center;
   color: hsl(var(--muted-foreground));
+  transition: transform 0.2s ease;
+}
+.request-message__chevron--open {
+  transform: rotate(180deg);
 }
 /* Expandable body */
 .request-message__body {
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm, 8px);
+  padding: 12px 12px 12px;
 }
 .request-message__body--capped {
   max-height: 60vh;
@@ -653,7 +702,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0 12px 12px;
+  padding: 0;
 }
 .request-messages__tool-call,
 .request-tool {

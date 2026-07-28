@@ -23,7 +23,7 @@ import { formatParamValue } from './MessageDetailsSections.jsx';
 import { providerIcon } from './ProviderIcon.jsx';
 import { AutofixIcon, FallbackIcon } from './message-table-cells.jsx';
 import { authBadgeFor } from './AuthBadge.js';
-import RequestMessages from './RequestMessages.jsx';
+import RequestMessages, { type RecordingView } from './RequestMessages.jsx';
 import '../styles/request-drawer.css';
 
 export interface RequestDrawerProps {
@@ -32,7 +32,7 @@ export interface RequestDrawerProps {
   onOpenMessage?: (id: string) => void;
 }
 
-type AttemptTab = 'details' | 'messages' | 'headers' | 'params';
+type AttemptTab = 'details' | 'messages' | 'tools' | 'raw' | 'headers' | 'params';
 
 interface Attempt {
   id: string;
@@ -242,7 +242,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
     const tabs: Array<{ value: AttemptTab; label: string }> = [
       { value: 'details', label: 'Details' },
     ];
-    if (att) tabs.push({ value: 'messages', label: 'Messages' });
+    if (att?.recording) {
+      tabs.push({ value: 'messages', label: 'Messages' });
+      tabs.push({ value: 'tools', label: 'Tools' });
+      tabs.push({ value: 'raw', label: 'Raw' });
+    }
     if (att?.request_headers && Object.keys(att.request_headers).length > 0) {
       tabs.push({ value: 'headers', label: 'Request headers' });
     }
@@ -250,6 +254,13 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
       tabs.push({ value: 'params', label: 'Model params' });
     }
     return tabs;
+  });
+
+  const recordingView = createMemo((): RecordingView => {
+    const t = tab();
+    if (t === 'tools') return 'tools';
+    if (t === 'raw') return 'raw';
+    return 'messages';
   });
 
   // Reset attempt + tab when message changes
@@ -445,98 +456,110 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                           </For>
                         </div>
 
-                        <div class="drawer__body">
-                          {/* Details tab */}
-                          <Show when={tab() === 'details'}>
-                            <div class="drawer-metadata">
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Status</span>
-                                <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                  {statusLabel(att().status)}
-                                  <span class={`attempt-code ${attemptStatusClass(att().status)}`}>
-                                    {attemptCode(att())}
-                                  </span>
-                                </span>
-                              </div>
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Type</span>
-                                <span style="text-transform: capitalize;">{att().type}</span>
-                              </div>
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Provider</span>
-                                <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                  {providerIcon(att().provider, 14)}
-                                  {att().provider ?? '-'}
-                                </span>
-                              </div>
-                              <Show when={att().auth_type}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Auth</span>
-                                  <span>{att().auth_type}</span>
-                                </div>
-                              </Show>
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Model</span>
-                                <span>{att().model ?? '-'}</span>
-                              </div>
-                              <Show when={att().model_id && att().model_id !== att().model}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Model ID</span>
-                                  <span>{att().model_id}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().trace_id}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Trace ID</span>
-                                  <span>{att().trace_id}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().routing_tier}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Routing tier</span>
-                                  <span>{att().routing_tier}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().routing_reason}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Reason</span>
-                                  <span>{att().routing_reason}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().service_type}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Service type</span>
-                                  <span>{att().service_type}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().session_key}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Session</span>
-                                  <span>{att().session_key}</span>
-                                </div>
-                              </Show>
-                              <Show when={att().duration_ms != null}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Duration</span>
-                                  <span>{att().duration_ms}ms</span>
-                                </div>
-                              </Show>
-                              <Show when={att().cost != null}>
-                                <div class="drawer-kv">
-                                  <span class="drawer-kv__key">Cost</span>
-                                  <span>${att().cost?.toFixed(4)}</span>
-                                </div>
-                              </Show>
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Input tokens</span>
-                                <span>{att().input_tokens?.toLocaleString()}</span>
-                              </div>
-                              <div class="drawer-kv">
-                                <span class="drawer-kv__key">Output tokens</span>
-                                <span>{att().output_tokens?.toLocaleString()}</span>
-                              </div>
+                        <Show when={tab() === 'messages' || tab() === 'tools' || tab() === 'raw'}>
+                          <div class="drawer__messages-pane">
+                            <RequestMessages
+                              recording={att().recording ?? null}
+                              view={recordingView()}
+                            />
+                          </div>
+                        </Show>
 
-                              {/* ── The attempt's story, in reading order ──────
+                        <Show when={tab() !== 'messages' && tab() !== 'tools' && tab() !== 'raw'}>
+                          <div class="drawer__body">
+                            {/* Details tab */}
+                            <Show when={tab() === 'details'}>
+                              <div class="drawer-metadata">
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Status</span>
+                                  <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    {statusLabel(att().status)}
+                                    <span
+                                      class={`attempt-code ${attemptStatusClass(att().status)}`}
+                                    >
+                                      {attemptCode(att())}
+                                    </span>
+                                  </span>
+                                </div>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Type</span>
+                                  <span style="text-transform: capitalize;">{att().type}</span>
+                                </div>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Provider</span>
+                                  <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                    {providerIcon(att().provider, 14)}
+                                    {att().provider ?? '-'}
+                                  </span>
+                                </div>
+                                <Show when={att().auth_type}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Auth</span>
+                                    <span>{att().auth_type}</span>
+                                  </div>
+                                </Show>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Model</span>
+                                  <span>{att().model ?? '-'}</span>
+                                </div>
+                                <Show when={att().model_id && att().model_id !== att().model}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Model ID</span>
+                                    <span>{att().model_id}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().trace_id}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Trace ID</span>
+                                    <span>{att().trace_id}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().routing_tier}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Routing tier</span>
+                                    <span>{att().routing_tier}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().routing_reason}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Reason</span>
+                                    <span>{att().routing_reason}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().service_type}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Service type</span>
+                                    <span>{att().service_type}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().session_key}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Session</span>
+                                    <span>{att().session_key}</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().duration_ms != null}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Duration</span>
+                                    <span>{att().duration_ms}ms</span>
+                                  </div>
+                                </Show>
+                                <Show when={att().cost != null}>
+                                  <div class="drawer-kv">
+                                    <span class="drawer-kv__key">Cost</span>
+                                    <span>${att().cost?.toFixed(4)}</span>
+                                  </div>
+                                </Show>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Input tokens</span>
+                                  <span>{att().input_tokens?.toLocaleString()}</span>
+                                </div>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Output tokens</span>
+                                  <span>{att().output_tokens?.toLocaleString()}</span>
+                                </div>
+
+                                {/* ── The attempt's story, in reading order ──────
                                   1. ORIGIN cards (why this attempt exists) —
                                      before the error;
                                   2. the ERROR card (what happened here);
@@ -545,241 +568,239 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                   Cumulative by design: the error card is never
                                   replaced by a context card. ── */}
 
-                              {/* Origin: this attempt IS the healed Auto-fix retry */}
-                              <Show when={att().autofix_role === 'retry'}>
-                                <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
-                                  <div style="margin-bottom: 8px;">
-                                    <span class="trigger-badge trigger-badge--autofix">
-                                      <AutofixIcon />
-                                      auto-fix
-                                    </span>
-                                  </div>
-                                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    {isSuccessStatus(att().status)
-                                      ? 'This Auto-fix retry recovered the request.'
-                                      : 'Manifest applied a fix and retried, but this attempt failed.'}
-                                  </div>
-                                  <Show when={att().autofix_decision?.explanation?.summary}>
-                                    <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-                                      {att().autofix_decision!.explanation!.summary}
+                                {/* Origin: this attempt IS the healed Auto-fix retry */}
+                                <Show when={att().autofix_role === 'retry'}>
+                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
+                                    <div style="margin-bottom: 8px;">
+                                      <span class="trigger-badge trigger-badge--autofix">
+                                        <AutofixIcon />
+                                        auto-fix
+                                      </span>
                                     </div>
-                                  </Show>
-                                  <Show when={att().autofix_operations}>
-                                    <table
-                                      class="error-autofix-row__meta-table"
-                                      style="--meta-table-border: hsl(222 47% 50% / 0.3); margin-top: 0;"
-                                    >
-                                      <tbody>
-                                        <For each={att().autofix_operations as any[]}>
-                                          {(op: any) => (
-                                            <tr>
-                                              <td class="error-autofix-row__meta-label">Fix</td>
-                                              <td>
-                                                {op.type}
-                                                {(op.args?.from ?? op.from)
-                                                  ? `: ${op.args?.from ?? op.from}`
-                                                  : ''}
-                                                {(op.args?.to ?? op.to)
-                                                  ? ` → ${op.args?.to ?? op.to}`
-                                                  : ''}
-                                              </td>
-                                            </tr>
-                                          )}
-                                        </For>
-                                      </tbody>
-                                    </table>
-                                  </Show>
-                                </div>
-                              </Show>
-
-                              {/* Origin: this attempt IS the fallback recovery */}
-                              <Show when={att().fallback_from_model}>
-                                <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
-                                  <div style="margin-bottom: 8px;">
-                                    <span class="trigger-badge trigger-badge--fallback">
-                                      <FallbackIcon />
-                                      fallback
-                                    </span>
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
+                                      {isSuccessStatus(att().status)
+                                        ? 'This Auto-fix retry recovered the request.'
+                                        : 'Manifest applied a fix and retried, but this attempt failed.'}
+                                    </div>
+                                    <Show when={att().autofix_decision?.explanation?.summary}>
+                                      <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+                                        {att().autofix_decision!.explanation!.summary}
+                                      </div>
+                                    </Show>
+                                    <Show when={att().autofix_operations}>
+                                      <table
+                                        class="error-autofix-row__meta-table"
+                                        style="--meta-table-border: hsl(222 47% 50% / 0.3); margin-top: 0;"
+                                      >
+                                        <tbody>
+                                          <For each={att().autofix_operations as any[]}>
+                                            {(op: any) => (
+                                              <tr>
+                                                <td class="error-autofix-row__meta-label">Fix</td>
+                                                <td>
+                                                  {op.type}
+                                                  {(op.args?.from ?? op.from)
+                                                    ? `: ${op.args?.from ?? op.from}`
+                                                    : ''}
+                                                  {(op.args?.to ?? op.to)
+                                                    ? ` → ${op.args?.to ?? op.to}`
+                                                    : ''}
+                                                </td>
+                                              </tr>
+                                            )}
+                                          </For>
+                                        </tbody>
+                                      </table>
+                                    </Show>
                                   </div>
-                                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    {isSuccessStatus(att().status)
-                                      ? 'This fallback recovered the request.'
-                                      : 'This fallback attempt failed.'}{' '}
-                                    Fell back from {att().fallback_from_model}.
-                                  </div>
-                                </div>
-                              </Show>
+                                </Show>
 
-                              {/* Error block if this attempt failed — never hidden
+                                {/* Origin: this attempt IS the fallback recovery */}
+                                <Show when={att().fallback_from_model}>
+                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
+                                    <div style="margin-bottom: 8px;">
+                                      <span class="trigger-badge trigger-badge--fallback">
+                                        <FallbackIcon />
+                                        fallback
+                                      </span>
+                                    </div>
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+                                      {isSuccessStatus(att().status)
+                                        ? 'This fallback recovered the request.'
+                                        : 'This fallback attempt failed.'}{' '}
+                                      Fell back from {att().fallback_from_model}.
+                                    </div>
+                                  </div>
+                                </Show>
+
+                                {/* Error block if this attempt failed — never hidden
                                   by the context cards around it */}
-                              <Show when={att().error_message}>
-                                <div style="margin-top: 16px; padding: 12px 16px; background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive) / 0.25); border-radius: var(--radius);">
-                                  <div style="font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: hsl(var(--foreground));">
-                                    Error
-                                  </div>
-                                  <div style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); word-break: break-word; margin-bottom: 8px;">
-                                    {att().error_message}
-                                  </div>
-                                  <Show
-                                    when={
-                                      att().error_origin ||
-                                      att().error_class ||
-                                      att().error_http_status
-                                    }
-                                  >
-                                    <table
-                                      class="error-autofix-row__meta-table"
-                                      style="--meta-table-border: hsl(var(--destructive) / 0.25);"
-                                    >
-                                      <tbody>
-                                        <Show when={att().error_origin}>
-                                          <tr>
-                                            <td class="error-autofix-row__meta-label">Origin</td>
-                                            <td>{att().error_origin}</td>
-                                          </tr>
-                                        </Show>
-                                        <Show when={att().error_class}>
-                                          <tr>
-                                            <td class="error-autofix-row__meta-label">Type</td>
-                                            <td>{att().error_class}</td>
-                                          </tr>
-                                        </Show>
-                                        <Show when={att().error_http_status}>
-                                          <tr>
-                                            <td class="error-autofix-row__meta-label">
-                                              HTTP status
-                                            </td>
-                                            <td>{att().error_http_status}</td>
-                                          </tr>
-                                        </Show>
-                                      </tbody>
-                                    </table>
-                                  </Show>
-                                </div>
-                              </Show>
-
-                              {/* Consequence: this failed attempt was auto-fixed
-                                  and retried right after */}
-                              <Show when={att().autofix_applied && att().autofix_role !== 'retry'}>
-                                <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
-                                  <div style="margin-bottom: 8px;">
-                                    <span class="trigger-badge trigger-badge--autofix">
-                                      <AutofixIcon />
-                                      auto-fix
-                                    </span>
-                                  </div>
-                                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
-                                    {`This attempt failed and was auto-fixed.${
-                                      attempts().length > att().index
-                                        ? ` Retried as attempt ${att().index + 1}.`
-                                        : ''
-                                    }`}
-                                  </div>
-                                  <Show when={att().autofix_decision?.explanation?.summary}>
-                                    <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-                                      {att().autofix_decision!.explanation!.summary}
+                                <Show when={att().error_message}>
+                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive) / 0.25); border-radius: var(--radius);">
+                                    <div style="font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: hsl(var(--foreground));">
+                                      Error
                                     </div>
-                                  </Show>
-                                  <Show when={att().autofix_operations}>
-                                    <table
-                                      class="error-autofix-row__meta-table"
-                                      style="--meta-table-border: hsl(222 47% 50% / 0.3); margin-top: 0;"
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); word-break: break-word; margin-bottom: 8px;">
+                                      {att().error_message}
+                                    </div>
+                                    <Show
+                                      when={
+                                        att().error_origin ||
+                                        att().error_class ||
+                                        att().error_http_status
+                                      }
                                     >
-                                      <tbody>
-                                        <For each={att().autofix_operations as any[]}>
-                                          {(op: any) => (
+                                      <table
+                                        class="error-autofix-row__meta-table"
+                                        style="--meta-table-border: hsl(var(--destructive) / 0.25);"
+                                      >
+                                        <tbody>
+                                          <Show when={att().error_origin}>
                                             <tr>
-                                              <td class="error-autofix-row__meta-label">Fix</td>
-                                              <td>
-                                                {op.type}
-                                                {(op.args?.from ?? op.from)
-                                                  ? `: ${op.args?.from ?? op.from}`
-                                                  : ''}
-                                                {(op.args?.to ?? op.to)
-                                                  ? ` → ${op.args?.to ?? op.to}`
-                                                  : ''}
-                                              </td>
+                                              <td class="error-autofix-row__meta-label">Origin</td>
+                                              <td>{att().error_origin}</td>
                                             </tr>
-                                          )}
-                                        </For>
-                                      </tbody>
-                                    </table>
-                                  </Show>
-                                </div>
-                              </Show>
+                                          </Show>
+                                          <Show when={att().error_class}>
+                                            <tr>
+                                              <td class="error-autofix-row__meta-label">Type</td>
+                                              <td>{att().error_class}</td>
+                                            </tr>
+                                          </Show>
+                                          <Show when={att().error_http_status}>
+                                            <tr>
+                                              <td class="error-autofix-row__meta-label">
+                                                HTTP status
+                                              </td>
+                                              <td>{att().error_http_status}</td>
+                                            </tr>
+                                          </Show>
+                                        </tbody>
+                                      </table>
+                                    </Show>
+                                  </div>
+                                </Show>
 
-                              {/* Consequence: this failed attempt was recovered by
+                                {/* Consequence: this failed attempt was auto-fixed
+                                  and retried right after */}
+                                <Show
+                                  when={att().autofix_applied && att().autofix_role !== 'retry'}
+                                >
+                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
+                                    <div style="margin-bottom: 8px;">
+                                      <span class="trigger-badge trigger-badge--autofix">
+                                        <AutofixIcon />
+                                        auto-fix
+                                      </span>
+                                    </div>
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground)); margin-bottom: 8px;">
+                                      {`This attempt failed and was auto-fixed.${
+                                        attempts().length > att().index
+                                          ? ` Retried as attempt ${att().index + 1}.`
+                                          : ''
+                                      }`}
+                                    </div>
+                                    <Show when={att().autofix_decision?.explanation?.summary}>
+                                      <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
+                                        {att().autofix_decision!.explanation!.summary}
+                                      </div>
+                                    </Show>
+                                    <Show when={att().autofix_operations}>
+                                      <table
+                                        class="error-autofix-row__meta-table"
+                                        style="--meta-table-border: hsl(222 47% 50% / 0.3); margin-top: 0;"
+                                      >
+                                        <tbody>
+                                          <For each={att().autofix_operations as any[]}>
+                                            {(op: any) => (
+                                              <tr>
+                                                <td class="error-autofix-row__meta-label">Fix</td>
+                                                <td>
+                                                  {op.type}
+                                                  {(op.args?.from ?? op.from)
+                                                    ? `: ${op.args?.from ?? op.from}`
+                                                    : ''}
+                                                  {(op.args?.to ?? op.to)
+                                                    ? ` → ${op.args?.to ?? op.to}`
+                                                    : ''}
+                                                </td>
+                                              </tr>
+                                            )}
+                                          </For>
+                                        </tbody>
+                                      </table>
+                                    </Show>
+                                  </div>
+                                </Show>
+
+                                {/* Consequence: this failed attempt was recovered by
                                   a LATER fallback attempt */}
-                              <Show
-                                when={
-                                  isFailedStatus(att().status) &&
-                                  !(att().autofix_applied && att().autofix_role !== 'retry') &&
-                                  attempts().length > att().index &&
-                                  attempts()[att().index]?.fallback_from_model
-                                }
-                              >
-                                <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
-                                  <div style="margin-bottom: 8px;">
-                                    <span class="trigger-badge trigger-badge--fallback">
-                                      <FallbackIcon />
-                                      fallback
-                                    </span>
+                                <Show
+                                  when={
+                                    isFailedStatus(att().status) &&
+                                    !(att().autofix_applied && att().autofix_role !== 'retry') &&
+                                    attempts().length > att().index &&
+                                    attempts()[att().index]?.fallback_from_model
+                                  }
+                                >
+                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
+                                    <div style="margin-bottom: 8px;">
+                                      <span class="trigger-badge trigger-badge--fallback">
+                                        <FallbackIcon />
+                                        fallback
+                                      </span>
+                                    </div>
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
+                                      This attempt failed.{' '}
+                                      {isSuccessStatus(attempts()[att().index]?.status)
+                                        ? 'Recovered by fallback to'
+                                        : 'Continued with fallback to'}{' '}
+                                      {attempts()[att().index]?.model} (attempt {att().index + 1}).
+                                    </div>
                                   </div>
-                                  <div style="font-size: var(--font-size-sm); color: hsl(var(--foreground));">
-                                    This attempt failed.{' '}
-                                    {isSuccessStatus(attempts()[att().index]?.status)
-                                      ? 'Recovered by fallback to'
-                                      : 'Continued with fallback to'}{' '}
-                                    {attempts()[att().index]?.model} (attempt {att().index + 1}).
-                                  </div>
-                                </div>
-                              </Show>
-                            </div>
-                          </Show>
+                                </Show>
+                              </div>
+                            </Show>
 
-                          {/* Messages tab — payload belongs to this selected attempt. */}
-                          <Show when={tab() === 'messages'}>
-                            <RequestMessages recording={att().recording ?? null} />
-                          </Show>
+                            {/* Headers tab */}
+                            <Show when={tab() === 'headers' && att().request_headers}>
+                              <div class="drawer-metadata">
+                                <For
+                                  each={Object.entries(att().request_headers!).sort(([a], [b]) =>
+                                    a.localeCompare(b),
+                                  )}
+                                >
+                                  {([key, val]) => (
+                                    <div class="drawer-kv">
+                                      <span class="drawer-kv__key">{key}</span>
+                                      <span style="word-break: break-all;">{String(val)}</span>
+                                    </div>
+                                  )}
+                                </For>
+                              </div>
+                            </Show>
 
-                          {/* Headers tab */}
-                          <Show when={tab() === 'headers' && att().request_headers}>
-                            <div class="drawer-metadata">
-                              <For
-                                each={Object.entries(att().request_headers!).sort(([a], [b]) =>
-                                  a.localeCompare(b),
-                                )}
-                              >
-                                {([key, val]) => (
-                                  <div class="drawer-kv">
-                                    <span class="drawer-kv__key">{key}</span>
-                                    <span style="word-break: break-all;">{String(val)}</span>
-                                  </div>
-                                )}
-                              </For>
-                            </div>
-                          </Show>
-
-                          {/* Params tab */}
-                          <Show when={tab() === 'params' && att().request_params}>
-                            <div class="drawer-metadata">
-                              <For
-                                each={Object.entries(att().request_params!).sort(([a], [b]) =>
-                                  a.localeCompare(b),
-                                )}
-                              >
-                                {([key, val]) => (
-                                  <div class="drawer-kv">
-                                    <span class="drawer-kv__key">{key}</span>
-                                    <span style="word-break: break-all; font-family: var(--font-mono, monospace); font-size: var(--font-size-xs);">
-                                      {formatParamValue(val)}
-                                    </span>
-                                  </div>
-                                )}
-                              </For>
-                            </div>
-                          </Show>
-                        </div>
+                            {/* Params tab */}
+                            <Show when={tab() === 'params' && att().request_params}>
+                              <div class="drawer-metadata">
+                                <For
+                                  each={Object.entries(att().request_params!).sort(([a], [b]) =>
+                                    a.localeCompare(b),
+                                  )}
+                                >
+                                  {([key, val]) => (
+                                    <div class="drawer-kv">
+                                      <span class="drawer-kv__key">{key}</span>
+                                      <span style="word-break: break-all; font-family: var(--font-mono, monospace); font-size: var(--font-size-xs);">
+                                        {formatParamValue(val)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </For>
+                              </div>
+                            </Show>
+                          </div>
+                        </Show>
                       </>
                     )}
                   </Show>

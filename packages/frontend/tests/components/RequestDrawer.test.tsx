@@ -261,9 +261,9 @@ describe('RequestDrawer', () => {
     expect(screen.getByText('Recorded user turn')).toBeDefined();
     expect(screen.getByText('Recorded assistant turn')).toBeDefined();
 
+    // Switch to attempt 1 — no recording, so Messages/Tools/Raw tabs do not appear.
     fireEvent.click(container.querySelectorAll('.attempt-item')[1]!);
-    fireEvent.click(screen.getByText('Messages'));
-    expect(screen.getByText('No messages recorded')).toBeDefined();
+    expect(screen.queryByText('Messages')).toBeNull();
     expect(screen.queryByText('Recorded user turn')).toBeNull();
   });
 

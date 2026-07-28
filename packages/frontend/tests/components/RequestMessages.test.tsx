@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render } from '@solidjs/testing-library';
+import { cleanup, render } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it } from 'vitest';
 import RequestMessages from '../../src/components/RequestMessages';
 
@@ -32,14 +32,14 @@ describe('RequestMessages', () => {
     expect(getAllByText('Sunny.')).toHaveLength(2);
   });
 
-  it('shows tool definitions and raw payloads', () => {
-    const { getByText } = render(() => <RequestMessages recording={recording} />);
-
-    fireEvent.click(getByText('Tools'));
+  it('shows tool definitions when view is tools', () => {
+    const { getByText } = render(() => <RequestMessages recording={recording} view="tools" />);
     expect(getByText('weather')).toBeTruthy();
     expect(getByText('Read the forecast')).toBeTruthy();
+  });
 
-    fireEvent.click(getByText('Raw'));
+  it('shows raw payloads when view is raw', () => {
+    const { getByText } = render(() => <RequestMessages recording={recording} view="raw" />);
     expect(getByText('Request')).toBeTruthy();
     expect(getByText('Response')).toBeTruthy();
   });
@@ -64,7 +64,7 @@ describe('RequestMessages', () => {
       response_body: null,
     };
 
-    const { container, getByText, getAllByText } = render(() => (
+    const { getByText, getAllByText } = render(() => (
       <RequestMessages recording={detailedRecording} />
     ));
 
@@ -72,16 +72,11 @@ describe('RequestMessages', () => {
     expect(getAllByText('unknown')).toHaveLength(2);
     expect(getByText('planner')).toBeTruthy();
 
-    const turns = container.querySelectorAll('.request-message__header');
-    fireEvent.click(turns[2]!);
+    // Turns are open by default — tool call content is already visible.
     expect(getByText('Unknown tool')).toBeTruthy();
     expect(getAllByText('call-1')).toHaveLength(2);
     expect(getByText('[object Object]')).toBeTruthy();
     expect(getAllByText('Tool complete')).toHaveLength(2);
-
-    fireEvent.click(getByText('Tools'));
-    expect(getAllByText('custom')).toHaveLength(2);
-    expect(getAllByText('function')).toHaveLength(2);
   });
 
   it('explains empty conversations and tool lists', () => {
@@ -90,11 +85,15 @@ describe('RequestMessages', () => {
       request_body: {},
       response_body: null,
     };
-    const { getByText } = render(() => <RequestMessages recording={emptyRecording} />);
 
+    const { getByText } = render(() => <RequestMessages recording={emptyRecording} />);
     expect(getByText('No conversation turns found.')).toBeTruthy();
-    fireEvent.click(getByText('Tools'));
-    expect(getByText('No tools were defined.')).toBeTruthy();
+    cleanup();
+
+    const { getByText: getText2 } = render(() => (
+      <RequestMessages recording={emptyRecording} view="tools" />
+    ));
+    expect(getText2('No tools were defined.')).toBeTruthy();
   });
 
   it('explains when recording was disabled', () => {

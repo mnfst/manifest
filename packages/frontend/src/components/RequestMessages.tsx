@@ -11,7 +11,7 @@ import {
 import type { AttemptRecording } from '../services/api/messages.js';
 
 type Recording = AttemptRecording;
-type View = 'conversation' | 'tools' | 'raw';
+export type RecordingView = 'messages' | 'tools' | 'raw';
 
 const CAP_CHARS = 2000;
 const SIDEBAR_DEFAULT = 220;
@@ -72,7 +72,7 @@ const MessageTurn: Component<{
   active: boolean;
   onRef?: (el: HTMLElement) => void;
 }> = (props) => {
-  const [expanded, setExpanded] = createSignal(false);
+  const [expanded, setExpanded] = createSignal(true);
   const [capped, setCapped] = createSignal(true);
 
   const role = () => normalizeRole(props.message.role);
@@ -106,8 +106,20 @@ const MessageTurn: Component<{
         <Show when={!expanded() && preview()}>
           <span class="request-message__preview">{preview()}</span>
         </Show>
-        <span class="request-message__chevron" aria-hidden="true">
-          {expanded() ? '▲' : '▼'}
+        <span
+          class="request-message__chevron"
+          classList={{ 'request-message__chevron--open': expanded() }}
+          aria-hidden="true"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path d="M17.35 8H6.65c-.64 0-.99.76-.56 1.24l5.35 6.11c.3.34.83.34 1.13 0l5.35-6.11C18.34 8.76 18 8 17.36 8Z" />
+          </svg>
         </span>
       </button>
 
@@ -293,8 +305,10 @@ const ConversationSplit: Component<{ messages: ChatMessage[] }> = (props) => {
   );
 };
 
-const RequestMessages: Component<{ recording: Recording | null }> = (props) => {
-  const [view, setView] = createSignal<View>('conversation');
+const RequestMessages: Component<{ recording: Recording | null; view?: RecordingView }> = (
+  props,
+) => {
+  const view = () => props.view ?? 'messages';
   const messages = createMemo(() =>
     props.recording
       ? extractRecordedConversationMessages(
@@ -320,44 +334,7 @@ const RequestMessages: Component<{ recording: Recording | null }> = (props) => {
     >
       {(recording) => (
         <div class="request-messages">
-          <div class="request-messages__toolbar">
-            <div class="request-messages__views" role="tablist" aria-label="Recorded payload">
-              <button
-                classList={{ 'request-messages__view--active': view() === 'conversation' }}
-                onClick={() => setView('conversation')}
-                role="tab"
-                type="button"
-                aria-selected={view() === 'conversation'}
-              >
-                Conversation
-                <span>{messages().length}</span>
-              </button>
-              <button
-                classList={{ 'request-messages__view--active': view() === 'tools' }}
-                onClick={() => setView('tools')}
-                role="tab"
-                type="button"
-                aria-selected={view() === 'tools'}
-              >
-                Tools
-                <span>{tools().length}</span>
-              </button>
-              <button
-                classList={{ 'request-messages__view--active': view() === 'raw' }}
-                onClick={() => setView('raw')}
-                role="tab"
-                type="button"
-                aria-selected={view() === 'raw'}
-              >
-                Raw
-              </button>
-            </div>
-            <span class="request-messages__format">
-              {recording().wire_format.replaceAll('_', ' ')}
-            </span>
-          </div>
-
-          <Show when={view() === 'conversation'}>
+          <Show when={view() === 'messages'}>
             <Show
               when={messages().length > 0}
               fallback={
