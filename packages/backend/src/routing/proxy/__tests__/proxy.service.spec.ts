@@ -1509,6 +1509,13 @@ describe('ProxyService — orchestration', () => {
     it('reuses one converted Responses body for routing and forwarding', async () => {
       const body = {
         input: 'Describe this image',
+        tools: [
+          {
+            type: 'function',
+            name: 'inspect_image',
+            parameters: { type: 'object', properties: {} },
+          },
+        ],
         stream: false,
       };
       resolveService.resolve.mockResolvedValue({
@@ -1546,6 +1553,15 @@ describe('ProxyService — orchestration', () => {
       expect(convertSpy).toHaveBeenCalledTimes(1);
       expect(repeatedBody).toBe(forwardedBody);
       expect(forwardedBody.messages).toEqual([{ role: 'user', content: 'Describe this image' }]);
+      expect(resolveService.resolve.mock.calls[0][3]).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'inspect_image',
+            parameters: { type: 'object', properties: {} },
+          },
+        },
+      ]);
     });
 
     it('returns the forward result and records tier momentum on a 200 non-stream response', async () => {
@@ -2454,6 +2470,44 @@ describe('ProxyService — orchestration', () => {
   });
 
   describe('routing dispatch', () => {
+    it('treats non-array messages from a healed body as empty scorer input', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const resolveRouting = (
+        svc as unknown as {
+          resolveRouting: (
+            agentId: string,
+            tenantId: string,
+            body: Record<string, unknown>,
+            resolveChatBody: undefined,
+            sessionKey: string,
+            specificityOverride: undefined,
+            headers: undefined,
+            apiMode: 'chat_completions',
+          ) => Promise<unknown>;
+        }
+      ).resolveRouting.bind(svc);
+
+      await resolveRouting(
+        'agent-1',
+        'tenant-1',
+        { messages: { malformed: true } },
+        undefined,
+        'session-1',
+        undefined,
+        undefined,
+        'chat_completions',
+      );
+
+      expect(resolveService.resolve.mock.calls[0][2]).toEqual([]);
+    });
+
     it('keeps native Messages unconverted when routing does not request scorer input', async () => {
       resolveService.resolveLazy.mockResolvedValue({
         tier: 'default',
@@ -2559,10 +2613,19 @@ describe('ProxyService — orchestration', () => {
       ).detectHeartbeatBody.bind(svc);
 
       expect(detectHeartbeatBody({}, 'responses')).toBe(false);
+      expect(detectHeartbeatBody({ messages: 'invalid' }, 'chat_completions')).toBe(false);
       expect(detectHeartbeatBody({ input: ['HEARTBEAT_OK'] }, 'responses')).toBe(true);
+      expect(detectHeartbeatBody({ input: ['HEARTBEAT_OK', 42] }, 'responses')).toBe(true);
+      expect(detectHeartbeatBody({ input: [{ content: 'HEARTBEAT_OK' }] }, 'responses')).toBe(true);
       expect(
         detectHeartbeatBody({ input: [{ role: 'user', content: 'HEARTBEAT_OK' }] }, 'responses'),
       ).toBe(true);
+      expect(
+        detectHeartbeatBody(
+          { input: [{ role: 'user', content: { custom: 'object' } }] },
+          'responses',
+        ),
+      ).toBe(false);
       expect(
         detectHeartbeatBody(
           {

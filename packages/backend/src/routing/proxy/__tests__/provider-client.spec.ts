@@ -2319,6 +2319,39 @@ describe('ProviderClient', () => {
       expect(result.isChatGpt).toBe(false);
       expect(result.response.headers.get('Content-Type')).toBe('text/event-stream');
     });
+
+    it('converts Responses input once before forwarding to Kiro', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.close();
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+      const resolveChatBody = jest
+        .fn()
+        .mockResolvedValue({ messages: [{ role: 'user', content: 'Hello from Responses' }] });
+
+      await client.forward({
+        provider: 'kiro',
+        apiKey: 'ksk_test',
+        model: 'kiro/auto',
+        body: { input: 'Hello from Responses' },
+        resolveChatBody,
+        stream: true,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.conversationState.currentMessage.userInputMessage.content).toBe(
+        'Hello from Responses',
+      );
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('OpenCode Go provider', () => {

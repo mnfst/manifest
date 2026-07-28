@@ -283,8 +283,7 @@ export class ProviderClient {
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
-      const requestSource =
-        opts.apiMode && opts.apiMode !== 'chat_completions' ? (chatBody ?? body) : body;
+      const requestSource = chatBody ?? body;
       const response = await forwardKiroChat({
         apiKey,
         model: bareModel,

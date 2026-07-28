@@ -848,7 +848,7 @@ export class ProxyService {
     if (apiMode === 'chat_completions') return undefined;
     let resolved: Promise<Record<string, unknown>> | undefined;
     return () => {
-      resolved ??= Promise.resolve(this.toChatBody(apiMode, body) ?? body);
+      resolved ??= Promise.resolve(this.toChatBody(apiMode, body)!);
       return resolved;
     };
   }
