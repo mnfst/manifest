@@ -12,6 +12,7 @@ import {
   StreamProtocolObserver,
   UpstreamStreamError,
 } from './stream-protocol';
+import { injectCostIntoSseEvent, type ResponseCostContext } from './response-cost';
 
 export {
   StreamFailure,
@@ -61,6 +62,14 @@ async function readUpstreamChunk(
 export interface StreamRelayOptions {
   idleTimeoutMs?: number;
   protocol?: ProviderWireFormat;
+  /** When set, stamp LiteLLM-style `usage.cost` onto usage-bearing SSE events. */
+  costContext?: ResponseCostContext;
+  /**
+   * When true, append `data: [DONE]` after event rewrite. Needed when cost
+   * injection re-frames events (the SSE parser drops upstream `[DONE]`) for
+   * OpenAI chat completions without a transform/finalize that owns termination.
+   */
+  appendDone?: boolean;
 }
 
 function createProtocolParser(options: StreamRelayOptions): {
@@ -246,14 +255,22 @@ export function initSseHeaders(
 
 const MAX_SSE_BUFFER_SIZE = DEFAULT_MAX_SSE_BUFFER_SIZE;
 
+function frameSseEvent(eventText: string): string {
+  if (eventText.endsWith('\n\n')) return eventText;
+  if (eventText.endsWith('\n')) return `${eventText}\n`;
+  return `${eventText}\n\n`;
+}
+
 /**
- * Forward an SSE stream byte-for-byte from `source` to `dest` while running a
- * `tap` parser over the parsed events for telemetry side effects. The wire
- * bytes are written unchanged, so SSE framing (`event:` headers, multi-line
- * `data:` payloads, blank-line separators) is preserved end-to-end. Used by
- * the `/v1/messages` → Anthropic passthrough path where translation must
- * NOT touch the wire format but Manifest still needs to extract usage and
- * cache thinking blocks.
+ * Forward an SSE stream from `source` to `dest` while running a `tap` parser
+ * over the parsed events for telemetry side effects.
+ *
+ * Without `options.costContext`, wire bytes are written unchanged so Anthropic
+ * SSE framing is preserved end-to-end (`/v1/messages` passthrough).
+ *
+ * With `options.costContext`, events are re-framed so `usage.cost` can be
+ * injected (LiteLLM / OpenRouter style) while still preserving `event:` / `id:`
+ * lines. Protocol observers still run on parsed events before write.
  *
  * The tap receives the same parsed-event shape `pipeStream` would have
  * passed to its `transform`. Its return value (an OpenAI-shape chunk in
@@ -270,12 +287,30 @@ export async function pipePassthrough(
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
   let streamFailed = false;
+  const costContext = options.costContext;
   const protocol = createProtocolParser(options);
   const parser = createSsePayloadParser({
     maxBufferSize: MAX_SSE_BUFFER_SIZE,
     ...protocol.parserOptions,
   });
   const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
+
+  const handleEvents = (events: string[]): void => {
+    for (const event of events) {
+      const tapped = tap(event);
+      if (tapped) {
+        const usage = extractUsageFromSse(tapped);
+        if (usage) capturedUsage = usage;
+      }
+      if (costContext) {
+        const injected = injectCostIntoSseEvent(event, costContext);
+        if (injected.usage) capturedUsage = injected.usage;
+        const framed = frameSseEvent(injected.text);
+        dest.write(framed);
+        if (onClientChunk) onClientChunk(framed);
+      }
+    }
+  };
 
   try {
     let done = false;
@@ -286,36 +321,20 @@ export async function pipePassthrough(
       if (result.value) {
         const text = decoder.decode(result.value, { stream: !done });
         const events = parser.feed(text);
-        // Observe provider errors before forwarding their bytes. The controller
-        // then emits one normalized error event in the caller's API format.
-        dest.write(Buffer.from(result.value));
-        if (onClientChunk) onClientChunk(text);
-        for (const event of events) {
-          const tapped = tap(event);
-          if (tapped) {
-            const usage = extractUsageFromSse(tapped);
-            if (usage) capturedUsage = usage;
-          }
+        // Observe provider errors via the protocol parser before (or while)
+        // forwarding. When cost injection is off, keep pure byte passthrough.
+        if (!costContext) {
+          dest.write(Buffer.from(result.value));
+          if (onClientChunk) onClientChunk(text);
         }
+        handleEvents(events);
       }
     }
     const finalText = decoder.decode();
     if (finalText) {
-      for (const event of parser.feed(finalText)) {
-        const tapped = tap(event);
-        if (tapped) {
-          const usage = extractUsageFromSse(tapped);
-          if (usage) capturedUsage = usage;
-        }
-      }
+      handleEvents(parser.feed(finalText));
     }
-    for (const event of parser.flush()) {
-      const tapped = tap(event);
-      if (tapped) {
-        const usage = extractUsageFromSse(tapped);
-        if (usage) capturedUsage = usage;
-      }
-    }
+    handleEvents(parser.flush());
     protocol.observer?.assertComplete();
   } catch (error) {
     streamFailed = error instanceof StreamFailure;
@@ -341,6 +360,8 @@ export async function pipeStream(
   const decoder = new TextDecoder();
   let capturedUsage: StreamUsage | null = null;
   let streamFailed = false;
+  const costContext = options.costContext;
+  const appendDone = options.appendDone === true;
   const protocol = createProtocolParser(options);
   const idleTimeoutMs = options.idleTimeoutMs ?? parseStreamIdleTimeoutMs();
 
@@ -348,7 +369,24 @@ export async function pipeStream(
     dest.write(s);
     if (onClientChunk) onClientChunk(s);
   };
-  const transformParser = transform
+
+  const writeWithCost = (chunk: string): void => {
+    if (!costContext) {
+      writeOut(chunk);
+      const usage = extractUsageFromSse(chunk);
+      if (usage) capturedUsage = usage;
+      return;
+    }
+    const injected = injectCostIntoSseEvent(chunk, costContext);
+    if (injected.usage) capturedUsage = injected.usage;
+    writeOut(frameSseEvent(injected.text));
+  };
+
+  // When injecting cost without a transform, re-frame per event so usage JSON
+  // can be mutated (raw byte passthrough cannot inject cost).
+  const needsEventRewrite = Boolean(costContext) || Boolean(transform);
+
+  const transformParser = needsEventRewrite
     ? createSsePayloadParser({
         maxBufferSize: MAX_SSE_BUFFER_SIZE,
         ...protocol.parserOptions,
@@ -357,7 +395,7 @@ export async function pipeStream(
         },
       })
     : null;
-  const passthroughParser = transform
+  const passthroughParser = needsEventRewrite
     ? null
     : createSsePayloadParser({
         maxBufferSize: MAX_SSE_BUFFER_SIZE,
@@ -365,14 +403,9 @@ export async function pipeStream(
       });
 
   const applyTransformedEvents = (events: string[]): void => {
-    if (!transform) return;
     for (const event of events) {
-      const transformed = transform(event);
-      if (transformed) {
-        writeOut(transformed);
-        const usage = extractUsageFromSse(transformed);
-        if (usage) capturedUsage = usage;
-      }
+      const transformed = transform ? transform(event) : event;
+      if (transformed) writeWithCost(transformed);
     }
   };
 
@@ -385,7 +418,7 @@ export async function pipeStream(
 
   const consumeText = (text: string): void => {
     if (!text) return;
-    if (transform && transformParser) {
+    if (transformParser) {
       applyTransformedEvents(transformParser.feed(text));
       return;
     }
@@ -408,22 +441,23 @@ export async function pipeStream(
     }
 
     consumeText(decoder.decode());
-    if (transform && transformParser) {
+    if (transformParser) {
       applyTransformedEvents(transformParser.flush());
     } else if (passthroughParser) {
       capturePassthroughUsage(passthroughParser.flush());
     }
     protocol.observer?.assertComplete();
 
-    if (transform && !dest.writableEnded) {
+    if (needsEventRewrite && !dest.writableEnded) {
       if (finalize) {
         const trailing = finalize();
         if (trailing && !dest.writableEnded) {
-          writeOut(trailing);
-          const usage = extractUsageFromSse(trailing);
-          if (usage) capturedUsage = usage;
+          writeWithCost(trailing);
         }
-      } else if (!dest.writableEnded) {
+      } else if (transform || appendDone) {
+        // Transform path historically always terminated with [DONE] when no
+        // finalize owned termination. Cost-only rewrite also needs it because
+        // the SSE parser drops upstream `data: [DONE]`.
         writeOut('data: [DONE]\n\n');
       }
     }

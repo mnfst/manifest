@@ -422,6 +422,13 @@ export class ProxyController {
       let streamUsage = null;
 
       const shouldStreamResponse = isStream || meta.response_mode === 'stream';
+      // Stamp usage.cost (LiteLLM / OpenRouter style) using the same pricing
+      // path as dashboard cost_usd. Built after routing so model/auth are final.
+      const costContext = await this.recorder.buildResponseCostContext(
+        meta.model,
+        meta.auth_type,
+        meta.provider,
+      );
 
       if (shouldStreamResponse && providerResponse.body) {
         headersSent = true;
@@ -436,6 +443,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          costContext,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -449,6 +457,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          costContext,
         );
       }
 

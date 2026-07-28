@@ -1,0 +1,138 @@
+import {
+  attachCostToResponseBody,
+  attachCostToUsageObject,
+  injectCostIntoSseEvent,
+  resolveResponseCostUsd,
+  type ResponseCostContext,
+} from '../response-cost';
+import type { StreamUsage } from '../stream-writer';
+
+const pricingCtx: ResponseCostContext = {
+  model: 'gpt-4o',
+  authType: 'api_key',
+  pricing: {
+    model_name: 'gpt-4o',
+    provider: 'openai',
+    input_price_per_token: 0.000005,
+    output_price_per_token: 0.00002,
+    display_name: 'GPT-4o',
+  },
+};
+
+describe('response-cost', () => {
+  describe('resolveResponseCostUsd', () => {
+    it('computes cost from pricing for api_key usage', () => {
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+      // 100 * 0.000005 + 50 * 0.00002 = 0.0005 + 0.001 = 0.0015
+      expect(resolveResponseCostUsd(usage, pricingCtx)).toBeCloseTo(0.0015, 10);
+    });
+
+    it('returns 0 for flat subscription auth', () => {
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+      expect(
+        resolveResponseCostUsd(usage, {
+          ...pricingCtx,
+          authType: 'subscription',
+        }),
+      ).toBe(0);
+    });
+
+    it('prefers per-request subscription cost when set', () => {
+      const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
+      expect(
+        resolveResponseCostUsd(usage, {
+          ...pricingCtx,
+          authType: 'subscription',
+          perRequestCostUsd: 0.0136,
+        }),
+      ).toBe(0.0136);
+    });
+  });
+
+  describe('attachCostToUsageObject', () => {
+    it('sets usage.cost when cost is finite', () => {
+      const usage = { prompt_tokens: 10, completion_tokens: 5 };
+      attachCostToUsageObject(usage, 0.0015);
+      expect(usage).toMatchObject({ cost: 0.0015 });
+    });
+
+    it('leaves usage untouched when cost is null', () => {
+      const usage = { prompt_tokens: 10, completion_tokens: 5, cost: 0.99 };
+      attachCostToUsageObject(usage, null);
+      expect(usage.cost).toBe(0.99);
+    });
+  });
+
+  describe('attachCostToResponseBody', () => {
+    it('injects cost on OpenAI chat completions usage', () => {
+      const body = {
+        id: 'chatcmpl-1',
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
+      };
+      const usage = attachCostToResponseBody(body, pricingCtx);
+      expect(usage?.prompt_tokens).toBe(100);
+      expect((body.usage as Record<string, unknown>).cost).toBeCloseTo(0.0015, 10);
+    });
+
+    it('injects cost on Anthropic-native usage', () => {
+      const body = {
+        type: 'message',
+        usage: { input_tokens: 100, output_tokens: 50 } as Record<string, unknown>,
+      };
+      attachCostToResponseBody(body, pricingCtx);
+      expect(body.usage.cost).toBeCloseTo(0.0015, 10);
+    });
+
+    it('injects cost on nested Responses API usage', () => {
+      const body = {
+        type: 'response.completed',
+        response: {
+          usage: { input_tokens: 100, output_tokens: 50 } as Record<string, unknown>,
+        },
+      };
+      attachCostToResponseBody(body, pricingCtx);
+      expect(body.response.usage.cost).toBeCloseTo(0.0015, 10);
+    });
+  });
+
+  describe('injectCostIntoSseEvent', () => {
+    it('rewrites data: usage chunks with cost', () => {
+      const event = `data: ${JSON.stringify({
+        id: 'chatcmpl-1',
+        choices: [],
+        usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150 },
+      })}`;
+      const { text, usage } = injectCostIntoSseEvent(event, pricingCtx);
+      expect(usage?.prompt_tokens).toBe(100);
+      expect(text.startsWith('data: ')).toBe(true);
+      const payload = JSON.parse(text.slice('data: '.length));
+      expect(payload.usage.cost).toBeCloseTo(0.0015, 10);
+    });
+
+    it('preserves Anthropic event: lines while injecting cost', () => {
+      const event = [
+        'event: message_delta',
+        JSON.stringify({
+          type: 'message_delta',
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      ].join('\n');
+      const { text, usage } = injectCostIntoSseEvent(event, pricingCtx);
+      expect(usage?.prompt_tokens).toBe(100);
+      expect(text).toContain('event: message_delta');
+      expect(text).toContain('data: ');
+      const dataLine = text
+        .split('\n')
+        .find((l) => l.startsWith('data: '))!
+        .slice('data: '.length);
+      expect(JSON.parse(dataLine).usage.cost).toBeCloseTo(0.0015, 10);
+    });
+
+    it('passes through [DONE] unchanged', () => {
+      expect(injectCostIntoSseEvent('data: [DONE]', pricingCtx)).toEqual({
+        text: 'data: [DONE]',
+        usage: null,
+      });
+    });
+  });
+});
