@@ -90,6 +90,38 @@ describe('providers API client', () => {
     await ensureManifestProvider();
   });
 
+  it('stores a manually gifted Manifest key through the direct path', async () => {
+    const response = {
+      connected: true,
+      connection_id: 'conn-gifted',
+      source: 'manual',
+      auto_available: false,
+    };
+    const fetchMock = setupFetch(response);
+
+    await expect(ensureManifestProvider('sk-gifted')).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ apiKey: 'sk-gifted' }),
+      }),
+    );
+  });
+
+  it('surfaces Manifest provisioning errors', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({ message: 'Invalid gifted key' }),
+      }),
+    );
+
+    await expect(ensureManifestProvider('bad-key')).rejects.toThrow('Invalid gifted key');
+  });
+
   it('GETs provider USAGE from the dedicated endpoint', async () => {
     const response = {
       providers: [
