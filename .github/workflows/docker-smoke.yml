@@ -216,10 +216,10 @@ jobs:
           for i in $(seq 1 100); do
             recording_row=$(docker compose exec -T postgres \
               psql -U manifest -d manifest -AtF '|' -c \
-              "SELECT request_id, storage_key
-               FROM request_recordings
-               WHERE storage_backend = 'filesystem' AND status = 'ready'
-               ORDER BY created_at DESC
+              "SELECT request_id, id, recording_key
+               FROM agent_messages
+               WHERE recording_key IS NOT NULL
+               ORDER BY timestamp DESC, id DESC
                LIMIT 1")
             if [[ -n "$recording_row" ]]; then
               break
@@ -227,7 +227,7 @@ jobs:
             sleep 0.1
           done
           test -n "$recording_row"
-          IFS='|' read -r request_id storage_key <<<"$recording_row"
+          IFS='|' read -r request_id attempt_id storage_key <<<"$recording_row"
 
           docker run --rm --user 65532:65532 \
             -e RECORDING_KEY="$storage_key" \
@@ -252,13 +252,17 @@ jobs:
             "$base_url/api/v1/messages/$request_id/details")
           jq -e \
             --arg request_id "$request_id" \
+            --arg attempt_id "$attempt_id" \
             --arg prompt "$prompt" \
             --arg answer "$expected_answer" \
             '.message.id == $request_id and
-             .recording.api_format == "chat_completions" and
-             .recording.request_body.messages[0].content == $prompt and
-             .recording.response_body.type == "json" and
-             .recording.response_body.body.choices[0].message.content == $answer' \
+             (.message.attempts | any(
+               .id == $attempt_id and
+               .recording.wire_format == "openai_chat_completions" and
+               .recording.request_body.messages[0].content == $prompt and
+               .recording.response_body.type == "json" and
+               .recording.response_body.body.choices[0].message.content == $answer
+             ))' \
             <<<"$details" >/dev/null
 
       - name: Dump backend logs on success (for diff inspection)
