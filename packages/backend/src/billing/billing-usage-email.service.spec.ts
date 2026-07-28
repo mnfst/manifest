@@ -16,7 +16,6 @@ describe('BillingUsageEmailService', () => {
   let dataSourceQuery: jest.Mock;
   let getLimits: jest.Mock;
   let countRequestsSince: jest.Mock;
-  let invalidateRequestCountCache: jest.Mock;
   let hasDedupeKey: jest.Mock;
   let tryInsert: jest.Mock;
   let sendPlanUsageEmail: jest.Mock;
@@ -29,7 +28,6 @@ describe('BillingUsageEmailService', () => {
       requestsPerMonth: FREE_PLAN_REQUESTS_PER_MONTH,
     });
     countRequestsSince = jest.fn().mockResolvedValue(8_000);
-    invalidateRequestCountCache = jest.fn();
     hasDedupeKey = jest.fn().mockResolvedValue(false);
     tryInsert = jest.fn().mockResolvedValue(true);
     sendPlanUsageEmail = jest.fn().mockResolvedValue(true);
@@ -45,7 +43,7 @@ describe('BillingUsageEmailService', () => {
     });
     service = new BillingUsageEmailService(
       { all: jest.fn() } as unknown as IngestEventBusService,
-      { getLimits, countRequestsSince, invalidateRequestCountCache } as unknown as PlanService,
+      { getLimits, countRequestsSince } as unknown as PlanService,
       { query: dataSourceQuery } as unknown as DataSource,
       { hasDedupeKey, tryInsert } as unknown as BillingEmailLogService,
       { sendPlanUsageEmail } as unknown as BillingEmailService,
@@ -109,7 +107,7 @@ describe('BillingUsageEmailService', () => {
     } as unknown as IngestEventBusService;
     const localService = new BillingUsageEmailService(
       bus,
-      { getLimits, countRequestsSince, invalidateRequestCountCache } as unknown as PlanService,
+      { getLimits, countRequestsSince } as unknown as PlanService,
       { query: dataSourceQuery } as unknown as DataSource,
       { hasDedupeKey, tryInsert } as unknown as BillingEmailLogService,
       { sendPlanUsageEmail } as unknown as BillingEmailService,
@@ -201,20 +199,6 @@ describe('BillingUsageEmailService', () => {
     expect(hasDedupeKey).not.toHaveBeenCalled();
     expect(tryInsert).not.toHaveBeenCalled();
     expect(sendPlanUsageEmail).not.toHaveBeenCalled();
-  });
-
-  it('invalidates the request count cache before counting', async () => {
-    const callOrder: string[] = [];
-    invalidateRequestCountCache.mockImplementation(() => callOrder.push('invalidate'));
-    countRequestsSince.mockImplementation(() => {
-      callOrder.push('count');
-      return Promise.resolve(8_000);
-    });
-
-    await service.checkTenantUsage('t1');
-
-    expect(invalidateRequestCountCache).toHaveBeenCalledWith('t1');
-    expect(callOrder.indexOf('invalidate')).toBeLessThan(callOrder.indexOf('count'));
   });
 
   it('does not send when the plan limit is null (unlimited)', async () => {
