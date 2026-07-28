@@ -314,12 +314,40 @@ export class ProxyService {
       return this.buildNoProviderResult(stream, agentName);
     }
 
-    const route = resolved.route;
-    const credentials = await this.resolveCredentials(agentId, tenantId, {
+    let route = resolved.route;
+    let credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
     });
+    if (credentials === null) {
+      // The resolver elected this primary off the provider-key cache (a row
+      // exists and holds a key), but the stored credential didn't resolve —
+      // typically an OAuth subscription whose refresh token is dead. The
+      // fallback service already skips credential-less routes mid-chain, so
+      // give the configured fallbacks the same chance here instead of failing
+      // the request: promote the first one whose credentials resolve and keep
+      // the remainder as its fallback chain. M100 is reserved for a chain
+      // with no usable credentials anywhere.
+      const fallbacks = resolved.fallback_routes ?? [];
+      for (let i = 0; i < fallbacks.length && credentials === null; i++) {
+        const candidate = fallbacks[i];
+        const candidateCredentials = await this.resolveCredentials(agentId, tenantId, {
+          provider: candidate.provider,
+          auth_type: candidate.authType,
+          provider_key_label: candidate.keyLabel ?? undefined,
+        });
+        if (candidateCredentials === null) continue;
+        this.logger.warn(
+          `Primary ${route.provider}/${route.model} has no usable credentials for ` +
+            `agent=${agentId} — promoting fallback ${candidate.provider}/${candidate.model}`,
+        );
+        route = candidate;
+        credentials = candidateCredentials;
+        resolved.route = candidate;
+        resolved.fallback_routes = fallbacks.slice(i + 1);
+      }
+    }
     if (credentials === null) {
       const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
       const content = formatManifestError('M100', { provider: route.provider, dashboardUrl });

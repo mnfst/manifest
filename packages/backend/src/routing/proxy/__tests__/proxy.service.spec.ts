@@ -745,6 +745,92 @@ describe('ProxyService — orchestration', () => {
       const body = await result.forward.response.text();
       expect(body).toContain('M100');
     });
+
+    it('promotes the first fallback with usable credentials instead of failing', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.5'),
+        fallback_routes: [
+          route('minimax', 'api_key', 'MiniMax-M3'),
+          route('zai', 'api_key', 'glm-5'),
+        ],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockImplementation((_tenant, provider) =>
+        Promise.resolve(
+          provider === 'minimax'
+            ? { apiKey: 'mk-key', id: 'up-mm', region: null, label: 'Default', priority: 0 }
+            : null,
+        ),
+      );
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'minimax', model: 'MiniMax-M3', apiKey: 'mk-key' }),
+      );
+      expect(result.forward.response.status).toBe(200);
+    });
+
+    it('skips credential-less fallbacks and promotes the first usable one', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.5'),
+        fallback_routes: [
+          route('minimax', 'api_key', 'MiniMax-M3'),
+          route('zai', 'api_key', 'glm-5'),
+        ],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockImplementation((_tenant, provider) =>
+        Promise.resolve(
+          provider === 'zai'
+            ? { apiKey: 'zai-key', id: 'up-zai', region: null, label: 'Default', priority: 0 }
+            : null,
+        ),
+      );
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'zai', model: 'glm-5', apiKey: 'zai-key' }),
+      );
+    });
+
+    it('returns M100 for the primary provider when the whole chain is dry', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.5'),
+        fallback_routes: [route('minimax', 'api_key', 'MiniMax-M3')],
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
+
+      const result = await svc.proxyRequest(baseOpts());
+      const body = await result.forward.response.text();
+
+      expect(body).toContain('M100');
+      expect(body).toContain('openai');
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+    });
   });
 
   describe('explicit OpenAI-compatible model routing', () => {
