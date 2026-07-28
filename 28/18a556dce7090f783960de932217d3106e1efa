@@ -1,0 +1,65 @@
+.changeset/wise-moons-repeat.md
+  s_ffc2ece92c8e13::t_6c71840a3be9a8 1-5
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_ffc2ece92c8e13::t_598ae626da5bab 77
+  s_ffc2ece92c8e13::t_ef6469952a3756 848
+  s_ffc2ece92c8e13::t_95651ec2d3c8c2 225
+  s_ffc2ece92c8e13::t_ce6e4163d64670 247
+  s_ffc2ece92c8e13::t_cd93ce8a7dc124 745
+  s_ffc2ece92c8e13::t_afc4ab03cdc635 705,707-709
+  s_ffc2ece92c8e13::t_1e9a5cd13ba9b8 193
+packages/backend/test/overview.e2e-spec.ts
+  s_ffc2ece92c8e13::t_7e7a983cad9528 189,191-208,211,213,215,217-222,228-234
+  s_ffc2ece92c8e13::t_9a0ddf4ebc6409 10,13
+  s_ffc2ece92c8e13::t_a4f4edbf960c28 62-68
+  s_ffc2ece92c8e13::t_e8c467704f40e8 24-39,45-60,69-86,188,235
+  s_ffc2ece92c8e13::t_68ae9835a423c7 61,190
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_ffc2ece92c8e13::t_006f36ac681ecb 6-7,9
+  s_ffc2ece92c8e13::t_5ab4697a00d380 163-167,169-174,176
+  s_ffc2ece92c8e13::t_24135d2eb22a62 369-373,375-380,470
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_ffc2ece92c8e13::t_9d5ed3926d5331 392
+  s_ffc2ece92c8e13::t_d99f8c80b7d9ae 44,53
+  s_ffc2ece92c8e13::t_21883162202d7b 186,198-200
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_ffc2ece92c8e13::t_b331d26907fe11 257-264,267-272,274-277,302-304
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_ffc2ece92c8e13::t_67ae04c9dc4d84 363-378,387-390,404-415
+  s_ffc2ece92c8e13::t_3af59d8fa26157 343-347,349-354,356-362,379-382,384-386,391-394,396-403,416-417,419-421,423
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_ffc2ece92c8e13::t_197f65b633391a 56-60
+  s_ffc2ece92c8e13::t_6c692e64fc53b5 61
+packages/backend/src/analytics/services/query-helpers.ts
+  s_ffc2ece92c8e13::t_34bd2c03e884ed 222-225,228,231,241,243,245-246,252-253
+  s_da4a6957073020::t_1f31b54a9dceef 217
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_ffc2ece92c8e13::t_264c14eecc63b2 221-227,233-239,255-276,278-280
+  s_ffc2ece92c8e13::t_be7d0ba05b048a 306
+  s_ffc2ece92c8e13::t_405d713ff021c5 109-111
+  s_ffc2ece92c8e13::t_a596fed174e6d0 151-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "2818a556dce7090f783960de932217d3106e1efa",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_ffc2ece92c8e13": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3c7f9f80-5e3f-42db-89d0-4d1741b759c4",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
