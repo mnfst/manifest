@@ -206,6 +206,23 @@ describe('validateApiKey', () => {
     });
     expect(validateApiKey(nvidia, 'x'.repeat(20))).toEqual({ valid: true });
   });
+
+  it('validates Hugging Face access tokens', () => {
+    const huggingface = getProvider('huggingface')!;
+    expect(validateApiKey(huggingface, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(huggingface, 'sk_wrong_prefix_but_long_enough')).toEqual({
+      valid: false,
+      error: 'Hugging Face keys start with "hf_"',
+    });
+    expect(validateApiKey(huggingface, 'hf_short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(huggingface, `hf_${'a'.repeat(20)}`)).toEqual({ valid: true });
+  });
 });
 
 /* ── validateSubscriptionKey ────────────────────── */
@@ -575,6 +592,18 @@ describe('PROVIDERS', () => {
     expect(pioneer.models).toEqual([]);
   });
 
+  it('Hugging Face is an API-key provider with dynamic models', () => {
+    const huggingface = PROVIDERS.find((p) => p.id === 'huggingface')!;
+    expect(huggingface).toBeDefined();
+    expect(huggingface.name).toBe('Hugging Face');
+    expect(huggingface.supportsSubscription).toBeUndefined();
+    expect(huggingface.subscriptionOnly).toBeUndefined();
+    expect(huggingface.keyPrefix).toBe('hf_');
+    expect(huggingface.keyPlaceholder).toBe('hf_...');
+    expect(huggingface.minKeyLength).toBe(20);
+    expect(huggingface.models).toEqual([]);
+  });
+
   it('MiniMax supports subscription with device-code flow', () => {
     const minimax = PROVIDERS.find((p) => p.id === 'minimax')!;
     expect(minimax.supportsSubscription).toBe(true);
@@ -794,6 +823,12 @@ describe('PROVIDERS', () => {
 
   it('provides an API key URL for Fireworks AI', () => {
     expect(getRoutingProviderApiKeyUrl('fireworks')).toBe('https://app.fireworks.ai/api-keys');
+  });
+
+  it('provides an API key URL for Hugging Face', () => {
+    expect(getRoutingProviderApiKeyUrl('huggingface')).toBe(
+      'https://huggingface.co/settings/tokens',
+    );
   });
 
   it('provides an API key URL for Cerebras', () => {

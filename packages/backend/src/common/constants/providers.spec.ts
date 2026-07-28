@@ -118,6 +118,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(fireworks!.keyPrefix).toBe('fw_');
   });
 
+  it('huggingface is registered as an API-key provider', () => {
+    const huggingface = PROVIDER_REGISTRY.find((p) => p.id === 'huggingface');
+    expect(huggingface).toBeDefined();
+    expect(huggingface!.displayName).toBe('Hugging Face');
+    expect(huggingface!.aliases).toEqual(['hugging-face', 'hugging face', 'hf']);
+    expect(huggingface!.openRouterPrefixes).toEqual([]);
+    expect(huggingface!.requiresApiKey).toBe(true);
+    expect(huggingface!.localOnly).toBe(false);
+    expect(huggingface!.keyPrefix).toBe('hf_');
+  });
+
   it('kiro is registered as a CLI OAuth subscription provider', () => {
     const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
     expect(kiro).toBeDefined();
