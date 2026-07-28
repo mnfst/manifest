@@ -269,13 +269,11 @@ export class ProviderClient {
     const textFormat = responsesTextFormat(body, opts.apiMode);
     const resolvedWireApiMode = wireApiMode(endpoint);
     const resolvedWireFormat = wireFormat(endpoint);
-    const nativeTarget =
-      (opts.apiMode === 'messages' && endpoint.format === 'anthropic') ||
-      (opts.apiMode === 'responses' && endpoint.format === 'chatgpt');
-    const chatBody =
-      opts.apiMode && opts.apiMode !== 'chat_completions' && !nativeTarget
-        ? await opts.resolveChatBody?.()
-        : undefined;
+    const needsChatBody =
+      opts.apiMode !== undefined &&
+      opts.apiMode !== 'chat_completions' &&
+      opts.apiMode !== resolvedWireApiMode;
+    const chatBody = needsChatBody ? await opts.resolveChatBody?.() : undefined;
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
