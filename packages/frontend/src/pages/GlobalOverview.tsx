@@ -39,7 +39,11 @@ import InfoTooltip from '../components/InfoTooltip.jsx';
 import UnifiedChartCard from '../components/UnifiedChartCard.jsx';
 import AutofixKpiCards from '../components/AutofixKpiCards.jsx';
 
-import SocialFollowBanner from '../components/SocialFollowBanner.jsx';
+import UserDiscoveryBanner from '../components/UserDiscoveryBanner.jsx';
+import UserDiscoveryModal, {
+  readUserDiscoveryModalDismissed,
+  writeUserDiscoveryModalDismissed,
+} from '../components/UserDiscoveryModal.jsx';
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
@@ -584,6 +588,28 @@ const GlobalOverview: Component = () => {
     ),
   );
 
+  const [discoveryModalOpen, setDiscoveryModalOpen] = createSignal(false);
+  const closeDiscoveryModal = () => {
+    setDiscoveryModalOpen(false);
+    writeUserDiscoveryModalDismissed();
+  };
+  createEffect(
+    on(
+      () => agents(),
+      (loaded) => {
+        const canOpen =
+          !!loaded &&
+          !readUserDiscoveryModalDismissed() &&
+          !isUpgraded &&
+          agentList().length > 0 &&
+          !upgradeModalOpen() &&
+          !addAgentOpen();
+        if (canOpen) setDiscoveryModalOpen(true);
+      },
+      { defer: true },
+    ),
+  );
+
   return (
     <div class="container--lg">
       <Title>Overview | Manifest</Title>
@@ -591,8 +617,9 @@ const GlobalOverview: Component = () => {
       {/* Add Harness Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
       <UpgradeSuccessModal open={upgradeModalOpen()} onClose={closeUpgradeModal} />
+      <UserDiscoveryModal open={discoveryModalOpen()} onClose={closeDiscoveryModal} />
 
-      <SocialFollowBanner />
+      <UserDiscoveryBanner />
 
       {/* ── 1. Page Header ──────────────────────────────────────────── */}
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">

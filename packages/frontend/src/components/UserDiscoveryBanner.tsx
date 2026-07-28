@@ -1,10 +1,14 @@
 import { Show, createSignal, type Component } from 'solid-js';
 
-export const SOCIAL_FOLLOW_DISMISSED_KEY = 'manifest:overview-social-follow-dismissed:v4';
+export const USER_DISCOVERY_BANNER_DISMISSED_KEY =
+  'manifest:user-discovery-banner-dismissed:v1';
+
+export const USER_DISCOVERY_BOOKING_URL =
+  'https://calendly.com/sebastien-manifest/30min';
 
 function readDismissed(): boolean {
   try {
-    return window.localStorage.getItem(SOCIAL_FOLLOW_DISMISSED_KEY) === 'true';
+    return window.localStorage.getItem(USER_DISCOVERY_BANNER_DISMISSED_KEY) === 'true';
   } catch {
     return false;
   }
@@ -12,13 +16,13 @@ function readDismissed(): boolean {
 
 function writeDismissed(): void {
   try {
-    window.localStorage.setItem(SOCIAL_FOLLOW_DISMISSED_KEY, 'true');
+    window.localStorage.setItem(USER_DISCOVERY_BANNER_DISMISSED_KEY, 'true');
   } catch {
     /* ignore */
   }
 }
 
-const SocialFollowBanner: Component = () => {
+const UserDiscoveryBanner: Component = () => {
   const [dismissed, setDismissed] = createSignal(readDismissed());
 
   const dismiss = () => {
@@ -28,22 +32,22 @@ const SocialFollowBanner: Component = () => {
 
   return (
     <Show when={!dismissed()}>
-      <aside class="overview-social-banner" aria-label="Manifest announcement">
-        <div class="overview-social-banner__inner">
-          <span class="overview-social-banner__text">
-            🔥 Introducing request recovery and paid plans for Manifest Cloud.{' '}
+      <aside class="overview-discovery-banner" aria-label="Manifest user research">
+        <div class="overview-discovery-banner__inner">
+          <span class="overview-discovery-banner__text">
+            🎁 Talk to us and get $10 of Gemini credit{' '}
             <a
-              href="https://manifest.build/blog/introducing-paid-plans/"
+              href={USER_DISCOVERY_BOOKING_URL}
               target="_blank"
               rel="noopener noreferrer"
-              class="overview-social-banner__read-more"
+              class="overview-discovery-banner__cta"
             >
-              Read more
+              Book a slot →
             </a>
           </span>
           <button
             type="button"
-            class="overview-social-banner__dismiss"
+            class="overview-discovery-banner__dismiss"
             aria-label="Dismiss banner"
             onClick={dismiss}
           >
@@ -68,4 +72,4 @@ const SocialFollowBanner: Component = () => {
   );
 };
 
-export default SocialFollowBanner;
+export default UserDiscoveryBanner;

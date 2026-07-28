@@ -431,4 +431,22 @@ describe('GlobalOverview filter onUnselectAll', () => {
       replaceState.mockRestore();
     }
   });
+
+  it('opens the user-discovery modal after agents load and dismisses it', async () => {
+    render(() => <GlobalOverview />);
+
+    await waitFor(() =>
+      expect(document.body.textContent).toContain('Book my slot to get $10'),
+    );
+
+    const later = [...document.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Maybe later',
+    ) as HTMLButtonElement;
+    fireEvent.click(later);
+
+    expect(localStorage.getItem('manifest:user-discovery-modal-dismissed:v1')).toBe('true');
+    await waitFor(() =>
+      expect(document.body.textContent).not.toContain('Book my slot to get $10'),
+    );
+  });
 });
