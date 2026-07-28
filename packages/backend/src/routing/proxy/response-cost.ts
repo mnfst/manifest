@@ -15,14 +15,14 @@ export interface ResponseCostContext {
 
 export interface ResponseCostState {
   promptTokens?: number;
-  completionTokens?: number;
+  completionTokens: number;
   cacheReadTokens?: number;
   cacheCreationTokens?: number;
   reportedCostUsd?: number;
 }
 
 export function createResponseCostState(): ResponseCostState {
-  return {};
+  return { completionTokens: 0 };
 }
 
 /**
@@ -94,7 +94,7 @@ function mergeUsage(usageValue: unknown, state: ResponseCostState): StreamUsage 
   if (state.promptTokens === undefined) return null;
   return {
     prompt_tokens: state.promptTokens,
-    completion_tokens: state.completionTokens ?? 0,
+    completion_tokens: state.completionTokens,
     cache_read_tokens: state.cacheReadTokens,
     cache_creation_tokens: state.cacheCreationTokens,
     ...(state.reportedCostUsd !== undefined ? { reported_cost_usd: state.reportedCostUsd } : {}),
@@ -204,12 +204,6 @@ export function injectCostIntoSseEvent(
   return { text: serializeSseEvent(prefixLines, JSON.stringify(parsed)), usage };
 }
 
-function frameSseEvent(eventText: string): string {
-  if (eventText.endsWith('\n\n')) return eventText;
-  if (eventText.endsWith('\n')) return `${eventText}\n`;
-  return `${eventText}\n\n`;
-}
-
 /**
  * Rewrite complete outbound SSE produced by protocol transformers/finalizers.
  * Those callbacks may return several events in one string, so process each
@@ -229,7 +223,7 @@ export function injectCostIntoSseChunk(
     if (!event.trim()) continue;
     const injected = injectCostIntoSseEvent(event, ctx, state);
     if (injected.usage) lastUsage = injected.usage;
-    if (injected.text) text += frameSseEvent(injected.text);
+    if (injected.text) text += `${injected.text}\n\n`;
   }
 
   return { text, usage: lastUsage };

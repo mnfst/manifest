@@ -261,8 +261,6 @@ export function initSseHeaders(
 const MAX_SSE_BUFFER_SIZE = DEFAULT_MAX_SSE_BUFFER_SIZE;
 
 function frameSseEvent(eventText: string): string {
-  if (eventText.endsWith('\n\n')) return eventText;
-  if (eventText.endsWith('\n')) return `${eventText}\n`;
   return `${eventText}\n\n`;
 }
 
@@ -396,11 +394,7 @@ export async function pipeStream(
   };
 
   const writeParsedEvent = (event: string): void => {
-    if (!costContext) {
-      writeTransformedChunk(event);
-      return;
-    }
-    const injected = injectCostIntoSseEvent(event, costContext, costState);
+    const injected = injectCostIntoSseEvent(event, costContext!, costState);
     if (injected.usage) capturedUsage = injected.usage;
     writeOut(frameSseEvent(injected.text));
   };

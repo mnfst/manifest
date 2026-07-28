@@ -104,6 +104,44 @@ describe('response-cost', () => {
       attachCostToResponseBody(body, pricingCtx);
       expect(body.response.usage.cost).toBeCloseTo(0.0015, 10);
     });
+
+    it('preserves a provider-reported subscription cost', () => {
+      const body = {
+        usage: { prompt_tokens: 100, completion_tokens: 50, cost: 0.42 },
+      };
+
+      attachCostToResponseBody(body, { ...pricingCtx, authType: 'subscription' });
+
+      expect(body.usage.cost).toBe(0.42);
+    });
+
+    it.each([null, 'invalid', []])('returns null for invalid response bodies', (body) => {
+      expect(attachCostToResponseBody(body, pricingCtx)).toBeNull();
+    });
+
+    it('ignores output-only usage until prompt usage has been observed', () => {
+      expect(
+        attachCostToResponseBody(
+          { usage: { completion_tokens: 5 } },
+          pricingCtx,
+          createResponseCostState(),
+        ),
+      ).toBeNull();
+      expect(
+        attachCostToResponseBody(
+          { usage: { output_tokens: 5 } },
+          pricingCtx,
+          createResponseCostState(),
+        ),
+      ).toBeNull();
+      expect(
+        attachCostToResponseBody(
+          { usage: { total_tokens: 5 } },
+          pricingCtx,
+          createResponseCostState(),
+        ),
+      ).toBeNull();
+    });
   });
 
   describe('injectCostIntoSseEvent', () => {
@@ -153,6 +191,17 @@ describe('response-cost', () => {
         text:
           'event: content_block_delta\n' +
           'data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"hello"}}',
+        usage: null,
+      });
+    });
+
+    it('preserves metadata-only and malformed events with valid framing', () => {
+      expect(injectCostIntoSseEvent('\nevent: ping\n', pricingCtx)).toEqual({
+        text: 'event: ping',
+        usage: null,
+      });
+      expect(injectCostIntoSseEvent('event: custom\nnot-json', pricingCtx)).toEqual({
+        text: 'event: custom\ndata: not-json',
         usage: null,
       });
     });

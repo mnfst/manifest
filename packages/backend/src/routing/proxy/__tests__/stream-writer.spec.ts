@@ -931,6 +931,7 @@ describe('pipePassthrough', () => {
 
   it('preserves Anthropic framing and prices cumulative terminal usage', async () => {
     const { res, written } = mockResponse();
+    const onClientChunk = jest.fn();
     const raw =
       ': keep-alive\n\n' +
       'event: message_start\n' +
@@ -945,11 +946,12 @@ describe('pipePassthrough', () => {
       'data: {"type":"message_stop"}\n\n';
     const stream = createReadableStream([raw]);
 
-    const captured = await pipePassthrough(stream, res as never, () => null, undefined, {
+    const captured = await pipePassthrough(stream, res as never, () => null, onClientChunk, {
       costContext: responseCostContext,
     });
 
     const output = written.join('');
+    expect(onClientChunk.mock.calls.map(([chunk]) => chunk).join('')).toBe(output);
     expect(output.startsWith(': keep-alive\n\n')).toBe(true);
     expect(output).toContain(
       'event: content_block_delta\n' +
@@ -1080,6 +1082,23 @@ describe('pipePassthrough', () => {
       cache_read_tokens: undefined,
       cache_creation_tokens: 0,
     });
+  });
+
+  it('flushes an incomplete UTF-8 sequence through the decoder', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(Uint8Array.of(0xe2));
+        controller.close();
+      },
+    });
+    const tap = jest.fn(() => null);
+
+    await pipePassthrough(stream, res as never, tap, undefined, {
+      costContext: responseCostContext,
+    });
+
+    expect(tap).not.toHaveBeenCalled();
   });
 
   it('ignores a whitespace-only trailing buffer', async () => {
