@@ -1,0 +1,127 @@
+packages/backend/src/analytics/services/query-helpers.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 218-253
+  s_3c4ddbd1f15e8e::t_c89e40d41463d3 217
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 6-9,163-176,369-382,431-454
+  s_3c4ddbd1f15e8e::t_ce59f4a85fa639 455
+packages/frontend/src/components/ProviderIcon.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 209-221
+packages/backend/src/routing/proxy/provider-client.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 203,211
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 123,236-237
+  s_3c4ddbd1f15e8e::t_bbb943b65dde2f 238-242
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 11-12,44,52-54,73,186,198-200,219,259-266,279,289,392,402
+packages/frontend/src/components/UserDiscoveryBanner.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-75
+packages/frontend/tests/components/UserDiscoveryBanner.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-72
+packages/frontend/tests/services/providers.test.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 209-225,595-606,828-832
+  s_3c4ddbd1f15e8e::t_69cdb4e01c98a5 833
+packages/shared/src/providers.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 163-173
+  s_3c4ddbd1f15e8e::t_4941fcbf8a405d 162
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 3341-3355,4054
+packages/frontend/src/styles/overview.css
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 103-104,110,124,131-134,144-145,150,163,168,171,176,182,187
+packages/backend/src/common/constants/providers.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 121-131
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 4,82-83,88-89,93-98,114,154-156
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 13,31
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 18-19,104-111,266-268,506-508
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 2
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 12,77,96,193,208,225,238,247,267,705-710,745-746,848-849
+packages/backend/test/overview.e2e-spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 9-13,24-39,45-119,188-235
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 28-33,48,139-157,200-269,768-771
+  s_3c4ddbd1f15e8e::t_e662c91bfc4452 772
+packages/shared/__tests__/providers.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 75-84,170-178
+  s_3c4ddbd1f15e8e::t_603c4ca781df54 179
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 29,83-208
+  s_3c4ddbd1f15e8e::t_b32368beac2845 209-210
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 25
+packages/frontend/src/components/UserDiscoveryModal.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-146
+packages/backend/test/oauth-subscription-lock.e2e-spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-258
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 9,343-423
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 9-11,256-303
+  s_3c4ddbd1f15e8e::t_7d6db40850e61e 304
+packages/frontend/tests/components/UserDiscoveryModal.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-112
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1,1640-1665
+  s_3c4ddbd1f15e8e::t_e47078bf8b74e4 1666-1667
+packages/frontend/public/logos/gemini.svg
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-52
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 434-451
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 65-73
+packages/shared/src/index.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 116
+README.md
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 84,118
+packages/shared/src/provider-limits.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1-7
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 109-111,151-153,183,188-207,221-227,233-246,255-276,278-280,306
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 56-61,81-83,88-102,113,116-118
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 77,105-110,169,230-240
+packages/frontend/src/services/providers.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 288-292,501
+packages/manifest/CHANGELOG.md
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 3-38
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 468-516
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 11
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 53-60,66,130,145,164,173-248
+  s_3c4ddbd1f15e8e::t_09f5300c744314 249-250
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 42-46,591-612,620,622
+packages/frontend/src/styles/modals.css
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1000-1134
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 63,401-416
+  s_3c4ddbd1f15e8e::t_a2562036fb78b9 417-418
+packages/manifest/package.json
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 3
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 28
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_3c4ddbd1f15e8e::t_c36adf7beb9ef5 1,3,74-84,122-147,622,642
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fcd0734ef382f2e7ecaae12e86e4b6d64873ba52",
+  "prompts": {},
+  "sessions": {
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
