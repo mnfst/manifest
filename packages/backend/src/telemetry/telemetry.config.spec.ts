@@ -27,6 +27,18 @@ describe('buildTelemetryConfig', () => {
     ).toBe(false);
   });
 
+  it('is disabled in cloud mode even in production (cloud has its own analytics)', () => {
+    expect(
+      buildTelemetryConfig({ NODE_ENV: 'production', MANIFEST_MODE: 'cloud' }).enabled,
+    ).toBe(false);
+  });
+
+  it('stays enabled for explicit self-hosted production', () => {
+    expect(
+      buildTelemetryConfig({ NODE_ENV: 'production', MANIFEST_MODE: 'selfhosted' }).enabled,
+    ).toBe(true);
+  });
+
   it('ignores unrecognised disable values (opt-out must be explicit)', () => {
     expect(
       buildTelemetryConfig({ NODE_ENV: 'production', MANIFEST_TELEMETRY_DISABLED: 'yes' }).enabled,
