@@ -83,9 +83,9 @@ export class ErrorDiscoveryService {
              (array_agg(e.error_message ORDER BY e.timestamp DESC))[1] AS sample
       FROM agent_messages e
       LEFT JOIN (
-        SELECT DISTINCT trace_id FROM agent_messages WHERE status = 'ok' AND trace_id IS NOT NULL
+        SELECT DISTINCT trace_id FROM agent_messages WHERE status IN ('ok', 'success') AND trace_id IS NOT NULL
       ) ok ON ok.trace_id = e.trace_id
-      WHERE e.status IN ('error','fallback_error','rate_limited')
+      WHERE e.status IN ('error','fallback_error','rate_limited','failed')
         AND e.tenant_id IS NOT NULL
         AND e.provider IS NOT NULL
         AND e.provider NOT LIKE 'custom:%'
@@ -101,8 +101,9 @@ export class ErrorDiscoveryService {
                to_char(date_trunc('day', e.timestamp), 'YYYY-MM-DD') AS day,
                COUNT(*)::int AS cnt
         FROM agent_messages e
-        WHERE e.status IN ('error','fallback_error','rate_limited')
+        WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.timestamp >= NOW() - INTERVAL '14 days'
+          AND e.tenant_id IS NOT NULL
           AND e.provider IS NOT NULL
           AND e.provider NOT LIKE 'custom:%'
         GROUP BY e.provider, e.error_http_status, day
@@ -125,7 +126,7 @@ export class ErrorDiscoveryService {
                e.error_message AS msg,
                COUNT(*)::int AS cnt
         FROM agent_messages e
-        WHERE e.status IN ('error','fallback_error','rate_limited')
+        WHERE e.status IN ('error','fallback_error','rate_limited','failed')
           AND e.error_message IS NOT NULL
           AND e.tenant_id IS NOT NULL
           AND e.provider IS NOT NULL

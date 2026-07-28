@@ -1,5 +1,14 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  Min,
+} from 'class-validator';
 import {
   ALL_TIERS,
   ERROR_CLASSES,
@@ -10,7 +19,12 @@ import {
   type SpecificityCategory,
 } from 'manifest-shared';
 
+// `success` / `failed` are the canonical filter values; `ok` and the specific
+// legacy error values (`error` / `rate_limited` / `fallback_error`) plus `errors`
+// stay accepted so links and saved filters minted before the status normalization
+// keep working. The query service maps them onto the canonical vocabulary.
 export const MESSAGE_STATUS_FILTER_VALUES = [
+  'success',
   'ok',
   'failed',
   'error',
@@ -39,6 +53,16 @@ export class MessagesQueryDto {
   @IsOptional()
   @IsString()
   provider?: string;
+
+  /**
+   * Comma-separated tenant_providers ids. Filters the log to requests that
+   * touched at least one of these provider connections (legacy attempts with
+   * no stamped connection fold onto the Default-label connection, matching
+   * the dashboard's connection scoping).
+   */
+  @IsOptional()
+  @IsString()
+  connections?: string;
 
   @IsOptional()
   @IsString()
@@ -78,11 +102,23 @@ export class MessagesQueryDto {
   })
   status?: MessageStatusFilter;
 
+  /**
+   * Attempt-status facet, AND semantics: `has_failed` keeps requests holding
+   * at least one failed attempt, `has_succeeded` at least one succeeded
+   * attempt; both together require both. Scoped to `connections` when set.
+   */
   @IsOptional()
-  @IsIn(MESSAGE_TRIGGER_FILTER_VALUES, {
-    message: `trigger must be one of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
+  @Matches(/^(has_failed|has_succeeded)(,(has_failed|has_succeeded))*$/, {
+    message: 'attempts must be a comma-separated list of: has_failed, has_succeeded',
   })
-  trigger?: MessageTriggerFilter;
+  attempts?: string;
+
+  /** One or several (comma-separated) of: none, fallback, autofix. */
+  @IsOptional()
+  @Matches(/^(none|fallback|autofix)(,(none|fallback|autofix))*$/, {
+    message: `trigger must be a comma-separated list of: ${MESSAGE_TRIGGER_FILTER_VALUES.join(', ')}`,
+  })
+  trigger?: string;
 
   @IsOptional()
   @IsIn(MESSAGE_ORIGIN_FILTER_VALUES, {

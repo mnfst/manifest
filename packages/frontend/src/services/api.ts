@@ -3,6 +3,7 @@ export * from './api/agents.js';
 export * from './api/messages.js';
 export * from './api/analytics.js';
 export * from './api/routing.js';
+export * from './api/autofix.js';
 export * from './api/specificity.js';
 export * from './api/header-tiers.js';
 export * from './api/notifications.js';

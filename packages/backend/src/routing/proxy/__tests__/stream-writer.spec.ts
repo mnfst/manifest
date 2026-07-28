@@ -2,6 +2,11 @@ import {
   initSseHeaders,
   pipePassthrough,
   pipeStream,
+  UpstreamStreamError,
+  StreamFailure,
+  StreamIdleTimeoutError,
+  DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+  parseStreamIdleTimeoutMs,
   extractUsageFromSse,
   parseUsageObject,
 } from '../stream-writer';
@@ -178,6 +183,55 @@ describe('createSsePayloadParser', () => {
 });
 
 describe('pipeStream', () => {
+  it('uses a safe configurable stream idle timeout', () => {
+    expect(parseStreamIdleTimeoutMs()).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+    expect(parseStreamIdleTimeoutMs('2500')).toBe(2500);
+    expect(parseStreamIdleTimeoutMs('0')).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+    expect(parseStreamIdleTimeoutMs('invalid')).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+  });
+
+  it('fails a stream that stays idle between events', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[]}\n\n'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        idleTimeoutMs: 10,
+        protocol: 'openai_chat_completions',
+      }),
+    ).rejects.toBeInstanceOf(StreamIdleTimeoutError);
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('fails when a provider closes without a terminal event', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"choices":[]}\n\n']);
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).rejects.toMatchObject<Partial<StreamFailure>>({ reason: 'incomplete_stream', status: 503 });
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('accepts a protocol completion marker', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"choices":[]}\n\ndata: [DONE]\n\n']);
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).resolves.toBeNull();
+    expect(res.end).toHaveBeenCalled();
+  });
+
   function createReadableStream(chunks: string[]): ReadableStream<Uint8Array> {
     const encoder = new TextEncoder();
     let index = 0;
@@ -462,11 +516,10 @@ describe('pipeStream', () => {
       },
     });
 
-    await expect(pipeStream(stream, res as never)).rejects.toThrow('stream read error');
+    await expect(pipeStream(stream, res as never)).rejects.toBeInstanceOf(UpstreamStreamError);
 
-    // After error, the reader lock should be released (finally block runs).
-    // We verify by checking that end was called (finally block behavior).
-    expect(res.end).toHaveBeenCalled();
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
   });
 
   it('should not write remaining whitespace-only buffer through transform', async () => {
@@ -980,6 +1033,22 @@ describe('pipePassthrough', () => {
     await expect(pipePassthrough(stream, res as never, () => null)).rejects.toThrow(
       'SSE buffer overflow',
     );
+  });
+
+  it('leaves the destination open when the upstream reader fails', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('upstream disconnected'));
+      },
+    });
+
+    await expect(pipePassthrough(stream, res as never, () => null)).rejects.toBeInstanceOf(
+      UpstreamStreamError,
+    );
+
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
   });
 });
 

@@ -63,6 +63,18 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
+  it('lists claude-opus-5 explicitly — the claude-opus-4 prefix does not cover it', () => {
+    const config = getSubscriptionProviderConfig('anthropic');
+    const knownModels = config?.knownModels ?? [];
+    expect(knownModels).toContain('claude-opus-5');
+    // Anthropic matches by prefix, so claude-opus-4-8 rides on 'claude-opus-4'.
+    // The 5 generation dropped that prefix — without its own entry, an Opus 5
+    // subscription model would be filtered out of the curated catalog.
+    expect(knownModels.some((m) => 'claude-opus-5'.startsWith(m) && m !== 'claude-opus-5')).toBe(
+      false,
+    );
+  });
+
   it('returns config for openai', () => {
     const config = getSubscriptionProviderConfig('openai');
     expect(config).toMatchObject({
@@ -231,9 +243,15 @@ describe('getSubscriptionProviderConfig', () => {
     });
   });
 
-  it('does not publish a hardcoded known-models list for xai', () => {
+  it('publishes the curated xai subscription models', () => {
     const config = getSubscriptionProviderConfig('xai');
-    expect(config?.knownModels).toBeUndefined();
+    expect(config?.knownModels).toEqual([
+      'grok-4.5',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-4.20-0309-non-reasoning',
+      'grok-build-0.1',
+    ]);
   });
 
   it('returns config for gemini', () => {
@@ -379,8 +397,13 @@ describe('getSubscriptionKnownModels', () => {
     expect(getSubscriptionKnownModels('qwen')).toBeNull();
   });
 
-  it('returns the fixed model id for moonshot Kimi Coding Plan', () => {
-    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding']);
+  it('returns the fixed model ids for moonshot Kimi Coding Plan', () => {
+    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding', 'kimi-k3']);
+  });
+
+  it('returns known models for cline-pass including Kimi K3', () => {
+    const models = getSubscriptionKnownModels('cline-pass');
+    expect(models).toContain('cline-pass/kimi-k3');
   });
 
   it('returns null known models for ollama-cloud (relies on live /api/tags discovery)', () => {
@@ -410,8 +433,15 @@ describe('getSubscriptionKnownModels', () => {
     expect(models).toContain('gemini-2.5-flash-lite');
   });
 
-  it('returns null for xai (dynamic provider discovery, no hardcoded list)', () => {
-    expect(getSubscriptionKnownModels('xai')).toBeNull();
+  it('returns known models for xai', () => {
+    const models = getSubscriptionKnownModels('xai');
+    expect(models).toEqual([
+      'grok-4.5',
+      'grok-4.3',
+      'grok-4.20-0309-reasoning',
+      'grok-4.20-0309-non-reasoning',
+      'grok-build-0.1',
+    ]);
   });
 
   it('returns null for unsupported providers', () => {
@@ -490,6 +520,8 @@ describe('getSubscriptionCapabilities', () => {
       supportsBatching: false,
     });
     expect(caps?.modelContextWindows?.['claude-opus-4-8']).toBe(1000000);
+    // Opus 5 is 1M too; without an entry it would fall back to the 200k default.
+    expect(caps?.modelContextWindows?.['claude-opus-5']).toBe(1000000);
   });
 
   it('returns capabilities for OpenAI subscription', () => {
@@ -559,6 +591,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsPromptCaching: true,
       supportsBatching: false,
     });
+    expect(caps?.modelContextWindows?.['kimi-k3']).toBe(1048576);
   });
 
   it('returns capabilities for Qwen Token Plan', () => {

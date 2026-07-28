@@ -182,7 +182,10 @@ interface Mocks {
   pricingCache: { getByModel: jest.Mock };
   eventBus: { emit: jest.Mock };
   history: { saveColumn: jest.Mock };
-  messageRepo: { insert: jest.Mock };
+  messageRepo: {
+    insert: jest.Mock;
+    manager?: { getRepository: jest.Mock };
+  };
   customProviderRepo: { findOne: jest.Mock };
 }
 
@@ -276,7 +279,7 @@ describe('PlaygroundService.runStream', () => {
     expect(row).toMatchObject({
       routing_tier: 'playground',
       routing_reason: null,
-      status: 'ok',
+      status: 'success',
       provider: 'openai',
       model: 'openai/gpt-4o',
       input_tokens: 10,
@@ -428,6 +431,21 @@ describe('PlaygroundService.runStream', () => {
     expect(res.json).not.toHaveBeenCalled();
   });
 
+  it('does not record a transport failure when the client disconnects before forward resolves', async () => {
+    const { service, mocks } = buildService();
+    const res = mockRes();
+    mocks.providerClient.forward.mockImplementation(async () => {
+      res._closeHandler?.();
+      throw new Error('client aborted');
+    });
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
+    expect(mocks.history.saveColumn).not.toHaveBeenCalled();
+    expect(mocks.eventBus.emit).not.toHaveBeenCalled();
+  });
+
   it('swallows recordError insert failures that throw an Error on the upstream-error path', async () => {
     const { service, mocks } = buildService();
     mocks.messageRepo.insert.mockRejectedValueOnce(new Error('telemetry insert blew up'));
@@ -469,12 +487,17 @@ describe('PlaygroundService.runStream', () => {
   });
 
   it('sends a 404 JSON error (no stream) when the provider is not connected', async () => {
-    const { service } = buildService({
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
       providerKeyService: {
         hasActiveProvider: jest.fn().mockResolvedValue(false),
         getAuthType: jest.fn(),
         getProviderKeys: jest.fn(),
         getProviderApiKey: jest.fn(),
+      },
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
       },
     });
     const res = mockRes();
@@ -485,6 +508,10 @@ describe('PlaygroundService.runStream', () => {
     expect(res._json).toMatchObject({ statusCode: 404 });
     expect((res._json as { message: string }).message).toContain('not connected');
     expect(res.write).not.toHaveBeenCalled();
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'failed', error_origin: 'config' }),
+    );
+    expect(mocks.messageRepo.insert).not.toHaveBeenCalled();
   });
 
   it('sends a 404 JSON error when no usable API key is found', async () => {
@@ -686,6 +713,44 @@ describe('PlaygroundService.runStream', () => {
     expect((res._json as { message: string }).message).toBe('boom');
   });
 
+  it('records a resolved-agent preflight failure as an internal request rejection', async () => {
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
+    mocks.providerKeyService.getProviderKeys.mockRejectedValue(new Error('key service down'));
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(res._status).toBe(500);
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ error_origin: 'internal', error_http_status: 500 }),
+    );
+  });
+
+  it('keeps responding when preflight rejection telemetry fails', async () => {
+    const requestInsert = jest.fn().mockRejectedValue('telemetry unavailable');
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn(),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
+    mocks.providerKeyService.getProviderKeys.mockRejectedValue(new ForbiddenException('blocked'));
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto(), asRes(res));
+
+    expect(res._status).toBe(403);
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ error_origin: 'config', error_http_status: 403 }),
+    );
+  });
+
   it('stringifies a non-Error preflight rejection', async () => {
     const { service } = buildService({
       playgroundAgent: {
@@ -701,7 +766,13 @@ describe('PlaygroundService.runStream', () => {
   });
 
   it('returns 502 JSON when forward() throws (Error)', async () => {
-    const { service, mocks } = buildService();
+    const requestInsert = jest.fn().mockResolvedValue(undefined);
+    const { service, mocks } = buildService({
+      messageRepo: {
+        insert: jest.fn().mockResolvedValue(undefined),
+        manager: { getRepository: jest.fn(() => ({ insert: requestInsert })) },
+      },
+    });
     mocks.providerClient.forward.mockRejectedValue(new Error('connection refused'));
     const res = mockRes();
 
@@ -709,6 +780,12 @@ describe('PlaygroundService.runStream', () => {
 
     expect(res._status).toBe(502);
     expect((res._json as { message: string }).message).toContain('connection refused');
+    expect(requestInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'failed', error_origin: 'transport' }),
+    );
+    expect(mocks.messageRepo.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'failed', error_origin: 'transport' }),
+    );
   });
 
   it('returns 502 JSON when forward() throws a non-Error', async () => {
@@ -745,7 +822,7 @@ describe('PlaygroundService.runStream', () => {
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
     expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({
       routing_tier: 'playground',
-      status: 'error',
+      status: 'failed',
       error_http_status: 429,
     });
     expect(mocks.history.saveColumn).toHaveBeenCalledTimes(1);
@@ -826,7 +903,7 @@ describe('PlaygroundService.runStream', () => {
     const errEvent = events.find((e) => e.type === 'error') as Record<string, unknown>;
     expect(errEvent.message).toContain('stream blew up mid-flight');
     expect(mocks.messageRepo.insert).toHaveBeenCalledTimes(1);
-    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({ status: 'error' });
+    expect(mocks.messageRepo.insert.mock.calls[0][0]).toMatchObject({ status: 'failed' });
     expect(mocks.history.saveColumn).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'error' }),
     );

@@ -59,6 +59,15 @@ function shouldForwardAnthropicThinking(thinking: unknown, model: string): boole
   return true;
 }
 
+function normalizeAnthropicThinking(thinking: unknown): unknown {
+  if (!isObjectRecord(thinking) || thinking.type !== 'adaptive' || !('budget_tokens' in thinking)) {
+    return thinking;
+  }
+  const normalized = { ...thinking };
+  delete normalized.budget_tokens;
+  return normalized;
+}
+
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
  * sonnet/opus model families. Without it, subscription tokens can only
@@ -285,8 +294,7 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   const out: AnthropicTool[] = [];
   for (const t of tools) {
     const fn = t.function as
-      | { name: string; description?: string; parameters?: unknown }
-      | undefined;
+      { name: string; description?: string; parameters?: unknown } | undefined;
     if (fn) out.push({ name: fn.name, description: fn.description, input_schema: fn.parameters });
   }
   return out.length > 0 ? out : undefined;
@@ -386,7 +394,7 @@ export function toAnthropicRequest(
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
   // set these, so this is a no-op for the OpenAI-compat path.
   if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
-    result.thinking = body.thinking;
+    result.thinking = normalizeAnthropicThinking(body.thinking);
   }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
@@ -448,6 +456,9 @@ export function applyAnthropicMessagesMutations(
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
+  if (body.thinking !== undefined) {
+    result.thinking = normalizeAnthropicThinking(body.thinking);
+  }
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
   };

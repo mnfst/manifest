@@ -2,9 +2,9 @@
 # Manifest — self-host quick install
 #
 # Downloads the Docker Compose file and the `.env.example` template,
-# generates a BETTER_AUTH_SECRET, writes it into a local `.env`, then
-# brings up the stack. Designed for first-time self-hosters who want a
-# one-command setup. Give it up to a couple of minutes on first boot —
+# generates a BETTER_AUTH_SECRET and a MANIFEST_ENCRYPTION_KEY, writes them
+# into a local `.env`, then brings up the stack. Designed for first-time
+# self-hosters who want a one-command setup. Give it a couple of minutes —
 # Docker needs to pull the app image and Postgres on a cold cache.
 # Once healthy, visit http://localhost:2099 and the setup wizard will
 # walk you through creating the first admin account.
@@ -12,8 +12,13 @@
 # Usage:
 #   bash install.sh                  # install into $HOME/manifest
 #   bash install.sh --dir /opt/mnfst # install into a custom directory
+#   bash install.sh --port 8080      # serve the dashboard on a different port
 #   bash install.sh --dry-run        # print what would happen, do nothing
 #   bash install.sh --yes            # skip confirmation prompt (non-interactive)
+#
+# Re-running against an existing install directory resumes it: the compose
+# file and the generated secrets are left alone and the stack is brought
+# back up. Nothing is overwritten.
 #
 # Review before running:
 #   curl -sSLO https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh
@@ -54,19 +59,26 @@ run() {
 }
 
 usage() {
-  sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'
+  # Print the header comment block: every line from line 2 up to (but not
+  # including) the first non-comment line. Computed rather than a hardcoded
+  # range so editing the header above can't silently truncate --help.
+  awk 'NR>1 { if ($0 !~ /^#/) exit; sub(/^# ?/, ""); print }' "$0"
   exit 0
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dir)     INSTALL_DIR="${2:?--dir requires a path}"; shift 2 ;;
+    --port)    HOST_PORT="${2:?--port requires a port number}"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     --yes|-y)  ASSUME_YES=1; shift ;;
     -h|--help) usage ;;
     *)         die "Unknown flag: $1 (use --help)" ;;
   esac
 done
+
+[[ "$HOST_PORT" =~ ^[0-9]+$ ]] && (( HOST_PORT >= 1 && HOST_PORT <= 65535 )) \
+  || die "--port must be a number between 1 and 65535 (got: $HOST_PORT)"
 
 command -v docker >/dev/null 2>&1 \
   || die "docker not found. Install Docker first: https://docs.docker.com/get-docker/"
@@ -83,23 +95,41 @@ else
   die "Need either openssl or /dev/urandom to generate a secret."
 fi
 
+# An existing install directory is a resume, not an error. The common way to
+# land here is a first run that downloaded the files and then failed at
+# `docker compose up` (no disk space, a Docker daemon hiccup, an exhausted
+# network address pool). Re-running used to hard-fail with "already exists",
+# which pointed at --dir or `rm -rf` — and `rm -rf` throws away the generated
+# BETTER_AUTH_SECRET, invalidating every session and, if the volume survived,
+# every provider credential encrypted with it. So: keep what's there and
+# just bring the stack up.
+RESUME=0
 if [[ -e "$INSTALL_DIR" && -n "$(ls -A "$INSTALL_DIR" 2>/dev/null || true)" ]]; then
-  die "$INSTALL_DIR already exists and is not empty. Pass --dir to choose another location or remove it first."
+  if [[ -f "$INSTALL_DIR/docker-compose.yml" && -f "$INSTALL_DIR/.env" ]]; then
+    RESUME=1
+  else
+    die "$INSTALL_DIR already exists, is not empty, and does not look like a Manifest install (no docker-compose.yml + .env). Pass --dir to choose another location, or remove it first."
+  fi
 fi
 
-# Nothing we install will start if 2099 is already taken; surface that
-# now with a pointer to the fix, rather than letting `docker compose up`
-# fail with a less obvious message below.
-if [[ "$DRY_RUN" -eq 0 ]]; then
+# Nothing we install will start if the host port is already taken; surface
+# that now with a pointer to the fix, rather than letting `docker compose up`
+# fail with a less obvious message below. Skipped when resuming — the port is
+# very likely held by this install's own container.
+if [[ "$DRY_RUN" -eq 0 && "$RESUME" -eq 0 ]]; then
   if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -qE "[: ]${HOST_PORT}\\b"; then
-    die "Port ${HOST_PORT} is already in use on this host. Stop whatever is bound to it, or pick a different host port by editing the ports line in $INSTALL_DIR/docker-compose.yml after the install."
+    die "Port ${HOST_PORT} is already in use on this host. Stop whatever is bound to it, or re-run with a different port: bash install.sh --port 8080"
   fi
 fi
 
 log "Manifest self-host installer"
 printf '    Install directory: %s\n' "$INSTALL_DIR"
+printf '    Dashboard port:    %s\n' "$HOST_PORT"
 printf '    Source:            %s\n' "$REPO_RAW"
 printf '    Mode:              %s\n' "$([[ $DRY_RUN -eq 1 ]] && echo 'dry-run (no changes)' || echo 'live install')"
+if [[ "$RESUME" -eq 1 ]]; then
+  printf '    Existing install:  resuming (compose file and .env left untouched)\n'
+fi
 echo
 
 if [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
@@ -117,56 +147,90 @@ if [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
   [[ "$reply" =~ ^[Yy]$ ]] || { warn "Aborted."; exit 1; }
 fi
 
-log "Creating install directory"
-run mkdir -p "$INSTALL_DIR"
-
-log "Downloading compose file"
-if [[ "$DRY_RUN" -eq 1 ]]; then
-  printf '    \033[2m$ curl -sSLf %s/docker-compose.yml -o %s/docker-compose.yml\033[0m\n' "$REPO_RAW" "$INSTALL_DIR"
-else
-  curl -sSLf "$REPO_RAW/docker-compose.yml" -o "$INSTALL_DIR/docker-compose.yml" \
-    || die "Failed to download docker-compose.yml"
-fi
-
-log "Downloading .env.example"
 ENV_PATH="$INSTALL_DIR/.env"
-if [[ "$DRY_RUN" -eq 1 ]]; then
-  printf '    \033[2m$ curl -sSLf %s/.env.example -o %s\033[0m\n' "$REPO_RAW" "$ENV_PATH"
-else
-  curl -sSLf "$REPO_RAW/.env.example" -o "$ENV_PATH" \
-    || die "Failed to download .env.example"
-fi
 
-log "Generating BETTER_AUTH_SECRET"
-if [[ "$DRY_RUN" -eq 1 ]]; then
-  SECRET="<generated-at-install-time>"
-  printf '    \033[2m$ openssl rand -hex 32\033[0m\n'
-else
+gen_secret() {
   case "$SECRET_TOOL" in
-    openssl) SECRET="$(openssl rand -hex 32)" ;;
-    urandom) SECRET="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')" ;;
+    openssl) openssl rand -hex 32 ;;
+    urandom) head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' ;;
   esac
-fi
+}
 
-log "Writing secret into .env"
-if [[ "$DRY_RUN" -eq 1 ]]; then
-  printf '    \033[2m$ replace "BETTER_AUTH_SECRET=" → "BETTER_AUTH_SECRET=<generated>" in %s\033[0m\n' "$ENV_PATH"
+if [[ "$RESUME" -eq 1 ]]; then
+  log "Reusing existing install (skipping download and secret generation)"
+  printf '    Keeping %s and %s as they are.\n' "$INSTALL_DIR/docker-compose.yml" "$ENV_PATH"
 else
-  if ! grep -qE '^BETTER_AUTH_SECRET=$' "$ENV_PATH"; then
-    die "Expected empty BETTER_AUTH_SECRET= line not found in $ENV_PATH — refusing to proceed."
+  log "Creating install directory"
+  run mkdir -p "$INSTALL_DIR"
+
+  log "Downloading compose file"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    \033[2m$ curl -sSLf %s/docker-compose.yml -o %s/docker-compose.yml\033[0m\n' "$REPO_RAW" "$INSTALL_DIR"
+  else
+    curl -sSLf "$REPO_RAW/docker-compose.yml" -o "$INSTALL_DIR/docker-compose.yml" \
+      || die "Failed to download docker-compose.yml"
   fi
-  # Line-based rewrite — no sed, no quoting edge cases. openssl rand -hex
-  # produces only [0-9a-f], so interpolation into the line is safe.
-  new_content=""
-  while IFS= read -r line || [[ -n "$line" ]]; do
-    if [[ "$line" == "BETTER_AUTH_SECRET=" ]]; then
-      new_content+="BETTER_AUTH_SECRET=$SECRET"$'\n'
-    else
-      new_content+="$line"$'\n'
+
+  log "Downloading .env.example"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    \033[2m$ curl -sSLf %s/.env.example -o %s\033[0m\n' "$REPO_RAW" "$ENV_PATH"
+  else
+    curl -sSLf "$REPO_RAW/.env.example" -o "$ENV_PATH" \
+      || die "Failed to download .env.example"
+  fi
+
+  log "Generating BETTER_AUTH_SECRET and MANIFEST_ENCRYPTION_KEY"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    SECRET="<generated-at-install-time>"
+    ENCRYPTION_KEY="<generated-at-install-time>"
+    printf '    \033[2m$ openssl rand -hex 32   # BETTER_AUTH_SECRET\033[0m\n'
+    printf '    \033[2m$ openssl rand -hex 32   # MANIFEST_ENCRYPTION_KEY\033[0m\n'
+  else
+    SECRET="$(gen_secret)"
+    # A second, independent key. Left unset the backend falls back to
+    # BETTER_AUTH_SECRET for at-rest encryption and warns about it on every
+    # boot — which means one leaked session-signing secret also decrypts every
+    # stored provider key and OAuth token. It costs nothing to generate here,
+    # and after first boot it can never be introduced without re-encrypting
+    # what is already in the database.
+    ENCRYPTION_KEY="$(gen_secret)"
+  fi
+
+  log "Writing secrets into .env"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    \033[2m$ replace "BETTER_AUTH_SECRET=" → "BETTER_AUTH_SECRET=<generated>" in %s\033[0m\n' "$ENV_PATH"
+    printf '    \033[2m$ replace "# MANIFEST_ENCRYPTION_KEY=" → "MANIFEST_ENCRYPTION_KEY=<generated>" in %s\033[0m\n' "$ENV_PATH"
+  else
+    if ! grep -qE '^BETTER_AUTH_SECRET=$' "$ENV_PATH"; then
+      die "Expected empty BETTER_AUTH_SECRET= line not found in $ENV_PATH — refusing to proceed."
     fi
-  done < "$ENV_PATH"
-  printf '%s' "$new_content" > "$ENV_PATH"
-  chmod 600 "$ENV_PATH"
+    if ! grep -qE '^# MANIFEST_ENCRYPTION_KEY=$' "$ENV_PATH"; then
+      die "Expected commented # MANIFEST_ENCRYPTION_KEY= line not found in $ENV_PATH — refusing to proceed."
+    fi
+    # Line-based rewrite — no sed, no quoting edge cases. openssl rand -hex
+    # produces only [0-9a-f], so interpolation into the line is safe.
+    new_content=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if [[ "$line" == "BETTER_AUTH_SECRET=" ]]; then
+        new_content+="BETTER_AUTH_SECRET=$SECRET"$'\n'
+      elif [[ "$line" == "# MANIFEST_ENCRYPTION_KEY=" ]]; then
+        new_content+="MANIFEST_ENCRYPTION_KEY=$ENCRYPTION_KEY"$'\n'
+      else
+        new_content+="$line"$'\n'
+      fi
+    done < "$ENV_PATH"
+    printf '%s' "$new_content" > "$ENV_PATH"
+
+    # The compose file reads ${PORT:-2099} for both the published host port and
+    # the backend's own listener, and BETTER_AUTH_URL defaults to
+    # http://localhost:${PORT:-2099} — so pinning PORT is the whole job. Only
+    # written when it differs from the default, to keep .env close to stock.
+    if [[ "$HOST_PORT" -ne 2099 ]]; then
+      printf 'PORT=%s\n' "$HOST_PORT" >> "$ENV_PATH"
+    fi
+
+    chmod 600 "$ENV_PATH"
+  fi
 fi
 
 log "Starting the stack"
@@ -189,15 +253,21 @@ for _ in $(seq 1 24); do
     cat <<EOF
 
   Open:   http://localhost:${HOST_PORT}
-  Setup:  the first visit walks you through creating your admin account.
-  Config: $INSTALL_DIR/.env  (BETTER_AUTH_SECRET, OAuth keys, email provider)
 
+  Next:   1. Create your admin account — the first visit walks you through it.
+          2. Connect a provider: Providers → Usage-based (API key) or
+             Subscriptions, in the dashboard sidebar.
+          3. Copy your agent's mnfst_ key and point your agent at
+             http://localhost:${HOST_PORT}/v1
+
+  Config: $INSTALL_DIR/.env  (secrets, OAuth keys, email provider)
   Verify: curl -sSf http://localhost:${HOST_PORT}/api/v1/health
 
   Note:   Port ${HOST_PORT} is bound to 127.0.0.1 only. To expose on your LAN,
           edit $INSTALL_DIR/docker-compose.yml and change the ports line
-          from "127.0.0.1:${HOST_PORT}:${HOST_PORT}" to "${HOST_PORT}:${HOST_PORT}", then update
-          BETTER_AUTH_URL in .env to match the host you'll access it on.
+          from "127.0.0.1:\${PORT:-2099}:\${PORT:-2099}" to "\${PORT:-2099}:\${PORT:-2099}",
+          then set BETTER_AUTH_URL in .env to the host you'll reach it on
+          (e.g. http://192.168.1.20:${HOST_PORT}) — it must match the browser URL.
 
   Stop:  (cd $INSTALL_DIR && docker compose down)
   Wipe:  (cd $INSTALL_DIR && docker compose down -v)

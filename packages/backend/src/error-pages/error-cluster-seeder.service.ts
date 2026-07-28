@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { normalizeStatus } from 'manifest-shared';
 import { AgentMessage } from '../entities/agent-message.entity';
 
 /**
@@ -189,7 +190,7 @@ export class ErrorClusterSeederService implements OnModuleInit {
             agent_id: 'seed-err-agent',
             trace_id: trace,
             timestamp: ts,
-            status: s.status,
+            status: normalizeStatus(s.status),
             error_message: s.samples[(t + r) % s.samples.length],
             error_http_status: s.http,
             provider: s.provider,
@@ -204,7 +205,7 @@ export class ErrorClusterSeederService implements OnModuleInit {
               agent_id: 'seed-err-agent',
               trace_id: trace,
               timestamp: new Date(tsMs + 1500).toISOString(),
-              status: 'ok',
+              status: 'success',
               provider: s.provider,
               model: s.model,
               input_tokens: 50,

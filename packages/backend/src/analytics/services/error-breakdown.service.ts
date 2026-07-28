@@ -3,9 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ERROR_ORIGINS, MANIFEST_ERROR_ORIGINS } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { rangeToInterval } from '../../common/utils/range.util';
 import { computeCutoff } from '../../common/utils/postgres-sql';
-import { addTenantFilter, excludePlaygroundAgents, sqlCountMessages } from './query-helpers';
+import { addTenantFilter, excludePlaygroundAgents, sqlIsSuccessStatus } from './query-helpers';
 
 export interface ErrorBreakdownResponse {
   range: string;
@@ -19,6 +20,13 @@ export interface ErrorBreakdownResponse {
   transport_errors: number;
   /** Manifest's OWN config/policy/internal rejections — NOT a provider failure. */
   manifest_errors: number;
+  /**
+   * Requests healed by Auto-fix in the window — one per healed request. NOT additive with
+   * `total_errors`: the healed original is a superseded attempt that is already
+   * included in `total_errors`/`by_origin`, so treat this as "of those errors,
+   * this many were auto-fixed", never as a separate error bucket to sum.
+   */
+  auto_fixed: number;
   by_origin: Record<string, number>;
   by_class: Record<string, number>;
   /** provider_errors / (provider_errors + successful), 0..1. */
@@ -46,12 +54,13 @@ export class ErrorBreakdownService {
     const range = params.range ?? '30d';
     const cutoff = computeCutoff(rangeToInterval(range));
 
-    const [groups, successful] = await Promise.all([
+    const [groups, successful, autoFixed] = await Promise.all([
       this.queryErrorGroups(cutoff, params.tenantId, params.agentName),
       this.querySuccessful(cutoff, params.tenantId, params.agentName),
+      this.queryAutoFixed(cutoff, params.tenantId, params.agentName),
     ]);
 
-    return this.assemble(range, groups, successful);
+    return this.assemble(range, groups, successful, autoFixed);
   }
 
   private async queryErrorGroups(
@@ -89,8 +98,39 @@ export class ErrorBreakdownService {
   ): Promise<number> {
     const qb = this.messageRepo
       .createQueryBuilder('at')
-      .select(sqlCountMessages(), 'count')
+      .select(`COUNT(*) FILTER (WHERE ${sqlIsSuccessStatus('at.status')})`, 'count')
       .where('at.timestamp >= :cutoff', { cutoff });
+    addTenantFilter(qb, tenantId, agentName);
+    excludePlaygroundAgents(qb);
+    const row = await qb.getRawOne<{ count: string }>();
+    return Number(row?.count ?? 0);
+  }
+
+  /** Count each request whose Auto-fix retry actually succeeded. */
+  private async queryAutoFixed(
+    cutoff: string,
+    tenantId: string | null,
+    agentName?: string,
+  ): Promise<number> {
+    const qb = this.messageRepo
+      .createQueryBuilder('at')
+      .leftJoin(ManifestRequest, 'r', 'r.id = at.request_id')
+      .select('COUNT(DISTINCT COALESCE(at.request_id, at.autofix_group_id, at.id))', 'count')
+      .where('at.timestamp >= :cutoff', { cutoff })
+      .andWhere("(at.autofix_role = 'original' OR at.status = 'auto_fixed')")
+      .andWhere(
+        `(r.autofix_status = 'retry_succeeded' OR (
+          r.id IS NULL
+          AND at.status = 'auto_fixed'
+          AND EXISTS (
+            SELECT 1 FROM agent_messages retry
+            WHERE retry.autofix_group_id = at.autofix_group_id
+              AND retry.tenant_id = at.tenant_id
+              AND retry.autofix_role = 'retry'
+              AND ${sqlIsSuccessStatus('retry.status')}
+          )
+        ))`,
+      );
     addTenantFilter(qb, tenantId, agentName);
     excludePlaygroundAgents(qb);
     const row = await qb.getRawOne<{ count: string }>();
@@ -101,6 +141,7 @@ export class ErrorBreakdownService {
     range: string,
     groups: ErrorGroupRow[],
     successful: number,
+    autoFixed: number,
   ): ErrorBreakdownResponse {
     const by_origin: Record<string, number> = Object.fromEntries(ERROR_ORIGINS.map((o) => [o, 0]));
     const by_class: Record<string, number> = {};
@@ -120,6 +161,7 @@ export class ErrorBreakdownService {
       provider_errors: provider,
       transport_errors: by_origin['transport'] ?? 0,
       manifest_errors: manifest,
+      auto_fixed: autoFixed,
       by_origin,
       by_class,
       provider_error_rate: denom > 0 ? provider / denom : 0,

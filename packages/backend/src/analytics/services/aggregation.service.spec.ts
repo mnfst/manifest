@@ -98,6 +98,59 @@ describe('AggregationService', () => {
       expect(clauses).toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
 
+    it('treats a zero-attempt request as data', async () => {
+      const attemptQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(null),
+      };
+      const requestQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ '?column?': 1 }),
+      };
+      const requestAware = new AggregationService(
+        { createQueryBuilder: jest.fn(() => attemptQb) } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      await expect(requestAware.hasAnyData('tenant-1', undefined, true)).resolves.toBe(true);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.name = r.agent_name'),
+      );
+    });
+
+    it('scopes request-only data by live agent and handles a missing tenant', async () => {
+      const attemptQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(null),
+      };
+      const requestQb = {
+        select: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue(null),
+      };
+      const requestAware = new AggregationService(
+        { createQueryBuilder: jest.fn(() => attemptQb) } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      await expect(requestAware.hasAnyData('tenant-1', 'agent-1')).resolves.toBe(false);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('deleted_at IS NULL'),
+        { requestAgentName: 'agent-1' },
+      );
+      await expect(requestAware.hasAnyData(null)).resolves.toBe(false);
+      expect(requestQb.where).toHaveBeenCalledWith('1 = 0');
+    });
+
     it('does not exclude Playground traffic by default', async () => {
       mockGetRawOne.mockResolvedValueOnce({ '?column?': 1 });
       await service.hasAnyData('tenant-1');
@@ -295,6 +348,69 @@ describe('AggregationService', () => {
       expect(
         clauses.some((c: unknown) => typeof c === 'string' && c.includes('is_playground')),
       ).toBe(true);
+    });
+  });
+
+  describe('getRequestReliability', () => {
+    it('returns zero metrics without a tenant', async () => {
+      await expect(service.getRequestReliability('24h', null)).resolves.toEqual({
+        total: 0,
+        successful: 0,
+        success_rate: 0,
+        attempt_success_rate: 0,
+        manifest_lift_pct: 0,
+        recovered: 0,
+        previous_total: 0,
+      });
+    });
+
+    it('combines request and attempt reliability with agent and Playground scopes', async () => {
+      const query = jest.fn().mockResolvedValue([
+        {
+          total: '4',
+          successful: '3',
+          attempts: '6',
+          successful_attempts: '4',
+          recovered: '2',
+          previous_total: '5',
+        },
+      ]);
+      const requestAware = new AggregationService({ query } as never, {} as never);
+
+      const result = await requestAware.getRequestReliability('24h', 'tenant-1', 'agent-1', true);
+
+      expect(result).toEqual({
+        total: 4,
+        successful: 3,
+        success_rate: 75,
+        attempt_success_rate: (4 / 6) * 100,
+        manifest_lift_pct: 75 - (4 / 6) * 100,
+        recovered: 2,
+        previous_total: 5,
+      });
+      expect(query).toHaveBeenCalledWith(expect.stringContaining('scoped_requests'), [
+        'tenant-1',
+        expect.any(String),
+        expect.any(String),
+        'agent-1',
+      ]);
+      expect(query.mock.calls[0][0]).toContain('playag.is_playground = true');
+    });
+
+    it('avoids division by zero when no scoped rows exist', async () => {
+      const query = jest.fn().mockResolvedValue([]);
+      const requestAware = new AggregationService({ query } as never, {} as never);
+
+      await expect(requestAware.getRequestReliability('7d', 'tenant-1')).resolves.toEqual({
+        total: 0,
+        successful: 0,
+        success_rate: 0,
+        attempt_success_rate: 0,
+        manifest_lift_pct: 0,
+        recovered: 0,
+        previous_total: 0,
+      });
+      expect(query.mock.calls[0][1]).toHaveLength(3);
     });
   });
 

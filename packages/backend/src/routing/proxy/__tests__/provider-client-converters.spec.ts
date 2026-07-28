@@ -51,6 +51,34 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('temperature', 0.5);
     });
 
+    it('should preserve reasoning_effort for xAI', () => {
+      const result = sanitizeOpenAiBody(
+        {
+          messages: [{ role: 'user', content: 'Hi' }],
+          reasoning_effort: 'high',
+        },
+        'xai',
+        'grok-4.5',
+      );
+
+      expect(result).toHaveProperty('reasoning_effort', 'high');
+    });
+
+    it('should preserve reasoning_effort for DeepSeek', () => {
+      const result = sanitizeOpenAiBody(
+        {
+          messages: [{ role: 'user', content: 'Hi' }],
+          thinking: { type: 'enabled' },
+          reasoning_effort: 'max',
+        },
+        'deepseek',
+        'deepseek-v4-pro',
+      );
+
+      expect(result).toHaveProperty('thinking', { type: 'enabled' });
+      expect(result).toHaveProperty('reasoning_effort', 'max');
+    });
+
     it('should preserve response_format for OpenAI-wire providers', () => {
       const responseFormat = {
         type: 'json_schema',
