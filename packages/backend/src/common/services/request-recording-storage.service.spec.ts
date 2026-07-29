@@ -226,7 +226,7 @@ describe('RequestRecordingStorageService filesystem driver', () => {
     const body = Buffer.from('recording');
 
     expect(key).toBe(
-      'request-recordings/v2/tenants/tenant-1/requests/request-1/attempts/attempt-1.json.gz',
+      'request-recordings/v1/tenants/tenant-1/requests/request-1/attempts/attempt-1.json.gz',
     );
     await service.put(key, body);
     await expect(service.get(key)).resolves.toEqual(body);
@@ -244,7 +244,7 @@ describe('RequestRecordingStorageService filesystem driver', () => {
     await service.onModuleInit();
 
     expect(service.objectKey('../tenant', 'request/1', 'attempt/1')).toBe(
-      'request-recordings/v2/tenants/%2E%2E%2Ftenant/requests/request%2F1/attempts/attempt%2F1.json.gz',
+      'request-recordings/v1/tenants/%2E%2E%2Ftenant/requests/request%2F1/attempts/attempt%2F1.json.gz',
     );
     expect(() => service.objectKey('', 'request-1', 'attempt-1')).toThrow(
       'Request recording storage key segments cannot be empty',

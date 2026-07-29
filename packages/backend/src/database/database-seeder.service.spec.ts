@@ -67,7 +67,7 @@ describe('DatabaseSeederService', () => {
       objectKey: jest
         .fn()
         .mockReturnValue(
-          'request-recordings/v2/tenants/seed-tenant-001/requests/' +
+          'request-recordings/v1/tenants/seed-tenant-001/requests/' +
             'seed-req-recording-001/attempts/seed-msg-recording-001.json.gz',
         ),
       put: jest.fn().mockResolvedValue(undefined),
@@ -195,7 +195,7 @@ describe('DatabaseSeederService', () => {
         },
         {
           recording_key:
-            'request-recordings/v2/tenants/seed-tenant-001/requests/' +
+            'request-recordings/v1/tenants/seed-tenant-001/requests/' +
             'seed-req-recording-001/attempts/seed-msg-recording-001.json.gz',
         },
       );

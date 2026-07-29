@@ -96,7 +96,7 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
 
     expect(storage.backend).toBe(expectedBackend);
     expect(jsonRecording.recording_key).toBe(
-      `request-recordings/v2/tenants/${TEST_TENANT_ID}` +
+      `request-recordings/v1/tenants/${TEST_TENANT_ID}` +
         `/requests/${jsonRecording.request_id}` +
         `/attempts/${jsonRecording.attempt_id}.json.gz`,
     );

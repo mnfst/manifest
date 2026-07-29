@@ -46,7 +46,7 @@ describe('RequestRecordingRetentionService', () => {
   it('deletes Free recordings after 7 days and Pro recordings after 365 days', async () => {
     const expired = {
       attempt_id: 'attempt-1',
-      storage_key: 'request-recordings/v2/attempt-1.json.gz',
+      storage_key: 'request-recordings/v1/attempt-1.json.gz',
     };
     query.mockImplementation(async (sql: string) => {
       if (sql.includes('pg_try_advisory_lock')) return [{ acquired: true }];
@@ -120,7 +120,7 @@ describe('RequestRecordingRetentionService', () => {
         return [
           {
             attempt_id: 'attempt-1',
-            storage_key: 'request-recordings/v2/attempt-1.json.gz',
+            storage_key: 'request-recordings/v1/attempt-1.json.gz',
           },
         ];
       }

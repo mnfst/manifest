@@ -9,7 +9,7 @@ describe('AttemptRecordingService', () => {
     backend: 'filesystem' as 'filesystem' | null,
     objectKey: jest.fn(
       (tenantId: string, requestId: string, attemptId: string) =>
-        `request-recordings/v2/tenants/${tenantId}/requests/${requestId}/attempts/${attemptId}.json.gz`,
+        `request-recordings/v1/tenants/${tenantId}/requests/${requestId}/attempts/${attemptId}.json.gz`,
     ),
     put: jest.fn().mockResolvedValue(undefined),
     delete: jest.fn().mockResolvedValue(undefined),
@@ -40,7 +40,7 @@ describe('AttemptRecordingService', () => {
     await service.save('tenant-1', 'request-1', 'attempt-1', payload);
 
     const key =
-      'request-recordings/v2/tenants/tenant-1/requests/request-1/attempts/attempt-1.json.gz';
+      'request-recordings/v1/tenants/tenant-1/requests/request-1/attempts/attempt-1.json.gz';
     const encoded = storage.put.mock.calls[0][1] as Buffer;
     expect(storage.put).toHaveBeenCalledWith(key, expect.any(Buffer));
     await expect(decodeRequestRecording(encoded)).resolves.toEqual(payload);
@@ -88,7 +88,7 @@ describe('AttemptRecordingService', () => {
     );
 
     expect(storage.delete).toHaveBeenCalledWith(
-      'request-recordings/v2/tenants/tenant-1/requests/request-1/attempts/missing-attempt.json.gz',
+      'request-recordings/v1/tenants/tenant-1/requests/request-1/attempts/missing-attempt.json.gz',
     );
   });
 });

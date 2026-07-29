@@ -335,7 +335,7 @@ describe('MessageDetailsService', () => {
       {
         ...baseMessage,
         id: 'attempt-2',
-        recording_key: 'request-recordings/v2/attempt-2.json.gz',
+        recording_key: 'request-recordings/v1/attempt-2.json.gz',
         status: 'ok',
         provider: 'anthropic',
         model: 'claude',
@@ -391,7 +391,7 @@ describe('MessageDetailsService', () => {
       expect.objectContaining({ id: 'attempt-1', provider: 'openai' }),
       expect.objectContaining({ id: 'attempt-2', provider: 'anthropic' }),
     ]);
-    expect(recordingStorage.get).toHaveBeenCalledWith('request-recordings/v2/attempt-2.json.gz');
+    expect(recordingStorage.get).toHaveBeenCalledWith('request-recordings/v1/attempt-2.json.gz');
     expect(result.message.attempts![1]!.recording).toEqual({
       request_body: storedPayload.request_body,
       response_body: storedPayload.response_body,
@@ -427,7 +427,7 @@ describe('MessageDetailsService', () => {
         find: jest.fn().mockResolvedValue([
           {
             ...baseMessage,
-            recording_key: 'request-recordings/v2/msg-1.json.gz',
+            recording_key: 'request-recordings/v1/msg-1.json.gz',
           },
         ]),
       } as never,

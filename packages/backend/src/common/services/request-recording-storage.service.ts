@@ -235,7 +235,7 @@ export class RequestRecordingStorageService implements OnModuleInit {
 
   objectKey(tenantId: string, requestId: string, attemptId: string): string {
     return (
-      `request-recordings/v2/tenants/${storageKeySegment(tenantId)}` +
+      `request-recordings/v1/tenants/${storageKeySegment(tenantId)}` +
       `/requests/${storageKeySegment(requestId)}` +
       `/attempts/${storageKeySegment(attemptId)}.json.gz`
     );
