@@ -1401,6 +1401,7 @@ table.msg-detail__table td {
 .error-autofix-row__meta-value strong {
   overflow-wrap: anywhere;
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .error-autofix-row__meta-value strong {

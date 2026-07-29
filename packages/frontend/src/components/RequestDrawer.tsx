@@ -570,7 +570,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
 
                                 {/* Origin: this attempt IS the healed Auto-fix retry */}
                                 <Show when={att().autofix_role === 'retry'}>
-                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
+                                  <div class="drawer-context-card drawer-context-card--autofix">
                                     <div style="margin-bottom: 8px;">
                                       <span class="trigger-badge trigger-badge--autofix">
                                         <AutofixIcon />
@@ -617,7 +617,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
 
                                 {/* Origin: this attempt IS the fallback recovery */}
                                 <Show when={att().fallback_from_model}>
-                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
+                                  <div class="drawer-context-card drawer-context-card--fallback">
                                     <div style="margin-bottom: 8px;">
                                       <span class="trigger-badge trigger-badge--fallback">
                                         <FallbackIcon />
@@ -636,11 +636,11 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 {/* Error block if this attempt failed — never hidden
                                   by the context cards around it */}
                                 <Show when={att().error_message}>
-                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(var(--destructive) / 0.06); border: 1px solid hsl(var(--destructive) / 0.25); border-radius: var(--radius);">
+                                  <div class="drawer-context-card drawer-context-card--error">
                                     <div style="font-size: var(--font-size-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: hsl(var(--foreground));">
                                       Error
                                     </div>
-                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); word-break: break-word; margin-bottom: 8px;">
+                                    <div style="font-size: var(--font-size-sm); color: hsl(var(--destructive)); font-family: var(--font-mono, monospace); overflow-wrap: anywhere; white-space: pre-wrap; margin-bottom: 8px;">
                                       {att().error_message}
                                     </div>
                                     <Show
@@ -686,7 +686,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 <Show
                                   when={att().autofix_applied && att().autofix_role !== 'retry'}
                                 >
-                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(222 47% 50% / 0.06); border: 1px solid hsl(222 47% 50% / 0.3); border-radius: var(--radius);">
+                                  <div class="drawer-context-card drawer-context-card--autofix">
                                     <div style="margin-bottom: 8px;">
                                       <span class="trigger-badge trigger-badge--autofix">
                                         <AutofixIcon />
@@ -743,7 +743,7 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     attempts()[att().index]?.fallback_from_model
                                   }
                                 >
-                                  <div style="margin-top: 16px; padding: 12px 16px; background: hsl(36 80% 60% / 0.08); border: 1px solid hsl(36 80% 50% / 0.3); border-radius: var(--radius);">
+                                  <div class="drawer-context-card drawer-context-card--fallback">
                                     <div style="margin-bottom: 8px;">
                                       <span class="trigger-badge trigger-badge--fallback">
                                         <FallbackIcon />
