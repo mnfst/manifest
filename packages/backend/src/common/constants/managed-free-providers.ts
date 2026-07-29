@@ -24,7 +24,7 @@ export const MANAGED_FREE_PROVIDER_CONFIGS: readonly ManagedFreeProviderConfig[]
     preferredModelIdPrefix: 'gemini/',
     nonChatModelPattern:
       /(?:\*|(?:^|\/)aqs-|nano-banana|deep-research|computer-use|lyria|veo-|native-audio|audio-preview|image-generation|(?:^|\/)imagen|-image(?:$|-|\/)|live-preview|(?:^|\/|-)live-|embedding|robotics|tts|gemini-1\.5|gemini-2\.0-flash-001|gemini-2\.0-flash-lite|flash-lite-preview-\d|\/gemini-exp-|-exp-\d|learnlm|gemma-|omni-flash|customtools)/i,
-    maxBudgetEnvVar: 'LITELLM_GEMINI_FREE_MAX_BUDGET',
+    maxBudgetEnvVar: 'CREDITS_GEMINI_FREE_MAX_BUDGET',
   },
 ];
 
@@ -38,16 +38,16 @@ export function getManagedFreeProviderConfig(
   return MANAGED_FREE_PROVIDER_BY_ID.get(providerId.toLowerCase());
 }
 
-const DEFAULT_LITELLM_BASE_URL = 'https://litellm.manifest.build';
+const DEFAULT_CREDITS_BASE_URL = 'https://credits.manifest.build';
 const DEFAULT_MAX_BUDGET_USD = 10;
 
 export function getManagedFreeLiteLlmBaseUrl(): string {
-  const raw = process.env['LITELLM_BASE_URL']?.trim() || DEFAULT_LITELLM_BASE_URL;
+  const raw = process.env['CREDITS_BASE_URL']?.trim() || DEFAULT_CREDITS_BASE_URL;
   return raw.replace(/\/+$/, '');
 }
 
 export function getManagedFreeLiteLlmMasterKey(): string | null {
-  const key = process.env['LITELLM_MASTER_KEY']?.trim();
+  const key = process.env['CREDITS_MASTER_KEY']?.trim();
   return key && key.length > 0 ? key : null;
 }
 
@@ -60,7 +60,7 @@ export function getManagedFreeLiteLlmMaxBudgetUsd(config: ManagedFreeProviderCon
 
 /** Comma-separated emails. Empty means any user is eligible when a master key is configured. */
 export function getManagedFreeLiteLlmAutoAllowlist(): string[] {
-  const raw = process.env['LITELLM_AUTO_PROVISION_ALLOWLIST']?.trim() ?? '';
+  const raw = process.env['CREDITS_AUTO_PROVISION_ALLOWLIST']?.trim() ?? '';
   if (!raw) return [];
   return raw
     .split(',')

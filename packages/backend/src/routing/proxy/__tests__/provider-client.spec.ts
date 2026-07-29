@@ -560,7 +560,7 @@ describe('ProviderClient', () => {
     });
 
     it('preserves the Gemini vendor prefix for Gemini Free LiteLLM requests', async () => {
-      process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
+      process.env['CREDITS_BASE_URL'] = 'https://credits.test';
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -572,7 +572,7 @@ describe('ProviderClient', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://litellm.test/v1/chat/completions',
+        'https://credits.test/v1/chat/completions',
         expect.objectContaining({
           headers: expect.objectContaining({ Authorization: 'Bearer sk-virtual' }),
         }),
