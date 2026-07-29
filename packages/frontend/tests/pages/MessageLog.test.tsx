@@ -156,6 +156,7 @@ vi.mock('../../src/services/api/billing.js', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => pingBox.read(),
+  analyticsPing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
 }));

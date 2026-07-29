@@ -21,7 +21,7 @@ import {
   connectionUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
-import { messagePing, routingPing } from '../../services/sse.js';
+import { analyticsPing, routingPing } from '../../services/sse.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
@@ -294,11 +294,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   });
 
   // USAGE resource — the expensive 30d aggregation, fetched independently. Its
-  // source includes the SSE ping signals so a newly ingested message
-  // (messagePing) or a provider connect/disconnect/rename (routingPing)
-  // re-runs the usage fetch within ~500ms, exactly like Overview/MessageLog.
+  // source includes the SSE ping signals so coalesced message activity
+  // (analyticsPing) or a provider connect/disconnect/rename (routingPing)
+  // re-runs the usage fetch.
   const [usage, { refetch: refetchUsage }] = createResource(
-    () => ({ m: messagePing(), r: routingPing() }),
+    () => ({ m: analyticsPing(), r: routingPing() }),
     async () => {
       try {
         return (await getProviderUsage()).providers;
@@ -403,7 +403,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   );
 
   const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
+    () => ({ _ping: analyticsPing() }),
     () => getAutofixCohort(),
   );
   const autofixEligible = () => autofixCohort()?.eligible ?? false;
