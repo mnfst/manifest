@@ -1,0 +1,43 @@
+packages/frontend/src/styles/request-drawer.css
+  s_f2137410acfb85::t_2f2cdff3292faf 733
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_f2137410acfb85::t_3840e9bda2943f 259,276
+packages/shared/src/chat-message.ts
+  s_f2137410acfb85::t_00ac44c070e2a4 284-287,289,292,298-300,316,321,353-354,372-373
+  s_f2137410acfb85::t_7b622e9e919032 166-197,283,288,290-291,293-297,301-302,313-315,317-320,322-329,333-344,346-352,355-360,362-369,371,374,377-381,383-385,391-399,413-416
+  s_f2137410acfb85::t_7a75737441e9b6 361
+  s_f2137410acfb85::t_7b4bfc09c2044b 345,370,382
+  s_f2137410acfb85::t_1360da79064c4e 417-418
+.changeset/show-called-tools.md
+  s_f2137410acfb85::t_190b42bb998c0b 1-5
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_f2137410acfb85::t_7b622e9e919032 35-61,63-65,123
+packages/shared/__tests__/chat-message.spec.ts
+  s_f2137410acfb85::t_7a75737441e9b6 107
+  s_f2137410acfb85::t_64a80320e0c814 477-483,485-487,502-509,512-547
+  s_f2137410acfb85::t_7b622e9e919032 7,369-392,421-476
+  s_f2137410acfb85::t_5fc27e1e5ff842 393-420
+  s_f2137410acfb85::t_eff6f8664cd063 484,488-501
+  s_f2137410acfb85::t_76780a00f26a6c 510-511
+packages/shared/src/index.ts
+  s_f2137410acfb85::t_7b622e9e919032 181
+packages/frontend/src/components/RequestMessages.tsx
+  s_f2137410acfb85::t_2f2cdff3292faf 374
+  s_f2137410acfb85::t_7b622e9e919032 5,37-45,329,362-363,366-367,373,375-377,379-380
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "08e67ab8d9e69f242c0eb530d65f06395a8b44d6",
+  "prompts": {},
+  "sessions": {
+    "s_f2137410acfb85": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fac8e-be06-73e1-ae10-4356b559d49e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
