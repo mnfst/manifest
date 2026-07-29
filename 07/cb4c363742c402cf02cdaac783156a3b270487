@@ -4,6 +4,7 @@ packages/frontend/src/components/ProviderDetailView.tsx
 packages/frontend/tests/components/ProviderDetailView.test.tsx
   s_eca93a5442973a::t_c2e44223962a09 471-476,488-491,520-522
   s_eca93a5442973a::t_d999b5a8ad7b87 477-487,493-519
+  s_eca93a5442973a::t_50fc02bbf1f302 492
 ---
 {
   "schema_version": "authorship/3.0.0",
