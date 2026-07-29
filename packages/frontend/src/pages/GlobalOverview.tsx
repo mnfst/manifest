@@ -56,7 +56,7 @@ import {
   type MessageColumnKey,
   type MessageRow,
 } from '../components/message-table-types.js';
-import { agentPing, messagePing, routingPing } from '../services/sse.js';
+import { agentPing, analyticsPing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
@@ -251,7 +251,7 @@ const GlobalOverview: Component = () => {
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
@@ -265,7 +265,7 @@ const GlobalOverview: Component = () => {
   const rangeChanging = () => overview.loading && loadedRange() !== effectiveChartRange();
 
   const [agents] = createResource(
-    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
+    () => ({ _agentPing: agentPing(), _analyticsPing: analyticsPing() }),
     async () => {
       try {
         const data = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[] | null;
@@ -293,10 +293,10 @@ const GlobalOverview: Component = () => {
   );
 
   // USAGE resource — the expensive 30d aggregation, fetched independently. Its
-  // source carries the SSE ping signals (a new ingested message → messagePing,
+  // source carries the SSE ping signals (new message activity → analyticsPing,
   // a provider connect/disconnect/rename → routingPing) so stats refresh live.
   const [providerUsage] = createResource(
-    () => ({ m: messagePing(), r: routingPing() }),
+    () => ({ m: analyticsPing(), r: routingPing() }),
     async () => {
       try {
         return (await getGlobalProviderUsage()).providers;
@@ -308,19 +308,19 @@ const GlobalOverview: Component = () => {
 
   // ── Auto-fix resources (conditional on tenant access) ────────────────
   const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
+    () => ({ _ping: analyticsPing() }),
     () => getAutofixCohort(),
   );
   const autofixEligible = () => autofixCohort()?.eligible ?? false;
   const [autofixStats] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: analyticsPing() } : false),
     (p) => getAutofixStats(p.range),
   );
 
   // Disposition timeseries: feeds the "By request status" chart view AND the
   // Self-healed requests tab (recovered subset: healed + fallback series).
   const [requestStatusTs] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
   );
   const selfHealedTs = () => {
@@ -342,7 +342,7 @@ const GlobalOverview: Component = () => {
   // Harness table usage, driven by the page range selector (the workspace
   // agents endpoint is a fixed window; this table must follow the filter).
   const [harnessUsage] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getOverviewAgentUsage(p.range) as Promise<UsageTSResult>,
   );
   const harnessUsageFor = (agentName: string) => {
@@ -359,17 +359,17 @@ const GlobalOverview: Component = () => {
   };
 
   const [agentReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerAgentReliability(p.range),
   );
 
   const [providerReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerProviderReliability(p.range),
   );
 
   const [modelReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerModelReliability(p.range),
   );
 
@@ -393,7 +393,7 @@ const GlobalOverview: Component = () => {
   };
 
   const [usageTimeseries] = createResource(
-    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: analyticsPing() }),
     (p) => usageFetcher(p.range, p.group),
   );
 

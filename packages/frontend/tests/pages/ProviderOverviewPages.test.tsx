@@ -345,6 +345,7 @@ vi.mock('../../src/components/AuthBadge.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   agentPing: () => 0,
   messagePing: () => 0,
+  analyticsPing: () => 0,
   routingPing: () => 0,
 }));
 

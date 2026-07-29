@@ -31,6 +31,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => 0,
+  analyticsPing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
 }));

@@ -34,7 +34,7 @@ import {
 } from '../services/api/analytics.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { isRecentlyCreated, isSetupPending, clearSetupPending } from '../services/recent-agents.js';
-import { messagePing } from '../services/sse.js';
+import { analyticsPing } from '../services/sse.js';
 import {
   RANGE_STORAGE_KEY,
   VALID_RANGES,
@@ -173,7 +173,7 @@ const Overview: Component = () => {
     () =>
       billing.loading
         ? false
-        : { range: effectiveRange(), agentName: params.agentName, _ping: messagePing() },
+        : { range: effectiveRange(), agentName: params.agentName, _ping: analyticsPing() },
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
@@ -252,7 +252,7 @@ const Overview: Component = () => {
   const tsKey = (): TimeseriesKey => ({
     range: effectiveRange(),
     agent: params.agentName,
-    _ping: messagePing(),
+    _ping: analyticsPing(),
   });
   const [providerTokenTs] = createResource(
     () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
@@ -269,7 +269,7 @@ const Overview: Component = () => {
 
   // ── Auto-fix resources (conditional on tenant cohort) ───────────────
   const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
+    () => ({ _ping: analyticsPing() }),
     () => getAutofixCohort(),
   );
   const autofixEligible = () => autofixCohort()?.eligible ?? false;
@@ -279,7 +279,7 @@ const Overview: Component = () => {
         ? {
             range: effectiveRange(),
             agent: decodeURIComponent(params.agentName),
-            _ping: messagePing(),
+            _ping: analyticsPing(),
           }
         : false,
     (p) => getAutofixStats(p.range, p.agent),
@@ -291,7 +291,7 @@ const Overview: Component = () => {
     () => ({
       range: effectiveRange(),
       agent: decodeURIComponent(params.agentName),
-      _ping: messagePing(),
+      _ping: analyticsPing(),
     }),
     (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
   );
@@ -299,7 +299,7 @@ const Overview: Component = () => {
     () => ({
       range: effectiveRange(),
       agent: decodeURIComponent(params.agentName),
-      _ping: messagePing(),
+      _ping: analyticsPing(),
     }),
     (p) => getPerModelReliability(p.range, p.agent),
   );

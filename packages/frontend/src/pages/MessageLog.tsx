@@ -38,7 +38,7 @@ import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
-import { messagePing } from '../services/sse.js';
+import { analyticsPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
 // The filtered-empty state here reuses .model-filter__empty classes, so this
@@ -459,7 +459,7 @@ const MessageLog: Component = () => {
     () => ({
       agentName: agentFilter() || params.agentName,
       range: effectiveRange(),
-      _ping: messagePing(),
+      _ping: analyticsPing(),
     }),
     (p) => {
       const q: Record<string, string> = {};

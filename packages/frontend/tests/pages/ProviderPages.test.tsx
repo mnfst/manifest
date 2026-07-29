@@ -126,6 +126,7 @@ vi.mock('../../src/services/api/autofix.js', () => ({
 // accessors so the page mounts without a live EventSource under jsdom.
 vi.mock('../../src/services/sse.js', () => ({
   messagePing: () => 0,
+  analyticsPing: () => 0,
   routingPing: () => 0,
 }));
 
