@@ -75,6 +75,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
     expect(resolveEndpointKey('huggingface')).toBe('huggingface');
+    expect(resolveEndpointKey('gemini-free')).toBe('gemini-free');
     expect(resolveEndpointKey('nous')).toBe('nous');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
@@ -167,6 +168,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
     expect(known).toContain('huggingface');
+    expect(known).toContain('gemini-free');
     expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
@@ -227,6 +229,18 @@ describe('resolveEndpointKey', () => {
 });
 
 describe('PROVIDER_ENDPOINTS', () => {
+  it('routes Gemini Free through the configured LiteLLM gateway', () => {
+    process.env['LITELLM_BASE_URL'] = 'https://litellm.test/';
+    const endpoint = PROVIDER_ENDPOINTS['gemini-free'];
+
+    expect(endpoint.baseUrl).toBe('https://litellm.test');
+    expect(endpoint.buildPath('gemini/gemini-2.5-flash')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('sk-virtual')).toEqual({
+      Authorization: 'Bearer sk-virtual',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('huggingface uses the OpenAI-compatible Inference Providers endpoint', () => {
     const endpoint = PROVIDER_ENDPOINTS['huggingface'];
     expect(endpoint.baseUrl).toBe('https://router.huggingface.co');

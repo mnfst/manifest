@@ -1,4 +1,8 @@
 import { getManifestCreditsBaseUrl } from '../../common/constants/manifest-credits';
+import {
+  getManagedFreeLiteLlmBaseUrl,
+  MANAGED_FREE_PROVIDER_CONFIGS,
+} from '../../common/constants/managed-free-providers';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import {
@@ -128,6 +132,21 @@ const chatgptSubscriptionHeaders = (apiKey: string) => ({
   originator: CODEX_CLI_ORIGINATOR,
   'user-agent': CODEX_CLI_USER_AGENT,
 });
+
+const MANAGED_FREE_ENDPOINTS: Record<string, ProviderEndpoint> = Object.fromEntries(
+  MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [
+    config.id,
+    {
+      get baseUrl() {
+        return getManagedFreeLiteLlmBaseUrl();
+      },
+      buildHeaders: openaiHeaders,
+      buildPath: openaiPath,
+      format: 'openai',
+      ...openaiStreamUsage,
+    },
+  ]),
+);
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {
@@ -434,6 +453,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  ...MANAGED_FREE_ENDPOINTS,
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),

@@ -1,6 +1,11 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
 import { getManifestCreditsModelsUrl } from '../common/constants/manifest-credits';
+import {
+  getManagedFreeLiteLlmModelsUrl,
+  MANAGED_FREE_PROVIDER_CONFIGS,
+  ManagedFreeProviderConfig,
+} from '../common/constants/managed-free-providers';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -181,6 +186,31 @@ function parseManifestCredits(body: unknown, provider: string): DiscoveredModel[
       .map((model) => model.id.slice(model.id.lastIndexOf('/') + 1)),
   );
   return unique.filter((model) => model.id.includes('/') || !prefixedBareIds.has(model.id));
+}
+
+/** Keep only the configured model family and prefer LiteLLM's vendor-prefixed ID. */
+function parseManagedFreeLiteLlm(
+  body: unknown,
+  provider: string,
+  config: ManagedFreeProviderConfig,
+): DiscoveredModel[] {
+  const models = parseOpenAI(body, provider).filter((model) => {
+    const bare = model.id.slice(model.id.lastIndexOf('/') + 1);
+    return !model.id.includes('*') && bare.startsWith(config.catalogModelIdPrefix);
+  });
+  const byBareId = new Map<string, DiscoveredModel>();
+  for (const model of models) {
+    const bare = model.id.slice(model.id.lastIndexOf('/') + 1);
+    const existing = byBareId.get(bare);
+    if (
+      !existing ||
+      (model.id.startsWith(config.preferredModelIdPrefix) &&
+        !existing.id.startsWith(config.preferredModelIdPrefix))
+    ) {
+      byBareId.set(bare, model);
+    }
+  }
+  return Array.from(byBareId.values());
 }
 
 const parsePioneer = createModelParser<PioneerModelEntry>({
@@ -396,6 +426,9 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // experimental SKUs that 404 or aren't chat-completions eligible.
   manifest:
     /(?:\*|(?:^|\/)aqs-|nano-banana|deep-research|computer-use|lyria|veo-|native-audio|audio-preview|image-generation|(?:^|\/)imagen|-image(?:$|-|\/)|live-preview|(?:^|\/|-)live-|embedding|robotics|tts|gemini-1\.5|gemini-2\.0-flash-001|gemini-2\.0-flash-lite|flash-lite-preview-\d|\/gemini-exp-|-exp-\d|learnlm|gemma-|omni-flash|customtools)/i,
+  ...Object.fromEntries(
+    MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [config.id, config.nonChatModelPattern]),
+  ),
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   'mistral-subscription': /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
@@ -724,6 +757,17 @@ const parseOpencodeZen = createModelParser<OpenAIModelEntry>({
 
 /* ── Provider configs ── */
 
+const MANAGED_FREE_FETCHER_CONFIGS: Record<string, FetcherConfig> = Object.fromEntries(
+  MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [
+    config.id,
+    {
+      endpoint: (_key: string) => getManagedFreeLiteLlmModelsUrl(),
+      buildHeaders: bearerHeaders,
+      parse: (body: unknown, provider: string) => parseManagedFreeLiteLlm(body, provider, config),
+    },
+  ]),
+);
+
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   openai: {
     endpoint: 'https://api.openai.com/v1/models',
@@ -895,6 +939,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseManifestCredits,
   },
+  ...MANAGED_FREE_FETCHER_CONFIGS,
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),

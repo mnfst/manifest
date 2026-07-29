@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as api from '../../../src/services/api';
 import {
   connectionUsage,
-  ensureManifestProvider,
+  ensureManagedFreeProvider,
   getProviders,
   getProviderUsage,
   mergeUsage,
@@ -48,13 +48,19 @@ describe('providers API client', () => {
     const fetchMock = setupFetch(response);
 
     await expect(getProviders()).resolves.toEqual(response);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toContain('/api/v1/providers');
     expect(url).not.toContain('/api/v1/providers/usage');
     expect((init as RequestInit).credentials).toBe('include');
+    expect(fetchMock.mock.calls[1][0]).toContain('/api/v1/providers/gemini-free/ensure');
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({
+      method: 'POST',
+      credentials: 'include',
+    });
   });
 
-  it('does not wait for background Manifest provisioning before returning config', async () => {
+  it('does not wait for background managed free-provider provisioning', async () => {
     const response = { providers: [], model_counts: {} };
     let resolveEnsure!: (response: unknown) => void;
     const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
@@ -74,7 +80,7 @@ describe('providers API client', () => {
 
     await expect(getProviders()).resolves.toEqual(response);
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      expect.stringContaining('/api/v1/providers/gemini-free/ensure'),
       expect.objectContaining({ method: 'POST' }),
     );
 
@@ -88,40 +94,30 @@ describe('providers API client', () => {
         auto_available: false,
       }),
     });
-    await ensureManifestProvider();
+    await ensureManagedFreeProvider('gemini-free');
   });
 
-  it('does not provision Manifest Credits in a self-hosted build', async () => {
-    vi.stubEnv('VITE_MANIFEST_SELFHOSTED', 'true');
-    const response = { providers: [], model_counts: {} };
-    const fetchMock = setupFetch(response);
-
-    await expect(getProviders()).resolves.toEqual(response);
-    expect(
-      fetchMock.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === 'POST'),
-    ).toBe(false);
-  });
-
-  it('stores a manually gifted Manifest key through the direct path', async () => {
+  it('pastes a manually provisioned Gemini Free virtual key', async () => {
     const response = {
       connected: true,
-      connection_id: 'conn-gifted',
+      connection_id: 'conn-1',
       source: 'manual',
       auto_available: false,
     };
     const fetchMock = setupFetch(response);
 
-    await expect(ensureManifestProvider('sk-gifted')).resolves.toEqual(response);
+    await expect(ensureManagedFreeProvider('gemini-free', 'sk-virtual')).resolves.toEqual(response);
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/api/v1/providers/manifest/ensure'),
+      '/api/v1/providers/gemini-free/ensure',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ apiKey: 'sk-gifted' }),
+        credentials: 'include',
+        body: JSON.stringify({ apiKey: 'sk-virtual' }),
       }),
     );
   });
 
-  it('surfaces Manifest provisioning errors', async () => {
+  it('surfaces managed free-provider provisioning errors', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -131,7 +127,9 @@ describe('providers API client', () => {
       }),
     );
 
-    await expect(ensureManifestProvider('bad-key')).rejects.toThrow('Invalid gifted key');
+    await expect(ensureManagedFreeProvider('gemini-free', 'bad-key')).rejects.toThrow(
+      'Invalid gifted key',
+    );
   });
 
   it('GETs provider USAGE from the dedicated endpoint', async () => {

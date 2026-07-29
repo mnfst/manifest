@@ -46,6 +46,7 @@ describe('ProviderModelFetcherService', () => {
       'gemini',
       'openrouter',
       'manifest',
+      'gemini-free',
       'ollama',
       'ollama-cloud',
       'copilot',
@@ -77,6 +78,37 @@ describe('ProviderModelFetcherService', () => {
       'gemini/gemini-2.5-flash',
       'openai/gpt-4o',
       'azure/gpt-4o',
+    ]);
+  });
+
+  it('discovers only Gemini models from the Gemini Free LiteLLM catalog', async () => {
+    process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'gpt-5' },
+          { id: 'gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-pro' },
+          { id: 'gemini/*' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('gemini-free', 'sk-virtual');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://litellm.test/v1/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer sk-virtual',
+        }),
+      }),
+    );
+    expect(result.map((model) => model.id)).toEqual([
+      'gemini/gemini-2.5-flash',
+      'gemini/gemini-2.5-pro',
     ]);
   });
 

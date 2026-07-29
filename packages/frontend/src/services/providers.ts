@@ -271,6 +271,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_oauth',
     models: [],
   },
+  'gemini-free': {
+    initial: 'GF',
+    subtitle: 'Free Gemini models via Manifest',
+    models: [],
+  },
   kiro: {
     initial: 'K',
     subtitle: 'Claude, DeepSeek, MiniMax, GLM, Qwen via Kiro',
@@ -497,6 +502,7 @@ const PROVIDER_ORDER = [
   'commandcode',
   'deepseek',
   'fireworks',
+  'gemini-free',
   'copilot',
   'gemini',
   'groq',

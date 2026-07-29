@@ -20,6 +20,8 @@ import { TenantProvidersController } from './tenant-providers.controller';
 import { AgentEnabledProvidersController } from './agent-enabled-providers.controller';
 import { ManifestProviderController } from './manifest-provider/manifest-provider.controller';
 import { ManifestProviderService } from './manifest-provider/manifest-provider.service';
+import { ManagedFreeProviderController } from './managed-free-provider/managed-free-provider.controller';
+import { ManagedFreeProviderService } from './managed-free-provider/managed-free-provider.service';
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { TenantProvider } from '../entities/tenant-provider.entity';
@@ -65,8 +67,9 @@ import { HeaderTier } from '../entities/header-tier.entity';
     TenantProvidersController,
     AgentEnabledProvidersController,
     ManifestProviderController,
+    ManagedFreeProviderController,
   ],
-  providers: [OllamaSyncService, ManifestProviderService],
+  providers: [OllamaSyncService, ManifestProviderService, ManagedFreeProviderService],
   exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],
 })
 export class RoutingModule {}

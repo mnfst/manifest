@@ -469,11 +469,14 @@ describe('PROVIDERS', () => {
     expect(ollama.minKeyLength).toBe(0);
   });
 
-  it('Manifest is marked cloud-only', () => {
-    const manifest = PROVIDERS.find((p) => p.id === 'manifest')!;
-    expect(manifest).toBeDefined();
-    expect(manifest.cloudOnly).toBe(true);
-    expect(manifest.keyPlaceholder).toBe('sk-... (Manifest Credits key)');
+  it('exposes Gemini Free as a LiteLLM virtual-key provider', () => {
+    const provider = PROVIDERS.find((entry) => entry.id === 'gemini-free')!;
+    expect(provider.name).toBe('Gemini Free');
+    expect(provider.subtitle).toBe('Free Gemini models via Manifest');
+    expect(provider.keyPlaceholder).toBe('sk-... (LiteLLM virtual key)');
+    expect(getRoutingProviderApiKeyUrl('gemini-free')).toBe(
+      'https://calendly.com/sebastien-manifest/30min',
+    );
   });
 
   it('each provider has required fields', () => {
