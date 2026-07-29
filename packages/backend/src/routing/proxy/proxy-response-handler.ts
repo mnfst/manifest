@@ -49,6 +49,7 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
+import type { AttemptRecordingCapture } from './attempt-recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
@@ -285,13 +286,14 @@ export async function handleProviderError(
   );
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: 'provider',
       provider: meta.provider,
       model: meta.model,
     }),
-  });
+  };
+  res.json(responseBody);
 }
 
 function handleFallbackExhausted(
@@ -372,7 +374,7 @@ function handleFallbackExhausted(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: classified?.source ?? 'manifest',
       code: classified?.code ?? 'fallback_exhausted',
@@ -388,7 +390,8 @@ function handleFallbackExhausted(
         })),
       },
     }),
-  });
+  };
+  res.json(responseBody);
 }
 
 export function recordFallbackFailures(
@@ -502,6 +505,7 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
@@ -523,6 +527,7 @@ export async function handleStreamResponse(
           : forward.isChatGpt || forward.isResponses
             ? ('openai_responses' as const)
             : ('openai_chat_completions' as const)),
+    ...(capture ? { onUpstreamChunk: (chunk: string) => capture.appendRaw(chunk) } : {}),
   };
 
   const messagesTransformer =
@@ -666,8 +671,7 @@ function cacheReasoningContent(
   const firstChoice = choices[0];
   if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
   const message = (firstChoice as Record<string, unknown>).message as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   if (!message) return;
   const reasoningContent = message.reasoning_content;
   if (typeof reasoningContent !== 'string' || !reasoningContent) return;
@@ -696,8 +700,10 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
+  const recordedResponse = capture ? forward.response.clone() : null;
 
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
@@ -706,8 +712,7 @@ export async function handleNonStreamResponse(
     const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
-      | ExtractedSignature[]
-      | undefined;
+      ExtractedSignature[] | undefined;
     if (sigs && signatureCache && sessionKey) {
       for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
     }
@@ -735,8 +740,7 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
     const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
-      | ExtractedThinkingBlocks
-      | undefined;
+      ExtractedThinkingBlocks | undefined;
     if (extracted && thinkingCache && sessionKey) {
       thinkingCache.store(
         sessionKey,
@@ -776,6 +780,24 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
+  if (recordedResponse && capture) {
+    const raw = await recordedResponse.text();
+    const contentType = recordedResponse.headers.get('content-type') ?? '';
+    const trimmed = raw.trimStart();
+    if (
+      contentType.includes('text/event-stream') ||
+      trimmed.startsWith('event:') ||
+      trimmed.startsWith('data:')
+    ) {
+      capture.setRaw(raw);
+    } else {
+      try {
+        capture.setJson(JSON.parse(raw) as unknown);
+      } catch {
+        capture.setJson(raw);
+      }
+    }
+  }
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);

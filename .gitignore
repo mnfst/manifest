@@ -18,6 +18,7 @@ Thumbs.db
 .vscode/
 .idea/
 coverage/
+.data/
 *.tsbuildinfo
 .specify/memory/
 .agent/

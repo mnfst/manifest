@@ -198,6 +198,24 @@ export function updateAutofix(agentName: string, body: { enabled?: boolean }) {
   });
 }
 
+/* -- Routing: Message recording -- */
+
+export interface RecordingConfig {
+  enabled: boolean;
+}
+
+export function getRecording(agentName: string) {
+  return fetchJson<RecordingConfig>(routingPath(agentName, 'recording'));
+}
+
+export function updateRecording(agentName: string, body: { enabled?: boolean }) {
+  return fetchMutate<RecordingConfig>(routingPath(agentName, 'recording'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
 /* -- Routing: Tier Assignments -- */
 
 /**

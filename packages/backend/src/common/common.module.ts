@@ -7,6 +7,8 @@ import { ManifestRuntimeService } from './services/manifest-runtime.service';
 import { TenantCacheService } from './services/tenant-cache.service';
 import { UserCacheInterceptor } from './interceptors/user-cache.interceptor';
 import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
+import { AgentRecordingCacheService } from './services/agent-recording-cache.service';
+import { RequestRecordingStorageService } from './services/request-recording-storage.service';
 
 @Global()
 @Module({
@@ -17,6 +19,8 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
     TenantCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
+    AgentRecordingCacheService,
+    RequestRecordingStorageService,
   ],
   exports: [
     IngestEventBusService,
@@ -24,6 +28,8 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
     TenantCacheService,
     UserCacheInterceptor,
     AgentCacheInterceptor,
+    AgentRecordingCacheService,
+    RequestRecordingStorageService,
   ],
 })
 export class CommonModule {}

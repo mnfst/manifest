@@ -10,6 +10,7 @@ import {
   Logger,
   HttpException,
   HttpStatus,
+  Optional,
 } from '@nestjs/common';
 import { Request, Response as ExpressResponse } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -63,6 +64,12 @@ import { openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
+import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { AttemptRecordingService } from './attempt-recording.service';
+import {
+  createAttemptRecordingCapture,
+  recordingResponseFromText,
+} from './attempt-recording-capture';
 
 const MAX_SEEN_TENANTS = 10_000;
 const SEEN_TENANT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -130,6 +137,10 @@ export class ProxyController {
     private readonly observationReporter: ObservationReporter,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
+    @Optional()
+    private readonly recordingCache?: AgentRecordingCacheService,
+    @Optional()
+    private readonly attemptRecording?: AttemptRecordingService,
   ) {}
 
   @Get('models')
@@ -231,6 +242,7 @@ export class ProxyController {
     let headersSent = false;
     let slotAcquired = false;
     let currentMeta: RoutingMeta | undefined;
+    let recordingEnabled = false;
     let currentAttempt: ProviderAttemptRef | undefined;
     let currentAttemptStart: ProviderAttemptStart | undefined;
 
@@ -252,6 +264,17 @@ export class ProxyController {
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
+    if (this.recordingCache && this.attemptRecording) {
+      try {
+        recordingEnabled =
+          this.attemptRecording.available &&
+          (await this.recordingCache.isRecording(req.ingestionContext.agentId));
+      } catch (e) {
+        recordingEnabled = false;
+        this.logger.warn(`Failed to resolve attempt recording config: ${e}`);
+      }
+    }
+
     let attemptSequence = 0;
     const startProviderAttempt: StartProviderAttempt = (start) => {
       const startedAtMs = Date.now();
@@ -261,6 +284,28 @@ export class ProxyController {
         startedAtMs,
         startedAt: new Date(startedAtMs).toISOString(),
         pendingWrite: Promise.resolve(false),
+      };
+      let recordingFinished = false;
+      attempt.startRecording = ({ requestBody, wireFormat }) => {
+        if (!recordingEnabled || !this.attemptRecording || attempt.recordingCapture) {
+          return;
+        }
+        attempt.recordingCapture = createAttemptRecordingCapture(requestBody, wireFormat);
+      };
+      attempt.finishRecording = async (response) => {
+        if (recordingFinished) return;
+        const capture = attempt.recordingCapture;
+        if (!capture || !this.attemptRecording) return;
+        if (response?.type === 'stream') {
+          capture.setRaw(response.raw_sse ?? '');
+        } else if (response?.type === 'json') {
+          capture.setJson(response.body);
+        }
+        recordingFinished = true;
+        if (!(await attempt.pendingWrite.catch(() => false))) return;
+        await this.attemptRecording
+          .save(tenantId, requestId, attempt.id, capture.buildRecording())
+          .catch((e) => this.logger.warn(`Failed to finish Provider Attempt recording: ${e}`));
       };
       currentAttempt = attempt;
       currentAttemptStart = start;
@@ -311,6 +356,8 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         apiMode,
+        undefined,
+        undefined,
       );
       return;
     }
@@ -346,9 +393,11 @@ export class ProxyController {
 
       const metaHeaders = buildMetaHeaders(meta);
       const providerResponse = forward.response;
+      const responseCapture = forward.attempt?.recordingCapture;
 
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
+        await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
         // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
         // the full body for the requests it heals; every other request-side 4xx
         // reaches Phoenix only via Peacock's hourly scrape, which carries the
@@ -436,6 +485,7 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          responseCapture,
         );
       } else {
         streamUsage = await handleNonStreamResponse(
@@ -449,8 +499,11 @@ export class ProxyController {
           this.thinkingCache,
           apiMode,
           this.reasoningCache,
+          responseCapture,
         );
       }
+
+      await forward.attempt?.finishRecording?.();
 
       // A friendly stub (no provider key, no providers, usage limit) leaves the
       // proxy as an HTTP 200 assistant message, so it lands here — but it is a
@@ -502,6 +555,7 @@ export class ProxyController {
         currentAttempt,
         currentAttemptStart,
       );
+      await (currentMeta?.attempt ?? currentAttempt)?.finishRecording?.();
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
@@ -561,6 +615,7 @@ export class ProxyController {
     currentAttempt?: ProviderAttemptRef,
     currentAttemptStart?: ProviderAttemptStart,
   ): Promise<void> {
+    const capture = (meta?.attempt ?? currentAttempt)?.recordingCapture;
     if (clientAbort.signal.aborted) {
       await this.recorder
         .recordCancelledRequest(req.ingestionContext, {
@@ -673,26 +728,33 @@ export class ProxyController {
     }
 
     if (err instanceof ResponsesSseError) {
-      res.status(err.status).json({
+      const responseBody = {
         error: buildOpenAiCompatibleError(
           err.status,
           err.body,
           meta ? { provider: meta.provider, model: meta.model } : {},
         ),
-      });
+      };
+      capture?.setJson(responseBody);
+      res.status(err.status).json(responseBody);
       return;
     }
 
     // Rate limit errors stay as HTTP 429 so clients can backoff
     if (status === 429) {
-      const response = err instanceof HttpException ? err.getResponse() : message;
-      res
-        .status(429)
-        .json(
-          typeof response === 'string'
-            ? { error: { message: response, type: 'proxy_error' } }
-            : response,
-        );
+      // Never return the exception response object itself: framework and
+      // provider exceptions can carry stack traces or markup. Manifest's
+      // rate-limit messages come from our static catalogue; provider failures
+      // use a stable public message.
+      const rateLimitMessage =
+        err instanceof ManifestError
+          ? formatManifestError(err.code)
+          : 'Rate limited by upstream provider';
+      const responseBody = {
+        error: { message: rateLimitMessage, type: 'rate_limit_error' },
+      };
+      capture?.setJson(responseBody);
+      res.status(429).json(responseBody);
       return;
     }
 
@@ -708,12 +770,14 @@ export class ProxyController {
     // friendly stub as success.
     const errorMessage =
       status >= 500 ? 'Manifest encountered an internal error. Try again shortly.' : message;
-    res.status(status).json({
+    const responseBody = {
       error: {
         message: errorMessage,
         type: status >= 500 ? 'server_error' : 'invalid_request_error',
       },
-    });
+    };
+    capture?.setJson(responseBody);
+    res.status(status).json(responseBody);
   }
 
   private writeStreamError(

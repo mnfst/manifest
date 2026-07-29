@@ -86,6 +86,7 @@ import {
   resolveRouteCredentials,
   type RouteCredentialDeps,
 } from './route-credentials';
+import { recordingResponseFromText } from './attempt-recording-capture';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -345,6 +346,7 @@ export class ProxyFallbackService {
       }
 
       const errorBody = await forward.response.text();
+      await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
       failures.push({
         model,
         provider,
@@ -433,7 +435,7 @@ export class ProxyFallbackService {
       tenantProviderId: opts.tenantProviderId,
     });
     try {
-      const retried = await forward.retryWireBody(healedBody);
+      const retried = await forward.retryWireBody(healedBody, attempt);
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...retried, attempt, providerCallStarted: true };
     } catch (error) {
@@ -591,6 +593,7 @@ export class ProxyFallbackService {
       .clone()
       .text()
       .catch(() => 'OAuth token rejected');
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(rejectedBody));
     await forward.attempt?.completeFailure?.({
       status: forward.response.status,
       errorBody: rejectedBody,
@@ -751,6 +754,7 @@ export class ProxyFallbackService {
           : {}),
         reasoningContentLookup,
         providerResource,
+        attempt,
       });
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...forward, attempt, providerCallStarted: true };

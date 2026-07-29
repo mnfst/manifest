@@ -527,6 +527,30 @@ describe('AutofixService', () => {
   // maybeHeal — happy heal on the single attempt
   // -------------------------------------------------------------------------
   describe('maybeHeal happy path', () => {
+    it('finishes the original Provider Attempt before Auto-fix consumes its response', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-recording' });
+      const finishRecording = jest.fn().mockResolvedValue(undefined);
+      const forward = {
+        ...makeForward('{"error":{"message":"invalid","api_key":"provider-secret"}}', 400),
+        attempt: { finishRecording } as never,
+      };
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({ forward }));
+
+      expect(finishRecording).toHaveBeenCalledWith({
+        type: 'json',
+        body: {
+          error: {
+            message: 'invalid',
+            api_key: 'provider-secret',
+          },
+        },
+      });
+    });
+
     it('sends the provider exchange to Phoenix and preserves provider response headers', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-wire' });

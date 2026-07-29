@@ -22,9 +22,11 @@ import {
   SetResponseModeDto,
   responseModeFromDto,
   UpdateAutofixDto,
+  UpdateRecordingDto,
 } from './dto/routing.dto';
 import { Agent } from '../entities/agent.entity';
 import { AutofixService } from './autofix/autofix.service';
+import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -34,6 +36,7 @@ export class TierController {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly autofixService: AutofixService,
+    private readonly recordingCache: AgentRecordingCacheService,
   ) {}
 
   @Get(':agentName/tiers')
@@ -193,6 +196,29 @@ export class TierController {
         : available && this.autofixService.resolveEnabled(agent.autofix_enabled),
       available,
     };
+  }
+
+  @Get(':agentName/recording')
+  async getRecording(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    return { enabled: agent.record_messages === true };
+  }
+
+  @Patch(':agentName/recording')
+  async updateRecording(
+    @TenantCtx() ctx: TenantContext,
+    @Param('agentName') agentName: string,
+    @Body() body: UpdateRecordingDto,
+  ) {
+    const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
+    if (typeof body.enabled !== 'boolean') {
+      return { enabled: agent.record_messages === true };
+    }
+
+    await this.agentRepo.update(agent.id, { record_messages: body.enabled });
+    this.resolveAgentService.invalidate(agent.tenant_id, agentName);
+    this.recordingCache.invalidate(agent.id);
+    return { enabled: body.enabled };
   }
 
   private validateTier(tier: string): void {

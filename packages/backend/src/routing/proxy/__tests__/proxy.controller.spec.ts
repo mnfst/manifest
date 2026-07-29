@@ -147,6 +147,8 @@ describe('ProxyController', () => {
   let recorder: ProxyMessageRecorder;
   let planService: { assertWithinRequestLimit: jest.Mock };
   let observationReporter: { report: jest.Mock };
+  let recordingCache: { isRecording: jest.Mock };
+  let attemptRecording: { available: boolean; save: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -187,6 +189,11 @@ describe('ProxyController', () => {
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModel: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
+    recordingCache = { isRecording: jest.fn().mockResolvedValue(false) };
+    attemptRecording = {
+      available: true,
+      save: jest.fn().mockResolvedValue(undefined),
+    };
     const mockCustomProviders = {
       canonicalizeAgentMessageKeys: jest
         .fn()
@@ -220,6 +227,8 @@ describe('ProxyController', () => {
       observationReporter as never,
       providerParamSpecs as never,
       modelsDevSync as never,
+      recordingCache as never,
+      attemptRecording as never,
     );
   });
 
@@ -565,6 +574,202 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('records the exact provider request and response on its Provider Attempt', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    const responseBody = {
+      choices: [{ message: { role: 'assistant', content: 'recorded reply' } }],
+    };
+    const callerBody = { model: 'auto', messages: [{ role: 'user', content: 'record this' }] };
+    const providerBody = {
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: 'record this' }],
+    };
+    proxyService.proxyRequest.mockImplementation(
+      async (options: { startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = options.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+          authType: 'api_key',
+        });
+        attempt.startRecording?.({
+          requestBody: providerBody,
+          wireFormat: 'openai_chat_completions',
+        });
+        return {
+          forward: {
+            response: new Response(JSON.stringify(responseBody), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+            attempt,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'OpenAI',
+            confidence: 0.9,
+            reason: 'scored',
+            attempt,
+          },
+        };
+      },
+    );
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest(callerBody) as never, res as never);
+
+    expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
+    expect(attemptRecording.save).toHaveBeenCalledWith(
+      'tenant-1',
+      expect.any(String),
+      expect.any(String),
+      {
+        version: 1,
+        wire_format: 'openai_chat_completions',
+        request_body: providerBody,
+        response_body: {
+          type: 'json',
+          body: responseBody,
+        },
+      },
+    );
+  });
+
+  it('keeps Auto-fix original and retry payloads on separate Provider Attempts', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    const originalBody = { model: 'gpt-4o', messages: [], unsupported: true };
+    const retryBody = { model: 'gpt-4o', messages: [] };
+    const originalResponse = { error: { message: 'unsupported parameter' } };
+    const retryResponse = { choices: [{ message: { content: 'fixed' } }] };
+
+    proxyService.proxyRequest.mockImplementation(
+      async (options: { startProviderAttempt: StartProviderAttempt }) => {
+        const original = options.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+        });
+        original.startRecording?.({
+          requestBody: originalBody,
+          wireFormat: 'openai_chat_completions',
+        });
+        await original.finishRecording?.({ type: 'json', body: originalResponse });
+
+        const retry = options.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+        });
+        retry.startRecording?.({
+          requestBody: retryBody,
+          wireFormat: 'openai_chat_completions',
+        });
+
+        return {
+          forward: {
+            response: new Response(JSON.stringify(retryResponse), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+            attempt: retry,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'auto-fix',
+            attempt: retry,
+          },
+        };
+      },
+    );
+
+    const { res } = mockResponse();
+    await controller.chatCompletions(
+      mockRequest({ model: 'auto', messages: [] }) as never,
+      res as never,
+    );
+
+    expect(res.json).toHaveBeenCalledWith(retryResponse);
+    expect(attemptRecording.save).toHaveBeenCalledTimes(2);
+    const [originalSave, retrySave] = attemptRecording.save.mock.calls;
+    expect(originalSave[1]).toBe(retrySave[1]);
+    expect(originalSave[2]).not.toBe(retrySave[2]);
+    expect(originalSave[3]).toEqual({
+      version: 1,
+      wire_format: 'openai_chat_completions',
+      request_body: originalBody,
+      response_body: { type: 'json', body: originalResponse },
+    });
+    expect(retrySave[3]).toEqual({
+      version: 1,
+      wire_format: 'openai_chat_completions',
+      request_body: retryBody,
+      response_body: { type: 'json', body: retryResponse },
+    });
+  });
+
+  it('keeps routing when the recording config lookup fails', async () => {
+    recordingCache.isRecording.mockRejectedValueOnce(new Error('recording unavailable'));
+    proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(attemptRecording.save).not.toHaveBeenCalled();
+  });
+
+  it('keeps serving a captured response when saving its recording fails', async () => {
+    recordingCache.isRecording.mockResolvedValue(true);
+    attemptRecording.save.mockRejectedValueOnce(new Error('recording unavailable'));
+    const responseBody = { choices: [{ message: { content: 'still served' } }] };
+    proxyService.proxyRequest.mockImplementation(
+      async (options: { startProviderAttempt: StartProviderAttempt }) => {
+        const attempt = options.startProviderAttempt({
+          provider: 'openai',
+          model: 'gpt-4o',
+        });
+        attempt.startRecording?.({
+          requestBody: { model: 'gpt-4o', messages: [] },
+          wireFormat: 'openai_chat_completions',
+        });
+        return {
+          forward: {
+            response: new Response(JSON.stringify(responseBody), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+            attempt,
+          },
+          meta: {
+            tier: 'simple',
+            model: 'gpt-4o',
+            provider: 'openai',
+            confidence: 0.9,
+            reason: 'scored',
+            attempt,
+          },
+        };
+      },
+    );
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(mockRequest({ messages: [] }) as never, res as never);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(responseBody);
+    expect(attemptRecording.save).toHaveBeenCalledTimes(1);
   });
 
   it('keeps routing when pending Request recording fails and tracks the provider attempt', async () => {
@@ -1742,7 +1947,7 @@ describe('ProxyController', () => {
       expect(res.status).toHaveBeenCalledWith(429);
     });
 
-    it('should wrap string HttpException response in proxy_error envelope on 429', async () => {
+    it('should return a stable public envelope for provider 429 errors', async () => {
       rateLimiter.checkLimit.mockImplementation(() => {
         throw new HttpException('Too many requests', 429);
       });
@@ -1754,7 +1959,31 @@ describe('ProxyController', () => {
 
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        error: { message: 'Too many requests', type: 'proxy_error' },
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
+      });
+    });
+
+    it('should not expose structured exception details on 429', async () => {
+      rateLimiter.checkLimit.mockImplementation(() => {
+        throw new HttpException(
+          {
+            error: {
+              message: '<script>alert("leak")</script>',
+              stack: 'Error: secret stack trace',
+            },
+          },
+          429,
+        );
+      });
+
+      const req = mockRequest({ messages: [{ role: 'user', content: 'hi' }] });
+      const { res } = mockResponse();
+
+      await controller.chatCompletions(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        error: { message: 'Rate limited by upstream provider', type: 'rate_limit_error' },
       });
     });
 

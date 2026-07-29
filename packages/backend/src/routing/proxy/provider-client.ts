@@ -50,7 +50,10 @@ export interface ForwardResult {
   /** Provider-facing API shape of {@link wireRequestBody}. */
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
-  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  retryWireBody?: (
+    body: Record<string, unknown>,
+    attempt?: ProviderAttemptRef,
+  ) => Promise<ForwardResult>;
   /** False only when Manifest produced a response without invoking provider transport. */
   providerCallStarted?: boolean;
   /** Persisted provider-call identity, when request tracking is available. */
@@ -284,6 +287,10 @@ export class ProviderClient {
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
       const requestSource = chatBody ?? body;
+      opts.attempt?.startRecording?.({
+        requestBody: requestSource,
+        wireFormat: 'kiro_chat',
+      });
       const response = await forwardKiroChat({
         apiKey,
         model: bareModel,
@@ -298,6 +305,9 @@ export class ProviderClient {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        wireRequestBody: requestSource,
+        wireFormat: 'kiro_chat',
+        wireApiMode: opts.apiMode,
         responsesTextFormat: textFormat,
       };
     }
@@ -334,7 +344,14 @@ export class ProviderClient {
 
     const retryWireBody = async (
       wireRequestBody: Record<string, unknown>,
+      attempt: ProviderAttemptRef | undefined = opts.attempt,
     ): Promise<ForwardResult> => {
+      if (resolvedWireFormat) {
+        attempt?.startRecording?.({
+          requestBody: wireRequestBody,
+          wireFormat: resolvedWireFormat,
+        });
+      }
       this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
       // SSRF defense in depth for user-supplied endpoint URLs (custom providers,

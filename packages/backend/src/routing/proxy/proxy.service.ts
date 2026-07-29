@@ -68,6 +68,7 @@ import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-gu
 import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
+import { recordingResponseFromText } from './attempt-recording-capture';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
@@ -572,6 +573,7 @@ export class ProxyService {
             statusText: forward.response.statusText,
             headers: forward.response.headers,
           }),
+          attempt: forward.attempt,
           isGoogle: forward.isGoogle,
           isAnthropic: forward.isAnthropic,
           isChatGpt: forward.isChatGpt,
@@ -1055,6 +1057,7 @@ export class ProxyService {
 
     const primaryStatus = forward.response.status;
     const primaryErrorBody = await forward.response.text();
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(primaryErrorBody));
     const primaryProvider = resolved.route?.provider;
     const primaryAuth = resolved.route?.authType;
     const { success, failures } = await this.fallbackService.tryFallbacks(

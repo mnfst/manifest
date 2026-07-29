@@ -21,6 +21,16 @@ export interface AutofixDecision {
   } | null;
 }
 
+export interface AttemptRecording {
+  request_body: Record<string, unknown>;
+  response_body: {
+    type: 'json' | 'stream';
+    body?: unknown;
+    raw_sse?: string;
+  } | null;
+  wire_format: string;
+}
+
 export interface MessageDetailResponse {
   message: {
     id: string;
@@ -111,6 +121,8 @@ export interface MessageDetailResponse {
       autofix_role: string | null;
       autofix_operations: AutofixOperation[] | null;
       autofix_decision: AutofixDecision | null;
+      /** Exact provider-facing payload for this Provider Attempt. */
+      recording: AttemptRecording | null;
     }>;
   };
 }
