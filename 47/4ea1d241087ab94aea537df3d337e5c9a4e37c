@@ -1,0 +1,33 @@
+.changeset/scope-proxy-session-caches.md
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 1-5
+packages/backend/src/routing/proxy/proxy-session-scope.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 1-37
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 140-143
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 36,234,236-237,385-386,488,502,831-836
+packages/backend/src/routing/proxy/__tests__/proxy-session-scope.spec.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 1-35
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 13,1855,1862-1863,1894,1901-1902
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 234-235,1707-1731,1851,2913-2915
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_0303c93a2ac26b::t_4c41fb240c7cf8 182,235-236,263,298,391,466,512,563-564,614,640-641,656-657,672-673,728,836,861-866,1067,1091,1131-1132,1268-1272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "474ea1d241087ab94aea537df3d337e5c9a4e37c",
+  "prompts": {},
+  "sessions": {
+    "s_0303c93a2ac26b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fade6-4b34-7c11-92dd-4c226045aecc",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
