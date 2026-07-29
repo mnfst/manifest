@@ -2,6 +2,7 @@ packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
   s_a959bc189c674c::t_bee05a606a8780 1-2,5-6,21-29
 packages/frontend/src/pages/MessageLog.tsx
   s_a959bc189c674c::t_e3e6cfb9ff25d1 41
+  s_a959bc189c674c::t_4d76d092b02091 462
 packages/frontend/tests/components/App.test.tsx
   s_a959bc189c674c::t_bc714aea0e9dea 43
 packages/frontend/tests/services/sse.test.ts
@@ -23,6 +24,7 @@ packages/backend/src/analytics/controllers/provider-usage.controller.ts
   s_a959bc189c674c::t_bee05a606a8780 1-2,4-5,20-21
 packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
   s_a959bc189c674c::t_70dea38f3793a2 24,207,210,214,217,348,357
+  s_a959bc189c674c::t_4d76d092b02091 375
 packages/frontend/src/services/api/cache.ts
   s_a959bc189c674c::t_e3e6cfb9ff25d1 199-201,203
 packages/frontend/src/services/sse.ts
@@ -48,6 +50,8 @@ packages/frontend/src/pages/GlobalOverview.tsx
   s_a959bc189c674c::t_83f9398776a5ea 296
 packages/frontend/tests/pages/MessageLog.test.tsx
   s_a959bc189c674c::t_bc714aea0e9dea 159
+packages/frontend/tests/pages/Overview.test.tsx
+  s_a959bc189c674c::t_4d76d092b02091 41-42
 ---
 {
   "schema_version": "authorship/3.0.0",
