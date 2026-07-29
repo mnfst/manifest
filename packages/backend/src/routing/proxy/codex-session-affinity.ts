@@ -22,7 +22,7 @@ export interface CodexAffinityRequest {
   /** Headers to merge into the upstream request. */
   headers: Record<string, string>;
   /** Key under which `capture()` stores the response's turn-state token. */
-  storeKey: string;
+  storeKey?: string;
 }
 
 /**
@@ -40,9 +40,9 @@ export interface CodexAffinityRequest {
  *
  * This service closes that gap:
  * - `prepare()` resolves a session for the subscription token + the caller's
- *   `prompt_cache_key` (injecting a stable default when the caller sent none,
- *   exactly like the CLI) and attaches its ids plus the last seen turn-state
- *   token.
+ *   `prompt_cache_key` and attaches its ids plus the last seen turn-state
+ *   token. Requests without a caller cache key receive request-local affinity
+ *   because the subscription token is a credential, not a conversation scope.
  * - `capture()` stores the response's turn-state token for the next request,
  *   and drops it on upstream errors so a poisoned token can't wedge a session.
  *
@@ -64,7 +64,7 @@ export class CodexSessionAffinity {
 
   /**
    * Resolve affinity headers for an outgoing Codex-backend request and inject
-   * a stable `prompt_cache_key` into `requestBody` when the caller sent none.
+   * a request-local `prompt_cache_key` into `requestBody` when the caller sent none.
    */
   prepare(apiKey: string, requestBody: Record<string, unknown>): CodexAffinityRequest {
     const callerKey = requestBody.prompt_cache_key;
@@ -72,9 +72,10 @@ export class CodexSessionAffinity {
       typeof callerKey === 'string' && callerKey && callerKey.length <= MAX_CACHE_KEY_LEN
         ? callerKey
         : null;
-    const storeKey = cacheKey ? `${apiKey}\u0000${cacheKey}` : apiKey;
-
-    const session = this.getOrCreateSession(storeKey, cacheKey);
+    const storeKey = cacheKey ? `${apiKey}\u0000${cacheKey}` : undefined;
+    const session = storeKey
+      ? this.getOrCreateSession(storeKey, cacheKey)
+      : this.createSession(null);
     requestBody.prompt_cache_key = session.promptCacheKey;
 
     const headers: Record<string, string> = {
@@ -90,7 +91,8 @@ export class CodexSessionAffinity {
    * Store the response's sticky-routing token for the next request in this
    * session, or evict the stale one when the upstream rejected the request.
    */
-  capture(storeKey: string, response: Response): void {
+  capture(storeKey: string | undefined, response: Response): void {
+    if (!storeKey) return;
     const session = this.sessions.get(storeKey);
     // The session can be gone when a request outlives the TTL; the next
     // prepare() starts a fresh one, so there is nothing to record here.
@@ -121,14 +123,18 @@ export class CodexSessionAffinity {
       const oldest = this.sessions.keys().next().value as string;
       this.sessions.delete(oldest);
     }
-    const session: CodexSession = {
+    const session = this.createSession(callerCacheKey);
+    this.sessions.set(storeKey, session);
+    return session;
+  }
+
+  private createSession(callerCacheKey: string | null): CodexSession {
+    return {
       sessionId: randomUUID(),
       threadId: randomUUID(),
       promptCacheKey: callerCacheKey ?? randomUUID(),
       expiresAt: Date.now() + SESSION_TTL_MS,
     };
-    this.sessions.set(storeKey, session);
-    return session;
   }
 
   /** Lazily evict expired entries to avoid unbounded growth. */
