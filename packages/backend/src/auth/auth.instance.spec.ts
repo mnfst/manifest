@@ -22,6 +22,9 @@ jest.mock('../notifications/emails/verify-email', () => ({
 jest.mock('../notifications/emails/reset-password', () => ({
   ResetPasswordEmail: jest.fn().mockReturnValue('reset-password-element'),
 }));
+jest.mock('../notifications/emails/existing-account', () => ({
+  ExistingAccountEmail: jest.fn().mockReturnValue('existing-account-element'),
+}));
 jest.mock('../notifications/services/email-providers/send-email', () => ({
   sendEmail: jest.fn(),
 }));
@@ -293,6 +296,68 @@ describe('auth.instance', () => {
         subject: 'Reset your password',
         html: '<html>rendered</html>',
         text: 'plain text version',
+      });
+    });
+  });
+
+  describe('onExistingUserSignUp callback', () => {
+    // Better Auth answers a duplicate sign-up with a synthetic 200 rather than an
+    // error, so this hook is the only thing standing between the account holder
+    // and a "check your email" screen for a mail that was never sent.
+    it('emails the existing account holder a sign-in link', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ExistingAccountEmail } = require('../notifications/emails/existing-account') as {
+        ExistingAccountEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { sendEmail } = require('../notifications/services/email-providers/send-email') as {
+        sendEmail: jest.Mock;
+      };
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { render } = require('@react-email/render') as { render: jest.Mock };
+      process.env.BETTER_AUTH_URL = 'https://app.manifest.build';
+
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      const mockUser = { name: 'Jane Doe', email: 'jane@example.com' };
+
+      await config.emailAndPassword.onExistingUserSignUp({ user: mockUser });
+
+      expect(ExistingAccountEmail).toHaveBeenCalledWith({
+        userName: 'Jane Doe',
+        signInUrl: 'https://app.manifest.build/login',
+        resetPasswordUrl: 'https://app.manifest.build/reset-password',
+      });
+      expect(render).toHaveBeenCalledWith('existing-account-element');
+      expect(render).toHaveBeenCalledWith('existing-account-element', { plainText: true });
+      expect(sendEmail).toHaveBeenCalledWith({
+        to: 'jane@example.com',
+        subject: 'You already have a Manifest account',
+        html: '<html>rendered</html>',
+        text: 'plain text version',
+      });
+    });
+
+    it('builds the links from the local port when BETTER_AUTH_URL is unset', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { ExistingAccountEmail } = require('../notifications/emails/existing-account') as {
+        ExistingAccountEmail: jest.Mock;
+      };
+      delete process.env.BETTER_AUTH_URL;
+      process.env.PORT = '4242';
+
+      loadModule();
+
+      const config = mockBetterAuth.mock.calls[0][0];
+      await config.emailAndPassword.onExistingUserSignUp({
+        user: { name: 'Jane Doe', email: 'jane@example.com' },
+      });
+
+      expect(ExistingAccountEmail).toHaveBeenCalledWith({
+        userName: 'Jane Doe',
+        signInUrl: 'http://localhost:4242/login',
+        resetPasswordUrl: 'http://localhost:4242/reset-password',
       });
     });
   });
