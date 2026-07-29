@@ -256,6 +256,23 @@ describe('chatgpt-adapter', () => {
       });
     });
 
+    it('accepts cache_creation_input_tokens in Responses usage details', () => {
+      const out = fromResponsesResponse(
+        {
+          output: [{ type: 'message', content: [{ type: 'output_text', text: 'Hello' }] }],
+          usage: {
+            input_tokens: 10,
+            output_tokens: 2,
+            total_tokens: 12,
+            input_tokens_details: { cache_creation_input_tokens: 4 },
+          },
+        },
+        'gpt-5',
+      );
+
+      expect(out.usage).toMatchObject({ cache_creation_tokens: 4 });
+    });
+
     it('assembles a tool_calls envelope and sets finish_reason accordingly', () => {
       const out = fromResponsesResponse(
         {

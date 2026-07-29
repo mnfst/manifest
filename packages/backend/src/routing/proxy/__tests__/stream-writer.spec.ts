@@ -1213,6 +1213,21 @@ describe('parseUsageObject', () => {
     });
   });
 
+  it('passes through top-level cache_creation_input_tokens for the OpenAI-compat shape', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 20,
+        completion_tokens: 5,
+        cache_creation_input_tokens: 9,
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 9,
+    });
+  });
+
   it.each([
     ['OpenAI cache_write_tokens', { cache_write_tokens: 7 }],
     ['Qwen cache_creation_input_tokens', { cache_creation_input_tokens: 9 }],
@@ -1237,6 +1252,21 @@ describe('parseUsageObject', () => {
         input_tokens: 20,
         output_tokens: 5,
         input_tokens_details: { cached_tokens: 4, cache_write_tokens: 6 },
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: 6,
+    });
+  });
+
+  it('maps Responses cache_creation_input_tokens to cache creation usage', () => {
+    expect(
+      parseUsageObject({
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 4, cache_creation_input_tokens: 6 },
       }),
     ).toEqual({
       prompt_tokens: 20,

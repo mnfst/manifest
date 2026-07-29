@@ -224,6 +224,32 @@ describe('issue #1871: cache_control round-trip through /v1/messages', () => {
       });
     });
 
+    it.each([
+      ['top-level cache creation', { cache_creation_input_tokens: 30 }],
+      ['nested cache creation', { prompt_tokens_details: { cache_creation_input_tokens: 30 } }],
+    ])('carries %s through the messages conversion', (_label, cacheUsage) => {
+      const messagesResponse = chatCompletionsResponseToMessages(
+        {
+          id: 'cc_cache_creation',
+          model: 'gpt-4o-mini',
+          choices: [{ message: { content: 'pong' }, finish_reason: 'stop' }],
+          usage: {
+            prompt_tokens: 100,
+            completion_tokens: 5,
+            ...cacheUsage,
+          },
+        },
+        'gpt-4o-mini',
+      );
+
+      expect(messagesResponse.usage).toEqual({
+        input_tokens: 70,
+        output_tokens: 5,
+        cache_creation_input_tokens: 30,
+        cache_read_input_tokens: 0,
+      });
+    });
+
     it('carries Moonshot top-level cached_tokens through the messages conversion', () => {
       const moonshotChatResponse = {
         id: 'cc_kimi',
