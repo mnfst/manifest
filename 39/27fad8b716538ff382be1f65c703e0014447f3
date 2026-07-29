@@ -1,0 +1,31 @@
+packages/frontend/src/pages/Routing.tsx
+  s_75f0f280a3318d::t_5479084f19917f 510
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_75f0f280a3318d::t_6f36beee748c11 1
+  s_75f0f280a3318d::t_eaf5a4ae63382b 125
+  s_75f0f280a3318d::t_0153c735e4533a 123-124,143,183
+.changeset/calm-routes-stay.md
+  s_75f0f280a3318d::t_91d4dc62e74826 1-4
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_75f0f280a3318d::t_9bd97193c23532 224-258,260-282
+  s_75f0f280a3318d::t_6f36beee748c11 3,259
+  s_75f0f280a3318d::t_e6c4941ab1a085 283-284
+packages/frontend/tests/pages/Routing.test.tsx
+  s_75f0f280a3318d::t_0e453b14549f40 1421-1426,1436-1446
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "3927fad8b716538ff382be1f65c703e0014447f3",
+  "prompts": {},
+  "sessions": {
+    "s_75f0f280a3318d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fad17-7980-7370-b0a5-c4a88578a9bb",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}
