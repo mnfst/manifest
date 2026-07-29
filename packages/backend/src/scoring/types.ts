@@ -38,6 +38,7 @@ type Tier = _Tier;
 
 export type ScoringReason =
   | 'scored'
+  | 'classified'
   | 'formal_logic_override'
   | 'tool_detected'
   | 'large_context'

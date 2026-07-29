@@ -947,6 +947,19 @@ describe('Routing page', () => {
     });
   });
 
+  it('reveals complexity controls when the backend classifier is available', async () => {
+    // The smart classifier replaces complexity scoring server-side, so an agent
+    // with no legacy config still needs the complexity surface when the backend
+    // reports the flag on.
+    mockGetComplexityStatus.mockResolvedValue({ enabled: false, classifier_available: true });
+    mockGetTierAssignments.mockResolvedValue([]);
+    mockGetSpecificityAssignments.mockResolvedValue([]);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('routing-tabs')).toBeDefined();
+    });
+  });
+
   it('updates the default response mode for the default tier', async () => {
     // Ensure legacy path (tabbed view) by providing a non-default tier override
     mockGetComplexityStatus.mockResolvedValue({ enabled: false });

@@ -33,10 +33,7 @@ export interface RoutingProvider {
 /* -- Routing: Status -- */
 
 export type RoutingStatusReason =
-  | 'no_provider'
-  | 'no_routable_models'
-  | 'pricing_cache_empty'
-  | null;
+  'no_provider' | 'no_routable_models' | 'pricing_cache_empty' | null;
 
 export interface RoutingStatus {
   enabled: boolean;
@@ -164,6 +161,7 @@ export async function copilotPollToken(agentName: string, deviceCode: string) {
 
 export interface ComplexityStatus {
   enabled: boolean;
+  classifier_available?: boolean;
 }
 
 export function getComplexityStatus(agentName: string) {

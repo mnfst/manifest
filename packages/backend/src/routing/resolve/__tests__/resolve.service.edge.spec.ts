@@ -32,6 +32,7 @@ jest.mock('../../../common/utils/provider-aliases', () => {
 import { scoreRequest, scanMessages } from '../../../scoring';
 import { inferProviderFromModelName } from '../../../common/utils/provider-aliases';
 import { Logger } from '@nestjs/common';
+import type { ClassifierService } from '../../../scoring/classifier/classifier.service';
 
 const mockedScore = scoreRequest as jest.MockedFunction<typeof scoreRequest>;
 const mockedScan = scanMessages as jest.MockedFunction<typeof scanMessages>;
@@ -138,6 +139,7 @@ describe('ResolveService — edge cases', () => {
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
       { addInvalidationListener: jest.fn() } as unknown as RoutingCacheService,
+      { isEnabled: () => false, classifyTier: () => null } as unknown as ClassifierService,
     );
   });
 

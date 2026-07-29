@@ -7,6 +7,7 @@ import { Agent } from '../entities/agent.entity';
 import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
+import { ClassifierService } from '../scoring/classifier/classifier.service';
 
 describe('TierController', () => {
   const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
@@ -28,6 +29,7 @@ describe('TierController', () => {
   };
   let controller: TierController;
   let recordingCache: { invalidate: jest.Mock };
+  let classifierService: { isEnabled: jest.Mock };
 
   beforeEach(() => {
     tierService = {
@@ -54,12 +56,14 @@ describe('TierController', () => {
       hasAccess: jest.fn().mockResolvedValue(true),
     };
     recordingCache = { invalidate: jest.fn() };
+    classifierService = { isEnabled: jest.fn().mockReturnValue(false) };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
       agentRepo as unknown as Repository<Agent>,
       autofixService as unknown as AutofixService,
       recordingCache as unknown as AgentRecordingCacheService,
+      classifierService as unknown as ClassifierService,
     );
   });
 
@@ -137,7 +141,13 @@ describe('TierController', () => {
 
   it('GET complexity/status returns the current flag', async () => {
     const result = await controller.getComplexityStatus(ctx, 'demo');
-    expect(result).toEqual({ enabled: true });
+    expect(result).toEqual({ enabled: true, classifier_available: false });
+  });
+
+  it('GET complexity/status reports the smart classifier when it is enabled', async () => {
+    classifierService.isEnabled.mockReturnValue(true);
+    const result = await controller.getComplexityStatus(ctx, 'demo');
+    expect(result).toEqual({ enabled: true, classifier_available: true });
   });
 
   it('POST complexity/toggle flips the flag and invalidates cache', async () => {

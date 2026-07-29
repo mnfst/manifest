@@ -27,6 +27,7 @@ import {
 import { Agent } from '../entities/agent.entity';
 import { AutofixService } from './autofix/autofix.service';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
+import { ClassifierService } from '../scoring/classifier/classifier.service';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -37,6 +38,7 @@ export class TierController {
     private readonly agentRepo: Repository<Agent>,
     private readonly autofixService: AutofixService,
     private readonly recordingCache: AgentRecordingCacheService,
+    private readonly classifierService: ClassifierService,
   ) {}
 
   @Get(':agentName/tiers')
@@ -147,7 +149,10 @@ export class TierController {
     @Param('agentName') agentName: string,
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: agent.complexity_routing_enabled };
+    return {
+      enabled: agent.complexity_routing_enabled,
+      classifier_available: this.classifierService.isEnabled(),
+    };
   }
 
   @Post(':agentName/complexity/toggle')

@@ -21,6 +21,7 @@ import { SpecificityService } from './specificity.service';
 import { SpecificityPenaltyService } from './specificity-penalty.service';
 import { AgentModelParamsService } from './agent-model-params.service';
 import { ProviderParamSpecService } from './provider-param-spec.service';
+import { ClassifierService } from '../../scoring/classifier/classifier.service';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
     SpecificityPenaltyService,
     AgentModelParamsService,
     ProviderParamSpecService,
+    ClassifierService,
   ],
   exports: [
     TypeOrmModule,
@@ -62,6 +64,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
     SpecificityPenaltyService,
     AgentModelParamsService,
     ProviderParamSpecService,
+    ClassifierService,
   ],
 })
 export class RoutingCoreModule {}

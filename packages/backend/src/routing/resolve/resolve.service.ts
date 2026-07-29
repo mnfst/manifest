@@ -16,7 +16,14 @@ import {
   readOverrideRoute,
 } from '../routing-core/route-helpers';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
-import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../scoring';
+import {
+  scoreRequest,
+  ScorerInput,
+  MomentumInput,
+  scanMessages,
+  type ScoringResult,
+} from '../../scoring';
+import { ClassifierService } from '../../scoring/classifier/classifier.service';
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
@@ -37,6 +44,9 @@ interface ResolvedRouteChain {
   primaryRoute: ModelRoute | null;
   fallbackRoutes: ModelRoute[] | null;
 }
+
+/** The subset of a scoring result the tier lookup and response actually read. */
+type TierDecision = Pick<ScoringResult, 'tier' | 'confidence' | 'score' | 'reason'>;
 
 /**
  * When specificity detection is below this confidence, skip specificity
@@ -65,6 +75,7 @@ export class ResolveService {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly routingCache: RoutingCacheService,
+    private readonly classifier: ClassifierService,
   ) {
     // Bridge the central routing-cache invalidation to the discovered-model
     // cache. Every provider mutation already calls routingCache.invalidateAgent;
@@ -137,7 +148,12 @@ export class ResolveService {
     const momentum: MomentumInput | undefined =
       recentTiers && recentTiers.length > 0 ? { recentTiers } : undefined;
 
-    const result = scoreRequest(input, undefined, momentum);
+    const result = this.decideTier(input, momentum);
+    if (!result) {
+      // The classifier abstained (low confidence). Default routing is the
+      // safer answer than committing to a tier it is unsure about.
+      return this.resolveForTier(agentId, tenantId, 'default', 'default');
+    }
 
     const tiers = await this.tierService.getTiers(agentId);
     const assignment = tiers.find((t) => t.tier === result.tier);
@@ -192,6 +208,24 @@ export class ResolveService {
       confidence: result.confidence,
       score: result.score,
       reason: result.reason,
+    };
+  }
+
+  /**
+   * Pick the complexity tier for a request. With `SMART_CLASSIFIER_ENABLED`
+   * set, the trained classifier replaces the keyword scorer entirely (momentum
+   * included) and returns null when it is not confident enough to route.
+   */
+  private decideTier(input: ScorerInput, momentum?: MomentumInput): TierDecision | null {
+    if (!this.classifier.isEnabled()) return scoreRequest(input, undefined, momentum);
+
+    const classified = this.classifier.classifyTier(input);
+    if (!classified) return null;
+    return {
+      tier: classified.tier,
+      confidence: classified.confidence,
+      score: 0,
+      reason: 'classified' as const,
     };
   }
 

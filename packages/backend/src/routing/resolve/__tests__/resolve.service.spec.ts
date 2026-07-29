@@ -13,6 +13,7 @@ import type { SpecificityPenaltyService } from '../../routing-core/specificity-p
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
+import type { ClassifierService } from '../../../scoring/classifier/classifier.service';
 
 /**
  * Mock the scoring module so each test can drive scoreRequest / scanMessages
@@ -66,6 +67,7 @@ describe('ResolveService', () => {
   let headerTierService: jest.Mocked<Pick<HeaderTierService, 'list'>>;
   let agentRepo: { findOne: jest.Mock };
   let routingCache: { addInvalidationListener: jest.Mock };
+  let classifier: jest.Mocked<Pick<ClassifierService, 'isEnabled' | 'classifyTier'>>;
   let svc: ResolveService;
 
   beforeEach(() => {
@@ -95,6 +97,9 @@ describe('ResolveService', () => {
       findOne: jest.fn().mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: true }),
     };
     routingCache = { addInvalidationListener: jest.fn() };
+    // The smart classifier is off unless a test opts in, so every existing
+    // expectation keeps exercising the keyword scorer.
+    classifier = { isEnabled: jest.fn().mockReturnValue(false), classifyTier: jest.fn() };
 
     // Defaults — each test overrides as needed.
     mockedScore.mockReturnValue({
@@ -116,6 +121,7 @@ describe('ResolveService', () => {
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
       routingCache as unknown as RoutingCacheService,
+      classifier as unknown as ClassifierService,
     );
   });
 
@@ -155,6 +161,72 @@ describe('ResolveService', () => {
 
       expect(resolveInput).toHaveBeenCalledTimes(1);
       expect(mockedScore).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('resolve — smart classifier', () => {
+    const tierAssignment = (tier: string) =>
+      ({
+        tier,
+        override_route: route('openai', 'api_key', `model-for-${tier}`),
+        auto_assigned_route: null,
+        fallback_routes: null,
+      }) as unknown as TierAssignment;
+
+    beforeEach(() => {
+      classifier.isEnabled.mockReturnValue(true);
+      tierService.getTiers.mockResolvedValue([
+        tierAssignment('default'),
+        tierAssignment('complex'),
+      ]);
+    });
+
+    it('routes to the classified tier and never calls the keyword scorer', async () => {
+      classifier.classifyTier.mockReturnValue({ tier: 'complex', confidence: 0.82 });
+
+      const result = await svc.resolve('agent-1', 'user-1', messages, undefined, 'auto', 512);
+
+      expect(classifier.classifyTier).toHaveBeenCalledWith({
+        messages,
+        tools: undefined,
+        tool_choice: 'auto',
+        max_tokens: 512,
+      });
+      expect(mockedScore).not.toHaveBeenCalled();
+      expect(result.tier).toBe('complex');
+      expect(result.reason).toBe('classified');
+      expect(result.confidence).toBe(0.82);
+      expect(result.score).toBe(0);
+      expect(result.route).toEqual(route('openai', 'api_key', 'model-for-complex'));
+    });
+
+    it('falls back to the default tier when the classifier abstains', async () => {
+      classifier.classifyTier.mockReturnValue(null);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+
+      expect(mockedScore).not.toHaveBeenCalled();
+      expect(result.tier).toBe('default');
+      expect(result.reason).toBe('default');
+      expect(result.route).toEqual(route('openai', 'api_key', 'model-for-default'));
+    });
+
+    it('keeps the keyword scorer when the flag is off', async () => {
+      classifier.isEnabled.mockReturnValue(false);
+      mockedScore.mockReturnValue({
+        tier: 'complex',
+        confidence: 0.7,
+        score: 12,
+        reason: 'scored',
+      } as unknown as ReturnType<typeof scoreRequest>);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+
+      expect(classifier.classifyTier).not.toHaveBeenCalled();
+      expect(mockedScore).toHaveBeenCalledTimes(1);
+      expect(result.tier).toBe('complex');
+      expect(result.reason).toBe('scored');
+      expect(result.score).toBe(12);
     });
   });
 

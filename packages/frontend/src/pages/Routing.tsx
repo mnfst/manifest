@@ -137,7 +137,8 @@ const Routing: Component = () => {
     const agent = agentName();
     const hasComplexityConfig =
       (complexityStatus()?.enabled ?? false) ||
-      (tiers()?.some((t) => t.tier !== 'default' && t.override_route !== null) ?? false);
+      (tiers()?.some((t) => t.tier !== 'default' && t.override_route !== null) ?? false) ||
+      (complexityStatus()?.classifier_available ?? false);
     if (hasComplexityConfig) setLegacyComplexityAgent(agent);
     const hasSpecificityConfig =
       specificityAssignments()?.some((a) => a.is_active || a.override_route !== null) ?? false;
