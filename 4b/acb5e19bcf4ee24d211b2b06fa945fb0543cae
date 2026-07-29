@@ -1,0 +1,87 @@
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_86ae7d6def5db2::t_b382bfc5b51b6a 1-12,14-23,25-85
+  s_86ae7d6def5db2::t_215a70ff275e51 13,24
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_86ae7d6def5db2::t_cb45c9aaab724a 507-528
+packages/shared/src/providers.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 36-37,223
+  s_86ae7d6def5db2::t_2381a58f1dcf03 213-222,224
+  s_86ae7d6def5db2::t_98d61f33d8f9de 212
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_86ae7d6def5db2::t_1d277ed0517322 1-222
+packages/frontend/src/components/ProviderIcon.tsx
+  s_86ae7d6def5db2::t_2381a58f1dcf03 121
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 46
+  s_86ae7d6def5db2::t_2381a58f1dcf03 385,387,389
+  s_86ae7d6def5db2::t_0412a98db63cfc 43,383-384,388
+packages/frontend/src/services/api/providers.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 1,63,70,72-77,89,97-100,102-103,110-115
+  s_86ae7d6def5db2::t_2381a58f1dcf03 2-3,64-69,71,78-79,81-84,86-88,90-96,101,104-107,109
+  s_86ae7d6def5db2::t_a35a6ddb4a9014 80,85
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_86ae7d6def5db2::t_837dfeaac13865 58-88
+  s_86ae7d6def5db2::t_b3d77cddb39b62 46
+packages/shared/__tests__/providers.spec.ts
+  s_86ae7d6def5db2::t_f92bf078429fec 148-154,156-157
+  s_86ae7d6def5db2::t_a6e98a99b16c84 155
+packages/backend/src/routing/routing.module.ts
+  s_86ae7d6def5db2::t_215a70ff275e51 21-22,67,69
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_86ae7d6def5db2::t_6185d9dbaaa41f 77,163,224-235
+packages/frontend/src/services/providers.ts
+  s_86ae7d6def5db2::t_2381a58f1dcf03 268-272
+  s_86ae7d6def5db2::t_b3d77cddb39b62 493
+packages/backend/.env.example
+  s_86ae7d6def5db2::t_11a79610d89d07 41-49
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_86ae7d6def5db2::t_2381a58f1dcf03 150-151,153-157,163-168
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 3-7,144-149,152,158-162,307-309,638-648,809
+.changeset/gemini-free-provider.md
+  s_86ae7d6def5db2::t_2381a58f1dcf03 1-4
+  s_86ae7d6def5db2::t_a6e98a99b16c84 5-6
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_86ae7d6def5db2::t_0412a98db63cfc 1-4,32-38
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 2-5,134-148,437
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.ts
+  s_86ae7d6def5db2::t_a35a6ddb4a9014 43-47
+  s_86ae7d6def5db2::t_215a70ff275e51 1-42,48-49
+packages/backend/src/routing/proxy/provider-client.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 33,160-161
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_86ae7d6def5db2::t_9ae973e2531552 229-253
+packages/frontend/tests/services/providers.test.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 460
+  s_86ae7d6def5db2::t_f92bf078429fec 454-459,461-463
+  s_86ae7d6def5db2::t_d04a94708fa622 980
+packages/frontend/tests/services/api/providers.test.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 4,70
+  s_86ae7d6def5db2::t_022025aabf77f2 49-55,61-69,71-78
+  s_86ae7d6def5db2::t_4e822f0c9d05ae 79-80
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_86ae7d6def5db2::t_b382bfc5b51b6a 1-63,65-68
+  s_86ae7d6def5db2::t_215a70ff275e51 64
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.ts
+  s_86ae7d6def5db2::t_215a70ff275e51 1-213
+docker/.env.example
+  s_86ae7d6def5db2::t_11a79610d89d07 47-54
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_86ae7d6def5db2::t_b3d77cddb39b62 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4bacb5e19bcf4ee24d211b2b06fa945fb0543cae",
+  "prompts": {},
+  "sessions": {
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
