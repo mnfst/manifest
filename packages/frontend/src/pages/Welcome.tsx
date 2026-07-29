@@ -25,10 +25,8 @@ import Playground from './Playground.jsx';
 import {
   findResumableAgent,
   isSuccessfulAgentMessage,
-  proposeChain,
   type OnboardingAgentSummary,
   type OnboardingMessageSummary,
-  type PlaygroundModelSelection,
 } from './welcome-helpers.js';
 import { createRoutingActions } from './RoutingActions.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -46,14 +44,11 @@ import {
   getTierAssignments,
   listModelParams,
   modelParamsKey,
-  overrideTier,
   refreshModels,
-  setFallbacks,
   setModelParams as setModelParamsApi,
   type AgentModelParamsRow,
   type AuthType,
   type AvailableModel,
-  type ModelRoute,
 } from '../services/api.js';
 import type { RequestParamDefaults } from 'manifest-shared';
 import { getMessages } from '../services/api/messages.js';
@@ -61,6 +56,7 @@ import { customProviderColor } from '../services/formatters.js';
 import { markAgentCreated } from '../services/recent-agents.js';
 import { useRightSidebar } from '../services/right-sidebar.jsx';
 import { hasOnboardingBeenDone, markOnboardingDone } from '../services/onboarding.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import {
   type AgentCategory,
   type AgentPlatform,
@@ -129,12 +125,6 @@ const ProviderMark: Component<{ providerId: string; name: string; size?: number 
   );
 };
 
-const toRoute = (m: AvailableModel): ModelRoute => ({
-  provider: m.provider,
-  authType: (m.auth_type ?? 'api_key') as ModelRoute['authType'],
-  model: m.model_name,
-});
-
 const Welcome: Component = () => {
   const navigate = useNavigate();
   // Playground pushes its run-details drawer here; App renders it in the
@@ -172,16 +162,9 @@ const Welcome: Component = () => {
       }
     }
   };
-  let panelTitle: HTMLHeadingElement | undefined;
-
-  // A wizard is one logical page, but every step is a new task. Put keyboard
-  // and screen-reader users at its heading whenever that task changes.
-  createEffect(() => {
-    step();
-    requestAnimationFrame(() => panelTitle?.focus({ preventScroll: true }));
-  });
-
   // ── Shared resources ─────────────────────────────────────────────────
+  const [selfHosted] = createResource(checkIsSelfHosted);
+
   // The Playground agent gives provider connections an agent context before
   // the user's own harness exists (providers are tenant-global anyway).
   const [agent] = createResource(() => getPlaygroundAgent());
@@ -223,12 +206,10 @@ const Welcome: Component = () => {
     return ids.size;
   });
 
-  const [preferredRoute, setPreferredRoute] = createSignal<PlaygroundModelSelection | null>(null);
-
   // ── Step: providers ──────────────────────────────────────────────────
   const [connectTarget, setConnectTarget] = createSignal<string | null>(null);
-  const [tab, setTab] = createSignal<'subscription' | 'api_key'>('api_key');
-  const selectProviderTab = (next: 'subscription' | 'api_key', focus = false) => {
+  const [tab, setTab] = createSignal<'subscription' | 'api_key' | 'local'>('api_key');
+  const selectProviderTab = (next: 'subscription' | 'api_key' | 'local', focus = false) => {
     setTab(next);
     if (focus) {
       requestAnimationFrame(() => document.getElementById(`welcome-provider-tab-${next}`)?.focus());
@@ -237,7 +218,15 @@ const Welcome: Component = () => {
   const handleProviderTabKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
-    selectProviderTab(tab() === 'api_key' ? 'subscription' : 'api_key', true);
+    const order: Array<'api_key' | 'subscription' | 'local'> = selfHosted()
+      ? ['api_key', 'subscription', 'local']
+      : ['api_key', 'subscription'];
+    const idx = order.indexOf(tab() as 'api_key' | 'subscription' | 'local');
+    const next =
+      event.key === 'ArrowRight'
+        ? order[(idx + 1) % order.length]
+        : order[(idx - 1 + order.length) % order.length];
+    selectProviderTab(next, true);
   };
 
   // Household names first — a new user scans for the provider they already
@@ -254,10 +243,11 @@ const Welcome: Component = () => {
     'copilot',
   ];
 
-  const allTabProviders = () =>
-    tab() === 'subscription'
-      ? PROVIDERS.filter((p) => p.supportsSubscription)
-      : PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
+  const allTabProviders = () => {
+    if (tab() === 'subscription') return PROVIDERS.filter((p) => p.supportsSubscription);
+    if (tab() === 'local') return PROVIDERS.filter((p) => p.localOnly);
+    return PROVIDERS.filter((p) => !p.subscriptionOnly && !p.localOnly);
+  };
 
   // Popular providers first, then the rest in catalog order.
   const tabProviders = () => {
@@ -266,14 +256,16 @@ const Welcome: Component = () => {
     return [...popular, ...all.filter((p) => !POPULAR.includes(p.id))];
   };
 
-  const isConnected = (id: string, authType: 'subscription' | 'api_key') =>
-    (providers() ?? []).some(
+  const isConnected = (id: string, authType: 'subscription' | 'api_key' | 'local') => {
+    const resolvedType = authType === 'local' ? 'api_key' : authType;
+    return (providers() ?? []).some(
       (p) =>
         p.provider === id &&
-        p.auth_type === authType &&
+        p.auth_type === resolvedType &&
         p.is_active &&
-        (authType === 'subscription' || p.has_api_key),
+        (resolvedType === 'subscription' || p.has_api_key),
     );
+  };
 
   // ── Step: harness ────────────────────────────────────────────────────
   const [harnessKey, setHarnessKey] = createSignal<string | null>(null);
@@ -409,18 +401,13 @@ const Welcome: Component = () => {
     setInstructionModal,
   });
 
-  const [routingError, setRoutingError] = createSignal<string | null>(null);
-  let proposalDone = false;
-
   const handleOverride: typeof actions.handleOverride = async (...args) => {
     setDropdownTier(null);
-    setRoutingError(null);
     return actions.handleOverride(...args);
   };
 
   const handleAddFallback: typeof actions.handleAddFallback = async (...args) => {
     setFallbackPickerTier(null);
-    setRoutingError(null);
     return actions.handleAddFallback(...args);
   };
 
@@ -434,67 +421,6 @@ const Welcome: Component = () => {
     );
     return new Set(providersInRoute).size;
   };
-  // Seed the proposal once: best model per provider — primary + fallbacks —
-  // persisted so the real routing card opens pre-configured and editable.
-  const [proposing, setProposing] = createSignal(false);
-
-  const proposeRouting = async () => {
-    const slug = harnessSlug();
-    if (!slug || proposalDone || proposing() || models.loading) return;
-    const currentTier = (tiers() ?? []).find((t) => t.tier === 'default');
-    const preferred = preferredRoute();
-    const currentMatchesPreferred =
-      preferred &&
-      currentTier?.override_route?.model === preferred.model &&
-      currentTier.override_route.provider.toLowerCase() === preferred.provider.toLowerCase() &&
-      currentTier.override_route.authType === preferred.authType;
-    if (currentTier?.override_route && (!preferred || currentMatchesPreferred)) {
-      proposalDone = true;
-      return;
-    }
-    const available = models() ?? [];
-    if (available.length === 0) {
-      setRoutingError(
-        'No usable models are available yet. Connect a provider with an active model, then try again.',
-      );
-      return;
-    }
-    const [primary, ...fallbacks] = proposeChain(available, preferred);
-    if (!primary) return;
-    setProposing(true);
-    setRoutingError(null);
-    try {
-      const route = toRoute(primary);
-      await overrideTier(slug, 'default', route.model, route.provider, route.authType);
-      if (fallbacks.length > 0) {
-        const routes = fallbacks.map(toRoute);
-        await setFallbacks(
-          slug,
-          'default',
-          routes.map((r) => r.model),
-          routes,
-        );
-      }
-      proposalDone = true;
-      await refetchTiers();
-    } catch (error) {
-      setRoutingError(
-        error instanceof Error
-          ? error.message
-          : 'We could not prepare your default route. Choose a model below to continue.',
-      );
-    } finally {
-      setProposing(false);
-    }
-  };
-
-  // Model and tier resources resolve after the user enters this step. Running
-  // the proposal from the click handler alone used to race those resources and
-  // left fresh accounts with an empty default route.
-  createEffect(() => {
-    if (step() !== 'route' || !harnessSlug() || models.loading) return;
-    void proposeRouting();
-  });
 
   // ── Step: first real agent request ───────────────────────────────────
   // Activation only counts traffic that arrives through the user's own
@@ -916,9 +842,7 @@ const Welcome: Component = () => {
             <div class="welcome__panel">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('harness')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Create your first harness
-                </h1>
+                <h1 class="welcome__panel-title">Create your first harness</h1>
                 <p class="welcome__panel-desc">
                   A harness represents the agent or application whose requests Manifest will route,
                   repair and observe.
@@ -1015,9 +939,7 @@ const Welcome: Component = () => {
             <div class="welcome__panel">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('providers')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Connect providers
-                </h1>
+                <h1 class="welcome__panel-title">Connect providers</h1>
                 <p class="welcome__panel-desc">
                   {harnessName().trim() || 'Your harness'} routes requests across the providers you
                   connect. Start with one, then add two more independent providers for full fallback
@@ -1038,6 +960,20 @@ const Welcome: Component = () => {
                   onClick={() => selectProviderTab('api_key')}
                   onKeyDown={handleProviderTabKeyDown}
                 >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #e59d55"
+                  >
+                    <path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                  </svg>
                   Usage-based
                 </button>
                 <button
@@ -1052,8 +988,49 @@ const Welcome: Component = () => {
                   onClick={() => selectProviderTab('subscription')}
                   onKeyDown={handleProviderTabKeyDown}
                 >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    style="color: #1cc4bf"
+                  >
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                   Subscriptions
                 </button>
+                <Show when={selfHosted()}>
+                  <button
+                    id="welcome-provider-tab-local"
+                    class="panel__tab"
+                    classList={{ 'panel__tab--active': tab() === 'local' }}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab() === 'local'}
+                    aria-controls="welcome-provider-panel-local"
+                    tabindex={tab() === 'local' ? 0 : -1}
+                    onClick={() => selectProviderTab('local')}
+                    onKeyDown={handleProviderTabKeyDown}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      aria-hidden="true"
+                      style="color: #F72585"
+                    >
+                      <path d="m13.18 6.75 2.66-4.22-1.69-1.07L12 4.87 9.85 1.46 8.16 2.53l2.66 4.22-8.67 13.72A1.006 1.006 0 0 0 3 22.01h18c.36 0 .7-.2.88-.52s.16-.71-.03-1.02zM10.24 20 12 16.98 13.76 20zm5.83 0-3.21-5.5c-.36-.62-1.37-.62-1.73 0L7.92 20H4.81L12 8.62 19.19 20h-3.11Z" />
+                    </svg>
+                    Local
+                  </button>
+                </Show>
               </div>
 
               <Show
@@ -1142,15 +1119,13 @@ const Welcome: Component = () => {
             <div class="welcome__panel welcome__panel--playground">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('playground')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Test your models
-                </h1>
+                <h1 class="welcome__panel-title">Test your models</h1>
                 <p class="welcome__panel-desc">
                   Compare how your available models handle one representative prompt without leaving
                   onboarding.
                 </p>
               </div>
-              <Playground embedded onBestModelChange={setPreferredRoute} />
+              <Playground embedded />
               <div class="welcome__actions welcome__actions--split welcome__actions--sticky">
                 <button type="button" class="btn btn--ghost" onClick={() => goTo('providers')}>
                   Back to providers
@@ -1168,17 +1143,15 @@ const Welcome: Component = () => {
             <div class="welcome__panel welcome__panel--routing">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('route')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Configure default routing
-                </h1>
+                <h1 class="welcome__panel-title">Configure default routing</h1>
               </div>
 
               <Show
-                when={!proposing() && !tiers.loading}
+                when={!tiers.loading}
                 fallback={
                   <div class="welcome__pending">
                     <span class="welcome__spinner" />
-                    <span>Preparing your routing…</span>
+                    <span>Loading routing…</span>
                   </div>
                 }
               >
@@ -1215,19 +1188,13 @@ const Welcome: Component = () => {
                 />
               </Show>
 
-              <Show when={routingError()}>
-                <p class="welcome__error" role="alert">
-                  {routingError()}
-                </p>
-              </Show>
-
               <div class="welcome__actions welcome__actions--split">
                 <button class="btn btn--ghost" onClick={() => goTo('playground')}>
                   Back to test models
                 </button>
                 <button
                   class="btn btn--primary"
-                  disabled={routedProviderCount() === 0 || proposing()}
+                  disabled={routedProviderCount() === 0}
                   onClick={() => goTo('activate')}
                 >
                   Continue
@@ -1241,9 +1208,7 @@ const Welcome: Component = () => {
             <div class="welcome__panel welcome__panel--setup">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('activate')}</p>
-                <h1 ref={(el) => (panelTitle = el)} class="welcome__panel-title" tabindex="-1">
-                  Connect your harness and go live
-                </h1>
+                <h1 class="welcome__panel-title">Connect your harness and go live</h1>
                 <p class="welcome__panel-desc">
                   Point {harnessName().trim() || 'your agent'} at Manifest with the instructions
                   below, then send one message. We detect the first successful request
@@ -1576,7 +1541,10 @@ const Welcome: Component = () => {
           agentName={harnessSlug()}
           providers={providers() ?? []}
           customProviders={customProviders() ?? []}
-          providerDeepLink={{ providerId: connectTarget()!, authType: tab() }}
+          providerDeepLink={{
+            providerId: connectTarget()!,
+            authType: tab() === 'local' ? 'api_key' : tab(),
+          }}
           onClose={() => {
             setConnectTarget(null);
           }}

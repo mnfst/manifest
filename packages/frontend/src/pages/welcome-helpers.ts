@@ -46,7 +46,7 @@ export function findResumableAgent(
 export function isSuccessfulAgentMessage(
   message: OnboardingMessageSummary | null | undefined,
 ): boolean {
-  return message?.status === 'ok';
+  return message?.status === 'success' || message?.status === 'ok';
 }
 
 /** Best model per independent provider, ordered by quality — the routing proposal. */

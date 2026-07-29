@@ -727,9 +727,15 @@
   outline-offset: 2px;
 }
 
-/* Tabs — fit-content width inside the flex column */
+/* Tabs — full width, each tab takes equal share */
 .welcome__panel .panel__tabs {
-  align-self: flex-start;
+  display: flex;
+  width: 100%;
+}
+
+.welcome__panel .panel__tab {
+  flex: 1;
+  gap: 6px;
 }
 
 /* Container border for the provider list (content from routing-providers.css) */
