@@ -20,6 +20,8 @@ packages/backend/src/model-discovery/model-fallback.spec.ts
   s_b324d1ba7946a0::t_3f17223d65240f 267-269,272,275-276,278-279,281,283-286,289-290,292,294,297-306
   s_b324d1ba7946a0::t_736ded6cb547c1 277
   s_b324d1ba7946a0::t_84423cbfac6a1b 273
+  s_b324d1ba7946a0::t_4e019c552ebe36 287-288,291,295-296
+  s_b324d1ba7946a0::t_ac44dd7884ccd7 280,293
 ---
 {
   "schema_version": "authorship/3.0.0",
