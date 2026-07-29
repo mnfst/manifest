@@ -977,7 +977,7 @@ describe('ProxyService — orchestration', () => {
     });
   });
 
-  describe('explicit OpenAI-compatible model routing', () => {
+  describe('explicit model routing', () => {
     beforeEach(() => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -1401,12 +1401,68 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('does not treat the Anthropic Messages model field as an SDK routing override', async () => {
+    it.each([
+      ['provider-qualified', 'openai/gpt-5.5', 'openai', 'gpt-5.5'],
+      ['provider-native', 'claude-haiku-4-5', 'anthropic', 'claude-haiku-4-5'],
+    ])(
+      'routes a %s model from an Anthropic Messages request',
+      async (_kind, requestedModel, provider, model) => {
+        modelDiscovery.getModelsForAgent.mockResolvedValue([
+          discoveredModel({ id: model, provider, authType: 'api_key' }),
+        ]);
+
+        await svc.proxyRequest(
+          baseOpts({
+            apiMode: 'messages',
+            body: {
+              model: requestedModel,
+              max_tokens: 32,
+              messages: [{ role: 'user', content: 'hi' }],
+            },
+          }),
+        );
+
+        expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+        expect(resolveService.resolveLazy).not.toHaveBeenCalled();
+        expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            provider,
+            authType: 'api_key',
+            model,
+          }),
+        );
+      },
+    );
+
+    it('returns model-not-available for an unknown Anthropic Messages model', async () => {
+      const result = await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          body: {
+            model: 'bogus/does-not-exist',
+            max_tokens: 32,
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(resolveService.resolveLazy).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(body).toContain('M302');
+      expect(body).toContain('bogus/does-not-exist');
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+      });
+    });
+
+    it('leaves auto on the existing Anthropic Messages resolver path', async () => {
       await svc.proxyRequest(
         baseOpts({
           apiMode: 'messages',
           body: {
-            model: 'claude-haiku-4-5',
+            model: 'auto',
             max_tokens: 32,
             messages: [{ role: 'user', content: 'hi' }],
           },
@@ -1414,6 +1470,7 @@ describe('ProxyService — orchestration', () => {
       );
 
       expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+      expect(resolveService.resolveLazy).toHaveBeenCalled();
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
         expect.objectContaining({
           provider: 'anthropic',
@@ -2537,7 +2594,7 @@ describe('ProxyService — orchestration', () => {
         baseOpts({
           apiMode: 'messages',
           body: {
-            model: 'claude-sonnet-4-5',
+            model: 'auto',
             messages: [{ role: 'user', content: 'Hello' }],
           },
         } as never),
@@ -2545,7 +2602,7 @@ describe('ProxyService — orchestration', () => {
 
       expect(convertSpy).not.toHaveBeenCalled();
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].body).toEqual({
-        model: 'claude-sonnet-4-5',
+        model: 'auto',
         messages: [{ role: 'user', content: 'Hello' }],
       });
     });

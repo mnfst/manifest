@@ -18,7 +18,7 @@ export function openAiModelId(model: DiscoveredModel): string {
 }
 
 /**
- * Resolve the `model` field of an OpenAI-compatible request to a route.
+ * Resolve the `model` field of a proxy request to a route.
  *
  * Matches the provider-qualified id published by `/v1/models`
  * (`openai/gpt-5.4-nano`) first, then the bare provider-native name
