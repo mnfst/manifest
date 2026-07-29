@@ -1,4 +1,8 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  getManagedFreeProviderConfig,
+  ManagedFreeProviderConfig,
+} from '../../common/constants/managed-free-providers';
 import { ManagedFreeProviderService } from './managed-free-provider.service';
 
 describe('ManagedFreeProviderService', () => {
@@ -100,6 +104,24 @@ describe('ManagedFreeProviderService', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it('keeps a connection when immediate model discovery fails', async () => {
+    providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+    providerService.upsertProvider.mockResolvedValue({
+      provider: { id: 'conn-2' },
+      isNew: true,
+    });
+    discoveryService.discoverModels.mockRejectedValueOnce('catalog unavailable');
+
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+        apiKey: 'sk-virtual',
+      }),
+    ).resolves.toMatchObject({ connection_id: 'conn-2', source: 'manual' });
+  });
+
   it('mints a virtual key scoped to Gemini models', async () => {
     providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -163,6 +185,21 @@ describe('ManagedFreeProviderService', () => {
     });
   });
 
+  it('rejects direct key generation when the master key is missing', async () => {
+    delete process.env['LITELLM_MASTER_KEY'];
+    const privateService = service as unknown as {
+      mintVirtualKey(
+        config: ManagedFreeProviderConfig,
+        tenantId: string,
+        userEmail: string | null,
+      ): Promise<string>;
+    };
+
+    await expect(
+      privateService.mintVirtualKey(getManagedFreeProviderConfig('gemini-free')!, 't1', 'a@x.com'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('rejects a concurrent second connection', async () => {
     providerRepo.find
       .mockResolvedValueOnce([])
@@ -199,6 +236,22 @@ describe('ManagedFreeProviderService', () => {
   it('rejects a failed or timed-out key-generation request', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockRejectedValue(new Error('request timed out'));
+
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects a key-generation response without a virtual key', async () => {
+    providerRepo.find.mockResolvedValue([]);
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
 
     await expect(
       service.ensureConnection('gemini-free', {

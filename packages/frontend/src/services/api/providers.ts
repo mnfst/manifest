@@ -83,15 +83,12 @@ export async function ensureManagedFreeProvider(
   if (!apiKey && existing) return existing;
 
   const run = (async () => {
-    const response = await fetch(
-      `${BASE_URL}/providers/${encodeURIComponent(providerId)}/ensure`,
-      {
+    const response = await fetch(`${BASE_URL}/providers/${encodeURIComponent(providerId)}/ensure`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(apiKey ? { apiKey } : {}),
-      },
-    );
+    });
     if (!response.ok) {
       throw new Error(await parseErrorMessage(response));
     }

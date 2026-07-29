@@ -3,6 +3,7 @@ import {
   getManagedFreeLiteLlmBaseUrl,
   getManagedFreeLiteLlmMasterKey,
   getManagedFreeLiteLlmMaxBudgetUsd,
+  getManagedFreeLiteLlmModelsUrl,
   getManagedFreeProviderConfig,
   isManagedFreeLiteLlmAutoEligible,
 } from './managed-free-providers';
@@ -34,6 +35,21 @@ describe('managed free provider config', () => {
   it('defaults the maximum budget to 10', () => {
     const config = getManagedFreeProviderConfig('gemini-free')!;
     expect(getManagedFreeLiteLlmMaxBudgetUsd(config)).toBe(10);
+  });
+
+  it('parses valid budgets and rejects invalid values', () => {
+    const config = getManagedFreeProviderConfig('gemini-free')!;
+    process.env['LITELLM_GEMINI_FREE_MAX_BUDGET'] = '12.5';
+    expect(getManagedFreeLiteLlmMaxBudgetUsd(config)).toBe(12.5);
+    process.env['LITELLM_GEMINI_FREE_MAX_BUDGET'] = '-1';
+    expect(getManagedFreeLiteLlmMaxBudgetUsd(config)).toBe(10);
+    process.env['LITELLM_GEMINI_FREE_MAX_BUDGET'] = 'invalid';
+    expect(getManagedFreeLiteLlmMaxBudgetUsd(config)).toBe(10);
+  });
+
+  it('builds the model catalog URL from the configured gateway', () => {
+    process.env['LITELLM_BASE_URL'] = 'https://litellm.test/';
+    expect(getManagedFreeLiteLlmModelsUrl()).toBe('https://litellm.test/v1/models');
   });
 
   it('parses allowlisted emails', () => {
