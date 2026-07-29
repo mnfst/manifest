@@ -1,4 +1,5 @@
 import { keyPrefix, verifyKey } from '../common/utils/hash.util';
+import { decodeRequestRecording } from '../common/utils/request-recording-codec';
 import { DatabaseSeederService } from './database-seeder.service';
 import { getSeedConnections } from './seed-messages';
 
@@ -36,6 +37,11 @@ describe('DatabaseSeederService', () => {
   let mockEnabledProviderRepo: ReturnType<typeof makeMockRepo>;
   let mockTierRepo: ReturnType<typeof makeMockRepo>;
   let mockSpecificityRepo: ReturnType<typeof makeMockRepo>;
+  let mockRecordingStorage: {
+    backend: 'filesystem';
+    objectKey: jest.Mock;
+    put: jest.Mock;
+  };
   let configValues: Record<string, string | undefined>;
 
   beforeEach(() => {
@@ -56,6 +62,16 @@ describe('DatabaseSeederService', () => {
     mockEnabledProviderRepo = makeMockRepo();
     mockTierRepo = makeMockRepo();
     mockSpecificityRepo = makeMockRepo();
+    mockRecordingStorage = {
+      backend: 'filesystem',
+      objectKey: jest
+        .fn()
+        .mockReturnValue(
+          'request-recordings/v1/tenants/seed-tenant-001/requests/' +
+            'seed-req-recording-001/attempts/seed-msg-recording-001.json.gz',
+        ),
+      put: jest.fn().mockResolvedValue(undefined),
+    };
 
     service = new DatabaseSeederService(
       mockDataSource as never,
@@ -70,6 +86,7 @@ describe('DatabaseSeederService', () => {
       mockEnabledProviderRepo as never,
       mockTierRepo as never,
       mockSpecificityRepo as never,
+      mockRecordingStorage as never,
     );
 
     jest.clearAllMocks();
@@ -121,6 +138,67 @@ describe('DatabaseSeederService', () => {
       expect(mockApiKeyRepo.count).toHaveBeenCalledWith({
         where: { id: 'seed-api-key-001' },
       });
+    });
+
+    it('seeds a realistic attempt-level recording preview', async () => {
+      await service.onModuleInit();
+
+      expect(mockRequestRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'seed-req-recording-001',
+          status: 'success',
+          requested_model: 'auto',
+        }),
+      );
+      expect(mockMessageRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'seed-msg-recording-001',
+          request_id: 'seed-req-recording-001',
+          attempt_number: 1,
+          model: 'gpt-4o-mini',
+          provider: 'openai',
+          recording_key: null,
+        }),
+      );
+
+      const [storageKey, encoded] = mockRecordingStorage.put.mock.calls[0];
+      expect(storageKey).toContain(
+        'tenants/seed-tenant-001/requests/seed-req-recording-001/attempts/' +
+          'seed-msg-recording-001.json.gz',
+      );
+      await expect(decodeRequestRecording(encoded)).resolves.toEqual(
+        expect.objectContaining({
+          version: 1,
+          wire_format: 'openai_chat_completions',
+          request_body: expect.objectContaining({
+            model: 'gpt-4o-mini',
+            messages: expect.arrayContaining([
+              expect.objectContaining({
+                role: 'user',
+                content: expect.stringContaining('umbrella'),
+              }),
+              expect.objectContaining({ role: 'tool' }),
+            ]),
+            tools: expect.arrayContaining([
+              expect.objectContaining({
+                function: expect.objectContaining({ name: 'get_weather' }),
+              }),
+            ]),
+          }),
+        }),
+      );
+      expect(mockMessageRepo.update).toHaveBeenCalledWith(
+        {
+          id: 'seed-msg-recording-001',
+          tenant_id: 'seed-tenant-001',
+          request_id: 'seed-req-recording-001',
+        },
+        {
+          recording_key:
+            'request-recordings/v1/tenants/seed-tenant-001/requests/' +
+            'seed-req-recording-001/attempts/seed-msg-recording-001.json.gz',
+        },
+      );
     });
 
     it('should NOT seed demo data in production even with SEED_DATA=true (use setup wizard instead)', async () => {
@@ -261,6 +339,7 @@ describe('DatabaseSeederService', () => {
           name: 'demo-agent',
           tenant_id: 'seed-tenant-001',
           is_active: true,
+          record_messages: true,
         }),
       );
       expect(mockAgentKeyRepo.insert).toHaveBeenCalled();

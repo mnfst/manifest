@@ -29,6 +29,7 @@ interface ForwardProviderOptions {
   resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
+  providerCacheKey?: string;
   signal?: AbortSignal;
   authType?: string;
   rawApiKey?: string;
@@ -86,6 +87,7 @@ import {
   resolveRouteCredentials,
   type RouteCredentialDeps,
 } from './route-credentials';
+import { recordingResponseFromText } from './attempt-recording-capture';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -195,6 +197,7 @@ export class ProxyFallbackService {
     startProviderAttempt?: StartProviderAttempt,
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
+    providerCacheKey?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -307,6 +310,7 @@ export class ProxyFallbackService {
         resolveChatBody,
         stream,
         sessionKey,
+        providerCacheKey,
         signal,
         agentId,
         tenantId,
@@ -345,6 +349,7 @@ export class ProxyFallbackService {
       }
 
       const errorBody = await forward.response.text();
+      await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
       failures.push({
         model,
         provider,
@@ -433,7 +438,7 @@ export class ProxyFallbackService {
       tenantProviderId: opts.tenantProviderId,
     });
     try {
-      const retried = await forward.retryWireBody(healedBody);
+      const retried = await forward.retryWireBody(healedBody, attempt);
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...retried, attempt, providerCallStarted: true };
     } catch (error) {
@@ -591,6 +596,7 @@ export class ProxyFallbackService {
       .clone()
       .text()
       .catch(() => 'OAuth token rejected');
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(rejectedBody));
     await forward.attempt?.completeFailure?.({
       status: forward.response.status,
       errorBody: rejectedBody,
@@ -640,7 +646,7 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -738,6 +744,7 @@ export class ProxyFallbackService {
         authType,
         apiMode: opts.apiMode,
         sessionKey: opts.sessionKey,
+        providerCacheKey: opts.providerCacheKey,
         signatureLookup,
         thinkingLookup,
         ...(thinkingLookup
@@ -751,6 +758,7 @@ export class ProxyFallbackService {
           : {}),
         reasoningContentLookup,
         providerResource,
+        attempt,
       });
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...forward, attempt, providerCallStarted: true };

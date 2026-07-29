@@ -146,7 +146,6 @@ export {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
-  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
@@ -173,3 +172,13 @@ export type {
 } from './plan-limits';
 export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
 export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';
+export {
+  coerceContentToText,
+  extractRecordedConversationMessages,
+  extractRequestMessages,
+  extractRequestTools,
+  extractResponseMessages,
+  extractResponseToolCalls,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RecordedResponseBody, Role, ToolCall } from './chat-message';

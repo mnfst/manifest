@@ -1,3 +1,5 @@
+import { createHash } from 'crypto';
+
 /**
  * Provider-specific hooks — data-driven lookups that replace scattered
  * `if (provider === 'foo')` chains across the proxy layer.
@@ -45,9 +47,15 @@ const PROVIDER_EXTRA_HEADER_BUILDERS: Record<
 
 export function buildProviderExtraHeaders(
   provider: string,
-  sessionKey: string,
+  providerCacheKey?: string,
 ): Record<string, string> | undefined {
+  if (!providerCacheKey) return undefined;
   const builder = PROVIDER_EXTRA_HEADER_BUILDERS[provider.toLowerCase()];
   if (!builder) return undefined;
-  return builder(sessionKey);
+  return builder(buildProviderPromptCacheKey(providerCacheKey));
+}
+
+function buildProviderPromptCacheKey(providerCacheKey: string): string {
+  const digest = createHash('sha256').update(providerCacheKey).digest('hex').slice(0, 32);
+  return `manifest-${digest}`;
 }

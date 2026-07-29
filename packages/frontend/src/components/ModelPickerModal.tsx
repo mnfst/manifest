@@ -1,4 +1,4 @@
-import { createSignal, For, onMount, Show, type Component } from 'solid-js';
+import { createSignal, For, onMount, Show, startTransition, type Component } from 'solid-js';
 import {
   refreshModels,
   refreshProviderModels,
@@ -120,6 +120,9 @@ const ModelPickerModal: Component<Props> = (props) => {
   );
   const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
   const [refreshingAll, setRefreshingAll] = createSignal(false);
+  // Parent callbacks refetch resources read inside this modal's Suspense
+  // boundary. Keep the current picker visible until those resources settle.
+  const notifyProviderRefreshed = () => startTransition(() => props.onProviderRefreshed?.());
 
   onMount(() => {
     const agentName = props.agentName;
@@ -137,7 +140,7 @@ const ModelPickerModal: Component<Props> = (props) => {
     void (async () => {
       try {
         await refreshModels(agentName);
-        await props.onProviderRefreshed?.();
+        await notifyProviderRefreshed();
       } catch {
         // network/server error toast already raised by fetchMutate
       } finally {
@@ -177,7 +180,7 @@ const ModelPickerModal: Component<Props> = (props) => {
       } else {
         toast.error(result.error ?? `Couldn't refresh ${displayName}`);
       }
-      await props.onProviderRefreshed?.();
+      await notifyProviderRefreshed();
     } catch {
       // network/server error toast already raised by fetchMutate
     } finally {

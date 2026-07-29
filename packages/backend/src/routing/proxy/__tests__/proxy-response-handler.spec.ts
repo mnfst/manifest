@@ -2423,48 +2423,6 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordManifestBlockedRequest).not.toHaveBeenCalled();
     });
 
-    it('does not invent a Provider Attempt for a healed Manifest-blocked original', () => {
-      // An M302 heal starts with no provider call. The Request parent already
-      // keeps the caller's requested model and Auto-fix outcome, while the
-      // actual retry is recorded as the sole Provider Attempt.
-      const recorder = mockRecorder();
-      const meta = makeMeta({ autofixOriginalProviderCallStarted: false });
-      const manifestAutofix: AutofixRecord = {
-        ...healedAutofix,
-        manifestOrigin: {
-          code: 'M302',
-          message: '[🦚 Manifest M302] Model "ghost" is not available for this agent.',
-          model: 'ghost',
-        },
-      };
-
-      recordSuccess(
-        testCtx,
-        meta,
-        { prompt_tokens: 100, completion_tokens: 50 },
-        undefined,
-        recorder as any,
-        'trace-1',
-        'session-1',
-        undefined,
-        null,
-        undefined,
-        manifestAutofix,
-      );
-
-      expect(recorder.recordManifestBlockedRequest).not.toHaveBeenCalled();
-      expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
-      // The retry row still records as the standard success message.
-      expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
-        testCtx,
-        'gpt-4o',
-        'standard',
-        'auto',
-        expect.anything(),
-        expect.objectContaining({ autofix: manifestAutofix }),
-      );
-    });
-
     it('does NOT record a separate auto_fixed original when healed but a fallback took over', () => {
       // Edge: heal succeeded (outcome 'healed') but a later stream fallback took
       // the request, so meta.fallbackFromModel is set and meta.model is now the

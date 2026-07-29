@@ -155,11 +155,14 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(groq!.openRouterPrefixes).toEqual([]);
   });
 
-  it('marks Manifest as cloud-only', () => {
-    const manifest = SHARED_PROVIDER_BY_ID.get('manifest');
-    expect(manifest).toBeDefined();
-    expect(manifest!.cloudOnly).toBe(true);
-    expect(manifest!.keyPlaceholder).toBe('sk-... (Manifest Credits key)');
+  it('registers Gemini Free separately from the Google provider', () => {
+    const provider = SHARED_PROVIDER_BY_ID.get('gemini-free');
+    expect(provider).toBeDefined();
+    expect(provider!.displayName).toBe('Gemini Free');
+    expect(provider!.aliases).toEqual(['gemini free']);
+    expect(provider!.openRouterPrefixes).toEqual([]);
+    expect(provider!.keyPlaceholder).toBe('sk-...');
+    expect(provider!.managedFree).toBe(true);
   });
 
   it('nvidia has no openRouter prefixes (native NIM /models is authoritative)', () => {

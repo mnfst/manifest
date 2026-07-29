@@ -2431,6 +2431,24 @@ describe('Anthropic Adapter', () => {
       expect(countCacheControls(body)).toBe(1);
     });
 
+    it('does not mix a default automatic breakpoint with a one-hour explicit breakpoint', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+        system: [
+          {
+            type: 'text',
+            text: 'instructions',
+            cache_control: { type: 'ephemeral', ttl: '1h' },
+          },
+        ],
+      };
+
+      applyAnthropicAutomaticCacheControl(body);
+
+      expect((body as Record<string, unknown>).cache_control).toBeUndefined();
+      expect(countCacheControls(body)).toBe(1);
+    });
+
     it('does not add top-level automatic cache_control when the body is already at the Anthropic cap', () => {
       const cache = { type: 'ephemeral' };
       const body = {

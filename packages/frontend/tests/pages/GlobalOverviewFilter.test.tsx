@@ -21,7 +21,7 @@ const apiMocks = vi.hoisted(() => ({
 
 const sseMocks = vi.hoisted(() => ({
   bumpAgent: undefined as undefined | (() => void),
-  bumpMessage: undefined as undefined | (() => void),
+  bumpAnalytics: undefined as undefined | (() => void),
   bumpRouting: undefined as undefined | (() => void),
   reset: undefined as undefined | (() => void),
 }));
@@ -204,17 +204,17 @@ vi.mock('../../src/components/GlobalOverviewSkeleton.jsx', () => ({
 vi.mock('../../src/services/sse.js', async () => {
   const { createSignal } = await vi.importActual<typeof import('solid-js')>('solid-js');
   const [agentPing, setAgentPing] = createSignal(0);
-  const [messagePing, setMessagePing] = createSignal(0);
+  const [analyticsPing, setAnalyticsPing] = createSignal(0);
   const [routingPing, setRoutingPing] = createSignal(0);
   sseMocks.bumpAgent = () => setAgentPing((n) => n + 1);
-  sseMocks.bumpMessage = () => setMessagePing((n) => n + 1);
+  sseMocks.bumpAnalytics = () => setAnalyticsPing((n) => n + 1);
   sseMocks.bumpRouting = () => setRoutingPing((n) => n + 1);
   sseMocks.reset = () => {
     setAgentPing(0);
-    setMessagePing(0);
+    setAnalyticsPing(0);
     setRoutingPing(0);
   };
-  return { agentPing, messagePing, routingPing };
+  return { agentPing, analyticsPing, routingPing };
 });
 
 vi.mock('../../src/services/scroll-fade.js', () => ({
@@ -345,7 +345,7 @@ afterEach(() => {
 });
 
 describe('GlobalOverview filter onUnselectAll', () => {
-  it('refetches global usage data when a message SSE ping lands', async () => {
+  it('refetches global usage data when an analytics SSE ping lands', async () => {
     render(() => <GlobalOverview />);
 
     await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(1));
@@ -354,7 +354,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(1);
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(1);
 
-    sseMocks.bumpMessage?.();
+    sseMocks.bumpAnalytics?.();
 
     await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(2));
     expect(apiMocks.getAgents).toHaveBeenCalledTimes(2);
@@ -372,7 +372,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
 
     // A background SSE ping refetch keeps the dashboard in place (no skeleton).
     apiMocks.getOverview.mockReturnValue(new Promise(() => {}));
-    sseMocks.bumpMessage?.();
+    sseMocks.bumpAnalytics?.();
     await Promise.resolve();
     expect(queryByTestId('global-overview-skeleton')).toBeNull();
     expect(container.querySelector('.chart-card')).not.toBeNull();

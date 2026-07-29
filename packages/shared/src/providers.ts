@@ -25,8 +25,6 @@ export interface SharedProviderEntry {
   requiresApiKey: boolean;
   /** Whether this provider is local-only (e.g. Ollama). */
   localOnly: boolean;
-  /** Whether this provider is available only on Manifest Cloud. */
-  cloudOnly?: boolean;
   /** Brand color used in the UI. */
   color: string;
   /** Expected API-key prefix (used for validation / placeholder). */
@@ -35,6 +33,8 @@ export interface SharedProviderEntry {
   minKeyLength: number;
   /** Placeholder shown in the UI's API-key input. */
   keyPlaceholder: string;
+  /** Whether Manifest provisions this provider through its managed free-provider flow. */
+  managedFree?: boolean;
   /**
    * Tiles that deep-link users into the local-server detail view (LM
    * Studio today). They do not have a fixed proxy endpoint — once
@@ -222,6 +222,19 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'API key',
   },
   {
+    id: 'gemini-free',
+    displayName: 'Gemini Free',
+    aliases: ['gemini free'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#4285f4',
+    keyPrefix: 'sk-',
+    minKeyLength: 10,
+    keyPlaceholder: 'sk-...',
+    managedFree: true,
+  },
+  {
     id: 'kiro',
     displayName: 'Kiro',
     aliases: [],
@@ -256,19 +269,6 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPrefix: 'sk-',
     minKeyLength: 50,
     keyPlaceholder: 'sk-xxxxx',
-  },
-  {
-    id: 'manifest',
-    displayName: 'Manifest',
-    aliases: ['manifest-gateway', 'manifest gateway'],
-    openRouterPrefixes: [],
-    requiresApiKey: true,
-    localOnly: false,
-    cloudOnly: true,
-    color: '#7C3AED',
-    keyPrefix: 'sk-',
-    minKeyLength: 10,
-    keyPlaceholder: 'sk-... (Manifest Credits key)',
   },
   {
     id: 'mistral',

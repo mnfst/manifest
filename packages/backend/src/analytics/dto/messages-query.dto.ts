@@ -156,5 +156,10 @@ export class MessagesQueryDto {
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) => value === true || value === 'true' || value === '1')
+  cache_total?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true' || value === '1')
   include_filter_options?: boolean;
 }

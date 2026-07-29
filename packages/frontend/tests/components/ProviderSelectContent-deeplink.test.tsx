@@ -145,22 +145,6 @@ describe('ProviderSelectContent — providerDeepLink', () => {
     expect(screen.getByText('Google')).toBeDefined();
   });
 
-  it('rejects a Manifest deep link on self-hosted installations', async () => {
-    const onClose = vi.fn();
-    const { container } = render(() => (
-      <ProviderSelectContent
-        agentName="test-agent"
-        providers={[]}
-        providerDeepLink={{ providerId: 'manifest' }}
-        onUpdate={onUpdate}
-        onClose={onClose}
-      />
-    ));
-
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
-    expect(container.querySelector('.provider-modal__view--from-right')).toBeNull();
-  });
-
   it('opens the custom-provider editor for a custom: deep link', async () => {
     // A `custom:<id>` deep link cannot resolve to a standard provider; the modal
     // must open the custom-provider editor for the matching custom provider.

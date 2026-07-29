@@ -20,7 +20,6 @@ export interface ProviderDef {
   keyPlaceholder: string;
   noKeyRequired?: boolean;
   localOnly?: boolean;
-  cloudOnly?: boolean;
   /** Provider supports agent-side OAuth/subscription auth (setup-token, OAuth, device-login). */
   supportsSubscription?: boolean;
   /** Label shown in the subscription tab for this provider. */
@@ -196,11 +195,6 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'GPT-OSS, GLM, Gemma on Cerebras inference',
     models: [],
   },
-  manifest: {
-    initial: 'M',
-    subtitle: 'Managed models via Manifest gateway',
-    models: [],
-  },
   'cline-pass': {
     initial: 'CP',
     subtitle: 'GLM, Kimi, DeepSeek, MiMo, MiniMax, Qwen via ClinePass',
@@ -269,6 +263,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     supportsSubscription: true,
     subscriptionLabel: 'Sign in with Google',
     subscriptionAuthMode: 'popup_oauth',
+    models: [],
+  },
+  'gemini-free': {
+    initial: 'GF',
+    subtitle: 'Free Gemini models via Manifest',
     models: [],
   },
   kiro: {
@@ -480,7 +479,6 @@ export function buildProviderDef(shared: SharedProviderEntry): ProviderDef {
     minKeyLength: shared.minKeyLength,
     keyPlaceholder: shared.keyPlaceholder,
     localOnly: shared.localOnly || undefined,
-    cloudOnly: shared.cloudOnly || undefined,
     ...overlay,
   };
 }
@@ -497,6 +495,7 @@ const PROVIDER_ORDER = [
   'commandcode',
   'deepseek',
   'fireworks',
+  'gemini-free',
   'copilot',
   'gemini',
   'groq',
@@ -505,7 +504,6 @@ const PROVIDER_ORDER = [
   'kiro',
   'llamacpp',
   'lmstudio',
-  'manifest',
   'minimax',
   'mistral',
   'moonshot',

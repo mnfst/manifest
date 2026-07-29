@@ -211,50 +211,7 @@ describe('filterNonChatModels', () => {
         'gemini-3-flash-lite-preview',
       ]);
     });
-  });
 
-  describe('Manifest Credits gateway patterns', () => {
-    it('filters wildcards, media-only, and non-chat Gemini catalog noise', () => {
-      const models = [
-        makeModel('gemini/*'),
-        makeModel('gemini/gemini-2.5-flash'),
-        makeModel('gemini/gemini-2.5-flash-image'),
-        makeModel('gemini/lyria-3-clip-preview'),
-        makeModel('gemini/veo-3.1-generate-001'),
-        makeModel('gemini/gemini-2.5-flash-native-audio-latest'),
-        makeModel('gemini/gemini-2.5-computer-use-preview-10-2025'),
-        makeModel('gemini/gemini-3.1-flash-live-preview'),
-        makeModel('gemini/deep-research-pro-preview-12-2025'),
-      ];
-      const result = filterNonChatModels(models, 'manifest');
-      expect(result.map((m) => m.id)).toEqual(['gemini/gemini-2.5-flash']);
-    });
-
-    it('keeps provider-prefixed chat models', () => {
-      const models = [
-        makeModel('gemini/gemini-2.5-flash'),
-        makeModel('gemini/gemini-2.5-pro'),
-        makeModel('gemini/gemini-3-flash-preview'),
-      ];
-      const result = filterNonChatModels(models, 'manifest');
-      expect(result).toHaveLength(3);
-    });
-
-    it('filters retired, experimental, and non-chat Gemini SKUs', () => {
-      const models = [
-        makeModel('gemini/gemini-1.5-flash'),
-        makeModel('gemini/gemini-2.0-flash-001'),
-        makeModel('gemini/gemini-exp-1206'),
-        makeModel('gemini/gemma-3-27b-it'),
-        makeModel('gemini/learnlm-1.5-pro-experimental'),
-        makeModel('gemini/gemini-2.5-flash'),
-      ];
-      const result = filterNonChatModels(models, 'manifest');
-      expect(result.map((m) => m.id)).toEqual(['gemini/gemini-2.5-flash']);
-    });
-  });
-
-  describe('Gemini image / robotics', () => {
     it('keeps gemini-image models but filters robotics models', () => {
       const models = [
         makeModel('gemini-2.5-flash-image'),
@@ -265,6 +222,31 @@ describe('filterNonChatModels', () => {
       expect(result.map((m) => m.id)).toEqual([
         'gemini-2.5-flash-image',
         'gemini-3-pro-image-preview',
+      ]);
+    });
+  });
+
+  describe('Gemini Free LiteLLM catalog', () => {
+    it('keeps usable Gemini chat models', () => {
+      const models = [
+        makeModel('gemini/gemini-2.5-flash'),
+        makeModel('gemini/gemini-2.5-pro'),
+        makeModel('gemini/gemini-3-flash-preview'),
+      ];
+      expect(filterNonChatModels(models, 'gemini-free')).toEqual(models);
+    });
+
+    it('filters media-only, retired, and experimental Gemini models', () => {
+      const models = [
+        makeModel('gemini/gemini-2.5-flash'),
+        makeModel('gemini/gemini-2.5-flash-image'),
+        makeModel('gemini/gemini-2.5-flash-native-audio-latest'),
+        makeModel('gemini/gemini-1.5-flash'),
+        makeModel('gemini/gemini-exp-1206'),
+        makeModel('gemini/veo-3.1-generate-001'),
+      ];
+      expect(filterNonChatModels(models, 'gemini-free').map((model) => model.id)).toEqual([
+        'gemini/gemini-2.5-flash',
       ]);
     });
   });

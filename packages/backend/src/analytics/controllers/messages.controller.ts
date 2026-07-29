@@ -58,6 +58,7 @@ export class MessagesController {
       specificity_category: query.specificity_category,
       header_tier_id: query.header_tier_id,
       include_total: query.include_total,
+      cache_total: query.cache_total,
       include_filter_options: query.include_filter_options,
     });
   }

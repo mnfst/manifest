@@ -1,7 +1,11 @@
-import { BadRequestException } from '@nestjs/common';
-import { ManifestProviderService } from './manifest-provider.service';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  getManagedFreeProviderConfig,
+  ManagedFreeProviderConfig,
+} from '../../common/constants/managed-free-providers';
+import { ManagedFreeProviderService } from './managed-free-provider.service';
 
-describe('ManifestProviderService', () => {
+describe('ManagedFreeProviderService', () => {
   const providerRepo = {
     find: jest.fn(),
   };
@@ -12,17 +16,17 @@ describe('ManifestProviderService', () => {
     discoverModels: jest.fn().mockResolvedValue(undefined),
   };
 
-  let service: ManifestProviderService;
+  let service: ManagedFreeProviderService;
   const originalFetch = global.fetch;
   const env = process.env;
 
   beforeEach(() => {
     jest.resetAllMocks();
     process.env = { ...env };
-    process.env['MANIFEST_CREDITS_MASTER_KEY'] = 'sk-master';
-    process.env['MANIFEST_CREDITS_BASE_URL'] = 'https://credits.test';
-    delete process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'];
-    service = new ManifestProviderService(
+    process.env['CREDITS_MASTER_KEY'] = 'sk-master';
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test';
+    delete process.env['CREDITS_AUTO_PROVISION_ALLOWLIST'];
+    service = new ManagedFreeProviderService(
       providerRepo as never,
       providerService as never,
       discoveryService as never,
@@ -35,18 +39,20 @@ describe('ManifestProviderService', () => {
     process.env = env;
   });
 
-  it('returns existing connection without minting', async () => {
+  it('returns an existing connection without minting', async () => {
     providerRepo.find.mockResolvedValue([{ id: 'conn-1', is_active: true }]);
-    const result = await service.ensureConnection({
-      tenantId: 't1',
-      userId: 'u1',
-      userEmail: 'a@x.com',
-    });
-    expect(result).toEqual({
+
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).resolves.toEqual({
       connected: true,
       connection_id: 'conn-1',
       source: 'existing',
-      auto_available: false,
+      auto_available: true,
     });
     expect(global.fetch).not.toHaveBeenCalled();
   });
@@ -54,44 +60,41 @@ describe('ManifestProviderService', () => {
   it('preserves an explicit disconnect without minting a replacement key', async () => {
     providerRepo.find.mockResolvedValue([{ id: 'conn-1', is_active: false }]);
 
-    const result = await service.ensureConnection({
-      tenantId: 't1',
-      userId: 'u1',
-      userEmail: 'a@x.com',
-    });
-
-    expect(result).toEqual({
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).resolves.toEqual({
       connected: false,
       connection_id: null,
       source: 'none',
-      auto_available: false,
+      auto_available: true,
     });
     expect(global.fetch).not.toHaveBeenCalled();
     expect(providerService.upsertProvider).not.toHaveBeenCalled();
   });
 
-  it('stores a pasted virtual key (manual path)', async () => {
-    providerRepo.find
-      .mockResolvedValueOnce([]) // findConnection first
-      .mockResolvedValueOnce([]); // findConnection inside persistKey
+  it('stores a pasted LiteLLM virtual key under Gemini Free', async () => {
+    providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     providerService.upsertProvider.mockResolvedValue({
       provider: { id: 'conn-2' },
       isNew: true,
     });
 
-    const result = await service.ensureConnection({
+    const result = await service.ensureConnection('gemini-free', {
       tenantId: 't1',
       userId: 'u1',
       userEmail: 'a@x.com',
       apiKey: 'sk-virtual',
     });
 
-    expect(result.source).toBe('manual');
-    expect(result.connection_id).toBe('conn-2');
+    expect(result).toMatchObject({ connection_id: 'conn-2', source: 'manual' });
     expect(providerService.upsertProvider).toHaveBeenCalledWith(
       null,
       't1',
-      'manifest',
+      'gemini-free',
       'sk-virtual',
       'api_key',
       undefined,
@@ -101,42 +104,25 @@ describe('ManifestProviderService', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('rejects a concurrent second connection before persisting', async () => {
-    providerRepo.find
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([{ id: 'conn-existing', is_active: true }]);
-
-    await expect(
-      service.ensureConnection({
-        tenantId: 't1',
-        userId: 'u1',
-        userEmail: 'a@x.com',
-        apiKey: 'sk-virtual',
-      }),
-    ).rejects.toBeInstanceOf(BadRequestException);
-    expect(providerService.upsertProvider).not.toHaveBeenCalled();
-  });
-
-  it('keeps a connection when model discovery fails', async () => {
-    providerRepo.find.mockResolvedValue([]);
+  it('keeps a connection when immediate model discovery fails', async () => {
+    providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     providerService.upsertProvider.mockResolvedValue({
       provider: { id: 'conn-2' },
       isNew: true,
     });
-    discoveryService.discoverModels.mockRejectedValueOnce(new Error('discovery unavailable'));
+    discoveryService.discoverModels.mockRejectedValueOnce('catalog unavailable');
 
     await expect(
-      service.ensureConnection({
+      service.ensureConnection('gemini-free', {
         tenantId: 't1',
         userId: 'u1',
         userEmail: 'a@x.com',
         apiKey: 'sk-virtual',
       }),
-    ).resolves.toMatchObject({ connected: true, connection_id: 'conn-2', source: 'manual' });
+    ).resolves.toMatchObject({ connection_id: 'conn-2', source: 'manual' });
   });
 
-  it('auto-mints a virtual key when eligible', async () => {
-    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
+  it('mints a virtual key scoped to Gemini models', async () => {
     providerRepo.find.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -147,18 +133,19 @@ describe('ManifestProviderService', () => {
       isNew: true,
     });
 
-    const result = await service.ensureConnection({
-      tenantId: 't1',
-      userId: 'u1',
-      userEmail: 'a@x.com',
-    });
-
-    expect(result).toEqual({
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).resolves.toEqual({
       connected: true,
       connection_id: 'conn-3',
       source: 'auto',
       auto_available: true,
     });
+
     expect(global.fetch).toHaveBeenCalledWith(
       'https://credits.test/key/generate',
       expect.objectContaining({
@@ -168,31 +155,24 @@ describe('ManifestProviderService', () => {
       }),
     );
     const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string);
-    expect(body.max_budget).toBe(10);
-    expect(body.key_alias).toBe('manifest:t1');
-  });
-
-  it('returns none when not eligible and no key pasted', async () => {
-    delete process.env['MANIFEST_CREDITS_MASTER_KEY'];
-    providerRepo.find.mockResolvedValue([]);
-    const result = await service.ensureConnection({
-      tenantId: 't1',
-      userId: 'u1',
-      userEmail: 'a@x.com',
-    });
-    expect(result).toEqual({
-      connected: false,
-      connection_id: null,
-      source: 'none',
-      auto_available: false,
+    expect(body).toMatchObject({
+      models: ['gemini/*'],
+      max_budget: 10,
+      key_alias: 'gemini-free:t1',
+      metadata: {
+        source: 'gemini-free',
+        tenant_id: 't1',
+        user_email: 'a@x.com',
+      },
     });
   });
 
-  it('does not auto-mint with a master key but no allowlist', async () => {
+  it('returns none when automatic provisioning is unavailable', async () => {
+    delete process.env['CREDITS_MASTER_KEY'];
     providerRepo.find.mockResolvedValue([]);
 
     await expect(
-      service.ensureConnection({
+      service.ensureConnection('gemini-free', {
         tenantId: 't1',
         userId: 'u1',
         userEmail: 'a@x.com',
@@ -203,20 +183,49 @@ describe('ManifestProviderService', () => {
       source: 'none',
       auto_available: false,
     });
-    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('rejects direct key generation when the master key is missing', async () => {
+    delete process.env['CREDITS_MASTER_KEY'];
+    const privateService = service as unknown as {
+      mintVirtualKey(
+        config: ManagedFreeProviderConfig,
+        tenantId: string,
+        userEmail: string | null,
+      ): Promise<string>;
+    };
+
+    await expect(
+      privateService.mintVirtualKey(getManagedFreeProviderConfig('gemini-free')!, 't1', 'a@x.com'),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects a concurrent second connection', async () => {
+    providerRepo.find
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'conn-existing', is_active: true }]);
+
+    await expect(
+      service.ensureConnection('gemini-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+        apiKey: 'sk-virtual',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
     expect(providerService.upsertProvider).not.toHaveBeenCalled();
   });
 
-  it('throws when credit-key generation fails', async () => {
-    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
+  it('rejects failed key generation', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
       status: 500,
       text: async () => 'boom',
     });
+
     await expect(
-      service.ensureConnection({
+      service.ensureConnection('gemini-free', {
         tenantId: 't1',
         userId: 'u1',
         userEmail: 'a@x.com',
@@ -224,13 +233,12 @@ describe('ManifestProviderService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('throws when the credit-key request rejects or times out', async () => {
-    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
+  it('rejects a failed or timed-out key-generation request', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockRejectedValue(new Error('request timed out'));
 
     await expect(
-      service.ensureConnection({
+      service.ensureConnection('gemini-free', {
         tenantId: 't1',
         userId: 'u1',
         userEmail: 'a@x.com',
@@ -238,8 +246,7 @@ describe('ManifestProviderService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('throws when the credits service omits the key', async () => {
-    process.env['MANIFEST_CREDITS_AUTO_PROVISION_ALLOWLIST'] = 'a@x.com';
+  it('rejects a key-generation response without a virtual key', async () => {
     providerRepo.find.mockResolvedValue([]);
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
@@ -247,7 +254,7 @@ describe('ManifestProviderService', () => {
     });
 
     await expect(
-      service.ensureConnection({
+      service.ensureConnection('gemini-free', {
         tenantId: 't1',
         userId: 'u1',
         userEmail: 'a@x.com',
@@ -255,16 +262,14 @@ describe('ManifestProviderService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('rejects direct key minting when the master key is unavailable', async () => {
-    delete process.env['MANIFEST_CREDITS_MASTER_KEY'];
-
+  it('rejects provider IDs that are not registered as managed free providers', async () => {
     await expect(
-      (
-        service as unknown as {
-          mintVirtualKey: (tenantId: string, email: string) => Promise<string>;
-        }
-      ).mintVirtualKey('t1', 'a@x.com'),
-    ).rejects.toBeInstanceOf(BadRequestException);
-    expect(global.fetch).not.toHaveBeenCalled();
+      service.ensureConnection('future-free', {
+        tenantId: 't1',
+        userId: 'u1',
+        userEmail: 'a@x.com',
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    expect(providerRepo.find).not.toHaveBeenCalled();
   });
 });

@@ -63,7 +63,6 @@ vi.mock('../../src/services/providers.js', () => ({
     { id: 'openai', name: 'OpenAI', supportsSubscription: true },
     { id: 'anthropic', name: 'Anthropic', supportsSubscription: true },
     { id: 'groq', name: 'Groq' },
-    { id: 'manifest', name: 'Manifest', cloudOnly: true },
     { id: 'ollama', name: 'Ollama', localOnly: true },
   ],
 }));
@@ -127,6 +126,7 @@ vi.mock('../../src/services/api/autofix.js', () => ({
 // accessors so the page mounts without a live EventSource under jsdom.
 vi.mock('../../src/services/sse.js', () => ({
   messagePing: () => 0,
+  analyticsPing: () => 0,
   routingPing: () => 0,
 }));
 
@@ -367,17 +367,6 @@ describe('provider pages', () => {
       expect(screen.getByText('Inactive')).toBeDefined();
       expect(screen.getByText('Supported usage-based providers')).toBeDefined();
     });
-  });
-
-  it('shows Manifest only on Manifest Cloud', async () => {
-    const selfHosted = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Supported usage-based providers')).toBeDefined());
-    expect(screen.queryByText('Manifest')).toBeNull();
-    selfHosted.unmount();
-
-    mockIsSelfHosted = false;
-    render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Manifest')).toBeDefined());
   });
 
   it('still renders connected rows when the usage endpoint rejects', async () => {

@@ -38,6 +38,7 @@ import { ProviderModelRegistryService } from '../../model-discovery/provider-mod
 import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
+import { MANAGED_FREE_PROVIDER_BY_ID } from '../../common/constants/managed-free-providers';
 
 export interface ForwardResult {
   response: Response;
@@ -50,7 +51,10 @@ export interface ForwardResult {
   /** Provider-facing API shape of {@link wireRequestBody}. */
   wireApiMode?: ProxyApiMode;
   /** Re-send a healed wire body through the already-resolved transport. */
-  retryWireBody?: (body: Record<string, unknown>) => Promise<ForwardResult>;
+  retryWireBody?: (
+    body: Record<string, unknown>,
+    attempt?: ProviderAttemptRef,
+  ) => Promise<ForwardResult>;
   /** False only when Manifest produced a response without invoking provider transport. */
   providerCallStarted?: boolean;
   /** Persisted provider-call identity, when request tracking is available. */
@@ -114,11 +118,8 @@ const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
 
-function shouldApplyAnthropicAutomaticCacheControl(
-  endpointKey: string,
-  authType: string | undefined,
-): boolean {
-  return endpointKey === 'anthropic' && authType === 'subscription';
+function shouldApplyAnthropicAutomaticCacheControl(endpointKey: string): boolean {
+  return endpointKey === 'anthropic';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -169,24 +170,14 @@ function buildPromptCacheKey(sessionKey: string): string {
   return `manifest-${digest}`;
 }
 
-function applyXaiResponsesPromptCacheKey(
-  body: Record<string, unknown>,
-  sessionKey: string | undefined,
-): void {
-  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
-  const trimmedSessionKey = sessionKey?.trim();
-  if (!trimmedSessionKey) return;
-  body.prompt_cache_key = trimmedSessionKey;
-}
-
 function applyHashedPromptCacheKey(
   body: Record<string, unknown>,
-  sessionKey: string | undefined,
+  providerCacheKey: string | undefined,
 ): void {
   if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
-  const trimmedSessionKey = sessionKey?.trim();
-  if (!trimmedSessionKey) return;
-  body.prompt_cache_key = buildPromptCacheKey(trimmedSessionKey);
+  const trimmedCacheKey = providerCacheKey?.trim();
+  if (!trimmedCacheKey) return;
+  body.prompt_cache_key = buildPromptCacheKey(trimmedCacheKey);
 }
 
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
@@ -201,8 +192,8 @@ function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
 function stripModelPrefix(model: string, endpointKey: string): string {
-  // OpenRouter and Manifest Credits accept and expect vendor prefixes.
-  if (endpointKey === 'openrouter' || endpointKey === 'manifest') return model;
+  // OpenRouter and managed free providers expect vendor prefixes.
+  if (endpointKey === 'openrouter' || MANAGED_FREE_PROVIDER_BY_ID.has(endpointKey)) return model;
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
   }
@@ -284,6 +275,10 @@ export class ProviderClient {
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
       const requestSource = chatBody ?? body;
+      opts.attempt?.startRecording?.({
+        requestBody: requestSource,
+        wireFormat: 'kiro_chat',
+      });
       const response = await forwardKiroChat({
         apiKey,
         model: bareModel,
@@ -298,6 +293,9 @@ export class ProviderClient {
         isGoogle: false,
         isAnthropic: false,
         isChatGpt: false,
+        wireRequestBody: requestSource,
+        wireFormat: 'kiro_chat',
+        wireApiMode: opts.apiMode,
         responsesTextFormat: textFormat,
       };
     }
@@ -319,6 +317,7 @@ export class ProviderClient {
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
+      providerCacheKey: opts.providerCacheKey,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
@@ -334,7 +333,14 @@ export class ProviderClient {
 
     const retryWireBody = async (
       wireRequestBody: Record<string, unknown>,
+      attempt: ProviderAttemptRef | undefined = opts.attempt,
     ): Promise<ForwardResult> => {
+      if (resolvedWireFormat) {
+        attempt?.startRecording?.({
+          requestBody: wireRequestBody,
+          wireFormat: resolvedWireFormat,
+        });
+      }
       this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
       // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
@@ -535,6 +541,7 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
+    providerCacheKey?: string;
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // Native matching targets read `body` directly. Cross-protocol targets
@@ -601,7 +608,7 @@ export class ProviderClient {
           : undefined;
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
-      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey)) {
         applyAnthropicAutomaticCacheControl(requestBody);
       }
       return {
@@ -645,7 +652,10 @@ export class ProviderClient {
                 endpointKey === 'xai-responses',
             });
       if (endpointKey === 'xai-responses') {
-        applyXaiResponsesPromptCacheKey(requestBody, ctx.sessionKey);
+        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
+      }
+      if (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') {
+        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
       }
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
@@ -676,21 +686,29 @@ export class ProviderClient {
       sanitized.stream_options = { ...existing, include_usage: true };
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
+    if (endpointKey === 'openai') {
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
+    }
     if (endpointKey === 'mistral') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'moonshot') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'fireworks') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
       injectOpenAiMessageCacheControl(requestBody);
     }
     if (endpointKey === 'openrouter') {
       const cacheMode = openRouterCacheMode(ctx.model);
-      if (cacheMode) injectOpenRouterCacheControl(requestBody, cacheMode);
+      if (cacheMode) {
+        injectOpenRouterCacheControl(requestBody, cacheMode);
+        if (cacheMode === 'anthropic') {
+          applyAnthropicAutomaticCacheControl(requestBody);
+        }
+      }
     }
     return {
       url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
