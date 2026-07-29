@@ -226,7 +226,7 @@ const Welcome: Component = () => {
       event.key === 'ArrowRight'
         ? order[(idx + 1) % order.length]
         : order[(idx - 1 + order.length) % order.length];
-    selectProviderTab(next, true);
+    selectProviderTab(next!, true);
   };
 
   // Household names first — a new user scans for the provider they already
