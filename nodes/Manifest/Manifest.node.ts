@@ -239,9 +239,6 @@ async function requestManifest(
 	return parseManifestResponse(response);
 }
 
-// usableAsTool is intentionally omitted: Manifest is a model router, not an
-// agent tool. Agents should connect through the Manifest Chat Model sub-node.
-// eslint-disable-next-line @n8n/community-nodes/node-usable-as-tool
 export class Manifest implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Manifest',
@@ -256,6 +253,7 @@ export class Manifest implements INodeType {
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
+		usableAsTool: true,
 		credentials: [
 			{
 				name: 'manifestApi',
