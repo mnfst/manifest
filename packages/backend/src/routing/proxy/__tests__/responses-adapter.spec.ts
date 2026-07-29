@@ -423,6 +423,7 @@ describe('Responses adapter', () => {
             completion_tokens: 3,
             total_tokens: 13,
             cache_read_tokens: 4,
+            cache_creation_tokens: 2,
           },
         },
         'fallback-model',
@@ -446,7 +447,7 @@ describe('Responses adapter', () => {
       ]);
       expect(result.usage).toEqual({
         input_tokens: 10,
-        input_tokens_details: { cached_tokens: 4 },
+        input_tokens_details: { cached_tokens: 4, cache_write_tokens: 2 },
         output_tokens: 3,
         output_tokens_details: { reasoning_tokens: 0 },
         total_tokens: 13,

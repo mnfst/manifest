@@ -237,7 +237,7 @@ describe('chatgpt-adapter', () => {
             input_tokens: 10,
             output_tokens: 2,
             total_tokens: 12,
-            input_tokens_details: { cached_tokens: 3 },
+            input_tokens_details: { cached_tokens: 3, cache_write_tokens: 2 },
           },
         },
         'gpt-5',
@@ -252,7 +252,7 @@ describe('chatgpt-adapter', () => {
         completion_tokens: 2,
         total_tokens: 12,
         cache_read_tokens: 3,
-        cache_creation_tokens: 0,
+        cache_creation_tokens: 2,
       });
     });
 
