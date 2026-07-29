@@ -258,13 +258,25 @@ describe('RequestDrawer', () => {
     await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
     fireEvent.click(screen.getByText('Messages'));
 
-    expect(screen.getByText('Recorded user turn')).toBeDefined();
-    expect(screen.getByText('Recorded assistant turn')).toBeDefined();
+    expect(
+      screen.getByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByText('Recorded assistant turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
 
     // Switch to attempt 1 — no recording, so Messages/Tools/Raw tabs do not appear.
     fireEvent.click(container.querySelectorAll('.attempt-item')[1]!);
     expect(screen.queryByText('Messages')).toBeNull();
-    expect(screen.queryByText('Recorded user turn')).toBeNull();
+    expect(
+      screen.queryByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeNull();
   });
 
   it.each([
