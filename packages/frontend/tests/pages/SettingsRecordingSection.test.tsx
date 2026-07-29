@@ -18,7 +18,7 @@ describe('SettingsRecordingSection', () => {
   beforeEach(() => vi.clearAllMocks());
   afterEach(cleanup);
 
-  it('renders opt-in recording off by default', async () => {
+  it('renders the disabled state returned for an existing agent', async () => {
     getRecording.mockResolvedValue({ enabled: false });
     const { getByRole, getByText } = render(() => (
       <SettingsRecordingSection agentName={() => 'demo'} />

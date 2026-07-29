@@ -37,9 +37,9 @@ export class Agent {
   @Column('boolean', { nullable: true })
   autofix_enabled!: boolean | null;
 
-  // Opt-in because recorded request/response bodies can contain sensitive
-  // application data and grow storage in proportion to request volume.
-  @Column('boolean', { default: false })
+  // Enabled for newly created agents. Existing agents keep their persisted
+  // choice because the migration changes only the column default.
+  @Column('boolean', { default: true })
   record_messages!: boolean;
 
   // Reserved Playground agent (the per-tenant "Playground" agent). Hidden
