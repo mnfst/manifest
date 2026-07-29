@@ -38,6 +38,7 @@ import { ProviderModelRegistryService } from '../../model-discovery/provider-mod
 import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
+import { MANAGED_FREE_PROVIDER_BY_ID } from '../../common/constants/managed-free-providers';
 
 export interface ForwardResult {
   response: Response;
@@ -204,8 +205,8 @@ function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
  * Models synced from OpenRouter use vendor prefixes, but native APIs expect bare names.
  */
 function stripModelPrefix(model: string, endpointKey: string): string {
-  // OpenRouter and Manifest Credits accept and expect vendor prefixes.
-  if (endpointKey === 'openrouter' || endpointKey === 'manifest') return model;
+  // OpenRouter and managed free providers expect vendor prefixes.
+  if (endpointKey === 'openrouter' || MANAGED_FREE_PROVIDER_BY_ID.has(endpointKey)) return model;
   if (endpointKey === 'commandcode' || endpointKey === 'commandcode-anthropic') {
     return model.startsWith('commandcode/') ? model.slice('commandcode/'.length) : model;
   }

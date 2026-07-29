@@ -559,6 +559,28 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('openrouter/auto');
     });
 
+    it('preserves the Gemini vendor prefix for Gemini Free LiteLLM requests', async () => {
+      process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'gemini-free',
+        apiKey: 'sk-virtual',
+        model: 'gemini/gemini-2.5-flash',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://litellm.test/v1/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({ Authorization: 'Bearer sk-virtual' }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('gemini/gemini-2.5-flash');
+    });
+
     it('builds Nous Portal requests without stripping vendor-prefixed model IDs', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

@@ -1,4 +1,4 @@
-import type { AuthType } from 'manifest-shared';
+import { SHARED_PROVIDERS, type AuthType } from 'manifest-shared';
 import { invalidateAll } from './cache.js';
 import { BASE_URL, fetchJson, parseErrorMessage } from './core.js';
 
@@ -66,35 +66,33 @@ export interface ProviderUsageResponse {
   providers: TenantProviderUsage[];
 }
 
-export interface ManifestEnsureResponse {
+export interface ManagedFreeEnsureResponse {
   connected: boolean;
   connection_id: string | null;
   source: 'existing' | 'auto' | 'manual' | 'none';
   auto_available: boolean;
 }
 
-let manifestEnsureInflight: Promise<ManifestEnsureResponse> | null = null;
+const managedFreeEnsureInflight = new Map<string, Promise<ManagedFreeEnsureResponse>>();
 
-/**
- * Ensure a Manifest Credits connection exists. Auto-mints a credit key when
- * the backend has a master key and the user is eligible; otherwise pass `apiKey`
- * for the gifted-key path. Dedupes concurrent calls.
- */
-export async function ensureManifestProvider(apiKey?: string): Promise<ManifestEnsureResponse> {
-  if (!apiKey && manifestEnsureInflight) return manifestEnsureInflight;
+export async function ensureManagedFreeProvider(
+  providerId: string,
+  apiKey?: string,
+): Promise<ManagedFreeEnsureResponse> {
+  const existing = managedFreeEnsureInflight.get(providerId);
+  if (!apiKey && existing) return existing;
 
   const run = (async () => {
-    const res = await fetch(`${BASE_URL}/providers/manifest/ensure`, {
+    const response = await fetch(`${BASE_URL}/providers/${encodeURIComponent(providerId)}/ensure`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(apiKey ? { apiKey } : {}),
     });
-    if (!res.ok) {
-      throw new Error(await parseErrorMessage(res));
+    if (!response.ok) {
+      throw new Error(await parseErrorMessage(response));
     }
-    const data = (await res.json()) as ManifestEnsureResponse;
-    // Only bust GET cache when a connection was actually created.
+    const data = (await response.json()) as ManagedFreeEnsureResponse;
     if (data.source === 'auto' || data.source === 'manual') {
       invalidateAll();
     }
@@ -102,25 +100,28 @@ export async function ensureManifestProvider(apiKey?: string): Promise<ManifestE
   })();
 
   if (!apiKey) {
-    manifestEnsureInflight = run.finally(() => {
-      manifestEnsureInflight = null;
+    const tracked = run.finally(() => {
+      if (managedFreeEnsureInflight.get(providerId) === tracked) {
+        managedFreeEnsureInflight.delete(providerId);
+      }
     });
-    return manifestEnsureInflight;
+    managedFreeEnsureInflight.set(providerId, tracked);
+    return tracked;
   }
   return run;
 }
 
 /**
  * Fetch provider CONFIG only (cheap; paints immediately).
- * Best-effort auto-provision of the managed Manifest gateway connection so
- * eligible users see it in routing without visiting the BYOK page first.
+ * Managed free-provider provisioning stays in the background so an unavailable
+ * LiteLLM gateway never blocks provider configuration or routing screens.
  */
 export function getProviders() {
   const providers = fetchJson<ProvidersResponse>('/providers');
-  if (import.meta.env.VITE_MANIFEST_SELFHOSTED !== 'true') {
-    // Provision in the background so a slow or unavailable credits gateway never
-    // blocks provider configuration, routing screens, or agent creation.
-    void ensureManifestProvider().catch(() => undefined);
+  for (const provider of SHARED_PROVIDERS) {
+    if (provider.managedFree) {
+      void ensureManagedFreeProvider(provider.id).catch(() => undefined);
+    }
   }
   return providers;
 }

@@ -8,7 +8,6 @@ import {
 } from '../../src/services/providers';
 import { validateApiKey, validateSubscriptionKey } from '../../src/services/provider-utils';
 import {
-  ROUTING_PROVIDER_API_KEY_URLS,
   EMAIL_PROVIDER_API_KEY_URLS,
   SUBSCRIPTION_PROVIDER_KEY_URLS,
   getRoutingProviderApiKeyUrl,
@@ -469,11 +468,14 @@ describe('PROVIDERS', () => {
     expect(ollama.minKeyLength).toBe(0);
   });
 
-  it('Manifest is marked cloud-only', () => {
-    const manifest = PROVIDERS.find((p) => p.id === 'manifest')!;
-    expect(manifest).toBeDefined();
-    expect(manifest.cloudOnly).toBe(true);
-    expect(manifest.keyPlaceholder).toBe('sk-... (Manifest Credits key)');
+  it('exposes Gemini Free as a LiteLLM virtual-key provider', () => {
+    const provider = PROVIDERS.find((entry) => entry.id === 'gemini-free')!;
+    expect(provider.name).toBe('Gemini Free');
+    expect(provider.subtitle).toBe('Free Gemini models via Manifest');
+    expect(provider.keyPlaceholder).toBe('sk-... (LiteLLM virtual key)');
+    expect(getRoutingProviderApiKeyUrl('gemini-free')).toBe(
+      'https://calendly.com/sebastien-manifest/30min',
+    );
   });
 
   it('each provider has required fields', () => {
@@ -1010,7 +1012,7 @@ describe('PROVIDERS', () => {
         !provider.noKeyRequired &&
         !provider.deviceLogin &&
         !provider.subscriptionOnly &&
-        !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+        !getRoutingProviderApiKeyUrl(provider.id),
     ).map((provider) => provider.id);
     expect(missingProviderIds).toEqual([]);
   });
@@ -1054,12 +1056,6 @@ describe('EMAIL_PROVIDER_API_KEY_URLS', () => {
 describe('getRoutingProviderApiKeyUrl', () => {
   it('returns a URL for a known provider', () => {
     expect(getRoutingProviderApiKeyUrl('openai')).toBe('https://platform.openai.com/api-keys');
-  });
-
-  it('returns the booking page for Manifest keys', () => {
-    expect(getRoutingProviderApiKeyUrl('manifest')).toBe(
-      'https://calendly.com/sebastien-manifest/30min',
-    );
   });
 
   it('returns the ClinePass API-key settings URL', () => {

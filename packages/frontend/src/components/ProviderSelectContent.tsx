@@ -70,14 +70,6 @@ const ProviderSelectContent: Component<ProviderSelectContentProps> = (props) => 
   const [selectedProvider, setSelectedProvider] = createSignal<string | null>(
     deepLinkProv ? deepLinkProv.id : null,
   );
-  createEffect(() => {
-    const providerId = selectedProvider();
-    if (!isSelfHosted() || !providerId) return;
-    if (PROVIDERS.find((provider) => provider.id === providerId)?.cloudOnly) {
-      setSelectedProvider(null);
-      closeHandler()();
-    }
-  });
   const [selectedAuthType, setSelectedAuthType] = createSignal<AuthType>(
     deepLink?.authType ?? (deepLinkProv?.subscriptionOnly ? 'subscription' : 'api_key'),
   );
