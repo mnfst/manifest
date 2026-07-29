@@ -1145,7 +1145,7 @@ describe('ProviderClient', () => {
       expect(headers['anthropic-beta']).toBeUndefined();
     });
 
-    it('does not include top-level cache_control in Anthropic request body', async () => {
+    it('includes automatic cache_control in Anthropic API-key requests', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -1157,7 +1157,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toBeUndefined();
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
     });
 
     it('converts request body to Anthropic format with model', async () => {
@@ -1317,7 +1317,7 @@ describe('ProviderClient', () => {
       expect(tools[0].cache_control).toEqual({ type: 'ephemeral' });
     });
 
-    it('includes block-level cache_control for regular Anthropic API key auth', async () => {
+    it('includes automatic and block-level cache_control for regular Anthropic API key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const bodyWithSystem = {
@@ -1337,7 +1337,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.cache_control).toBeUndefined();
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
       const system = sentBody.system as Array<{ cache_control?: unknown }>;
       expect(system[0].cache_control).toEqual({ type: 'ephemeral' });
       const tools = sentBody.tools as Array<{ cache_control?: unknown }>;
@@ -2789,6 +2789,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
       const sysMsg = sentBody.messages[0];
       expect(Array.isArray(sysMsg.content)).toBe(true);
       expect(sysMsg.content[0].cache_control).toEqual({ type: 'ephemeral' });
@@ -2812,7 +2813,55 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual({ type: 'ephemeral' });
       expect(sentBody.messages[0].content[0].cache_control).toEqual({ type: 'ephemeral' });
+    });
+
+    it('keeps caller-supplied OpenRouter automatic cache control', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const cacheControl = { type: 'ephemeral', ttl: '1h' };
+
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'anthropic/claude-sonnet-4-20250514',
+        body: {
+          cache_control: cacheControl,
+          messages: [{ role: 'user', content: 'Hi' }],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toEqual(cacheControl);
+    });
+
+    it('does not exceed the Anthropic cache control cap on OpenRouter', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const cacheControl = { type: 'ephemeral' };
+
+      await client.forward({
+        provider: 'openrouter',
+        apiKey: 'sk-or',
+        model: 'anthropic/claude-sonnet-4-20250514',
+        body: {
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'one', cache_control: cacheControl },
+                { type: 'text', text: 'two', cache_control: cacheControl },
+                { type: 'text', text: 'three', cache_control: cacheControl },
+                { type: 'text', text: 'four', cache_control: cacheControl },
+              ],
+            },
+          ],
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.cache_control).toBeUndefined();
     });
 
     it('injects message cache_control for google models on openrouter', async () => {
