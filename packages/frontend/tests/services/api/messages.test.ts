@@ -61,6 +61,16 @@ describe('messages API client', () => {
     expect(url).toContain('include_filter_options=false');
   });
 
+  it('getMessages can bypass the GET cache for polling', async () => {
+    const fetchMock = setupFetch({ rows: [] });
+    const params = { agent_name: 'cache-bypass-demo', limit: '1' };
+
+    await messages.getMessages(params);
+    await messages.getMessages(params, { cache: false });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('getMessageFilterOptions GETs filter metadata with agent scope', async () => {
     const fetchMock = setupFetch({ providers: [] });
     await messages.getMessageFilterOptions({ range: '30d', agent_name: 'demo' });

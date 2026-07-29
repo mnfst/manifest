@@ -294,8 +294,7 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   const out: AnthropicTool[] = [];
   for (const t of tools) {
     const fn = t.function as
-      | { name: string; description?: string; parameters?: unknown }
-      | undefined;
+      { name: string; description?: string; parameters?: unknown } | undefined;
     if (fn) out.push({ name: fn.name, description: fn.description, input_schema: fn.parameters });
   }
   return out.length > 0 ? out : undefined;
