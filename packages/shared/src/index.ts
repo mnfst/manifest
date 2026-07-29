@@ -178,6 +178,7 @@ export {
   extractRequestMessages,
   extractRequestTools,
   extractResponseMessages,
+  extractResponseToolCalls,
   normalizeRole,
 } from './chat-message';
 export type { ChatMessage, ChatTool, RecordedResponseBody, Role, ToolCall } from './chat-message';

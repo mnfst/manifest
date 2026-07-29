@@ -163,15 +163,38 @@ function responsesItem(item: JsonRecord, defaultRole: string): ChatMessage[] {
 }
 
 function geminiContents(contents: unknown[]): ChatMessage[] {
-  return contents.filter(isRecord).map((content) => ({
-    role:
-      content.role === 'model'
-        ? 'assistant'
-        : typeof content.role === 'string'
-          ? content.role
-          : 'user',
-    content: content.parts,
-  }));
+  return contents.filter(isRecord).map((content) => {
+    const parts = Array.isArray(content.parts) ? content.parts : [];
+    const toolCalls: ToolCall[] = [];
+    const normalContent: unknown[] = [];
+
+    for (const part of parts) {
+      if (!isRecord(part) || !isRecord(part.functionCall)) {
+        normalContent.push(part);
+        continue;
+      }
+      const call = part.functionCall;
+      toolCalls.push({
+        id: typeof call.id === 'string' ? call.id : undefined,
+        type: 'function',
+        function: {
+          name: typeof call.name === 'string' ? call.name : undefined,
+          arguments: call.args,
+        },
+      });
+    }
+
+    return {
+      role:
+        content.role === 'model'
+          ? 'assistant'
+          : typeof content.role === 'string'
+            ? content.role
+            : 'user',
+      content: normalContent.length > 0 ? normalContent : null,
+      ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+    };
+  });
 }
 
 export function extractRequestMessages(
@@ -257,6 +280,26 @@ function extractJsonResponse(body: JsonRecord): ChatMessage[] {
 
 function extractStreamResponse(rawSse: string): ChatMessage[] {
   let text = '';
+  const toolCalls: ToolCall[] = [];
+  type MutableToolCall = ToolCall & {
+    function: { name?: string; arguments?: unknown };
+  };
+  const callsByKey = new Map<string, MutableToolCall>();
+
+  const callFor = (key: string): MutableToolCall => {
+    const existing = callsByKey.get(key);
+    if (existing) return existing;
+    const call: MutableToolCall = { type: 'function', function: {} };
+    callsByKey.set(key, call);
+    toolCalls.push(call);
+    return call;
+  };
+
+  const appendArguments = (call: MutableToolCall, fragment: string) => {
+    const current = call.function.arguments;
+    call.function.arguments = `${typeof current === 'string' ? current : ''}${fragment}`;
+  };
+
   for (const line of rawSse.split(/\r?\n/)) {
     if (!line.startsWith('data:')) continue;
     const data = line.slice(5).trim();
@@ -267,17 +310,93 @@ function extractStreamResponse(rawSse: string): ChatMessage[] {
       const choice = choices.find(isRecord);
       const delta = choice && isRecord(choice.delta) ? choice.delta : undefined;
       if (typeof delta?.content === 'string') text += delta.content;
+      if (Array.isArray(delta?.tool_calls)) {
+        for (const rawCall of delta.tool_calls) {
+          if (!isRecord(rawCall)) continue;
+          const index = typeof rawCall.index === 'number' ? rawCall.index : 0;
+          const call = callFor(`chat:${index}`);
+          if (typeof rawCall.id === 'string') call.id = rawCall.id;
+          if (typeof rawCall.type === 'string') call.type = rawCall.type;
+          if (isRecord(rawCall.function)) {
+            if (typeof rawCall.function.name === 'string') {
+              call.function.name = `${call.function.name ?? ''}${rawCall.function.name}`;
+            }
+            if (typeof rawCall.function.arguments === 'string') {
+              appendArguments(call, rawCall.function.arguments);
+            }
+          }
+        }
+      }
       if (payload.type === 'response.output_text.delta' && typeof payload.delta === 'string') {
         text += payload.delta;
       }
+      if (
+        (payload.type === 'response.output_item.added' ||
+          payload.type === 'response.output_item.done') &&
+        isRecord(payload.item) &&
+        payload.item.type === 'function_call'
+      ) {
+        const item = payload.item;
+        const itemKey =
+          typeof item.id === 'string'
+            ? item.id
+            : typeof item.call_id === 'string'
+              ? item.call_id
+              : String(payload.output_index ?? 0);
+        const call = callFor(`response:${itemKey}`);
+        call.id =
+          typeof item.call_id === 'string'
+            ? item.call_id
+            : typeof item.id === 'string'
+              ? item.id
+              : call.id;
+        if (typeof item.name === 'string') call.function.name = item.name;
+        if (typeof item.arguments === 'string') call.function.arguments = item.arguments;
+      }
+      if (
+        payload.type === 'response.function_call_arguments.delta' &&
+        typeof payload.delta === 'string'
+      ) {
+        const itemKey =
+          typeof payload.item_id === 'string' ? payload.item_id : String(payload.output_index ?? 0);
+        appendArguments(callFor(`response:${itemKey}`), payload.delta);
+      }
+      if (
+        payload.type === 'content_block_start' &&
+        isRecord(payload.content_block) &&
+        payload.content_block.type === 'tool_use'
+      ) {
+        const block = payload.content_block;
+        const call = callFor(`anthropic:${String(payload.index ?? 0)}`);
+        if (typeof block.id === 'string') call.id = block.id;
+        if (typeof block.name === 'string') call.function.name = block.name;
+        if (block.input != null) call.function.arguments = block.input;
+      }
       if (payload.type === 'content_block_delta' && isRecord(payload.delta)) {
         if (typeof payload.delta.text === 'string') text += payload.delta.text;
+        if (
+          payload.delta.type === 'input_json_delta' &&
+          typeof payload.delta.partial_json === 'string'
+        ) {
+          appendArguments(
+            callFor(`anthropic:${String(payload.index ?? 0)}`),
+            payload.delta.partial_json,
+          );
+        }
       }
     } catch {
       // Keep parsing later events when one provider emits a non-JSON line.
     }
   }
-  return text ? [{ role: 'assistant', content: text }] : [];
+  return text || toolCalls.length > 0
+    ? [
+        {
+          role: 'assistant',
+          content: text || null,
+          ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+        },
+      ]
+    : [];
 }
 
 export function extractResponseMessages(
@@ -289,6 +408,12 @@ export function extractResponseMessages(
   return responseBody?.type === 'json' && isRecord(responseBody.body)
     ? extractJsonResponse(responseBody.body)
     : [];
+}
+
+export function extractResponseToolCalls(
+  responseBody: RecordedResponseBody | null | undefined,
+): ToolCall[] {
+  return extractResponseMessages(responseBody).flatMap((message) => message.tool_calls ?? []);
 }
 
 export function extractRecordedConversationMessages(

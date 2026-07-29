@@ -2,7 +2,7 @@ import { For, Show, createMemo, createSignal, onCleanup, type Component } from '
 import {
   coerceContentToText,
   extractRecordedConversationMessages,
-  extractRequestTools,
+  extractResponseToolCalls,
   normalizeRole,
   type ChatMessage,
   type Role,
@@ -31,6 +31,15 @@ function pretty(value: unknown): string {
     return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
+  }
+}
+
+function toolArguments(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
   }
 }
 
@@ -317,7 +326,7 @@ const RequestMessages: Component<{ recording: Recording | null; view?: Recording
         )
       : [],
   );
-  const tools = createMemo(() => extractRequestTools(props.recording?.request_body));
+  const toolCalls = createMemo(() => extractResponseToolCalls(props.recording?.response_body));
 
   return (
     <Show
@@ -350,25 +359,25 @@ const RequestMessages: Component<{ recording: Recording | null; view?: Recording
           <Show when={view() === 'tools'}>
             <div class="request-messages__scroll-area">
               <Show
-                when={tools().length > 0}
-                fallback={<div class="request-messages__empty">No tools were defined.</div>}
+                when={toolCalls().length > 0}
+                fallback={<div class="request-messages__empty">No tools were called.</div>}
               >
                 <div class="request-messages__tools">
-                  <For each={tools()}>
-                    {(tool) => (
+                  <For each={toolCalls()}>
+                    {(call) => (
                       <article class="request-tool">
                         <div class="request-tool__head">
                           <span class="request-messages__tool-icon" aria-hidden="true">
                             ↳
                           </span>
-                          <strong>{tool.function?.name ?? tool.type ?? 'Unknown tool'}</strong>
-                          <span>{tool.type ?? 'function'}</span>
+                          <strong>{call.function?.name ?? 'Unknown tool'}</strong>
+                          <span class="request-tool__type">{call.type ?? 'function'}</span>
+                          <Show when={call.id}>
+                            <code>{call.id}</code>
+                          </Show>
                         </div>
-                        <Show when={tool.function?.description}>
-                          <p>{tool.function?.description}</p>
-                        </Show>
-                        <Show when={tool.function?.parameters != null}>
-                          <pre>{pretty(tool.function?.parameters)}</pre>
+                        <Show when={call.function?.arguments != null}>
+                          <pre>{pretty(toolArguments(call.function?.arguments))}</pre>
                         </Show>
                       </article>
                     )}
