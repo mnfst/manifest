@@ -90,7 +90,11 @@ describe('ProxyService — orchestration', () => {
   let providerKeyService: jest.Mocked<
     Pick<
       ProviderKeyService,
-      'getProviderApiKey' | 'getProviderRegion' | 'getProviderKeyId' | 'selectProviderKey'
+      | 'getProviderApiKey'
+      | 'getProviderRegion'
+      | 'getProviderKeyId'
+      | 'selectProviderKey'
+      | 'hasRouteCredentials'
     >
   >;
   let openaiOauth: jest.Mocked<Pick<OpenaiOauthService, 'unwrapToken'>>;
@@ -156,6 +160,7 @@ describe('ProxyService — orchestration', () => {
         label: 'Default',
         priority: 0,
       }),
+      hasRouteCredentials: jest.fn().mockResolvedValue(false),
     };
     openaiOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
     minimaxOauth = { unwrapToken: jest.fn().mockResolvedValue(null) };
@@ -524,6 +529,42 @@ describe('ProxyService — orchestration', () => {
       const reforwardOpts = fallbackService.tryForwardToProvider.mock.calls[1][0];
       expect(reforwardOpts.model).toBe('gpt-4o-mini');
       expect(reforwardOpts.provider).toBe('openai');
+    });
+
+    it('re-resolves an uncatalogued healed model through connected-provider passthrough', async () => {
+      routableResolve();
+      const healed = fwd(200, { model: 'gpt-new' });
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(fwd(404))
+        .mockResolvedValueOnce(healed);
+      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openai' && candidate.authType === 'api_key',
+      );
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => ({
+          forward: await params.reforward({ model: 'openai/gpt-new', max_output_tokens: 5 }),
+          record: { outcome: 'healed', attempts: 1, original_http_status: 404, chain: [] },
+        }),
+      );
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward).toBe(healed);
+      expect(providerKeyService.hasRouteCredentials).toHaveBeenCalledWith(
+        'tenant-1',
+        { provider: 'openai', authType: 'api_key', model: 'gpt-new' },
+        'agent-1',
+      );
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0]).toEqual(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-new',
+        }),
+      );
     });
 
     it('returns a synthetic 502 (without throwing) when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
@@ -1180,6 +1221,7 @@ describe('ProxyService — orchestration', () => {
         reason: 'model_not_available',
         manifest_error_code: 'M302',
       });
+      expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
     it('returns model-not-available when two connections carry the same bare name', async () => {
@@ -1199,159 +1241,178 @@ describe('ProxyService — orchestration', () => {
       expect(body).toContain('gpt-4o');
     });
 
-    it('hands an unavailable explicit model to Auto-fix as a synthetic model-not-found 404', async () => {
+    it('forwards an uncatalogued provider-qualified model through a connected provider', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
       ]);
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openai' && candidate.authType === 'api_key',
+      );
 
       const result = await svc.proxyRequest(
         baseOpts({
-          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+          body: { model: 'openai/gpt-new', messages: [{ role: 'user', content: 'hi' }] },
         }),
       );
 
-      expect(autofixService.maybeHeal).toHaveBeenCalledTimes(1);
-      const params = autofixService.maybeHeal.mock.calls[0][0];
-      // A bare name implies no vendor — the fingerprint falls back to `manifest`.
-      expect(params.provider).toBe('manifest');
-      expect(params.requestBody).toEqual({
-        model: 'some-retired-model',
-        messages: [{ role: 'user', content: 'hi' }],
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-new',
+        }),
+      );
+      expect(result.meta).toMatchObject({
+        tier: 'direct',
+        provider: 'openai',
+        auth_type: 'api_key',
+        model: 'gpt-new',
       });
-      expect(params.forward.response.status).toBe(404);
-      const syntheticBody = JSON.parse(await params.forward.response.text());
-      expect(syntheticBody.error).toMatchObject({
-        message: 'Model "some-retired-model" is not available for this agent.',
-        type: 'invalid_request_error',
-        param: 'model',
-        code: 'model_not_found',
-      });
-      // maybeHeal resolved null (gates closed) → the friendly M302, no audit.
-      expect(result.meta.manifest_error_code).toBe('M302');
-      expect(result.autofix).toBeUndefined();
+      expect(result.meta.manifest_error_code).toBeUndefined();
     });
 
-    it('fingerprints the heal under the vendor a prefixed model id implies', async () => {
-      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+    it('preserves the provider-native path when passing an uncatalogued gateway model through', async () => {
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openrouter' && candidate.authType === 'api_key',
+      );
 
       await svc.proxyRequest(
         baseOpts({
-          body: { model: 'openrouter/elephant-alpha', messages: [{ role: 'user', content: 'hi' }] },
-        }),
-      );
-
-      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
-        expect.objectContaining({ provider: 'openrouter' }),
-      );
-    });
-
-    it('returns the healed forward with the re-resolved route meta when Auto-fix repairs the model', async () => {
-      modelDiscovery.getModelsForAgent.mockResolvedValue([
-        discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
-      ]);
-      const healed = {
-        response: okResponse(200),
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-      };
-      fallbackService.tryForwardToProvider.mockResolvedValue(healed);
-      autofixService.maybeHeal.mockImplementation(
-        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => {
-          const forward = await params.reforward({
-            model: 'gpt-4o-mini',
+          body: {
+            model: 'openrouter/anthropic/claude-new',
             messages: [{ role: 'user', content: 'hi' }],
-          });
-          return {
-            forward,
-            record: { groupId: 'g-1', outcome: 'healed', original_http_status: 404, chain: [] },
-          };
-        },
-      );
-
-      const result = await svc.proxyRequest(
-        baseOpts({
-          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+          },
         }),
       );
 
-      expect(result.forward).toBe(healed);
-      // Meta reflects the re-resolved route, not the friendly manifest stub.
-      expect(result.meta).toMatchObject({
-        tier: 'direct',
-        reason: 'direct',
-        model: 'gpt-4o-mini',
-        provider: 'openai',
-        tenantProviderId: 'up-default',
-        response_mode: 'buffered',
-      });
-      expect(result.meta.manifest_error_code).toBeUndefined();
-      // The audit marks the Manifest origin so recording does not invent an
-      // original Provider Attempt before the real healed retry.
-      expect(result.autofix).toMatchObject({
-        groupId: 'g-1',
-        outcome: 'healed',
-        manifestOrigin: { code: 'M302', model: 'some-retired-model' },
-      });
-      expect(result.autofix?.manifestOrigin?.message).toContain('M302');
-      expect(result.autofix?.manifestOrigin?.message).toContain('some-retired-model');
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openrouter',
+          authType: 'api_key',
+          model: 'anthropic/claude-new',
+        }),
+      );
     });
 
-    it('keeps the friendly M302 and preserves the failed provider retry attempt', async () => {
-      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
-      const retryAttempt = {
-        id: 'attempt-m302-retry',
-        attemptNumber: 1,
-        startedAtMs: 1_000,
-        startedAt: '1970-01-01T00:00:01.000Z',
-        pendingWrite: Promise.resolve(true),
-      };
-      autofixService.maybeHeal.mockResolvedValue({
-        forward: {
-          response: okResponse(404),
-          isGoogle: false,
-          isAnthropic: false,
-          isChatGpt: false,
-          attempt: retryAttempt,
-          providerCallStarted: true,
-        },
-        record: {
-          groupId: 'g-2',
-          outcome: 'exhausted',
-          original_http_status: 404,
-          chain: [
-            {
-              attempt: 1,
-              origin: 'autofix',
-              request: { model: 'still-unavailable' },
-              http_status: 404,
-              error: { message: 'patched model not found' },
-            },
-          ],
-        },
-      });
+    it('uses a connected subscription for an uncatalogued subscription model id', async () => {
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openai' && candidate.authType === 'subscription',
+      );
+
+      await svc.proxyRequest(
+        baseOpts({
+          body: {
+            model: 'openai/gpt-new-subscription',
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'subscription',
+          model: 'gpt-new',
+        }),
+      );
+    });
+
+    it('forwards an uncatalogued bare model only when one inferred auth route is connected', async () => {
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'anthropic' && candidate.authType === 'subscription',
+      );
+
+      await svc.proxyRequest(
+        baseOpts({
+          apiMode: 'messages',
+          body: {
+            model: 'claude-new',
+            max_tokens: 32,
+            messages: [{ role: 'user', content: 'hi' }],
+          },
+        }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'anthropic',
+          authType: 'subscription',
+          model: 'claude-new',
+        }),
+      );
+    });
+
+    it('keeps M302 for an uncatalogued bare model spanning multiple auth connections', async () => {
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openai' &&
+          (candidate.authType === 'api_key' || candidate.authType === 'subscription'),
+      );
 
       const result = await svc.proxyRequest(
         baseOpts({
-          body: { model: 'some-retired-model', messages: [{ role: 'user', content: 'hi' }] },
+          body: { model: 'gpt-new', messages: [{ role: 'user', content: 'hi' }] },
         }),
       );
       const body = await result.forward.response.text();
 
-      // The caller still sees the friendly M302 assistant message, not the 404.
-      expect(result.forward.response.status).toBe(200);
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
       expect(body).toContain('M302');
-      expect(result.meta).toMatchObject({
-        reason: 'model_not_available',
-        manifest_error_code: 'M302',
-        attempt: retryAttempt,
+      expect(result.meta.manifest_error_code).toBe('M302');
+      expect(autofixService.maybeHeal).not.toHaveBeenCalled();
+    });
+
+    it('sends the real provider model-not-found response to Auto-fix', async () => {
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenantId, candidate) =>
+          candidate.provider === 'openai' && candidate.authType === 'api_key',
+      );
+      const wireRequestBody = {
+        model: 'gpt-new',
+        messages: [{ role: 'user', content: 'hi' }],
+      };
+      const providerFailure = {
+        response: new Response(
+          JSON.stringify({
+            error: {
+              message: 'The model `gpt-new` does not exist',
+              type: 'invalid_request_error',
+              code: 'model_not_found',
+            },
+          }),
+          { status: 404, headers: { 'content-type': 'application/json' } },
+        ),
+        wireRequestBody,
+        wireApiMode: 'chat_completions' as const,
+        retryWireBody: jest.fn(),
         providerCallStarted: true,
-      });
-      expect(result.autofix).toMatchObject({
-        groupId: 'g-2',
-        outcome: 'exhausted',
-        manifestOrigin: { code: 'M302', model: 'some-retired-model' },
-      });
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValue(providerFailure);
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'openai/gpt-new', messages: [{ role: 'user', content: 'hi' }] },
+        }),
+      );
+
+      expect(autofixService.maybeHeal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          forward: providerFailure,
+          provider: 'openai',
+          model: 'gpt-new',
+          authType: 'api_key',
+          requestBody: wireRequestBody,
+        }),
+      );
+      expect(result.forward).toBe(providerFailure);
+      expect(result.meta.manifest_error_code).toBeUndefined();
     });
 
     // A header rule is an override the operator configured on purpose; the

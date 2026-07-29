@@ -25,7 +25,6 @@ import type {
 import {
   DEFAULT_RESPONSE_MODE,
   SPECIFICITY_CATEGORIES,
-  inferProviderFromModel,
   modelParamsScopeForRouting,
   routeEquals,
   snapshotRequestParams,
@@ -65,7 +64,12 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
-import { OPENAI_MODEL_ID_AUTO, routeForOpenAiModelId } from './openai-model-id';
+import {
+  explicitModelRouteCandidate,
+  OPENAI_MODEL_ID_AUTO,
+  routeForOpenAiModelId,
+  SUBSCRIPTION_MODEL_SUFFIX,
+} from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
 import { recordingResponseFromText } from './attempt-recording-capture';
@@ -169,15 +173,8 @@ export interface ProxyResult {
   autofix?: AutofixRecord;
 }
 
-/** Route info captured when a healed body is re-resolved through routing. */
-interface HealedRouteInfo {
-  resolved: ResolvedRouting;
-  model: string;
-  tenantProviderId: string | null;
-}
-
-/** The subset of {@link HealedReforwardContext} that re-resolving a healed body needs. */
-interface ResolvedHealContext {
+/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
+interface HealedReforwardContext {
   agentId: string;
   tenantId: string;
   apiMode: ProxyApiMode;
@@ -189,13 +186,7 @@ interface ResolvedHealContext {
   signatureLookup: SignatureLookup;
   thinkingLookup: ThinkingBlockLookup;
   reasoningContentLookup: ReasoningContentLookup;
-  /** Called with the re-resolved route so the caller can build accurate response meta. */
-  onRouteResolved?: (info: HealedRouteInfo) => void;
   startProviderAttempt?: StartProviderAttempt;
-}
-
-/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
-interface HealedReforwardContext extends ResolvedHealContext {
   provider: string;
   apiKey: string;
   rawApiKey: string;
@@ -206,22 +197,6 @@ interface HealedReforwardContext extends ResolvedHealContext {
   providerRegion?: string | null;
   paramMergeContext: ParamMergeContext | undefined;
   tenantProviderId: string | null;
-}
-
-/** Inputs for {@link ProxyService.healOrRejectUnavailableModel}. */
-interface UnavailableModelHealContext {
-  agentId: string;
-  tenantId: string;
-  agentName?: string;
-  apiMode: ProxyApiMode;
-  sessionKey: string;
-  signal?: AbortSignal;
-  stream: boolean;
-  specificityOverride?: ProxyRequestOptions['specificityOverride'];
-  headers?: ProxyRequestOptions['headers'];
-  body: ProxyRequestOptions['body'];
-  requestedModel: string;
-  startProviderAttempt?: StartProviderAttempt;
 }
 
 @Injectable()
@@ -295,20 +270,11 @@ export class ProxyService {
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
       if (resolved.explicit_model_unavailable) {
-        return this.healOrRejectUnavailableModel({
-          agentId,
-          tenantId,
-          agentName,
-          apiMode,
-          sessionKey,
-          signal,
+        return this.buildModelUnavailableResult(
           stream,
-          specificityOverride,
-          headers,
-          body,
-          requestedModel: resolved.explicit_model_unavailable,
-          startProviderAttempt,
-        });
+          agentName,
+          resolved.explicit_model_unavailable,
+        );
       }
       return this.buildNoProviderResult(stream, agentName);
     }
@@ -743,7 +709,7 @@ export class ProxyService {
 
   private async forwardResolvedHealed(
     healedBody: Record<string, unknown>,
-    ctx: ResolvedHealContext,
+    ctx: HealedReforwardContext,
   ): Promise<ForwardResult> {
     const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
     const resolved = await this.resolveRouting(
@@ -765,7 +731,6 @@ export class ProxyService {
     });
     if (!credentials.ok) return this.autofixReforwardError('no provider key for the healed model');
     const model = normalizeProviderModel(route.provider, route.model);
-    ctx.onRouteResolved?.({ resolved, model, tenantProviderId: credentials.tenantProviderId });
     const explicitModelOverride = resolved.explicit_model_override === true;
     const scopeKey = modelParamsScopeForRouting({
       tier: resolved.tier,
@@ -923,9 +888,14 @@ export class ProxyService {
    * configured on purpose, and the SDK's `model` field is mandatory, so most
    * agents send a name they cannot change.
    *
-   * Returns null when neither applies. The caller turns that into M302 instead
-   * of falling back to automatic routing, because a concrete `model` is a
-   * request for that model.
+   * Exact catalog matches retain their published provider/auth identity. When
+   * discovery has not learned the model yet, a provider-qualified or
+   * provider-inferable ID may still route through credentials enabled on this
+   * harness; the provider is the authority on whether that model exists.
+   *
+   * Returns null when no unambiguous connected provider applies. The caller
+   * turns that into M302 instead of falling back to automatic routing, because
+   * a concrete `model` is a request for that model.
    */
   private async resolveExplicitModel(
     agentId: string,
@@ -939,15 +909,76 @@ export class ProxyService {
     }
 
     const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
-    const route = routeForOpenAiModelId(requestedModel, models);
+    const catalogRoute = routeForOpenAiModelId(requestedModel, models);
+    if (catalogRoute) return this.explicitRouting(catalogRoute);
+
+    // A bare ID already present under multiple connections is ambiguous, not
+    // undiscovered. Preserve M302 instead of silently picking an auth type.
+    const hasAmbiguousCatalogMatch =
+      !requestedModel.includes('/') && models.some((model) => model.id === requestedModel);
+    const route = hasAmbiguousCatalogMatch
+      ? null
+      : await this.resolveConnectedExplicitModel(agentId, tenantId, requestedModel);
     if (!route) {
       this.logger.warn(
-        `Requested model "${requestedModel}" matches no connected model for agent=${agentId} — ` +
+        `Requested model "${requestedModel}" matches no connected provider route for ` +
+          `agent=${agentId} — ` +
           `returning model-not-available`,
       );
       return null;
     }
 
+    return this.explicitRouting(route);
+  }
+
+  /**
+   * Resolve an uncatalogued explicit model through usable credentials attached
+   * to this harness. Provider-qualified IDs have deterministic auth precedence;
+   * bare IDs must identify exactly one connected auth route.
+   */
+  private async resolveConnectedExplicitModel(
+    agentId: string,
+    tenantId: string,
+    requestedModel: string,
+  ): Promise<ResolvedRouting['route']> {
+    const candidate = explicitModelRouteCandidate(requestedModel);
+    if (!candidate) return null;
+
+    if (candidate.providerQualified && candidate.model.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
+      const subscriptionRoute = {
+        provider: candidate.provider,
+        authType: 'subscription' as const,
+        model: candidate.model.slice(0, -SUBSCRIPTION_MODEL_SUFFIX.length),
+      };
+      return (await this.providerKeyService.hasRouteCredentials(
+        tenantId,
+        subscriptionRoute,
+        agentId,
+      ))
+        ? subscriptionRoute
+        : null;
+    }
+
+    const authTypes: readonly AuthType[] = ['api_key', 'local', 'subscription'];
+    const routes = authTypes.map((authType) => ({
+      provider: candidate.provider,
+      authType,
+      model: candidate.model,
+    }));
+    const connected = (
+      await Promise.all(
+        routes.map(async (route) => ({
+          route,
+          available: await this.providerKeyService.hasRouteCredentials(tenantId, route, agentId),
+        })),
+      )
+    ).filter(({ available }) => available);
+
+    if (candidate.providerQualified) return connected[0]?.route ?? null;
+    return connected.length === 1 ? connected[0].route : null;
+  }
+
+  private explicitRouting(route: NonNullable<ResolvedRouting['route']>): ResolvedRouting {
     return {
       tier: 'default' as const,
       route,
@@ -1305,107 +1336,14 @@ export class ProxyService {
     return buildFriendlyResponse(content, stream, 'no_provider', 'M101');
   }
 
-  /**
-   * Give Auto-fix a chance to repair an explicit `model` that resolves to no
-   * connected model (M302) before rejecting the request. No provider was ever
-   * contacted, so the failure is synthesized as the 404 a provider would return
-   * for an unknown model and run through the standard heal gates — when the
-   * agent has Auto-fix off (or healing doesn't produce a working request) the
-   * caller gets the friendly M302 exactly as before this hook existed.
-   */
-  private async healOrRejectUnavailableModel(
-    ctx: UnavailableModelHealContext,
-  ): Promise<ProxyResult> {
-    const { requestedModel, stream, agentName } = ctx;
+  private buildModelUnavailableResult(
+    stream: boolean,
+    agentName: string | undefined,
+    model: string,
+  ): ProxyResult {
     const dashboardUrl = getDashboardUrl(this.config, agentName, 'routing');
-    const content = formatManifestError('M302', { model: requestedModel, dashboardUrl });
-    const friendly = () => buildFriendlyResponse(content, stream, 'model_not_available', 'M302');
-
-    let healedRoute: HealedRouteInfo | null = null;
-    const attempt = await this.autofixService.maybeHeal({
-      forward: this.modelNotFoundForward(requestedModel),
-      agentId: ctx.agentId,
-      tenantId: ctx.tenantId,
-      // No provider was resolved — fingerprint under the vendor the model id
-      // implies (`openrouter/x` → openrouter), or `manifest` for bare names.
-      provider: inferProviderFromModel(requestedModel) ?? 'manifest',
-      model: requestedModel,
-      // No connection resolved, so there is no real credential type to report.
-      // Use the protocol's non-subscription baseline for this synthetic error.
-      authType: 'api_key',
-      apiMode: ctx.apiMode,
-      requestBody: ctx.body,
-      reforward: (healedBody) =>
-        this.forwardResolvedHealed(healedBody, {
-          ...this.buildCacheLookups(ctx.sessionKey),
-          agentId: ctx.agentId,
-          tenantId: ctx.tenantId,
-          apiMode: ctx.apiMode,
-          sessionKey: ctx.sessionKey,
-          signal: ctx.signal,
-          stream,
-          specificityOverride: ctx.specificityOverride,
-          headers: ctx.headers,
-          startProviderAttempt: ctx.startProviderAttempt,
-          onRouteResolved: (info) => {
-            healedRoute = info;
-          },
-        }),
-    });
-    // Auto-fix inactive for this agent (gates, breaker) — reject as before.
-    if (!attempt) return friendly();
-
-    const autofix: AutofixRecord = {
-      ...attempt.record,
-      manifestOrigin: { code: 'M302', message: content, model: requestedModel },
-    };
-    if (attempt.record.outcome === 'healed' && healedRoute) {
-      const { resolved, model, tenantProviderId } = healedRoute as HealedRouteInfo;
-      return {
-        forward: attempt.forward,
-        meta: this.buildBaseMeta(resolved, model, {
-          tenantProviderId,
-          attempt: attempt.forward.attempt,
-          providerCallStarted: attempt.forward.providerCallStarted,
-          autofixOriginalProviderCallStarted: false,
-          // The forward's streaminess followed the caller's request, not the
-          // healed route's configured transport — keep the meta in agreement.
-          response_mode: stream ? 'stream' : 'buffered',
-        }),
-        autofix,
-      };
-    }
-    const rejected = friendly();
-    return {
-      ...rejected,
-      meta: {
-        ...rejected.meta,
-        attempt: attempt.forward.attempt,
-        providerCallStarted: attempt.forward.providerCallStarted,
-      },
-      autofix,
-    };
-  }
-
-  /** The 404 a provider would return for an unknown model, synthesized for the heal contract. */
-  private modelNotFoundForward(model: string): ForwardResult {
-    const error = {
-      message: `Model "${model}" is not available for this agent.`,
-      type: 'invalid_request_error',
-      param: 'model',
-      code: 'model_not_found',
-    };
-    return {
-      response: new Response(JSON.stringify({ error }), {
-        status: 404,
-        headers: { 'content-type': 'application/json' },
-      }),
-      isGoogle: false,
-      isAnthropic: false,
-      isChatGpt: false,
-      isResponses: false,
-      isCodeAssist: false,
-    };
+    const content = formatManifestError('M302', { model, dashboardUrl });
+    return buildFriendlyResponse(content, stream, 'model_not_available', 'M302');
   }
 
   /** Session-scoped cache lookups threaded into every provider forward. */
