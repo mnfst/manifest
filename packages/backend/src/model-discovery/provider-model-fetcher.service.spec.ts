@@ -2050,6 +2050,13 @@ describe('ProviderModelFetcherService', () => {
                 output_modalities: ['text'],
               },
             },
+            {
+              id: 'file-only',
+              architecture: {
+                input_modalities: ['file'],
+                output_modalities: ['text'],
+              },
+            },
           ],
         }),
       });
@@ -2065,7 +2072,11 @@ describe('ProviderModelFetcherService', () => {
           inputModalities: ['text', 'image', 'audio', 'video'],
           outputModalities: ['text'],
         }),
+        expect.objectContaining({
+          outputModalities: ['text'],
+        }),
       ]);
+      expect(result[2]).not.toHaveProperty('inputModalities');
     });
 
     it('should filter out non-text output modality models', async () => {
