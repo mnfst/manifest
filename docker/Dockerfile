@@ -44,6 +44,7 @@ COPY packages/backend/package.json packages/backend/
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --omit=optional --ignore-scripts \
            --prefer-offline --no-audit --no-fund --loglevel=error && \
+    mkdir -p packages/backend/node_modules && \
     rm -rf node_modules/typescript node_modules/@types \
            node_modules/ts-node node_modules/acorn \
            node_modules/create-require node_modules/v8-compile-cache-lib && \
