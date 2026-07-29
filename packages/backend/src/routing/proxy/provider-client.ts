@@ -173,24 +173,14 @@ function buildPromptCacheKey(sessionKey: string): string {
   return `manifest-${digest}`;
 }
 
-function applyXaiResponsesPromptCacheKey(
-  body: Record<string, unknown>,
-  sessionKey: string | undefined,
-): void {
-  if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
-  const trimmedSessionKey = sessionKey?.trim();
-  if (!trimmedSessionKey) return;
-  body.prompt_cache_key = trimmedSessionKey;
-}
-
 function applyHashedPromptCacheKey(
   body: Record<string, unknown>,
-  sessionKey: string | undefined,
+  providerCacheKey: string | undefined,
 ): void {
   if (typeof body.prompt_cache_key === 'string' && body.prompt_cache_key) return;
-  const trimmedSessionKey = sessionKey?.trim();
-  if (!trimmedSessionKey) return;
-  body.prompt_cache_key = buildPromptCacheKey(trimmedSessionKey);
+  const trimmedCacheKey = providerCacheKey?.trim();
+  if (!trimmedCacheKey) return;
+  body.prompt_cache_key = buildPromptCacheKey(trimmedCacheKey);
 }
 
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
@@ -330,6 +320,7 @@ export class ProviderClient {
       reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
+      providerCacheKey: opts.providerCacheKey,
     });
 
     // The Codex backend only serves prompt-cache hits with session affinity
@@ -553,6 +544,7 @@ export class ProviderClient {
     reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
+    providerCacheKey?: string;
   }): BuiltProviderRequest {
     const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
     // Native matching targets read `body` directly. Cross-protocol targets
@@ -663,7 +655,10 @@ export class ProviderClient {
                 endpointKey === 'xai-responses',
             });
       if (endpointKey === 'xai-responses') {
-        applyXaiResponsesPromptCacheKey(requestBody, ctx.sessionKey);
+        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
+      }
+      if (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') {
+        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
       }
       // Force upstream streaming for copilot-responses so the SSE collector in
       // handleNonStreamResponse stays the single source of truth. Without this,
@@ -694,14 +689,17 @@ export class ProviderClient {
       sanitized.stream_options = { ...existing, include_usage: true };
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
+    if (endpointKey === 'openai') {
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
+    }
     if (endpointKey === 'mistral') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'moonshot') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'fireworks') {
-      applyHashedPromptCacheKey(requestBody, ctx.sessionKey);
+      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
       injectOpenAiMessageCacheControl(requestBody);

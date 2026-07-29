@@ -860,23 +860,24 @@ describe('gemini-subscription endpoint', () => {
 describe('buildProviderExtraHeaders', () => {
   it('returns x-grok-conv-id for xai', () => {
     expect(buildProviderExtraHeaders('xai', 'sess-abc')).toEqual({
-      'x-grok-conv-id': 'sess-abc',
+      'x-grok-conv-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
     });
   });
 
   it('returns x-session-id for openrouter', () => {
     expect(buildProviderExtraHeaders('openrouter', 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b')).toEqual(
-      { 'x-session-id': 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b' },
+      { 'x-session-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/) },
     );
   });
 
-  it('does not forward the fallback default session id to openrouter', () => {
-    expect(buildProviderExtraHeaders('openrouter', 'default')).toBeUndefined();
+  it('does not create provider headers without an explicit cache key', () => {
+    expect(buildProviderExtraHeaders('xai')).toBeUndefined();
+    expect(buildProviderExtraHeaders('openrouter')).toBeUndefined();
   });
 
   it('is case-insensitive for provider name', () => {
     expect(buildProviderExtraHeaders('OpenRouter', 'sess-xyz')).toEqual({
-      'x-session-id': 'sess-xyz',
+      'x-session-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
     });
   });
 

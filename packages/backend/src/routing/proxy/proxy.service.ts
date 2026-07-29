@@ -179,6 +179,7 @@ interface HealedReforwardContext {
   tenantId: string;
   apiMode: ProxyApiMode;
   sessionKey: string;
+  providerCacheKey?: string;
   sessionMomentumKey?: string;
   signal?: AbortSignal;
   stream: boolean;
@@ -233,6 +234,7 @@ export class ProxyService {
       body,
       sessionKey,
       sessionCacheKey,
+      providerCacheKey,
       sessionMomentumKey,
       agentName,
       signal,
@@ -388,6 +390,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          providerCacheKey,
           sessionMomentumKey,
           signal,
           signatureLookup,
@@ -418,6 +421,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      providerCacheKey,
       signal,
       agentId,
       tenantId,
@@ -463,6 +467,7 @@ export class ProxyService {
                 tenantId,
                 apiMode: autofixApiMode,
                 sessionKey,
+                providerCacheKey,
                 sessionMomentumKey,
                 signal,
                 stream,
@@ -509,6 +514,7 @@ export class ProxyService {
         resolveChatBody,
         stream,
         sessionKey,
+        providerCacheKey,
         sessionMomentumKey,
         signal,
         signatureLookup,
@@ -611,6 +617,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          providerCacheKey,
           sessionMomentumKey,
           signal,
           signatureLookup,
@@ -753,6 +760,7 @@ export class ProxyService {
       resolveChatBody,
       stream: ctx.stream,
       sessionKey: ctx.sessionKey,
+      providerCacheKey: ctx.providerCacheKey,
       signal: ctx.signal,
       agentId: ctx.agentId,
       tenantId: ctx.tenantId,
@@ -1064,6 +1072,7 @@ export class ProxyService {
     resolveChatBody?: ResolveChatBody;
     stream: boolean;
     sessionKey: string;
+    providerCacheKey?: string;
     sessionMomentumKey?: string;
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
@@ -1088,6 +1097,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      providerCacheKey,
       sessionMomentumKey,
       signal,
       apiMode,
@@ -1126,6 +1136,7 @@ export class ProxyService {
       args.reasoningContentLookup,
       args.startProviderAttempt,
       args.credentialDashboardUrl,
+      providerCacheKey,
     );
 
     this.recordTierIfScoring(sessionMomentumKey, resolved.tier);

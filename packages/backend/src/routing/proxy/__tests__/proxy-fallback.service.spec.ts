@@ -797,6 +797,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'my-session',
+        providerCacheKey: 'v1:scoped-session',
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith(
@@ -806,8 +807,36 @@ describe('ProxyFallbackService', () => {
           model: 'grok-2',
           body,
           stream: false,
-          extraHeaders: { 'x-grok-conv-id': 'my-session' },
+          extraHeaders: {
+            'x-grok-conv-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+          },
           sessionKey: 'my-session',
+          providerCacheKey: 'v1:scoped-session',
+        }),
+      );
+    });
+
+    it('omits provider cache headers without an explicit scoped key', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-2',
+        body,
+        stream: false,
+        sessionKey: 'default',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          extraHeaders: undefined,
+          providerCacheKey: undefined,
         }),
       );
     });
