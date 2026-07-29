@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { createResource, Suspense } from 'solid-js';
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
   providerIcon: () => null,
@@ -218,6 +219,67 @@ describe('ModelPickerModal', () => {
 
       await Promise.resolve();
       expect(mockRefreshModels).not.toHaveBeenCalled();
+    });
+
+    it('stays open while refreshed model data is loading after the user scrolls', async () => {
+      let resolveAutomaticRefresh!: (value: { ok: boolean }) => void;
+      let resolveModelsRefetch!: (value: AvailableModel[]) => void;
+      let modelRequestCount = 0;
+      mockRefreshModels.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveAutomaticRefresh = resolve;
+          }),
+      );
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      const Parent = () => {
+        const [models, { refetch }] = createResource(async () => {
+          modelRequestCount += 1;
+          if (modelRequestCount === 1) return baseModels;
+          return new Promise<AvailableModel[]>((resolve) => {
+            resolveModelsRefetch = resolve;
+          });
+        });
+
+        return (
+          <Suspense fallback={<div data-testid="picker-loading" />}>
+            <ModelPickerModal
+              tierId="default"
+              agentName="demo-agent"
+              models={models() ?? []}
+              tiers={[]}
+              connectedProviders={staleProviders}
+              onSelect={vi.fn()}
+              onClose={vi.fn()}
+              onProviderRefreshed={async () => {
+                await refetch();
+              }}
+            />
+          </Suspense>
+        );
+      };
+
+      const { container } = render(() => <Parent />);
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeDefined();
+      });
+
+      fireEvent.scroll(container.querySelector('.routing-modal__list') as HTMLElement, {
+        target: { scrollTop: 200 },
+      });
+      resolveAutomaticRefresh({ ok: true });
+
+      await waitFor(() => {
+        expect(modelRequestCount).toBe(2);
+      });
+      expect(screen.queryByTestId('picker-loading')).toBeNull();
+      expect(screen.getByRole('dialog')).toBeDefined();
+
+      resolveModelsRefetch(baseModels);
     });
 
     it('ignores stale inactive and custom providers', async () => {
