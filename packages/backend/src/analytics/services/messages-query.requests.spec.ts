@@ -17,6 +17,8 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
     distinct: jest.fn(),
     setQueryRunner: jest.fn(),
     clone: jest.fn(),
+    getQuery: jest.fn().mockReturnValue('SELECT r.id FROM requests r'),
+    getParameters: jest.fn().mockReturnValue({}),
     getQueryAndParameters: jest.fn().mockReturnValue(['SELECT r.id FROM requests r', []]),
     getRawOne: jest.fn().mockResolvedValue({ total: 0 }),
     getRawMany: jest.fn().mockResolvedValue(rows),
@@ -49,6 +51,82 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
 }
 
 describe('MessagesQueryService request-first queries', () => {
+  it('selects parent ids before aggregating the common request page', async () => {
+    const requestQb = makeQb([{ id: 'request-1', timestamp: '2026-07-14T10:00:00Z' }]);
+    const pageQb = makeQb();
+    pageQb.getQuery.mockReturnValue('SELECT r.id FROM requests r ORDER BY r.timestamp DESC');
+    pageQb.getParameters.mockReturnValue({ requestTenantId: 'tenant-1' });
+    requestQb.clone.mockReturnValue(pageQb);
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+    const service = new MessagesQueryService(
+      { createQueryBuilder: jest.fn(() => legacyBase) } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 50,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    expect(pageQb.select).toHaveBeenCalledWith('r.id', 'id');
+    expect(pageQb.orderBy).toHaveBeenCalledWith('r.timestamp', 'DESC');
+    expect(pageQb.addOrderBy).toHaveBeenCalledWith('r.id', 'DESC');
+    expect(pageQb.limit).toHaveBeenCalledWith(51);
+    expect(requestQb.where).toHaveBeenCalledWith(
+      expect.stringContaining('r.id IN (SELECT r.id FROM requests r'),
+      { requestTenantId: 'tenant-1' },
+    );
+    expect(requestQb.leftJoin).toHaveBeenCalledWith(
+      expect.anything(),
+      'at',
+      'at.request_id = r.id',
+    );
+  });
+
+  it('counts eligible parents directly and reuses the cached first-page total', async () => {
+    const requestQb = makeQb([{ id: 'request-1', timestamp: '2026-07-14T10:00:00Z' }]);
+    const countQb = makeQb();
+    countQb.getQueryAndParameters.mockReturnValue([
+      'SELECT COUNT(*) AS total FROM requests WHERE tenant_id = $1',
+      ['tenant-1'],
+    ]);
+    const pageQb = makeQb();
+    requestQb.clone.mockReturnValueOnce(countQb).mockReturnValue(pageQb);
+    const legacyCountQb = makeQb();
+    legacyCountQb.getRawOne.mockResolvedValue({ total: '2' });
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(legacyCountQb).mockReturnValue(makeQb());
+    const requestQuery = jest.fn().mockResolvedValue([{ total: '7' }]);
+    const service = new MessagesQueryService(
+      { createQueryBuilder: jest.fn(() => legacyBase) } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb), query: requestQuery } as never,
+    );
+
+    const first = await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 50,
+      include_total: true,
+      include_filter_options: false,
+    });
+    const second = await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 50,
+      include_total: true,
+      include_filter_options: false,
+    });
+
+    expect(countQb.select).toHaveBeenCalledWith('COUNT(*)', 'total');
+    expect(requestQuery).toHaveBeenCalledTimes(1);
+    expect(legacyCountQb.getRawOne).toHaveBeenCalledTimes(1);
+    expect(first.total_count).toBe(9);
+    expect(second.total_count).toBe(9);
+  });
+
   it('reads request parents and unlinked attempts from one repeatable snapshot', async () => {
     const requestQb = makeQb();
     requestQb.clone.mockReturnValue(makeQb());
