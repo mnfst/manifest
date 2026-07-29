@@ -1,0 +1,25 @@
+packages/shared/src/providers.ts
+  s_86ae7d6def5db2::t_e41a6c50165a4e 234
+packages/shared/__tests__/providers.spec.ts
+  s_86ae7d6def5db2::t_e41a6c50165a4e 164
+packages/frontend/tests/services/providers.test.ts
+  s_86ae7d6def5db2::t_e41a6c50165a4e 471,475
+.changeset/gemini-free-provider.md
+  s_86ae7d6def5db2::t_e41a6c50165a4e 5-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "795a18c6bca29ae85e3dc359f24bbef24f49efe0",
+  "prompts": {},
+  "sessions": {
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
