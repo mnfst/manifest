@@ -232,6 +232,7 @@ describe('ProxyService — orchestration', () => {
     body: { messages: [{ role: 'user', content: 'hi' }] },
     sessionKey: 'sess-1',
     sessionCacheKey: 'cache-sess-1',
+    providerCacheKey: 'provider-cache-sess-1',
     sessionMomentumKey: 'momentum-sess-1',
     tenantId: 'tenant-1',
     agentName: 'demo-agent',

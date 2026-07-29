@@ -383,6 +383,7 @@ export class ProxyController {
         routingBody,
         sessionKey,
         sessionCacheKey: sessionScope.cacheKey,
+        providerCacheKey: sessionScope.providerCacheKey,
         sessionMomentumKey: sessionScope.momentumKey,
         agentName: req.ingestionContext.agentName,
         signal: clientAbort.signal,

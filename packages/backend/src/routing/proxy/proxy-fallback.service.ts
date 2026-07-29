@@ -29,6 +29,7 @@ interface ForwardProviderOptions {
   resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
+  providerCacheKey?: string;
   signal?: AbortSignal;
   authType?: string;
   rawApiKey?: string;
@@ -196,6 +197,7 @@ export class ProxyFallbackService {
     startProviderAttempt?: StartProviderAttempt,
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
+    providerCacheKey?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -308,6 +310,7 @@ export class ProxyFallbackService {
         resolveChatBody,
         stream,
         sessionKey,
+        providerCacheKey,
         signal,
         agentId,
         tenantId,
@@ -643,7 +646,7 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -741,6 +744,7 @@ export class ProxyFallbackService {
         authType,
         apiMode: opts.apiMode,
         sessionKey: opts.sessionKey,
+        providerCacheKey: opts.providerCacheKey,
         signatureLookup,
         thinkingLookup,
         ...(thinkingLookup

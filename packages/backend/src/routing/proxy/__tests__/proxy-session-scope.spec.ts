@@ -7,6 +7,7 @@ describe('buildProxySessionScope', () => {
 
     expect(first).toEqual(second);
     expect(first.cacheKey).toMatch(/^v1:[a-f0-9]{64}$/);
+    expect(first.providerCacheKey).toBe(first.cacheKey);
     expect(first.momentumKey).toBe(first.cacheKey);
     expect(first.cacheKey).not.toContain('session-1');
   });
@@ -20,6 +21,7 @@ describe('buildProxySessionScope', () => {
     const scoped = buildProxySessionScope(tenantId, agentId, sessionKey);
 
     expect(scoped.cacheKey).not.toBe(baseline.cacheKey);
+    expect(scoped.providerCacheKey).not.toBe(baseline.providerCacheKey);
   });
 
   it.each([undefined, '', ['session-1']])(
@@ -29,6 +31,7 @@ describe('buildProxySessionScope', () => {
 
       expect(scope.sessionKey).toBe('default');
       expect(scope.cacheKey).toMatch(/^v1:[a-f0-9]{64}$/);
+      expect(scope.providerCacheKey).toBeUndefined();
       expect(scope.momentumKey).toBeUndefined();
     },
   );

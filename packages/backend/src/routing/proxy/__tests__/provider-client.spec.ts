@@ -76,6 +76,39 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(false);
     });
 
+    it('adds scoped prompt cache affinity for OpenAI without exposing the session', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        providerCacheKey: 'v1:tenant-agent-session-digest',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(sentBody.prompt_cache_key).not.toContain('tenant-agent-session');
+    });
+
+    it('keeps caller-supplied OpenAI prompt cache affinity', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { ...body, prompt_cache_key: 'caller-conversation' },
+        providerCacheKey: 'v1:tenant-agent-session-digest',
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.prompt_cache_key).toBe('caller-conversation');
+    });
+
     it('captures the wire body and retries a healed body without rebuilding it', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -171,7 +204,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-mi',
         model: 'mistral-large-latest',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
       await client.forward({
@@ -179,7 +212,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-mi',
         model: 'mistral-large-latest',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
       await client.forward({
@@ -187,7 +220,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-mi',
         model: 'mistral-large-latest',
         body,
-        sessionKey: 'session-2',
+        providerCacheKey: 'scoped-session-2',
         stream: false,
       });
 
@@ -208,7 +241,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-mi',
         model: 'mistral-large-latest',
         body: { ...body, prompt_cache_key: 'caller-conversation' },
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
 
@@ -231,7 +264,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-mi',
         model: 'mistral-large-latest',
         body,
-        sessionKey: '   ',
+        providerCacheKey: '   ',
         stream: false,
       });
 
@@ -248,7 +281,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-kimi',
         model: 'kimi-k2-latest',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
       await client.forward({
@@ -256,7 +289,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-kimi',
         model: 'kimi-k2-latest',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
 
@@ -275,7 +308,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-kimi',
         model: 'kimi-k2-latest',
         body: { ...body, prompt_cache_key: 'caller-conversation' },
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
 
@@ -298,7 +331,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-kimi',
         model: 'kimi-k2-latest',
         body,
-        sessionKey: '   ',
+        providerCacheKey: '   ',
         stream: false,
       });
 
@@ -315,7 +348,7 @@ describe('ProviderClient', () => {
         apiKey: 'fw-key',
         model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
       await client.forward({
@@ -323,7 +356,7 @@ describe('ProviderClient', () => {
         apiKey: 'fw-key',
         model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
         body,
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
 
@@ -342,7 +375,7 @@ describe('ProviderClient', () => {
         apiKey: 'fw-key',
         model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
         body: { ...body, prompt_cache_key: 'caller-conversation' },
-        sessionKey: 'session-1',
+        providerCacheKey: 'scoped-session-1',
         stream: false,
       });
 
@@ -365,7 +398,7 @@ describe('ProviderClient', () => {
         apiKey: 'fw-key',
         model: 'accounts/fireworks/models/kimi-k2-instruct-0905',
         body,
-        sessionKey: '   ',
+        providerCacheKey: '   ',
         stream: false,
       });
 
@@ -2961,12 +2994,13 @@ describe('ProviderClient', () => {
         apiKey: 'sk-xai',
         model: 'grok-4.20-multi-agent',
         body,
-        sessionKey: 'session-xai',
+        providerCacheKey: 'scoped-session-xai',
         stream: false,
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.prompt_cache_key).toBe('session-xai');
+      expect(sentBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(sentBody.prompt_cache_key).not.toContain('session-xai');
     });
 
     it('keeps caller-supplied prompt_cache_key for xAI Responses requests', async () => {
@@ -2977,7 +3011,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-xai',
         model: 'grok-4.20-multi-agent',
         body: { ...body, prompt_cache_key: 'caller-conversation' },
-        sessionKey: 'session-xai',
+        providerCacheKey: 'scoped-session-xai',
         stream: false,
       });
 
@@ -3000,7 +3034,7 @@ describe('ProviderClient', () => {
         apiKey: 'sk-xai',
         model: 'grok-4.20-multi-agent',
         body,
-        sessionKey: '   ',
+        providerCacheKey: '   ',
         stream: false,
       });
 
@@ -3019,12 +3053,13 @@ describe('ProviderClient', () => {
         model: 'grok-4.3',
         apiMode: 'responses',
         body: { input: 'Hello' },
-        sessionKey: 'native-session',
+        providerCacheKey: 'scoped-native-session',
         stream: false,
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.prompt_cache_key).toBe('native-session');
+      expect(sentBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(sentBody.prompt_cache_key).not.toContain('native-session');
       expect(sentBody.input).toBe('Hello');
     });
 

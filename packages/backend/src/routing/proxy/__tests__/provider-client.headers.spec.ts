@@ -291,6 +291,23 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
     expect(sentHeaders).not.toHaveProperty('session-id');
   });
 
+  it('adds scoped prompt cache affinity on the api-key /responses path', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+    await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-test',
+      model: 'o1-pro',
+      body,
+      providerCacheKey: 'v1:tenant-agent-session-digest',
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+    expect(sentBody.prompt_cache_key).not.toContain('tenant-agent-session');
+  });
+
   it('replays the x-codex-turn-state token captured from the previous response', async () => {
     const completed =
       'event: response.completed\ndata: {"response":{"output":[{"type":"message","content":[{"type":"output_text","text":"ok"}]}]}}\n\n';
