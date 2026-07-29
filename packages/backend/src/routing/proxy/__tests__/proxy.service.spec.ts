@@ -231,6 +231,8 @@ describe('ProxyService — orchestration', () => {
     userId: 'user-1',
     body: { messages: [{ role: 'user', content: 'hi' }] },
     sessionKey: 'sess-1',
+    sessionCacheKey: 'cache-sess-1',
+    sessionMomentumKey: 'momentum-sess-1',
     tenantId: 'tenant-1',
     agentName: 'demo-agent',
     ...overrides,
@@ -1702,7 +1704,31 @@ describe('ProxyService — orchestration', () => {
       expect(result.meta.tier).toBe('standard');
       expect(result.meta.model).toBe('gpt-4o');
       expect(result.meta.provider).toBe('openai');
-      expect(momentum.recordTier).toHaveBeenCalledWith('sess-1', 'standard');
+      expect(momentum.recordTier).toHaveBeenCalledWith('momentum-sess-1', 'standard');
+    });
+
+    it('skips routing momentum when the caller did not supply a session key', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: okResponse(200),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await svc.proxyRequest(baseOpts({ sessionMomentumKey: undefined }));
+
+      expect(momentum.getRecentTiers).not.toHaveBeenCalled();
+      expect(momentum.getRecentCategories).not.toHaveBeenCalled();
+      expect(momentum.recordTier).not.toHaveBeenCalled();
+      expect(momentum.recordCategory).not.toHaveBeenCalled();
     });
 
     it('passes the raw stored OpenAI OAuth blob alongside the unwrapped access token', async () => {
@@ -1822,7 +1848,7 @@ describe('ProxyService — orchestration', () => {
         isChatGpt: false,
       });
       await svc.proxyRequest(baseOpts());
-      expect(momentum.recordCategory).toHaveBeenCalledWith('sess-1', 'coding');
+      expect(momentum.recordCategory).toHaveBeenCalledWith('momentum-sess-1', 'coding');
     });
 
     it('skips category recording for unknown values', async () => {
@@ -2884,9 +2910,9 @@ describe('ProxyService — orchestration', () => {
       });
 
       await svc.proxyRequest(baseOpts());
-      expect(signatureCache.retrieve).toHaveBeenCalledWith('sess-1', 'tool-call-1');
-      expect(thinkingCache.retrieve).toHaveBeenCalledWith('sess-1', 'first-use-1');
-      expect(reasoningCache.retrieve).toHaveBeenCalledWith('sess-1', 'reasoning-call-1');
+      expect(signatureCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'tool-call-1');
+      expect(thinkingCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'first-use-1');
+      expect(reasoningCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'reasoning-call-1');
     });
 
     it('strips system / developer roles when scoring', async () => {
