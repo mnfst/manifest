@@ -231,7 +231,7 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     color: '#4285f4',
     keyPrefix: 'sk-',
     minKeyLength: 10,
-    keyPlaceholder: 'sk-... (LiteLLM virtual key)',
+    keyPlaceholder: 'sk-...',
     managedFree: true,
   },
   {
