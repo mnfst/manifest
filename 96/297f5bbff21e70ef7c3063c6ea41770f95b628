@@ -1,0 +1,84 @@
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_86ae7d6def5db2::t_b382bfc5b51b6a 1-12,14-23,25-85
+  s_86ae7d6def5db2::t_215a70ff275e51 13,24
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_86ae7d6def5db2::t_cb45c9aaab724a 562-583
+packages/shared/src/providers.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 38-39,237
+  s_86ae7d6def5db2::t_2381a58f1dcf03 227-236,238
+  s_86ae7d6def5db2::t_98d61f33d8f9de 226
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_86ae7d6def5db2::t_1d277ed0517322 1-222
+packages/frontend/src/components/ProviderIcon.tsx
+  s_86ae7d6def5db2::t_2381a58f1dcf03 121
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 48
+  s_86ae7d6def5db2::t_2381a58f1dcf03 498,500,502
+  s_86ae7d6def5db2::t_0412a98db63cfc 44,491
+packages/frontend/src/services/api/providers.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 1,69,76,78-83,98,106-109,111-112
+  s_86ae7d6def5db2::t_2381a58f1dcf03 2-3,70-75,77,84-85,89-92,95-97,99-105,110,113-116
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_86ae7d6def5db2::t_837dfeaac13865 84-114
+packages/shared/__tests__/providers.spec.ts
+  s_86ae7d6def5db2::t_f92bf078429fec 158-164,166-167
+  s_86ae7d6def5db2::t_a6e98a99b16c84 165
+packages/backend/src/routing/routing.module.ts
+  s_86ae7d6def5db2::t_215a70ff275e51 23-24,70
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_86ae7d6def5db2::t_6185d9dbaaa41f 78,171,232-243
+packages/frontend/src/services/providers.ts
+  s_86ae7d6def5db2::t_2381a58f1dcf03 274-278
+  s_86ae7d6def5db2::t_b3d77cddb39b62 505
+packages/backend/.env.example
+  s_86ae7d6def5db2::t_11a79610d89d07 61-69
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_86ae7d6def5db2::t_2381a58f1dcf03 197-198,200-204,210-215
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 4-8,191-196,199,205-209,429-431,760-770,942
+.changeset/gemini-free-provider.md
+  s_86ae7d6def5db2::t_2381a58f1dcf03 1-4
+  s_86ae7d6def5db2::t_a6e98a99b16c84 5-6
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_86ae7d6def5db2::t_0412a98db63cfc 1-4,34-40
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 2-5,136-150,456
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.ts
+  s_86ae7d6def5db2::t_a35a6ddb4a9014 43-47
+  s_86ae7d6def5db2::t_215a70ff275e51 1-42,48-49
+packages/backend/src/routing/proxy/provider-client.ts
+  s_86ae7d6def5db2::t_2f256f0a55ae4a 41
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_86ae7d6def5db2::t_9ae973e2531552 272-296
+packages/frontend/tests/services/providers.test.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 478
+  s_86ae7d6def5db2::t_f92bf078429fec 472-477,479-481
+packages/frontend/tests/services/api/providers.test.ts
+  s_86ae7d6def5db2::t_a6e98a99b16c84 5,109
+  s_86ae7d6def5db2::t_022025aabf77f2 51,100-108,110-117
+  s_86ae7d6def5db2::t_4e822f0c9d05ae 118-119
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_86ae7d6def5db2::t_b382bfc5b51b6a 1-63,65-68
+  s_86ae7d6def5db2::t_215a70ff275e51 64
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.ts
+  s_86ae7d6def5db2::t_215a70ff275e51 1-213
+docker/.env.example
+  s_86ae7d6def5db2::t_11a79610d89d07 81-88
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_86ae7d6def5db2::t_b3d77cddb39b62 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "96297f5bbff21e70ef7c3063c6ea41770f95b628",
+  "prompts": {},
+  "sessions": {
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
