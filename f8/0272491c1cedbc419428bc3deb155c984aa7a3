@@ -1,0 +1,30 @@
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_9dfc3fd178839b::t_37291163d3b976 153-173
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_9dfc3fd178839b::t_37291163d3b976 227-252
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_9dfc3fd178839b::t_b7943696e40212 170
+  s_9dfc3fd178839b::t_37291163d3b976 162-169,171-173,209,250
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_9dfc3fd178839b::t_37291163d3b976 259-275
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_9dfc3fd178839b::t_37291163d3b976 1216-1230,1264-1273,1276-1277
+  s_9dfc3fd178839b::t_8d684c64476cc1 1274-1275
+  s_9dfc3fd178839b::t_5532157b07620f 1278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f80272491c1cedbc419428bc3deb155c984aa7a3",
+  "prompts": {},
+  "sessions": {
+    "s_9dfc3fd178839b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fadaa-17ea-70b3-9dde-f86d89abc876",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
