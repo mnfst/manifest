@@ -1,0 +1,50 @@
+.changeset/scoped-provider-cache-affinity.md
+  s_9dfc3fd178839b::t_ad521282862402 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-session-scope.spec.ts
+  s_9dfc3fd178839b::t_c5150cbff77e70 10,24,34
+packages/backend/src/routing/proxy/provider-client.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 178,181-183,323,547,658-661,692-694,696,699,702
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_9dfc3fd178839b::t_ad521282862402 294-310
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_9dfc3fd178839b::t_c5150cbff77e70 393,517
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 182,237,424,470,620,763,1075,1100,1139
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_9dfc3fd178839b::t_12f66dad1cdd6c 1863,1903
+packages/backend/src/routing/proxy/proxy-session-scope.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 7,11-12,37
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_9dfc3fd178839b::t_c5150cbff77e70 863,869,873-875,880
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 32,200,313,649,747
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_9dfc3fd178839b::t_c9737720639c82 800,810-812,814-839
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 50,52,55-60
+  s_9dfc3fd178839b::t_f71aef41a7662f 1-2
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_9dfc3fd178839b::t_12f66dad1cdd6c 235
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_9dfc3fd178839b::t_e5cfbd8e9f428e 207,215,223,244,267,284,292,311,334,351,359,378,401,2997,3014,3037,3056
+  s_9dfc3fd178839b::t_c9737720639c82 79-111,3002-3003,3061-3062
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 99,101-102,144-145
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_9dfc3fd178839b::t_66f1c38ec4b7eb 386
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9138eda9ed8e00c33db02f8b6e179b6fdf06b9e0",
+  "prompts": {},
+  "sessions": {
+    "s_9dfc3fd178839b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fadaa-17ea-70b3-9dde-f86d89abc876",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
