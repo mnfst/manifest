@@ -108,12 +108,21 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
             : typeof promptDetails?.cached_tokens === 'number'
               ? promptDetails.cached_tokens
               : undefined;
+    const cacheCreation =
+      typeof u.cache_creation_tokens === 'number'
+        ? u.cache_creation_tokens
+        : typeof u.cache_creation_input_tokens === 'number'
+          ? u.cache_creation_input_tokens
+          : typeof promptDetails?.cache_write_tokens === 'number'
+            ? promptDetails.cache_write_tokens
+            : typeof promptDetails?.cache_creation_input_tokens === 'number'
+              ? promptDetails.cache_creation_input_tokens
+              : undefined;
     return {
       prompt_tokens: u.prompt_tokens,
       completion_tokens: typeof u.completion_tokens === 'number' ? u.completion_tokens : 0,
       cache_read_tokens: cacheRead,
-      cache_creation_tokens:
-        typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : undefined,
+      cache_creation_tokens: cacheCreation,
       ...(reportedCostUsd !== undefined ? { reported_cost_usd: reportedCostUsd } : {}),
     };
   }
@@ -140,6 +149,12 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
     const isAnthropicNative = nativeCacheRead > 0 || nativeCacheCreation > 0;
     const nestedCacheRead =
       typeof inputDetails?.cached_tokens === 'number' ? inputDetails.cached_tokens : 0;
+    const nestedCacheCreation =
+      typeof inputDetails?.cache_write_tokens === 'number'
+        ? inputDetails.cache_write_tokens
+        : typeof inputDetails?.cache_creation_input_tokens === 'number'
+          ? inputDetails.cache_creation_input_tokens
+          : 0;
     const promptTokens = isAnthropicNative
       ? u.input_tokens + nativeCacheRead + nativeCacheCreation
       : u.input_tokens;
@@ -148,7 +163,7 @@ export function parseUsageObject(usage: unknown): StreamUsage | null {
       prompt_tokens: promptTokens,
       completion_tokens: typeof u.output_tokens === 'number' ? u.output_tokens : 0,
       cache_read_tokens: isAnthropicNative ? nativeCacheRead : cacheRead || undefined,
-      cache_creation_tokens: nativeCacheCreation,
+      cache_creation_tokens: isAnthropicNative ? nativeCacheCreation : nestedCacheCreation,
       ...(reportedCostUsd !== undefined ? { reported_cost_usd: reportedCostUsd } : {}),
     };
   }

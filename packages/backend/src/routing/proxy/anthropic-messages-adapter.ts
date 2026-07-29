@@ -283,7 +283,16 @@ function toAnthropicUsage(usage: unknown): JsonRecord {
           : typeof promptDetails?.cached_tokens === 'number'
             ? promptDetails.cached_tokens
             : 0;
-  const cacheCreation = typeof u.cache_creation_tokens === 'number' ? u.cache_creation_tokens : 0;
+  const cacheCreation =
+    typeof u.cache_creation_tokens === 'number'
+      ? u.cache_creation_tokens
+      : typeof u.cache_creation_input_tokens === 'number'
+        ? u.cache_creation_input_tokens
+        : typeof promptDetails?.cache_write_tokens === 'number'
+          ? promptDetails.cache_write_tokens
+          : typeof promptDetails?.cache_creation_input_tokens === 'number'
+            ? promptDetails.cache_creation_input_tokens
+            : 0;
   // Chat-shape prompt_tokens is the full input total (uncached + cache reads +
   // cache creation). Anthropic Messages' input_tokens is the uncached portion
   // only, with cache_read_input_tokens / cache_creation_input_tokens reported
