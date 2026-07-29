@@ -161,7 +161,7 @@ describe('SHARED_PROVIDER_BY_ID', () => {
     expect(provider!.displayName).toBe('Gemini Free');
     expect(provider!.aliases).toEqual(['gemini free']);
     expect(provider!.openRouterPrefixes).toEqual([]);
-    expect(provider!.keyPlaceholder).toBe('sk-... (LiteLLM virtual key)');
+    expect(provider!.keyPlaceholder).toBe('sk-...');
     expect(provider!.managedFree).toBe(true);
   });
 
