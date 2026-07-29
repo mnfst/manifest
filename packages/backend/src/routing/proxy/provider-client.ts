@@ -118,11 +118,8 @@ const QWEN_TOKEN_PLAN_RESPONSES_RE = /^qwen3\.7-max$/i;
 const COPILOT_CHAT_COMPLETIONS_ENDPOINT = '/chat/completions';
 const COPILOT_RESPONSES_ENDPOINTS = new Set(['/responses', 'ws:/responses']);
 
-function shouldApplyAnthropicAutomaticCacheControl(
-  endpointKey: string,
-  authType: string | undefined,
-): boolean {
-  return endpointKey === 'anthropic' && authType === 'subscription';
+function shouldApplyAnthropicAutomaticCacheControl(endpointKey: string): boolean {
+  return endpointKey === 'anthropic';
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -611,7 +608,7 @@ export class ProviderClient {
           : undefined;
       requestBody.model = bareModel;
       if (stream) requestBody.stream = true;
-      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey, authType)) {
+      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey)) {
         applyAnthropicAutomaticCacheControl(requestBody);
       }
       return {
@@ -706,7 +703,12 @@ export class ProviderClient {
     }
     if (endpointKey === 'openrouter') {
       const cacheMode = openRouterCacheMode(ctx.model);
-      if (cacheMode) injectOpenRouterCacheControl(requestBody, cacheMode);
+      if (cacheMode) {
+        injectOpenRouterCacheControl(requestBody, cacheMode);
+        if (cacheMode === 'anthropic') {
+          applyAnthropicAutomaticCacheControl(requestBody);
+        }
+      }
     }
     return {
       url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
