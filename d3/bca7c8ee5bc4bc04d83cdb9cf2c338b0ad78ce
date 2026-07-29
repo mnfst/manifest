@@ -1,0 +1,30 @@
+packages/backend/src/entities/agent.entity.ts
+  s_fc4f721f35e1c3::t_e5329a5956a5aa 40-42
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.ts
+  s_fc4f721f35e1c3::t_f6138ec1cd7238 7
+  s_fc4f721f35e1c3::t_e5329a5956a5aa 1-6,8-15
+packages/frontend/tests/pages/SettingsRecordingSection.test.tsx
+  s_fc4f721f35e1c3::t_e5329a5956a5aa 21
+packages/backend/src/database/data-source-definitions.ts
+  s_fc4f721f35e1c3::t_03c2e5e6f70b37 39,314
+.changeset/default-new-agent-recording.md
+  s_fc4f721f35e1c3::t_e5329a5956a5aa 1-5
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.spec.ts
+  s_fc4f721f35e1c3::t_e5329a5956a5aa 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d3bca7c8ee5bc4bc04d83cdb9cf2c338b0ad78ce",
+  "prompts": {},
+  "sessions": {
+    "s_fc4f721f35e1c3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fad1a-7c4f-7de3-98e8-ce12b2096457",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
