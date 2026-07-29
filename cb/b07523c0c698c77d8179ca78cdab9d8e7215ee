@@ -1,0 +1,39 @@
+packages/backend/src/model-discovery/model-fallback.ts
+  s_b324d1ba7946a0::t_90d924b22f2ee6 281-289
+  s_b324d1ba7946a0::t_52efce9048a7d1 296
+  s_b324d1ba7946a0::t_07e3395c9cd6c7 272-273,275-277,280,290
+packages/shared/src/subscription/types.ts
+  s_b324d1ba7946a0::t_07e3395c9cd6c7 17-19
+.changeset/curated-subscription-model-catalogs.md
+  s_b324d1ba7946a0::t_0a2d4655a701f0 1,3-5
+  s_b324d1ba7946a0::t_8a445e5cb867c6 2
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_b324d1ba7946a0::t_5e31f8aa83b84d 2056,2094
+  s_b324d1ba7946a0::t_44c89a871c0d8c 1672,1684,1692
+  s_b324d1ba7946a0::t_521bb6b87ce20b 7
+  s_b324d1ba7946a0::t_591d6db437dd32 2010,2014-2015,2017,2028,2050-2053
+  s_b324d1ba7946a0::t_2bbbc7429f143d 1619-1630,1651-1671,1673-1683,1685-1691,1693-1699
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_b324d1ba7946a0::t_44c89a871c0d8c 248-251
+  s_b324d1ba7946a0::t_07e3395c9cd6c7 242,271,279-281,291-295,306-307
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_b324d1ba7946a0::t_3f17223d65240f 267-269,272,275-276,278-279,281,283-286,289-290,292,294,297-306
+  s_b324d1ba7946a0::t_736ded6cb547c1 277
+  s_b324d1ba7946a0::t_84423cbfac6a1b 273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "cbb07523c0c698c77d8179ca78cdab9d8e7215ee",
+  "prompts": {},
+  "sessions": {
+    "s_b324d1ba7946a0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fad50-33d3-7b72-9780-18db7f96bc24",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
