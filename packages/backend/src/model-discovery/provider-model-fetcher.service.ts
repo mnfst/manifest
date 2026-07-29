@@ -32,6 +32,7 @@ import {
 import {
   getSubscriptionCapabilities,
   getSubscriptionKnownModels,
+  MODEL_MODALITIES,
   type ModelCapability,
   type ModelModality,
 } from 'manifest-shared';
@@ -565,8 +566,17 @@ interface OpenRouterModelEntry {
   id: string;
   name?: string;
   context_length?: number;
-  architecture?: { output_modalities?: string[] };
+  architecture?: { input_modalities?: string[]; output_modalities?: string[] };
   pricing?: { prompt?: string; completion?: string };
+}
+
+function normalizeOpenRouterModalities(
+  values: readonly string[] | undefined,
+): readonly ModelModality[] | undefined {
+  if (!values?.length) return undefined;
+  const upstreamModalities = new Set(values.map((value) => value.toLowerCase()));
+  const modalities = MODEL_MODALITIES.filter((modality) => upstreamModalities.has(modality));
+  return modalities.length > 0 ? modalities : undefined;
 }
 
 interface FireworksModelEntry {
@@ -604,6 +614,8 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
       const entry = m as OpenRouterModelEntry;
       const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
       const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
+      const inputModalities = normalizeOpenRouterModalities(entry.architecture?.input_modalities);
+      const outputModalities = normalizeOpenRouterModalities(entry.architecture?.output_modalities);
       return {
         id: entry.id,
         displayName: entry.name || entry.id,
@@ -615,6 +627,8 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
           completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
+        ...(inputModalities ? { inputModalities } : {}),
+        ...(outputModalities ? { outputModalities } : {}),
         qualityScore: 3,
       };
     });

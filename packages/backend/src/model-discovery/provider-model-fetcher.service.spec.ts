@@ -2031,6 +2031,43 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
+    it('should normalize OpenRouter input and output modalities', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'deepseek/deepseek-v4-flash',
+              architecture: {
+                input_modalities: ['text'],
+                output_modalities: ['text'],
+              },
+            },
+            {
+              id: 'google/gemini-2.5-flash',
+              architecture: {
+                input_modalities: ['file', 'image', 'text', 'audio', 'video'],
+                output_modalities: ['text'],
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          inputModalities: ['text'],
+          outputModalities: ['text'],
+        }),
+        expect.objectContaining({
+          inputModalities: ['text', 'image', 'audio', 'video'],
+          outputModalities: ['text'],
+        }),
+      ]);
+    });
+
     it('should filter out non-text output modality models', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
