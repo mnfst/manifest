@@ -82,6 +82,7 @@ describe('messages API client', () => {
     expect(url).toContain('agent_name=demo');
     expect(url).toContain('limit=1');
     expect(url).toContain('include_total=true');
+    expect(url).toContain('cache_total=true');
     expect(url).toContain('include_filter_options=false');
   });
 

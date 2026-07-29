@@ -99,6 +99,8 @@ interface MessageQueryParams extends MessageFilterParams {
   specificity_category?: string;
   header_tier_id?: string;
   include_total?: boolean;
+  /** Allow a recent exact total to be reused instead of forcing a fresh first-page count. */
+  cache_total?: boolean;
   include_filter_options?: boolean;
   exclude_playground?: boolean;
   /**
@@ -200,7 +202,9 @@ export class MessagesQueryService {
     // always runs a fresh count so the total stays current for clients that poll
     // it (a stale first-page total would lag newly recorded messages by the TTL).
     const cachedCount =
-      includeTotal && params.cursor ? this.countCache.get(countCacheKey) : undefined;
+      includeTotal && (params.cursor || params.cache_total)
+        ? this.countCache.get(countCacheKey)
+        : undefined;
     const countHit = cachedCount !== undefined;
     const [countResult, rows, filterOptions] = await Promise.all([
       includeTotal ? (countHit ? null : countQb.getRawOne()) : null,
@@ -394,7 +398,10 @@ export class MessagesQueryService {
     }
     const includeTotal = params.include_total !== false;
     const countCacheKey = this.buildCountCacheKey(params);
-    const cachedCount = includeTotal ? this.countCache.get(countCacheKey) : undefined;
+    const cachedCount =
+      includeTotal && (params.cursor || params.cache_total)
+        ? this.countCache.get(countCacheKey)
+        : undefined;
     const needsCount = includeTotal && cachedCount === undefined;
     const canPageFirst = params.cost_min === undefined && params.cost_max === undefined;
     let requestCountQuery: { sql: string; parameters: unknown[] } | null = null;

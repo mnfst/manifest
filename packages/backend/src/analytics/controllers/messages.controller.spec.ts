@@ -87,6 +87,7 @@ describe('MessagesController', () => {
       specificity_category: undefined,
       header_tier_id: undefined,
       include_total: undefined,
+      cache_total: undefined,
       include_filter_options: undefined,
     });
   });
@@ -107,6 +108,7 @@ describe('MessagesController', () => {
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
       include_total: false,
+      cache_total: true,
       include_filter_options: false,
     };
     await controller.getMessages(query as never, ctx as never);
@@ -129,6 +131,7 @@ describe('MessagesController', () => {
       specificity_category: 'coding',
       header_tier_id: 'ht-premium',
       include_total: false,
+      cache_total: true,
       include_filter_options: false,
     });
   });

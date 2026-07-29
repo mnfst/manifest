@@ -146,6 +146,7 @@ export interface MessageListParams extends Record<string, string | undefined> {
   specificity_category?: string;
   header_tier_id?: string;
   include_total?: string;
+  cache_total?: string;
   include_filter_options?: string;
 }
 
@@ -156,13 +157,14 @@ export function getMessages(params: MessageListParams = {}, options?: FetchJsonO
 export function getMessageCount(
   params: Omit<
     MessageListParams,
-    'cursor' | 'limit' | 'include_total' | 'include_filter_options'
+    'cursor' | 'limit' | 'include_total' | 'cache_total' | 'include_filter_options'
   > = {},
 ) {
   return fetchJson('/messages', {
     ...params,
     limit: '1',
     include_total: 'true',
+    cache_total: 'true',
     include_filter_options: 'false',
   });
 }

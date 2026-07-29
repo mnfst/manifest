@@ -87,7 +87,7 @@ describe('MessagesQueryService request-first queries', () => {
     );
   });
 
-  it('counts eligible parents directly and reuses the cached first-page total', async () => {
+  it('counts parents directly and caches only when the caller opts in', async () => {
     const requestQb = makeQb([{ id: 'request-1', timestamp: '2026-07-14T10:00:00Z' }]);
     const countQb = makeQb();
     countQb.getQueryAndParameters.mockReturnValue([
@@ -96,10 +96,12 @@ describe('MessagesQueryService request-first queries', () => {
     ]);
     const pageQb = makeQb();
     requestQb.clone.mockReturnValueOnce(countQb).mockReturnValue(pageQb);
-    const legacyCountQb = makeQb();
-    legacyCountQb.getRawOne.mockResolvedValue({ total: '2' });
+    const legacyQbs = Array.from({ length: 6 }, () => makeQb());
+    for (const index of [0, 2, 4]) {
+      legacyQbs[index].getRawOne.mockResolvedValue({ total: '2' });
+    }
     const legacyBase = makeQb();
-    legacyBase.clone.mockReturnValueOnce(legacyCountQb).mockReturnValue(makeQb());
+    legacyBase.clone.mockImplementation(() => legacyQbs.shift()!);
     const requestQuery = jest.fn().mockResolvedValue([{ total: '7' }]);
     const service = new MessagesQueryService(
       { createQueryBuilder: jest.fn(() => legacyBase) } as never,
@@ -111,9 +113,17 @@ describe('MessagesQueryService request-first queries', () => {
       tenantId: 'tenant-1',
       limit: 50,
       include_total: true,
+      cache_total: true,
       include_filter_options: false,
     });
     const second = await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 50,
+      include_total: true,
+      cache_total: true,
+      include_filter_options: false,
+    });
+    const fresh = await service.getMessages({
       tenantId: 'tenant-1',
       limit: 50,
       include_total: true,
@@ -121,10 +131,10 @@ describe('MessagesQueryService request-first queries', () => {
     });
 
     expect(countQb.select).toHaveBeenCalledWith('COUNT(*)', 'total');
-    expect(requestQuery).toHaveBeenCalledTimes(1);
-    expect(legacyCountQb.getRawOne).toHaveBeenCalledTimes(1);
+    expect(requestQuery).toHaveBeenCalledTimes(2);
     expect(first.total_count).toBe(9);
     expect(second.total_count).toBe(9);
+    expect(fresh.total_count).toBe(9);
   });
 
   it('reads request parents and unlinked attempts from one repeatable snapshot', async () => {
