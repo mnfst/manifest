@@ -665,8 +665,6 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   huggingface: '/icons/huggingface.svg',
   'kilo code': '/icons/kilocode.svg',
   kilocode: '/icons/kilocode.svg',
-  manifest: '/icons/manifest.svg',
-  'manifest gateway': '/icons/manifest.svg',
   mistral: '/icons/providers/mistral.svg',
   'mistral ai': '/icons/providers/mistral.svg',
   nvidia: '/icons/nvidia.svg',

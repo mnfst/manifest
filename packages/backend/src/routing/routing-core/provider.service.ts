@@ -43,8 +43,6 @@ import {
 import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
 import { getManagedFreeProviderConfig } from '../../common/constants/managed-free-providers';
 
-/** Managed credits gateway: one connection per tenant. */
-const MAX_KEYS_MANIFEST_PROVIDER = 1;
 const MAX_KEYS_MANAGED_FREE_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
@@ -489,16 +487,11 @@ export class ProviderService {
 
     const activeCount = existingRows.filter((r) => r.is_active).length;
     const managedFreeConfig = getManagedFreeProviderConfig(provider);
-    const maxKeys =
-      provider.toLowerCase() === 'manifest'
-        ? MAX_KEYS_MANIFEST_PROVIDER
-        : managedFreeConfig
-          ? MAX_KEYS_MANAGED_FREE_PROVIDER
-          : MAX_KEYS_PER_PROVIDER;
+    const maxKeys = managedFreeConfig ? MAX_KEYS_MANAGED_FREE_PROVIDER : MAX_KEYS_PER_PROVIDER;
     if (activeCount >= maxKeys) {
       throw new BadRequestException(
         maxKeys === 1
-          ? `You can connect at most 1 key for ${managedFreeConfig?.displayName ?? 'Manifest'}`
+          ? `You can connect at most 1 key for ${managedFreeConfig!.displayName}`
           : `You can connect at most ${maxKeys} keys per provider`,
       );
     }

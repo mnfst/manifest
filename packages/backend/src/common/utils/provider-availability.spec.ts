@@ -1,6 +1,5 @@
 import {
   filterProvidersForDeployment,
-  isCloudOnlyProvider,
   isLocalOnlyProvider,
   isProviderAvailableForDeployment,
 } from './provider-availability';
@@ -21,9 +20,6 @@ describe('provider availability', () => {
     expect(isLocalOnlyProvider('llama_cpp')).toBe(true);
     expect(isLocalOnlyProvider('openai')).toBe(false);
     expect(isLocalOnlyProvider('custom:runtime-id')).toBe(false);
-    expect(isCloudOnlyProvider('manifest')).toBe(true);
-    expect(isCloudOnlyProvider('manifest gateway')).toBe(true);
-    expect(isCloudOnlyProvider('openai')).toBe(false);
   });
 
   it('allows built-in local providers only in self-hosted mode', () => {
@@ -33,7 +29,6 @@ describe('provider availability', () => {
 
     process.env['MANIFEST_MODE'] = 'selfhosted';
     expect(isProviderAvailableForDeployment('ollama')).toBe(true);
-    expect(isProviderAvailableForDeployment('manifest')).toBe(false);
   });
 
   it('filters local provider rows in cloud without cloning unchanged arrays', () => {
@@ -45,12 +40,9 @@ describe('provider availability', () => {
     expect(filterProvidersForDeployment(unchanged)).toBe(unchanged);
   });
 
-  it('filters cloud-only provider rows in self-hosted mode', () => {
+  it('keeps all provider rows in self-hosted mode', () => {
     process.env['MANIFEST_MODE'] = 'selfhosted';
-    const providers = [{ provider: 'openai' }, { provider: 'ollama' }, { provider: 'manifest' }];
-    expect(filterProvidersForDeployment(providers)).toEqual([
-      { provider: 'openai' },
-      { provider: 'ollama' },
-    ]);
+    const providers = [{ provider: 'openai' }, { provider: 'ollama' }];
+    expect(filterProvidersForDeployment(providers)).toBe(providers);
   });
 });

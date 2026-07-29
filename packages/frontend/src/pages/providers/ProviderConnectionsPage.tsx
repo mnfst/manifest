@@ -44,7 +44,6 @@ import {
   CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
 } from '../../services/api/analytics.js';
 import { getAutofixCohort } from '../../services/api/autofix.js';
-import { checkIsSelfHosted } from '../../services/setup-status.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
 
@@ -118,15 +117,11 @@ const PAGE_COPY: Record<
   },
 };
 
-const providerListForKind = (
-  kind: ProviderPageKind,
-  isSelfHosted: boolean | undefined,
-): ProviderDef[] => {
-  const available = PROVIDERS.filter((provider) => !provider.cloudOnly || isSelfHosted === false);
+const providerListForKind = (kind: ProviderPageKind): ProviderDef[] => {
   if (kind === 'subscriptions')
-    return available.filter((provider) => provider.supportsSubscription);
-  if (kind === 'local') return available.filter((provider) => provider.localOnly);
-  return available.filter((provider) => !provider.subscriptionOnly && !provider.localOnly);
+    return PROVIDERS.filter((provider) => provider.supportsSubscription);
+  if (kind === 'local') return PROVIDERS.filter((provider) => provider.localOnly);
+  return PROVIDERS.filter((provider) => !provider.subscriptionOnly && !provider.localOnly);
 };
 
 const standardProviderName = (providerId: string): string | null =>
@@ -231,8 +226,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     createSignal<CustomProviderPrefill | null>(null);
   const [viewMode, setViewMode] = createSignal<ViewMode>('grid');
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isSelfHosted] = createResource(checkIsSelfHosted);
-  const supportedProviders = () => providerListForKind(props.kind, isSelfHosted());
 
   // Inline rename state
   const [renamingId, setRenamingId] = createSignal<string | null>(null);
@@ -291,7 +284,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   };
 
   // CONFIG resource — paints the page immediately (cheap endpoint, no
-  // agent_messages scan). getGlobalProviders best-effort ensures Manifest.
+  // agent_messages scan).
   const [config, { refetch: refetchConfig }] = createResource(async () => {
     try {
       return await getGlobalProviders();
@@ -849,7 +842,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               </tr>
             </thead>
             <tbody>
-              <For each={supportedProviders()}>
+              <For each={providerListForKind(props.kind)}>
                 {(provider) => {
                   const activeCount = () => activeConnectionCount(provider.id);
                   return (
@@ -897,7 +890,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
 
       <Show when={viewMode() === 'grid'}>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-          <For each={supportedProviders()}>
+          <For each={providerListForKind(props.kind)}>
             {(provider) => {
               const activeCount = () => activeConnectionCount(provider.id);
               return (

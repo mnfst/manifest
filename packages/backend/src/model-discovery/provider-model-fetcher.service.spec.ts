@@ -45,7 +45,6 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
-      'manifest',
       'gemini-free',
       'ollama',
       'ollama-cloud',
@@ -55,30 +54,6 @@ describe('ProviderModelFetcherService', () => {
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
     }
-  });
-
-  it('keeps distinct prefixed Manifest routes while dropping bare duplicates and wildcards', async () => {
-    fetchSpy.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: [
-          { id: 'gemini-2.5-flash' },
-          { id: 'gemini/gemini-2.5-flash' },
-          { id: 'openai/gpt-4o' },
-          { id: 'azure/gpt-4o' },
-          { id: 'openai/gpt-4o' },
-          { id: 'gemini/*' },
-        ],
-      }),
-    });
-
-    const result = await service.fetch('manifest', 'sk-virtual');
-
-    expect(result.map((model) => model.id)).toEqual([
-      'gemini/gemini-2.5-flash',
-      'openai/gpt-4o',
-      'azure/gpt-4o',
-    ]);
   });
 
   it('discovers only Gemini models from the Gemini Free LiteLLM catalog', async () => {
