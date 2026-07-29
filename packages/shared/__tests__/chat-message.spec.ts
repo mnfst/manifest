@@ -345,6 +345,18 @@ describe('recorded chat message helpers', () => {
     ]);
   });
 
+  it('reconstructs Gemini streaming text from candidate parts', () => {
+    expect(
+      extractResponseMessages({
+        type: 'stream',
+        raw_sse: [
+          'data: {"candidates":[{"content":{"parts":[{"text":"Hello! ","thoughtSignature":"signature"}],"role":"model"},"index":0}]}',
+          'data: {"candidates":[{"content":{"parts":[{"text":"How can I help?"}],"role":"model"},"finishReason":"STOP","index":0}]}',
+        ].join('\r\n\r\n'),
+      }),
+    ).toEqual([{ role: 'assistant', content: 'Hello! How can I help?' }]);
+  });
+
   it('reconstructs Responses and Anthropic streaming text and skips bad events', () => {
     expect(
       extractResponseMessages({

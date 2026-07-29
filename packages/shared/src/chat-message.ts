@@ -310,6 +310,14 @@ function extractStreamResponse(rawSse: string): ChatMessage[] {
       const choice = choices.find(isRecord);
       const delta = choice && isRecord(choice.delta) ? choice.delta : undefined;
       if (typeof delta?.content === 'string') text += delta.content;
+      if (Array.isArray(payload.candidates)) {
+        const content = extractJsonResponse(payload)[0]?.content;
+        if (Array.isArray(content)) {
+          for (const part of content) {
+            if (isRecord(part) && typeof part.text === 'string') text += part.text;
+          }
+        }
+      }
       if (Array.isArray(delta?.tool_calls)) {
         for (const rawCall of delta.tool_calls) {
           if (!isRecord(rawCall)) continue;
