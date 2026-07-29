@@ -23,9 +23,9 @@ describe('ManagedFreeProviderService', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     process.env = { ...env };
-    process.env['LITELLM_MASTER_KEY'] = 'sk-master';
-    process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
-    delete process.env['LITELLM_AUTO_PROVISION_ALLOWLIST'];
+    process.env['CREDITS_MASTER_KEY'] = 'sk-master';
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test';
+    delete process.env['CREDITS_AUTO_PROVISION_ALLOWLIST'];
     service = new ManagedFreeProviderService(
       providerRepo as never,
       providerService as never,
@@ -147,7 +147,7 @@ describe('ManagedFreeProviderService', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://litellm.test/key/generate',
+      'https://credits.test/key/generate',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ Authorization: 'Bearer sk-master' }),
@@ -168,7 +168,7 @@ describe('ManagedFreeProviderService', () => {
   });
 
   it('returns none when automatic provisioning is unavailable', async () => {
-    delete process.env['LITELLM_MASTER_KEY'];
+    delete process.env['CREDITS_MASTER_KEY'];
     providerRepo.find.mockResolvedValue([]);
 
     await expect(
@@ -186,7 +186,7 @@ describe('ManagedFreeProviderService', () => {
   });
 
   it('rejects direct key generation when the master key is missing', async () => {
-    delete process.env['LITELLM_MASTER_KEY'];
+    delete process.env['CREDITS_MASTER_KEY'];
     const privateService = service as unknown as {
       mintVirtualKey(
         config: ManagedFreeProviderConfig,

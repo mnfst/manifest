@@ -57,7 +57,7 @@ describe('ProviderModelFetcherService', () => {
   });
 
   it('discovers only Gemini models from the Gemini Free LiteLLM catalog', async () => {
-    process.env['LITELLM_BASE_URL'] = 'https://litellm.test';
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test';
     fetchSpy.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -74,7 +74,7 @@ describe('ProviderModelFetcherService', () => {
     const result = await service.fetch('gemini-free', 'sk-virtual');
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      'https://litellm.test/v1/models',
+      'https://credits.test/v1/models',
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer sk-virtual',

@@ -230,10 +230,10 @@ describe('resolveEndpointKey', () => {
 
 describe('PROVIDER_ENDPOINTS', () => {
   it('routes Gemini Free through the configured LiteLLM gateway', () => {
-    process.env['LITELLM_BASE_URL'] = 'https://litellm.test/';
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test/';
     const endpoint = PROVIDER_ENDPOINTS['gemini-free'];
 
-    expect(endpoint.baseUrl).toBe('https://litellm.test');
+    expect(endpoint.baseUrl).toBe('https://credits.test');
     expect(endpoint.buildPath('gemini/gemini-2.5-flash')).toBe('/v1/chat/completions');
     expect(endpoint.buildHeaders('sk-virtual')).toEqual({
       Authorization: 'Bearer sk-virtual',
