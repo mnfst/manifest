@@ -1,0 +1,65 @@
+packages/backend/src/scoring/classifier/__tests__/inference.spec.ts
+  s_b5c778096e4fba::t_a6a2d852a8e4d1 1-11,13-70,74-90,112-131
+  s_b5c778096e4fba::t_3a492f9069141b 12,71-73
+  s_b5c778096e4fba::t_65ff54a32e6f2a 91-111
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_b5c778096e4fba::t_80d510fcb20187 16,70,100-102,124
+  s_b5c778096e4fba::t_e08ccf7f704b7e 167-232
+packages/backend/nest-cli.json
+  s_b5c778096e4fba::t_d1900324a120f8 6-7
+packages/backend/src/routing/routing-core/routing-core.module.ts
+  s_b5c778096e4fba::t_ec88e4d9bbaada 24,53,67
+packages/backend/src/scoring/classifier/classifier.service.ts
+  s_b5c778096e4fba::t_1771959d741627 1-104
+packages/frontend/src/pages/Routing.tsx
+  s_b5c778096e4fba::t_ffdd7298d92dd6 140-141
+packages/frontend/tests/pages/Routing.test.tsx
+  s_b5c778096e4fba::t_e72c2f350cf7af 950-962
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_b5c778096e4fba::t_d3b2492dcebfc9 19-23,25-26
+  s_b5c778096e4fba::t_2edf0da7d1ac91 214-231
+  s_b5c778096e4fba::t_cc016d231b86c4 24
+  s_b5c778096e4fba::t_adb1a701225a43 78
+  s_b5c778096e4fba::t_26b30c705170b8 151-156
+  s_b5c778096e4fba::t_d6e07a4a5bbc4e 48-50
+packages/backend/src/scoring/classifier/inference.ts
+  s_b5c778096e4fba::t_f187241105687f 1-10,12-22,24-57,59-68,70-136,138-208
+  s_b5c778096e4fba::t_3a492f9069141b 11,23,58,69,137
+packages/backend/src/scoring/types.ts
+  s_b5c778096e4fba::t_b8a97275b602f0 41
+packages/frontend/src/services/api/routing.ts
+  s_b5c778096e4fba::t_ffdd7298d92dd6 164
+  s_b5c778096e4fba::t_d3e49424eca650 36
+packages/backend/src/scoring/classifier/__tests__/serialize.spec.ts
+  s_b5c778096e4fba::t_3a492f9069141b 41
+  s_b5c778096e4fba::t_74fc53b7909a16 1-10,13-24,26-40,42-74,76-80,86-179
+  s_b5c778096e4fba::t_eeb2619de761bd 11-12,25
+  s_b5c778096e4fba::t_c51eba0140dbaf 75,81-85
+packages/backend/src/routing/tier.controller.spec.ts
+  s_b5c778096e4fba::t_d6ddf8f12a88e9 10,32,59,66,144-150
+packages/backend/src/scoring/classifier/serialize.ts
+  s_b5c778096e4fba::t_3a492f9069141b 36-45,49-50,54,56,58-59,62,68,74,80-81,86-88,92,94-95,97,119-120,122,126,128,130,132
+  s_b5c778096e4fba::t_f187241105687f 1-35,46-48,51-53,55,57,60-61,63-67,69-73,75-79,82-85,89-91,93,96,98-118,121,123-125,127,129,131,133-135
+packages/backend/src/routing/tier.controller.ts
+  s_b5c778096e4fba::t_e372a44c5ce9cc 30,41,152-155
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_b5c778096e4fba::t_80d510fcb20187 35,142
+packages/backend/src/scoring/classifier/__tests__/classifier.service.spec.ts
+  s_b5c778096e4fba::t_8104456a3c9d34 1-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "28d111ba8500af1cad9bbf411c9f82d653c78e74",
+  "prompts": {},
+  "sessions": {
+    "s_b5c778096e4fba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b45de2c7-b59b-4cc4-b39e-6bed2daa29fc",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
