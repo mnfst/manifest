@@ -1,0 +1,36 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_86ae7d6def5db2::t_99d6b0a674bb42 563,575
+packages/backend/.env.example
+  s_86ae7d6def5db2::t_99d6b0a674bb42 62,65-68
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_86ae7d6def5db2::t_99d6b0a674bb42 60,77
+docker/.env.example
+  s_86ae7d6def5db2::t_99d6b0a674bb42 81,84-87
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_86ae7d6def5db2::t_99d6b0a674bb42 26-28,150,171,189
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_86ae7d6def5db2::t_12913e13e785d5 26-27
+  s_86ae7d6def5db2::t_99d6b0a674bb42 16-19,31-32,42,44,46,51-52,56,62,68-69,81
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_86ae7d6def5db2::t_99d6b0a674bb42 233,236
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_86ae7d6def5db2::t_99d6b0a674bb42 27,41,45,50,63
+.changeset/gemini-free-provider.md
+  s_86ae7d6def5db2::t_12913e13e785d5 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "a561aa8b1ee63918bb331ea531869dd70307001e",
+  "prompts": {},
+  "sessions": {
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}
