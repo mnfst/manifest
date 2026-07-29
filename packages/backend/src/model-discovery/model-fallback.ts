@@ -6,7 +6,6 @@ import {
 import {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
-  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
   type SubscriptionCapabilities,
 } from 'manifest-shared';
@@ -270,97 +269,31 @@ export function buildFallbackModels(
 }
 
 /**
- * Build a curated fallback model list for subscription providers without a token.
- * Uses knownModels prefixes from subscription-capabilities to filter the OpenRouter cache,
- * and applies capability restrictions (e.g., context window caps).
- * Any knownModels not found in OpenRouter are added directly as zero-cost entries.
+ * Build a curated fallback model list for subscription providers.
+ * Model availability comes exclusively from the provider's knownModels list.
  */
-export function buildSubscriptionFallbackModels(
-  pricingSync: PricingLookup | null,
-  providerId: string,
-): DiscoveredModel[] {
-  const knownPrefixes = getSubscriptionKnownModels(providerId);
-  if (!knownPrefixes) return [];
-  const normalizedKnownPrefixes = knownPrefixes.map((modelId) => modelId.toLowerCase());
-  const matchMode = getSubscriptionKnownModelsMatch(providerId);
-  const excludedSubstrings = getSubscriptionExcludedModels(providerId).map((s) => s.toLowerCase());
-  const isExcluded = (lowerId: string): boolean =>
-    excludedSubstrings.some((sub) => lowerId.includes(sub));
-
+export function buildSubscriptionFallbackModels(providerId: string): DiscoveredModel[] {
+  const knownModels = getSubscriptionKnownModels(providerId);
+  if (!knownModels) return [];
   const capabilities = getSubscriptionCapabilities(providerId);
-  const models: DiscoveredModel[] = [];
-  const seen = new Set<string>();
-
-  const orPrefix = pricingSync ? findOpenRouterPrefix(providerId) : null;
-
-  if (pricingSync && orPrefix) {
-    for (const [fullId, entry] of pricingSync.getAll()) {
-      if (!fullId.startsWith(`${orPrefix}/`)) continue;
-      const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
-      const lowerId = modelId.toLowerCase();
-      const matches =
-        matchMode === 'exact'
-          ? normalizedKnownPrefixes.includes(lowerId)
-          : normalizedKnownPrefixes.some((p: string) => lowerId.startsWith(p));
-      if (!matches) continue;
-      // Drop pricing-cache pseudo-models (e.g. Anthropic `claude-*-fast`) that
-      // match a known prefix but 404 at the subscription endpoint.
-      if (isExcluded(lowerId)) continue;
-      if (seen.has(modelId)) continue;
-      seen.add(modelId);
-
-      const contextWindow = resolveSubscriptionContextWindow(
-        modelId,
-        entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
-        capabilities,
-      );
-
-      models.push({
-        id: modelId,
-        displayName: entry.displayName || modelId,
-        provider: providerId,
-        contextWindow,
-        inputPricePerToken: entry.input,
-        outputPricePerToken: entry.output,
-        capabilityReasoning: false,
-        capabilityCode: false,
-        qualityScore: 3,
-      });
-    }
-  }
-
-  // Add any knownModels not already covered by discovered models. Prefix-mode
-  // providers treat versioned IDs as covered by the family ID; exact-mode
-  // providers only treat an identical ID as covered.
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
-  for (const modelId of knownPrefixes) {
-    const lowerModelId = modelId.toLowerCase();
-    const covered = models.some((m) => {
-      const lowerDiscovered = m.id.toLowerCase();
-      if (lowerDiscovered === lowerModelId) return true;
-      return matchMode !== 'exact' && lowerDiscovered.startsWith(`${lowerModelId}-`);
-    });
-    if (covered) continue;
-    models.push({
-      id: modelId,
-      displayName: modelId,
-      provider: providerId,
-      contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
-      inputPricePerToken: 0,
-      outputPricePerToken: 0,
-      capabilityReasoning: false,
-      capabilityCode: false,
-      qualityScore: 3,
-    });
-  }
-
-  return models;
+  return knownModels.map((modelId) => ({
+    id: modelId,
+    displayName: modelId,
+    provider: providerId,
+    contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
+    inputPricePerToken: 0,
+    outputPricePerToken: 0,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 3,
+  }));
 }
 
 /**
  * Supplement discovered models with knownModels from subscription-capabilities.
  * Ensures subscription users always have the known models available as selectable options,
- * even if the live API or OpenRouter cache didn't return them.
+ * even if the live provider API did not return them.
  */
 export function supplementWithKnownModels(
   raw: DiscoveredModel[],
