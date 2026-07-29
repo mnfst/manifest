@@ -15,16 +15,20 @@ packages/backend/src/routing/routing-core/provider.service.ts
   s_86ae7d6def5db2::t_2f256f0a55ae4a 48
   s_86ae7d6def5db2::t_2381a58f1dcf03 498,500,502
   s_86ae7d6def5db2::t_0412a98db63cfc 44,491
+  s_86ae7d6def5db2::t_f739e65aa7c705 493-497,501
 packages/frontend/src/services/api/providers.ts
   s_86ae7d6def5db2::t_a6e98a99b16c84 1,69,76,78-83,98,106-109,111-112
   s_86ae7d6def5db2::t_2381a58f1dcf03 2-3,70-75,77,84-85,89-92,95-97,99-105,110,113-116
+  s_86ae7d6def5db2::t_f0bcb56b38bdb0 86-88,93-94,119-120,124-127
 packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
   s_86ae7d6def5db2::t_837dfeaac13865 84-114
+  s_86ae7d6def5db2::t_8562ef12dda35f 49
 packages/shared/__tests__/providers.spec.ts
   s_86ae7d6def5db2::t_f92bf078429fec 158-164,166-167
   s_86ae7d6def5db2::t_a6e98a99b16c84 165
 packages/backend/src/routing/routing.module.ts
   s_86ae7d6def5db2::t_215a70ff275e51 23-24,70
+  s_86ae7d6def5db2::t_f739e65aa7c705 72
 packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
   s_86ae7d6def5db2::t_6185d9dbaaa41f 78,171,232-243
 packages/frontend/src/services/providers.ts
@@ -47,6 +51,7 @@ packages/backend/src/routing/managed-free-provider/managed-free-provider.control
   s_86ae7d6def5db2::t_215a70ff275e51 1-42,48-49
 packages/backend/src/routing/proxy/provider-client.ts
   s_86ae7d6def5db2::t_2f256f0a55ae4a 41
+  s_86ae7d6def5db2::t_f739e65aa7c705 208-214
 packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
   s_86ae7d6def5db2::t_9ae973e2531552 272-296
 packages/frontend/tests/services/providers.test.ts
@@ -56,6 +61,7 @@ packages/frontend/tests/services/api/providers.test.ts
   s_86ae7d6def5db2::t_a6e98a99b16c84 5,109
   s_86ae7d6def5db2::t_022025aabf77f2 51,100-108,110-117
   s_86ae7d6def5db2::t_4e822f0c9d05ae 118-119
+  s_86ae7d6def5db2::t_b725bb6745bd94 56-60,63,83,97,120,130-132
 packages/backend/src/common/constants/managed-free-providers.spec.ts
   s_86ae7d6def5db2::t_b382bfc5b51b6a 1-63,65-68
   s_86ae7d6def5db2::t_215a70ff275e51 64
