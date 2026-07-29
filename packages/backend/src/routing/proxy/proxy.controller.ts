@@ -245,7 +245,6 @@ export class ProxyController {
     let recordingEnabled = false;
     let currentAttempt: ProviderAttemptRef | undefined;
     let currentAttemptStart: ProviderAttemptStart | undefined;
-    let recordingCapture: RequestRecordingCapture | undefined;
 
     const clientAbort = new AbortController();
     res.once('close', () => clientAbort.abort());
@@ -555,7 +554,6 @@ export class ProxyController {
         startTime,
         currentAttempt,
         currentAttemptStart,
-        recordingCapture,
       );
       await (currentMeta?.attempt ?? currentAttempt)?.finishRecording?.();
     } finally {
@@ -616,7 +614,6 @@ export class ProxyController {
     startTime?: number,
     currentAttempt?: ProviderAttemptRef,
     currentAttemptStart?: ProviderAttemptStart,
-    capture?: RequestRecordingCapture,
   ): Promise<void> {
     const capture = (meta?.attempt ?? currentAttempt)?.recordingCapture;
     if (clientAbort.signal.aborted) {

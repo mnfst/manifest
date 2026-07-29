@@ -42,6 +42,7 @@ import {
   SignatureLookup,
   ThinkingBlockLookup,
   ReasoningContentLookup,
+  ResolveChatBody,
   ProviderAttemptRef,
   StartProviderAttempt,
 } from './proxy-types';
@@ -263,30 +264,24 @@ export class ProxyService {
     } = opts;
     const apiMode = opts.apiMode ?? 'chat_completions';
     const routingSource = opts.routingBody ?? body;
-    const chatBody = this.toChatBody(apiMode, body);
-    const forwardingBody = chatBody ?? body;
-    let routingBody = forwardingBody;
-    if (routingSource !== body) {
-      const routingChatBody = this.toChatBody(apiMode, routingSource);
-      routingBody = routingChatBody ?? routingSource;
-    }
-    this.validatePayload(forwardingBody);
-    if (routingBody !== forwardingBody) this.validatePayload(routingBody);
+    const resolveChatBody = this.createChatBodyResolver(apiMode, body);
+    const resolveRoutingChatBody =
+      routingSource === body
+        ? resolveChatBody
+        : this.createChatBodyResolver(apiMode, routingSource);
+    this.validatePayload(body, apiMode);
+    if (routingSource !== body) this.validatePayload(routingSource, apiMode);
 
     const limitMessage = await this.enforceLimits(tenantId, agentName);
     if (limitMessage) {
-      return buildFriendlyResponse(
-        limitMessage,
-        routingBody.stream === true,
-        'limit_exceeded',
-        'M200',
-      );
+      return buildFriendlyResponse(limitMessage, body.stream === true, 'limit_exceeded', 'M200');
     }
 
     const resolved = await this.resolveRouting(
       agentId,
       tenantId,
-      routingBody,
+      routingSource,
+      resolveRoutingChatBody,
       sessionKey,
       specificityOverride,
       headers,
@@ -372,7 +367,7 @@ export class ProxyService {
     const primaryRequestParams = explicitModelOverride
       ? null
       : snapshotRequestParams({
-          body: routingBody as Record<string, unknown>,
+          body,
           modelParams: primaryModelParams,
           specs: primarySpecs,
         });
@@ -421,7 +416,7 @@ export class ProxyService {
           primaryModel,
           forward,
           body,
-          chatBody,
+          resolveChatBody,
           stream,
           sessionKey,
           signal,
@@ -450,7 +445,7 @@ export class ProxyService {
       apiKey: credentials.apiKey,
       model: primaryModel,
       body,
-      chatBody,
+      resolveChatBody,
       stream,
       sessionKey,
       signal,
@@ -540,7 +535,7 @@ export class ProxyService {
         primaryModel,
         forward,
         body,
-        chatBody,
+        resolveChatBody,
         stream,
         sessionKey,
         signal,
@@ -641,7 +636,7 @@ export class ProxyService {
           primaryModel,
           forward: syntheticForward,
           body,
-          chatBody,
+          resolveChatBody,
           stream,
           sessionKey,
           signal,
@@ -750,11 +745,12 @@ export class ProxyService {
     healedBody: Record<string, unknown>,
     ctx: ResolvedHealContext,
   ): Promise<ForwardResult> {
-    const routingBody = this.toChatBody(ctx.apiMode, healedBody) ?? healedBody;
+    const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
     const resolved = await this.resolveRouting(
       ctx.agentId,
       ctx.tenantId,
-      routingBody,
+      healedBody,
+      resolveChatBody,
       ctx.sessionKey,
       ctx.specificityOverride,
       ctx.headers,
@@ -781,7 +777,7 @@ export class ProxyService {
       apiKey: credentials.apiKey,
       model,
       body: healedBody,
-      chatBody: this.toChatBody(ctx.apiMode, healedBody),
+      resolveChatBody,
       stream: ctx.stream,
       sessionKey: ctx.sessionKey,
       signal: ctx.signal,
@@ -819,7 +815,22 @@ export class ProxyService {
     };
   }
 
-  private validatePayload(body: ProxyRequestOptions['body']): void {
+  private validatePayload(body: ProxyRequestOptions['body'], apiMode: ProxyApiMode): void {
+    if (apiMode === 'responses') {
+      const hasInstructions =
+        typeof body.instructions === 'string' && body.instructions.trim().length > 0;
+      const hasInput =
+        typeof body.input === 'string' ||
+        (Array.isArray(body.input) &&
+          body.input.some(
+            (item) =>
+              typeof item === 'string' ||
+              (!!item && typeof item === 'object' && !Array.isArray(item)),
+          ));
+      if (hasInstructions || hasInput) return;
+      throw new ManifestError('M300', HttpStatus.BAD_REQUEST);
+    }
+
     const messages = body.messages;
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       // A ManifestError, not a bare BadRequestException: the proxy needs to tell
@@ -827,13 +838,28 @@ export class ProxyService {
       // row lands in agent_messages blamed on the provider.
       throw new ManifestError('M300', HttpStatus.BAD_REQUEST);
     }
-    sanitizeNullContent(messages as Record<string, unknown>[]);
+    if (apiMode === 'chat_completions') {
+      sanitizeNullContent(messages as Record<string, unknown>[]);
+    }
+  }
+
+  private createChatBodyResolver(
+    apiMode: ProxyApiMode,
+    body: ProxyRequestOptions['body'],
+  ): ResolveChatBody | undefined {
+    if (apiMode === 'chat_completions') return undefined;
+    let resolved: Promise<Record<string, unknown>> | undefined;
+    return () => {
+      resolved ??= Promise.resolve(this.toChatBody(apiMode, body)!);
+      return resolved;
+    };
   }
 
   private async resolveRouting(
     agentId: string,
     tenantId: string,
     body: ProxyRequestOptions['body'],
+    resolveChatBody: ResolveChatBody | undefined,
     sessionKey: string,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
@@ -857,26 +883,29 @@ export class ProxyService {
       };
     }
 
-    // Not guaranteed to be an array here: a healed body reaches this path from
-    // forwardResolvedHealed, which never runs it past validatePayload. An
-    // explicit model used to return before this line, so the fall-through is
-    // what newly exposes it to a body Phoenix rewrote.
-    const messages = (Array.isArray(body.messages) ? body.messages : []) as ScorerMessage[];
-    const scoringMessages = this.filterScoringMessages(messages);
-    const scoringTools = Array.isArray(body.tools) ? body.tools : undefined;
-    const isHeartbeat = this.detectHeartbeat(scoringMessages);
+    const isHeartbeat = this.detectHeartbeatBody(body, apiMode);
     const recentTiers = this.momentum.getRecentTiers(sessionKey);
     const recentCategories = this.momentum.getRecentCategories(sessionKey);
 
     const baseResolved = await (isHeartbeat
       ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
-      : this.resolveService.resolve(
+      : this.resolveService.resolveLazy(
           agentId,
           tenantId,
-          scoringMessages,
-          scoringTools,
-          body.tool_choice,
-          body.max_tokens as number | undefined,
+          async () => {
+            const scoringBody = resolveChatBody ? await resolveChatBody() : body;
+            // Not guaranteed to be an array here: a healed body reaches this
+            // path without validatePayload after Phoenix rewrites it.
+            const messages = (
+              Array.isArray(scoringBody.messages) ? scoringBody.messages : []
+            ) as ScorerMessage[];
+            return {
+              messages: this.filterScoringMessages(messages),
+              tools: Array.isArray(scoringBody.tools) ? scoringBody.tools : undefined,
+              tool_choice: scoringBody.tool_choice,
+              max_tokens: scoringBody.max_tokens as number | undefined,
+            };
+          },
           recentTiers,
           specificityOverride,
           recentCategories,
@@ -988,7 +1017,7 @@ export class ProxyService {
     primaryModel: string;
     forward: ForwardResult;
     body: ProxyRequestOptions['body'];
-    chatBody?: ProxyRequestOptions['body'];
+    resolveChatBody?: ResolveChatBody;
     stream: boolean;
     sessionKey: string;
     signal?: AbortSignal;
@@ -1011,7 +1040,7 @@ export class ProxyService {
       primaryModel,
       forward,
       body,
-      chatBody,
+      resolveChatBody,
       stream,
       sessionKey,
       signal,
@@ -1045,7 +1074,7 @@ export class ProxyService {
       args.signatureLookup,
       args.thinkingLookup,
       apiMode,
-      chatBody,
+      resolveChatBody,
       fallbackRoutes,
       args.paramMergeContext,
       args.reasoningContentLookup,
@@ -1223,6 +1252,38 @@ export class ProxyService {
     return messages
       .filter((m) => !SCORING_EXCLUDED_ROLES.has(m.role))
       .slice(-SCORING_RECENT_MESSAGES);
+  }
+
+  private detectHeartbeatBody(body: ProxyRequestOptions['body'], apiMode: ProxyApiMode): boolean {
+    if (apiMode !== 'responses') {
+      const messages = (Array.isArray(body.messages) ? body.messages : []) as ScorerMessage[];
+      return this.detectHeartbeat(this.filterScoringMessages(messages));
+    }
+
+    if (typeof body.input === 'string') return body.input.includes('HEARTBEAT_OK');
+    if (!Array.isArray(body.input)) return false;
+    for (let i = body.input.length - 1; i >= 0; i--) {
+      const item = body.input[i];
+      if (typeof item === 'string') return item.includes('HEARTBEAT_OK');
+      if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+      const record = item as Record<string, unknown>;
+      if (record.type === 'function_call' || record.type === 'function_call_output') continue;
+      const role = typeof record.role === 'string' ? record.role : 'user';
+      if (role !== 'user') continue;
+      if (typeof record.content === 'string') {
+        return record.content.includes('HEARTBEAT_OK');
+      }
+      if (!Array.isArray(record.content)) return false;
+      return record.content.some(
+        (part) =>
+          !!part &&
+          typeof part === 'object' &&
+          !Array.isArray(part) &&
+          typeof (part as Record<string, unknown>).text === 'string' &&
+          ((part as Record<string, unknown>).text as string).includes('HEARTBEAT_OK'),
+      );
+    }
+    return false;
   }
 
   private detectHeartbeat(scoringMessages: ScorerMessage[]): boolean {

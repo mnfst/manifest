@@ -589,6 +589,42 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('merges params into a lazy cross-protocol body once per attempt', async () => {
+      const convertedBody = { messages: [{ role: 'user', content: 'hi' }] };
+      const resolveChatBody = jest.fn().mockResolvedValue(convertedBody);
+      modelParamsService.get.mockResolvedValue({ thinking: { type: 'disabled' } });
+      providerClient.forward.mockImplementation(async (options) => {
+        const first = await options.resolveChatBody!();
+        const second = await options.resolveChatBody!();
+        expect(second).toBe(first);
+        expect(first).toEqual({
+          ...convertedBody,
+          thinking: { type: 'disabled' },
+        });
+        return {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        };
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: { input: 'hi' },
+        resolveChatBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+        apiMode: 'responses',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
+    });
+
     it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
