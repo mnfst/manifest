@@ -866,9 +866,10 @@ export class ProxyService {
     apiMode: ProxyApiMode,
   ): Promise<ResolvedRouting> {
     const requestedModel = typeof body.model === 'string' ? body.model : undefined;
-    // Anthropic Messages requests require a provider-native model field; only
-    // OpenAI-compatible surfaces use /v1/models IDs as route overrides.
-    if (apiMode !== 'messages' && requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
+    // Every public proxy surface treats a concrete model as an explicit route.
+    // The resolver accepts both provider-qualified /v1/models IDs and the
+    // unambiguous provider-native IDs required by Anthropic clients.
+    if (requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
       const explicit = await this.resolveExplicitModel(agentId, tenantId, requestedModel, headers);
       if (explicit) return explicit;
       return {
@@ -916,7 +917,7 @@ export class ProxyService {
   }
 
   /**
-   * Route the `model` an OpenAI-compatible client named in the body.
+   * Route the `model` a proxy client named in the body.
    *
    * A matching header tier wins: that rule is an override the operator
    * configured on purpose, and the SDK's `model` field is mandatory, so most
