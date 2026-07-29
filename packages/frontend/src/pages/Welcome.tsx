@@ -712,7 +712,7 @@ const Welcome: Component = () => {
   const skipOnboarding = () => {
     const uid = userId();
     if (uid) markOnboardingDone(uid);
-    navigate('/');
+    navigate('/upgrade');
   };
 
   const openOnboardingPaywall = () => {
