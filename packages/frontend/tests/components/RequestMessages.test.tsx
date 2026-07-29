@@ -32,10 +32,37 @@ describe('RequestMessages', () => {
     expect(getAllByText('Sunny.')).toHaveLength(2);
   });
 
-  it('shows tool definitions when view is tools', () => {
-    const { getByText } = render(() => <RequestMessages recording={recording} view="tools" />);
+  it('shows only tool calls emitted by the selected attempt', () => {
+    const calledRecording = {
+      ...recording,
+      response_body: {
+        type: 'json' as const,
+        body: {
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call-1',
+                    type: 'function',
+                    function: { name: 'weather', arguments: '{"city":"Paris"}' },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    };
+    const { getByText, queryByText } = render(() => (
+      <RequestMessages recording={calledRecording} view="tools" />
+    ));
     expect(getByText('weather')).toBeTruthy();
-    expect(getByText('Read the forecast')).toBeTruthy();
+    expect(getByText('call-1')).toBeTruthy();
+    expect(getByText(/"city": "Paris"/)).toBeTruthy();
+    expect(queryByText('Read the forecast')).toBeNull();
   });
 
   it('shows raw payloads when view is raw', () => {
@@ -93,7 +120,7 @@ describe('RequestMessages', () => {
     const { getByText: getText2 } = render(() => (
       <RequestMessages recording={emptyRecording} view="tools" />
     ));
-    expect(getText2('No tools were defined.')).toBeTruthy();
+    expect(getText2('No tools were called.')).toBeTruthy();
   });
 
   it('explains when recording was disabled', () => {

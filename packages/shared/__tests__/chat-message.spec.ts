@@ -4,6 +4,7 @@ import {
   extractRequestMessages,
   extractRequestTools,
   extractResponseMessages,
+  extractResponseToolCalls,
   normalizeRole,
 } from '../src/chat-message';
 
@@ -103,10 +104,7 @@ describe('recorded chat message helpers', () => {
       extractRequestMessages({
         messages: [
           {
-            content: [
-              { type: 'tool_use' },
-              { type: 'tool_result', content: 'No id' },
-            ],
+            content: [{ type: 'tool_use' }, { type: 'tool_result', content: 'No id' }],
           },
         ],
       }),
@@ -365,6 +363,185 @@ describe('recorded chat message helpers', () => {
       extractResponseMessages({
         type: 'stream',
         raw_sse: 'event: ping\ndata: {"type":"ping"}\n',
+      }),
+    ).toEqual([]);
+  });
+
+  it('extracts only tool calls emitted by JSON responses', () => {
+    expect(
+      extractResponseToolCalls({
+        type: 'json',
+        body: {
+          type: 'message',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'tool-1',
+              name: 'weather',
+              input: { city: 'Paris' },
+            },
+          ],
+        },
+      }),
+    ).toEqual([
+      {
+        id: 'tool-1',
+        type: 'function',
+        function: { name: 'weather', arguments: { city: 'Paris' } },
+      },
+    ]);
+    expect(
+      extractResponseToolCalls({
+        type: 'json',
+        body: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    functionCall: {
+                      id: 'gemini-tool-1',
+                      name: 'weather',
+                      args: { city: 'Paris' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      }),
+    ).toEqual([
+      {
+        id: 'gemini-tool-1',
+        type: 'function',
+        function: { name: 'weather', arguments: { city: 'Paris' } },
+      },
+    ]);
+    expect(extractResponseToolCalls(null)).toEqual([]);
+  });
+
+  it('reconstructs streamed Chat Completions tool calls', () => {
+    expect(
+      extractResponseToolCalls({
+        type: 'stream',
+        raw_sse: [
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call-1","type":"function","function":{"name":"weather","arguments":"{\\"city\\":"}}]}}]}',
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\\"Paris\\"}"}}]}}]}',
+          'data: [DONE]',
+        ].join('\n'),
+      }),
+    ).toEqual([
+      {
+        id: 'call-1',
+        type: 'function',
+        function: { name: 'weather', arguments: '{"city":"Paris"}' },
+      },
+    ]);
+  });
+
+  it('reconstructs streamed Responses and Anthropic tool calls', () => {
+    expect(
+      extractResponseToolCalls({
+        type: 'stream',
+        raw_sse: [
+          'data: {"type":"response.output_item.added","output_index":0,"item":{"id":"item-1","type":"function_call","call_id":"call-1","name":"lookup","arguments":""}}',
+          'data: {"type":"response.function_call_arguments.delta","item_id":"item-1","output_index":0,"delta":"{\\"id\\":"}',
+          'data: {"type":"response.function_call_arguments.delta","item_id":"item-1","output_index":0,"delta":"42}"}',
+        ].join('\n'),
+      }),
+    ).toEqual([
+      {
+        id: 'call-1',
+        type: 'function',
+        function: { name: 'lookup', arguments: '{"id":42}' },
+      },
+    ]);
+
+    expect(
+      extractResponseToolCalls({
+        type: 'stream',
+        raw_sse: [
+          'data: {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"tool-1","name":"lookup","input":{}}}',
+          'data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\\"id\\":"}}',
+          'data: {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"42}"}}',
+        ].join('\n'),
+      }),
+    ).toEqual([
+      {
+        id: 'tool-1',
+        type: 'function',
+        function: { name: 'lookup', arguments: '{"id":42}' },
+      },
+    ]);
+  });
+
+  it('keeps malformed optional tool-call metadata safe', () => {
+    expect(
+      extractResponseToolCalls({
+        type: 'json',
+        body: {
+          candidates: [{ content: {} }],
+        },
+      }),
+    ).toEqual([]);
+    expect(
+      extractResponseToolCalls({
+        type: 'json',
+        body: {
+          candidates: [{ content: { parts: [{ functionCall: {} }] } }],
+        },
+      }),
+    ).toEqual([
+      {
+        id: undefined,
+        type: 'function',
+        function: { name: undefined, arguments: undefined },
+      },
+    ]);
+
+    expect(
+      extractResponseToolCalls({
+        type: 'stream',
+        raw_sse: [
+          'data: {"choices":[{"delta":{"tool_calls":[null,{"function":{"name":"look"}},{"index":0,"function":{"name":"up"}}]}}]}',
+          'data: {"type":"response.output_item.done","item":{"id":"item-only","type":"function_call"}}',
+          'data: {"type":"response.output_item.done","item":{"call_id":"call-only","type":"function_call"}}',
+          'data: {"type":"response.output_item.done","item":{"type":"function_call"}}',
+          'data: {"type":"response.function_call_arguments.delta","delta":"{}"}',
+          'data: {"type":"content_block_start","content_block":{"type":"tool_use"}}',
+          'data: {"type":"content_block_delta","delta":{"type":"input_json_delta","partial_json":"{}"}}',
+        ].join('\n'),
+      }),
+    ).toEqual([
+      {
+        type: 'function',
+        function: { name: 'lookup' },
+      },
+      {
+        id: 'item-only',
+        type: 'function',
+        function: {},
+      },
+      {
+        id: 'call-only',
+        type: 'function',
+        function: {},
+      },
+      {
+        type: 'function',
+        function: { arguments: '{}' },
+      },
+      {
+        type: 'function',
+        function: { arguments: '{}' },
+      },
+    ]);
+
+    expect(
+      extractResponseToolCalls({
+        type: 'json',
+        body: { choices: [{ message: { role: 'assistant', content: 'No call' } }] },
       }),
     ).toEqual([]);
   });

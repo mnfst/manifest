@@ -730,7 +730,7 @@
   font-family: var(--font-mono);
   font-weight: 700;
 }
-.request-tool__head > span:last-child {
+.request-tool__type {
   margin-left: auto;
   color: hsl(var(--muted-foreground));
   font-family: var(--font-mono);
