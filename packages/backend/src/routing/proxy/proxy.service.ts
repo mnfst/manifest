@@ -182,6 +182,7 @@ interface ResolvedHealContext {
   tenantId: string;
   apiMode: ProxyApiMode;
   sessionKey: string;
+  sessionMomentumKey?: string;
   signal?: AbortSignal;
   stream: boolean;
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
@@ -215,6 +216,8 @@ interface UnavailableModelHealContext {
   agentName?: string;
   apiMode: ProxyApiMode;
   sessionKey: string;
+  sessionCacheKey: string;
+  sessionMomentumKey?: string;
   signal?: AbortSignal;
   stream: boolean;
   specificityOverride?: ProxyRequestOptions['specificityOverride'];
@@ -256,6 +259,8 @@ export class ProxyService {
       tenantId,
       body,
       sessionKey,
+      sessionCacheKey,
+      sessionMomentumKey,
       agentName,
       signal,
       specificityOverride,
@@ -282,7 +287,7 @@ export class ProxyService {
       tenantId,
       routingSource,
       resolveRoutingChatBody,
-      sessionKey,
+      sessionMomentumKey,
       specificityOverride,
       headers,
       apiMode,
@@ -301,6 +306,8 @@ export class ProxyService {
           agentName,
           apiMode,
           sessionKey,
+          sessionCacheKey,
+          sessionMomentumKey,
           signal,
           stream,
           specificityOverride,
@@ -326,7 +333,7 @@ export class ProxyService {
     );
 
     const { signatureLookup, thinkingLookup, reasoningContentLookup } =
-      this.buildCacheLookups(sessionKey);
+      this.buildCacheLookups(sessionCacheKey);
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
@@ -419,6 +426,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionMomentumKey,
           signal,
           signatureLookup,
           thinkingLookup,
@@ -493,6 +501,7 @@ export class ProxyService {
                 tenantId,
                 apiMode: autofixApiMode,
                 sessionKey,
+                sessionMomentumKey,
                 signal,
                 stream,
                 specificityOverride,
@@ -538,6 +547,7 @@ export class ProxyService {
         resolveChatBody,
         stream,
         sessionKey,
+        sessionMomentumKey,
         signal,
         signatureLookup,
         thinkingLookup,
@@ -588,8 +598,8 @@ export class ProxyService {
           retryWireBody: forward.retryWireBody,
           providerCallStarted: forward.providerCallStarted,
         };
-        this.recordTierIfScoring(sessionKey, resolved.tier);
-        this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+        this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
+        this.recordCategoryIfValid(sessionMomentumKey, resolved.specificity_category);
         return {
           forward: peeked,
           meta: this.buildBaseMeta(resolved, primaryModel, {
@@ -639,6 +649,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionMomentumKey,
           signal,
           signatureLookup,
           thinkingLookup,
@@ -664,8 +675,8 @@ export class ProxyService {
 
       // Warmup failed and no fallbacks available: return the synthetic 502
       // instead of the original forward (whose body was consumed by peekStream).
-      this.recordTierIfScoring(sessionKey, resolved.tier);
-      this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+      this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
+      this.recordCategoryIfValid(sessionMomentumKey, resolved.specificity_category);
       return {
         forward: syntheticForward,
         meta: this.buildBaseMeta(resolved, primaryModel, {
@@ -680,8 +691,8 @@ export class ProxyService {
       };
     }
 
-    this.recordTierIfScoring(sessionKey, resolved.tier);
-    this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+    this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
+    this.recordCategoryIfValid(sessionMomentumKey, resolved.specificity_category);
     return {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel, {
@@ -696,7 +707,8 @@ export class ProxyService {
     };
   }
 
-  private recordTierIfScoring(sessionKey: string, tier: TierSlot): void {
+  private recordTierIfScoring(sessionKey: string | undefined, tier: TierSlot): void {
+    if (!sessionKey) return;
     if ((TIERS as readonly string[]).includes(tier)) {
       this.momentum.recordTier(sessionKey, tier as Tier);
     }
@@ -751,7 +763,7 @@ export class ProxyService {
       ctx.tenantId,
       healedBody,
       resolveChatBody,
-      ctx.sessionKey,
+      ctx.sessionMomentumKey,
       ctx.specificityOverride,
       ctx.headers,
       ctx.apiMode,
@@ -860,7 +872,7 @@ export class ProxyService {
     tenantId: string,
     body: ProxyRequestOptions['body'],
     resolveChatBody: ResolveChatBody | undefined,
-    sessionKey: string,
+    sessionMomentumKey: string | undefined,
     specificityOverride: ProxyRequestOptions['specificityOverride'],
     headers: ProxyRequestOptions['headers'],
     apiMode: ProxyApiMode,
@@ -885,8 +897,12 @@ export class ProxyService {
     }
 
     const isHeartbeat = this.detectHeartbeatBody(body, apiMode);
-    const recentTiers = this.momentum.getRecentTiers(sessionKey);
-    const recentCategories = this.momentum.getRecentCategories(sessionKey);
+    const recentTiers = sessionMomentumKey
+      ? this.momentum.getRecentTiers(sessionMomentumKey)
+      : undefined;
+    const recentCategories = sessionMomentumKey
+      ? this.momentum.getRecentCategories(sessionMomentumKey)
+      : undefined;
 
     const baseResolved = await (isHeartbeat
       ? this.resolveService.resolveForTier(agentId, tenantId, 'simple')
@@ -1021,6 +1037,7 @@ export class ProxyService {
     resolveChatBody?: ResolveChatBody;
     stream: boolean;
     sessionKey: string;
+    sessionMomentumKey?: string;
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
@@ -1044,6 +1061,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      sessionMomentumKey,
       signal,
       apiMode,
     } = args;
@@ -1083,8 +1101,8 @@ export class ProxyService {
       args.credentialDashboardUrl,
     );
 
-    this.recordTierIfScoring(sessionKey, resolved.tier);
-    this.recordCategoryIfValid(sessionKey, resolved.specificity_category);
+    this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
+    this.recordCategoryIfValid(sessionMomentumKey, resolved.specificity_category);
 
     if (success) {
       // Re-snapshot for the fallback's actual provider — its model-scoped
@@ -1220,7 +1238,11 @@ export class ProxyService {
     };
   }
 
-  private recordCategoryIfValid(sessionKey: string, category: string | undefined): void {
+  private recordCategoryIfValid(
+    sessionKey: string | undefined,
+    category: string | undefined,
+  ): void {
+    if (!sessionKey) return;
     if (!category) return;
     if (!(SPECIFICITY_CATEGORIES as readonly string[]).includes(category)) return;
     this.momentum.recordCategory(sessionKey, category as SpecificityCategory);
@@ -1337,11 +1359,12 @@ export class ProxyService {
       requestBody: ctx.body,
       reforward: (healedBody) =>
         this.forwardResolvedHealed(healedBody, {
-          ...this.buildCacheLookups(ctx.sessionKey),
+          ...this.buildCacheLookups(ctx.sessionCacheKey),
           agentId: ctx.agentId,
           tenantId: ctx.tenantId,
           apiMode: ctx.apiMode,
           sessionKey: ctx.sessionKey,
+          sessionMomentumKey: ctx.sessionMomentumKey,
           signal: ctx.signal,
           stream,
           specificityOverride: ctx.specificityOverride,

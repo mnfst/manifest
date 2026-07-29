@@ -137,6 +137,10 @@ export interface ProxyRequestOptions {
   routingBody?: Record<string, unknown>;
   apiMode?: ProxyApiMode;
   sessionKey: string;
+  /** Fixed-length tenant/agent/session key for internal replay caches. */
+  sessionCacheKey: string;
+  /** Scoped routing-momentum key; absent when the caller omitted x-session-key. */
+  sessionMomentumKey?: string;
   agentName?: string;
   signal?: AbortSignal;
   specificityOverride?: string;
