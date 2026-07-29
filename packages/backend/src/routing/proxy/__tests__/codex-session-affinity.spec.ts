@@ -48,19 +48,20 @@ describe('CodexSessionAffinity', () => {
     });
 
     it.each([[undefined], [''], [42]])(
-      'injects a stable per-token default when prompt_cache_key is %p',
+      'injects request-local affinity when prompt_cache_key is %p',
       (callerKey) => {
         const body: Record<string, unknown> = { prompt_cache_key: callerKey };
         const bodyAgain: Record<string, unknown> = { prompt_cache_key: callerKey };
-        const otherToken: Record<string, unknown> = { prompt_cache_key: callerKey };
 
-        affinity.prepare('token', body);
-        affinity.prepare('token', bodyAgain);
-        affinity.prepare('token-2', otherToken);
+        const first = affinity.prepare('token', body);
+        const second = affinity.prepare('token', bodyAgain);
 
         expect(body.prompt_cache_key).toMatch(UUID_RE);
-        expect(bodyAgain.prompt_cache_key).toBe(body.prompt_cache_key);
-        expect(otherToken.prompt_cache_key).not.toBe(body.prompt_cache_key);
+        expect(bodyAgain.prompt_cache_key).toMatch(UUID_RE);
+        expect(bodyAgain.prompt_cache_key).not.toBe(body.prompt_cache_key);
+        expect(second.headers['session-id']).not.toBe(first.headers['session-id']);
+        expect(first.storeKey).toBeUndefined();
+        expect(second.storeKey).toBeUndefined();
       },
     );
 
@@ -81,10 +82,10 @@ describe('CodexSessionAffinity', () => {
       // The giant key is never echoed back to the upstream…
       expect(body.prompt_cache_key).toMatch(UUID_RE);
       expect(body.prompt_cache_key).not.toBe(longKey);
-      // …and distinct over-long keys collapse onto the single per-token session
-      // (storeKey is just the token), so they cannot amplify the cache.
-      expect(first.storeKey).toBe(second.storeKey);
-      expect(first.headers['session-id']).toBe(second.headers['session-id']);
+      // …and invalid keys do not create persistent token-wide sessions.
+      expect(first.storeKey).toBeUndefined();
+      expect(second.storeKey).toBeUndefined();
+      expect(first.headers['session-id']).not.toBe(second.headers['session-id']);
     });
 
     it('accepts a prompt_cache_key at the length boundary', () => {
@@ -136,6 +137,16 @@ describe('CodexSessionAffinity', () => {
   });
 
   describe('capture + replay', () => {
+    it('does not replay turn-state for requests without a cache key', () => {
+      const first = affinity.prepare('token', {});
+      affinity.capture(first.storeKey, okResponseWithTurnState('turn-abc'));
+
+      const second = affinity.prepare('token', {});
+
+      expect(second.headers).not.toHaveProperty('x-codex-turn-state');
+      expect(second.headers['session-id']).not.toBe(first.headers['session-id']);
+    });
+
     it('replays the captured turn-state token on the next request for the same session', () => {
       const first = affinity.prepare('token', { prompt_cache_key: 'conv-1' });
       affinity.capture(first.storeKey, okResponseWithTurnState('turn-abc'));
@@ -210,21 +221,27 @@ describe('CodexSessionAffinity', () => {
 
   describe('capacity', () => {
     it('evicts the oldest session at capacity, preserving recently used ones', () => {
-      const first = affinity.prepare('token-0', {});
-      const second = affinity.prepare('token-1', {});
+      const first = affinity.prepare('token', { prompt_cache_key: 'conv-0' });
+      const second = affinity.prepare('token', { prompt_cache_key: 'conv-1' });
       for (let i = 2; i < 10_000; i++) {
-        affinity.prepare(`token-${i}`, {});
+        affinity.prepare('token', { prompt_cache_key: `conv-${i}` });
       }
 
-      // Touching token-0 at capacity must not evict anything, and moves it to
+      // Touching conv-0 at capacity must not evict anything, and moves it to
       // the back of the recency order…
-      expect(affinity.prepare('token-0', {}).headers).toEqual(first.headers);
+      expect(affinity.prepare('token', { prompt_cache_key: 'conv-0' }).headers).toEqual(
+        first.headers,
+      );
 
-      // …so a brand-new session evicts token-1 (now the oldest), not token-0.
-      affinity.prepare('token-overflow', {});
+      // …so a brand-new session evicts conv-1 (now the oldest), not conv-0.
+      affinity.prepare('token', { prompt_cache_key: 'conv-overflow' });
 
-      expect(affinity.prepare('token-1', {}).headers).not.toEqual(second.headers);
-      expect(affinity.prepare('token-0', {}).headers).toEqual(first.headers);
+      expect(affinity.prepare('token', { prompt_cache_key: 'conv-1' }).headers).not.toEqual(
+        second.headers,
+      );
+      expect(affinity.prepare('token', { prompt_cache_key: 'conv-0' }).headers).toEqual(
+        first.headers,
+      );
     });
   });
 });
