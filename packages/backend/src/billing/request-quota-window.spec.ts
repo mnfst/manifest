@@ -1,6 +1,8 @@
 import {
   DEFAULT_REQUEST_QUOTA_RESET_AT,
   REQUEST_QUOTA_RESET_AT_ENV,
+  canonicalTimeZone,
+  currentProcessTimeZone,
   requestQuotaResetAtMs,
   requestQuotaWindowStartMs,
 } from './request-quota-window';
@@ -38,5 +40,15 @@ describe('request quota window', () => {
     process.env[REQUEST_QUOTA_RESET_AT_ENV] = 'not-a-date';
 
     expect(requestQuotaResetAtMs()).toBe(Date.parse(DEFAULT_REQUEST_QUOTA_RESET_AT));
+  });
+
+  it('canonicalizes equivalent timezone aliases', () => {
+    expect(canonicalTimeZone('Etc/UTC')).toBe(canonicalTimeZone('UTC'));
+  });
+
+  it('reports the process timezone', () => {
+    expect(canonicalTimeZone(currentProcessTimeZone())).toBe(
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
   });
 });

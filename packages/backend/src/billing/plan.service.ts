@@ -1,4 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
@@ -14,12 +21,19 @@ import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
+import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
   normalizeBillingEmailPreferences,
 } from './billing-email-preferences';
-import { REQUEST_USAGE_CUTOVER_STATE, requestQuotaWindowStartMs } from './request-quota-window';
+import {
+  REQUEST_QUOTA_CONFIG_TABLE,
+  REQUEST_USAGE_CUTOVER_STATE,
+  canonicalTimeZone,
+  currentProcessTimeZone,
+  requestQuotaWindowStartMs,
+} from './request-quota-window';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -65,7 +79,7 @@ interface BillingSnapshotRow {
 }
 
 @Injectable()
-export class PlanService {
+export class PlanService implements OnModuleInit {
   private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: BillingPrice; fetchedAt: number } | null = null;
   private lastCountFailureWarnAtMs = 0;
@@ -80,6 +94,18 @@ export class PlanService {
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    if (isSelfHosted()) return;
+
+    const storageTimeZone = await this.readRequestStorageTimeZone();
+    const processTimeZone = currentProcessTimeZone();
+    if (canonicalTimeZone(storageTimeZone) !== canonicalTimeZone(processTimeZone)) {
+      throw new Error(
+        `Request quota storage timezone mismatch: database=${storageTimeZone}, process=${processTimeZone}`,
+      );
+    }
+  }
 
   /**
    * Billing attaches to the tenant. The Stripe subscription row is keyed by
@@ -240,20 +266,29 @@ export class PlanService {
     windowStartMs: number,
     windowStart: string,
   ): Promise<number> {
-    const cutoverRows: Array<{ cutover_ms: number | string }> = await this.dataSource.query(
-      `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms
+    const cutoverRows: Array<{ cutover_ms: number | string; storage_time_zone: string | null }> =
+      await this.dataSource.query(
+        `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms,
+                (
+                  SELECT "storage_time_zone"
+                    FROM "${REQUEST_QUOTA_CONFIG_TABLE}"
+                   WHERE "id" = 1
+                ) AS storage_time_zone
          FROM "backfill_state"
         WHERE "name" = $1`,
-      [REQUEST_USAGE_CUTOVER_STATE],
-    );
+        [REQUEST_USAGE_CUTOVER_STATE],
+      );
     const cutoverMs = Number(cutoverRows[0]?.cutover_ms);
     if (!Number.isFinite(cutoverMs)) {
       throw new Error(`Missing request usage cutover state: ${REQUEST_USAGE_CUTOVER_STATE}`);
     }
+    const storageTimeZone = cutoverRows[0]?.storage_time_zone;
+    if (!storageTimeZone) {
+      throw new Error('Missing request quota storage timezone');
+    }
 
     let baseline = 0;
     if (windowStartMs < cutoverMs) {
-      const storageTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
       const baselineRows: Array<{ n: number | string }> = await this.dataSource.query(
         `WITH cutover AS (
            SELECT ("completed_at" AT TIME ZONE 'UTC') AT TIME ZONE $3::text AS local_timestamp
@@ -333,6 +368,19 @@ export class PlanService {
       [tenantId, windowStart, baseline],
     );
     return Number(initializedRows[0]?.n ?? baseline);
+  }
+
+  private async readRequestStorageTimeZone(): Promise<string> {
+    const rows: Array<{ storage_time_zone: string | null }> = await this.dataSource.query(
+      `SELECT "storage_time_zone"
+         FROM "${REQUEST_QUOTA_CONFIG_TABLE}"
+        WHERE "id" = 1`,
+    );
+    const storageTimeZone = rows[0]?.storage_time_zone?.trim();
+    if (!storageTimeZone) {
+      throw new Error('Missing request quota storage timezone');
+    }
+    return storageTimeZone;
   }
 
   /** Routed requests for the tenant so far this calendar month (UTC). */

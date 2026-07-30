@@ -7,6 +7,7 @@ import { PlanService } from './plan.service';
 import { Tenant } from '../entities/tenant.entity';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
 import * as billingConfig from './billing.config';
+import { REQUEST_QUOTA_CONFIG_TABLE, currentProcessTimeZone } from './request-quota-window';
 
 describe('PlanService', () => {
   let service: PlanService;
@@ -46,6 +47,33 @@ describe('PlanService', () => {
 
   afterAll(() => {
     process.env = { ...saved };
+  });
+
+  describe('onModuleInit', () => {
+    it('skips the timezone check for self-hosted mode', async () => {
+      process.env['MANIFEST_MODE'] = 'selfhosted';
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('accepts the request storage timezone used by the process', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      mockQuery.mockResolvedValue([{ storage_time_zone: currentProcessTimeZone() }]);
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery.mock.calls[0][0]).toContain(`FROM "${REQUEST_QUOTA_CONFIG_TABLE}"`);
+    });
+
+    it('rejects a request storage timezone mismatch', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      const mismatch = currentProcessTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
+      mockQuery.mockResolvedValue([{ storage_time_zone: mismatch }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Request quota storage timezone mismatch',
+      );
+    });
   });
 
   describe('getPlan', () => {
@@ -201,7 +229,12 @@ describe('PlanService', () => {
           return Promise.resolve([{ n: '8', baseline_counted: false }]);
         }
         if (sql.includes('EXTRACT(EPOCH')) {
-          return Promise.resolve([{ cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')) }]);
+          return Promise.resolve([
+            {
+              cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')),
+              storage_time_zone: currentProcessTimeZone(),
+            },
+          ]);
         }
         if (sql.includes('SELECT COUNT(*)')) return baselineHang;
         if (sql.includes('FROM (SELECT 1) seed') || sql.includes('subscriptionPlan')) {
@@ -391,7 +424,7 @@ describe('PlanService', () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
         .mockResolvedValueOnce([{ n: '3', baseline_counted: false }])
-        .mockResolvedValueOnce([{ cutover_ms: String(cutover) }])
+        .mockResolvedValueOnce([{ cutover_ms: String(cutover), storage_time_zone: 'Europe/Paris' }])
         .mockResolvedValueOnce([{ n: '2' }])
         .mockResolvedValueOnce([{ n: '5' }]);
 
@@ -410,7 +443,7 @@ describe('PlanService', () => {
       expect(baselineParams).toEqual([
         't1',
         toLocalSqlTimestamp(new Date(ROLLOUT_RESET)),
-        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        'Europe/Paris',
         'tenant_request_usage_cutover_v1',
       ]);
       expect(mockQuery.mock.calls[3][0]).toContain(
@@ -423,7 +456,9 @@ describe('PlanService', () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
         .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([{ cutover_ms: cutover }])
+        .mockResolvedValueOnce([
+          { cutover_ms: cutover, storage_time_zone: currentProcessTimeZone() },
+        ])
         .mockResolvedValueOnce([{ n: '0' }]);
 
       expect(await service.countRequestsSince('t1', augustStart)).toBe(0);
@@ -443,7 +478,10 @@ describe('PlanService', () => {
       mockQuery.mockImplementation((sql: string) => {
         if (sql.includes('SELECT "request_count"'))
           return Promise.resolve([{ n: 0, baseline_counted: false }]);
-        if (sql.includes('EXTRACT(EPOCH')) return Promise.resolve([{ cutover_ms: cutover }]);
+        if (sql.includes('EXTRACT(EPOCH'))
+          return Promise.resolve([
+            { cutover_ms: cutover, storage_time_zone: currentProcessTimeZone() },
+          ]);
         if (sql.includes('SELECT COUNT(*)')) return Promise.resolve([{ n: '4' }]);
         if (sql.includes('INSERT INTO "tenant_request_usage"'))
           return Promise.resolve([{ n: '4' }]);

@@ -1,6 +1,8 @@
-import { DataSource } from 'typeorm';
+import { DataSource, MigrationInterface } from 'typeorm';
 import { AddTenantRequestUsage1801300000000 } from '../src/database/migrations/1801300000000-AddTenantRequestUsage';
+import { HardenRequestQuotaTimeZone1801600000000 } from '../src/database/migrations/1801600000000-HardenRequestQuotaTimeZone';
 import { PlanService } from '../src/billing/plan.service';
+import { REQUEST_QUOTA_CONFIG_TABLE } from '../src/billing/request-quota-window';
 import { toSqlTimestamp } from '../src/common/utils/postgres-sql';
 
 const TENANT = 'usage-tenant';
@@ -15,7 +17,7 @@ let futureWindow: string;
 async function runMigration(
   ds: DataSource,
   direction: 'up' | 'down',
-  migration = new AddTenantRequestUsage1801300000000(),
+  migration: MigrationInterface = new AddTenantRequestUsage1801300000000(),
 ): Promise<void> {
   const queryRunner = ds.createQueryRunner();
   try {
@@ -105,6 +107,7 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations({ transaction: 'each' });
+    await runMigration(ds, 'down', new HardenRequestQuotaTimeZone1801600000000());
     await runMigration(ds, 'down');
 
     await ds.query(`INSERT INTO "tenants" ("id", "name", "is_active") VALUES ($1, $1, true)`, [
@@ -131,6 +134,14 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
     await insertAttempt(ds, 'seed-manifest-rejection', { errorOrigin: 'policy' });
 
     await runMigration(ds, 'up');
+    await ds.query(
+      `INSERT INTO "tenant_request_usage" (
+         "tenant_id", "window_start", "request_count", "baseline_counted"
+       )
+       VALUES ('preserved-tenant', $1, 37, true)`,
+      [WINDOW_START],
+    );
+    await runMigration(ds, 'up', new HardenRequestQuotaTimeZone1801600000000());
     const cutoverTimes = await ds.query(
       `SELECT
          to_char(
@@ -191,6 +202,30 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
           AND column_name = 'legacy_quota_counted'`,
     );
     expect(legacyColumn).toEqual([]);
+  });
+
+  it('preserves the installed timezone while moving the trigger to database config', async () => {
+    const config = await ds.query(
+      `SELECT "storage_time_zone" FROM "${REQUEST_QUOTA_CONFIG_TABLE}" WHERE "id" = 1`,
+    );
+    expect(config).toEqual([
+      { storage_time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC' },
+    ]);
+
+    const rows = await ds.query(`
+      SELECT pg_get_functiondef(
+               to_regprocedure('"count_tenant_request_usage"()')
+             ) AS "definition"
+    `);
+    expect(rows[0].definition).toContain(`FROM "${REQUEST_QUOTA_CONFIG_TABLE}"`);
+    expect(rows[0].definition).toContain('AT TIME ZONE request_storage_time_zone');
+
+    const counters = await ds.query(
+      `SELECT "request_count", "baseline_counted"
+         FROM "tenant_request_usage"
+        WHERE "tenant_id" = 'preserved-tenant'`,
+    );
+    expect(counters).toEqual([{ request_count: '37', baseline_counted: true }]);
   });
 
   it('initializes the exact historical baseline once in the background', async () => {
