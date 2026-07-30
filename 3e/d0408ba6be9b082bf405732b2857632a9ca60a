@@ -1,0 +1,42 @@
+.changeset/fix-request-quota-timezone.md
+  s_4bd29ea539cf9f::t_36f228a29a5ea5 1-5
+packages/backend/src/billing/request-quota-window.ts
+  s_4bd29ea539cf9f::t_c7dfb79684d27b 4,15-22
+packages/backend/src/billing/plan.service.spec.ts
+  s_4bd29ea539cf9f::t_c25fecf19206d9 52-78,232-237,427,446,459-461,481-484
+  s_4bd29ea539cf9f::t_2f407867ad4921 10
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_4bd29ea539cf9f::t_c25fecf19206d9 1,3,5,20,110,144,207-221
+  s_4bd29ea539cf9f::t_646bc7d3227e07 137-143,222-228
+  s_4bd29ea539cf9f::t_aff2d351f375e4 229-230
+packages/backend/src/billing/request-quota-window.spec.ts
+  s_4bd29ea539cf9f::t_c25fecf19206d9 4-5,44-53
+packages/backend/src/database/migrations/1801600000000-HardenRequestQuotaTimeZone.spec.ts
+  s_4bd29ea539cf9f::t_786ab9893a80c4 68-69,73,95
+  s_4bd29ea539cf9f::t_c25fecf19206d9 1-67,70-72,74-94,96-98
+packages/backend/src/database/data-source-definitions.ts
+  s_4bd29ea539cf9f::t_c7dfb79684d27b 40,316
+packages/backend/src/billing/plan.service.ts
+  s_4bd29ea539cf9f::t_eaae2858243511 1-8,24,30-36,82,98-109,269-276,279-280,285-288,373-384
+  s_4bd29ea539cf9f::t_3767a687236f52 385
+packages/backend/src/database/migrations/1801600000000-HardenRequestQuotaTimeZone.ts
+  s_4bd29ea539cf9f::t_c7dfb79684d27b 1-18,24-27,29-32,35-40,51-58,60-185,187-195,197-204,208-233,235-253
+  s_4bd29ea539cf9f::t_eaae2858243511 19-23,28,33-34,41-50,186,196,205-207,234
+  s_4bd29ea539cf9f::t_786ab9893a80c4 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "3ed0408ba6be9b082bf405732b2857632a9ca60a",
+  "prompts": {},
+  "sessions": {
+    "s_4bd29ea539cf9f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb377-c299-7ad0-bec5-eab20f1baa1c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
