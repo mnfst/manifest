@@ -712,16 +712,13 @@ const Welcome: Component = () => {
   const skipOnboarding = () => {
     const uid = userId();
     if (uid) markOnboardingDone(uid);
-    navigate('/upgrade');
+    navigate('/register?step=plan');
   };
 
   const openOnboardingPaywall = () => {
     const uid = userId();
     if (uid) markOnboardingDone(uid);
-    const params = new URLSearchParams({ from: 'onboarding' });
-    const slug = harnessSlug();
-    if (slug) params.set('harness', slug);
-    navigate(`/upgrade?${params.toString()}`);
+    navigate('/register?step=plan');
   };
 
   // Which steps are completed, for the sidebar checkmarks. Steps without

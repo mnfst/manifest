@@ -259,7 +259,7 @@ describe('Register', () => {
     fireEvent.click(freeCard);
     fireEvent.click(container.querySelector('.plan-picker__cta')!);
 
-    expect(replace).toHaveBeenCalledWith('/welcome');
+    expect(replace).toHaveBeenCalledWith('/');
     locationSpy.mockRestore();
   });
 

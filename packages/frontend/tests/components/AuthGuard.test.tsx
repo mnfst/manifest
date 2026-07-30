@@ -59,7 +59,7 @@ describe('AuthGuard', () => {
     expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 
-  it('redirects authenticated free users to /upgrade after onboarding', async () => {
+  it('redirects authenticated free users to /register?step=plan after onboarding', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
     mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
@@ -69,7 +69,7 @@ describe('AuthGuard', () => {
     ));
 
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/upgrade', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/register?step=plan', { replace: true });
     });
   });
 
@@ -85,9 +85,9 @@ describe('AuthGuard', () => {
     expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 
-  it('skips billing check and renders children when on /upgrade', async () => {
+  it('skips billing check and renders children when on /register', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
-    mockLocation = { pathname: '/upgrade', search: '' };
+    mockLocation = { pathname: '/register', search: '?step=plan' };
     mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>
