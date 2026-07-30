@@ -54,6 +54,13 @@ const CONFIG_CACHE_MAX = 5_000;
 // repairable 4xx BEFORE the fallback chain (the next safety net) gets to run.
 const HEAL_FAILURE_THRESHOLD = 3;
 const BREAKER_COOLDOWN_MS = 30_000;
+/**
+ * Delays between outcome-report resends. A lost report leaves the heal attempt
+ * dangling `pending` on Phoenix until a sweeper expires it an hour later — the
+ * adjudication evidence is gone for good — so a transient failure gets spaced
+ * resends before we give up.
+ */
+const OUTCOME_RESEND_DELAYS_MS = [1_000, 5_000];
 
 function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
@@ -454,13 +461,24 @@ export class AutofixService {
     try {
       next = await params.reforward(healedBody);
     } catch (err) {
-      // The patched resend threw (a provider transport error, NOT a Phoenix
-      // failure — so it must not trip the heal breaker). Preserve the audit chain
-      // (the original error plus the Phoenix issue/patch ids already stamped on
-      // `entry`) instead of dropping it, and degrade to the original provider
-      // error; the fallback chain is the next safety net.
+      // The patched resend threw (a provider transport error or the caller
+      // aborting mid-retry, NOT a Phoenix failure — so it must not trip the
+      // heal breaker). Preserve the audit chain (the original error plus the
+      // Phoenix issue/patch ids already stamped on `entry`) instead of dropping
+      // it, and degrade to the original provider error; the fallback chain is
+      // the next safety net. Still close the evidence loop: without a report
+      // the served attempt dangles `pending` until Phoenix's sweeper expires
+      // it, so the death is reported as a synthetic 499 (retry never completed
+      // — no provider status exists to send).
       this.logger.warn(`autofix reforward failed, using original error: ${(err as Error).message}`);
       entry.patch_worked = false;
+      this.reportOutcome(healAttemptId, {
+        retryStatusCode: 499,
+        error: {
+          message: `patched retry never completed: ${(err as Error).message}`,
+          type: 'retry_not_completed',
+        },
+      });
       return {
         forward: originalForward,
         record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
@@ -537,8 +555,29 @@ export class AutofixService {
 
   /** Fire-and-forget the learning signal so it never delays the client. */
   private reportOutcome(healAttemptId: string, outcome: HealOutcome): void {
-    void this.client.reportOutcome(healAttemptId, outcome).catch((err: unknown) => {
-      this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
-    });
+    void this.deliverOutcome(healAttemptId, outcome);
+  }
+
+  /**
+   * Deliver the outcome report, resending when it didn't land. The client
+   * resolves `null` for a report that never reached Phoenix (transport failure
+   * or a non-2xx), and an unreported attempt costs the adjudication evidence —
+   * Phoenix can only expire it. Spaced resends ride out a blip; only a process
+   * death still loses a report.
+   */
+  private async deliverOutcome(healAttemptId: string, outcome: HealOutcome): Promise<void> {
+    for (let send = 0; ; send++) {
+      try {
+        if ((await this.client.reportOutcome(healAttemptId, outcome)) !== null) return;
+      } catch (err) {
+        this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
+      }
+      const delay = OUTCOME_RESEND_DELAYS_MS[send];
+      if (delay === undefined) {
+        this.logger.warn(`reportOutcome ${healAttemptId}: giving up after ${send + 1} sends`);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
 }
