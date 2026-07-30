@@ -1,7 +1,10 @@
 packages/frontend/src/components/AuthGuard.tsx
   s_6ca9c71fb77060::t_89e5e459b9dbc8 7,24,27,33,35-36,42,44-48,58-62
+  s_6ca9c71fb77060::t_8306931f09dcf3 40-41
+  s_6ca9c71fb77060::t_47a06d49fd91be 25-26,28-32,34,37-38,43
 packages/frontend/tests/components/AuthGuard.test.tsx
   s_6ca9c71fb77060::t_eabc16ac6fee82 5,24,28,34-35,55,63,65-66,71,111-112
+  s_6ca9c71fb77060::t_320360f2167b6a 52,54,64,83-84,92-94,97,100,108
 packages/frontend/tests/pages/MessageLog.test.tsx
   s_6ca9c71fb77060::t_7890bf97cba99f 153,338
   s_6ca9c71fb77060::t_7040576b3edde7 706-708
