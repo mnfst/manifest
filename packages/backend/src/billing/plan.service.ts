@@ -27,13 +27,7 @@ import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
   normalizeBillingEmailPreferences,
 } from './billing-email-preferences';
-import {
-  REQUEST_QUOTA_CONFIG_TABLE,
-  REQUEST_USAGE_CUTOVER_STATE,
-  canonicalTimeZone,
-  currentProcessTimeZone,
-  requestQuotaWindowStartMs,
-} from './request-quota-window';
+import { REQUEST_USAGE_CUTOVER_STATE, requestQuotaWindowStartMs } from './request-quota-window';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -78,6 +72,14 @@ interface BillingSnapshotRow {
   billingEmailPreferences: Partial<BillingEmailPreferences> | null;
 }
 
+function canonicalTimeZone(timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', { timeZone }).resolvedOptions().timeZone;
+}
+
+function currentProcessTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+}
+
 @Injectable()
 export class PlanService implements OnModuleInit {
   private readonly logger = new Logger(PlanService.name);
@@ -102,7 +104,7 @@ export class PlanService implements OnModuleInit {
     const processTimeZone = currentProcessTimeZone();
     if (canonicalTimeZone(storageTimeZone) !== canonicalTimeZone(processTimeZone)) {
       throw new Error(
-        `Request quota storage timezone mismatch: database=${storageTimeZone}, process=${processTimeZone}`,
+        `Request quota storage timezone mismatch: trigger=${storageTimeZone}, process=${processTimeZone}`,
       );
     }
   }
@@ -266,29 +268,20 @@ export class PlanService implements OnModuleInit {
     windowStartMs: number,
     windowStart: string,
   ): Promise<number> {
-    const cutoverRows: Array<{ cutover_ms: number | string; storage_time_zone: string | null }> =
-      await this.dataSource.query(
-        `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms,
-                (
-                  SELECT "storage_time_zone"
-                    FROM "${REQUEST_QUOTA_CONFIG_TABLE}"
-                   WHERE "id" = 1
-                ) AS storage_time_zone
+    const cutoverRows: Array<{ cutover_ms: number | string }> = await this.dataSource.query(
+      `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms
          FROM "backfill_state"
         WHERE "name" = $1`,
-        [REQUEST_USAGE_CUTOVER_STATE],
-      );
+      [REQUEST_USAGE_CUTOVER_STATE],
+    );
     const cutoverMs = Number(cutoverRows[0]?.cutover_ms);
     if (!Number.isFinite(cutoverMs)) {
       throw new Error(`Missing request usage cutover state: ${REQUEST_USAGE_CUTOVER_STATE}`);
     }
-    const storageTimeZone = cutoverRows[0]?.storage_time_zone;
-    if (!storageTimeZone) {
-      throw new Error('Missing request quota storage timezone');
-    }
 
     let baseline = 0;
     if (windowStartMs < cutoverMs) {
+      const storageTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
       const baselineRows: Array<{ n: number | string }> = await this.dataSource.query(
         `WITH cutover AS (
            SELECT ("completed_at" AT TIME ZONE 'UTC') AT TIME ZONE $3::text AS local_timestamp
@@ -371,14 +364,16 @@ export class PlanService implements OnModuleInit {
   }
 
   private async readRequestStorageTimeZone(): Promise<string> {
-    const rows: Array<{ storage_time_zone: string | null }> = await this.dataSource.query(
-      `SELECT "storage_time_zone"
-         FROM "${REQUEST_QUOTA_CONFIG_TABLE}"
-        WHERE "id" = 1`,
-    );
-    const storageTimeZone = rows[0]?.storage_time_zone?.trim();
+    const rows: Array<{ definition: string | null }> = await this.dataSource.query(`
+      SELECT pg_get_functiondef(
+               to_regprocedure('"count_tenant_request_usage"()')
+             ) AS "definition"
+    `);
+    const storageTimeZone = rows[0]?.definition?.match(
+      /(?:OLD|NEW|prior|r)\."timestamp"\s+AT TIME ZONE '([^']+)'/,
+    )?.[1];
     if (!storageTimeZone) {
-      throw new Error('Missing request quota storage timezone');
+      throw new Error('Could not read request quota timezone from installed trigger');
     }
     return storageTimeZone;
   }

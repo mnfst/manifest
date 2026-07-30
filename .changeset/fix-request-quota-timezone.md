@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Keep request quota counting aligned with the database storage timezone.
+Reject Cloud startup when request quota and process timezones differ.

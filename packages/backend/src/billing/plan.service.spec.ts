@@ -7,7 +7,6 @@ import { PlanService } from './plan.service';
 import { Tenant } from '../entities/tenant.entity';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
 import * as billingConfig from './billing.config';
-import { REQUEST_QUOTA_CONFIG_TABLE, currentProcessTimeZone } from './request-quota-window';
 
 describe('PlanService', () => {
   let service: PlanService;
@@ -18,6 +17,14 @@ describe('PlanService', () => {
   const CTX = { tenantId: 't1', userId: 'u1' };
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
   const TENANT = { id: 't1', owner_user_id: 'u1', limit_overrides: null };
+
+  function quotaTriggerDefinition(timeZone: string): string {
+    return `IF (NEW."timestamp" AT TIME ZONE '${timeZone}') AT TIME ZONE 'UTC' < counter_cutover_at`;
+  }
+
+  function processTimeZone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  }
 
   function enableBilling() {
     process.env['MANIFEST_MODE'] = 'cloud';
@@ -59,19 +66,28 @@ describe('PlanService', () => {
 
     it('accepts the request storage timezone used by the process', async () => {
       process.env['MANIFEST_MODE'] = 'cloud';
-      mockQuery.mockResolvedValue([{ storage_time_zone: currentProcessTimeZone() }]);
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(processTimeZone()) }]);
 
       await expect(service.onModuleInit()).resolves.toBeUndefined();
-      expect(mockQuery.mock.calls[0][0]).toContain(`FROM "${REQUEST_QUOTA_CONFIG_TABLE}"`);
+      expect(mockQuery.mock.calls[0][0]).toContain('pg_get_functiondef');
     });
 
     it('rejects a request storage timezone mismatch', async () => {
       process.env['MANIFEST_MODE'] = 'cloud';
-      const mismatch = currentProcessTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
-      mockQuery.mockResolvedValue([{ storage_time_zone: mismatch }]);
+      const mismatch = processTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(mismatch) }]);
 
       await expect(service.onModuleInit()).rejects.toThrow(
         'Request quota storage timezone mismatch',
+      );
+    });
+
+    it('rejects a missing request quota trigger', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      mockQuery.mockResolvedValue([{ definition: null }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Could not read request quota timezone from installed trigger',
       );
     });
   });
@@ -229,12 +245,7 @@ describe('PlanService', () => {
           return Promise.resolve([{ n: '8', baseline_counted: false }]);
         }
         if (sql.includes('EXTRACT(EPOCH')) {
-          return Promise.resolve([
-            {
-              cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')),
-              storage_time_zone: currentProcessTimeZone(),
-            },
-          ]);
+          return Promise.resolve([{ cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')) }]);
         }
         if (sql.includes('SELECT COUNT(*)')) return baselineHang;
         if (sql.includes('FROM (SELECT 1) seed') || sql.includes('subscriptionPlan')) {
@@ -424,7 +435,7 @@ describe('PlanService', () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
         .mockResolvedValueOnce([{ n: '3', baseline_counted: false }])
-        .mockResolvedValueOnce([{ cutover_ms: String(cutover), storage_time_zone: 'Europe/Paris' }])
+        .mockResolvedValueOnce([{ cutover_ms: String(cutover) }])
         .mockResolvedValueOnce([{ n: '2' }])
         .mockResolvedValueOnce([{ n: '5' }]);
 
@@ -443,7 +454,7 @@ describe('PlanService', () => {
       expect(baselineParams).toEqual([
         't1',
         toLocalSqlTimestamp(new Date(ROLLOUT_RESET)),
-        'Europe/Paris',
+        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         'tenant_request_usage_cutover_v1',
       ]);
       expect(mockQuery.mock.calls[3][0]).toContain(
@@ -456,9 +467,7 @@ describe('PlanService', () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
         .mockResolvedValueOnce([])
-        .mockResolvedValueOnce([
-          { cutover_ms: cutover, storage_time_zone: currentProcessTimeZone() },
-        ])
+        .mockResolvedValueOnce([{ cutover_ms: cutover }])
         .mockResolvedValueOnce([{ n: '0' }]);
 
       expect(await service.countRequestsSince('t1', augustStart)).toBe(0);
@@ -478,10 +487,7 @@ describe('PlanService', () => {
       mockQuery.mockImplementation((sql: string) => {
         if (sql.includes('SELECT "request_count"'))
           return Promise.resolve([{ n: 0, baseline_counted: false }]);
-        if (sql.includes('EXTRACT(EPOCH'))
-          return Promise.resolve([
-            { cutover_ms: cutover, storage_time_zone: currentProcessTimeZone() },
-          ]);
+        if (sql.includes('EXTRACT(EPOCH')) return Promise.resolve([{ cutover_ms: cutover }]);
         if (sql.includes('SELECT COUNT(*)')) return Promise.resolve([{ n: '4' }]);
         if (sql.includes('INSERT INTO "tenant_request_usage"'))
           return Promise.resolve([{ n: '4' }]);
