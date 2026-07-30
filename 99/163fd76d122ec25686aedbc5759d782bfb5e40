@@ -1,0 +1,28 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_f2a0a132ed2c1d::t_6e7c1c5d3a100a 713
+  s_f2a0a132ed2c1d::t_c531601915660a 727,742-749,755-762
+  s_f2a0a132ed2c1d::t_f75056378ddd79 799-827
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_f2a0a132ed2c1d::t_434598ac974d95 573,575-582,611,618-631,640,658
+  s_f2a0a132ed2c1d::t_443403659a3fd2 636-639,641-657,659
+  s_f2a0a132ed2c1d::t_33ecb6e066fb11 662,664-667,670-671,695,703-704,706-714
+  s_f2a0a132ed2c1d::t_6495b6fb6b1cc3 660-661
+.changeset/autofix-healed-transport-fallback.md
+  s_f2a0a132ed2c1d::t_cb6c70f702a19a 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "99163fd76d122ec25686aedbc5759d782bfb5e40",
+  "prompts": {},
+  "sessions": {
+    "s_f2a0a132ed2c1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "830b5129-64ca-4c4c-988b-31367299d892",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
