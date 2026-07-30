@@ -1,0 +1,29 @@
+packages/backend/src/billing/plan.service.ts
+  s_4bd29ea539cf9f::t_0e8ebb75171ee7 107
+  s_4bd29ea539cf9f::t_2453c8fa351505 30,75-82,271-272,275-276,367-374,376
+  s_4bd29ea539cf9f::t_1a730a8a30c73e 284
+.changeset/fix-request-quota-timezone.md
+  s_4bd29ea539cf9f::t_c312b4c2589ad2 5
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_4bd29ea539cf9f::t_516d826ede21b6 1,18
+  s_4bd29ea539cf9f::t_dd2a9693e28724 196-197
+packages/backend/src/billing/plan.service.spec.ts
+  s_4bd29ea539cf9f::t_e9320185a4a1d6 21-28,69,72,77-78,84-92,248,438,457,470
+  s_4bd29ea539cf9f::t_1a730a8a30c73e 490
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "828dd793e4213afec806f0a8aea7ab49bc0a7c33",
+  "prompts": {},
+  "sessions": {
+    "s_4bd29ea539cf9f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb377-c299-7ad0-bec5-eab20f1baa1c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
