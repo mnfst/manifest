@@ -33,7 +33,7 @@ import {
   listHeaderTiers,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { usePlanRangeLock } from '../services/plan-range-lock.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
@@ -263,19 +263,8 @@ const MessageLog: Component = () => {
   const [rangeFilter, setRangeFilterValue] = createSignal<MessageRangeFilterValue>(
     normalizeRangeFilter(searchParams.range),
   );
-  const [billing] = createResource(async () => {
-    try {
-      return await getBillingStatus();
-    } catch {
-      return null;
-    }
-  });
-  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
-  const shouldLockProRanges = () => billing.loading || isFreePlan();
-  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
-  const effectiveRange = createMemo<MessageRangeFilterValue>(() =>
-    isProRangeLocked(rangeFilter()) ? '7d' : rangeFilter(),
-  );
+  const { isFreePlan, isProRangeLocked, effectiveRange } =
+    usePlanRangeLock<MessageRangeFilterValue>(rangeFilter, PRO_RANGES, '7d');
   const [tierFilter, setTierFilter] = createSignal('');
   const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(

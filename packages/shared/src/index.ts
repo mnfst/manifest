@@ -164,6 +164,7 @@ export {
 } from './plan-limits';
 export type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,

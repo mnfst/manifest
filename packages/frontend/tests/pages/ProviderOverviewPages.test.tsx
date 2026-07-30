@@ -389,6 +389,7 @@ vi.mock('../../src/services/setup-status.js', () => ({
 
 import GlobalOverview from '../../src/pages/GlobalOverview';
 import ConnectionDetail from '../../src/pages/providers/ConnectionDetail';
+import { resetPlanStore } from '../../src/services/plan-store';
 
 const overviewResponse = {
   summary: {
@@ -726,6 +727,7 @@ function ensureStorageLike(kind: 'localStorage' | 'sessionStorage') {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetPlanStore();
   ensureStorageLike('localStorage').clear();
   ensureStorageLike('sessionStorage').clear();
   localStorage.setItem('manifest_global_group', 'provider');
@@ -857,19 +859,7 @@ describe('GlobalOverview (analytics)', () => {
 
   it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
     localStorage.setItem('manifest_global_range', '365d');
-    apiMocks.getBillingStatus.mockResolvedValue({
-      enabled: true,
-      plan: 'free',
-      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-      emailPreferences: { usageAlerts: true },
-      requests: {
-        used: 120,
-        limit: FREE_PLAN_REQUESTS_PER_MONTH,
-        periodEnd: '2026-08-01T00:00:00.000Z',
-      },
-      cancelAtPeriodEnd: false,
-      subscriptionPeriodEnd: null,
-    });
+    resetPlanStore({ enabled: true, plan: 'free' });
 
     render(() => <GlobalOverview />);
 
