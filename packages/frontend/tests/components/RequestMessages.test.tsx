@@ -1,4 +1,4 @@
-import { cleanup, render } from '@solidjs/testing-library';
+import { cleanup, fireEvent, render } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it } from 'vitest';
 import RequestMessages from '../../src/components/RequestMessages';
 
@@ -132,5 +132,38 @@ describe('RequestMessages', () => {
   it('explains when recording was disabled', () => {
     const { getByText } = render(() => <RequestMessages recording={null} />);
     expect(getByText('No messages recorded')).toBeTruthy();
+  });
+
+  it('shows and hides tooltip on TruncatedId hover', () => {
+    const calledRecording = {
+      ...recording,
+      response_body: {
+        type: 'json' as const,
+        body: {
+          choices: [
+            {
+              message: {
+                role: 'assistant',
+                content: null,
+                tool_calls: [
+                  {
+                    id: 'call-tooltip-test',
+                    type: 'function',
+                    function: { name: 'weather', arguments: '{}' },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    };
+    render(() => <RequestMessages recording={calledRecording} view="tools" />);
+    const idEl = document.querySelector('.request-messages__tool-id')!;
+    expect(idEl).toBeTruthy();
+    fireEvent.mouseEnter(idEl);
+    expect(document.querySelector('[role="tooltip"]')).toBeTruthy();
+    fireEvent.mouseLeave(idEl);
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
   });
 });
