@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_9dfc3fd178839b::t_a3b538b69e64b6 1115,1127,1287,1307,2759,2783,2787-2832
+  s_9dfc3fd178839b::t_65751830d49e1d 2833
+.changeset/anthropic-automatic-caching.md
+  s_9dfc3fd178839b::t_a3b538b69e64b6 1-5
+packages/backend/src/routing/proxy/provider-client.ts
+  s_9dfc3fd178839b::t_a3b538b69e64b6 121-122,619,708-713
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e23f80d8a2a751a148d538f27f71f7893e47de8f",
+  "prompts": {},
+  "sessions": {
+    "s_9dfc3fd178839b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fadaa-17ea-70b3-9dde-f86d89abc876",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

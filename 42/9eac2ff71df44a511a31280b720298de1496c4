@@ -1,0 +1,41 @@
+packages/frontend/src/services/api/messages.ts
+  s_a959bc189c674c::t_cbbfc091ed0bd1 130-131
+  s_a959bc189c674c::t_e4b5c816369f4d 132-152,156-168
+  s_a959bc189c674c::t_6d1aa9c5ba6935 169
+packages/frontend/src/pages/MessageLog.tsx
+  s_a959bc189c674c::t_40984169bb695c 502-503,505-506,509,513-514
+  s_a959bc189c674c::t_0fc782255ac5c0 504
+  s_a959bc189c674c::t_1981749c38982d 29,386-418,421,427,430-433,439-447,453
+.changeset/faster-request-pages.md
+  s_a959bc189c674c::t_0800c0061a9cea 1-5
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_a959bc189c674c::t_c4f9cfcdc838ba 1002-1003,1015-1016
+  s_a959bc189c674c::t_152b5e780904b6 243,395-406,408,411-413,435-448,508,567,598-602
+  s_a959bc189c674c::t_ac1514b27b2f4e 982-983,995-996
+  s_a959bc189c674c::t_e2d1566a96825e 407,409-410
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_a959bc189c674c::t_45ad5bf2d0d171 44,56
+  s_a959bc189c674c::t_38f9ad778151a7 822-841
+  s_a959bc189c674c::t_0fc782255ac5c0 333
+packages/frontend/tests/services/api/messages.test.ts
+  s_a959bc189c674c::t_3ba761344bad86 74-87
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_a959bc189c674c::t_eff8b0cbbc98ff 54-129
+  s_a959bc189c674c::t_21df77377813e8 20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "429eac2ff71df44a511a31280b720298de1496c4",
+  "prompts": {},
+  "sessions": {
+    "s_a959bc189c674c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fae09-ffac-7513-b9bf-a49100413fa8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

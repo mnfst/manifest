@@ -1,0 +1,24 @@
+packages/frontend/tests/pages/Routing.test.tsx
+  s_75f0f280a3318d::t_0e453b14549f40 1412-1424,1434-1446
+  s_75f0f280a3318d::t_91d4dc62e74826 1411,1425-1433
+packages/frontend/src/pages/Routing.tsx
+  s_75f0f280a3318d::t_5479084f19917f 510
+.changeset/calm-routes-stay.md
+  s_75f0f280a3318d::t_91d4dc62e74826 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "55cf1407907f8bc7be00163c1175362686523f12",
+  "prompts": {},
+  "sessions": {
+    "s_75f0f280a3318d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fad17-7980-7370-b0a5-c4a88578a9bb",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

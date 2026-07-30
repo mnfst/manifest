@@ -1,0 +1,19 @@
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_da4a6957073020::t_99d61612106c5d 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "775ab0a44ae14fbe4759829b67144bffdde5b500",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

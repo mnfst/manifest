@@ -1,0 +1,22 @@
+packages/backend/test/oauth-subscription-lock.e2e-spec.ts
+  s_975f84ff528b88::t_35dce13e9d4fb3 177-182,184-197,199-210,212-217
+  s_975f84ff528b88::t_5180595e2f37b1 1-176,183,198,211,218-258
+.changeset/oauth-lock-e2e.md
+  s_975f84ff528b88::t_6b71c880030314 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "9f515b87f3bf6276379750a47cf052d6d3b97b3d",
+  "prompts": {},
+  "sessions": {
+    "s_975f84ff528b88": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae9b7322-cb8c-4e12-8483-df16c73609fa",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

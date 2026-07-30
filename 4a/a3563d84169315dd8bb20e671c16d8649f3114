@@ -1,0 +1,42 @@
+integrations/n8n-nodes-manifest/dist/package.json
+  s_91c50680fc81a2::t_08cf13befd8c60 3
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_91c50680fc81a2::t_b50fa268d9db1c 13-15,25-30,33-35
+nodes/Manifest/Manifest.node.ts
+  s_91c50680fc81a2::t_996e421c4de321 256
+integrations/n8n-nodes-manifest/package.json
+  s_91c50680fc81a2::t_996e421c4de321 3
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_91c50680fc81a2::t_996e421c4de321 3-6,8
+  s_91c50680fc81a2::t_cef56b49189388 7
+nodes/LmChatManifest/LmChatManifest.node.json
+  s_91c50680fc81a2::t_996e421c4de321 5
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.json
+  s_91c50680fc81a2::t_996e421c4de321 5
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_91c50680fc81a2::t_996e421c4de321 256
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.json
+  s_91c50680fc81a2::t_08cf13befd8c60 5
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_91c50680fc81a2::t_08cf13befd8c60 181
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_91c50680fc81a2::t_2e83bab8375d07 1
+integrations/n8n-nodes-manifest/package-lock.json
+  s_91c50680fc81a2::t_2c14d78b83621c 3,9,992-1006,1561-1575
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "4aa3563d84169315dd8bb20e671c16d8649f3114",
+  "prompts": {},
+  "sessions": {
+    "s_91c50680fc81a2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fae98-5c18-7e22-be9c-2c6fac3434fa",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

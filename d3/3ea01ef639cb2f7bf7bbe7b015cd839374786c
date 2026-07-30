@@ -1,0 +1,35 @@
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_a959bc189c674c::t_3638008d190554 159-160
+  s_a959bc189c674c::t_58938d206856b7 156-158
+packages/frontend/src/services/api/messages.ts
+  s_a959bc189c674c::t_3638008d190554 149,160,167
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_a959bc189c674c::t_3638008d190554 90,116,120-126,134,137
+  s_a959bc189c674c::t_81674930c12377 99-102,104
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_a959bc189c674c::t_3638008d190554 90,111,134
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_a959bc189c674c::t_3638008d190554 110,113,119
+packages/frontend/tests/services/api/messages.test.ts
+  s_a959bc189c674c::t_3638008d190554 85
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_a959bc189c674c::t_3638008d190554 102-103,205-207,401-404
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_a959bc189c674c::t_3638008d190554 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d33ea01ef639cb2f7bf7bbe7b015cd839374786c",
+  "prompts": {},
+  "sessions": {
+    "s_a959bc189c674c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fae09-ffac-7513-b9bf-a49100413fa8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

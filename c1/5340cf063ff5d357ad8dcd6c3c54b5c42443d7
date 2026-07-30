@@ -1,0 +1,43 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_f2137410acfb85::t_f8f04d525d8291 45,267-273,277,283-284,370,419,448,538,639,748,752-753,780,818-833,841-855,862,886,892,895-908,1020,1043,1077,1257-1287
+  s_f2137410acfb85::t_3b6258b0d56bca 1288
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_f2137410acfb85::t_f8f04d525d8291 88,125,127-139,258-282,1509,1512-1518,1539-1544,1548-1551,1553-1564,2476-2552,2578-2658
+  s_f2137410acfb85::t_68c9263bcf9eda 2659
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_f2137410acfb85::t_f8f04d525d8291 29,77,192,308,684-708,736
+.changeset/lazy-native-protocol-conversion.md
+  s_f2137410acfb85::t_f8f04d525d8291 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_f2137410acfb85::t_f8f04d525d8291 592-627
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_f2137410acfb85::t_f8f04d525d8291 137-160
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_f2137410acfb85::t_f8f04d525d8291 501-504,605-607,614,634-655,666-669,685,691-697,710,717,720,737-738,750,757,783,838,849,880,883,911,914,944,955,1031-1034,1353-1373,1874-1877,1898-1901,2184-2187,2322-2354
+packages/backend/src/routing/proxy/provider-client.ts
+  s_f2137410acfb85::t_22e1cd6adc1699 289
+  s_f2137410acfb85::t_f8f04d525d8291 98-103,281-285,323,557-559,598-599
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_f2137410acfb85::t_f8f04d525d8291 90-108,120-125
+  s_f2137410acfb85::t_f81680f0b35258 89
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_f2137410acfb85::t_f8f04d525d8291 34-36,97
+package-lock.json
+  s_f2137410acfb85::t_668ec65c05e64a 327-634,1864,1881,1898,1915,1932,1949,1966,1983,2000,2017,2034,2051,2068,2085,2102,2119,2136,2153,2170,2187,2204,2221,2238,2255,2272,2289,4590-4591,4604-4605,4618-4619,4632-4633,4646-4647,4660-4661,4674-4675,4688-4689,4702-4703,4716-4717,4730-4731,4744-4745,4758-4759,4772-4773,4786-4787,4800-4801,4814-4815,4828-4829,4842-4843,4856-4857,4870-4871,4884-4885,4898-4899,4912-4913,4926-4927,5104-5184,7156-7161,16375,16515
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c15340cf063ff5d357ad8dcd6c3c54b5c42443d7",
+  "prompts": {},
+  "sessions": {
+    "s_f2137410acfb85": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fac8e-be06-73e1-ae10-4356b559d49e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

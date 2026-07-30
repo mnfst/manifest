@@ -1,0 +1,45 @@
+packages/frontend/tests/services/providers.test.ts
+  s_86ae7d6def5db2::t_71ed2d247b77ca 1015
+packages/backend/src/common/utils/provider-availability.spec.ts
+  s_86ae7d6def5db2::t_11c11990766a1d 43,45-46
+packages/backend/src/common/utils/provider-availability.ts
+  s_86ae7d6def5db2::t_665410e8f83009 16,20-23
+packages/backend/src/routing/provider.controller.ts
+  s_86ae7d6def5db2::t_10506e7d4d1cd3 115-118
+packages/backend/src/routing/proxy/provider-client.ts
+  s_009f1fb128877a::t_d6081e90391c32 208-209
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_009f1fb128877a::t_940820cc656eb4 490,494
+packages/backend/src/routing/routing.module.ts
+  s_009f1fb128877a::t_d7d6aa05ac82f5 69
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_86ae7d6def5db2::t_69f41f6e148250 123-124
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_86ae7d6def5db2::t_a8779b7540b405 120,122-124,287,845,893
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_86ae7d6def5db2::t_4ca15283df1802 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "1fbdc137722974ddd0de6b380c3337477959bd03",
+  "prompts": {},
+  "sessions": {
+    "s_009f1fb128877a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd9-a721-72f1-982d-4446a8a565ee",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

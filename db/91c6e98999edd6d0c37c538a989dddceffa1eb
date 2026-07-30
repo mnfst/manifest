@@ -1,0 +1,19 @@
+docker/Dockerfile
+  s_f2137410acfb85::t_98b3e7787e7418 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "db91c6e98999edd6d0c37c538a989dddceffa1eb",
+  "prompts": {},
+  "sessions": {
+    "s_f2137410acfb85": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fac8e-be06-73e1-ae10-4356b559d49e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

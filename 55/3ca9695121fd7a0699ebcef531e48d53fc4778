@@ -1,0 +1,25 @@
+packages/backend/src/common/constants/manifest-credits.ts
+  s_3c4ddbd1f15e8e::t_5ff91222b73e2f 25,38
+packages/backend/src/common/constants/manifest-credits.spec.ts
+  s_3c4ddbd1f15e8e::t_5ff91222b73e2f 58,61,64,66-68,71
+.changeset/managed-manifest-provider.md
+  s_3c4ddbd1f15e8e::t_5ff91222b73e2f 5
+packages/backend/src/routing/manifest-provider/manifest-provider.service.spec.ts
+  s_3c4ddbd1f15e8e::t_5ff91222b73e2f 49,67,139,191-209,211,228,242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "553ca9695121fd7a0699ebcef531e48d53fc4778",
+  "prompts": {},
+  "sessions": {
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

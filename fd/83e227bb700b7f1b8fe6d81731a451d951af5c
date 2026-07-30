@@ -1,0 +1,108 @@
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_da4a6957073020::t_662ef9892164d3 6,24-34,39-51,83-100,103
+  s_da4a6957073020::t_21ed4c60ef1aa5 101-102
+  s_da4a6957073020::t_0653edfaf2beb3 104
+  s_da4a6957073020::t_7cc38800d887ee 35-38
+packages/backend/src/routing/autofix/healing-client.ts
+  s_da4a6957073020::t_96e51b7f40b0df 2-7,17,24-28,35
+packages/backend/src/routing/autofix/autofix-health-probe.ts
+  s_da4a6957073020::t_c6bf2e8f64d627 9-12
+  s_da4a6957073020::t_8f9b58b0449c81 3-4,26-30
+packages/backend/src/routing/autofix/noop-healing-client.ts
+  s_da4a6957073020::t_96e51b7f40b0df 1,13,17-21,25
+packages/backend/src/routing/autofix/phoenix.types.ts
+  s_da4a6957073020::t_d237bc767f9e71 4-15
+packages/shared/src/agent-type.ts
+  s_da4a6957073020::t_d237bc767f9e71 20-26
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_da4a6957073020::t_6b8fc8268f035d 46-48
+  s_da4a6957073020::t_fab1839b5f3891 357-370
+  s_da4a6957073020::t_c6fa63c33f5828 17-18,21-42,76-93,112-114,317-326,346-356,371,374-402
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_da4a6957073020::t_f6ac3f10e72b41 7,26-32,112-138,140
+  s_da4a6957073020::t_fab1839b5f3891 139
+  s_da4a6957073020::t_a5a7e91a4c8161 141-142
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_da4a6957073020::t_8f9b58b0449c81 16-21,53,137,159-160,188-190,250-257,259,261,359,381,400-404,407-408,410,426-428,524-527,529-531,552,558,570
+  s_da4a6957073020::t_a601b035231dab 258
+  s_da4a6957073020::t_fab1839b5f3891 499,569
+  s_da4a6957073020::t_7cc38800d887ee 6-10,405-406,409,411-422,424-425,528
+packages/backend/src/routing/autofix/instance-credential.service.spec.ts
+  s_da4a6957073020::t_2db457d7d5ff8a 2
+  s_da4a6957073020::t_2b90db04b1d136 27-31,148,154-169
+  s_da4a6957073020::t_2a8b9478b932be 106-107
+  s_da4a6957073020::t_5037a73b0a9769 1,3-26,32-105,108-147,149-153,170-181
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_da4a6957073020::t_2b90db04b1d136 128
+  s_da4a6957073020::t_96e51b7f40b0df 6-18,21-24,34-35,40-48,59,62-69,82,85-87,92,104-127,129-185
+  s_da4a6957073020::t_fab1839b5f3891 2-5
+packages/shared/__tests__/agent-type.spec.ts
+  s_da4a6957073020::t_5037a73b0a9769 8,90-103
+  s_da4a6957073020::t_1eff16cef4d61e 104-105
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_da4a6957073020::t_c6bf2e8f64d627 27-31
+  s_da4a6957073020::t_fab1839b5f3891 81
+  s_da4a6957073020::t_8f9b58b0449c81 6,9-10,14,17,49,52-59,66-69,73-79,83
+  s_da4a6957073020::t_7cc38800d887ee 34-42
+packages/backend/src/entities/instance-credential.entity.ts
+  s_da4a6957073020::t_d237bc767f9e71 1-24
+packages/backend/src/routing/autofix/instance-credential.service.ts
+  s_da4a6957073020::t_d237bc767f9e71 1-46,56-96
+  s_da4a6957073020::t_2b90db04b1d136 47-55
+docker/DOCKER_README.md
+  s_da4a6957073020::t_d07a63ceb37049 450-456
+  s_da4a6957073020::t_2aa737f2827307 434-449,457-465
+  s_da4a6957073020::t_c351c04ac16452 466
+  s_da4a6957073020::t_7cc38800d887ee 410-411
+packages/backend/test/helpers.ts
+  s_da4a6957073020::t_084b1bf055978d 35,79
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_da4a6957073020::t_a83ebd7959addf 3-6,30-32,44-50,114-118,120,122-146,148-172,174,176-179,181-252,254-270,323-344,389-404
+  s_da4a6957073020::t_fab1839b5f3891 33-41,119,121,147,173,175,253
+  s_da4a6957073020::t_2b90db04b1d136 42-43,180
+  s_da4a6957073020::t_4dd83971ea2803 405
+packages/backend/src/routing/autofix/autofix-healing-config.ts
+  s_da4a6957073020::t_8f9b58b0449c81 1-17
+packages/shared/src/index.ts
+  s_da4a6957073020::t_d237bc767f9e71 8
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_da4a6957073020::t_7b67d4e69d474d 28
+  s_da4a6957073020::t_d25f6a7f776d62 536,662-666,937-944,1152-1156
+  s_da4a6957073020::t_c2bb9d37e09e2a 297-311,609-636
+  s_da4a6957073020::t_7cc38800d887ee 562,595
+packages/backend/src/routing/autofix/__tests__/autofix-health-probe.spec.ts
+  s_da4a6957073020::t_448dafb40d9d94 19,22-23,28-29,43-61,63
+  s_da4a6957073020::t_2a4439b6716269 62
+  s_da4a6957073020::t_9654f5d6e49223 64
+packages/backend/src/database/data-source-definitions.ts
+  s_da4a6957073020::t_084b1bf055978d 21,34,171,303
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_da4a6957073020::t_9c49805e0400e6 173-194
+  s_da4a6957073020::t_1a44e86255891b 12-15,80,96-97,102,156,232-233
+packages/backend/src/database/migrations/1800400000000-AddInstanceCredential.ts
+  s_da4a6957073020::t_d237bc767f9e71 1-22
+packages/backend/src/routing/autofix/observation-reporter.ts
+  s_da4a6957073020::t_fab1839b5f3891 4
+  s_da4a6957073020::t_a601b035231dab 28-32,62,111-113,120,150-160,162-165
+.changeset/quiet-horses-heal.md
+  s_da4a6957073020::t_fab1839b5f3891 2
+  s_da4a6957073020::t_2aa737f2827307 1,3-5
+packages/backend/src/routing/autofix/mock-healing-client.ts
+  s_da4a6957073020::t_96e51b7f40b0df 3,22,51,56-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fd83e227bb700b7f1b8fe6d81731a451d951af5c",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

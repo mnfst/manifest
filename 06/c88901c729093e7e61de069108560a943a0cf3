@@ -1,0 +1,25 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_84f2d008878fbb::t_7fccc3e0cdca8b 31,563,567-575,624-625
+  s_84f2d008878fbb::t_3bb311ba96f2a8 611-612
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_84f2d008878fbb::t_644e9e53218649 2033-2039,2052-2056,2061
+  s_84f2d008878fbb::t_774835e7f84fb7 2027-2032,2040-2051,2057-2060,2062-2063
+.changeset/openrouter-model-modalities.md
+  s_84f2d008878fbb::t_54056cf1991f94 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "06c88901c729093e7e61de069108560a943a0cf3",
+  "prompts": {},
+  "sessions": {
+    "s_84f2d008878fbb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facfe-f746-71b2-923a-be96d1794515",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

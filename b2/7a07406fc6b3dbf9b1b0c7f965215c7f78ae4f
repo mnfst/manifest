@@ -1,0 +1,38 @@
+packages/frontend/src/services/api/providers.ts
+  s_86ae7d6def5db2::t_34551216512baa 86,91
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_86ae7d6def5db2::t_34551216512baa 24-25
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.spec.ts
+  s_86ae7d6def5db2::t_765f694bd69c08 1-77
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_86ae7d6def5db2::t_5f9af8ba3c0130 2-5,107-124,188-198,200-202,249-254,256-263
+  s_86ae7d6def5db2::t_a26b125be0f42b 199
+  s_86ae7d6def5db2::t_7f393c3228c64d 255,264
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_847fb188889577::t_19594acaf7c6ae 54
+  s_86ae7d6def5db2::t_5f9af8ba3c0130 6,40-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b27a07406fc6b3dbf9b1b0c7f965215c7f78ae4f",
+  "prompts": {},
+  "sessions": {
+    "s_847fb188889577": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facf8-41da-70b2-96ce-b15666aa8562",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": null
+    }
+  }
+}

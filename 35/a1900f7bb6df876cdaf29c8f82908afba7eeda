@@ -1,0 +1,20 @@
+packages/frontend/tests/services/api/providers.test.ts
+  s_3c4ddbd1f15e8e::t_49648edb3ccbc6 94-124
+  s_3c4ddbd1f15e8e::t_d7be8e915e7bcd 93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "35a1900f7bb6df876cdaf29c8f82908afba7eeda",
+  "prompts": {},
+  "sessions": {
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

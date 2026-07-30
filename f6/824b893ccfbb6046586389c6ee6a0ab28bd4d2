@@ -1,0 +1,32 @@
+docker/install.sh
+  s_f2137410acfb85::t_e738522a64c790 2,16-17,23-24,51-53,59-66,87,101-102,113-121,129-160,176-182,186-187,192-198
+  s_f2137410acfb85::t_a81d74d72b2bb2 161-164
+  s_f2137410acfb85::t_5286f3edb54d1b 221-260,338-340,346-367,372-381,409-412
+  s_cde1687b1e59aa::t_8ef15459f9bc20 165,413
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_f2137410acfb85::t_e738522a64c790 261-270,275-279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f6824b893ccfbb6046586389c6ee6a0ab28bd4d2",
+  "prompts": {},
+  "sessions": {
+    "s_cde1687b1e59aa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "00b0caeb-0350-489e-8418-15eff2615baf",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_f2137410acfb85": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fac8e-be06-73e1-ae10-4356b559d49e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

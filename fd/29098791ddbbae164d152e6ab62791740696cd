@@ -1,0 +1,28 @@
+packages/backend/src/routing/proxy/provider-client.ts
+  s_844b0288ca9e6d::t_daff449b627e67 573-576
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_844b0288ca9e6d::t_93928514fcf885 97-137
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_844b0288ca9e6d::t_ea8dd0c3c06f8f 129-130
+  s_844b0288ca9e6d::t_83e1879a00f9f3 55-62
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_844b0288ca9e6d::t_36d3ced074f968 1357-1372
+.changeset/chatgpt-reasoning-summary-backfill.md
+  s_844b0288ca9e6d::t_bfea3b2ad3de2e 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "fd29098791ddbbae164d152e6ab62791740696cd",
+  "prompts": {},
+  "sessions": {
+    "s_844b0288ca9e6d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b5f0c8fc-5ca5-4775-9624-c9ba26024067",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+.changeset/explicit-model-provider-passthrough.md
+  s_7d716bb8936dfd::t_b9f521b3e5f8c5 1-5
+CLAUDE.md
+  s_009f1fb128877a::t_9584ec97cf6520 577,625
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_9dfc3fd178839b::t_5554ab0c9d56a1 2-6,124-151
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_7d716bb8936dfd::t_7c16dfd6c25dc9 1,6-12,52-84
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_0303c93a2ac26b::t_2dc3a97ca7378b 67-72,176-177,273,275-277,712,891-898,912-921,924-925,931-981,1339-1343,1345-1346
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_0303c93a2ac26b::t_a7e343acdc6c88 93-97,163,534-569,1224,1244,1248-1251,1255,1259-1270,1272,1275-1279,1283-1286,1290-1295,1299-1308,1310-1311,1314-1329,1331-1336,1340-1346,1349-1354,1358,1363,1365-1391,1393-1415
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "171c6537abc3419d4a045eb60b01b0ddf40b0d27",
+  "prompts": {},
+  "sessions": {
+    "s_009f1fb128877a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd9-a721-72f1-982d-4446a8a565ee",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_0303c93a2ac26b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fade6-4b34-7c11-92dd-4c226045aecc",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_7d716bb8936dfd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fade3-1c1f-7d03-b623-7af677b767f9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_9dfc3fd178839b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fadaa-17ea-70b3-9dde-f86d89abc876",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

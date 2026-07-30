@@ -1,0 +1,61 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_8b2a2ccaff9d01::t_ff6dc40c3d63c8 47
+packages/backend/src/routing/manifest-provider/manifest-provider.controller.ts
+  s_da4a6957073020::t_ec3849fab3cf20 1-51
+packages/backend/src/routing/manifest-provider/manifest-provider.service.spec.ts
+  s_da4a6957073020::t_9e9ee7b97319e9 1-151
+packages/backend/src/routing/manifest-provider/manifest-provider.service.ts
+  s_8b2a2ccaff9d01::t_5a26a4bc4afb26 1-177
+packages/backend/src/routing/proxy/provider-client.ts
+  s_8b2a2ccaff9d01::t_8ec2c6a8ba4d94 198-199
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_8b2a2ccaff9d01::t_31b3eb89d3bc5c 287
+packages/frontend/src/services/api/providers.ts
+  s_8b2a2ccaff9d01::t_1e6d26d2573225 2-3,69-123
+packages/frontend/src/services/providers.ts
+  s_8b2a2ccaff9d01::t_81df09b9b56422 198-202,500
+packages/backend/src/common/constants/litellm.spec.ts
+  s_975f84ff528b88::t_19ba776f6159c3 1-55
+packages/backend/src/common/constants/litellm.ts
+  s_8b2a2ccaff9d01::t_d872f4814cb53d 1-50
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_da4a6957073020::t_7ed7e0cfd8f229 1,419-428
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_da4a6957073020::t_3b3cdf47736bcc 46-47,386-388,390-392
+packages/backend/src/routing/routing.module.ts
+  s_da4a6957073020::t_de216a755bfa6f 21-22,67,69
+packages/shared/src/providers.ts
+  s_8b2a2ccaff9d01::t_18fa10cfbfb506 246-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "b220250e52a5da611477fa7813ca3a0473e398b4",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_975f84ff528b88": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae9b7322-cb8c-4e12-8483-df16c73609fa",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

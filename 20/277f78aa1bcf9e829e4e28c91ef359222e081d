@@ -1,0 +1,49 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 147,149,151-158
+packages/backend/src/routing/manifest-provider/manifest-provider.service.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 22-23,35,43,62-63,83-93,119-120,167-183
+packages/frontend/src/services/api/providers.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 118-123
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 122-125
+packages/frontend/tests/components/ProviderKeyForm.test.tsx
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 932-941
+packages/backend/src/common/constants/litellm.spec.ts
+  s_3c4ddbd1f15e8e::t_7c5087cce8c298 37-45
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 58-81
+.changeset/managed-manifest-provider.md
+  s_3c4ddbd1f15e8e::t_c8277c7c9ba27a 1-5
+packages/backend/src/routing/manifest-provider/manifest-provider.controller.spec.ts
+  s_3c4ddbd1f15e8e::t_7c5087cce8c298 1-72
+packages/backend/src/routing/manifest-provider/manifest-provider.service.spec.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 54-72,75-76,166,205-225,227-231
+  s_3c4ddbd1f15e8e::t_7c5087cce8c298 104-137,226,232-246
+packages/frontend/tests/services/api/providers.test.ts
+  s_3c4ddbd1f15e8e::t_16c3879b1d78ff 5,56-90
+  s_2917deb1d5505f::t_6e87ac27c3938b 91-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "20277f78aa1bcf9e829e4e28c91ef359222e081d",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_a9f7edb247fde7::t_7097ae6b789891 249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "de445f5d56885cfd48f0fae6e719aba745ecdf15",
+  "prompts": {},
+  "sessions": {
+    "s_a9f7edb247fde7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa7f0-b19d-7cd3-9970-5015f75bb89d",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+packages/backend/src/common/errors/error-codes.ts
+  s_975f84ff528b88::t_eca363204e6361 88-92
+packages/backend/src/common/errors/__tests__/error-codes.spec.ts
+  s_975f84ff528b88::t_9a14507690550f 85-88
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_975f84ff528b88::t_69e1729ed18de7 982-1014
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_975f84ff528b88::t_0add680c459d9f 379-388,392
+  s_975f84ff528b88::t_fd352a3f0f85e0 30-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "c2f28971897fe5239e2edc53f2ea6c8206914c14",
+  "prompts": {},
+  "sessions": {
+    "s_975f84ff528b88": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ae9b7322-cb8c-4e12-8483-df16c73609fa",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

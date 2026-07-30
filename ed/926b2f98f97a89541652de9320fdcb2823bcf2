@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/codex-session-affinity.ts
+  s_9dfc3fd178839b::t_0d78c100c03218 25,43-45,67,75-78,94-95,126-132
+packages/backend/src/routing/proxy/__tests__/codex-session-affinity.spec.ts
+  s_9dfc3fd178839b::t_0d78c100c03218 51,56-57,60-64,85-88,140-149,224-225,227,230,232-244
+.changeset/isolate-codex-affinity.md
+  s_9dfc3fd178839b::t_0d78c100c03218 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_9dfc3fd178839b::t_7df6a11457fdd7 245-247,256,259,262-268,312-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "ed926b2f98f97a89541652de9320fdcb2823bcf2",
+  "prompts": {},
+  "sessions": {
+    "s_9dfc3fd178839b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fadaa-17ea-70b3-9dde-f86d89abc876",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,105 @@
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.coverage.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 4,44-47,54-57
+.changeset/oauth-refresh-row-lock.md
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-5
+packages/backend/src/routing/proxy/__tests__/route-credentials.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-192
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 5,56-62,380-447,460,509-514,554,655,770,791-793,933-947,951-952,955-979,981,1004-1005,1025-1026,1053
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 12,17,19,21-27,45-52,67-72,85-112,144-154,156-157,159-162,167,173,182-184
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 7,251-257
+packages/frontend/src/services/formatters.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 125
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 734,747-938
+packages/backend/src/routing/oauth/openai/openai-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 5,35-36,38,41-45,296
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 12,228-234
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 4,20-21,23,26-30
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 87
+packages/backend/src/routing/oauth/xai/xai-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 5,73-76,83-86,247
+packages/backend/src/routing/oauth/__tests__/mock-subscription-lock.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-37
+packages/backend/src/routing/routing-core/__tests__/provider.service.subscription-lock.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-184
+packages/backend/src/common/errors/error-codes.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 38-42,88-93,105-118
+  s_8b2a2ccaff9d01::t_4954d9b376b007 119
+packages/backend/src/common/errors/manifest-error.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 13,52
+packages/backend/src/routing/oauth/gemini/gemini-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 4,36,42-45,52,58,349,367
+packages/backend/src/routing/oauth/core/redirect-pkce-oauth.base.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 23-27,302-308
+packages/frontend/tests/services/formatters.test.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 126
+packages/backend/src/routing/oauth/minimax/minimax-oauth.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 8-12,309-315
+  s_8b2a2ccaff9d01::t_db1acb4780f3ee 7
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1361,1376-1384
+packages/backend/src/common/errors/__tests__/error-codes.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 2,53-62,77-114,116
+  s_8b2a2ccaff9d01::t_3593f1463be654 115,117
+packages/backend/src/routing/oauth/core/index.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 18,24
+packages/shared/src/error-taxonomy.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 147,171-174
+packages/backend/src/routing/oauth/kiro/kiro-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 4,42-45,53,60
+packages/backend/src/routing/oauth/core/oauth-refresh-coordinator.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 9,25-30,39-45,52,197-222
+  s_8b2a2ccaff9d01::t_49815b04b1b467 223
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 154-182,949-1009,1236,1241-1265
+  s_8b2a2ccaff9d01::t_ade91207b1e384 1266
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 28-33,384-393,397,596,601-602,850-852,863-867,942-944,952-955
+packages/backend/src/routing/proxy/route-credentials.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-277
+.changeset/m100-credential-fallback.md
+  s_8b2a2ccaff9d01::t_070eec9d06e803 1-5
+packages/backend/src/routing/oauth/openai/openai-oauth.service.coverage.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 4,42-45,52-55,290
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.security.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 2,33-36,42-45
+packages/backend/src/routing/oauth/anthropic/anthropic-oauth.service.spec.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 2,40-43,50-53,435
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 49,81,84-88,196-197,266-267,269,273-274,276,278-280,282,284-293,295-296,304,313,317-318,338-340,371-382
+  s_8b2a2ccaff9d01::t_4f48cd19918fce 83
+  s_da4a6957073020::t_75ac6e04573953 383-384
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_8b2a2ccaff9d01::t_070eec9d06e803 48-53,229-231,256-352
+  s_8b2a2ccaff9d01::t_9985fc912080bf 353-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "249450b87b0ae12efd47885556430e7f044e3046",
+  "prompts": {},
+  "sessions": {
+    "s_8b2a2ccaff9d01": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f9db1-eb15-7bd3-b48c-53a84ad6a5bf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

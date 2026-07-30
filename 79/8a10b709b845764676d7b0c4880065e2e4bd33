@@ -1,0 +1,35 @@
+.changeset/exact-request-usage-counter.md
+  s_2917deb1d5505f::t_45be9fd9f00833 5
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_2917deb1d5505f::t_45be9fd9f00833 6,29-32
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_2917deb1d5505f::t_45be9fd9f00833 5,16,24-39
+  s_3c4ddbd1f15e8e::t_1ef87de6ac6c3a 40
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_2917deb1d5505f::t_45be9fd9f00833 91,94-95,165-169,302-357
+  s_3c4ddbd1f15e8e::t_529111e9fe368e 358
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "798a10b709b845764676d7b0c4880065e2e4bd33",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

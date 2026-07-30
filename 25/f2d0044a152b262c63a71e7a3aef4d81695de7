@@ -1,0 +1,66 @@
+.changeset/lazy-native-protocol-conversion.md
+  s_1114b42e66a145::t_541c906d0efc13 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_1114b42e66a145::t_4248eca34fb937 592-627
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_1114b42e66a145::t_166c6e78cf8a76 137-160
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_1114b42e66a145::t_127f347c955dc5 501-504,666-669,1031-1034,1853-1856,1877-1880,2163-2166
+  s_1114b42e66a145::t_e506fdea2eedda 605-607,614,634-655,691-697,710,720,750,757,783
+  s_1114b42e66a145::t_d2888326dd29ef 685,717,737-738
+  s_1114b42e66a145::t_6d8034f5c1d966 838,849,880,883,911,914,944,955
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_1114b42e66a145::t_1e19afef26e901 32-34,85
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_1114b42e66a145::t_665ab021921e53 90-108,120-125
+  s_3c4ddbd1f15e8e::t_c6889805113cc1 89
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_1114b42e66a145::t_8b41023baa1576 191,307
+  s_1114b42e66a145::t_b150f26aff8522 29,77,733
+  s_1114b42e66a145::t_ccb06fc037aee3 681-705
+packages/backend/src/routing/proxy/provider-client.ts
+  s_1114b42e66a145::t_9d00d7603c3139 272-276,278,283,310,537-538,579-580
+  s_1114b42e66a145::t_9144df3241c402 277
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_1114b42e66a145::t_8584e2f8d7268f 1255-1285
+  s_1114b42e66a145::t_af70d37393dbd0 816-831,839-853,860,884,890,893-906
+  s_1114b42e66a145::t_32695790155ac6 45,266-272,282-283,369,418,447,537
+  s_1114b42e66a145::t_45b405c3b02857 746,751,778
+  s_1114b42e66a145::t_ea4333a3484f98 1018,1041
+  s_1114b42e66a145::t_297fd1faa77794 750
+  s_1114b42e66a145::t_d0d3da54bf8099 637
+  s_1114b42e66a145::t_a0e43d204a7280 276,1254
+  s_1114b42e66a145::t_8b41023baa1576 1074
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_1114b42e66a145::t_c7a73204f9f237 1490,1513-1518,1523-1525,1527-1529
+  s_1114b42e66a145::t_9922f1bb368729 2531
+  s_1114b42e66a145::t_a0e43d204a7280 1522
+  s_1114b42e66a145::t_95be174b94b731 258-263
+  s_1114b42e66a145::t_199c9e9656eaa7 2438-2476,2502-2530,2532-2533
+  s_1114b42e66a145::t_410a00ed1be921 88,125,127-139
+  s_1114b42e66a145::t_00065849df8bde 2534
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "25f2d0044a152b262c63a71e7a3aef4d81695de7",
+  "prompts": {},
+  "sessions": {
+    "s_1114b42e66a145": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa92b-7cac-7402-a2f8-b70964848625",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_3c4ddbd1f15e8e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8e0-45c3-7d32-8f86-e79a0139c428",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+packages/backend/src/billing/plan.service.ts
+  s_2917deb1d5505f::t_2040b194b3f9f3 4,15,35-37,74,172-174,179-182,186-193,201-222,224,231-233,235-240,242-255,257-259,261-275,278-300,302
+  s_2917deb1d5505f::t_5c380da0c56bc8 21,194-200
+  s_2917deb1d5505f::t_22c734c8ad5399 223,225-230,234,241,256,260,276-277
+packages/backend/src/entities/tenant-request-usage.entity.spec.ts
+  s_2917deb1d5505f::t_9229af4178d18c 15-23
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_2917deb1d5505f::t_fd41e702a42513 3,11-13,71-76,82-86,131-133,137,146-152,154-157,164-165,174,179-183,185-194,197-207,209,213-219,222-225,234-238,240,243,246-248,250-263,265-269,272
+  s_2917deb1d5505f::t_fc6238b30c9b4d 134-136,138-145,153
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_2917deb1d5505f::t_39b5aff4d614c6 6,70-75
+packages/backend/src/billing/plan.service.spec.ts
+  s_2917deb1d5505f::t_5c380da0c56bc8 383-386,395-396
+  s_2917deb1d5505f::t_22c734c8ad5399 360-361,365-366
+  s_2917deb1d5505f::t_c20ad65f55460e 8,306,315,325,333,340,347-359,362-364,367-382,387-394,397-425,431,438,449,463
+  s_2917deb1d5505f::t_bae45391332c85 165
+  s_2917deb1d5505f::t_3c481f6908520c 222-229
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_2917deb1d5505f::t_b0702a5b974b04 9-11,22,32,35,39-45,61-76,82-84
+  s_2917deb1d5505f::t_d756b994f72f40 17-19
+packages/backend/src/entities/tenant-request-usage.entity.ts
+  s_2917deb1d5505f::t_f748905102444b 15-18
+.changeset/exact-request-usage-counter.md
+  s_2917deb1d5505f::t_22c734c8ad5399 5
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_2917deb1d5505f::t_f748905102444b 2-5,18-21,41,47,50,53,62,70-78,84-85,93,95-110,115-120,152-163,172-183,185-207,221
+  s_2917deb1d5505f::t_2040b194b3f9f3 90-92,111-114
+  s_2917deb1d5505f::t_fad83e81855d0b 94
+packages/backend/src/billing/request-quota-window.ts
+  s_2917deb1d5505f::t_f748905102444b 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "35318a7bf6f8ef54c0423969c72ede2d6f49bcb3",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

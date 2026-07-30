@@ -1,0 +1,19 @@
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_fc4f721f35e1c3::t_3066f952f7c4a9 174-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "78befce49bb9c257cc0d360550eca53e3e1abfff",
+  "prompts": {},
+  "sessions": {
+    "s_fc4f721f35e1c3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fad1a-7c4f-7de3-98e8-ce12b2096457",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

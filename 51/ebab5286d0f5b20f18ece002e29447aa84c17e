@@ -1,0 +1,83 @@
+packages/backend/src/entities/tenant-request-usage.entity.spec.ts
+  s_2917deb1d5505f::t_0808d0f2e0d117 1-15
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_2917deb1d5505f::t_5e8cb12055fc7a 156-162
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_2917deb1d5505f::t_5e8cb12055fc7a 195
+packages/backend/test/helpers.ts
+  s_2917deb1d5505f::t_a0909d5a138704 43,87
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_2917deb1d5505f::t_c0b332d89a2df6 67,73,198,200-206
+  s_2917deb1d5505f::t_4395ec84f5608d 1-2,4-7,9-66,68-72,74-153,155-185,207-208
+  s_2917deb1d5505f::t_0e022f5088254f 3,8,199
+  s_2917deb1d5505f::t_461edaec36dd6f 154,186-197
+packages/backend/src/entities/request.entity.ts
+  s_2917deb1d5505f::t_b1f7d2fcde3dd2 55
+  s_2917deb1d5505f::t_ea25fdc51a4bdc 58-61
+  s_2917deb1d5505f::t_48aab985f63331 54,56-57
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2917deb1d5505f::t_74ca2ad460d3b6 41,345,355
+  s_2917deb1d5505f::t_8582ef0dea6341 358
+  s_2917deb1d5505f::t_0e022f5088254f 42,359
+packages/backend/src/billing/request-quota-window.spec.ts
+  s_2917deb1d5505f::t_2bddaf0a23e27b 1-4,6-41,50-51
+  s_2917deb1d5505f::t_ea25fdc51a4bdc 5,42-49
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_2917deb1d5505f::t_e741d0b37c296e 104-106,130-132
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_2917deb1d5505f::t_d05b10772d42c5 117-118
+  s_2917deb1d5505f::t_7739d5e3fce39b 5-7,39
+  s_2917deb1d5505f::t_0e022f5088254f 3,25-29,75-81,88,99-105,110,157-163,192,218-224,236
+  s_2917deb1d5505f::t_2bddaf0a23e27b 1-2,4,8-24,30-38,40-45,49-60,62-65,67-70,84-87,89-95,108-109,111-116,119-142,144-153,165-176,178-179,181-191,193-217,225-235,237-252,254-260
+  s_2917deb1d5505f::t_7d97d4e25bb886 46-48,71-74,82,96-98,106,154-156,164,177,180,253
+  s_2917deb1d5505f::t_5e8cb12055fc7a 61,66,83,107,143
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_2917deb1d5505f::t_84619cc8b3d971 46,110
+packages/backend/src/billing/plan.service.spec.ts
+  s_2917deb1d5505f::t_e741d0b37c296e 393
+  s_2917deb1d5505f::t_0e022f5088254f 8,303
+  s_2917deb1d5505f::t_ed113de65b9f0a 297,301-302,306,321,324,328,331,394
+  s_2917deb1d5505f::t_84619cc8b3d971 164
+  s_2917deb1d5505f::t_89ca07289ce050 336,344,356,367,375,378,395-396,425,429,438,444
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_2917deb1d5505f::t_5e8cb12055fc7a 30
+  s_2917deb1d5505f::t_e741d0b37c296e 51-53
+  s_2917deb1d5505f::t_2bddaf0a23e27b 1-26,28-29,31-50,54-62,64-68
+  s_2917deb1d5505f::t_7d97d4e25bb886 27,63
+.changeset/exact-request-usage-counter.md
+  s_2917deb1d5505f::t_2bddaf0a23e27b 1-5
+packages/backend/src/billing/request-quota-window.ts
+  s_2917deb1d5505f::t_2bddaf0a23e27b 1-12
+  s_2917deb1d5505f::t_ea25fdc51a4bdc 13-18
+packages/backend/src/playground/playground.service.ts
+  s_2917deb1d5505f::t_74ca2ad460d3b6 484,561
+  s_2917deb1d5505f::t_8582ef0dea6341 483,560
+packages/backend/src/billing/plan.service.ts
+  s_2917deb1d5505f::t_0e022f5088254f 15,180
+  s_2917deb1d5505f::t_71ae42fb0665fe 4,21
+  s_2917deb1d5505f::t_c6a35d92f5c225 167-170,174-179,181-182,185,210,247
+packages/backend/src/entities/agent-message.entity.ts
+  s_2917deb1d5505f::t_48aab985f63331 35,37-38
+  s_2917deb1d5505f::t_b1f7d2fcde3dd2 36
+packages/backend/src/database/data-source-definitions.ts
+  s_2917deb1d5505f::t_48aab985f63331 35,306
+  s_2917deb1d5505f::t_0808d0f2e0d117 29,179
+packages/backend/src/entities/tenant-request-usage.entity.ts
+  s_2917deb1d5505f::t_0808d0f2e0d117 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "51ebab5286d0f5b20f18ece002e29447aa84c17e",
+  "prompts": {},
+  "sessions": {
+    "s_2917deb1d5505f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa81c-3f8c-75b1-bf46-fd76c46071ff",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/frontend/src/styles/modals.css
+  s_da4a6957073020::t_e247f16561f226 189-201
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_da4a6957073020::t_e247f16561f226 3,5,15,17,27,33,40,50-58,89,98-157
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_da4a6957073020::t_f17f7d3e50361a 2,7,12-14,43,126-160,162,171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "6f2145b0b63506de5ee4f0645ad999a9d00b8877",
+  "prompts": {},
+  "sessions": {
+    "s_da4a6957073020": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa761-5399-7d52-933d-f6a4b3c7d74a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+docker/.env.example
+  s_86ae7d6def5db2::t_12913e13e785d5 84
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_86ae7d6def5db2::t_12913e13e785d5 26-27
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_86ae7d6def5db2::t_12913e13e785d5 41
+packages/backend/.env.example
+  s_86ae7d6def5db2::t_12913e13e785d5 65
+.changeset/gemini-free-provider.md
+  s_86ae7d6def5db2::t_12913e13e785d5 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f2397d0d0be3fce30856bfdd32733b60c1d26de5",
+  "prompts": {},
+  "sessions": {
+    "s_86ae7d6def5db2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019facd2-b897-7fd3-aa7e-9d0363ffa59a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

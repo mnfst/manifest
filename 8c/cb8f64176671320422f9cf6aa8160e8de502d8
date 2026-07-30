@@ -1,0 +1,24 @@
+packages/shared/src/chat-message.ts
+  s_0cc17db2a7a38d::t_41f4fa5f8fe7d1 313,320
+  s_0cc17db2a7a38d::t_fc7787b2b2cf2c 314-319
+packages/shared/__tests__/chat-message.spec.ts
+  s_0cc17db2a7a38d::t_10f6a70b6218a5 348-359
+.changeset/show-gemini-stream-output.md
+  s_0cc17db2a7a38d::t_de75c57e0d0b37 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "8ccb8f64176671320422f9cf6aa8160e8de502d8",
+  "prompts": {},
+  "sessions": {
+    "s_0cc17db2a7a38d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fae71-b781-7f21-af10-5fa15c78b32a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
