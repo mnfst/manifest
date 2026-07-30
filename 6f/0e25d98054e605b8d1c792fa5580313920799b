@@ -1,0 +1,27 @@
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_4bd29ea539cf9f::t_3b79347034795f 8-11,48-50,54-56
+.changeset/fix-request-quota-timezone.md
+  s_4bd29ea539cf9f::t_bdae23d499761a 5
+packages/backend/src/billing/plan.service.spec.ts
+  s_4bd29ea539cf9f::t_deba7bac90b20a 68,76,86
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_4bd29ea539cf9f::t_deba7bac90b20a 197-214
+packages/backend/src/billing/plan.service.ts
+  s_4bd29ea539cf9f::t_deba7bac90b20a 100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "6f0e25d98054e605b8d1c792fa5580313920799b",
+  "prompts": {},
+  "sessions": {
+    "s_4bd29ea539cf9f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb377-c299-7ad0-bec5-eab20f1baa1c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
