@@ -19,6 +19,7 @@ vi.mock('@solidjs/meta', () => ({
 const mockUpgrade = vi.fn();
 vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
+    useSession: () => () => ({ data: { user: { id: 'u1' } }, isPending: false }),
     subscription: {
       upgrade: (...args: unknown[]) => mockUpgrade(...args),
     },

@@ -3,6 +3,7 @@ import { Show, createEffect, createSignal, type ParentComponent } from 'solid-js
 import { authClient } from '../services/auth-client.js';
 import { buildLoginRedirect } from '../services/auth-redirects.js';
 import { hasPlanBeenChosen, markPlanChosen } from '../services/plan-selection.js';
+import { hasOnboardingBeenDone } from '../services/onboarding.js';
 import { getBillingStatus } from '../services/api/billing.js';
 
 const AuthGuard: ParentComponent = (props) => {
@@ -20,14 +21,24 @@ const AuthGuard: ParentComponent = (props) => {
     }
     const userId = s.data.user?.id;
     if (planChecked()) return;
+    // /upgrade is the plan selection destination — never intercept it.
+    if (location.pathname === '/upgrade') {
+      setPlanChecked(true);
+      return;
+    }
     if (userId && hasPlanBeenChosen(userId)) {
+      setPlanChecked(true);
+      return;
+    }
+    // Don't gate on plan selection before the user has completed onboarding.
+    if (userId && !hasOnboardingBeenDone(userId)) {
       setPlanChecked(true);
       return;
     }
     getBillingStatus()
       .then((status) => {
         if (status?.enabled && status.plan !== 'pro') {
-          navigate('/register?step=plan&context=login', { replace: true });
+          navigate('/upgrade', { replace: true });
         } else {
           if (userId) markPlanChosen(userId);
           setPlanChecked(true);
@@ -45,7 +56,11 @@ const AuthGuard: ParentComponent = (props) => {
         <div class="auth-layout">
           <div class="auth-card" style="text-align: center;">
             <div class="auth-logo">
-              <img src="/logotype-white.svg" alt="Manifest" class="auth-logo__img auth-logo__img--light" />
+              <img
+                src="/logotype-white.svg"
+                alt="Manifest"
+                class="auth-logo__img auth-logo__img--light"
+              />
               <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
             </div>
             <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm);">

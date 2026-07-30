@@ -110,16 +110,6 @@ const Register: Component = () => {
     setLastAuthMethod('email');
 
     if (data?.token) {
-      try {
-        const status = await getBillingStatus();
-        if (status?.enabled) {
-          setProPrice(formatBillingPrice(status.priceMonthly));
-          window.location.href = '/register?step=plan';
-          return;
-        }
-      } catch {
-        /* billing unavailable — skip plan step */
-      }
       window.location.href = '/welcome';
       return;
     }

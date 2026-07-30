@@ -11,10 +11,13 @@ import { authClient } from '../services/auth-client.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { toast } from '../services/toast-store.js';
 import { FREE_REQUEST_LIMIT_LABEL, formatBillingPrice } from '../services/billing-display.js';
+import { markPlanChosen } from '../services/plan-selection.js';
 
 const Upgrade: Component = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const session = authClient.useSession();
+  const userId = () => session()?.data?.user?.id ?? '';
   const [billingError, setBillingError] = createSignal(false);
   const [billing] = createResource(async () => {
     setBillingError(false);
@@ -39,10 +42,6 @@ const Upgrade: Component = () => {
   });
 
   const handlePlanSelect = async (plan: PlanId) => {
-    if (plan === 'free') {
-      navigate('/');
-      return;
-    }
     if (plan === 'enterprise') {
       return;
     }
@@ -57,6 +56,8 @@ const Upgrade: Component = () => {
       });
       const error = (res as { error?: unknown } | undefined)?.error;
       if (error) throw error;
+      const uid = userId();
+      if (uid) markPlanChosen(uid);
     } catch {
       toast.error('Could not start the upgrade. Please try again.');
     } finally {
@@ -147,7 +148,14 @@ const Upgrade: Component = () => {
                     </div>
                     <p class="upgrade-plan-card__desc">For prototypes and small projects.</p>
                     <div class="upgrade-plan-card__cta">
-                      <button class="btn btn--outline" onClick={() => navigate('/')}>
+                      <button
+                        class="btn btn--outline"
+                        onClick={() => {
+                          const uid = userId();
+                          if (uid) markPlanChosen(uid);
+                          navigate('/');
+                        }}
+                      >
                         Use Manifest for free
                       </button>
                     </div>
