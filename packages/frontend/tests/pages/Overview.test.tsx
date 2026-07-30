@@ -124,10 +124,7 @@ vi.mock('../../src/services/api/routing.js', () => ({
   getAutofix: () => Promise.resolve({ available: false, enabled: false }),
 }));
 
-const mockGetBillingStatus = vi.fn();
-vi.mock('../../src/services/api/billing.js', () => ({
-  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
-}));
+import { resetPlanStore } from '../../src/services/plan-store';
 
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
   AGENT_COLORS: ['#111111', '#222222', '#333333'],
@@ -285,11 +282,7 @@ describe('Overview', () => {
     });
     mockGetCustomProviders.mockResolvedValue([]);
     mockPerProvider.mockResolvedValue({ agents: [], timeseries: [] });
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: false,
-      plan: 'free',
-      emailPreferences: { usageAlerts: true },
-    });
+    resetPlanStore({ enabled: false, plan: 'free' });
   });
 
   it('renders Overview heading with agent name', () => {
@@ -538,13 +531,16 @@ describe('Overview', () => {
 
   it('hides the self-healed tab and KPI cards for non-cohort tenants', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
-    render(() => <Overview />);
+    const { container } = render(() => <Overview />);
 
     await vi.waitFor(() => {
       expect(screen.getAllByText('Requests').length).toBeGreaterThan(0);
     });
     expect(screen.queryByText('Recovered requests')).toBeNull();
-    expect(screen.queryByText('Success rate')).toBeNull();
+    // The Auto-fix KPI row is the only overview-stat-card surface on this page;
+    // 'Success rate' alone is ambiguous (CostByModelTable has a per-model
+    // reliability column of the same name for every tenant).
+    expect(container.querySelector('.overview-stat-card')).toBeNull();
     expect(mockGetAutofixStats).not.toHaveBeenCalled();
   });
 
@@ -953,11 +949,7 @@ describe('Overview', () => {
 
     it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
       localStorage.setItem('manifest_chart_range', '365d');
-      mockGetBillingStatus.mockResolvedValue({
-        enabled: true,
-        plan: 'free',
-        emailPreferences: { usageAlerts: true },
-      });
+      resetPlanStore({ enabled: true, plan: 'free' });
       mockGetOverview.mockResolvedValue(overviewData);
 
       const { container } = render(() => <Overview />);

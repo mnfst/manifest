@@ -82,6 +82,20 @@ describe('PlanService', () => {
     });
   });
 
+  describe('getPlanStatus', () => {
+    it('reports billing disabled without querying', async () => {
+      expect(await service.getPlanStatus(CTX)).toEqual({ enabled: false, plan: 'free' });
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('returns the resolved plan with a single snapshot query when enabled', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValueOnce([{ subscriptionPlan: 'pro' }]);
+      expect(await service.getPlanStatus(CTX)).toEqual({ enabled: true, plan: 'pro' });
+      expect(mockQuery).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('getLimits', () => {
     it('returns unlimited when billing is disabled', async () => {
       expect(await service.getLimits(CTX)).toEqual({ requestsPerMonth: null });
@@ -427,7 +441,8 @@ describe('PlanService', () => {
     it('coalesces concurrent baseline initialization within one process', async () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery.mockImplementation((sql: string) => {
-        if (sql.includes('SELECT "request_count"')) return Promise.resolve([{ n: 0, baseline_counted: false }]);
+        if (sql.includes('SELECT "request_count"'))
+          return Promise.resolve([{ n: 0, baseline_counted: false }]);
         if (sql.includes('EXTRACT(EPOCH')) return Promise.resolve([{ cutover_ms: cutover }]);
         if (sql.includes('SELECT COUNT(*)')) return Promise.resolve([{ n: '4' }]);
         if (sql.includes('INSERT INTO "tenant_request_usage"'))

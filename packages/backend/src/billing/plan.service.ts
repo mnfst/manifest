@@ -4,6 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,
@@ -135,6 +136,15 @@ export class PlanService {
   /** Resolve the tenant's plan from better-auth's webhook-synced subscription table. */
   async getPlan(ctx: TenantContext): Promise<Plan> {
     return (await this.getBillingSnapshot(ctx)).plan;
+  }
+
+  /**
+   * Light plan lookup for UI gating (range locks, AuthGuard bootstrap). One
+   * snapshot query — never touches the usage counter or Stripe.
+   */
+  async getPlanStatus(ctx: TenantContext): Promise<BillingPlanStatus> {
+    if (!isBillingEnabled()) return { enabled: false, plan: 'free' };
+    return { enabled: true, plan: await this.getPlan(ctx) };
   }
 
   private limitsForSnapshot(snapshot: BillingSnapshot): PlanLimits {

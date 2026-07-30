@@ -41,7 +41,7 @@ import {
   useOverviewColumns,
   useOverviewRange,
 } from '../services/use-overview-range.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { usePlanRangeLock } from '../services/plan-range-lock.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
@@ -118,25 +118,6 @@ const Overview: Component = () => {
   const location = useLocation<{ newApiKey?: string }>();
   const navigate = useNavigate();
   preloadModelDisplayNames();
-  const [billing] = createResource(async () => {
-    try {
-      return await getBillingStatus();
-    } catch {
-      return null;
-    }
-  });
-  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
-  const shouldLockProRanges = () => billing.loading || isFreePlan();
-  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
-  const proBadge = () => (
-    <span class="pro-range-badge" aria-label="Pro plan required">
-      PRO
-    </span>
-  );
-  const agentRangeOptions = () =>
-    AGENT_RANGE_OPTIONS.map((opt) =>
-      isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
-    );
   const { columns } = useOverviewColumns();
   // Only treat the stored value as a user selection when it is actually valid.
   // An invalid stored range falls through to the smart-range cascade.
@@ -146,7 +127,20 @@ const Overview: Component = () => {
   const { range, setRange, handleRangeChange } = useOverviewRange({
     markUserSelected: () => setUserSelectedRange(true),
   });
-  const effectiveRange = createMemo(() => (isProRangeLocked(range()) ? '7d' : range()));
+  const { isFreePlan, isProRangeLocked, effectiveRange } = usePlanRangeLock(
+    range,
+    PRO_RANGES,
+    '7d',
+  );
+  const proBadge = () => (
+    <span class="pro-range-badge" aria-label="Pro plan required">
+      PRO
+    </span>
+  );
+  const agentRangeOptions = () =>
+    AGENT_RANGE_OPTIONS.map((opt) =>
+      isProRangeLocked(opt.value) ? { ...opt, disabled: true, badge: proBadge() } : opt,
+    );
   const [activeView, setActiveViewRaw] = createSignal<ProviderView>('requests');
   const [tokenChartRequested, setTokenChartRequested] = createSignal(false);
   const [costChartRequested, setCostChartRequested] = createSignal(false);
@@ -169,8 +163,8 @@ const Overview: Component = () => {
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
 
-  // Do not wait on billing/status: plan only gates range options, and a slow
-  // usage counter must not stall the whole dashboard shell.
+  // Never waits on billing/status: the plan-hint lock resolves the range
+  // synchronously, so this fetches exactly once at the right range.
   const [data, { refetch }] = createResource(
     () => ({ range: effectiveRange(), agentName: params.agentName, _ping: analyticsPing() }),
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,

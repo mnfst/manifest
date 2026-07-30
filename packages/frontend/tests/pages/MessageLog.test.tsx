@@ -150,10 +150,7 @@ vi.mock('../../src/components/MultiSelect.jsx', () => ({
   ),
 }));
 
-const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
-vi.mock('../../src/services/api/billing.js', () => ({
-  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
-}));
+import { resetPlanStore } from '../../src/services/plan-store';
 
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
@@ -338,7 +335,7 @@ describe('MessageLog', () => {
     const [ping, setPing] = createSignal(0);
     pingBox.read = ping;
     pingBox.set = setPing;
-    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
+    resetPlanStore({ enabled: false, plan: 'free' });
   });
 
   it('renders Requests heading', () => {
@@ -706,7 +703,9 @@ describe('MessageLog', () => {
 
   it('clamps a Pro-range deep link before loading data for a free plan', async () => {
     mockSearchParams = { range: '365d' };
-    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    // The plan store is resolved by AuthGuard before any page mounts, so the
+    // clamp is synchronous — no fetch ever goes out at the PRO range.
+    resetPlanStore({ enabled: true, plan: 'free' });
     mockGetMessages.mockResolvedValue(messagesData);
 
     render(() => <MessageLog />);
