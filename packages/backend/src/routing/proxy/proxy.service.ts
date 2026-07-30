@@ -710,7 +710,7 @@ export class ProxyService {
     const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
     if (healedModel && healedModel !== originalModel) {
-      return this.forwardResolvedHealed(healedBody, ctx);
+      return this.forwardResolvedHealed(healedBody, originalForward, ctx);
     }
     return this.fallbackService.retryWireBody(originalForward, healedBody, {
       provider: ctx.provider,
@@ -724,6 +724,7 @@ export class ProxyService {
 
   private async forwardResolvedHealed(
     healedBody: Record<string, unknown>,
+    originalForward: ForwardResult,
     ctx: HealedReforwardContext,
   ): Promise<ForwardResult> {
     const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
@@ -738,13 +739,27 @@ export class ProxyService {
       ctx.apiMode,
     );
     const route = resolved.route;
-    if (!route) return this.autofixReforwardError('no route resolved for the healed model');
+    if (!route) {
+      return this.retryHealedOnOriginalTransport(
+        healedBody,
+        originalForward,
+        ctx,
+        'no route resolved for the healed model',
+      );
+    }
     const credentials = await this.resolveCredentials(ctx.agentId, ctx.tenantId, {
       provider: route.provider,
       auth_type: route.authType,
       provider_key_label: route.keyLabel ?? undefined,
     });
-    if (!credentials.ok) return this.autofixReforwardError('no provider key for the healed model');
+    if (!credentials.ok) {
+      return this.retryHealedOnOriginalTransport(
+        healedBody,
+        originalForward,
+        ctx,
+        'no provider key for the healed model',
+      );
+    }
     const model = normalizeProviderModel(route.provider, route.model);
     const explicitModelOverride = resolved.explicit_model_override === true;
     const scopeKey = modelParamsScopeForRouting({
@@ -777,6 +792,35 @@ export class ProxyService {
       reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
       tenantProviderId: credentials.tenantProviderId,
+      startProviderAttempt: ctx.startProviderAttempt,
+    });
+  }
+
+  /**
+   * The healed model didn't re-resolve for this tenant — usually a stale
+   * `cached_models` snapshot, not a genuinely missing provider: the original
+   * request already reached a provider over a working connection. Retry the
+   * healed body on that same transport and let the provider judge the model,
+   * instead of synthesizing a 502 the caller can't act on. Only a
+   * Manifest-blocked original (no wire transport to reuse) keeps the
+   * synthetic 502.
+   */
+  private retryHealedOnOriginalTransport(
+    healedBody: Record<string, unknown>,
+    originalForward: ForwardResult,
+    ctx: HealedReforwardContext,
+    reason: string,
+  ): Promise<ForwardResult> {
+    if (!originalForward.retryWireBody) {
+      return Promise.resolve(this.autofixReforwardError(reason));
+    }
+    const healedModel = typeof healedBody.model === 'string' ? healedBody.model : ctx.model;
+    return this.fallbackService.retryWireBody(originalForward, healedBody, {
+      provider: ctx.provider,
+      model: healedModel,
+      signal: ctx.signal,
+      authType: ctx.authType,
+      tenantProviderId: ctx.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
     });
   }
