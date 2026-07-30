@@ -32,7 +32,7 @@ describe('RequestMessages', () => {
     expect(getAllByText('Sunny.')).toHaveLength(2);
   });
 
-  it('shows only tool calls emitted by the selected attempt', () => {
+  it('shows called and available tools in the tools tab', () => {
     const calledRecording = {
       ...recording,
       response_body: {
@@ -56,13 +56,17 @@ describe('RequestMessages', () => {
         },
       },
     };
-    const { getByText, queryByText } = render(() => (
+    const { getAllByText, getByText } = render(() => (
       <RequestMessages recording={calledRecording} view="tools" />
     ));
-    expect(getByText('weather')).toBeTruthy();
+    // 'weather' appears once in Called and once in Available
+    expect(getAllByText('weather')).toHaveLength(2);
     expect(getByText('call-1')).toBeTruthy();
-    expect(getByText(/"city": "Paris"/)).toBeTruthy();
-    expect(queryByText('Read the forecast')).toBeNull();
+    // JSON arguments are syntax-highlighted (hljs splits across spans), check body text
+    expect(document.body.textContent).toContain('"city"');
+    expect(document.body.textContent).toContain('"Paris"');
+    // Available section shows the tool description
+    expect(getByText('Read the forecast')).toBeTruthy();
   });
 
   it('shows raw payloads when view is raw', () => {
@@ -102,7 +106,9 @@ describe('RequestMessages', () => {
     // Turns are open by default — tool call content is already visible.
     expect(getByText('Unknown tool')).toBeTruthy();
     expect(getAllByText('call-1')).toHaveLength(2);
-    expect(getByText('[object Object]')).toBeTruthy();
+    // Circular reference serialises to '[object Object]' which hljs may split across spans;
+    // verify the text is present anywhere in the rendered output.
+    expect(document.body.textContent).toContain('[object Object]');
     expect(getAllByText('Tool complete')).toHaveLength(2);
   });
 
@@ -120,7 +126,7 @@ describe('RequestMessages', () => {
     const { getByText: getText2 } = render(() => (
       <RequestMessages recording={emptyRecording} view="tools" />
     ));
-    expect(getText2('No tools were called.')).toBeTruthy();
+    expect(getText2('No tools were called in this conversation.')).toBeTruthy();
   });
 
   it('explains when recording was disabled', () => {
