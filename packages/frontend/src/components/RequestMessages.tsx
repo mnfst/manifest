@@ -9,6 +9,8 @@ import {
   type ToolCall,
 } from 'manifest-shared';
 import type { AttemptRecording } from '../services/api/messages.js';
+import MarkdownContent from './playground/MarkdownContent.js';
+import JsonBlock from './JsonBlock.js';
 
 type Recording = AttemptRecording;
 export type RecordingView = 'messages' | 'tools' | 'raw';
@@ -87,6 +89,16 @@ const MessageTurn: Component<{
   const role = () => normalizeRole(props.message.role);
   const content = () => coerceContentToText(props.message.content);
   const toolCalls = () => props.message.tool_calls ?? [];
+
+  const parsedJson = () => {
+    const text = content().trim();
+    if (!text.startsWith('{') && !text.startsWith('[')) return null;
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      return null;
+    }
+  };
   const preview = () => previewStr(content());
   const isCappable = () => content().length > CAP_CHARS || toolCalls().length > 3;
 
@@ -138,7 +150,11 @@ const MessageTurn: Component<{
           classList={{ 'request-message__body--capped': isCappable() && capped() }}
         >
           <Show when={content()}>
-            <div class="request-message__content">{content()}</div>
+            {parsedJson() != null ? (
+              <JsonBlock class="request-message__content" value={parsedJson()} />
+            ) : (
+              <MarkdownContent class="request-message__content" text={content()} />
+            )}
           </Show>
           <Show when={toolCalls().length > 0}>
             <ToolCalls calls={toolCalls()} />
@@ -392,11 +408,11 @@ const RequestMessages: Component<{ recording: Recording | null; view?: Recording
               <div class="request-messages__raw">
                 <section>
                   <h4>Request</h4>
-                  <pre>{pretty(recording().request_body)}</pre>
+                  <JsonBlock value={recording().request_body} />
                 </section>
                 <section>
                   <h4>Response</h4>
-                  <pre>{pretty(recording().response_body)}</pre>
+                  <JsonBlock value={recording().response_body} />
                 </section>
               </div>
             </div>

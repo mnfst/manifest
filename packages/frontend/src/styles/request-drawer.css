@@ -720,8 +720,95 @@
   color: hsl(var(--foreground));
   font-size: var(--font-size-sm);
   line-height: 1.6;
-  white-space: pre-wrap;
   word-break: break-word;
+}
+.request-message__content > :first-child {
+  margin-top: 0;
+}
+.request-message__content > :last-child {
+  margin-bottom: 0;
+}
+.request-message__content p {
+  margin: 0 0 10px;
+}
+.request-message__content h1,
+.request-message__content h2,
+.request-message__content h3,
+.request-message__content h4,
+.request-message__content h5,
+.request-message__content h6 {
+  margin: 14px 0 6px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: hsl(var(--foreground));
+}
+.request-message__content h1 { font-size: 17px; }
+.request-message__content h2 { font-size: 15px; }
+.request-message__content h3 { font-size: 13px; }
+.request-message__content h4,
+.request-message__content h5,
+.request-message__content h6 { font-size: 12px; }
+.request-message__content strong { font-weight: 600; }
+.request-message__content em { font-style: italic; }
+.request-message__content ul,
+.request-message__content ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+.request-message__content li { margin: 2px 0; }
+.request-message__content li > p { margin: 0; }
+.request-message__content a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.request-message__content blockquote {
+  margin: 0 0 10px;
+  padding: 4px 12px;
+  border-left: 3px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+.request-message__content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  background: hsl(var(--muted));
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.request-message__content pre {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.request-message__content pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+.request-message__content hr {
+  border: 0;
+  border-top: 1px solid hsl(var(--border));
+  margin: 14px 0;
+}
+.request-message__content table {
+  border-collapse: collapse;
+  margin: 0 0 10px;
+  font-size: 12px;
+}
+.request-message__content th,
+.request-message__content td {
+  border: 1px solid hsl(var(--border));
+  padding: 4px 8px;
+  text-align: left;
+}
+.request-message__content th {
+  background: hsl(var(--muted));
+  font-weight: 600;
 }
 .request-messages__tool-calls {
   display: flex;
@@ -840,4 +927,75 @@
     padding: 6px 10px;
     border-radius: 8px;
   }
+}
+
+/* ── JsonBlock ── */
+.json-block-wrap {
+  display: flex;
+  flex-direction: column;
+}
+.json-block__size-notice {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / 0.4);
+  border-bottom: 1px solid hsl(var(--border) / 0.4);
+}
+.json-block {
+  margin: 0;
+  padding: 12px 14px;
+  background: hsl(var(--muted) / 0.6);
+  border: 1px solid hsl(var(--border) / 0.5);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.json-block code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+.request-message__content .json-block-wrap .json-block {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: hsl(var(--muted) / 0.4);
+}
+.request-messages__raw .json-block-wrap .json-block {
+  border-radius: var(--radius-sm);
+}
+
+/* ── JSON-specific token colors ── */
+/* Keys get a distinct teal so they pop from string values */
+.hljs-attr {
+  color: hsl(187 60% 38%);
+  font-weight: 500;
+}
+.dark .hljs-attr {
+  color: hsl(187 70% 58%);
+}
+/* String values: warm amber, visually separate from keys */
+.language-json .hljs-string {
+  color: hsl(24 80% 44%);
+}
+.dark .language-json .hljs-string {
+  color: hsl(24 90% 65%);
+}
+/* Numbers */
+.language-json .hljs-number {
+  color: hsl(260 60% 52%);
+}
+.dark .language-json .hljs-number {
+  color: hsl(260 80% 75%);
+}
+/* true / false / null */
+.language-json .hljs-literal {
+  color: hsl(340 65% 45%);
+  font-weight: 500;
+}
+.dark .language-json .hljs-literal {
+  color: hsl(340 75% 68%);
 }
