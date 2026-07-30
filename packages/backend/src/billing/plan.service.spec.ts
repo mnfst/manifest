@@ -175,6 +175,35 @@ describe('PlanService', () => {
       // periodEnd is the 1st of next month at midnight UTC.
       expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
     });
+
+    it('returns live usage without waiting for the historical baseline scan', async () => {
+      enableBilling();
+      let resolveBaseline!: (v: Array<{ n: string }>) => void;
+      const baselineHang = new Promise<Array<{ n: string }>>((r) => {
+        resolveBaseline = r;
+      });
+      mockQuery.mockImplementation((sql: string) => {
+        if (sql.includes('FROM "tenant_request_usage"') && sql.includes('SELECT "request_count"')) {
+          return Promise.resolve([{ n: '8', baseline_counted: false }]);
+        }
+        if (sql.includes('EXTRACT(EPOCH')) {
+          return Promise.resolve([{ cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')) }]);
+        }
+        if (sql.includes('SELECT COUNT(*)')) return baselineHang;
+        if (sql.includes('FROM (SELECT 1) seed') || sql.includes('subscriptionPlan')) {
+          return Promise.resolve([{ subscriptionPlan: 'free' }]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const status = await service.getBillingStatus(CTX);
+      expect(status.requests.used).toBe(8);
+
+      // Unblock the background init so the suite does not leak a hanging promise.
+      resolveBaseline([{ n: '1' }]);
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+    });
   });
 
   describe('billing email preferences', () => {
@@ -344,7 +373,7 @@ describe('PlanService', () => {
       expect(mockQuery.mock.calls[1][1][1]).toBe(toSqlTimestamp(new Date(Date.UTC(2026, 7, 1))));
     });
 
-    it('adds the historical baseline once to live trigger increments', async () => {
+    it('returns the live counter immediately and baselines history in the background', async () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
         .mockResolvedValueOnce([{ n: '3', baseline_counted: false }])
@@ -352,7 +381,12 @@ describe('PlanService', () => {
         .mockResolvedValueOnce([{ n: '2' }])
         .mockResolvedValueOnce([{ n: '5' }]);
 
-      expect(await service.countRequestsSince('t1', START)).toBe(5);
+      // Hot path must not wait on the historical COUNT — only live increments.
+      expect(await service.countRequestsSince('t1', START)).toBe(3);
+
+      // Flush the scheduled baseline init.
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
 
       const [baselineSql, baselineParams] = mockQuery.mock.calls[2];
       expect(baselineSql).toContain('FROM "requests" r');
@@ -370,7 +404,7 @@ describe('PlanService', () => {
       );
     });
 
-    it('initializes a post-cutover window at zero without scanning history', async () => {
+    it('schedules a post-cutover zero-row without blocking or scanning history', async () => {
       const augustStart = Date.UTC(2026, 7, 1);
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery
@@ -379,6 +413,10 @@ describe('PlanService', () => {
         .mockResolvedValueOnce([{ n: '0' }]);
 
       expect(await service.countRequestsSince('t1', augustStart)).toBe(0);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
       expect(mockQuery).toHaveBeenCalledTimes(3);
       expect(
         mockQuery.mock.calls.every(([sql]) => !String(sql).includes('FROM "requests" r')),
@@ -389,7 +427,7 @@ describe('PlanService', () => {
     it('coalesces concurrent baseline initialization within one process', async () => {
       const cutover = Date.parse('2026-07-28T09:00:00Z');
       mockQuery.mockImplementation((sql: string) => {
-        if (sql.includes('SELECT "request_count"')) return Promise.resolve([]);
+        if (sql.includes('SELECT "request_count"')) return Promise.resolve([{ n: 0, baseline_counted: false }]);
         if (sql.includes('EXTRACT(EPOCH')) return Promise.resolve([{ cutover_ms: cutover }]);
         if (sql.includes('SELECT COUNT(*)')) return Promise.resolve([{ n: '4' }]);
         if (sql.includes('INSERT INTO "tenant_request_usage"'))
@@ -397,12 +435,16 @@ describe('PlanService', () => {
         return Promise.resolve([]);
       });
 
+      // Both callers return the live counter immediately (0), without awaiting baseline.
       await expect(
         Promise.all([
           service.countRequestsSince('t1', START),
           service.countRequestsSince('t1', START),
         ]),
-      ).resolves.toEqual([4, 4]);
+      ).resolves.toEqual([0, 0]);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
 
       expect(
         mockQuery.mock.calls.filter(([sql]) => String(sql).includes('EXTRACT(EPOCH')),
@@ -417,12 +459,14 @@ describe('PlanService', () => {
       ).toHaveLength(1);
     });
 
-    it('fails initialization when the migration cutover marker is missing', async () => {
+    it('does not fail the hot path when the migration cutover marker is missing', async () => {
       mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
-      await expect(service.countRequestsSince('t1', START)).rejects.toThrow(
-        'Missing request usage cutover state',
-      );
+      // Live counter is 0; baseline init fails in the background.
+      await expect(service.countRequestsSince('t1', START)).resolves.toBe(0);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
     });
 
     it('rethrows a DB error so the next call can retry', async () => {

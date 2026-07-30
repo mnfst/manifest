@@ -71,7 +71,9 @@ export class PlanService {
   private suppressedCountFailureWarns = 0;
   private lastLimitFailureWarnAtMs = 0;
   private suppressedLimitFailureWarns = 0;
-  private readonly requestUsageInitializations = new Map<string, Promise<number>>();
+  /** In-flight baseline initializations keyed by tenant+window. Never awaited on
+   * the admission/billing hot path — only used for single-flight coalescing. */
+  private readonly requestUsageInitializations = new Map<string, Promise<void>>();
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
@@ -169,9 +171,14 @@ export class PlanService {
 
   /**
    * Routed requests recorded for the tenant in the effective monthly quota
-   * window. The steady-state admission path is one PK read. The first request
-   * for a tenant/window lazily adds its pre-cutover baseline exactly once; the
-   * trigger can keep adding live requests while that initialization runs.
+   * window. Hot path is one PK read of `tenant_request_usage`.
+   *
+   * When the pre-cutover baseline has not been applied yet (`baseline_counted =
+   * false`, or the row is missing), this returns the live post-cutover counter
+   * immediately and schedules the historical baseline scan in the background.
+   * Waiting on that scan used to block `/billing/status` and free-tier
+   * admission for tens of seconds on high-volume tenants. Undercounting until
+   * the baseline lands is fail-open — the same posture as a COUNT failure.
    */
   async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
     if (!tenantId) return 0;
@@ -187,19 +194,35 @@ export class PlanService {
       );
     if (rows[0]?.baseline_counted) return Number(rows[0].n);
 
-    const initializationKey = `${tenantId}:${windowStart}`;
-    const existing = this.requestUsageInitializations.get(initializationKey);
-    if (existing) return existing;
+    // Live trigger increments only (or 0 if the row does not exist yet). Kick
+    // the one-shot historical baseline off the hot path so dashboard/admission
+    // stay O(1) even for large pre-cutover histories.
+    this.scheduleRequestUsageInitialization(tenantId, windowStartMs, windowStart);
+    return Number(rows[0]?.n ?? 0);
+  }
 
-    const pending = this.initializeRequestUsage(tenantId, windowStartMs, windowStart).finally(
-      () => {
+  /** Single-flight background baseline init. Errors are logged, not thrown. */
+  private scheduleRequestUsageInitialization(
+    tenantId: string,
+    windowStartMs: number,
+    windowStart: string,
+  ): void {
+    const initializationKey = `${tenantId}:${windowStart}`;
+    if (this.requestUsageInitializations.has(initializationKey)) return;
+
+    const pending = this.initializeRequestUsage(tenantId, windowStartMs, windowStart)
+      .then(() => undefined)
+      .catch((err: Error) => {
+        this.logger.warn(
+          `Request usage baseline init failed for tenant ${tenantId}: ${err.message}`,
+        );
+      })
+      .finally(() => {
         if (this.requestUsageInitializations.get(initializationKey) === pending) {
           this.requestUsageInitializations.delete(initializationKey);
         }
-      },
-    );
+      });
     this.requestUsageInitializations.set(initializationKey, pending);
-    return pending;
   }
 
   private async initializeRequestUsage(
@@ -400,11 +423,14 @@ export class PlanService {
     const limits = this.limitsForSnapshot(snapshot);
     const emailPreferences = normalizeBillingEmailPreferences(snapshot.billingEmailPreferences);
     const now = new Date();
-    const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
+    const [requestsUsed, priceMonthly] = await Promise.all([
+      this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now)),
+      this.getProPrice(),
+    ]);
     return {
       enabled: true,
       plan: snapshot.plan,
-      priceMonthly: await this.getProPrice(),
+      priceMonthly,
       emailPreferences,
       requests: {
         used: requestsUsed,

@@ -169,11 +169,10 @@ const Overview: Component = () => {
     !!localStorage.getItem(`setup_completed_${params.agentName}`),
   );
 
+  // Do not wait on billing/status: plan only gates range options, and a slow
+  // usage counter must not stall the whole dashboard shell.
   const [data, { refetch }] = createResource(
-    () =>
-      billing.loading
-        ? false
-        : { range: effectiveRange(), agentName: params.agentName, _ping: analyticsPing() },
+    () => ({ range: effectiveRange(), agentName: params.agentName, _ping: analyticsPing() }),
     (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
   );
 
@@ -255,15 +254,15 @@ const Overview: Component = () => {
     _ping: analyticsPing(),
   });
   const [providerTokenTs] = createResource(
-    () => (tokenChartRequested() && !billing.loading ? tsKey() : false),
+    () => (tokenChartRequested() ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerMessageTs] = createResource(
-    () => (billing.loading ? false : tsKey()),
+    () => tsKey(),
     (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
   const [providerCostTs] = createResource(
-    () => (costChartRequested() && !billing.loading ? tsKey() : false),
+    () => (costChartRequested() ? tsKey() : false),
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
@@ -412,7 +411,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={!billing.loading && (data() !== undefined || !data.loading) && !rangeChanging()}
+        when={(data() !== undefined || !data.loading) && !rangeChanging()}
         fallback={<OverviewSkeleton />}
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
