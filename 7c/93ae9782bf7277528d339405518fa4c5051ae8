@@ -1,0 +1,28 @@
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_f2a0a132ed2c1d::t_ef252514fb8f8d 1110-1115,1121,1125,1129,1132-1178
+  s_f2a0a132ed2c1d::t_338df8ae9663c7 1223-1232
+  s_f2a0a132ed2c1d::t_b9ba2f90495fa5 35-36
+  s_f2a0a132ed2c1d::t_fc5dfcefe4ee4c 1130
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_f2a0a132ed2c1d::t_b5efe1a15b5a9c 464-472,475-481
+  s_f2a0a132ed2c1d::t_ef2ed32e36b7ef 57-63
+  s_f2a0a132ed2c1d::t_491aec61764aeb 558-581
+.changeset/autofix-outcome-delivery.md
+  s_f2a0a132ed2c1d::t_cbe1a96dc50184 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "7c93ae9782bf7277528d339405518fa4c5051ae8",
+  "prompts": {},
+  "sessions": {
+    "s_f2a0a132ed2c1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "830b5129-64ca-4c4c-988b-31367299d892",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
