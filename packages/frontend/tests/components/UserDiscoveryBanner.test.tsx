@@ -16,7 +16,7 @@ describe('UserDiscoveryBanner', () => {
 
     expect(container.querySelector('.overview-discovery-banner')).not.toBeNull();
     expect(
-      screen.getByText(/Talk to us and get \$10 of Gemini credit/),
+      screen.getByText(/Talk to us and get \$25 of Gemini credit/),
     ).toBeDefined();
 
     const cta = screen.getByText('Book a slot →') as HTMLAnchorElement;
