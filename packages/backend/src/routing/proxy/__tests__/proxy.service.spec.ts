@@ -570,12 +570,16 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('returns a synthetic 502 (without throwing) when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
+    it('retries on the original transport when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
       routableResolve();
-      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400));
-      // No discovered models → the healed model resolves to no route, and the
-      // configured routing it falls back to has none either, so reforwardHealed
-      // surfaces a synthetic 502 forward. The primary forward resolved first.
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+      // No discovered models → the healed model resolves to no route (a stale
+      // per-tenant catalog, typically — the provider may still serve it). The
+      // original forward's transport is proven, so the reforward pins the healed
+      // body there instead of synthesizing a 502.
       modelDiscovery.getModelsForAgent.mockResolvedValue([]);
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -602,34 +606,101 @@ describe('ProxyService — orchestration', () => {
             model: 'ghost/unknown-model',
             max_output_tokens: 5,
           });
-          // The healing loop treats this as a failed retry and degrades to the
-          // original error; the record's outcome is exhausted.
           return {
             forward: reforwardResult,
-            record: { outcome: 'exhausted', attempts: 0, original_http_status: 400, chain: [] },
+            record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
           };
         },
       );
 
       const result = await svc.proxyRequest(baseOpts());
 
-      // The reforward itself produced the synthetic 502.
-      expect(reforwardResult!.response.status).toBe(502);
-      // Only the primary forward reached the fallback service — the re-resolve
-      // bailed before forwarding because no route was found.
+      // The healed body went out on the original provider's transport with the
+      // healed model pinned — the provider judges the model, not the cache.
+      expect(reforwardResult).toBe(healed);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'ghost/unknown-model', max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'ghost/unknown-model',
+          authType: 'api_key',
+        }),
+      );
+      // Only the primary forward reached tryForwardToProvider — the re-resolve
+      // found no route and fell back to the pinned wire retry.
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
-      // The caller handled the 502 without throwing and produced a result.
       expect(result.forward).toBeDefined();
-      const body = await reforwardResult!.response.text();
-      expect(body).toContain('Auto-fix');
     });
 
-    it('returns a synthetic 502 when the re-resolved model has a route but no provider key (M5 no-credentials)', async () => {
+    it('keeps the synthetic 502 when the original forward has no wire transport to pin', async () => {
+      // Unreachable via proxyRequest (the maybeHeal gate requires retryWireBody)
+      // but the fallback guards it type-level: no transport → no invented
+      // provider call, surface the synthetic 502.
+      const failed = { ...fwd(400), retryWireBody: undefined };
+      const result = await (
+        svc as unknown as {
+          retryHealedOnOriginalTransport: (
+            healedBody: Record<string, unknown>,
+            originalForward: unknown,
+            ctx: { provider: string; model: string },
+            reason: string,
+          ) => Promise<{ response: Response }>;
+        }
+      ).retryHealedOnOriginalTransport(
+        { model: 'ghost/unknown-model' },
+        failed,
+        { provider: 'openai', model: 'gpt-4o' },
+        'no route resolved for the healed model',
+      );
+
+      expect(result.response.status).toBe(502);
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(await result.response.text()).toContain('Auto-fix');
+    });
+
+    it('uses the original model when a pinned healed retry omits the model', async () => {
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+
+      const result = await (
+        svc as unknown as {
+          retryHealedOnOriginalTransport: (
+            healedBody: Record<string, unknown>,
+            originalForward: unknown,
+            ctx: { provider: string; model: string },
+            reason: string,
+          ) => Promise<{ response: Response }>;
+        }
+      ).retryHealedOnOriginalTransport(
+        { max_output_tokens: 5 },
+        failed,
+        { provider: 'openai', model: 'gpt-4o' },
+        'no route resolved for the healed model',
+      );
+
+      expect(result).toBe(healed);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+        }),
+      );
+    });
+
+    it('retries on the original transport when the re-resolved model has a route but no provider key (M5 no-credentials)', async () => {
       routableResolve();
-      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400));
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       // The healed model DOES resolve to a route, but the connection for it is
       // gone: selectProviderKey succeeds for the primary attempt, then returns
-      // null on the re-resolve so resolveCredentials yields no key.
+      // null on the re-resolve so resolveCredentials yields no key. The original
+      // transport still holds a working credential — retry there.
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
       ]);
@@ -653,7 +724,7 @@ describe('ProxyService — orchestration', () => {
           });
           return {
             forward: reforwardResult,
-            record: { outcome: 'exhausted', attempts: 0, original_http_status: 400, chain: [] },
+            record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
           };
         },
       );
@@ -661,14 +732,20 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
 
       // A route was found (getModelsForAgent + a second selectProviderKey call),
-      // but the missing key short-circuits to the synthetic 502.
-      expect(reforwardResult!.response.status).toBe(502);
+      // but the missing key falls back to the pinned wire retry, not a 502.
+      expect(reforwardResult).toBe(healed);
       expect(providerKeyService.selectProviderKey).toHaveBeenCalledTimes(2);
-      // No forward for the healed model — credentials failed first.
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'openai/gpt-4o-mini', max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'openai/gpt-4o-mini',
+          authType: 'api_key',
+        }),
+      );
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       expect(result.forward).toBeDefined();
-      const body = await reforwardResult!.response.text();
-      expect(body).toContain('no provider key');
     });
 
     it('takes the same-model branch when the heal drops the model field entirely', async () => {
