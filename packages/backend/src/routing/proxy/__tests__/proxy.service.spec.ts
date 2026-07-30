@@ -659,6 +659,38 @@ describe('ProxyService — orchestration', () => {
       expect(await result.response.text()).toContain('Auto-fix');
     });
 
+    it('uses the original model when a pinned healed retry omits the model', async () => {
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+
+      const result = await (
+        svc as unknown as {
+          retryHealedOnOriginalTransport: (
+            healedBody: Record<string, unknown>,
+            originalForward: unknown,
+            ctx: { provider: string; model: string },
+            reason: string,
+          ) => Promise<{ response: Response }>;
+        }
+      ).retryHealedOnOriginalTransport(
+        { max_output_tokens: 5 },
+        failed,
+        { provider: 'openai', model: 'gpt-4o' },
+        'no route resolved for the healed model',
+      );
+
+      expect(result).toBe(healed);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+        }),
+      );
+    });
+
     it('retries on the original transport when the re-resolved model has a route but no provider key (M5 no-credentials)', async () => {
       routableResolve();
       const failed = fwd(400);
