@@ -193,11 +193,23 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
     expect(legacyColumn).toEqual([]);
   });
 
-  it('lazily initializes the exact historical baseline once', async () => {
+  it('initializes the exact historical baseline once in the background', async () => {
     const planService = new PlanService({} as never, ds);
 
-    expect(await planService.countRequestsSince(TENANT, Date.UTC(2026, 6, 1))).toBe(2);
-    expect(await usageRow(ds)).toEqual({ count: 2, initialized: true });
+    // The hot path returns the live counter immediately (no row yet → 0) and
+    // schedules the one-shot historical baseline off the request path.
+    expect(await planService.countRequestsSince(TENANT, Date.UTC(2026, 6, 1))).toBe(0);
+
+    // The background init lands the exact baseline and flips the flag.
+    const deadline = Date.now() + 10_000;
+    let row = await usageRow(ds);
+    while (!row?.initialized && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      row = await usageRow(ds);
+    }
+    expect(row).toEqual({ count: 2, initialized: true });
+
+    // Steady state: subsequent reads serve the initialized counter directly.
     expect(await planService.countRequestsSince(TENANT, Date.UTC(2026, 6, 1))).toBe(2);
     expect(await usageRow(ds)).toEqual({ count: 2, initialized: true });
   });
