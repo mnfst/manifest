@@ -85,6 +85,20 @@ describe('AuthGuard', () => {
     expect(mockGetBillingStatus).not.toHaveBeenCalled();
   });
 
+  it('skips billing check and renders children when on /upgrade', async () => {
+    localStorage.setItem('manifest_onboarding_done_u1', '1');
+    mockLocation = { pathname: '/upgrade', search: '' };
+    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    render(() => (
+      <AuthGuard>
+        <span>Protected content</span>
+      </AuthGuard>
+    ));
+
+    expect(await screen.findByText('Protected content')).toBeDefined();
+    expect(mockGetBillingStatus).not.toHaveBeenCalled();
+  });
+
   it('fails open when billing status cannot be loaded', async () => {
     mockGetBillingStatus.mockRejectedValue(new Error('network'));
     render(() => (

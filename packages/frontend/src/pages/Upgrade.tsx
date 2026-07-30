@@ -42,12 +42,6 @@ const Upgrade: Component = () => {
   });
 
   const handlePlanSelect = async (plan: PlanId) => {
-    if (plan === 'free') {
-      const uid = userId();
-      if (uid) markPlanChosen(uid);
-      navigate('/');
-      return;
-    }
     if (plan === 'enterprise') {
       return;
     }
