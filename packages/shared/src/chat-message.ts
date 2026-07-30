@@ -201,11 +201,17 @@ export function extractRequestMessages(
   requestBody: Record<string, unknown> | null | undefined,
 ): ChatMessage[] {
   if (!requestBody) return [];
+  if (isRecord(requestBody.request) && Array.isArray(requestBody.request.contents)) {
+    requestBody = requestBody.request;
+  }
   const messages: ChatMessage[] = [];
 
   if (requestBody.system != null) messages.push(...systemMessages(requestBody.system));
   if (typeof requestBody.instructions === 'string' && requestBody.instructions.trim()) {
     messages.push({ role: 'system', content: requestBody.instructions });
+  }
+  if (isRecord(requestBody.systemInstruction)) {
+    messages.push(...systemMessages(requestBody.systemInstruction.parts));
   }
 
   if (Array.isArray(requestBody.messages)) {
