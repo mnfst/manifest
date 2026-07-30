@@ -1,0 +1,47 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_6ca9c71fb77060::t_667e970d83bea8 32
+  s_6ca9c71fb77060::t_866225f2d8b0e2 185-189
+packages/frontend/src/pages/MessageLog.tsx
+  s_6ca9c71fb77060::t_a4da3621d7c3c5 36
+  s_6ca9c71fb77060::t_59fcef9d178db0 267-268
+  s_6ca9c71fb77060::t_4bbd63792077e6 160-161
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_6ca9c71fb77060::t_ac003e077392fe 707,709-711,726-738,740
+  s_6ca9c71fb77060::t_5f660208200480 739
+  s_6ca9c71fb77060::t_df215166125d48 741-742
+packages/frontend/tests/pages/Overview.test.tsx
+  s_6ca9c71fb77060::t_e8c0f29f55696e 541,547-550
+packages/frontend/tests/services/plan-range-lock.test.ts
+  s_6ca9c71fb77060::t_715dbea46abc1c 1-98,100-102,106-111,123-183
+  s_6ca9c71fb77060::t_72ab06ba437165 99,103-105,112-122
+packages/frontend/src/pages/Overview.tsx
+  s_6ca9c71fb77060::t_acbe1f3625ba93 121-128,130-134
+  s_6ca9c71fb77060::t_960f080c90a71b 44
+  s_6ca9c71fb77060::t_eaef46bcb9e3eb 166-167
+packages/frontend/src/services/plan-range-lock.ts
+  s_6ca9c71fb77060::t_7b2effcb127e5d 56-57
+  s_6ca9c71fb77060::t_ee467559579994 76-78,81,87-89
+  s_6ca9c71fb77060::t_bdbb9b4a7d4bba 82-86
+  s_6ca9c71fb77060::t_655737a0d79945 1-55,58-75,79-80,90-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "d1af04ee57c160c4c95f7cdeed76514425a9fa19",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  },
+  "sessions": {
+    "s_6ca9c71fb77060": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e88feb21-0ace-4da9-9577-14d630e596a6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
