@@ -6,8 +6,8 @@
   right: 0;
   bottom: 0;
   width: 55%;
-  min-width: 600px;
-  max-width: 1284px;
+  min-width: 650px;
+  max-width: 1334px;
   background: hsl(var(--card));
   border-left: 1px solid hsl(var(--border));
   z-index: 200;
