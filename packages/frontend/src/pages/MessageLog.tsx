@@ -157,8 +157,7 @@ const MessageLog: Component = () => {
       // includePlayground=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        | { agents?: AgentFilterOption[] }
-        | AgentFilterOption[];
+        { agents?: AgentFilterOption[] } | AgentFilterOption[];
       return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
