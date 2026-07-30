@@ -32,7 +32,8 @@ type HealingClientMock = {
 function makeHealingClient(): HealingClientMock {
   return {
     heal: jest.fn(),
-    reportOutcome: jest.fn().mockResolvedValue(null),
+    // A landed report (null means "didn't reach Phoenix" and triggers resends).
+    reportOutcome: jest.fn().mockResolvedValue({ healAttemptId: 'heal-1', status: 'succeeded' }),
   };
 }
 
@@ -1106,23 +1107,75 @@ describe('AutofixService', () => {
   // reportOutcome — fire-and-forget error handling
   // -------------------------------------------------------------------------
   describe('reportOutcome fire-and-forget', () => {
-    it('does not throw out of maybeHeal when reportOutcome rejects', async () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('does not throw out of maybeHeal when reportOutcome rejects, and resends', async () => {
+      jest.useFakeTimers();
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
       client.reportOutcome.mockRejectedValueOnce(new Error('report exploded'));
       const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      // Silence the expected "reportOutcome ... failed" warning from the .catch handler.
+      // Silence the expected "reportOutcome ... failed" warning from the catch.
       jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
-      // Should resolve normally (the .catch handles the rejection).
+      // Should resolve normally (the delivery loop handles the rejection).
       const result = await service.maybeHeal(makeParams({ reforward }));
       expect(result!.record.outcome).toBe('healed');
 
-      // Let the fire-and-forget .catch run; must not surface as an unhandled rejection.
-      await flushMicrotasks();
+      // Let the fire-and-forget catch run; must not surface as an unhandled rejection.
+      await jest.advanceTimersByTimeAsync(0);
       expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', { retryStatusCode: 200 });
+
+      // The rejected send is retried after the first resend delay and lands.
+      await jest.advanceTimersByTimeAsync(1_000);
+      expect(client.reportOutcome).toHaveBeenCalledTimes(2);
+    });
+
+    it('resends a report the healer dropped, then stops once it lands', async () => {
+      jest.useFakeTimers();
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      // null = the PATCH did not land (transport failure or non-2xx).
+      client.reportOutcome
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ healAttemptId: 'heal-1', status: 'succeeded' });
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({ reforward }));
+      expect(client.reportOutcome).toHaveBeenCalledTimes(1);
+
+      await jest.advanceTimersByTimeAsync(1_000);
+      expect(client.reportOutcome).toHaveBeenCalledTimes(2);
+
+      // Landed on the second send — the schedule stops, no further resends.
+      await jest.advanceTimersByTimeAsync(60_000);
+      expect(client.reportOutcome).toHaveBeenCalledTimes(2);
+    });
+
+    it('gives up once the resend schedule is exhausted', async () => {
+      jest.useFakeTimers();
+      const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal());
+      client.reportOutcome.mockResolvedValue(null);
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({ reforward }));
+      await jest.advanceTimersByTimeAsync(1_000);
+      await jest.advanceTimersByTimeAsync(5_000);
+      await jest.advanceTimersByTimeAsync(60_000);
+
+      // Initial send + one resend per schedule slot, then a loud give-up.
+      expect(client.reportOutcome).toHaveBeenCalledTimes(3);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('giving up after 3 sends'));
     });
   });
 
@@ -1167,8 +1220,16 @@ describe('AutofixService', () => {
       expect(result!.record.chain[0].patch_worked).toBe(false);
       expect(typeof result!.record.groupId).toBe('string');
 
-      // A reforward (provider) failure is not a Phoenix failure — no outcome report.
-      expect(client.reportOutcome).not.toHaveBeenCalled();
+      // The evidence loop still closes: a dead retry has no provider status to
+      // send, so the death is reported as a synthetic 499 — otherwise the served
+      // attempt dangles `pending` until Phoenix's sweeper expires it.
+      expect(client.reportOutcome).toHaveBeenCalledWith('heal-1', {
+        retryStatusCode: 499,
+        error: {
+          message: 'patched retry never completed: socket hang up',
+          type: 'retry_not_completed',
+        },
+      });
 
       // The returned forward is the rebuilt original — still readable downstream.
       expect(result!.forward.response.status).toBe(400);
