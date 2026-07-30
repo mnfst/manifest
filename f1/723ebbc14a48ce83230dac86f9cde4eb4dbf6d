@@ -1,0 +1,72 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_6ca9c71fb77060::t_866225f2d8b0e2 185-189
+  s_6ca9c71fb77060::t_667e970d83bea8 32
+packages/frontend/tests/services/plan-range-lock.test.ts
+  s_6ca9c71fb77060::t_715dbea46abc1c 1-68,72-80
+  s_6ca9c71fb77060::t_72ab06ba437165 69-71
+packages/frontend/tests/pages/Overview.test.tsx
+  s_6ca9c71fb77060::t_e8c0f29f55696e 534,540-543
+  s_6ca9c71fb77060::t_ad323e3c7fe235 127,285,952
+packages/frontend/src/pages/Overview.tsx
+  s_6ca9c71fb77060::t_960f080c90a71b 44
+  s_6ca9c71fb77060::t_acbe1f3625ba93 121-128,130-134
+  s_6ca9c71fb77060::t_eaef46bcb9e3eb 166-167
+packages/frontend/src/services/plan-range-lock.ts
+  s_6ca9c71fb77060::t_ee467559579994 19,30
+  s_6ca9c71fb77060::t_655737a0d79945 1-18,20-21
+  s_6ca9c71fb77060::t_e0ca60f78dad39 22-24,27-29
+  s_6ca9c71fb77060::t_a82edb6a67c4fc 25-26
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_6ca9c71fb77060::t_ac003e077392fe 706-707
+  s_6ca9c71fb77060::t_74d0a3080c541c 708
+  s_6ca9c71fb77060::t_7890bf97cba99f 153,338
+packages/frontend/src/pages/MessageLog.tsx
+  s_6ca9c71fb77060::t_4bbd63792077e6 160-161
+  s_6ca9c71fb77060::t_a4da3621d7c3c5 36
+  s_6ca9c71fb77060::t_59fcef9d178db0 267-268
+packages/backend/src/billing/plan.service.spec.ts
+  s_6ca9c71fb77060::t_69f30f543d1cb8 85-98,444-445
+packages/frontend/src/components/AuthGuard.tsx
+  s_6ca9c71fb77060::t_89e5e459b9dbc8 6,23-26,28-36,46-50
+packages/backend/src/billing/billing.controller.spec.ts
+  s_6ca9c71fb77060::t_c65dd9015e00e0 8,17,34-42
+packages/backend/src/billing/billing.controller.ts
+  s_6ca9c71fb77060::t_05b232690c13d0 15-19
+packages/backend/src/billing/plan.service.ts
+  s_6ca9c71fb77060::t_3e4fe54f44c49e 7,141-149
+packages/frontend/src/services/api/billing.ts
+  s_6ca9c71fb77060::t_da27dd6ca113ae 2,6,15-19
+packages/frontend/src/services/plan-store.ts
+  s_6ca9c71fb77060::t_77d73d4ffa3bff 1-53
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_6ca9c71fb77060::t_eabc16ac6fee82 5,24,28,34-35,52,54,62-65,69,81-82
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_6ca9c71fb77060::t_bbdf253bd8f183 392,730,862
+packages/frontend/tests/services/plan-store.test.ts
+  s_6ca9c71fb77060::t_5c994394b81693 1-52
+packages/shared/src/index.ts
+  s_6ca9c71fb77060::t_f177deaba63b5f 167
+packages/shared/src/plan-limits.ts
+  s_6ca9c71fb77060::t_b452759a9348ba 30-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "f1723ebbc14a48ce83230dac86f9cde4eb4dbf6d",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  },
+  "sessions": {
+    "s_6ca9c71fb77060": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e88feb21-0ace-4da9-9577-14d630e596a6",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
