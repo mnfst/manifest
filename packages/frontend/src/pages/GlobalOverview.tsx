@@ -29,7 +29,7 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { usePlanRangeLock } from '../services/plan-range-lock.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -180,20 +180,13 @@ const GlobalOverview: Component = () => {
 
   preloadModelDisplayNames();
 
-  const [billing] = createResource(async () => {
-    try {
-      return await getBillingStatus();
-    } catch {
-      return null;
-    }
-  });
-  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
-  const shouldLockProRanges = () => billing.loading || isFreePlan();
-  const isProRangeLocked = (range: string) =>
-    shouldLockProRanges() && PRO_DASHBOARD_RANGES.has(range);
-
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
+  const {
+    isFreePlan,
+    isProRangeLocked,
+    effectiveRange: effectiveChartRange,
+  } = usePlanRangeLock(chartRange, PRO_DASHBOARD_RANGES, '7d');
   const setChartRange = (v: string) => {
     if (isFreePlan() && PRO_DASHBOARD_RANGES.has(v)) return;
     setChartRangeRaw(v);
@@ -229,11 +222,6 @@ const GlobalOverview: Component = () => {
     'requests',
   );
 
-  // Local providers only exist on self-hosted installs; cloud hides the
-  // Local stat card and drops the stats grid to three columns.
-  const effectiveChartRange = createMemo(() =>
-    isProRangeLocked(chartRange()) ? '7d' : chartRange(),
-  );
   const proBadge = () => (
     <span class="pro-range-badge" aria-label="Pro plan required">
       PRO

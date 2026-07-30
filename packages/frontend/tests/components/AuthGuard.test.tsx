@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
 
 const mockNavigate = vi.fn();
-const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
+const mockGetBillingPlan = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
 let mockLocation = { pathname: '/', search: '' };
 let mockSessionData: any = {
   data: { user: { id: 'u1', name: 'Test' } },
@@ -21,16 +21,18 @@ vi.mock('../../src/services/auth-client.js', () => ({
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
-  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
+  getBillingPlan: (...args: unknown[]) => mockGetBillingPlan(...args),
 }));
 
 import AuthGuard from '../../src/components/AuthGuard';
+import { resetPlanStore } from '../../src/services/plan-store';
 
 describe('AuthGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
+    resetPlanStore();
+    mockGetBillingPlan.mockResolvedValue({ enabled: false, plan: 'free' });
     mockSessionData = {
       data: { user: { id: 'u1', name: 'Test' } },
       isPending: false,
@@ -47,8 +49,10 @@ describe('AuthGuard', () => {
     expect(await screen.findByText('Protected content')).toBeDefined();
   });
 
-  it('renders children without a billing call when the user already chose a plan', async () => {
+  it('skips the upgrade redirect when the user already chose a plan', async () => {
     localStorage.setItem('manifest_plan_chosen_u1', '1');
+    localStorage.setItem('manifest_onboarding_done_u1', '1');
+    mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
@@ -56,12 +60,15 @@ describe('AuthGuard', () => {
     ));
 
     expect(await screen.findByText('Protected content')).toBeDefined();
-    expect(mockGetBillingStatus).not.toHaveBeenCalled();
+    // The plan store still resolves at bootstrap (range locks read it), but a
+    // chosen plan never redirects to /upgrade again.
+    expect(mockGetBillingPlan).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('redirects authenticated free users to /upgrade after onboarding', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
-    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
@@ -73,8 +80,8 @@ describe('AuthGuard', () => {
     });
   });
 
-  it('skips billing check and renders children when onboarding is not done', async () => {
-    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+  it('skips the upgrade redirect and renders children when onboarding is not done', async () => {
+    mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
@@ -82,13 +89,15 @@ describe('AuthGuard', () => {
     ));
 
     expect(await screen.findByText('Protected content')).toBeDefined();
-    expect(mockGetBillingStatus).not.toHaveBeenCalled();
+    // The plan store still resolves (bootstrap), but no redirect fires before
+    // onboarding completes.
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('skips billing check and renders children when on /upgrade', async () => {
+  it('skips the upgrade redirect and renders children when on /upgrade', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
     mockLocation = { pathname: '/upgrade', search: '' };
-    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
@@ -96,11 +105,11 @@ describe('AuthGuard', () => {
     ));
 
     expect(await screen.findByText('Protected content')).toBeDefined();
-    expect(mockGetBillingStatus).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('fails open when billing status cannot be loaded', async () => {
-    mockGetBillingStatus.mockRejectedValue(new Error('network'));
+  it('fails open when the plan cannot be loaded', async () => {
+    mockGetBillingPlan.mockRejectedValue(new Error('network'));
     render(() => (
       <AuthGuard>
         <span>Protected content</span>
