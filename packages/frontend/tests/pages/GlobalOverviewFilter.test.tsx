@@ -436,7 +436,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
     render(() => <GlobalOverview />);
 
     await waitFor(() =>
-      expect(document.body.textContent).toContain('Book my slot to get $10'),
+      expect(document.body.textContent).toContain('Book my slot to get $25'),
     );
 
     const later = [...document.querySelectorAll('button')].find(
@@ -446,7 +446,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
 
     expect(localStorage.getItem('manifest:user-discovery-modal-dismissed:v1')).toBe('true');
     await waitFor(() =>
-      expect(document.body.textContent).not.toContain('Book my slot to get $10'),
+      expect(document.body.textContent).not.toContain('Book my slot to get $25'),
     );
   });
 });
