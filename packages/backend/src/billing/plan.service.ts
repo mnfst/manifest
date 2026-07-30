@@ -21,7 +21,6 @@ import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
-import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
@@ -98,7 +97,7 @@ export class PlanService implements OnModuleInit {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    if (isSelfHosted()) return;
+    if (!isBillingEnabled()) return;
 
     const storageTimeZone = await this.readRequestStorageTimeZone();
     const processTimeZone = currentProcessTimeZone();

@@ -194,7 +194,24 @@ describe('AddTenantRequestUsage migration (e2e)', () => {
   });
 
   it('accepts the installed trigger timezone at Cloud boot', async () => {
-    await expect(new PlanService({} as never, ds).onModuleInit()).resolves.toBeUndefined();
+    const previousStripeEnv = {
+      secret: process.env['STRIPE_SECRET_KEY'],
+      webhook: process.env['STRIPE_WEBHOOK_SECRET'],
+      price: process.env['STRIPE_PRO_PRICE_ID'],
+    };
+    process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
+    process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_x';
+    process.env['STRIPE_PRO_PRICE_ID'] = 'price_x';
+    try {
+      await expect(new PlanService({} as never, ds).onModuleInit()).resolves.toBeUndefined();
+    } finally {
+      if (previousStripeEnv.secret === undefined) delete process.env['STRIPE_SECRET_KEY'];
+      else process.env['STRIPE_SECRET_KEY'] = previousStripeEnv.secret;
+      if (previousStripeEnv.webhook === undefined) delete process.env['STRIPE_WEBHOOK_SECRET'];
+      else process.env['STRIPE_WEBHOOK_SECRET'] = previousStripeEnv.webhook;
+      if (previousStripeEnv.price === undefined) delete process.env['STRIPE_PRO_PRICE_ID'];
+      else process.env['STRIPE_PRO_PRICE_ID'] = previousStripeEnv.price;
+    }
   });
 
   it('initializes the exact historical baseline once in the background', async () => {

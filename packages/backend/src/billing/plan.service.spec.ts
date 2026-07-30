@@ -65,7 +65,7 @@ describe('PlanService', () => {
     });
 
     it('accepts the request storage timezone used by the process', async () => {
-      process.env['MANIFEST_MODE'] = 'cloud';
+      enableBilling();
       mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(processTimeZone()) }]);
 
       await expect(service.onModuleInit()).resolves.toBeUndefined();
@@ -73,7 +73,7 @@ describe('PlanService', () => {
     });
 
     it('rejects a request storage timezone mismatch', async () => {
-      process.env['MANIFEST_MODE'] = 'cloud';
+      enableBilling();
       const mismatch = processTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
       mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(mismatch) }]);
 
@@ -83,7 +83,7 @@ describe('PlanService', () => {
     });
 
     it('rejects a missing request quota trigger', async () => {
-      process.env['MANIFEST_MODE'] = 'cloud';
+      enableBilling();
       mockQuery.mockResolvedValue([{ definition: null }]);
 
       await expect(service.onModuleInit()).rejects.toThrow(

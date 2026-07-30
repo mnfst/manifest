@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Reject Cloud startup when request quota and process timezones differ.
+Reject billing-enabled Cloud startup when request quota and process timezones differ.
