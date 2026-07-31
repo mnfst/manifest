@@ -1,0 +1,88 @@
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_d3650779d100bb::t_3d12982457189d 298,693-694,722,847,970,1161,1239-1261,1278
+  s_d3650779d100bb::t_3210899cf01a85 296
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_d3650779d100bb::t_ef86560d943e42 4-5,7
+packages/frontend/tests/pages/Overview.test.tsx
+  s_d3650779d100bb::t_da5ec43155f244 81-82,109,548-549,551,557,563
+  s_d3650779d100bb::t_c16cd6d60f82cb 119
+  s_d3650779d100bb::t_224ca23ec35716 510,516,521,523,526
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_d3650779d100bb::t_c16cd6d60f82cb 17
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_d3650779d100bb::t_d29de45be996e5 26
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_d3650779d100bb::t_570697d43bb268 822,888
+  s_d3650779d100bb::t_7d5a0a93b7b8e5 889-901,903-904,906,926,1152
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_d3650779d100bb::t_ecae8455a7b39d 79
+  s_d3650779d100bb::t_f8048e9a3f8569 71
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_d3650779d100bb::t_5e3916b53451c0 120,122,128,130
+.changeset/open-autofix-to-everyone.md
+  s_d3650779d100bb::t_7482b4ce435782 1-5
+packages/frontend/src/pages/Overview.tsx
+  s_d3650779d100bb::t_1e05a6b8251298 264-268,466-470,493,556
+  s_d3650779d100bb::t_befd6c4e8e3f21 262
+packages/frontend/src/components/CostByModelTable.tsx
+  s_d3650779d100bb::t_ecae8455a7b39d 36-37
+docs/autofix-self-healing-poc.md
+  s_d3650779d100bb::t_ecae8455a7b39d 35,39,57-60,74-84,133,189,191-199,207,209-210,212-215,257-260,265,284-292,318,324-331,342,344,352,355,360,362,398-400
+  s_d3650779d100bb::t_a8b45a7b7244aa 20-21,54-55,68
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_d3650779d100bb::t_6b30c0cdfe210a 68,89-90,138-139
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_d3650779d100bb::t_4f997e02a9dfd7 1123
+  s_d3650779d100bb::t_dcb4f4f74b2bb9 117
+CLAUDE.md
+  s_d3650779d100bb::t_ecae8455a7b39d 132,339-387,461,463,465,484,489,593-599,615,622,628,631,651,712-717,754-759,790-794
+  s_d3650779d100bb::t_a8b45a7b7244aa 431,613,642
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_d3650779d100bb::t_fa2914ba06f2ba 1227
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_d3650779d100bb::t_c16cd6d60f82cb 101
+  s_d3650779d100bb::t_3908dca5ffc3ea 63-64,91
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_d3650779d100bb::t_8c6dcdec8e3c33 95
+packages/backend/src/routing/tier.controller.spec.ts
+  s_d3650779d100bb::t_a6415c99602df5 149-150,158,164,172,183
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_d3650779d100bb::t_570697d43bb268 555,598
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_d3650779d100bb::t_ea05a7e8921741 141,266,268
+  s_d3650779d100bb::t_bfb0c9960696f1 135,167-168,172,215-216
+packages/frontend/src/components/NotificationBell.tsx
+  s_d3650779d100bb::t_1995108d172f5e 64,89,131
+packages/frontend/tests/pages/Settings.test.tsx
+  s_d3650779d100bb::t_c16cd6d60f82cb 24-25
+packages/backend/src/routing/tier.controller.ts
+  s_d3650779d100bb::t_d29de45be996e5 165,178,187
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_d3650779d100bb::t_7be832855aad7a 24,43,58,67,75,79-82,86-87,101-102,115,127,134-137,141,143,153-154,156,161,163-164,181-182,184,201,210
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_d3650779d100bb::t_5c50600a3039f4 1,51,80
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_d3650779d100bb::t_d8584ef025c2d8 1,6-10,14
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_d3650779d100bb::t_ecae8455a7b39d 208
+packages/frontend/src/services/api/routing.ts
+  s_d3650779d100bb::t_137e6d1287ee4e 36
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_d3650779d100bb::t_20ba9f21ee34e2 65-66,94,100-106,440,448
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "92d68f5a703ce9c52353122a1eb50add5a5441b0",
+  "prompts": {},
+  "sessions": {
+    "s_d3650779d100bb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb816-0a77-7632-b6ac-8b45892760f2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
