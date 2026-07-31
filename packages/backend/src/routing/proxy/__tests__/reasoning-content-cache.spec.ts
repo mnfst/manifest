@@ -168,6 +168,14 @@ describe('ReasoningContentCache', () => {
     expect((body.messages[0] as Record<string, unknown>).reasoning_content).toBeUndefined();
   });
 
+  it('leaves request bodies without messages unchanged', async () => {
+    const body = { prompt: 'The answer is 42.' };
+
+    const result = await cache.prepareRequest(body, 'session-1', 'deepseek', 'deepseek-v4-flash');
+
+    expect(result).toBe(body);
+  });
+
   it('synthesizes empty reasoning_content when the client dropped it and no cache exists', async () => {
     const body = {
       messages: [
@@ -184,6 +192,22 @@ describe('ReasoningContentCache', () => {
     const messages = result.messages as Array<Record<string, unknown>>;
     expect(messages[0].reasoning_content).toBe('');
     expect(result).not.toBe(body);
+  });
+
+  it('keeps an existing empty fallback without copying the request', async () => {
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          reasoning_content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await cache.prepareRequest(body, 'session-1', 'deepseek', 'deepseek-v4-flash');
+
+    expect(result).toBe(body);
   });
 
   it('keeps exact client reasoning_content without copying the request', async () => {
