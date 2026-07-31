@@ -1,3 +1,4 @@
+import { isAnthropicExtraUsageError } from 'manifest-shared';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import type { ProxyApiMode } from '../proxy/proxy-types';
 import { normalizeProviderError } from './provider-error-normalizer';
@@ -136,6 +137,15 @@ export interface ObservationInput {
  */
 export function toObservation(input: ObservationInput): HealRequest | null {
   if (!isReportableStatus(input.status)) return null;
+  if (
+    isAnthropicExtraUsageError({
+      provider: input.provider,
+      httpStatus: input.status,
+      errorBody: input.errorBody,
+    })
+  ) {
+    return null;
+  }
   const scrubbed = scrubBody(input.requestBody);
   if (!scrubbed) return null;
 

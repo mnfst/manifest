@@ -366,6 +366,29 @@ describe('ProxyMessageRecorder', () => {
       });
     });
 
+    it('keeps Anthropic extra-usage errors as HTTP 400 but classifies them as billing', async () => {
+      const errorBody = JSON.stringify({
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+        },
+      });
+
+      await recorder.recordProviderError(ctx, 400, errorBody, {
+        provider: 'anthropic',
+        model: 'claude-sonnet-4',
+        authType: 'subscription',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'error',
+        error_http_status: 400,
+        error_class: 'billing',
+        error_origin: 'provider',
+      });
+    });
+
     it('records rate_limited status for 429 and emits SSE event', async () => {
       await recorder.recordProviderError(ctx, 429, 'Rate limited');
       expect(insertMock).toHaveBeenCalledTimes(1);

@@ -226,6 +226,8 @@ function classifyRow(row: Partial<AgentMessage>): {
     status: row.status ?? 'ok',
     errorHttpStatus: row.error_http_status,
     routingReason: row.routing_reason,
+    provider: row.provider,
+    errorMessage: row.error_message,
   });
 }
 

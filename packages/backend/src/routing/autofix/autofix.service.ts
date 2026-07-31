@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
+import { isAnthropicExtraUsageError } from 'manifest-shared';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
@@ -276,6 +277,27 @@ export class AutofixService {
         `skip status=${status}: not in repairable set [${[...this.repairableStatuses].join(',')}]`,
       );
       return null;
+    }
+    if (status === 400 && params.provider.trim().toLowerCase() === 'anthropic') {
+      try {
+        const errorBody = await forward.response.clone().text();
+        if (
+          isAnthropicExtraUsageError({
+            provider: params.provider,
+            httpStatus: status,
+            errorBody,
+          })
+        ) {
+          this.logger.log(`skip status=${status}: Anthropic subscription billing exhaustion`);
+          return null;
+        }
+      } catch (err) {
+        // Classification is best-effort. If the cloned body cannot be read, keep
+        // the existing status-based behavior and leave the original response intact.
+        this.logger.warn(
+          `could not inspect Anthropic 400 for billing semantics: ${(err as Error).message}`,
+        );
+      }
     }
 
     // Circuit breaker: while the healing service is tripped, skip healing
