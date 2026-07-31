@@ -9,27 +9,26 @@ import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
+import { scrubProviderUrl } from './observation-payload';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
+import { recordingResponseFromText } from '../proxy/attempt-recording-capture';
 
 export interface MaybeHealParams {
   forward: ForwardResult;
   agentId: string;
   tenantId: string;
   provider: string;
+  /** Logical model identity when the provider encodes it outside the JSON body. */
+  model: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /** The request body that was actually forwarded and failed. */
   requestBody: Record<string, unknown>;
-  /**
-   * The resolved provider model (e.g. `gpt-5.1`) the request was routed to.
-   * `requestBody.model` may be a routing alias (`auto`) Phoenix can't map to its
-   * model-keyed catalog; this concrete model is reported to Phoenix instead so
-   * its resolver can identify the model. The reforward still goes through the
-   * agent's routing. Omit when the body already carries the concrete model.
-   */
-  resolvedModel?: string;
   /** Optional endpoint URL, forwarded to Phoenix as readability context. */
   url?: string;
   /** Re-send a patched body to the provider and return the fresh forward. */
@@ -37,7 +36,7 @@ export interface MaybeHealParams {
 }
 
 export interface AutofixAttempt {
-  /** Forward to continue with: a healed 200, or the original error rebuilt. */
+  /** Forward to continue with: the latest provider response, rebuilt if consumed. */
   forward: ForwardResult;
   record: AutofixRecord;
 }
@@ -56,6 +55,13 @@ const CONFIG_CACHE_MAX = 5_000;
 // repairable 4xx BEFORE the fallback chain (the next safety net) gets to run.
 const HEAL_FAILURE_THRESHOLD = 3;
 const BREAKER_COOLDOWN_MS = 30_000;
+/**
+ * Delays between outcome-report resends. A lost report leaves the heal attempt
+ * dangling `pending` on Phoenix until a sweeper expires it an hour later — the
+ * adjudication evidence is gone for good — so a transient failure gets spaced
+ * resends before we give up.
+ */
+const OUTCOME_RESEND_DELAYS_MS = [1_000, 5_000];
 
 function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
@@ -90,6 +96,15 @@ function headersToObject(headers: Headers): Record<string, string> {
     out[key] = value;
   });
   return out;
+}
+
+function parseProviderBody(raw: string): unknown {
+  const scrubbed = scrubSecrets(raw);
+  try {
+    return JSON.parse(scrubbed) as unknown;
+  } catch {
+    return scrubbed;
+  }
 }
 
 function rebuildForward(base: ForwardResult, body: string, status: number): ForwardResult {
@@ -345,6 +360,7 @@ export class AutofixService {
     // Read the original error once, then rebuild it so it stays readable
     // downstream (fallback / recorder) whether or not we heal.
     const originalText = await forward.response.text();
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(originalText));
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {
@@ -386,28 +402,33 @@ export class AutofixService {
     };
     const chain: AutofixChainEntry[] = [entry];
 
-    // The agent's body may carry a routing alias as its model (e.g. `auto`), but
-    // Phoenix fingerprints and resolves against the concrete provider model.
-    // Report the resolved model to Phoenix so its model-keyed catalog resolver
-    // can identify the model; the reforward below still routes via the alias.
-    const routingModel = params.requestBody.model;
-    const phoenixRequest =
-      typeof params.resolvedModel === 'string' &&
-      params.resolvedModel.length > 0 &&
-      params.resolvedModel !== routingModel
-        ? { ...params.requestBody, model: params.resolvedModel }
-        : params.requestBody;
-
     let heal: HealResponse;
     try {
       heal = await this.client.heal({
         traceId: groupId,
         tenantId: params.tenantId,
         provider: params.provider,
+        model: params.model,
+        authType: params.authType,
         api: params.apiMode,
         url: params.url,
-        request: phoenixRequest,
+        request: params.requestBody,
         response: { statusCode: status, error: normalized },
+        ...(originalForward.wireFormat
+          ? {
+              providerExchange: {
+                format: originalForward.wireFormat,
+                ...(originalForward.wireRequestUrl
+                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                  : {}),
+                request: { body: params.requestBody, redactedFields: [] },
+                response: {
+                  statusCode: status,
+                  body: parseProviderBody(originalText),
+                },
+              },
+            }
+          : {}),
       });
     } catch (err) {
       if (err instanceof HealContractError) {
@@ -458,27 +479,28 @@ export class AutofixService {
     // allow-list. Keep it that way so a new Phoenix status never silently no-ops.
     const healAttemptId = heal.healAttemptId;
     const healedBody = heal.healedBody;
-    // Phoenix echoes back the model we sent it (the resolved provider model). The
-    // reforward must go through the agent's routing, so restore the original
-    // routing alias — unless Phoenix itself changed the model (a model-fix patch),
-    // which `reforwardHealed` intentionally re-resolves.
-    const bodyToReforward =
-      typeof routingModel === 'string' &&
-      healedBody.model === phoenixRequest.model &&
-      phoenixRequest.model !== routingModel
-        ? { ...healedBody, model: routingModel }
-        : healedBody;
     let next: ForwardResult;
     try {
-      next = await params.reforward(bodyToReforward);
+      next = await params.reforward(healedBody);
     } catch (err) {
-      // The patched resend threw (a provider transport error, NOT a Phoenix
-      // failure — so it must not trip the heal breaker). Preserve the audit chain
-      // (the original error plus the Phoenix issue/patch ids already stamped on
-      // `entry`) instead of dropping it, and degrade to the original provider
-      // error; the fallback chain is the next safety net.
+      // The patched resend threw (a provider transport error or the caller
+      // aborting mid-retry, NOT a Phoenix failure — so it must not trip the
+      // heal breaker). Preserve the audit chain (the original error plus the
+      // Phoenix issue/patch ids already stamped on `entry`) instead of dropping
+      // it, and degrade to the original provider error; the fallback chain is
+      // the next safety net. Still close the evidence loop: without a report
+      // the served attempt dangles `pending` until Phoenix's sweeper expires
+      // it, so the death is reported as a synthetic 499 (retry never completed
+      // — no provider status exists to send).
       this.logger.warn(`autofix reforward failed, using original error: ${(err as Error).message}`);
       entry.patch_worked = false;
+      this.reportOutcome(healAttemptId, {
+        retryStatusCode: 499,
+        error: {
+          message: `patched retry never completed: ${(err as Error).message}`,
+          type: 'retry_not_completed',
+        },
+      });
       return {
         forward: originalForward,
         record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
@@ -493,7 +515,7 @@ export class AutofixService {
       chain.push({
         attempt: 1,
         origin: 'autofix',
-        request: bodyToReforward,
+        request: healedBody,
         http_status: next.response.status,
       });
       return {
@@ -502,16 +524,25 @@ export class AutofixService {
       };
     }
 
-    // The patch didn't clear the error. Report the retry outcome to Phoenix and
-    // give up — a single attempt, no re-heal.
+    // The patch didn't clear the error. Preserve that retry as its own provider
+    // attempt, report it to Phoenix, and continue with its rebuilt response so
+    // fallback and terminal recording see what actually happened last.
     const retryText = await next.response.text();
+    const retryError = normalizeProviderError(retryText);
+    chain.push({
+      attempt: 1,
+      origin: 'autofix',
+      request: healedBody,
+      http_status: next.response.status,
+      error: retryError,
+    });
     this.reportOutcome(healAttemptId, {
       retryStatusCode: next.response.status,
-      error: normalizeProviderError(retryText),
+      error: retryError,
     });
     return {
-      forward: originalForward,
-      record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
+      forward: rebuildForward(next, retryText, next.response.status),
+      record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
     };
   }
 
@@ -546,8 +577,29 @@ export class AutofixService {
 
   /** Fire-and-forget the learning signal so it never delays the client. */
   private reportOutcome(healAttemptId: string, outcome: HealOutcome): void {
-    void this.client.reportOutcome(healAttemptId, outcome).catch((err: unknown) => {
-      this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
-    });
+    void this.deliverOutcome(healAttemptId, outcome);
+  }
+
+  /**
+   * Deliver the outcome report, resending when it didn't land. The client
+   * resolves `null` for a report that never reached Phoenix (transport failure
+   * or a non-2xx), and an unreported attempt costs the adjudication evidence —
+   * Phoenix can only expire it. Spaced resends ride out a blip; only a process
+   * death still loses a report.
+   */
+  private async deliverOutcome(healAttemptId: string, outcome: HealOutcome): Promise<void> {
+    for (let send = 0; ; send++) {
+      try {
+        if ((await this.client.reportOutcome(healAttemptId, outcome)) !== null) return;
+      } catch (err) {
+        this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
+      }
+      const delay = OUTCOME_RESEND_DELAYS_MS[send];
+      if (delay === undefined) {
+        this.logger.warn(`reportOutcome ${healAttemptId}: giving up after ${send + 1} sends`);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
 }

@@ -11,8 +11,9 @@ import type {
  * - `unfixable`  — Phoenix had no patch (`no_patch`) or returned an empty one.
  * - `resolving`  — Phoenix is still authoring a patch (novel error); nothing to
  *                  resend this time. A later request for the same issue may heal.
- * - `exhausted`  — the healing service was unreachable or the attempt threw
- *                  before completing.
+ * - `exhausted`  — a patched retry failed, or the healing flow aborted before
+ *                  it could complete. Inspect `chain` to tell whether a retry
+ *                  was actually sent.
  */
 export type AutofixOutcome = 'healed' | 'unfixable' | 'resolving' | 'exhausted';
 
@@ -41,14 +42,21 @@ export interface AutofixChainEntry {
 }
 
 /**
- * The full Auto-fix story. A healed request is recorded as two linked
- * `agent_messages` rows (failed original + successful retry) sharing `groupId`;
- * `chain` carries the per-attempt detail the recorder splits into those rows.
+ * The full Auto-fix story. An `autofix` chain entry exists if and only if a
+ * patched request was actually sent to the provider. The recorder uses that
+ * invariant—not Phoenix consultation alone—to decide whether Auto-fix was
+ * applied. When a retry exists, the failed original and retry are recorded as
+ * linked `agent_messages` rows sharing `groupId`.
  */
 export interface AutofixRecord {
-  /** Shared id linking the failed-original and successful-retry rows. */
+  /** Shared id linking the failed-original and retry rows, when a retry exists. */
   groupId: string;
   outcome: AutofixOutcome;
   original_http_status: number;
   chain: AutofixChainEntry[];
+}
+
+/** The patched provider attempt, when Manifest actually sent one. */
+export function getAutofixRetry(autofix: AutofixRecord | undefined): AutofixChainEntry | undefined {
+  return autofix?.chain.find((entry) => entry.origin === 'autofix');
 }

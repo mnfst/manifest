@@ -141,6 +141,28 @@ describe('routing API client (additional coverage)', () => {
     });
   });
 
+  describe('message recording config', () => {
+    it('GETs and PATCHes the per-agent recording flag', async () => {
+      const fetchMock = setupFetch({ enabled: false });
+      await expect(routing.getRecording('demo')).resolves.toEqual({ enabled: false });
+      expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/routing/demo/recording');
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ enabled: true }),
+        text: async () => '{"enabled":true}',
+      });
+      await expect(routing.updateRecording('demo', { enabled: true })).resolves.toEqual({
+        enabled: true,
+      });
+      const [url, init] = fetchMock.mock.calls[1];
+      expect(url).toContain('/api/v1/routing/demo/recording');
+      expect((init as RequestInit).method).toBe('PATCH');
+      expect(JSON.parse((init as RequestInit).body as string)).toEqual({ enabled: true });
+    });
+  });
+
   it('getTierAssignments GETs the tiers list', async () => {
     const fetchMock = setupFetch([]);
     await routing.getTierAssignments('demo');

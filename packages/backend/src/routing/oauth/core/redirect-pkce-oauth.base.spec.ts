@@ -86,6 +86,44 @@ function buildSvc(): TestPkceOauthService {
   );
 }
 
+describe('RedirectPkceOauthBaseService — client id resolution', () => {
+  // The env var reaches the service through ConfigService. docker-compose
+  // forwards unset optional vars as an empty string, so `''` must mean
+  // "not configured" and fall back to the shipped default client id —
+  // otherwise the authorize redirect goes out with a blank client_id.
+  function buildWithEnvClientId(value: string | undefined): TestPkceOauthService {
+    const configService = {
+      get: (key: string) => {
+        if (key === 'app.nodeEnv') return 'production';
+        if (key === 'TEST_OAUTH_CLIENT_ID') return value;
+        return undefined;
+      },
+    } as unknown as ConfigService;
+    return new TestPkceOauthService(createProviderService(), configService, createDiscovery());
+  }
+
+  async function clientIdInAuthorizeUrl(svc: TestPkceOauthService): Promise<string | null> {
+    const url = await svc.generateAuthorizationUrl('a', 'u', 'http://localhost:3001');
+    return new URL(url).searchParams.get('client_id');
+  }
+
+  it('uses the env override when it holds a real value', async () => {
+    expect(await clientIdInAuthorizeUrl(buildWithEnvClientId('custom-client-id'))).toBe(
+      'custom-client-id',
+    );
+  });
+
+  it('falls back to the default when the env var is unset, empty, or whitespace', async () => {
+    for (const value of [undefined, '', '   ']) {
+      expect(await clientIdInAuthorizeUrl(buildWithEnvClientId(value))).toBe('test-client-id');
+    }
+  });
+
+  it('trims a padded env override', async () => {
+    expect(await clientIdInAuthorizeUrl(buildWithEnvClientId('  padded-id  '))).toBe('padded-id');
+  });
+});
+
 describe('RedirectPkceOauthBaseService — backendUrl validation', () => {
   beforeEach(() => {
     jest.useFakeTimers();

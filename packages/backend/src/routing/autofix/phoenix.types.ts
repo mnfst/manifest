@@ -1,4 +1,5 @@
-import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 
 /**
  * Wire contract for the Phoenix healing service (mnfst/phoenix). Mirrors
@@ -21,7 +22,21 @@ export interface PhoenixProviderResponse {
   error: PhoenixProviderError;
 }
 
-/** POST /api/heal request body. `provider` + `api` are the fingerprint dims. */
+/** Final provider-side exchange, separate from the request shape Phoenix patches. */
+export interface PhoenixProviderExchange {
+  format: ProviderWireFormat;
+  url?: string;
+  request: {
+    body: Record<string, unknown>;
+    redactedFields?: string[];
+  };
+  response: {
+    statusCode: number;
+    body: unknown;
+  };
+}
+
+/** POST /api/heal request body. Route identity scopes Phoenix's fingerprint. */
 export interface HealRequest {
   /**
    * Correlates every heal within one logical request's retry chain — Phoenix's
@@ -38,10 +53,18 @@ export interface HealRequest {
    */
   tenantId: string;
   provider: string;
+  /** Logical model identity; native transports may encode it in the URL. */
+  model?: string;
+  authType: AuthType;
+  /**
+   * Provider-facing wire protocol. `request` uses this shape, and Phoenix must
+   * return `healedBody` in the same shape so Manifest can resend it verbatim.
+   */
   api: ProxyApiMode;
   url?: string;
   request: Record<string, unknown>;
   response: PhoenixProviderResponse;
+  providerExchange?: PhoenixProviderExchange;
   responseTimeMs?: number;
   responseSizeBytes?: number;
 }

@@ -1,3 +1,7 @@
+import { SHARED_PROVIDER_BY_ID } from 'manifest-shared';
+
+const MANAGED_FREE_PROVIDER_API_KEY_URL = 'https://calendly.com/sebastien-manifest/30min';
+
 export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
   bedrock: 'https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-generate.html',
@@ -8,6 +12,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   gemini: 'https://aistudio.google.com/apikey',
   kiro: 'https://app.kiro.dev',
   groq: 'https://console.groq.com/keys',
+  huggingface: 'https://huggingface.co/settings/tokens',
   kilo: 'https://app.kilo.ai',
   minimax: 'https://platform.minimax.io/user-center/basic-information/interface-key',
   mistral: 'https://console.mistral.ai/api-keys/',
@@ -25,8 +30,13 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   zai: 'https://z.ai/manage-apikey/apikey-list',
 };
 
-export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefined =>
-  ROUTING_PROVIDER_API_KEY_URLS[providerId];
+export const getRoutingProviderApiKeyUrl = (providerId: string): string | undefined => {
+  const configuredUrl = ROUTING_PROVIDER_API_KEY_URLS[providerId];
+  if (configuredUrl) return configuredUrl;
+  return SHARED_PROVIDER_BY_ID.get(providerId)?.managedFree
+    ? MANAGED_FREE_PROVIDER_API_KEY_URL
+    : undefined;
+};
 
 /**
  * Where to obtain a subscription token for each subscription-tab provider.

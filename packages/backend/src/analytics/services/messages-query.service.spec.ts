@@ -707,18 +707,18 @@ describe('MessagesQueryService', () => {
     expect(tierCall?.[1]).toEqual({ tierFilter: 'playground' });
   });
 
-  it.each<[MessageStatusFilter, string, Record<string, unknown>]>([
+  it.each<[MessageStatusFilter, string, Record<string, unknown> | undefined]>([
     [
       'failed',
       'at.status IN (:...failedStatuses)',
-      { failedStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed'] },
+      { failedStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed', 'failed'] },
     ],
     [
       'errors',
       'at.status IN (:...errorStatuses)',
-      { errorStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed'] },
+      { errorStatuses: ['error', 'fallback_error', 'rate_limited', 'auto_fixed', 'failed'] },
     ],
-    ['ok', 'at.status = :statusFilter', { statusFilter: 'ok' }],
+    ['ok', "at.status IN ('ok', 'success')", undefined],
   ])('passes %s status filter through to the query builder', async (status, clause, bindings) => {
     mockGetRawOne.mockResolvedValueOnce({ total: 1 });
     mockGetRawMany
@@ -741,7 +741,9 @@ describe('MessagesQueryService', () => {
     });
 
     expect(result.total_count).toBe(1);
-    const statusCall = andWhereSpy.mock.calls.find(([candidate]) => candidate === clause);
+    const statusCall = andWhereSpy.mock.calls.find(
+      ([candidate]) => typeof candidate === 'string' && candidate.includes(clause),
+    );
     expect(statusCall).toBeDefined();
     expect(statusCall?.[1]).toEqual(bindings);
   });
@@ -761,7 +763,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger,
+      triggers: trigger ? [trigger] : undefined,
       include_filter_options: false,
     });
 
@@ -1003,7 +1005,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger: 'fallback',
+      triggers: ['fallback'],
       include_filter_options: false,
     });
 
@@ -1016,7 +1018,7 @@ describe('MessagesQueryService', () => {
       range: '24h',
       tenantId: 'test-user',
       limit: 20,
-      trigger: 'autofix',
+      triggers: ['autofix'],
       cursor: '2026-02-16 10:00:00|msg-1',
       include_filter_options: false,
     });

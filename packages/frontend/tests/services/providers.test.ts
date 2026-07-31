@@ -8,7 +8,6 @@ import {
 } from '../../src/services/providers';
 import { validateApiKey, validateSubscriptionKey } from '../../src/services/provider-utils';
 import {
-  ROUTING_PROVIDER_API_KEY_URLS,
   EMAIL_PROVIDER_API_KEY_URLS,
   SUBSCRIPTION_PROVIDER_KEY_URLS,
   getRoutingProviderApiKeyUrl,
@@ -205,6 +204,23 @@ describe('validateApiKey', () => {
       error: 'Key is too short (minimum 20 characters)',
     });
     expect(validateApiKey(nvidia, 'x'.repeat(20))).toEqual({ valid: true });
+  });
+
+  it('validates Hugging Face access tokens', () => {
+    const huggingface = getProvider('huggingface')!;
+    expect(validateApiKey(huggingface, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(huggingface, 'sk_wrong_prefix_but_long_enough')).toEqual({
+      valid: false,
+      error: 'Hugging Face keys start with "hf_"',
+    });
+    expect(validateApiKey(huggingface, 'hf_short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(huggingface, `hf_${'a'.repeat(20)}`)).toEqual({ valid: true });
   });
 });
 
@@ -452,6 +468,16 @@ describe('PROVIDERS', () => {
     expect(ollama.minKeyLength).toBe(0);
   });
 
+  it('exposes Gemini Free as a managed free provider', () => {
+    const provider = PROVIDERS.find((entry) => entry.id === 'gemini-free')!;
+    expect(provider.name).toBe('Gemini Free');
+    expect(provider.subtitle).toBe('Free Gemini models via Manifest');
+    expect(provider.keyPlaceholder).toBe('sk-...');
+    expect(getRoutingProviderApiKeyUrl('gemini-free')).toBe(
+      'https://calendly.com/sebastien-manifest/30min',
+    );
+  });
+
   it('each provider has required fields', () => {
     for (const p of PROVIDERS) {
       expect(p.id).toBeTruthy();
@@ -573,6 +599,18 @@ describe('PROVIDERS', () => {
     expect(pioneer.keyPlaceholder).toBe('pio_sk_...');
     expect(pioneer.minKeyLength).toBe(20);
     expect(pioneer.models).toEqual([]);
+  });
+
+  it('Hugging Face is an API-key provider with dynamic models', () => {
+    const huggingface = PROVIDERS.find((p) => p.id === 'huggingface')!;
+    expect(huggingface).toBeDefined();
+    expect(huggingface.name).toBe('Hugging Face');
+    expect(huggingface.supportsSubscription).toBeUndefined();
+    expect(huggingface.subscriptionOnly).toBeUndefined();
+    expect(huggingface.keyPrefix).toBe('hf_');
+    expect(huggingface.keyPlaceholder).toBe('hf_...');
+    expect(huggingface.minKeyLength).toBe(20);
+    expect(huggingface.models).toEqual([]);
   });
 
   it('MiniMax supports subscription with device-code flow', () => {
@@ -796,6 +834,12 @@ describe('PROVIDERS', () => {
     expect(getRoutingProviderApiKeyUrl('fireworks')).toBe('https://app.fireworks.ai/api-keys');
   });
 
+  it('provides an API key URL for Hugging Face', () => {
+    expect(getRoutingProviderApiKeyUrl('huggingface')).toBe(
+      'https://huggingface.co/settings/tokens',
+    );
+  });
+
   it('provides an API key URL for Cerebras', () => {
     expect(getRoutingProviderApiKeyUrl('cerebras')).toBe('https://cloud.cerebras.ai');
   });
@@ -968,7 +1012,7 @@ describe('PROVIDERS', () => {
         !provider.noKeyRequired &&
         !provider.deviceLogin &&
         !provider.subscriptionOnly &&
-        !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+        !getRoutingProviderApiKeyUrl(provider.id),
     ).map((provider) => provider.id);
     expect(missingProviderIds).toEqual([]);
   });

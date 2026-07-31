@@ -33,6 +33,8 @@ export interface SharedProviderEntry {
   minKeyLength: number;
   /** Placeholder shown in the UI's API-key input. */
   keyPlaceholder: string;
+  /** Whether Manifest provisions this provider through its managed free-provider flow. */
+  managedFree?: boolean;
   /**
    * Tiles that deep-link users into the local-server detail view (LM
    * Studio today). They do not have a fixed proxy endpoint — once
@@ -160,6 +162,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'gsk_...',
   },
   {
+    id: 'huggingface',
+    displayName: 'Hugging Face',
+    aliases: ['hugging-face', 'hugging face', 'hf'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#FFD21E',
+    keyPrefix: 'hf_',
+    minKeyLength: 20,
+    keyPlaceholder: 'hf_...',
+  },
+  {
     id: 'kilo',
     displayName: 'Kilo',
     aliases: ['kilocode', 'kilo-code'],
@@ -206,6 +220,19 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPrefix: '',
     minKeyLength: 30,
     keyPlaceholder: 'API key',
+  },
+  {
+    id: 'gemini-free',
+    displayName: 'Gemini Free',
+    aliases: ['gemini free'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#4285f4',
+    keyPrefix: 'sk-',
+    minKeyLength: 10,
+    keyPlaceholder: 'sk-...',
+    managedFree: true,
   },
   {
     id: 'kiro',

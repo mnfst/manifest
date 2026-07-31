@@ -150,7 +150,7 @@ export class AgentLifecycleService {
 
       // Scope all denormalised agent_name columns by tenant_id so we don't
       // rewrite rows belonging to other tenants that happen to share the slug.
-      const tenantScoped = ['agent_messages', 'notification_rules'] as const;
+      const tenantScoped = ['agent_messages', 'requests', 'notification_rules'] as const;
       await Promise.all(
         tenantScoped.map((table) =>
           manager

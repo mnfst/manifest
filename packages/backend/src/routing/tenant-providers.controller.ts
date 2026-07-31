@@ -5,6 +5,7 @@ import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.de
 import { TenantProvider } from '../entities/tenant-provider.entity';
 import { ModelPricingCacheService } from '../model-prices/model-pricing-cache.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
+import { filterProvidersForDeployment } from '../common/utils/provider-availability';
 
 /**
  * Tenant-level provider management endpoints.
@@ -35,9 +36,9 @@ export class TenantProvidersController {
   @Get()
   async listProviders(@TenantCtx() ctx: TenantContext) {
     const tenantId = ctx.tenantId;
-    const providers = tenantId
-      ? await this.providerRepo.find({ where: { tenant_id: tenantId } })
-      : [];
+    const providers = filterProvidersForDeployment(
+      tenantId ? await this.providerRepo.find({ where: { tenant_id: tenantId } }) : [],
+    );
 
     // Group providers and build response
     const grouped = new Map<

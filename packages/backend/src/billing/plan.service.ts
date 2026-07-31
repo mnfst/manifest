@@ -1,9 +1,17 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
 import type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,
@@ -12,12 +20,13 @@ import type {
 import type Stripe from 'stripe';
 import { Tenant } from '../entities/tenant.entity';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
-import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
+import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
 import { getStripeClient, isBillingEnabled } from './billing.config';
 import {
   DEFAULT_BILLING_EMAIL_PREFERENCES,
   normalizeBillingEmailPreferences,
 } from './billing-email-preferences';
+import { REQUEST_USAGE_CUTOVER_STATE, requestQuotaWindowStartMs } from './request-quota-window';
 
 const PRICE_CACHE_TTL_MS = 60 * 60 * 1000;
 const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
@@ -25,24 +34,15 @@ const BILLING_PRICE_UNAVAILABLE: BillingPrice = Object.freeze({
   currency: null,
   interval: null,
 });
-// Short TTL keeps the hot proxy path O(1) between refreshes. Staleness is
-// bounded to this window: a tenant can slip at most ~TTL worth of requests past
-// the cap before the next refresh blocks them (per process — multiple pods
-// multiply that). Acceptable for a Free-tier gate; it only ever errs toward
-// letting a few extra requests through, never toward false blocks.
-const REQUEST_COUNT_CACHE_TTL_MS = 30 * 1000;
-const MAX_REQUEST_COUNT_CACHE_SIZE = 10_000;
-const DEFAULT_REQUEST_QUOTA_RESET_AT = '2026-07-09T09:06:52Z';
-const REQUEST_QUOTA_RESET_AT_ENV = 'PLAN_REQUEST_QUOTA_RESET_AT';
-const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
-  ', ',
-);
 // Throttle the "count failed → failing open" warning: a sustained DB outage
 // hits this on every proxied request, which would flood logs and add avoidable
 // pressure to the hot path. One line per window, with a suppressed-count tail so
 // the true rate stays visible.
 const COUNT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
 const LIMIT_FAILURE_WARN_WINDOW_MS = 60 * 1000;
+const MANIFEST_ERROR_ORIGIN_SQL_LIST = MANIFEST_ERROR_ORIGINS.map((origin) => `'${origin}'`).join(
+  ', ',
+);
 
 function envLimit(name: string): number | undefined {
   const raw = process.env[name];
@@ -53,23 +53,6 @@ function envLimit(name: string): number | undefined {
   if (!/^\d+$/.test(raw)) return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
-}
-
-function requestQuotaResetAtMs(): number {
-  const raw = process.env[REQUEST_QUOTA_RESET_AT_ENV]?.trim() || DEFAULT_REQUEST_QUOTA_RESET_AT;
-  const parsed = Date.parse(raw);
-  return Number.isFinite(parsed) ? parsed : Date.parse(DEFAULT_REQUEST_QUOTA_RESET_AT);
-}
-
-/** Cached monthly request count for one tenant. Keyed by the effective quota
- * window start so a month rollover invalidates naturally instead of serving
- * last month's total under this month's periodEnd. `pending` coalesces concurrent
- * misses (single-flight) so a burst can't stampede the DB with COUNT(*). */
-interface RequestCountEntry {
-  windowStartMs: number;
-  count?: number;
-  fetchedAt?: number;
-  pending?: Promise<number>;
 }
 
 interface BillingSnapshot {
@@ -88,20 +71,42 @@ interface BillingSnapshotRow {
   billingEmailPreferences: Partial<BillingEmailPreferences> | null;
 }
 
+function canonicalTimeZone(timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', { timeZone }).resolvedOptions().timeZone;
+}
+
+function currentProcessTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+}
+
 @Injectable()
-export class PlanService {
+export class PlanService implements OnModuleInit {
   private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: BillingPrice; fetchedAt: number } | null = null;
-  private requestCountCache = new Map<string, RequestCountEntry>();
   private lastCountFailureWarnAtMs = 0;
   private suppressedCountFailureWarns = 0;
   private lastLimitFailureWarnAtMs = 0;
   private suppressedLimitFailureWarns = 0;
+  /** In-flight baseline initializations keyed by tenant+window. Never awaited on
+   * the admission/billing hot path — only used for single-flight coalescing. */
+  private readonly requestUsageInitializations = new Map<string, Promise<void>>();
 
   constructor(
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    if (!isBillingEnabled()) return;
+
+    const storageTimeZone = await this.readRequestStorageTimeZone();
+    const processTimeZone = currentProcessTimeZone();
+    if (canonicalTimeZone(storageTimeZone) !== canonicalTimeZone(processTimeZone)) {
+      throw new Error(
+        `Request quota storage timezone mismatch: trigger=${storageTimeZone}, process=${processTimeZone}`,
+      );
+    }
+  }
 
   /**
    * Billing attaches to the tenant. The Stripe subscription row is keyed by
@@ -160,6 +165,15 @@ export class PlanService {
     return (await this.getBillingSnapshot(ctx)).plan;
   }
 
+  /**
+   * Light plan lookup for UI gating (range locks, AuthGuard bootstrap). One
+   * snapshot query — never touches the usage counter or Stripe.
+   */
+  async getPlanStatus(ctx: TenantContext): Promise<BillingPlanStatus> {
+    if (!isBillingEnabled()) return { enabled: false, plan: 'free' };
+    return { enabled: true, plan: await this.getPlan(ctx) };
+  }
+
   private limitsForSnapshot(snapshot: BillingSnapshot): PlanLimits {
     const defaults = PLAN_LIMITS[snapshot.plan];
     const prefix = `PLAN_LIMIT_${snapshot.plan.toUpperCase()}`;
@@ -192,84 +206,180 @@ export class PlanService {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
   }
 
-  private requestQuotaWindowStartMs(monthStartMs: number): number {
-    return Math.max(monthStartMs, requestQuotaResetAtMs());
-  }
-
   /**
-   * Routed requests recorded for the tenant since the effective quota window
-   * start, cached per tenant+window with single-flight coalescing. "Routed request" = one
-   * non-superseded `agent_messages` row that does not belong to the tenant's
-   * Playground agent:
-   *  - `superseded = false` drops intermediate fallback attempts, which the
-   *    recorder flags as rows that "must never count as a message" — otherwise
-   *    a single fallback-heavy request would count 2-3×.
-   *  - excluding Manifest-origin rows keeps our own config/policy/internal
-   *    short-circuits visible in Messages without consuming request quota.
-   *  - excluding Playground keeps the dashboard test tool from consuming (or
-   *    being blocked by) the production request quota.
+   * Routed requests recorded for the tenant in the effective monthly quota
+   * window. Hot path is one PK read of `tenant_request_usage`.
+   *
+   * When the pre-cutover baseline has not been applied yet (`baseline_counted =
+   * false`, or the row is missing), this returns the live post-cutover counter
+   * immediately and schedules the historical baseline scan in the background.
+   * Waiting on that scan used to block `/billing/status` and free-tier
+   * admission for tens of seconds on high-volume tenants. Undercounting until
+   * the baseline lands is fail-open — the same posture as a COUNT failure.
    */
   async countRequestsSince(tenantId: string | null, monthStartMs: number): Promise<number> {
     if (!tenantId) return 0;
-    const windowStartMs = this.requestQuotaWindowStartMs(monthStartMs);
+    const windowStartMs = requestQuotaWindowStartMs(monthStartMs);
+    const windowStart = toSqlTimestamp(new Date(windowStartMs));
+    const rows: Array<{ n: number | string; baseline_counted: boolean }> =
+      await this.dataSource.query(
+        `SELECT "request_count" AS n, "baseline_counted"
+         FROM "tenant_request_usage"
+        WHERE "tenant_id" = $1
+          AND "window_start" = $2`,
+        [tenantId, windowStart],
+      );
+    if (rows[0]?.baseline_counted) return Number(rows[0].n);
 
-    const cached = this.requestCountCache.get(tenantId);
-    if (cached && cached.windowStartMs === windowStartMs) {
-      if (cached.pending) return cached.pending;
-      if (cached.count !== undefined && cached.fetchedAt !== undefined) {
-        if (Date.now() - cached.fetchedAt < REQUEST_COUNT_CACHE_TTL_MS) return cached.count;
-      }
-    }
-
-    const pending = this.dataSource
-      .query(
-        `SELECT COUNT(*)::int AS n
-           FROM agent_messages m
-          WHERE m.tenant_id = $1
-            AND m.timestamp >= $2
-            AND m.superseded = false
-            AND (m.error_origin IS NULL OR m.error_origin NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST}))
-            AND NOT EXISTS (
-              SELECT 1 FROM agents pa
-               WHERE pa.id = m.agent_id AND pa.is_playground = true
-            )`,
-        [tenantId, toLocalSqlTimestamp(new Date(windowStartMs))],
-      )
-      .then((rows: Array<{ n: number }>) => {
-        const count = rows[0]?.n ?? 0;
-        this.requestCountCache.set(tenantId, { windowStartMs, count, fetchedAt: Date.now() });
-        this.evictRequestCountCache();
-        return count;
-      })
-      .catch((err: Error) => {
-        // On a DB error, drop the pending entry so the next call retries rather
-        // than awaiting a rejected promise forever, then rethrow. Callers decide
-        // how to handle it: the proxy gate (assertWithinRequestLimit) fails open
-        // so a COUNT hiccup never blocks a request; getBillingStatus surfaces it.
-        this.requestCountCache.delete(tenantId);
-        throw err;
-      });
-
-    this.requestCountCache.set(tenantId, { windowStartMs, pending });
-    return pending;
+    // Live trigger increments only (or 0 if the row does not exist yet). Kick
+    // the one-shot historical baseline off the hot path so dashboard/admission
+    // stay O(1) even for large pre-cutover histories.
+    this.scheduleRequestUsageInitialization(tenantId, windowStartMs, windowStart);
+    return Number(rows[0]?.n ?? 0);
   }
 
-  /** Routed requests for the tenant so far this calendar month (UTC), cached. */
+  /** Single-flight background baseline init. Errors are logged, not thrown. */
+  private scheduleRequestUsageInitialization(
+    tenantId: string,
+    windowStartMs: number,
+    windowStart: string,
+  ): void {
+    const initializationKey = `${tenantId}:${windowStart}`;
+    if (this.requestUsageInitializations.has(initializationKey)) return;
+
+    const pending = this.initializeRequestUsage(tenantId, windowStartMs, windowStart)
+      .then(() => undefined)
+      .catch((err: Error) => {
+        this.logger.warn(
+          `Request usage baseline init failed for tenant ${tenantId}: ${err.message}`,
+        );
+      })
+      .finally(() => {
+        if (this.requestUsageInitializations.get(initializationKey) === pending) {
+          this.requestUsageInitializations.delete(initializationKey);
+        }
+      });
+    this.requestUsageInitializations.set(initializationKey, pending);
+  }
+
+  private async initializeRequestUsage(
+    tenantId: string,
+    windowStartMs: number,
+    windowStart: string,
+  ): Promise<number> {
+    const cutoverRows: Array<{ cutover_ms: number | string }> = await this.dataSource.query(
+      `SELECT EXTRACT(EPOCH FROM ("completed_at" AT TIME ZONE 'UTC')) * 1000 AS cutover_ms
+         FROM "backfill_state"
+        WHERE "name" = $1`,
+      [REQUEST_USAGE_CUTOVER_STATE],
+    );
+    const cutoverMs = Number(cutoverRows[0]?.cutover_ms);
+    if (!Number.isFinite(cutoverMs)) {
+      throw new Error(`Missing request usage cutover state: ${REQUEST_USAGE_CUTOVER_STATE}`);
+    }
+
+    let baseline = 0;
+    if (windowStartMs < cutoverMs) {
+      const storageTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+      const baselineRows: Array<{ n: number | string }> = await this.dataSource.query(
+        `WITH cutover AS (
+           SELECT ("completed_at" AT TIME ZONE 'UTC') AT TIME ZONE $3::text AS local_timestamp
+             FROM "backfill_state"
+            WHERE "name" = $4
+         )
+         SELECT COUNT(*)::bigint AS n
+           FROM (
+             SELECT r."id"
+               FROM "requests" r
+              CROSS JOIN cutover c
+              WHERE r."tenant_id" = $1
+                AND r."timestamp" >= $2
+                AND EXISTS (
+                  SELECT 1
+                    FROM "agent_messages" pa
+                   WHERE pa."request_id" = r."id"
+                     AND pa."timestamp" < c.local_timestamp
+                     AND (
+                       pa."error_origin" IS NULL
+                       OR pa."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
+                     )
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                    FROM "agents" a
+                   WHERE a."id" = r."agent_id"
+                     AND a."is_playground" = true
+                )
+             UNION ALL
+             SELECT m."id"
+               FROM "agent_messages" m
+              CROSS JOIN cutover c
+              WHERE m."tenant_id" = $1
+                AND m."request_id" IS NULL
+                AND m."timestamp" >= $2
+                AND m."timestamp" < c.local_timestamp
+                AND COALESCE(m."superseded", false) = false
+                AND (
+                  m."error_origin" IS NULL
+                  OR m."error_origin" NOT IN (${MANIFEST_ERROR_ORIGIN_SQL_LIST})
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                    FROM "agents" a
+                   WHERE a."id" = m."agent_id"
+                     AND a."is_playground" = true
+                )
+           ) historical`,
+        [
+          tenantId,
+          toLocalSqlTimestamp(new Date(windowStartMs)),
+          storageTimeZone,
+          REQUEST_USAGE_CUTOVER_STATE,
+        ],
+      );
+      baseline = Number(baselineRows[0]?.n ?? 0);
+    }
+
+    const initializedRows: Array<{ n: number | string }> = await this.dataSource.query(
+      `INSERT INTO "tenant_request_usage" (
+         "tenant_id",
+         "window_start",
+         "request_count",
+         "baseline_counted"
+       )
+       VALUES ($1, $2, $3, true)
+       ON CONFLICT ("tenant_id", "window_start")
+       DO UPDATE SET
+         "request_count" = "tenant_request_usage"."request_count" +
+           CASE
+             WHEN "tenant_request_usage"."baseline_counted" THEN 0
+             ELSE EXCLUDED."request_count"
+           END,
+         "baseline_counted" = true
+       RETURNING "request_count" AS n`,
+      [tenantId, windowStart, baseline],
+    );
+    return Number(initializedRows[0]?.n ?? baseline);
+  }
+
+  private async readRequestStorageTimeZone(): Promise<string> {
+    const rows: Array<{ definition: string | null }> = await this.dataSource.query(`
+      SELECT pg_get_functiondef(
+               to_regprocedure('"count_tenant_request_usage"()')
+             ) AS "definition"
+    `);
+    const storageTimeZone = rows[0]?.definition?.match(
+      /(?:OLD|NEW|prior|r)\."timestamp"\s+AT TIME ZONE '([^']+)'/,
+    )?.[1];
+    if (!storageTimeZone) {
+      throw new Error('Could not read request quota timezone from installed trigger');
+    }
+    return storageTimeZone;
+  }
+
+  /** Routed requests for the tenant so far this calendar month (UTC). */
   async countRequestsThisMonth(tenantId: string | null): Promise<number> {
     return this.countRequestsSince(tenantId, this.monthStartMsUtc(new Date()));
-  }
-
-  /** Drop the cached request count so the next countRequestsSince() hits the DB. */
-  invalidateRequestCountCache(tenantId: string): void {
-    this.requestCountCache.delete(tenantId);
-  }
-
-  private evictRequestCountCache(): void {
-    while (this.requestCountCache.size > MAX_REQUEST_COUNT_CACHE_SIZE) {
-      const firstKey = this.requestCountCache.keys().next().value;
-      if (firstKey === undefined) break;
-      this.requestCountCache.delete(firstKey);
-    }
   }
 
   /**
@@ -292,7 +402,7 @@ export class PlanService {
         ? ` (${suppressed} more suppressed in the last ${COUNT_FAILURE_WARN_WINDOW_MS / 1000}s)`
         : '';
     this.logger.warn(
-      `Request-limit count failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
+      `Request-limit usage lookup failed for tenant ${tenantId}; allowing request: ${err.message}${tail}`,
     );
   }
 
@@ -329,7 +439,7 @@ export class PlanService {
     try {
       used = await this.countRequestsThisMonth(ctx.tenantId);
     } catch (err) {
-      // Fail open: a transient COUNT failure must never block a request. The
+      // Fail open: a transient usage lookup failure must never block a request. The
       // limit is a soft Free-tier gate, not a hard financial guard, so erring
       // toward "allow" is correct. The next request retries the count. Warn is
       // throttled so a sustained outage can't flood the log / hot path.
@@ -365,11 +475,14 @@ export class PlanService {
     const limits = this.limitsForSnapshot(snapshot);
     const emailPreferences = normalizeBillingEmailPreferences(snapshot.billingEmailPreferences);
     const now = new Date();
-    const requestsUsed = await this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now));
+    const [requestsUsed, priceMonthly] = await Promise.all([
+      this.countRequestsSince(ctx.tenantId, this.monthStartMsUtc(now)),
+      this.getProPrice(),
+    ]);
     return {
       enabled: true,
       plan: snapshot.plan,
-      priceMonthly: await this.getProPrice(),
+      priceMonthly,
       emailPreferences,
       requests: {
         used: requestsUsed,

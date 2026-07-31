@@ -226,6 +226,31 @@ describe('filterNonChatModels', () => {
     });
   });
 
+  describe('Gemini Free LiteLLM catalog', () => {
+    it('keeps usable Gemini chat models', () => {
+      const models = [
+        makeModel('gemini/gemini-2.5-flash'),
+        makeModel('gemini/gemini-2.5-pro'),
+        makeModel('gemini/gemini-3-flash-preview'),
+      ];
+      expect(filterNonChatModels(models, 'gemini-free')).toEqual(models);
+    });
+
+    it('filters media-only, retired, and experimental Gemini models', () => {
+      const models = [
+        makeModel('gemini/gemini-2.5-flash'),
+        makeModel('gemini/gemini-2.5-flash-image'),
+        makeModel('gemini/gemini-2.5-flash-native-audio-latest'),
+        makeModel('gemini/gemini-1.5-flash'),
+        makeModel('gemini/gemini-exp-1206'),
+        makeModel('gemini/veo-3.1-generate-001'),
+      ];
+      expect(filterNonChatModels(models, 'gemini-free').map((model) => model.id)).toEqual([
+        'gemini/gemini-2.5-flash',
+      ]);
+    });
+  });
+
   describe('Mistral-specific patterns', () => {
     it('filters mistral-ocr model', () => {
       const models = [makeModel('mistral-ocr'), makeModel('mistral-large-latest')];

@@ -34,6 +34,7 @@ export interface MessageRow {
   feedback_rating?: string | null;
   autofix_applied?: boolean;
   autofix_role?: string | null;
+  attempt_count?: number;
 }
 
 export function routingTierLabel(tier: string | null | undefined): string | undefined {
@@ -52,14 +53,19 @@ export type MessageColumnKey =
   | 'cache'
   | 'duration'
   | 'status'
-  | 'trigger'
+  | 'attempts'
+  | 'selfheal'
   | 'agent';
 
+// Reading order: identity first (status, when, who, what), THEN the
+// mechanics (attempts, recovery attempts), then payload and usage. The global
+// Requests page inserts the harness column before 'model'.
 export const COMPACT_COLUMNS: MessageColumnKey[] = [
   'status',
-  'trigger',
   'date',
   'model',
+  'attempts',
+  'selfheal',
   'message',
   'cost',
   'totalTokens',
@@ -69,9 +75,10 @@ export const COMPACT_COLUMNS: MessageColumnKey[] = [
 
 export const DETAILED_COLUMNS: MessageColumnKey[] = [
   'status',
-  'trigger',
   'date',
   'model',
+  'attempts',
+  'selfheal',
   'message',
   'cost',
   'totalTokens',

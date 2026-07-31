@@ -2,6 +2,11 @@ import {
   initSseHeaders,
   pipePassthrough,
   pipeStream,
+  UpstreamStreamError,
+  StreamFailure,
+  StreamIdleTimeoutError,
+  DEFAULT_STREAM_IDLE_TIMEOUT_MS,
+  parseStreamIdleTimeoutMs,
   extractUsageFromSse,
   parseUsageObject,
 } from '../stream-writer';
@@ -178,6 +183,55 @@ describe('createSsePayloadParser', () => {
 });
 
 describe('pipeStream', () => {
+  it('uses a safe configurable stream idle timeout', () => {
+    expect(parseStreamIdleTimeoutMs()).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+    expect(parseStreamIdleTimeoutMs('2500')).toBe(2500);
+    expect(parseStreamIdleTimeoutMs('0')).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+    expect(parseStreamIdleTimeoutMs('invalid')).toBe(DEFAULT_STREAM_IDLE_TIMEOUT_MS);
+  });
+
+  it('fails a stream that stays idle between events', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('data: {"choices":[]}\n\n'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        idleTimeoutMs: 10,
+        protocol: 'openai_chat_completions',
+      }),
+    ).rejects.toBeInstanceOf(StreamIdleTimeoutError);
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('fails when a provider closes without a terminal event', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"choices":[]}\n\n']);
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).rejects.toMatchObject<Partial<StreamFailure>>({ reason: 'incomplete_stream', status: 503 });
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('accepts a protocol completion marker', async () => {
+    const { res } = mockResponse();
+    const stream = createReadableStream(['data: {"choices":[]}\n\ndata: [DONE]\n\n']);
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).resolves.toBeNull();
+    expect(res.end).toHaveBeenCalled();
+  });
+
   function createReadableStream(chunks: string[]): ReadableStream<Uint8Array> {
     const encoder = new TextEncoder();
     let index = 0;
@@ -462,11 +516,10 @@ describe('pipeStream', () => {
       },
     });
 
-    await expect(pipeStream(stream, res as never)).rejects.toThrow('stream read error');
+    await expect(pipeStream(stream, res as never)).rejects.toBeInstanceOf(UpstreamStreamError);
 
-    // After error, the reader lock should be released (finally block runs).
-    // We verify by checking that end was called (finally block behavior).
-    expect(res.end).toHaveBeenCalled();
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
   });
 
   it('should not write remaining whitespace-only buffer through transform', async () => {
@@ -981,6 +1034,22 @@ describe('pipePassthrough', () => {
       'SSE buffer overflow',
     );
   });
+
+  it('leaves the destination open when the upstream reader fails', async () => {
+    const { res } = mockResponse();
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('upstream disconnected'));
+      },
+    });
+
+    await expect(pipePassthrough(stream, res as never, () => null)).rejects.toBeInstanceOf(
+      UpstreamStreamError,
+    );
+
+    expect(stream.locked).toBe(false);
+    expect(res.end).not.toHaveBeenCalled();
+  });
 });
 
 describe('parseUsageObject', () => {
@@ -1141,6 +1210,69 @@ describe('parseUsageObject', () => {
       completion_tokens: 5,
       cache_read_tokens: undefined,
       cache_creation_tokens: 11,
+    });
+  });
+
+  it('passes through top-level cache_creation_input_tokens for the OpenAI-compat shape', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 20,
+        completion_tokens: 5,
+        cache_creation_input_tokens: 9,
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 9,
+    });
+  });
+
+  it.each([
+    ['OpenAI cache_write_tokens', { cache_write_tokens: 7 }],
+    ['Qwen cache_creation_input_tokens', { cache_creation_input_tokens: 9 }],
+  ])('maps nested %s to cache creation usage', (_label, promptTokensDetails) => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 20,
+        completion_tokens: 5,
+        prompt_tokens_details: promptTokensDetails,
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: Object.values(promptTokensDetails)[0],
+    });
+  });
+
+  it('maps Responses cache_write_tokens to cache creation usage', () => {
+    expect(
+      parseUsageObject({
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 4, cache_write_tokens: 6 },
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: 6,
+    });
+  });
+
+  it('maps Responses cache_creation_input_tokens to cache creation usage', () => {
+    expect(
+      parseUsageObject({
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 4, cache_creation_input_tokens: 6 },
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: 6,
     });
   });
 

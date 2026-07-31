@@ -1,3 +1,4 @@
+import type { AuthType } from 'manifest-shared';
 import {
   IsString,
   IsIn,
@@ -73,7 +74,7 @@ export class ConnectProviderDto {
 
   @IsOptional()
   @IsIn(AUTH_TYPES)
-  authType?: 'api_key' | 'subscription';
+  authType?: AuthType;
 
   @IsOptional()
   @IsString()
@@ -230,6 +231,12 @@ export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | un
 }
 
 export class UpdateAutofixDto {
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
+}
+
+export class UpdateRecordingDto {
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;

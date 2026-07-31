@@ -35,6 +35,11 @@ export const MANIFEST_ERRORS = {
     title: 'No providers configured',
     template: "You're connected, but no providers are set up yet. Add one here: {dashboardUrl}",
   },
+  M102: {
+    title: 'Provider subscription credentials unusable',
+    template:
+      '{provider} subscription credentials could not be refreshed. Reconnect OAuth here: {dashboardUrl}',
+  },
   M200: {
     title: 'Usage limit exceeded',
     template:
@@ -67,6 +72,11 @@ export const MANIFEST_ERRORS = {
     template:
       'Model "{model}" is not available for this agent. Use GET /v1/models to list available model IDs, or make the provider available for this agent here: {dashboardUrl}',
   },
+  M303: {
+    title: 'Local provider unavailable on Manifest Cloud',
+    template:
+      'Built-in local providers are only available in self-hosted Manifest. On Manifest Cloud, expose the runtime through a public URL or tunnel and connect it as a custom provider.',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',
@@ -74,6 +84,12 @@ export const MANIFEST_ERRORS = {
 } as const;
 
 export type ManifestErrorCode = keyof typeof MANIFEST_ERRORS;
+
+// Matches the peacock prefix written by formatManifestError, e.g. `[🦚 Manifest M102]`.
+// The 🦚 is REQUIRED: only Manifest emits it, so a provider error body that merely
+// echoes the text "Manifest M100" can never be mis-extracted into a Manifest code
+// (which would then misclassify a provider round-trip as a Manifest config error).
+const MANIFEST_ERROR_CODE_RE = /\[\s*🦚\s*Manifest\s+(M\d{3})\s*\]/;
 
 export function formatManifestError(
   code: ManifestErrorCode,
@@ -85,4 +101,19 @@ export function formatManifestError(
     return value === undefined ? match : String(value);
   });
   return `[${PEACOCK} Manifest ${code}] ${interpolated} See ${MANIFEST_ERRORS_DOCS_BASE}/${code}`;
+}
+
+/**
+ * Pull a registered Manifest error code out of a rendered message or JSON body
+ * that embeds one (provider-attempt rows store the peacock text in
+ * error_message but need error_code for filters/analytics).
+ */
+export function extractManifestErrorCode(
+  text: string | null | undefined,
+): ManifestErrorCode | null {
+  if (!text) return null;
+  const match = text.match(MANIFEST_ERROR_CODE_RE);
+  if (!match) return null;
+  const code = match[1] as ManifestErrorCode;
+  return code in MANIFEST_ERRORS ? code : null;
 }

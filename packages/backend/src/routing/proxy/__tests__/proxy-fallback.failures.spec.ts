@@ -214,7 +214,9 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     const second = await service.tryForwardToProvider(opts);
 
     expect(first.response.status).toBe(429);
+    expect(first.providerCallStarted).toBe(true);
     expect(second.response.status).toBe(429);
+    expect(second.providerCallStarted).toBe(false);
     expect(second.response.headers.get('retry-after')).toBe('120');
     expect(await second.response.text()).toContain('temporarily cooling down');
     expect(providerClient.forward).toHaveBeenCalledTimes(1);

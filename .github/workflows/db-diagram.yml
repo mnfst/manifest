@@ -93,6 +93,9 @@ jobs:
           # not change across the few commits in a PR range.
           git worktree add --detach /tmp/base-tree "$BASE_SHA"
           ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/base-tree/node_modules
+          ln -s \
+            "$GITHUB_WORKSPACE/packages/backend/node_modules" \
+            /tmp/base-tree/packages/backend/node_modules
           cd /tmp/base-tree
           npm run migration:run --workspace=packages/backend
 

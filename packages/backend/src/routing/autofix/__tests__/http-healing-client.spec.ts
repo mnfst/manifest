@@ -16,6 +16,7 @@ function makeHealRequest(): HealRequest {
     traceId: 'trace-1',
     tenantId: 'tenant-1',
     provider: 'openai',
+    authType: 'api_key',
     api: 'responses',
     request: { max_tokens: 100 },
     response: { statusCode: 400, error: { message: 'bad' } },

@@ -242,8 +242,9 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
   it('sends deterministic session-id/thread-id headers across requests', async () => {
     mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-    await client.forward({ ...subscriptionOpts });
-    await client.forward({ ...subscriptionOpts });
+    const scoped = { ...subscriptionOpts, body: { ...body, prompt_cache_key: 'conversation-1' } };
+    await client.forward(scoped);
+    await client.forward(scoped);
 
     const first = mockFetch.mock.calls[0][1].headers as Record<string, string>;
     const second = mockFetch.mock.calls[1][1].headers as Record<string, string>;
@@ -252,13 +253,19 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
     expect(first['thread-id']).toBe(second['thread-id']);
   });
 
-  it('injects a stable default prompt_cache_key into the outgoing body', async () => {
+  it('injects request-local prompt cache affinity without a caller key', async () => {
     mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
     await client.forward({ ...subscriptionOpts });
+    await client.forward({ ...subscriptionOpts });
 
-    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
-    expect(sentBody.prompt_cache_key).toMatch(UUID_RE);
+    const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body as string);
+    const firstHeaders = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+    const secondHeaders = mockFetch.mock.calls[1][1].headers as Record<string, string>;
+    expect(firstBody.prompt_cache_key).toMatch(UUID_RE);
+    expect(secondBody.prompt_cache_key).not.toBe(firstBody.prompt_cache_key);
+    expect(secondHeaders['session-id']).not.toBe(firstHeaders['session-id']);
   });
 
   it('keeps the caller-supplied prompt_cache_key on the Chat Completions path', async () => {
@@ -291,14 +298,37 @@ describe('ProviderClient — Codex prompt-cache affinity (openai-subscription)',
     expect(sentHeaders).not.toHaveProperty('session-id');
   });
 
-  it('replays the x-codex-turn-state token captured from the previous response', async () => {
-    mockFetch.mockResolvedValueOnce(
-      new Response('{}', { status: 200, headers: { 'x-codex-turn-state': 'turn-abc' } }),
-    );
-    mockFetch.mockResolvedValueOnce(new Response('{}', { status: 200 }));
+  it('adds scoped prompt cache affinity on the api-key /responses path', async () => {
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
-    await client.forward({ ...subscriptionOpts });
-    await client.forward({ ...subscriptionOpts });
+    await client.forward({
+      provider: 'openai',
+      apiKey: 'sk-test',
+      model: 'o1-pro',
+      body,
+      providerCacheKey: 'v1:tenant-agent-session-digest',
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(sentBody.prompt_cache_key).toMatch(/^manifest-[a-f0-9]{32}$/);
+    expect(sentBody.prompt_cache_key).not.toContain('tenant-agent-session');
+  });
+
+  it('replays the x-codex-turn-state token captured from the previous response', async () => {
+    const completed =
+      'event: response.completed\ndata: {"response":{"output":[{"type":"message","content":[{"type":"output_text","text":"ok"}]}]}}\n\n';
+    mockFetch.mockResolvedValueOnce(
+      new Response(completed, {
+        status: 200,
+        headers: { 'x-codex-turn-state': 'turn-abc' },
+      }),
+    );
+    mockFetch.mockResolvedValueOnce(new Response(completed, { status: 200 }));
+
+    const scoped = { ...subscriptionOpts, body: { ...body, prompt_cache_key: 'conversation-1' } };
+    await client.forward(scoped);
+    await client.forward(scoped);
 
     const first = mockFetch.mock.calls[0][1].headers as Record<string, string>;
     const second = mockFetch.mock.calls[1][1].headers as Record<string, string>;

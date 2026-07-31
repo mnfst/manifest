@@ -134,7 +134,7 @@
 }
 
 .chart-card__stat--active::after {
-  background: hsl(var(--chart-1));
+  background: hsl(var(--foreground));
 }
 
 .chart-card__stat--clickable:not(.chart-card__stat--active):hover::after {
