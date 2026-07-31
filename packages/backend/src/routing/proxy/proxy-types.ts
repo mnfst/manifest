@@ -22,13 +22,6 @@ export type ThinkingBlockLookup = (
   routeContext?: ThinkingBlockRouteContext,
 ) => ThinkingBlock[] | null;
 
-/**
- * Optional lookup to re-inject cached reasoning_content strings that were
- * stripped by OpenAI-compatible clients. Called with the first tool_call id
- * from the assistant turn; returns the cached reasoning_content or null.
- */
-export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
-
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
 /** Lazily derive the Chat Completions view used by legacy routing or cross-protocol adapters. */
@@ -111,8 +104,6 @@ export interface ForwardOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Route scope used to decide whether cached Anthropic thinking can be replayed. */
   thinkingRouteContext?: ThinkingBlockRouteContext;
-  /** Lookup for re-injecting cached reasoning_content (DeepSeek-compatible providers). */
-  reasoningContentLookup?: ReasoningContentLookup;
   /**
    * Provider-specific routing field carried in the OAuth token blob's `u`
    * slot. For Gemini OAuth this is the CodeAssist

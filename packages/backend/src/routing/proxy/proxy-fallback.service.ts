@@ -41,7 +41,6 @@ interface ForwardProviderOptions {
   apiMode?: ProxyApiMode;
   signatureLookup?: SignatureLookup;
   thinkingLookup?: ThinkingBlockLookup;
-  reasoningContentLookup?: ReasoningContentLookup;
   paramMergeContext?: ParamMergeContext;
   tenantProviderId?: string | null;
   startProviderAttempt?: StartProviderAttempt;
@@ -74,7 +73,6 @@ import {
 import type {
   SignatureLookup,
   ThinkingBlockLookup,
-  ReasoningContentLookup,
   ResolveChatBody,
   ProviderAttemptRef,
   StartProviderAttempt,
@@ -144,7 +142,7 @@ export class ProxyFallbackService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
-    private readonly reasoningCache?: ReasoningContentCache,
+    private readonly reasoningCache: ReasoningContentCache,
   ) {}
 
   /**
@@ -193,7 +191,6 @@ export class ProxyFallbackService {
     resolveChatBody?: ResolveChatBody,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
-    reasoningContentLookup?: ReasoningContentLookup,
     startProviderAttempt?: StartProviderAttempt,
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
@@ -322,7 +319,6 @@ export class ProxyFallbackService {
         providerRegion: credentials.providerRegion,
         signatureLookup,
         thinkingLookup,
-        reasoningContentLookup,
         paramMergeContext,
         tenantProviderId,
         startProviderAttempt,
@@ -632,7 +628,6 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
-      reasoningContentLookup,
     } = opts;
     // Per-attempt merge: ask the model-params service for this iteration's
     // (provider, auth_type, model) config. Storage is model-scoped on the
@@ -696,27 +691,23 @@ export class ProxyFallbackService {
               authType,
               opts.model,
             );
-            if (this.reasoningCache) {
-              resolved = await this.reasoningCache.reinjectMissingReasoningContent(
-                resolved,
-                opts.sessionKey,
-                reasoningEndpointKey,
-                forwardModel,
-              );
-            }
+            resolved = await this.reasoningCache.prepareRequest(
+              resolved,
+              opts.sessionKey,
+              reasoningEndpointKey,
+              forwardModel,
+            );
             return resolved;
           })();
           return resolvedChatBody;
         }
       : undefined;
-    if (this.reasoningCache) {
-      body = await this.reasoningCache.reinjectMissingReasoningContent(
-        body,
-        opts.sessionKey,
-        reasoningEndpointKey,
-        forwardModel,
-      );
-    }
+    body = await this.reasoningCache.prepareRequest(
+      body,
+      opts.sessionKey,
+      reasoningEndpointKey,
+      forwardModel,
+    );
 
     // For Gemini OAuth, the OAuth blob's `u` field is the
     // CodeAssist project id (not a URL). It must be forwarded so the
@@ -756,7 +747,6 @@ export class ProxyFallbackService {
               },
             }
           : {}),
-        reasoningContentLookup,
         providerResource,
         attempt,
       });

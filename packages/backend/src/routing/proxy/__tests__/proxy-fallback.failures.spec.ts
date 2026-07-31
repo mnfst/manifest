@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import type { ModelRoute } from 'manifest-shared';
 import { ProxyFallbackService } from '../proxy-fallback.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -140,6 +141,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
         getSpecs: jest.fn().mockResolvedValue([]),
         list: jest.fn().mockResolvedValue([]),
       } as unknown as ProviderParamSpecService,
+      new ReasoningContentCache(),
     );
   });
 
