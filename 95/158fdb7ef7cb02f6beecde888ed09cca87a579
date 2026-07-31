@@ -1,0 +1,22 @@
+routing-eval/safe-router/private-v2/scripts/train_locked.py
+  s_74f90e5974d6a5::t_e0e1b59c35ee5f 1-17,21-29,32-37,43,45-51,53-245,284-405,416,427,433-463,468-493,495,499-591,594-620,627-703
+  s_74f90e5974d6a5::t_2f86e5e17de377 18-20,30,39-42,44,52
+  s_74f90e5974d6a5::t_1a46f92e5051fe 31,38
+  s_74f90e5974d6a5::t_6a7071e8ccb74f 246-283,406-415,417-426,428-432,464-467,494,496-498,592-593,621-626
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "95158fdb7ef7cb02f6beecde888ed09cca87a579",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
