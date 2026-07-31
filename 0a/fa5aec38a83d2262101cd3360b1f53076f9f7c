@@ -1,0 +1,100 @@
+routing-eval/safe-router/runtime/classify-cli.mjs
+  s_74f90e5974d6a5::t_294979c534e3e3 1-8
+routing-eval/safe-router/README.md
+  s_74f90e5974d6a5::t_a36ce6d0aef4fe 14
+  s_74f90e5974d6a5::t_23d3cd11f320ff 1-13,15-45
+routing-eval/safe-router/runtime/inference.mjs
+  s_74f90e5974d6a5::t_5ed5b3d8bffbe1 55-61
+  s_74f90e5974d6a5::t_3741838d924a9f 43,47,49,51,53,65,69
+  s_74f90e5974d6a5::t_294979c534e3e3 1-33,37-42,44-46,48,50,52,54,62-64,66-67,70-125
+  s_74f90e5974d6a5::t_80b331d0124fdd 34-36
+  s_74f90e5974d6a5::t_c162b46673bc78 68
+routing-eval/safe-router/artifact/MODEL_CARD.md
+  s_74f90e5974d6a5::t_23d3cd11f320ff 1-3,7-34,37-41
+  s_74f90e5974d6a5::t_57f7b199f04e62 42-55
+  s_74f90e5974d6a5::t_a36ce6d0aef4fe 4-6
+  s_74f90e5974d6a5::t_3c7cc97b93dc52 35-36
+routing-eval/safe-router/scripts/verify_release.py
+  s_74f90e5974d6a5::t_b77c76a4eb6af6 5,98,113-118,125-126,177-179,209,219,230-233
+  s_74f90e5974d6a5::t_c7bf655517be37 259-264,266-269,271-291,300
+  s_74f90e5974d6a5::t_57f7b199f04e62 304-311,314,316-320
+  s_74f90e5974d6a5::t_80b331d0124fdd 265,270
+  s_74f90e5974d6a5::t_5ed5b3d8bffbe1 28-29
+  s_74f90e5974d6a5::t_61dadd670a7f90 15
+  s_74f90e5974d6a5::t_294979c534e3e3 1-4,6-14,16-27,30-63,66,68-69,72,74-79,81-84,87-97,99-106,108-112,120-124,127-169,171-176,180-208,210-218,220-229,234-258,292-295,297-299,301-303,312-313,315,321-325
+  s_74f90e5974d6a5::t_003c3f613186db 64-65,67,70-71,170
+  s_74f90e5974d6a5::t_db5ce9dca486b5 119
+  s_74f90e5974d6a5::t_f3c84498ee872d 73,80,85-86,107,296
+  s_74f90e5974d6a5::t_a5a0c5dd38cd06 326-397
+routing-eval/safe-router/scenario_catalog.py
+  s_74f90e5974d6a5::t_7150f0db8f8e7b 267-286
+  s_74f90e5974d6a5::t_260931a0fb8b0e 30-31,53-54,76-77,99-100,122-123,145-146,168-169,191-192,214-215,237-238,260-261
+  s_74f90e5974d6a5::t_5f0bd9a2128867 1-27,34-50,57-73,80-96,103-119,126-142,149-165,172-188,195-211,218-234,241-257,264-266
+  s_74f90e5974d6a5::t_17b505b927cde9 28-29,51-52,74-75,97-98,120-121,143-144,166-167,189-190,212-213,235-236,258-259
+  s_74f90e5974d6a5::t_db869d1ecb74de 32-33,55-56,78-79,101-102,124-125,147-148,170-171,193-194,216-217,239-240,262-263
+  s_74f90e5974d6a5::t_4abfa6b6dc3346 287-1332
+routing-eval/safe-router/scripts/generate_dataset.py
+  s_74f90e5974d6a5::t_54e5919bed0115 51-74,183
+  s_74f90e5974d6a5::t_6098801bdb7417 198-255
+  s_74f90e5974d6a5::t_db5ce9dca486b5 15-17,136-137,141,368
+  s_74f90e5974d6a5::t_8778fb1561581d 367,369
+  s_74f90e5974d6a5::t_813c09de03a0d1 1-14,18-50,75-135,138-140,142-143,145-182,184-189,341-366,370-378
+  s_74f90e5974d6a5::t_3c7cc97b93dc52 144,190-197,256-340
+  s_74f90e5974d6a5::t_e1ce18805c1bd9 379-417
+routing-eval/safe-router/PROTOCOL.md
+  s_74f90e5974d6a5::t_23d3cd11f320ff 1-29,37-41,47-63,65-84
+  s_74f90e5974d6a5::t_80b331d0124fdd 64
+  s_74f90e5974d6a5::t_3c7cc97b93dc52 42-46
+  s_74f90e5974d6a5::t_db5ce9dca486b5 30-36
+routing-eval/safe-router/.gitignore
+  s_74f90e5974d6a5::t_6cd9c604054e12 1-2
+routing-eval/safe-router/scripts/common.py
+  s_74f90e5974d6a5::t_5ed5b3d8bffbe1 69-76
+  s_74f90e5974d6a5::t_3741838d924a9f 62,68,84,94
+  s_74f90e5974d6a5::t_813c09de03a0d1 1-61,63-67,77-83,85-92,95-148
+  s_74f90e5974d6a5::t_c162b46673bc78 93
+  s_74f90e5974d6a5::t_d3d406a411df5b 149-169
+routing-eval/safe-router/scripts/train.py
+  s_74f90e5974d6a5::t_e36a69470c4d08 1-11,14-15,17-20,26-27,36-56,59-64,70-84,92-93,95-103,105-170,175-182,193-198,200-204,206-216,219-225,233-239,241-254,256-263,265-267,274-301,303-304,306-310
+  s_74f90e5974d6a5::t_2ec83640bf4675 183-192,305
+  s_74f90e5974d6a5::t_8778fb1561581d 57
+  s_74f90e5974d6a5::t_003c3f613186db 13,28-35,94
+  s_74f90e5974d6a5::t_3c7cc97b93dc52 199,205,240,268-273
+  s_74f90e5974d6a5::t_54e5919bed0115 12,58,85-91,104,226-232,264,302
+  s_74f90e5974d6a5::t_5ed5b3d8bffbe1 217-218
+  s_74f90e5974d6a5::t_b8a10331106076 16,21-25,171-174
+  s_74f90e5974d6a5::t_61dadd670a7f90 65-69,255
+  s_74f90e5974d6a5::t_faa14d46cb954a 311-365
+routing-eval/safe-router/artifact/metrics.json
+  s_74f90e5974d6a5::t_f4180ea6b67875 1-1008
+routing-eval/safe-router/artifact/model.safe.v1.json
+  s_74f90e5974d6a5::t_05292b0a8b19a2 1
+routing-eval/safe-router/data/synthetic/calibration.jsonl
+  s_74f90e5974d6a5::t_a52fed2c41e0d8 1-528
+routing-eval/safe-router/data/synthetic/final-test.jsonl
+  s_74f90e5974d6a5::t_2eb1ef7bb02359 1-440
+routing-eval/safe-router/data/synthetic/long-agentic.jsonl
+  s_74f90e5974d6a5::t_2d39731e93283b 1-88
+routing-eval/safe-router/data/synthetic/ood.jsonl
+  s_74f90e5974d6a5::t_0000181335ae85 1-110
+routing-eval/safe-router/data/synthetic/train.jsonl
+  s_74f90e5974d6a5::t_6dd89a24f98e8a 1-3696
+routing-eval/safe-router/dataset-manifest.json
+  s_74f90e5974d6a5::t_d2f348169f20e8 1-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "0afa5aec38a83d2262101cd3360b1f53076f9f7c",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

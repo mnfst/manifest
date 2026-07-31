@@ -1,0 +1,33 @@
+routing-eval/safe-router/private/artifact/qualification.json
+  s_74f90e5974d6a5::t_6122839a3de92b 1-23
+routing-eval/safe-router/artifact/MODEL_CARD.md
+  s_74f90e5974d6a5::t_6c674fef328e58 3-4,58-63
+routing-eval/safe-router/.gitignore
+  s_74f90e5974d6a5::t_6c674fef328e58 3-4
+routing-eval/safe-router/private/scripts/verify_private.py
+  s_74f90e5974d6a5::t_1ef2ce00d98a31 256-258
+routing-eval/safe-router/README.md
+  s_74f90e5974d6a5::t_6c674fef328e58 3-4,48-53
+routing-eval/safe-router/private/artifact/MODEL_CARD.md
+  s_74f90e5974d6a5::t_b5d76a0f97e9e8 1-42
+routing-eval/safe-router/private/artifact/metrics.json
+  s_74f90e5974d6a5::t_8a7bd9b60da6b2 1-830
+routing-eval/safe-router/private/artifact/provenance.json
+  s_74f90e5974d6a5::t_b35951501aeff9 1-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "f3198f0b105c615c252a739aa2b576fbd1df6103",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

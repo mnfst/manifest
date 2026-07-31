@@ -1,0 +1,47 @@
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_6d73432c99ba59::t_3c9b4106887f90 507-526
+  s_6d73432c99ba59::t_6a5d270b3ff544 483-506
+packages/shared/src/error-taxonomy.ts
+  s_6d73432c99ba59::t_f7b2cbc8336e38 19-22
+  s_6d73432c99ba59::t_3345dc3a1d1c57 1-2,148-151,198-206
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_6d73432c99ba59::t_3345dc3a1d1c57 6,281-296,300
+  s_6d73432c99ba59::t_8d675353af9b44 297-299
+  s_6d73432c99ba59::t_2b3c8bb72dcb2a 301
+packages/shared/src/index.ts
+  s_6d73432c99ba59::t_3345dc3a1d1c57 47-48
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_6d73432c99ba59::t_3345dc3a1d1c57 229-230
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_6d73432c99ba59::t_6a5d270b3ff544 147-163
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_6d73432c99ba59::t_6a5d270b3ff544 369-391
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_6d73432c99ba59::t_294580dabe554a 11,230,258
+  s_6d73432c99ba59::t_43dc89fa9cccb3 131-151,219-229,231-240,242-257,259-264
+  s_6d73432c99ba59::t_4097d0d6e80650 241
+  s_6d73432c99ba59::t_d8472e74897653 265-266
+packages/shared/src/provider-error-semantics.ts
+  s_6d73432c99ba59::t_3345dc3a1d1c57 1-26,28-37
+  s_6d73432c99ba59::t_8d675353af9b44 27
+.changeset/calm-owls-bill.md
+  s_6d73432c99ba59::t_b2ad433bb6bd7f 1-5
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_6d73432c99ba59::t_3345dc3a1d1c57 1,140-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "69f4aa947a159dc69b4198669e6a594dbbfe067d",
+  "prompts": {},
+  "sessions": {
+    "s_6d73432c99ba59": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb743-a869-75a2-a971-b5917c61bbcf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
