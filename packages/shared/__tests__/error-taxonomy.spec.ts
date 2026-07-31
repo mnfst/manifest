@@ -253,9 +253,24 @@ describe('isAnthropicExtraUsageError', () => {
     ).toBe(true);
   });
 
+  it('matches a top-level Anthropic error envelope', () => {
+    expect(
+      isAnthropicExtraUsageError({
+        provider: 'anthropic',
+        httpStatus: 400,
+        errorBody: JSON.stringify({
+          type: 'invalid_request_error',
+          message: 'You are out of extra usage.',
+        }),
+      }),
+    ).toBe(true);
+  });
+
   it.each([
     ['openai', 400, errorBody],
     ['anthropic', 429, errorBody],
+    ['anthropic', 400, ''],
+    ['anthropic', 400, 'null'],
     ['anthropic', 400, 'not json'],
     [
       'anthropic',
