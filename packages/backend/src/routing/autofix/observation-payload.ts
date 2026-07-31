@@ -1,3 +1,4 @@
+import { isAnthropicExtraUsageError } from 'manifest-shared';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
 import type { AuthType } from 'manifest-shared';
@@ -150,6 +151,15 @@ export interface ObservationInput {
  */
 export function toObservation(input: ObservationInput): HealRequest | null {
   if (!isReportableStatus(input.status)) return null;
+  if (
+    isAnthropicExtraUsageError({
+      provider: input.provider,
+      httpStatus: input.status,
+      errorBody: input.errorBody,
+    })
+  ) {
+    return null;
+  }
   const scrubbed = scrubBody(input.requestBody);
   if (!scrubbed) return null;
   const scrubbedProviderBody = input.providerWire ? scrubBody(input.providerWire.body) : null;

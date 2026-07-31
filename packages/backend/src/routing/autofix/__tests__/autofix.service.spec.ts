@@ -483,6 +483,50 @@ describe('AutofixService', () => {
       expect(result).toBeNull();
       expect(findOne).not.toHaveBeenCalled();
     });
+
+    it('does not send Anthropic subscription extra-usage exhaustion to Phoenix', async () => {
+      const client = makeHealingClient();
+      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+      const forward = makeForward(
+        JSON.stringify({
+          type: 'error',
+          error: {
+            type: 'invalid_request_error',
+            message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+          },
+        }),
+        400,
+      );
+
+      const result = await service.maybeHeal(makeParams({ forward, provider: 'anthropic' }));
+
+      expect(result).toBeNull();
+      expect(client.heal).not.toHaveBeenCalled();
+      expect(findOne).not.toHaveBeenCalled();
+      expect(forward.response.status).toBe(400);
+      expect(forward.response.bodyUsed).toBe(false);
+    });
+
+    it('keeps status-based healing when Anthropic billing inspection fails', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-1' });
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+      const forward = makeForward('{"error":{"message":"boom"}}', 400);
+      jest.spyOn(forward.response, 'clone').mockImplementation(() => {
+        throw new Error('clone failed');
+      });
+      const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+
+      const result = await service.maybeHeal(makeParams({ forward, provider: 'anthropic' }));
+
+      expect(result?.record.outcome).toBe('unfixable');
+      expect(client.heal).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        'could not inspect Anthropic 400 for billing semantics: clone failed',
+      );
+    });
   });
 
   // -------------------------------------------------------------------------
