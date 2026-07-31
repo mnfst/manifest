@@ -1,0 +1,28 @@
+routing-eval/safe-router/private-v2/gates.json
+  s_74f90e5974d6a5::t_49667f711f26ac 1-65
+routing-eval/safe-router/private-v2/scripts/split_contract.py
+  s_74f90e5974d6a5::t_49667f711f26ac 1-25,27-128
+  s_74f90e5974d6a5::t_cafa37f94289d4 26
+routing-eval/safe-router/private-v2/PROTOCOL.md
+  s_74f90e5974d6a5::t_49667f711f26ac 1-71
+routing-eval/safe-router/.gitignore
+  s_74f90e5974d6a5::t_49667f711f26ac 5-6
+routing-eval/safe-router/private-v2/README.md
+  s_74f90e5974d6a5::t_49667f711f26ac 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "b2980ccc4b54018d865aff512eae3e1939553201",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
