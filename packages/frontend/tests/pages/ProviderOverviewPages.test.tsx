@@ -204,6 +204,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
     tokensValue: number;
     tokensTrendPct?: number;
     requestsValue: number;
+    requestsInfoTooltip?: string;
     requestsTrendPct?: number;
     failedValue?: number;
     failedTrendPct?: number;
@@ -238,6 +239,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
       <span>{props.costTrendPct ?? 0}</span>
       <span>{props.costInfoTooltip ?? ''}</span>
       <span>{props.range}</span>
+      <span data-testid="requests-info-tooltip">{props.requestsInfoTooltip ?? ''}</span>
       <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
@@ -979,6 +981,9 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
+      'auto-fixed attempts',
+    );
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
