@@ -1,0 +1,38 @@
+routing-eval/safe-router/private-v2/scripts/research_embeddings.py
+  s_74f90e5974d6a5::t_f998ba9666730a 29-31
+routing-eval/safe-router/private-v2/scripts/research_category.py
+  s_74f90e5974d6a5::t_f998ba9666730a 24,32-33
+routing-eval/safe-router/private-v2/scripts/research_hashing.py
+  s_74f90e5974d6a5::t_f998ba9666730a 26-27,38-43
+routing-eval/safe-router/private-v2/README.md
+  s_74f90e5974d6a5::t_04856b134dda37 23-25
+routing-eval/safe-router/private-v2/AUDIT_RESULT.md
+  s_74f90e5974d6a5::t_04856b134dda37 1-4,10-35
+  s_74f90e5974d6a5::t_683189181288cb 5-9
+routing-eval/safe-router/private-v2/scripts/train_locked.py
+  s_74f90e5974d6a5::t_683189181288cb 454-455
+routing-eval/safe-router/private-v2/scripts/split_contract.py
+  s_74f90e5974d6a5::t_f998ba9666730a 28
+routing-eval/safe-router/private-v2/artifact/audit-metrics.json
+  s_74f90e5974d6a5::t_d72b5e215ca8be 1-193
+routing-eval/safe-router/private-v2/artifact/provenance.json
+  s_74f90e5974d6a5::t_6b647f17a2a690 1-36
+routing-eval/safe-router/private-v2/artifact/qualification.json
+  s_74f90e5974d6a5::t_63f8601c05d40c 1-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "4f3f58b5f6f0c52a48353026c838536e737c42e1",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
