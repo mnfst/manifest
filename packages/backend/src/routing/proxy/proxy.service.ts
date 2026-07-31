@@ -40,14 +40,12 @@ import {
   ProxyRequestOptions,
   SignatureLookup,
   ThinkingBlockLookup,
-  ReasoningContentLookup,
   ResolveChatBody,
   ProviderAttemptRef,
   StartProviderAttempt,
 } from './proxy-types';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
-import { ReasoningContentCache } from './reasoning-content-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
@@ -187,7 +185,6 @@ interface HealedReforwardContext {
   headers?: ProxyRequestOptions['headers'];
   signatureLookup: SignatureLookup;
   thinkingLookup: ThinkingBlockLookup;
-  reasoningContentLookup: ReasoningContentLookup;
   startProviderAttempt?: StartProviderAttempt;
   provider: string;
   apiKey: string;
@@ -221,7 +218,6 @@ export class ProxyService {
     private readonly config: ConfigService,
     private readonly signatureCache: ThoughtSignatureCache,
     private readonly thinkingCache: ThinkingBlockCache,
-    private readonly reasoningCache: ReasoningContentCache,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly autofixService: AutofixService,
@@ -296,8 +292,7 @@ export class ProxyService {
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
 
-    const { signatureLookup, thinkingLookup, reasoningContentLookup } =
-      this.buildCacheLookups(sessionCacheKey);
+    const { signatureLookup, thinkingLookup } = this.buildCacheLookups(sessionCacheKey);
 
     // Per-attempt param-defaults merge happens inside the fallback service
     // so each forward (primary + every fallback iteration) looks up its
@@ -395,7 +390,6 @@ export class ProxyService {
           signal,
           signatureLookup,
           thinkingLookup,
-          reasoningContentLookup,
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
@@ -433,7 +427,6 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup,
       thinkingLookup,
-      reasoningContentLookup,
       paramMergeContext,
       tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt,
@@ -489,7 +482,6 @@ export class ProxyService {
                 paramMergeContext,
                 signatureLookup,
                 thinkingLookup,
-                reasoningContentLookup,
                 tenantProviderId: credentials.tenantProviderId,
                 startProviderAttempt,
               }),
@@ -519,7 +511,6 @@ export class ProxyService {
         signal,
         signatureLookup,
         thinkingLookup,
-        reasoningContentLookup,
         apiMode,
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
@@ -622,7 +613,6 @@ export class ProxyService {
           signal,
           signatureLookup,
           thinkingLookup,
-          reasoningContentLookup,
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
@@ -789,7 +779,6 @@ export class ProxyService {
       providerRegion: credentials.providerRegion,
       signatureLookup: ctx.signatureLookup,
       thinkingLookup: ctx.thinkingLookup,
-      reasoningContentLookup: ctx.reasoningContentLookup,
       paramMergeContext: explicitModelOverride ? undefined : { agentId: ctx.agentId, scopeKey },
       tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
@@ -1121,7 +1110,6 @@ export class ProxyService {
     signal?: AbortSignal;
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
-    reasoningContentLookup: ReasoningContentLookup;
     apiMode: ProxyApiMode;
     paramMergeContext: ParamMergeContext;
     /** Primary connection id, carried so a fallback-success flow can attribute
@@ -1177,7 +1165,6 @@ export class ProxyService {
       resolveChatBody,
       fallbackRoutes,
       args.paramMergeContext,
-      args.reasoningContentLookup,
       args.startProviderAttempt,
       args.credentialDashboardUrl,
       providerCacheKey,
@@ -1423,7 +1410,6 @@ export class ProxyService {
   private buildCacheLookups(sessionKey: string): {
     signatureLookup: SignatureLookup;
     thinkingLookup: ThinkingBlockLookup;
-    reasoningContentLookup: ReasoningContentLookup;
   } {
     return {
       signatureLookup: (toolCallId) => this.signatureCache.retrieve(sessionKey, toolCallId),
@@ -1431,8 +1417,6 @@ export class ProxyService {
         routeContext
           ? this.thinkingCache.retrieve(sessionKey, firstToolUseId, routeContext)
           : this.thinkingCache.retrieve(sessionKey, firstToolUseId),
-      reasoningContentLookup: (firstToolCallId) =>
-        this.reasoningCache.retrieve(sessionKey, firstToolCallId),
     };
   }
 }

@@ -51,7 +51,7 @@ describe('ProxyFallbackService', () => {
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
-  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'prepareRequest'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -161,7 +161,7 @@ describe('ProxyFallbackService', () => {
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
-      reinjectMissingReasoningContent: jest.fn(
+      prepareRequest: jest.fn(
         async (
           requestBody: Record<string, unknown>,
           _sessionKey: string,
@@ -724,7 +724,7 @@ describe('ProxyFallbackService', () => {
           },
         ],
       };
-      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+      reasoningCache.prepareRequest.mockResolvedValueOnce(enrichedBody);
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -736,7 +736,7 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
       });
 
-      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+      expect(reasoningCache.prepareRequest).toHaveBeenCalledWith(
         requestBody,
         'sess-1',
         'deepseek',

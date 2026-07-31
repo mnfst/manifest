@@ -314,7 +314,6 @@ export class ProviderClient {
       signatureLookup: opts.signatureLookup,
       thinkingLookup: opts.thinkingLookup,
       thinkingRouteContext: opts.thinkingRouteContext,
-      reasoningContentLookup: opts.reasoningContentLookup,
       providerResource: opts.providerResource,
       sessionKey: opts.sessionKey,
       providerCacheKey: opts.providerCacheKey,
@@ -538,7 +537,6 @@ export class ProviderClient {
     signatureLookup?: ForwardOptions['signatureLookup'];
     thinkingLookup?: ForwardOptions['thinkingLookup'];
     thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
-    reasoningContentLookup?: ForwardOptions['reasoningContentLookup'];
     providerResource?: string;
     sessionKey?: string;
     providerCacheKey?: string;
@@ -672,12 +670,7 @@ export class ProviderClient {
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(
-      requestSource,
-      endpointKey,
-      ctx.model,
-      ctx.reasoningContentLookup,
-    );
+    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
     if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
