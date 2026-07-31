@@ -1,0 +1,19 @@
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_6d73432c99ba59::t_35518228c36598 256-268,272-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "2d70c7ce7a840a680fb726c3ffc68a33a523fe24",
+  "prompts": {},
+  "sessions": {
+    "s_6d73432c99ba59": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb743-a869-75a2-a971-b5917c61bbcf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
