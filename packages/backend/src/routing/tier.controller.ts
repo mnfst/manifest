@@ -162,14 +162,7 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    const available = await this.autofixService.hasAccess(ctx.tenantId);
-    // `available` gates the toggle's visibility in the UI (early-access rollout);
-    // `enabled` reports effective runtime behavior, so a tenant outside the
-    // cohort never appears enabled merely because its mode default is on.
-    return {
-      enabled: available && this.autofixService.resolveEnabled(agent.autofix_enabled),
-      available,
-    };
+    return { enabled: this.autofixService.resolveEnabled(agent.autofix_enabled) };
   }
 
   @Patch(':agentName/autofix')
@@ -179,12 +172,10 @@ export class TierController {
     @Body() body: UpdateAutofixDto,
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    const available = await this.autofixService.hasAccess(ctx.tenantId);
-    // Only tenants with early access can change the flag; others have no toggle.
     // Require an explicit boolean: `@IsOptional()` lets `{"enabled": null}` through,
     // and a bare presence check would then reset the stored flag to null and echo
     // back `enabled: null` (off-contract). Undefined/null → no write, read-back.
-    const applied = available && typeof body.enabled === 'boolean';
+    const applied = typeof body.enabled === 'boolean';
     if (applied) {
       await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
@@ -193,8 +184,7 @@ export class TierController {
     return {
       enabled: applied
         ? (body.enabled as boolean)
-        : available && this.autofixService.resolveEnabled(agent.autofix_enabled),
-      available,
+        : this.autofixService.resolveEnabled(agent.autofix_enabled),
     };
   }
 

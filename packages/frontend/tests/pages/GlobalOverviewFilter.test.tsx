@@ -62,7 +62,8 @@ vi.mock('../../src/services/api.js', async () => {
 
 vi.mock('../../src/services/api/analytics.js', () => ({
   RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
       ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
@@ -90,21 +91,22 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 2, previous: 1 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () =>
-    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
   getPerProviderReliability: () =>
     Promise.resolve([
-      { provider: 'openai', auth_type: 'api_key', key_label: 'Default', attempts: 10, succeeded: 7 },
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        key_label: 'Default',
+        attempts: 10,
+        succeeded: 7,
+      },
     ]),
   getPerModelReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
-}));
-
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => Promise.resolve({ eligible: false }),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -435,9 +437,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
   it('opens the user-discovery modal after agents load and dismisses it', async () => {
     render(() => <GlobalOverview />);
 
-    await waitFor(() =>
-      expect(document.body.textContent).toContain('Book my slot to get $25'),
-    );
+    await waitFor(() => expect(document.body.textContent).toContain('Book my slot to get $25'));
 
     const later = [...document.querySelectorAll('button')].find(
       (b) => b.textContent === 'Maybe later',
@@ -445,8 +445,6 @@ describe('GlobalOverview filter onUnselectAll', () => {
     fireEvent.click(later);
 
     expect(localStorage.getItem('manifest:user-discovery-modal-dismissed:v1')).toBe('true');
-    await waitFor(() =>
-      expect(document.body.textContent).not.toContain('Book my slot to get $25'),
-    );
+    await waitFor(() => expect(document.body.textContent).not.toContain('Book my slot to get $25'));
   });
 });

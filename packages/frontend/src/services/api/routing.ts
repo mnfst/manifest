@@ -33,10 +33,7 @@ export interface RoutingProvider {
 /* -- Routing: Status -- */
 
 export type RoutingStatusReason =
-  | 'no_provider'
-  | 'no_routable_models'
-  | 'pricing_cache_empty'
-  | null;
+  'no_provider' | 'no_routable_models' | 'pricing_cache_empty' | null;
 
 export interface RoutingStatus {
   enabled: boolean;
@@ -180,10 +177,6 @@ export function toggleComplexity(agentName: string) {
 
 export interface AutofixConfig {
   enabled: boolean;
-  /** Whether this tenant has Auto-fix early access (waitlist / GA). The toggle
-   *  is only shown when true; the rest of the time the "Get early access" card
-   *  in the sidebar is the entry point. */
-  available: boolean;
 }
 
 export function getAutofix(agentName: string) {

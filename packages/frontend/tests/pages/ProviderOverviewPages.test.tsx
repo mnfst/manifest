@@ -30,7 +30,6 @@ const apiMocks = vi.hoisted(() => ({
   getConnectionAttemptHttpStatusTimeseries: vi.fn(),
   getConnectionAttemptBreakdown: vi.fn(),
   getConnectionAttemptsByAgentTimeseries: vi.fn(),
-  getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
 
@@ -115,8 +114,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () =>
-    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -124,10 +122,6 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerModelReliability: () => Promise.resolve([]),
   getPerAgentReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
-}));
-
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => apiMocks.getAutofixCohort(),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -759,7 +753,6 @@ beforeEach(() => {
     cancelAtPeriodEnd: false,
     subscriptionPeriodEnd: null,
   });
-  apiMocks.getAutofixCohort.mockResolvedValue({ eligible: false });
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -1097,15 +1090,6 @@ describe('ConnectionDetail (analytics)', () => {
       expect(fb).toContain('10');
       expect(fb).toContain('8 succeeded');
     });
-    // No Doctor version in this fixture: no auto-fixed card, no recovered cards.
-    expect(screen.queryByText('Auto-fixed attempts')).toBeNull();
-    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
-  });
-
-  it('shows the auto-fixed attempts card with the Doctor version', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
-    const { container } = render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     await waitFor(() => {
       const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
         c.textContent?.includes('Auto-fixed attempts'),
@@ -1136,8 +1120,7 @@ describe('ConnectionDetail (analytics)', () => {
     );
   });
 
-  it('links the Auto-fixed attempts card when the Doctor version is available', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+  it('links the Auto-fixed attempts card', async () => {
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     const card = await waitFor(() => {

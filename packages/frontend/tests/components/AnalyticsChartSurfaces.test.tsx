@@ -205,7 +205,7 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('No recovered requests in this time range')).toBeDefined();
     unmount();
 
-    // Without a timeseries the tab itself is not rendered (ineligible tenants).
+    // Without a timeseries the tab itself is not rendered.
     const noTab = render(() => (
       <UnifiedChartCard
         activeTab="requests"

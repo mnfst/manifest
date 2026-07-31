@@ -11,7 +11,6 @@ import {
 import '../styles/notifications-bell.css';
 import { A } from '@solidjs/router';
 import { getWorkspaceAutofixStatus } from '../services/api/analytics.js';
-import { getAutofixCohort } from '../services/api/autofix.js';
 import { getAgents } from '../services/api.js';
 import { messagePing, agentPing, routingPing } from '../services/sse.js';
 
@@ -61,21 +60,8 @@ const NotificationBell: Component = () => {
   const interval = setInterval(() => setTick((n) => n + 1), 15_000);
   onCleanup(() => clearInterval(interval));
 
-  const [cohort] = createResource(
-    () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() }),
-    async () => {
-      try {
-        return await getAutofixCohort();
-      } catch {
-        return null;
-      }
-    },
-  );
-  const eligible = () => cohort()?.eligible ?? false;
-
   const [status] = createResource(
-    () =>
-      eligible() ? { _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() } : false,
+    () => ({ _a: agentPing(), _m: messagePing(), _r: routingPing(), _t: tick() }),
     async () => {
       try {
         return await getWorkspaceAutofixStatus();
@@ -100,7 +86,7 @@ const NotificationBell: Component = () => {
   const disabledAgents = createMemo(() => {
     const s = status();
     const list = agentList() ?? [];
-    if (!eligible() || !s?.available) return [];
+    if (!s) return [];
     const enabledSet = new Set(s.enabled_agents);
     return list
       .filter((a) => !enabledSet.has(a.agent_name))
@@ -142,7 +128,7 @@ const NotificationBell: Component = () => {
   };
 
   return (
-    <Show when={eligible() && disabledAgents().length > 0}>
+    <Show when={disabledAgents().length > 0}>
       <div ref={rootRef} style="position: relative;">
         <button
           class="btn btn--outline btn--sm"
