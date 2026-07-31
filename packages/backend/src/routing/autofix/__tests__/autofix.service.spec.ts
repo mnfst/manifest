@@ -2,7 +2,6 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { Agent } from '../../../entities/agent.entity';
-import { Tenant } from '../../../entities/tenant.entity';
 import type { ForwardResult } from '../../proxy/provider-client';
 import { AutofixService, type MaybeHealParams } from '../autofix.service';
 import { HealContractError, type HealingClient } from '../healing-client';
@@ -52,33 +51,14 @@ function makeAgentRepo(findOneImpl?: () => unknown): {
   return { repo: { findOne } as unknown as Repository<Agent>, findOne };
 }
 
-/**
- * Tenant repo mock for the early-access gate. Default: the tenant is explicitly
- * GRANTED (`autofix_access_granted_at` set), which unlocks Auto-fix in every
- * rollout phase — so the heal-path tests below proceed regardless of phase.
- * Override to deny, e.g. `() => ({ autofix_access_granted_at: null, autofix_waitlist_at: null })`.
- */
-function makeTenantRepo(findOneImpl?: () => unknown): {
-  repo: Repository<Tenant>;
-  findOne: jest.Mock;
-} {
-  const findOne = jest.fn(
-    findOneImpl ??
-      (() => ({ autofix_access_granted_at: '2026-01-01T00:00:00Z', autofix_waitlist_at: null })),
-  );
-  return { repo: { findOne } as unknown as Repository<Tenant>, findOne };
-}
-
 function makeService(opts: {
   client?: HealingClient;
   repo?: Repository<Agent>;
-  tenantRepo?: Repository<Tenant>;
   config?: ConfigService;
 }): AutofixService {
   return new AutofixService(
     opts.client ?? (makeHealingClient() as unknown as HealingClient),
     opts.repo ?? makeAgentRepo().repo,
-    opts.tenantRepo ?? makeTenantRepo().repo,
     opts.config ?? makeConfig(),
   );
 }
@@ -133,9 +113,6 @@ function reforwardMock(
     Promise.resolve(makeForward(body, status)),
   );
 }
-
-/** Yield to the microtask queue so fire-and-forget `.catch` handlers run. */
-const flushMicrotasks = () => new Promise((resolve) => setImmediate(resolve));
 
 // ---------------------------------------------------------------------------
 
@@ -282,153 +259,6 @@ describe('AutofixService', () => {
       expect(service.isRepairable(422)).toBe(true);
     });
   });
-
-  // -------------------------------------------------------------------------
-  // hasAccess — three-phase rollout gate (AUTOFIX_ROLLOUT)
-  // -------------------------------------------------------------------------
-  const granted = (over: Record<string, unknown> = {}) => ({
-    autofix_access_granted_at: '2026-02-01',
-    autofix_waitlist_at: null,
-    ...over,
-  });
-  const joinedOnly = () => ({ autofix_access_granted_at: null, autofix_waitlist_at: '2026-02-01' });
-  const neither = () => ({ autofix_access_granted_at: null, autofix_waitlist_at: null });
-
-  describe('hasAccess three-phase gate', () => {
-    it('everyone phase: grants any tenant with no DB read', async () => {
-      const { repo: tenantRepo, findOne } = makeTenantRepo(neither);
-      const service = makeService({
-        tenantRepo,
-        config: makeConfig({ AUTOFIX_ROLLOUT: 'everyone' }),
-      });
-      expect(await service.hasAccess('t1')).toBe(true);
-      expect(findOne).not.toHaveBeenCalled();
-    });
-
-    it('denies a null tenant (no context) in every phase', async () => {
-      const service = makeService({ config: makeConfig({ AUTOFIX_ROLLOUT: 'everyone' }) });
-      expect(await service.hasAccess(null)).toBe(false);
-    });
-
-    // Phase 1 — selected (default)
-    it('selected phase: grants a hand-picked (granted) tenant', async () => {
-      const service = makeService({ tenantRepo: makeTenantRepo(granted).repo });
-      expect(await service.hasAccess('t1')).toBe(true);
-    });
-
-    it('selected phase: denies a tenant that only joined the waitlist', async () => {
-      const service = makeService({ tenantRepo: makeTenantRepo(joinedOnly).repo });
-      expect(await service.hasAccess('t1')).toBe(false);
-    });
-
-    it('selected phase: denies a tenant with neither grant nor waitlist', async () => {
-      const service = makeService({ tenantRepo: makeTenantRepo(neither).repo });
-      expect(await service.hasAccess('t1')).toBe(false);
-    });
-
-    it('selected phase: denies an unknown tenant row', async () => {
-      const service = makeService({ tenantRepo: makeTenantRepo(() => null).repo });
-      expect(await service.hasAccess('t1')).toBe(false);
-    });
-
-    // Phase 2 — waitlist
-    it('waitlist phase: grants a tenant that joined the waitlist', async () => {
-      const service = makeService({
-        tenantRepo: makeTenantRepo(joinedOnly).repo,
-        config: makeConfig({ AUTOFIX_ROLLOUT: 'waitlist' }),
-      });
-      expect(await service.hasAccess('t1')).toBe(true);
-    });
-
-    it('waitlist phase: still grants a hand-picked tenant that never joined', async () => {
-      const service = makeService({
-        tenantRepo: makeTenantRepo(granted).repo,
-        config: makeConfig({ AUTOFIX_ROLLOUT: 'waitlist' }),
-      });
-      expect(await service.hasAccess('t1')).toBe(true);
-    });
-
-    it('waitlist phase: denies a tenant with neither', async () => {
-      const service = makeService({
-        tenantRepo: makeTenantRepo(neither).repo,
-        config: makeConfig({ AUTOFIX_ROLLOUT: 'waitlist' }),
-      });
-      expect(await service.hasAccess('t1')).toBe(false);
-    });
-
-    it('treats an unknown AUTOFIX_ROLLOUT value as the default "selected" phase', async () => {
-      // Invalid → parseRollout falls back to `selected`, so waitlist alone is denied.
-      const service = makeService({
-        tenantRepo: makeTenantRepo(joinedOnly).repo,
-        config: makeConfig({ AUTOFIX_ROLLOUT: 'bogus' }),
-      });
-      expect(await service.hasAccess('t1')).toBe(false);
-    });
-
-    it('caches the decision; invalidateAccess forces a fresh read', async () => {
-      const { repo: tenantRepo, findOne } = makeTenantRepo(granted);
-      const service = makeService({ tenantRepo });
-      expect(await service.hasAccess('t1')).toBe(true);
-      expect(await service.hasAccess('t1')).toBe(true);
-      expect(findOne).toHaveBeenCalledTimes(1);
-      service.invalidateAccess('t1');
-      expect(await service.hasAccess('t1')).toBe(true);
-      expect(findOne).toHaveBeenCalledTimes(2);
-    });
-
-    it('re-reads when the cached decision has expired', async () => {
-      const { repo: tenantRepo, findOne } = makeTenantRepo(granted);
-      const service = makeService({ tenantRepo });
-      const cache = (
-        service as unknown as { accessCache: Map<string, { value: boolean; expiresAt: number }> }
-      ).accessCache;
-      cache.set('t1', { value: false, expiresAt: Date.now() - 1 }); // already expired
-      expect(await service.hasAccess('t1')).toBe(true);
-      expect(findOne).toHaveBeenCalledTimes(1);
-    });
-
-    it('clears the access cache once it reaches the bound', async () => {
-      const service = makeService({ tenantRepo: makeTenantRepo(granted).repo });
-      const cache = (service as unknown as { accessCache: Map<string, unknown> }).accessCache;
-      for (let i = 0; i < 5000; i += 1) {
-        cache.set(`filler-${i}`, { value: true, expiresAt: Date.now() + 30_000 });
-      }
-      expect(cache.size).toBe(5000);
-      await service.hasAccess('fresh-tenant');
-      expect(cache.size).toBe(1);
-      expect(cache.has('fresh-tenant')).toBe(true);
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // maybeHeal — early-access gate (no heal for non-access tenants)
-  // -------------------------------------------------------------------------
-  describe('maybeHeal early-access gate', () => {
-    it('returns null (never calls Phoenix) when the tenant lacks access', async () => {
-      const client = makeHealingClient();
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const { repo: tenantRepo } = makeTenantRepo(neither);
-      const service = makeService({ client: client as unknown as HealingClient, repo, tenantRepo });
-
-      const result = await service.maybeHeal(makeParams({}));
-
-      expect(result).toBeNull();
-      expect(client.heal).not.toHaveBeenCalled();
-    });
-
-    it('degrades to null (does not throw) when the access check rejects', async () => {
-      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const { repo: tenantRepo } = makeTenantRepo(() => {
-        throw new Error('tenant db down');
-      });
-      // Silence the expected "autofix gate load failed" warning.
-      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
-      const service = makeService({ repo, tenantRepo });
-
-      await expect(service.maybeHeal(makeParams({}))).resolves.toBeNull();
-    });
-  });
-
   // -------------------------------------------------------------------------
   // maybeHeal — hot-path no-ops (no config load, no body read)
   // -------------------------------------------------------------------------
@@ -1394,9 +1224,7 @@ describe('AutofixService', () => {
 });
 
 describe('isActiveFor (the consent gate)', () => {
-  const DENIED = () => ({ autofix_access_granted_at: null, autofix_waitlist_at: null });
-
-  it('is active when the deployment, the tenant and the agent all allow it', async () => {
+  it('is active when the deployment and agent allow it', async () => {
     const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: true })).repo });
 
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(true);
@@ -1441,25 +1269,10 @@ describe('isActiveFor (the consent gate)', () => {
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
   });
 
-  it('is inactive when the tenant has no early access', async () => {
-    const service = makeService({ tenantRepo: makeTenantRepo(DENIED).repo });
-
-    await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
-  });
-
   it('is inactive when the agent turned Auto-fix off', async () => {
     const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: false })).repo });
 
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
-  });
-
-  it('does not read the agent when the tenant gate already denied', async () => {
-    const agent = makeAgentRepo(() => ({ autofix_enabled: true }));
-    const service = makeService({ repo: agent.repo, tenantRepo: makeTenantRepo(DENIED).repo });
-
-    await service.isActiveFor('tenant-1', 'agent-1');
-
-    expect(agent.findOne).not.toHaveBeenCalled();
   });
 
   it('rejects rather than reporting false, so callers fail closed on a DB error', async () => {

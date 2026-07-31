@@ -24,7 +24,6 @@ describe('TierController', () => {
   let autofixService: {
     invalidateConfig: jest.Mock;
     resolveEnabled: jest.Mock;
-    hasAccess: jest.Mock;
   };
   let controller: TierController;
   let recordingCache: { invalidate: jest.Mock };
@@ -50,8 +49,6 @@ describe('TierController', () => {
       invalidateConfig: jest.fn(),
       // Mirror the real resolver: explicit flag wins, NULL inherits a default.
       resolveEnabled: jest.fn((stored: boolean | null) => stored ?? false),
-      // Default: tenant has early access, so the toggle is available.
-      hasAccess: jest.fn().mockResolvedValue(true),
     };
     recordingCache = { invalidate: jest.fn() };
     controller = new TierController(
@@ -149,8 +146,8 @@ describe('TierController', () => {
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
   });
 
-  it('GET autofix returns the enabled flag and availability', async () => {
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, available: true });
+  it('GET autofix returns the enabled flag', async () => {
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false });
   });
 
   it('GET autofix resolves the mode default via the service when the flag is unset (null)', async () => {
@@ -158,21 +155,13 @@ describe('TierController', () => {
     // deployment-mode default (here stubbed to ON).
     resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
     autofixService.resolveEnabled.mockReturnValueOnce(true);
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: true, available: true });
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: true });
     expect(autofixService.resolveEnabled).toHaveBeenCalledWith(null);
-  });
-
-  it('GET autofix reports available=false for a tenant without early access', async () => {
-    resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
-    autofixService.resolveEnabled.mockReturnValueOnce(true);
-    autofixService.hasAccess.mockResolvedValueOnce(false);
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, available: false });
-    expect(autofixService.resolveEnabled).not.toHaveBeenCalled();
   });
 
   it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
-    expect(out).toEqual({ enabled: true, available: true });
+    expect(out).toEqual({ enabled: true });
     expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
     expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
@@ -180,7 +169,7 @@ describe('TierController', () => {
 
   it('PATCH autofix with an empty body is a no-op and echoes the current value', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', {});
-    expect(out).toEqual({ enabled: false, available: true });
+    expect(out).toEqual({ enabled: false });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
   });
@@ -191,20 +180,9 @@ describe('TierController', () => {
     const out = await controller.updateAutofix(ctx, 'demo', {
       enabled: null as unknown as boolean,
     });
-    expect(out).toEqual({ enabled: false, available: true });
+    expect(out).toEqual({ enabled: false });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
-  });
-
-  it('PATCH autofix does not write when the tenant lacks early access', async () => {
-    resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
-    autofixService.resolveEnabled.mockReturnValueOnce(true);
-    autofixService.hasAccess.mockResolvedValueOnce(false);
-    const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
-    expect(out).toEqual({ enabled: false, available: false });
-    expect(agentRepo.update).not.toHaveBeenCalled();
-    expect(autofixService.invalidateConfig).not.toHaveBeenCalled();
-    expect(autofixService.resolveEnabled).not.toHaveBeenCalled();
   });
 
   it('GET recording returns the per-agent opt-in flag', async () => {

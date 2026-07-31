@@ -267,7 +267,6 @@ export interface AttemptTimeseries {
 // ---------------------------------------------------------------------------
 
 export interface AutofixStatus {
-  available: boolean;
   any_enabled: boolean;
   enabled_agents: string[];
 }

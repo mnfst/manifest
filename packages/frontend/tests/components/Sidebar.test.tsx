@@ -68,24 +68,6 @@ vi.mock("../../src/components/AddAgentModal.jsx", async () => {
   };
 });
 
-// Stub the AutofixModal for the same reason.
-const mockAutofixModal = vi.fn();
-vi.mock("../../src/components/AutofixModal.jsx", async () => {
-  const { Show } = await import("solid-js");
-  return {
-    default: (props: any) => (
-      <Show
-        when={(() => {
-          mockAutofixModal(props.open);
-          return props.open;
-        })()}
-      >
-        <div data-testid="autofix-modal" />
-      </Show>
-    ),
-  };
-});
-
 import Sidebar from "../../src/components/Sidebar";
 import { refreshAgents } from "../../src/services/sse";
 

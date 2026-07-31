@@ -34,7 +34,6 @@ describe('AutofixStatsService', () => {
   const agentRepo = { find: jest.fn() };
   const messageRepo = { createQueryBuilder: jest.fn() };
   const autofix = {
-    hasAccess: jest.fn().mockResolvedValue(true),
     resolveEnabled: jest.fn((stored: boolean | null) => stored ?? true),
   };
   const requestVolume = {
@@ -51,7 +50,6 @@ describe('AutofixStatsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     messageRepo.createQueryBuilder.mockReset();
-    autofix.hasAccess.mockResolvedValue(true);
     autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? true);
     requestVolume.getDispositionTimeseries.mockResolvedValue([]);
     requestVolume.getDispositionTotals.mockResolvedValue({
@@ -70,31 +68,21 @@ describe('AutofixStatsService', () => {
     );
   });
 
-  it('returns unavailable status without a tenant or Auto-fix access', async () => {
+  it('returns an empty status without a tenant', async () => {
     await expect(service.getWorkspaceStatus(null)).resolves.toEqual({
-      available: false,
       any_enabled: false,
       enabled_agents: [],
     });
-
-    autofix.hasAccess.mockResolvedValueOnce(false);
-    await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: false,
-      any_enabled: false,
-      enabled_agents: [],
-    });
-    expect(autofix.hasAccess).toHaveBeenCalledWith('tenant');
     expect(agentRepo.find).not.toHaveBeenCalled();
   });
 
-  it('returns effectively enabled agent names for an eligible cloud workspace', async () => {
+  it('returns effectively enabled agent names for a cloud workspace', async () => {
     agentRepo.find.mockResolvedValue([
       { name: 'inherited', autofix_enabled: null },
       { name: 'disabled', autofix_enabled: false },
       { name: 'enabled', autofix_enabled: true },
     ]);
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: true,
       any_enabled: true,
       enabled_agents: ['inherited', 'enabled'],
     });
@@ -112,7 +100,6 @@ describe('AutofixStatsService', () => {
     ]);
 
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: true,
       any_enabled: true,
       enabled_agents: ['enabled'],
     });
