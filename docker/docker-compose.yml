@@ -144,6 +144,21 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-}
       - SENTRY_RELEASE=${SENTRY_RELEASE:-}
+      # Auto-fix (healing service). Two modes:
+      #   1) Bundled healer (default): AUTOFIX_HEALING_URL points at the
+      #      `healer` service below, built from healer/ in this repo.
+      #   2) External Phoenix: keep using your own instance by setting
+      #      AUTOFIX_HEALING_URL in .env — e.g.
+      #      `http://host.docker.internal:3100` for the original install,
+      #      which overrides the compose default without any YAML edit.
+      # Set AUTOFIX_HEALING_API_KEY to the healer's HEALER_API_KEY when it
+      # requires one; an empty value means the bundled healer stays open.
+      - AUTOFIX_HEALING_URL=${AUTOFIX_HEALING_URL:-http://healer:3100}
+      - AUTOFIX_HEALING_API_KEY=${AUTOFIX_HEALING_API_KEY:-}
+      - AUTOFIX_GLOBAL_ENABLED=${AUTOFIX_GLOBAL_ENABLED:-true}
+      - AUTOFIX_TIMEOUT_MS=${AUTOFIX_TIMEOUT_MS:-10000}
+      - AUTOFIX_REPAIRABLE_STATUSES=${AUTOFIX_REPAIRABLE_STATUSES:-400,404,422}
+      - AUTOFIX_REPORT_ALL_4XX=${AUTOFIX_REPORT_ALL_4XX:-false}
       # Anonymous usage telemetry (opt-out). Set MANIFEST_TELEMETRY_DISABLED=1
       # to disable, or point TELEMETRY_ENDPOINT at your own collector. See
       # https://manifest.build/docs/self-hosted#telemetry for the payload shape.
@@ -188,6 +203,49 @@ services:
     networks:
       - internal
       - frontend
+
+  # Phoenix-compatible healing service backing the backend's Auto-fix
+  # subsystem (see DOCKER_README.md "Healing service (Auto-fix)"). Built from
+  # healer/ in this repo. Reachable from the manifest service at
+  # http://healer:3100 via the internal network. Set AUTOFIX_HEALING_URL in
+  # .env to keep using an external Phoenix instead; this service is then inert.
+  healer:
+    build:
+      context: ../healer
+      dockerfile: Dockerfile
+    ports:
+      - "${HEALER_PORT:-3100}:3100"
+    environment:
+      # Optional auth: when set, /api/heal* routes require x-api-key to match.
+      # Wire it through as AUTOFIX_HEALING_API_KEY on the manifest service.
+      - HEALER_API_KEY=${HEALER_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 256m
+    pids_limit: 128
+    networks:
+      - internal
 
   postgres:
     image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416

@@ -5,6 +5,7 @@ import { CustomProvider } from '../../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { HeaderTier } from '../../entities/header-tier.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
+import { AgentKeyRotationRule } from '../../entities/agent-key-rotation-rule.entity';
 
 const TTL_MS = 120_000; // 2 minutes
 const MAX_ENTRIES = 5_000;
@@ -50,6 +51,7 @@ export class RoutingCacheService {
   private readonly specificity = new Map<string, CachedEntry<SpecificityAssignment[]>>();
   private readonly headerTiers = new Map<string, CachedEntry<HeaderTier[]>>();
   private readonly modelParams = new Map<string, CachedEntry<AgentModelParams[]>>();
+  private readonly keyRotationRules = new Map<string, CachedEntry<AgentKeyRotationRule[]>>();
 
   // External caches keyed by agentId that must be dropped alongside the routing
   // cache. Kept as plain callbacks (not DI) so dependents in other modules can
@@ -150,6 +152,18 @@ export class RoutingCacheService {
     this.modelParams.delete(agentId);
   }
 
+  getKeyRotationRules(agentId: string): AgentKeyRotationRule[] | null {
+    return getOrExpire(this.keyRotationRules, agentId) ?? null;
+  }
+
+  setKeyRotationRules(agentId: string, data: AgentKeyRotationRule[]): void {
+    setWithEviction(this.keyRotationRules, agentId, data);
+  }
+
+  invalidateKeyRotationRules(agentId: string): void {
+    this.keyRotationRules.delete(agentId);
+  }
+
   /**
    * Register a callback fired (with the agentId) on every invalidateAgent().
    * Used to keep agent-keyed caches that live in other modules — e.g.
@@ -165,6 +179,7 @@ export class RoutingCacheService {
     this.specificity.delete(agentId);
     this.headerTiers.delete(agentId);
     this.modelParams.delete(agentId);
+    this.keyRotationRules.delete(agentId);
     // Agent-scoped provider-key entries carry the agentId as the second
     // NUL-delimited segment (see providerKeysKey).
     const segment = `\u0000${agentId}\u0000`;

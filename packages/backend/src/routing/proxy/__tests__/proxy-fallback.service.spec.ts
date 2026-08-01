@@ -15,6 +15,7 @@ import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
 const specCatalog: ProviderParamSpecCatalog = [
@@ -186,6 +187,10 @@ describe('ProxyFallbackService', () => {
       modelParamsService,
       providerParamSpecs,
       reasoningCache as unknown as ReasoningContentCache,
+      {
+        getRule: jest.fn().mockResolvedValue(null),
+        list: jest.fn().mockResolvedValue([]),
+      } as unknown as KeyRotationRuleService,
     );
   });
 

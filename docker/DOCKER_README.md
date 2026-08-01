@@ -407,6 +407,14 @@ sets this automatically).
 | `SENTRY_DSN`         | No       | unset                   | Opt-in error monitoring. Sentry is not initialised unless set |
 | `MANIFEST_TELEMETRY_DISABLED` | No | `0`               | Set `1` to disable anonymous usage telemetry  |
 | `TELEMETRY_ENDPOINT` | No       | `https://telemetry.manifest.build/v1/report` | Send the usage report to your own collector instead |
+| `HEALER_PORT`        | No       | `3100`                  | Host port the bundled healing service publishes on |
+| `HEALER_API_KEY`     | No       | unset                   | Optional shared secret protecting the bundled healer's `/api/heal*` routes (require `x-api-key`) |
+| `AUTOFIX_HEALING_URL` | No      | `http://healer:3100`    | Where the backend sends heal requests. Point at an external Phoenix to bypass the bundled healer |
+| `AUTOFIX_HEALING_API_KEY` | No | unset                  | `x-api-key` sent to the healer; mirror `HEALER_API_KEY` when it is set |
+| `AUTOFIX_GLOBAL_ENABLED` | No   | `true`                  | Master switch for the Auto-fix subsystem |
+| `AUTOFIX_TIMEOUT_MS` | No       | `10000`                 | Per heal-request timeout in ms |
+| `AUTOFIX_REPAIRABLE_STATUSES` | No | `400,404,422`      | Comma-separated HTTP statuses eligible for healing |
+| `AUTOFIX_REPORT_ALL_4XX` | No   | `false`                 | Also stream evidence for all 4xx failures, not just repairable ones |
 
 `NODE_ENV` and `SEED_DATA` are deliberately fixed by the compose file and are
 not knobs here: the image is a production artifact, and the demo-data seeder
@@ -415,6 +423,61 @@ first-run setup wizard to create your admin account.
 
 Full env var reference:
 [manifest.build/docs/reference/environment-variables](https://manifest.build/docs/reference/environment-variables)
+
+## Healing service (Auto-fix)
+
+Manifest's Auto-fix subsystem detects a provider-side 4xx, has a healing
+service rewrite the offending request, and retries once. This stack ships the
+healer bundled in the repo: the `healer` service (`healer/` directory,
+"phoenix-healer") is a small, stateless Node/Express service that exposes the
+Phoenix-compatible contract — `POST /api/heal` (return a repaired request),
+`POST /api/heal/observe` (stream evidence for failures), `PATCH
+/api/heal-attempts/:id` (report whether the retry succeeded), and `GET
+/api/health`. It is built from source on `docker compose up`, holds everything
+in memory, and needs no database. The backend reaches it at
+`http://healer:3100` over the internal network.
+
+The behavior is tuned with these environment variables (defaults shown):
+
+| Variable | Default | Meaning |
+| -------- | ------- | ------- |
+| `AUTOFIX_HEALING_URL` | `http://healer:3100` | Where the backend sends heal requests |
+| `AUTOFIX_HEALING_API_KEY` | unset | `x-api-key` sent with heal requests |
+| `AUTOFIX_GLOBAL_ENABLED` | `true` | Master switch for Auto-fix; `false` disables it entirely |
+| `AUTOFIX_TIMEOUT_MS` | `10000` | Per heal-request timeout (ms) |
+| `AUTOFIX_REPAIRABLE_STATUSES` | `400,404,422` | Which statuses are eligible for healing |
+| `AUTOFIX_REPORT_ALL_4XX` | `false` | Also stream failure evidence to the healer for every 4xx, not only repairable ones |
+| `HEALER_PORT` | `3100` | Host port the bundled healer publishes on |
+| `HEALER_API_KEY` | unset | Optional shared secret for the bundled healer |
+
+### Using an external Phoenix instead
+
+The bundled healer is the default, but an existing Phoenix deployment keeps
+working with a single `.env` override — no YAML edits:
+
+```dotenv
+AUTOFIX_HEALING_URL=http://host.docker.internal:3100
+# AUTOFIX_HEALING_API_KEY=its-key   # only if that Phoenix requires one
+```
+
+Set `AUTOFIX_HEALING_API_KEY` only when the target heals; when unset, no
+`x-api-key` header is sent. The bundled `healer` service stays up but is
+simply never called.
+
+### Securing the bundled healer
+
+By default the healer accepts requests from anywhere on the stack, matching
+the original keyless service. To require authentication, set a shared secret
+and mirror it on the backend so it can still talk to it:
+
+```dotenv
+HEALER_API_KEY=change-me
+AUTOFIX_HEALING_API_KEY=change-me
+```
+
+When `HEALER_API_KEY` is set, every `/api/heal*` route demands a matching
+`x-api-key` header and answers `401` otherwise; `GET /api/health` stays open
+for the backend's boot-time health probe.
 
 ## Anonymous usage telemetry
 
