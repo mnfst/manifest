@@ -1,0 +1,46 @@
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_6df505f720e330::t_5cae058be24304 4,144
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_6df505f720e330::t_8488a224154f4f 88
+  s_6df505f720e330::t_dc32a0159cf58a 346
+  s_6df505f720e330::t_3f8ac6b8291f70 213
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_6df505f720e330::t_5cae058be24304 145,694-699,705-710
+packages/backend/src/routing/proxy/provider-client.ts
+  s_6df505f720e330::t_dc32a0159cf58a 673
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_6df505f720e330::t_fe299de4b1550b 295
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_6df505f720e330::t_cab79fc9db6c63 152
+  s_6df505f720e330::t_f3b70d6f0cda91 171-239,257,260-262,276,294
+  s_6df505f720e330::t_d1c6c79b199607 165
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_6df505f720e330::t_fea1b9e96b9a27 116,126-127,129-133,137-143,235-237
+  s_6df505f720e330::t_b6443ee681767c 238-239,246,249
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_6df505f720e330::t_cab79fc9db6c63 54,164,727,739
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_6df505f720e330::t_8488a224154f4f 2961
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_6df505f720e330::t_f3b70d6f0cda91 408,414,426,432,448,475,479,490,517,529
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_6df505f720e330::t_5cae058be24304 4,160
+.changeset/clean-reasoning-replay.md
+  s_6df505f720e330::t_76cf943003774f 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "c087aa64020606df5a7450a7ed2fcd21b86bc0b5",
+  "prompts": {},
+  "sessions": {
+    "s_6df505f720e330": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb77d-ffe7-7851-98a9-bef1d51c7b97",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

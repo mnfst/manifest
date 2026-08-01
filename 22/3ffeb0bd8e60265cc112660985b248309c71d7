@@ -1,0 +1,20 @@
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_6df505f720e330::t_d15fc4cebbfa3b 171-178,197-211
+  s_6df505f720e330::t_50d15008150f4a 212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "223ffeb0bd8e60265cc112660985b248309c71d7",
+  "prompts": {},
+  "sessions": {
+    "s_6df505f720e330": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb77d-ffe7-7851-98a9-bef1d51c7b97",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

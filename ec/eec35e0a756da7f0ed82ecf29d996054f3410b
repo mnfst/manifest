@@ -1,0 +1,28 @@
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.ts
+  s_d3650779d100bb::t_6c8d4aa98a11ae 12-21,25-34
+  s_d3650779d100bb::t_e78c3e080649a6 1-11,22-24,35-36
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.spec.ts
+  s_d3650779d100bb::t_e78c3e080649a6 1-9,11-12,18-26,32-38,49-50
+  s_d3650779d100bb::t_6c8d4aa98a11ae 10,13-17,27-31,39-48
+  s_d3650779d100bb::t_314d40af0e7625 51-52
+packages/backend/src/database/data-source-definitions.ts
+  s_d3650779d100bb::t_e78c3e080649a6 40,316
+.changeset/retire-autofix-rollout-state.md
+  s_d3650779d100bb::t_e78c3e080649a6 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "eceec35e0a756da7f0ed82ecf29d996054f3410b",
+  "prompts": {},
+  "sessions": {
+    "s_d3650779d100bb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb816-0a77-7632-b6ac-8b45892760f2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
