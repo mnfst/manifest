@@ -112,6 +112,69 @@ test('POST /api/heal without traceId returns 400', async () => {
   assert.equal(body.error, 'traceId is required');
 });
 
+// ── rotate_key on key/quota failures ────────────────────────────
+test('POST /api/heal with 429 status (no message) returns patched with rotate_key op and unchanged body', async () => {
+  const request = { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] };
+  const res = await post(`${base}/api/heal`, healBody({
+    request,
+    response: { statusCode: 429, error: { message: '' } },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.ok(
+    body.operations.some((op) => op.type === 'rotate_key'),
+    'operations contain rotate_key',
+  );
+  assert.deepEqual(body.healedBody, request, 'healedBody unchanged');
+});
+
+test('POST /api/heal with 400 + /quota/ message returns patched with rotate_key op', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    // Clean request: healBody()'s default top_p:0 would match top_p_zero
+    // (first rule wins), which is correct but not what this case targets.
+    request: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] },
+    response: { statusCode: 400, error: { message: 'You have exceeded your quota. Please check your plan.' } },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.ok(
+    body.operations.some((op) => op.type === 'rotate_key'),
+    'operations contain rotate_key',
+  );
+});
+
+test('POST /api/heal with an existing-rule message still uses that rule (rotate_key must not shadow body patches)', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    request: {
+      model: 'gpt-4o',
+      messages: [{ role: 'user', content: 'hi' }],
+      tools: [{ type: 'function', function: { name: 'f', parameters: { type: 'null' } } }],
+    },
+    response: { statusCode: 400, error: { message: 'schema must be a JSON Schema, got null' } },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.equal(body.patchId, 'patch_invalid_function_schema', 'specific rule wins');
+  assert.ok(body.operations.length > 0, 'operations present');
+  assert.ok(
+    !body.operations.some((op) => op.type === 'rotate_key'),
+    'operations do NOT contain rotate_key',
+  );
+});
+
+test('POST /api/heal with 500 status stays no_patch (out of scope)', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    response: { statusCode: 500, error: { message: 'rate limit hit on upstream' } },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'no_patch');
+  assert.match(body.issueId, /^issue_out_of_scope/);
+});
+
 // ── PATCH /api/heal-attempts/:id ───────────────────────────────
 test('PATCH /api/heal-attempts/:id roundtrips a heal attempt', async () => {
   const healRes = await post(`${base}/api/heal`, healBody());

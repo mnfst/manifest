@@ -238,16 +238,20 @@ export const MAX_KEY_ROTATION_RULES = 50;
 export class KeyRotationRuleDto {
   // `id`/`agentId` are never accepted from the client: ids are generated on
   // upsert and the resolved agent from the URL owns every rule in a PUT.
-  @IsString()
-  @IsNotEmpty()
-  model!: string;
-
-  // Optional at the DTO level: inferred from the model name when omitted,
-  // required when inference fails (validated in the service).
+  // `model` is required for `scope: 'model'` rules and NULL for provider
+  // scope (validated in the service, which knows both scopes).
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  provider?: string;
+  model?: string | null;
+
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsOptional()
+  @IsIn(['model', 'provider'])
+  scope?: 'model' | 'provider';
 
   @IsArray()
   @ArrayMinSize(1)

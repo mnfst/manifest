@@ -41,11 +41,17 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
 
   const body = { messages: [{ role: 'user', content: 'Hello' }], stream: false };
 
-  const rule = (model: string, keyOrder: string[], provider = 'openai'): KeyRotationRule => ({
+  const rule = (
+    model: string | null,
+    keyOrder: string[],
+    provider = 'openai',
+    scope: 'model' | 'provider' = 'model',
+  ): KeyRotationRule => ({
     id: `rule-${model}`,
     agentId: 'agent-1',
     model,
     provider,
+    scope,
     keyOrder,
   });
 
@@ -248,6 +254,26 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
     expect(result.success!.keyLabel).toBe('Work');
   });
 
+  it('a provider-scope rule rotates labels for any model of that provider', async () => {
+    keyRotationRules.getRule.mockResolvedValue(
+      rule(null, ['Work', 'Personal'], 'openai', 'provider'),
+    );
+    providerClient.forward.mockResolvedValueOnce(forward(401)).mockResolvedValueOnce(forward(200));
+
+    const result = await runFallbacks(
+      ['gpt-4o'],
+      [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
+      createKeyRotationState(),
+    );
+
+    // The provider rule (no model identity) applies to the bare model.
+    expect(providerClient.forward).toHaveBeenCalledTimes(2);
+    expect(result.success).not.toBeNull();
+    expect(result.success!.model).toBe('gpt-4o');
+    expect(result.success!.keyLabel).toBe('Personal');
+    expect(result.failures).toHaveLength(1);
+  });
+
   it('skips unresolvable labels (recorded as credential failures) and tries the next', async () => {
     keyRotationRules.getRule.mockResolvedValue(rule('gpt-4o', ['Dead', 'Live']));
     providerClient.forward.mockResolvedValue(forward(200));
@@ -272,8 +298,8 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
     providerClient.forward.mockResolvedValue(forward(200));
     const state = createKeyRotationState();
     // Simulate the primary flow having exhausted both labels already.
-    markKeyLabelUsed(state, 'gpt-4o', 'Work');
-    markKeyLabelUsed(state, 'gpt-4o', 'Personal');
+    markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Work');
+    markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Personal');
 
     const result = await runFallbacks(
       ['gpt-4o', 'claude-haiku-3.5'],
@@ -309,6 +335,43 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
     expect(result.failures).toHaveLength(1);
   });
 
+  it('marks recoveredByKeyRotation when the primary burned labels before this same-model slot ran', async () => {
+    keyRotationRules.getRule.mockResolvedValue(rule('gpt-4o', ['Work', 'Personal']));
+    providerClient.forward.mockResolvedValue(forward(200));
+    const state = createKeyRotationState();
+    // The primary (same model) already burned 'Work' on the credential path —
+    // this slot's FIRST *unused* label is 'Personal' (filtered index 0).
+    markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Work');
+
+    const result = await runFallbacks(
+      ['gpt-4o'],
+      [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }],
+      state,
+    );
+
+    expect(providerClient.forward).toHaveBeenCalledTimes(1);
+    expect(result.success!.keyLabel).toBe('Personal');
+    // usedLabelCount > 0 (Work burned by the primary) makes this a rotation
+    // recovery even though the slot itself tried only its first unused label.
+    expect(result.success!.recoveredByKeyRotation).toBe(true);
+  });
+
+  it('does not mark recoveredByKeyRotation for a different-model slot that rotates', async () => {
+    keyRotationRules.getRule.mockResolvedValue(
+      rule('claude-haiku-3.5', ['Work', 'Personal'], 'anthropic'),
+    );
+    providerClient.forward.mockResolvedValueOnce(forward(401)).mockResolvedValueOnce(forward(200));
+
+    const result = await runFallbacks(
+      ['claude-haiku-3.5'],
+      [{ provider: 'anthropic', authType: 'api_key', model: 'claude-haiku-3.5' }],
+      createKeyRotationState(),
+    );
+
+    expect(result.success!.keyLabel).toBe('Personal');
+    expect(result.success!.recoveredByKeyRotation).toBe(false);
+  });
+
   describe('nextUnusedKeyLabel', () => {
     it('returns the first label when nothing is used yet', () => {
       const state = createKeyRotationState();
@@ -319,7 +382,7 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
 
     it('skips used labels in order', () => {
       const state = createKeyRotationState();
-      markKeyLabelUsed(state, 'gpt-4o', 'Work');
+      markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Work');
       expect(nextUnusedKeyLabel(rule('gpt-4o', ['Work', 'Personal']), state, 'gpt-4o')).toBe(
         'Personal',
       );
@@ -327,11 +390,29 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
 
     it('returns undefined when the order is exhausted', () => {
       const state = createKeyRotationState();
-      markKeyLabelUsed(state, 'gpt-4o', 'Work');
-      markKeyLabelUsed(state, 'gpt-4o', 'Personal');
+      markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Work');
+      markKeyLabelUsed(state, rule('gpt-4o', ['Work', 'Personal']), 'gpt-4o', 'Personal');
       expect(nextUnusedKeyLabel(rule('gpt-4o', ['Work', 'Personal']), state, 'gpt-4o')).toBe(
         undefined,
       );
+    });
+
+    it('provider-scope rules share state across models (failed label not retried)', () => {
+      const providerRule = rule(null, ['Work', 'Personal'], 'openai', 'provider');
+      const state = createKeyRotationState();
+      // Model X hard-failed on 'Work' under the provider rule…
+      markKeyLabelUsed(state, providerRule, 'gpt-4o', 'Work');
+      // …so model Y of the same provider must NOT re-try 'Work'.
+      expect(nextUnusedKeyLabel(providerRule, state, 'claude-sonnet-4-5')).toBe('Personal');
+    });
+
+    it('model-scope rules keep per-model state', () => {
+      const modelRule = rule('gpt-4o', ['Work', 'Personal']);
+      const state = createKeyRotationState();
+      markKeyLabelUsed(state, modelRule, 'gpt-4o', 'Work');
+      // A different model under a DIFFERENT model rule starts fresh.
+      const otherRule = rule('claude-sonnet-4-5', ['Work', 'Personal'], 'anthropic');
+      expect(nextUnusedKeyLabel(otherRule, state, 'claude-sonnet-4-5')).toBe('Work');
     });
   });
 });

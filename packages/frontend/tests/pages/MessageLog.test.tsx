@@ -749,6 +749,7 @@ describe('MessageLog', () => {
     const triggerSelect = selectWithOption(container, 'All attempts');
     expect(triggerSelect.textContent).toContain('With any recovery attempt');
     expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With a key rotation attempt');
     expect(triggerSelect.textContent).toContain('With a fallback attempt');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
 
@@ -761,15 +762,15 @@ describe('MessageLog', () => {
     });
     expect(mockSetSearchParams).toHaveBeenCalledWith({ trigger: 'fallback' }, { replace: true });
 
-    // 'With any recovery attempt' folds both kinds on the wire, so it matches
-    // exactly what the recovered-requests deep links send.
+    // 'With any recovery attempt' folds all three kinds on the wire, so it
+    // matches exactly what the recovered-requests deep links send.
     mockGetMessages.mockClear();
     await fireEvent.change(selectWithOption(container, 'All attempts'), {
       target: { value: 'any' },
     });
     await vi.waitFor(() => {
       expect(mockGetMessages).toHaveBeenCalledWith(
-        expect.objectContaining({ trigger: 'autofix,fallback' }),
+        expect.objectContaining({ trigger: 'autofix,key_rotation,fallback' }),
       );
     });
   });

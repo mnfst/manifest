@@ -55,6 +55,14 @@ export class ManifestRequest {
   @Column('varchar', { nullable: true })
   autofix_status!: AutofixStatus | null;
 
+  /**
+   * True when this request SUCCEEDED after a same-model key-rotation retry
+   * (key A failed, key B succeeded) and was not recovered by Auto-fix. The
+   * "Recovered by key rotation" outcome category (docs/glossary.md).
+   */
+  @Column('boolean', { default: false })
+  recovered_by_key_rotation!: boolean;
+
   @Column('varchar', { nullable: true })
   error_message!: string | null;
 

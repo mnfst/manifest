@@ -3032,6 +3032,7 @@ describe('ProxyService — orchestration', () => {
       agentId: 'agent-1',
       model: 'gpt-4o',
       provider: 'openai',
+      scope: 'model',
       keyOrder: ['Work', 'Personal'],
       ...overrides,
     });
@@ -3126,6 +3127,20 @@ describe('ProxyService — orchestration', () => {
       expect(result.forward.response.status).toBe(200);
     });
 
+    it('a provider-scope rule drives the primary key when no model rule exists', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule({ model: null, scope: 'provider' }));
+      labelAwareKeys();
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // The provider rule (no model identity) still fully controls the key.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.provider_key_label).toBe('Work');
+    });
+
     it('exhausted rules advance to the fallback chain with shared rotation state', async () => {
       keyRotationRules.getRule.mockResolvedValue(rotationRule());
       labelAwareKeys();
@@ -3150,7 +3165,7 @@ describe('ProxyService — orchestration', () => {
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
       expect(fallbackService.tryFallbacks).toHaveBeenCalledTimes(1);
       const state = fallbackService.tryFallbacks.mock.calls[0][19] as Map<string, Set<string>>;
-      expect([...(state.get('gpt-4o') ?? [])].sort()).toEqual(['Personal', 'Work']);
+      expect([...(state.get('model:gpt-4o') ?? [])].sort()).toEqual(['Personal', 'Work']);
       expect(primaryAttempt.completeFailure).toHaveBeenCalledWith(
         expect.objectContaining({ status: 401, superseded: true }),
       );
@@ -3294,7 +3309,7 @@ describe('ProxyService — orchestration', () => {
       // The per-request state rides along: the fallback chain can apply the
       // rule to its own slots and never re-tries the burned 'Work' label.
       const state = fallbackService.tryFallbacks.mock.calls[0][19] as Map<string, Set<string>>;
-      expect([...(state.get('gpt-4o') ?? [])]).toEqual(['Work']);
+      expect([...(state.get('model:gpt-4o') ?? [])]).toEqual(['Work']);
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
     });
   });

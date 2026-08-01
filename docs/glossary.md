@@ -85,14 +85,15 @@ Each Request belongs to exactly one outcome category, evaluated in this order:
 2. **Cancelled:** `requests.status = 'cancelled'`.
 3. **Failed:** `requests.status = 'failed'`.
 4. **Recovered by Auto-fix:** `requests.status = 'success'` and `requests.autofix_status = 'retry_succeeded'`.
-5. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `agent_messages.fallback_from_model`, and the Request was not recovered by Auto-fix.
-6. **Success:** any other Request with `requests.status = 'success'`.
+5. **Recovered by key rotation:** `requests.status = 'success'`, `requests.recovered_by_key_rotation = true`, and the Request was not recovered by Auto-fix. The same model failed on one provider key and succeeded on a later key from the harness's key-order rule.
+6. **Recovered by fallback:** `requests.status = 'success'`, the Last Attempt has a non-null `agent_messages.fallback_from_model`, and the Request was not recovered by Auto-fix or by key rotation.
+7. **Success:** any other Request with `requests.status = 'success'`.
 
-The ordering makes Auto-fix the tie-breaker if inconsistent or historical data satisfies both recovery criteria. If an Auto-fix retry fails and a fallback succeeds, the Request is recovered by fallback because `requests.autofix_status` is not `retry_succeeded`.
+The ordering makes Auto-fix the first tie-breaker if inconsistent or historical data satisfies both recovery criteria. Key rotation outranks fallback because rotation retries the **same model** while fallback switches to a different model: if rotation is exhausted and a fallback succeeds, the Request is recovered by fallback because `requests.recovered_by_key_rotation` stays false and `fallback_from_model` is set. If an Auto-fix retry fails and a key rotation succeeds, the Request is recovered by key rotation.
 
 ### Recovery attempt
 
-A recovery attempt is a recovery method Manifest tried during a Request, whether or not it succeeded. The Requests table lists them in its "Recovery attempts" column and filter. Auto-fix and fallback fields on Attempts describe what happened in the chain; they do not replace the Request status or recovery category.
+A recovery attempt is a recovery method Manifest tried during a Request, whether or not it succeeded. The Requests table lists them in its "Recovery attempts" column and filter. Auto-fix, key rotation, and fallback fields on Attempts describe what happened in the chain; they do not replace the Request status or recovery category.
 
 ### AI Provider and Provider Connection
 
@@ -113,6 +114,7 @@ An Attempt identifies the Connection it used through `agent_messages.tenant_prov
 | End-to-end duration             | `requests.duration_ms`                                                                 |
 | Model requested by the agent    | `requests.requested_model`                                                             |
 | Auto-fix outcome                | `requests.autofix_status`                                                              |
+| Key-rotation outcome            | `requests.recovered_by_key_rotation`                                                    |
 | Attempt identity and parent     | `agent_messages.id`, `agent_messages.request_id`                                       |
 | Attempt order                   | `agent_messages.attempt_number`                                                        |
 | Attempt status                  | `agent_messages.status` and the `agent_messages.error_*` columns                       |
@@ -162,6 +164,7 @@ Only `retry_succeeded` means the Request was recovered by Auto-fix.
 | Manifest rejects before contacting a Provider  |                1 |                0 | `failed`       | None                          | None     |
 | Primary Attempt fails, fallback succeeds       |                1 |                2 | `success`      | `failed`, `success`           | Fallback |
 | Primary Attempt fails, Auto-fix retry succeeds |                1 |                2 | `success`      | `failed`, `success`           | Auto-fix |
+| Key A fails, same model key B succeeds         |                1 |                2 | `success`      | `failed`, `success`           | Key rotation |
 | Auto-fix retry fails, fallback succeeds        |                1 |                3 | `success`      | `failed`, `failed`, `success` | Fallback |
 | Every Provider Attempt fails                   |                1 |                N | `failed`       | `failed` × N                  | None     |
 

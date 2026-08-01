@@ -860,6 +860,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        recoveredByKeyRotation: meta.recoveredByKeyRotation,
       }),
       'fallback success',
     );
@@ -886,6 +887,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        recoveredByKeyRotation: meta.recoveredByKeyRotation,
       }),
       'success message',
     );

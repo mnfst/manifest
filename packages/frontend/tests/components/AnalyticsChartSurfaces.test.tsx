@@ -397,7 +397,7 @@ describe('analytics chart surface components', () => {
     );
     fireEvent.click(screen.getByText('Recovered requests').closest('.overview-stat-card')!);
     expect(routerNavigate).toHaveBeenCalledWith(
-      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback',
+      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,key_rotation,fallback',
     );
 
     const failedCard = screen.getByText('Failed requests').closest('.overview-stat-card')!;

@@ -34,6 +34,12 @@ export interface MessageRow {
   feedback_rating?: string | null;
   autofix_applied?: boolean;
   autofix_role?: string | null;
+  /**
+   * Request-level marker: the request SUCCEEDED after a same-model key-rotation
+   * retry (key A failed, key B succeeded) and was not recovered by Auto-fix.
+   * Ranks after Auto-fix and before fallback in the recovery category order.
+   */
+  recovered_by_key_rotation?: boolean;
   attempt_count?: number;
 }
 

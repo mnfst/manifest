@@ -283,6 +283,132 @@
   margin-top: var(--gap-xl);
 }
 
+/* ── Tiered layout (provider rules + model overrides) ── */
+.key-order-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.key-order-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.key-order-tier__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.key-order-tier__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+}
+
+.key-order-tier__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.key-order-tier__hint {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+}
+
+.key-order-tier__empty {
+  padding: 20px 24px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Scope selector in the create/edit modal ───────── */
+.key-order-modal__scope {
+  border: none;
+  padding: 0;
+  /* The Provider field label after it is the modal's first <label>, which the
+     shared .modal-card__field-label:first-of-type rule zeroes — this margin
+     keeps the scope control from sitting flush against it. */
+  margin: 0 0 10px;
+}
+
+.key-order-modal__scope legend {
+  padding: 0;
+}
+
+.key-order-modal__scope-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.key-order-modal__scope-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.key-order-modal__scope-option:hover:not(:has(input:disabled)) {
+  border-color: hsl(var(--ring) / 0.6);
+}
+
+.key-order-modal__scope-option.is-selected {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+
+.key-order-modal__scope-option:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.key-order-modal__scope-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.key-order-modal__scope-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.key-order-modal__scope-desc {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
 /* ── Loading skeleton ───────────────────────────── */
 .key-order-skeleton {
   display: flex;

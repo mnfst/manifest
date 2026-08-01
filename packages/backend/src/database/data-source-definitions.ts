@@ -158,6 +158,8 @@ import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-A
 import { AddRequestsAndProviderAttempts1801000000000 } from './migrations/1801000000000-AddRequestsAndProviderAttempts';
 import { AddProviderAttemptOrdering1801100000000 } from './migrations/1801100000000-AddProviderAttemptOrdering';
 import { AddAgentKeyRotationRules1801700000000 } from './migrations/1801700000000-AddAgentKeyRotationRules';
+import { AddKeyRuleScope1801800000000 } from './migrations/1801800000000-AddKeyRuleScope';
+import { AddRequestRecoveredByKeyRotation1801810000000 } from './migrations/1801810000000-AddRequestRecoveredByKeyRotation';
 
 export const entities = [
   AgentMessage,
@@ -312,6 +314,8 @@ export const migrations = [
   AddProviderAttemptOrdering1801100000000,
   ExtendDashboardCoveringIndex1801200000000,
   AddAgentKeyRotationRules1801700000000,
+  AddKeyRuleScope1801800000000,
+  AddRequestRecoveredByKeyRotation1801810000000,
 
   AddTenantRequestUsage1801300000000,
   AddRequestRecordings1801300000000,

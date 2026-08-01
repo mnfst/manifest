@@ -20,7 +20,7 @@ import MultiSelect, { type MultiSelectOption } from '../components/MultiSelect.j
 import { getProviders as getProviderConnections } from '../services/api/providers.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
-import { AutofixIcon, FallbackIcon } from '../components/message-table-cells.jsx';
+import { AutofixIcon, FallbackIcon, KeyRotationIcon } from '../components/message-table-cells.jsx';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatform, agentCategory } from '../services/agent-platform-store.js';
 import {
@@ -71,7 +71,7 @@ const HEADER_TIER_FILTER_PREFIX = 'header:';
 const MESSAGE_STATUS_FILTERS = ['ok', 'failed'] as const;
 type MessageStatusFilter = (typeof MESSAGE_STATUS_FILTERS)[number];
 type MessageStatusFilterValue = '' | MessageStatusFilter;
-const MESSAGE_TRIGGER_FILTERS = ['none', 'fallback', 'autofix'] as const;
+const MESSAGE_TRIGGER_FILTERS = ['none', 'fallback', 'key_rotation', 'autofix'] as const;
 type MessageTriggerFilter = (typeof MESSAGE_TRIGGER_FILTERS)[number];
 
 const isMessageStatusFilter = (value: unknown): value is MessageStatusFilter =>
@@ -99,7 +99,8 @@ const normalizeTriggerFilters = (value: unknown): MessageTriggerFilter[] =>
   typeof value === 'string' ? value.split(',').filter(isMessageTriggerFilter) : [];
 
 /** The recovery select's states: default, any kind, one kind, or none at all. */
-const TRIGGER_CHOICES = ['any', 'autofix', 'fallback', 'none'] as const;
+const RECOVERY_KINDS = ['autofix', 'key_rotation', 'fallback'] as const;
+const TRIGGER_CHOICES = ['any', 'autofix', 'key_rotation', 'fallback', 'none'] as const;
 type TriggerChoice = '' | (typeof TRIGGER_CHOICES)[number];
 
 const isTriggerChoice = (value: unknown): value is TriggerChoice =>
@@ -230,17 +231,17 @@ const MessageLog: Component = () => {
     );
   });
   // A plain select over the useful recovery readings. The wire stays a comma
-  // list (?trigger=autofix,fallback), so 'any' folds both kinds and existing
-  // deep links keep working.
+  // list (?trigger=autofix,key_rotation,fallback), so 'any' folds all three
+  // kinds and existing deep links keep working.
   const triggerListToChoice = (list: MessageTriggerFilter[]): TriggerChoice => {
-    if (list.includes('autofix') && list.includes('fallback')) return 'any';
-    if (list.includes('autofix')) return 'autofix';
-    if (list.includes('fallback')) return 'fallback';
     if (list.includes('none')) return 'none';
+    const kinds = RECOVERY_KINDS.filter((k) => list.includes(k));
+    if (kinds.length === 1) return kinds[0] ?? '';
+    if (kinds.length > 1) return 'any';
     return '';
   };
   const triggerChoiceToParam = (choice: TriggerChoice): string | undefined => {
-    if (choice === 'any') return 'autofix,fallback';
+    if (choice === 'any') return RECOVERY_KINDS.join(',');
     return choice || undefined;
   };
   const [triggerFilter, setTriggerFilter] = createSignal<TriggerChoice>(
@@ -629,6 +630,8 @@ const MessageLog: Component = () => {
         <span class="recovery-opt-icon" aria-hidden="true">
           <AutofixIcon />
           <span class="recovery-opt-icon__plus">+</span>
+          <KeyRotationIcon />
+          <span class="recovery-opt-icon__plus">+</span>
           <FallbackIcon />
         </span>
       ),
@@ -639,6 +642,15 @@ const MessageLog: Component = () => {
       icon: (
         <span class="recovery-opt-icon" aria-hidden="true">
           <AutofixIcon />
+        </span>
+      ),
+    },
+    {
+      label: 'With a key rotation attempt',
+      value: 'key_rotation',
+      icon: (
+        <span class="recovery-opt-icon" aria-hidden="true">
+          <KeyRotationIcon />
         </span>
       ),
     },

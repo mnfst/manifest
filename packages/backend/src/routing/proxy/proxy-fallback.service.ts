@@ -6,7 +6,12 @@ import { applyRequestParamDefaults } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
-import { KeyRotationState, markKeyLabelUsed, usedLabelCount } from './key-rotation';
+import {
+  KeyRotationState,
+  keyRotationStateKey,
+  markKeyLabelUsed,
+  usedLabelCount,
+} from './key-rotation';
 
 /**
  * Context for the per-attempt param-defaults merge. Carries the agentId so
@@ -216,6 +221,8 @@ export class ProxyFallbackService {
       authType?: AuthType;
       keyLabel?: string;
       tenantProviderId: string | null;
+      /** True when the winning attempt was a same-model key-rotation retry. */
+      recoveredByKeyRotation?: boolean;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -276,14 +283,18 @@ export class ProxyFallbackService {
       // advances to the next label without consuming an extra chain slot.
       // Exhausted rules count the model as failed and the chain advances.
       const state = keyRotationState;
-      const rule = state ? await this.keyRotationRules.getRule(model, agentId) : null;
+      // Provider passed explicitly so provider-scope rules resolve for bare
+      // model ids that carry no prefix.
+      const rule = state ? await this.keyRotationRules.getRule(model, agentId, provider) : null;
       // `applyRule` implies both `state` and `rule` are non-null below.
       const applyRule =
         state !== undefined &&
         rule !== null &&
         rule.provider.toLowerCase() === provider.toLowerCase();
       const labels = applyRule
-        ? rule!.keyOrder.filter((label) => !state!.get(model.toLowerCase())?.has(label))
+        ? rule!.keyOrder.filter(
+            (label) => !state!.get(keyRotationStateKey(rule!, model))?.has(label),
+          )
         : [route?.keyLabel ?? undefined];
       if (applyRule && labels.length === 0) {
         this.logger.debug(
@@ -293,12 +304,12 @@ export class ProxyFallbackService {
       }
 
       let breakChain = false;
-      for (const label of labels) {
+      for (const [labelIndex, label] of labels.entries()) {
         if (applyRule) {
-          markKeyLabelUsed(state!, model, label);
+          markKeyLabelUsed(state!, rule!, model, label);
           this.logger.debug(
             `Fallback ${i}: key rotation model=${model} label=${label} ` +
-              `(${usedLabelCount(state!, model)}/${rule!.keyOrder.length}, primary=${primaryModel})`,
+              `(${usedLabelCount(state!, rule!, model)}/${rule!.keyOrder.length}, primary=${primaryModel})`,
           );
         }
         let providerKeyLabel = label;
@@ -380,6 +391,16 @@ export class ProxyFallbackService {
                 ? (credentials.keyLabel ?? providerKeyLabel)
                 : providerKeyLabel,
               tenantProviderId,
+              // "Recovered by key rotation": the winning label was NOT the
+              // slot's first label (an earlier key for this model failed) —
+              // either a later index in this slot's filtered list, or labels
+              // already burned by the primary path before this slot ran —
+              // AND the winning model is the SAME model that failed; a
+              // different-model chain recovery stays "Recovered by fallback".
+              recoveredByKeyRotation:
+                applyRule &&
+                (usedLabelCount(state!, rule!, model) > 0 || labelIndex > 0) &&
+                model.toLowerCase() === primaryModel.toLowerCase(),
             },
             failures,
           };

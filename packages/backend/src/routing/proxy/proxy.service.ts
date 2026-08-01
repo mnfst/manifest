@@ -78,6 +78,7 @@ import {
   SUBSCRIPTION_MODEL_SUFFIX,
 } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
+import type { ReforwardOptions } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
 import { recordingResponseFromText } from './attempt-recording-capture';
 
@@ -170,6 +171,12 @@ export interface RoutingMeta {
   autofixOriginalAttempt?: ProviderAttemptRef;
   /** Whether the pre-Auto-fix original actually invoked provider transport. */
   autofixOriginalProviderCallStarted?: boolean;
+  /**
+   * True when the winning attempt was a SAME-model key-rotation retry (key A
+   * failed, key B succeeded). Stamped on the requests row as
+   * `recovered_by_key_rotation` unless the request was recovered by Auto-fix.
+   */
+  recoveredByKeyRotation?: boolean;
 }
 
 export interface ProxyResult {
@@ -311,7 +318,11 @@ export class ProxyService {
     // controls the primary key choice — the first unused label wins over the
     // route's pinned keyLabel.
     const keyRotationState = createKeyRotationState();
-    const primaryKeyRotationRule = await this.keyRotationRules.getRule(primaryModel, agentId);
+    const primaryKeyRotationRule = await this.keyRotationRules.getRule(
+      primaryModel,
+      agentId,
+      route.provider,
+    );
     const ruleControlsPrimary =
       primaryKeyRotationRule !== null &&
       primaryKeyRotationRule.provider.toLowerCase() === route.provider.toLowerCase();
@@ -325,7 +336,7 @@ export class ProxyService {
       provider_key_label: primaryKeyLabel,
     });
     if (ruleControlsPrimary) {
-      markKeyLabelUsed(keyRotationState, primaryModel, primaryKeyLabel);
+      markKeyLabelUsed(keyRotationState, primaryKeyRotationRule!, primaryModel, primaryKeyLabel);
     }
     // The connection/label that served the PRIMARY attempt, updated when key
     // rotation takes over (the winning rotated attempt's row, not the
@@ -335,6 +346,10 @@ export class ProxyService {
     let effectivePrimaryKeyLabel = credentials.ok
       ? (credentials.keyLabel ?? route.keyLabel ?? undefined)
       : undefined;
+    // Set when a SAME-model key-rotation retry produced the winning attempt —
+    // surfaced to the recorder so the request is categorized "Recovered by
+    // key rotation" (docs/glossary.md), unless Auto-fix recovered it first.
+    let recoveredByKeyRotation = false;
 
     this.logger.log(
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
@@ -456,12 +471,14 @@ export class ProxyService {
           if (currentForward.response.ok) {
             effectivePrimaryCredentials = rotation.credentials!;
             effectivePrimaryKeyLabel = rotation.keyLabel!;
+            recoveredByKeyRotation = true;
             return {
               forward: currentForward,
               meta: this.buildBaseMeta(resolved, primaryModel, {
                 request_params: primaryRequestParams,
                 tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
                 ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+                recoveredByKeyRotation: true,
                 attempt: currentForward.attempt,
                 providerCallStarted: currentForward.providerCallStarted,
               }),
@@ -567,37 +584,43 @@ export class ProxyService {
             authType: route.authType,
             apiMode: autofixApiMode,
             requestBody: wireRequestBody,
-            reforward: (healedBody) =>
-              this.reforwardHealed(healedBody, forward, {
-                agentId,
-                tenantId,
-                apiMode: autofixApiMode,
-                sessionKey,
-                providerCacheKey,
-                sessionMomentumKey,
-                signal,
-                stream,
-                specificityOverride,
-                headers,
-                provider: route.provider,
-                apiKey: credentials.apiKey,
-                rawApiKey: credentials.rawApiKey,
-                model: primaryModel,
-                // Use the resolved (unpinned-subscription-pinned) label so the
-                // healed-retry row stamps the same connection its
-                // tenant_provider_id points at — otherwise a null/blank label
-                // rides next to the selected connection id (the divergence the
-                // primary forward already avoids).
-                keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
-                authType: route.authType,
-                resourceUrl: credentials.resourceUrl,
-                providerRegion: credentials.providerRegion,
-                paramMergeContext,
-                signatureLookup,
-                thinkingLookup,
-                tenantProviderId: credentials.tenantProviderId,
-                startProviderAttempt,
-              }),
+            keyRotationState,
+            reforward: (healedBody, reforwardOpts) =>
+              this.reforwardHealed(
+                healedBody,
+                forward,
+                {
+                  agentId,
+                  tenantId,
+                  apiMode: autofixApiMode,
+                  sessionKey,
+                  providerCacheKey,
+                  sessionMomentumKey,
+                  signal,
+                  stream,
+                  specificityOverride,
+                  headers,
+                  provider: route.provider,
+                  apiKey: credentials.apiKey,
+                  rawApiKey: credentials.rawApiKey,
+                  model: primaryModel,
+                  // Use the resolved (unpinned-subscription-pinned) label so the
+                  // healed-retry row stamps the same connection its
+                  // tenant_provider_id points at — otherwise a null/blank label
+                  // rides next to the selected connection id (the divergence the
+                  // primary forward already avoids).
+                  keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+                  authType: route.authType,
+                  resourceUrl: credentials.resourceUrl,
+                  providerRegion: credentials.providerRegion,
+                  paramMergeContext,
+                  signatureLookup,
+                  thinkingLookup,
+                  tenantProviderId: credentials.tenantProviderId,
+                  startProviderAttempt,
+                },
+                reforwardOpts,
+              ),
           })
         : null;
     const autofixRecord = autofixAttempt?.record;
@@ -636,6 +659,7 @@ export class ProxyService {
           if (forward.response.ok) {
             effectivePrimaryCredentials = rotation.credentials!;
             effectivePrimaryKeyLabel = rotation.keyLabel!;
+            recoveredByKeyRotation = true;
           }
         }
       }
@@ -718,6 +742,7 @@ export class ProxyService {
             request_params: primaryRequestParams,
             tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
             ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+            ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
             attempt: forward.attempt,
             providerCallStarted: forward.providerCallStarted,
             autofixOriginalAttempt,
@@ -797,6 +822,7 @@ export class ProxyService {
           request_params: primaryRequestParams,
           tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
           ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+          ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
           attempt: forward.attempt,
           providerCallStarted: forward.providerCallStarted,
           autofixOriginalAttempt,
@@ -814,6 +840,7 @@ export class ProxyService {
         request_params: primaryRequestParams,
         tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
         ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+        ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
         attempt: forward.attempt,
         providerCallStarted: forward.providerCallStarted,
         autofixOriginalAttempt,
@@ -853,7 +880,13 @@ export class ProxyService {
     healedBody: Record<string, unknown>,
     originalForward: ForwardResult,
     ctx: HealedReforwardContext,
+    reforwardOpts?: ReforwardOptions,
   ): Promise<ForwardResult> {
+    // rotate_key heal operation: retry the healed body with the NEXT key per
+    // the harness's rule instead of the key that already failed.
+    if (reforwardOpts?.keyRotationLabel) {
+      return this.forwardHealedWithRotatedKey(healedBody, originalForward, ctx, reforwardOpts);
+    }
     const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
     if (healedModel && healedModel !== originalModel) {
@@ -865,6 +898,63 @@ export class ProxyService {
       signal: ctx.signal,
       authType: ctx.authType,
       tenantProviderId: ctx.tenantProviderId,
+      startProviderAttempt: ctx.startProviderAttempt,
+    });
+  }
+
+  /**
+   * Retry a healed body with a NEW key label (the `rotate_key` heal
+   * operation). The label was already marked used in the request's shared
+   * KeyRotationState by AutofixService, so a failed rotated retry is never
+   * re-tried by the fallback loop that runs next. A label that no longer
+   * resolves to a connection degrades to the normal same-key reforward.
+   */
+  private async forwardHealedWithRotatedKey(
+    healedBody: Record<string, unknown>,
+    originalForward: ForwardResult,
+    ctx: HealedReforwardContext,
+    reforwardOpts: ReforwardOptions,
+  ): Promise<ForwardResult> {
+    const label = reforwardOpts.keyRotationLabel!;
+    this.logger.log(
+      `autofix rotate_key: model=${ctx.model} provider=${ctx.provider} label=${label}`,
+    );
+    const credentials = await this.resolveCredentials(ctx.agentId, ctx.tenantId, {
+      provider: ctx.provider,
+      auth_type: ctx.authType,
+      provider_key_label: label,
+    });
+    if (!credentials.ok) {
+      this.logger.warn(
+        `autofix rotate_key: label=${label} unusable for provider=${ctx.provider} ` +
+          `reason=${credentials.reason} — degrading to same-key retry`,
+      );
+      return this.reforwardHealed(healedBody, originalForward, ctx);
+    }
+
+    const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
+    return this.fallbackService.tryForwardToProvider({
+      provider: ctx.provider,
+      apiKey: credentials.apiKey,
+      model: ctx.model,
+      body: healedBody,
+      resolveChatBody,
+      stream: ctx.stream,
+      sessionKey: ctx.sessionKey,
+      providerCacheKey: ctx.providerCacheKey,
+      signal: ctx.signal,
+      agentId: ctx.agentId,
+      tenantId: ctx.tenantId,
+      rawApiKey: credentials.rawApiKey,
+      providerKeyLabel: label,
+      authType: ctx.authType,
+      apiMode: ctx.apiMode,
+      resourceUrl: credentials.resourceUrl,
+      providerRegion: credentials.providerRegion,
+      signatureLookup: ctx.signatureLookup,
+      thinkingLookup: ctx.thinkingLookup,
+      paramMergeContext: ctx.paramMergeContext,
+      tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
     });
   }
@@ -1302,10 +1392,10 @@ export class ProxyService {
     for (;;) {
       const label = nextUnusedKeyLabel(rule, state, model);
       if (!label) break;
-      markKeyLabelUsed(state, model, label);
+      markKeyLabelUsed(state, rule, model, label);
       this.logger.debug(
         `Primary key rotation: model=${model} label=${label} ` +
-          `(${usedLabelCount(state, model)}/${rule.keyOrder.length} provider=${provider})`,
+          `(${usedLabelCount(state, rule, model)}/${rule.keyOrder.length} provider=${provider})`,
       );
 
       const credentials = await this.resolveCredentials(agentId, tenantId, {
@@ -1575,6 +1665,7 @@ export class ProxyService {
           provider_key_label: success.keyLabel,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
+          recoveredByKeyRotation: success.recoveredByKeyRotation === true,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
           primaryProvider,

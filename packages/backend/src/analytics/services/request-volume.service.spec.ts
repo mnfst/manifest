@@ -42,6 +42,7 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain("t.request_status IN ('ok', 'success')");
     expect(sql).toContain("t.autofix_status = 'retry_succeeded' THEN 'healed'");
     expect(sql).toContain('r.autofix_status');
+    expect(sql).toContain("t.recovered_by_key_rotation THEN 'key_rotation'");
     expect(sql).toContain("t.fallback_from_model IS NOT NULL THEN 'fallback'");
     expect(sql).toContain("THEN 'success'");
     expect(sql).toContain("ELSE 'error'");
@@ -80,11 +81,27 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
 
   it('computes per-dimension request totals with terminal outcomes', async () => {
     messageRepo.query.mockResolvedValue([
-      { key: 'openai', requests: '10', failed: '2', succeeded: '8', healed: '1', fallback: '2' },
+      {
+        key: 'openai',
+        requests: '10',
+        failed: '2',
+        succeeded: '8',
+        healed: '1',
+        key_rotation: '3',
+        fallback: '2',
+      },
     ]);
     const rows = await service.getVolumeByDimension('provider', { tenantId: 't1', range: '7d' });
     expect(rows).toEqual([
-      { key: 'openai', requests: 10, failed: 2, succeeded: 8, healed: 1, fallback: 2 },
+      {
+        key: 'openai',
+        requests: 10,
+        failed: 2,
+        succeeded: 8,
+        healed: 1,
+        keyRotation: 3,
+        fallback: 2,
+      },
     ]);
     const sql = lastSql();
     // The trio fold: custom:<uuid> providers group as 'custom'.
@@ -92,6 +109,9 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain("t.request_status NOT IN ('pending', 'cancelled', 'ok', 'success')");
     // Zero-attempt failures remain visible and are attributed to Manifest.
     expect(sql).toContain("COALESCE(t.provider, 'manifest')");
+    // Recovered by key rotation counts its own dimension column.
+    expect(sql).toContain('FILTER (WHERE CASE');
+    expect(sql).toContain("= 'key_rotation')::int AS key_rotation");
   });
 
   it('scopes to one connection by terminal attribution', async () => {
@@ -123,8 +143,9 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     messageRepo.query.mockResolvedValue([
       { dim: 'success', count: 70 },
       { dim: 'healed', count: 4 },
+      { dim: 'key_rotation', count: 5 },
       { dim: 'fallback', count: 6 },
-      { dim: 'error', count: 20 },
+      { dim: 'error', count: 15 },
     ]);
     const totals = await service.getDispositionTotals({
       tenantId: 't1',
@@ -132,7 +153,14 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
       to: '2026-01-08',
       agentName: 'demo',
     });
-    expect(totals).toEqual({ total: 100, success: 70, healed: 4, fallback: 6, error: 20 });
+    expect(totals).toEqual({
+      total: 100,
+      success: 70,
+      healed: 4,
+      keyRotation: 5,
+      fallback: 6,
+      error: 15,
+    });
     const sql = lastSql();
     // Bounded window + agent scope shift the parameter positions.
     expect(sql).toContain('AND r.timestamp < $3');
@@ -140,6 +168,8 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(lastParams()).toEqual(['t1', '2026-01-01', '2026-01-08', 'demo']);
     // Recovered by Auto-fix reads the materialized request verdict.
     expect(sql).toContain("t.autofix_status = 'retry_succeeded'");
+    // Recovered by key rotation reads the request's own flag.
+    expect(sql).toContain("t.recovered_by_key_rotation THEN 'key_rotation'");
   });
 
   it('returns empty without a tenant, never querying', async () => {
@@ -150,7 +180,7 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     await expect(service.getVolumeByDimension('model', { tenantId: null })).resolves.toEqual([]);
     await expect(
       service.getDispositionTotals({ tenantId: null, from: '2026-01-01' }),
-    ).resolves.toEqual({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 });
+    ).resolves.toEqual({ total: 0, success: 0, healed: 0, keyRotation: 0, fallback: 0, error: 0 });
     expect(messageRepo.query).not.toHaveBeenCalled();
   });
 });

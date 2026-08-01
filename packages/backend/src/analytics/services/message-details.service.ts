@@ -18,6 +18,8 @@ export interface MessageDetailResponse {
     model: string | null;
     status: string;
     autofix_status: AutofixStatus | null;
+    /** True when this request succeeded after a same-model key-rotation retry. */
+    recovered_by_key_rotation: boolean;
     error_message: string | null;
     error_code: string | null;
     error_http_status: number | null;
@@ -191,6 +193,7 @@ export class MessageDetailsService {
         model: message?.model ?? request?.requested_model ?? null,
         status: request?.status ?? message!.status,
         autofix_status: request?.autofix_status ?? null,
+        recovered_by_key_rotation: request?.recovered_by_key_rotation ?? false,
         error_message: request?.error_message ?? message?.error_message ?? null,
         error_code: request ? (request.error_code ?? null) : message!.error_code,
         error_http_status: request?.error_http_status ?? message?.error_http_status ?? null,

@@ -90,6 +90,20 @@ export interface PhoenixOperation {
 }
 
 /**
+ * Known Phoenix operation types. `rotate_key` tells Manifest the failed
+ * provider call was a key/quota problem: the healed body must be retried with
+ * the NEXT key per the harness's key-order rule instead of the same key.
+ * Kept as a runtime const so contract specs can assert it stays in lockstep
+ * with the OpenAPI catalog.
+ */
+export const PHOENIX_OPERATIONS = ['rename_param', 'rotate_key'] as const;
+export type PhoenixOperationType = (typeof PHOENIX_OPERATIONS)[number];
+
+export function hasRotateKeyOperation(operations: PhoenixOperation[] | null | undefined): boolean {
+  return operations?.some((op) => op.type === 'rotate_key') ?? false;
+}
+
+/**
  * Phoenix's own human-readable "why" for a served heal — render this instead of
  * re-deriving prose from the raw operations (which we did before, incompletely).
  * `operations[].detail` is a plain sentence per edit (built from the real args);

@@ -253,6 +253,26 @@ const RULES = [
     explanation: 'Removed unsupported stream_options parameter',
     ops: [{ type: 'remove_param', from: 'stream_options', to: null }],
   },
+  {
+    name: 'rotate_key_on_quota_or_key_failure',
+    // Key/quota failures are a property of the credential, not the request
+    // body: the request is fine, so the fix is to retry it with a different
+    // API key. Kept LAST so more specific body-patch rules (which win on their
+    // own patterns via first-match) are never shadowed — e.g. a
+    // "schema must be a JSON Schema" error also containing "api key" still
+    // gets the schema sanitizer, not a key rotation.
+    match: (req, res) => {
+      if (res?.statusCode === 429) return true;
+      const msg = res?.error?.message || '';
+      return /quota|rate limit|insufficient|api key|invalid key|invalid api|unauthorized|permission denied|billing|limit reached/i.test(msg);
+    },
+    patch: (body) => {
+      // The request itself is fine; the key is the problem. Return unchanged.
+      return body;
+    },
+    explanation: 'Rotating to the next configured API key for this model',
+    ops: [{ type: 'rotate_key', from: null, to: null }],
+  },
 ];
 
 // ─────────────────────────────────────────────

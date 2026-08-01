@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { AgentKeyRotationRule } from '../../../entities/agent-key-rotation-rule.entity';
 import { KeyRotationRuleService } from '../key-rotation-rule.service';
 import { RoutingCacheService } from '../routing-cache.service';
@@ -75,6 +76,7 @@ describe('KeyRotationRuleService', () => {
       agent_id: 'agent-1',
       model: 'claude-sonnet-4',
       provider: 'anthropic',
+      scope: 'model',
       key_order: ['Work', 'Personal'],
       created_at: '2026-01-01T00:00:00',
       updated_at: '2026-01-01T00:00:00',
@@ -115,6 +117,7 @@ describe('KeyRotationRuleService', () => {
         agentId: 'agent-1',
         model: 'Claude-Sonnet-4',
         provider: 'anthropic',
+        scope: 'model',
         keyOrder: ['Work', 'Personal'],
         createdAt: '2026-01-01T00:00:00',
         updatedAt: '2026-01-01T00:00:00',
@@ -128,13 +131,112 @@ describe('KeyRotationRuleService', () => {
 
       expect(result).toBeNull();
     });
+
+    it('a model-scope rule wins over the provider-scope rule for the same provider', async () => {
+      repo.find.mockResolvedValue([
+        row({
+          id: 'provider-rule',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          key_order: ['X', 'Y'],
+        }),
+        row({
+          id: 'model-rule',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          key_order: ['A', 'B'],
+        }),
+      ]);
+
+      const result = await service.getRule('gpt-4o', 'agent-1', 'openai');
+
+      expect(result!.id).toBe('model-rule');
+      expect(result!.scope).toBe('model');
+      expect(result!.keyOrder).toEqual(['A', 'B']);
+    });
+
+    it('returns the provider-scope rule when no model rule matches (explicit provider)', async () => {
+      repo.find.mockResolvedValue([
+        row({
+          id: 'provider-rule',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          key_order: ['X', 'Y'],
+        }),
+      ]);
+
+      const result = await service.getRule('gpt-4o', 'agent-1', 'openai');
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'provider-rule',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          keyOrder: ['X', 'Y'],
+        }),
+      );
+    });
+
+    it('does not apply a provider-scope rule to a different provider', async () => {
+      repo.find.mockResolvedValue([
+        row({
+          id: 'provider-rule',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          key_order: ['X'],
+        }),
+      ]);
+
+      const result = await service.getRule('claude-sonnet-4', 'agent-1', 'anthropic');
+
+      expect(result).toBeNull();
+    });
+
+    it('does not apply a model rule whose provider differs from the route provider', async () => {
+      repo.find.mockResolvedValue([
+        // Same model name, but scoped to a provider that is NOT routing it.
+        row({
+          id: 'openai-rule',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          key_order: ['A'],
+        }),
+      ]);
+
+      const result = await service.getRule('gpt-4o', 'agent-1', 'anthropic');
+
+      // Falls through to the provider-scope lookup for anthropic: none.
+      expect(result).toBeNull();
+    });
+
+    it('applies a model rule when its provider matches the route provider', async () => {
+      repo.find.mockResolvedValue([
+        row({
+          id: 'openai-rule',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          key_order: ['A'],
+        }),
+      ]);
+
+      const result = await service.getRule('gpt-4o', 'agent-1', 'openai');
+
+      expect(result!.id).toBe('openai-rule');
+    });
   });
 
   describe('replace — validation', () => {
     it('rejects an empty keyOrder', async () => {
       await expect(
         service.replace('agent-1', 'tenant-1', [
-          { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', keyOrder: [] },
+          { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', scope: 'model', keyOrder: [] },
         ]),
       ).rejects.toThrow(BadRequestException);
       expect(qbExecute).not.toHaveBeenCalled();
@@ -144,7 +246,13 @@ describe('KeyRotationRuleService', () => {
     it('rejects duplicate key labels (case-insensitive)', async () => {
       await expect(
         service.replace('agent-1', 'tenant-1', [
-          { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', keyOrder: ['Work', 'work'] },
+          {
+            agentId: 'agent-1',
+            model: 'gpt-4o',
+            provider: 'openai',
+            scope: 'model',
+            keyOrder: ['Work', 'work'],
+          },
         ]),
       ).rejects.toThrow(BadRequestException);
       expect(qbExecute).not.toHaveBeenCalled();
@@ -153,30 +261,90 @@ describe('KeyRotationRuleService', () => {
     it('rejects duplicate rules for the same model', async () => {
       await expect(
         service.replace('agent-1', 'tenant-1', [
-          { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', keyOrder: ['A'] },
-          { agentId: 'agent-1', model: 'GPT-4o', provider: 'openai', keyOrder: ['B'] },
+          {
+            agentId: 'agent-1',
+            model: 'gpt-4o',
+            provider: 'openai',
+            scope: 'model',
+            keyOrder: ['A'],
+          },
+          {
+            agentId: 'agent-1',
+            model: 'GPT-4o',
+            provider: 'openai',
+            scope: 'model',
+            keyOrder: ['B'],
+          },
         ]),
       ).rejects.toThrow(BadRequestException);
       expect(qbExecute).not.toHaveBeenCalled();
     });
 
-    it('requires an explicit provider when the model name cannot infer one', async () => {
+    it('rejects a provider-scope rule that carries a model (400, not silent drop)', async () => {
+      await expect(
+        service.replace('agent-1', 'tenant-1', [
+          {
+            agentId: 'agent-1',
+            model: 'gpt-4o',
+            provider: 'openai',
+            scope: 'provider',
+            keyOrder: ['A'],
+          },
+        ]),
+      ).rejects.toThrow(BadRequestException);
+      expect(qbExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects a model-scope rule without a model', async () => {
+      await expect(
+        service.replace('agent-1', 'tenant-1', [
+          { agentId: 'agent-1', model: null, provider: 'openai', scope: 'model', keyOrder: ['A'] },
+        ]),
+      ).rejects.toThrow(BadRequestException);
+      expect(qbExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects duplicate provider-scope rules for the same provider', async () => {
+      await expect(
+        service.replace('agent-1', 'tenant-1', [
+          {
+            agentId: 'agent-1',
+            model: null,
+            provider: 'openai',
+            scope: 'provider',
+            keyOrder: ['A'],
+          },
+          {
+            agentId: 'agent-1',
+            model: null,
+            provider: 'OpenAI',
+            scope: 'provider',
+            keyOrder: ['B'],
+          },
+        ]),
+      ).rejects.toThrow(BadRequestException);
+      expect(qbExecute).not.toHaveBeenCalled();
+    });
+
+    it('requires an explicit provider for every rule', async () => {
       await expect(
         service.replace('agent-1', 'tenant-1', [
           // The controller maps an omitted provider to '' (see KeyRulesController).
-          { agentId: 'agent-1', model: 'gpt-4o', provider: '', keyOrder: ['Work'] },
+          // Even a model-scope rule needs its provider — the labels belong to it.
+          { agentId: 'agent-1', model: 'gpt-4o', provider: '', scope: 'model', keyOrder: ['Work'] },
         ]),
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('infers the provider from the model name when omitted', async () => {
+    it('reduces a provider-qualified model to the bare runtime id', async () => {
       repo.find.mockResolvedValue([row()]);
 
       const saved = await service.replace('agent-1', 'tenant-1', [
         {
           agentId: 'agent-1',
           model: 'anthropic/claude-sonnet-4',
-          provider: '',
+          provider: 'anthropic',
+          scope: 'model',
           keyOrder: ['Work', 'Personal'],
         },
       ]);
@@ -189,6 +357,7 @@ describe('KeyRotationRuleService', () => {
           // Provider-qualified models are reduced to the bare runtime id.
           model: 'claude-sonnet-4',
           provider: 'anthropic',
+          scope: 'model',
           key_order: ['Work', 'Personal'],
         }),
       );
@@ -199,7 +368,13 @@ describe('KeyRotationRuleService', () => {
       repo.find.mockResolvedValue([]);
 
       await service.replace('agent-1', 'tenant-1', [
-        { agentId: 'agent-1', model: 'claude-sonnet-4.5', provider: 'anthropic', keyOrder: ['A'] },
+        {
+          agentId: 'agent-1',
+          model: 'claude-sonnet-4.5',
+          provider: 'anthropic',
+          scope: 'model',
+          keyOrder: ['A'],
+        },
       ]);
 
       expect(qbChain.values).toHaveBeenCalledWith(
@@ -214,7 +389,8 @@ describe('KeyRotationRuleService', () => {
         {
           agentId: 'agent-1',
           model: 'anthropic/claude-sonnet-4-5',
-          provider: '',
+          provider: 'anthropic',
+          scope: 'model',
           keyOrder: ['A'],
         },
       ]);
@@ -228,8 +404,20 @@ describe('KeyRotationRuleService', () => {
       repo.find.mockResolvedValue([]);
 
       await service.replace('agent-1', 'tenant-1', [
-        { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', keyOrder: ['A'] },
-        { agentId: 'agent-1', model: 'deepseek-v4-flash', provider: 'deepseek', keyOrder: ['B'] },
+        {
+          agentId: 'agent-1',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          keyOrder: ['A'],
+        },
+        {
+          agentId: 'agent-1',
+          model: 'deepseek-v4-flash',
+          provider: 'deepseek',
+          scope: 'model',
+          keyOrder: ['B'],
+        },
       ]);
 
       const calls = qbChain.values.mock.calls.map((c) => c[0] as { model: string });
@@ -243,12 +431,14 @@ describe('KeyRotationRuleService', () => {
             agentId: 'agent-1',
             model: 'claude-sonnet-4.5',
             provider: 'anthropic',
+            scope: 'model',
             keyOrder: ['A'],
           },
           {
             agentId: 'agent-1',
             model: 'anthropic/claude-sonnet-4-5',
             provider: '',
+            scope: 'model',
             keyOrder: ['B'],
           },
         ]),
@@ -262,22 +452,155 @@ describe('KeyRotationRuleService', () => {
       repo.find.mockResolvedValue([row({ id: 'rule-new' })]);
 
       const saved = await service.replace('agent-1', 'tenant-1', [
-        { agentId: 'agent-1', model: 'claude-sonnet-4', provider: 'Anthropic', keyOrder: ['A'] },
-        { agentId: 'agent-1', model: 'gpt-4o', provider: 'openai', keyOrder: ['B'] },
+        {
+          agentId: 'agent-1',
+          model: 'claude-sonnet-4',
+          provider: 'Anthropic',
+          scope: 'model',
+          keyOrder: ['A'],
+        },
+        {
+          agentId: 'agent-1',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          keyOrder: ['B'],
+        },
       ]);
 
       // One upsert per rule + one NOT IN delete for the diff.
       expect(qbExecute).toHaveBeenCalledTimes(3);
-      // …and a NOT IN delete for anything else the agent had.
+      // …and a NOT IN delete for anything else the agent had. The delete is
+      // scoped per rule scope (model rows by model, provider rows by provider);
+      // an all-model payload emits only the model branch.
       const deleteQb = qbChain.delete;
       expect(deleteQb).toHaveBeenCalled();
       expect(qbChain.where).toHaveBeenCalledWith('agent_id = :agentId', { agentId: 'agent-1' });
-      expect(qbChain.andWhere).toHaveBeenCalledWith('model NOT IN (:...models)', {
+      expect(qbChain.andWhere).toHaveBeenCalledWith(expect.any(Brackets), {
         models: ['claude-sonnet-4', 'gpt-4o'],
       });
+      const subQb: { where: jest.Mock } = { where: jest.fn() };
+      subQb.where.mockReturnValue(subQb);
+      const brackets = qbChain.andWhere.mock.calls[0][0] as Brackets;
+      brackets.whereFactory(subQb as never);
+      expect(subQb.where).toHaveBeenCalledWith("scope = 'model' AND model NOT IN (:...models)");
+      expect(subQb.where).not.toHaveBeenCalledWith(expect.stringContaining(':...providers'));
+      // The provider scope was empty, so no providers parameter is sent.
+      expect(qbChain.andWhere.mock.calls[0][1]).not.toHaveProperty('providers');
       // Cache dropped so the next read sees the new rows.
       expect(cache.invalidateKeyRotationRules).toHaveBeenCalledWith('agent-1');
       expect(saved).toEqual([row({ id: 'rule-new' })]);
+    });
+
+    it('upserts provider-scope rules with a null model, keyed on (agent_id, provider)', async () => {
+      repo.find.mockResolvedValue([]);
+
+      await service.replace('agent-1', 'tenant-1', [
+        {
+          agentId: 'agent-1',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          keyOrder: ['Work', 'Personal'],
+        },
+      ]);
+
+      expect(qbChain.values).toHaveBeenCalledWith(
+        expect.objectContaining({
+          agent_id: 'agent-1',
+          tenant_id: 'tenant-1',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          key_order: ['Work', 'Personal'],
+        }),
+      );
+      // Provider-scope upserts conflict on (agent_id, provider) via the
+      // partial unique index on scope = 'provider'.
+      expect(qbChain.orUpdate).toHaveBeenCalledWith(
+        ['provider', 'key_order', 'scope', 'updated_at'],
+        ['agent_id', 'provider'],
+        { indexPredicate: "scope = 'provider'" },
+      );
+    });
+
+    it('deletes model and provider rows the payload no longer mentions, per scope', async () => {
+      repo.find.mockResolvedValue([]);
+
+      await service.replace('agent-1', 'tenant-1', [
+        {
+          agentId: 'agent-1',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          keyOrder: ['A'],
+        },
+        {
+          agentId: 'agent-1',
+          model: null,
+          provider: 'anthropic',
+          scope: 'provider',
+          keyOrder: ['B'],
+        },
+      ]);
+
+      expect(qbChain.andWhere).toHaveBeenCalledWith(expect.any(Brackets), {
+        models: ['gpt-4o'],
+        providers: ['anthropic'],
+      });
+      const brackets = qbChain.andWhere.mock.calls[0][0] as Brackets;
+      expect(brackets).toBeInstanceOf(Brackets);
+      const subQb: { where: jest.Mock } = { where: jest.fn() };
+      subQb.where.mockReturnValue(subQb);
+      brackets.whereFactory(subQb as never);
+      expect(subQb.where).toHaveBeenCalledWith(
+        "scope = 'model' AND model NOT IN (:...models) OR scope = 'provider' AND provider NOT IN (:...providers)",
+      );
+    });
+
+    it('homogeneous-scope PUTs never emit an empty NOT IN branch (no 500)', async () => {
+      repo.find.mockResolvedValue([]);
+
+      // All-model PUT: no provider branch (an empty array would expand to
+      // `NOT IN ('')`, and Postgres rejects `NOT IN ()` outright).
+      await service.replace('agent-1', 'tenant-1', [
+        {
+          agentId: 'agent-1',
+          model: 'gpt-4o',
+          provider: 'openai',
+          scope: 'model',
+          keyOrder: ['A'],
+        },
+      ]);
+      expect(qbChain.andWhere).toHaveBeenCalledWith(expect.any(Brackets), {
+        models: ['gpt-4o'],
+      });
+      expect(qbChain.andWhere.mock.calls[0][1]).not.toHaveProperty('providers');
+      let brackets = qbChain.andWhere.mock.calls[0][0] as Brackets;
+      let sub: { where: jest.Mock } = { where: jest.fn(() => sub) };
+      brackets.whereFactory(sub as never);
+      expect(sub.where).toHaveBeenCalledWith("scope = 'model' AND model NOT IN (:...models)");
+
+      // All-provider PUT: no model branch.
+      await service.replace('agent-1', 'tenant-1', [
+        {
+          agentId: 'agent-1',
+          model: null,
+          provider: 'openai',
+          scope: 'provider',
+          keyOrder: ['A'],
+        },
+      ]);
+      expect(qbChain.andWhere).toHaveBeenLastCalledWith(expect.any(Brackets), {
+        providers: ['openai'],
+      });
+      expect(qbChain.andWhere.mock.calls[1][1]).not.toHaveProperty('models');
+      brackets = qbChain.andWhere.mock.calls[1][0] as Brackets;
+      sub = { where: jest.fn(() => sub) };
+      brackets.whereFactory(sub as never);
+      expect(sub.where).toHaveBeenCalledWith(
+        "scope = 'provider' AND provider NOT IN (:...providers)",
+      );
     });
 
     it('clears every rule when the payload is empty', async () => {

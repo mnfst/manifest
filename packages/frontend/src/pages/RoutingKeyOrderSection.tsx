@@ -7,6 +7,7 @@ import {
   type Accessor,
   type Component,
 } from 'solid-js';
+import type { KeyRotationRuleScope } from 'manifest-shared';
 import {
   listKeyRules,
   saveKeyRules,
@@ -26,10 +27,17 @@ import { toast } from '../services/toast-store.js';
 import '../styles/routing-key-order.css';
 
 /**
- * Key order rules section for the Routing page. Lets the user define, per
- * model + provider, an ORDERED list of provider API-key labels. When that
- * model is attempted (primary or fallback), Manifest tries the keys in order
- * and rotates to the next label on failure.
+ * Key order rules section for the Routing page. Two tiers, one shared
+ * persistence model:
+ *
+ *  - Provider rules (`scope: 'provider'`): one ordered key list per provider,
+ *    applied to EVERY model of that provider.
+ *  - Model overrides (`scope: 'model'`): one ordered key list per model,
+ *    which wins over the provider rule for that model.
+ *
+ * Precedence (backend, KeyRotationRuleService.getRule): a model-scope rule
+ * wins for its model; otherwise the provider rule for the model's provider
+ * applies; otherwise the route's pinned/default key.
  *
  * The whole rule list is the unit of persistence (PUT replaces it), so every
  * mutation — add, edit, delete, reorder, remove-key — computes the next list
@@ -132,26 +140,110 @@ const ProviderGlyph: Component<{
   return <span class="key-order-card__glyph">{providerIcon(props.providerId, 20)}</span>;
 };
 
+/* ── Add-key control (shared by every key editor) ── */
+
+interface KeyAddControlProps {
+  /** Labels that can still be added (not already in the order). */
+  labels: Accessor<string[]>;
+  disabled: boolean;
+  onAdd: (label: string) => void;
+}
+
+/**
+ * The add-key control. A native <select> whose only enabled option is the
+ * last remaining label is a dead control in browsers: its current value is
+ * the disabled placeholder, so clicking can't drive a change and Enter just
+ * commits the disabled option. Render a plain button for the single-remaining
+ * case (click/Enter always fire); keep the select for the multi-label case
+ * and the disabled "no more keys" state.
+ *
+ * Shared by both tiers' key editors — the create/edit modal serves provider
+ * rules and model overrides alike, so both go through this one component.
+ */
+const KeyAddControl: Component<KeyAddControlProps> = (props) => {
+  const [selection, setSelection] = createSignal('');
+
+  const addLabel = (label: string) => {
+    if (!label) return;
+    props.onAdd(label);
+    setSelection('');
+  };
+
+  return (
+    <Show
+      when={props.labels().length !== 1}
+      fallback={
+        <button
+          type="button"
+          class="btn btn--outline key-order-modal__add"
+          disabled={props.disabled}
+          onClick={() => addLabel(props.labels()[0]!)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addLabel(props.labels()[0]!);
+            }
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="12"
+            height="12"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1Z" />
+          </svg>
+          Add {props.labels()[0]}
+        </button>
+      }
+    >
+      <select
+        id="key-order-add-key"
+        class="select key-order-modal__add"
+        aria-label="Add a key"
+        value={selection()}
+        disabled={props.disabled || props.labels().length === 0}
+        onChange={(e) => addLabel(e.currentTarget.value)}
+      >
+        <option value="" disabled>
+          {props.labels().length === 0 ? 'No more keys to add' : 'Add a key…'}
+        </option>
+        <For each={props.labels()}>{(label) => <option value={label}>{label}</option>}</For>
+      </select>
+    </Show>
+  );
+};
+
 /* ── Create / edit modal ─────────────────────────── */
 
 interface KeyOrderRuleModalProps {
   editing: KeyRotationRule | null;
-  /** Every rule currently saved (used for one-rule-per-model validation). */
+  /** Every rule currently saved (used for one-rule-per-scope validation). */
   rules: KeyRotationRule[];
   models: AvailableModel[];
   connectedProviders: RoutingProvider[];
   customProviders: CustomProviderData[];
   saving: boolean;
-  onSave: (draft: { model: string; provider: string; keyOrder: string[] }) => void;
+  onSave: (draft: {
+    scope: KeyRotationRuleScope;
+    model: string | null;
+    provider: string;
+    keyOrder: string[];
+  }) => void;
   onClose: () => void;
 }
 
 const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
+  const [scope, setScope] = createSignal<KeyRotationRuleScope>(props.editing?.scope ?? 'model');
   const [provider, setProvider] = createSignal(props.editing?.provider ?? '');
   const [model, setModel] = createSignal(props.editing?.model ?? '');
   const [keyOrder, setKeyOrder] = createSignal<string[]>(props.editing?.keyOrder ?? []);
-  const [addSelection, setAddSelection] = createSignal('');
   const [tried, setTried] = createSignal(false);
+
+  /** Scope is fixed when editing: switching tiers would change the rule's identity. */
+  const scopeLocked = () => props.editing !== null;
 
   const providerOptions = createMemo(() => {
     const map = new Map<string, number>();
@@ -217,20 +309,42 @@ const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
     setKeyOrder([...keyOrder(), label]);
   };
 
-  const modelError = (): string | undefined => {
+  const providerError = (): string | undefined => {
     if (!tried()) return undefined;
+    if (!provider().trim()) return 'Choose a provider';
+    return undefined;
+  };
+
+  const modelError = (): string | undefined => {
+    if (!tried() || scope() !== 'model') return undefined;
     if (!model().trim()) return 'Enter a model name';
     return undefined;
   };
+
+  /** One model rule per (agent, model): a duplicate for the same model is blocked. */
   const modelTakenError = (): string | undefined => {
-    if (!tried()) return undefined;
+    if (!tried() || scope() !== 'model') return undefined;
     const trimmed = model().trim().toLowerCase();
     if (!trimmed) return undefined;
     const taken = props.rules.some(
-      (r) => r.id !== props.editing?.id && r.model.toLowerCase() === trimmed,
+      (r) =>
+        r.id !== props.editing?.id && r.scope !== 'provider' && r.model?.toLowerCase() === trimmed,
     );
     return taken ? 'A rule for this model already exists' : undefined;
   };
+
+  /** One provider rule per (agent, provider): a duplicate for the same provider is blocked. */
+  const providerTakenError = (): string | undefined => {
+    if (!tried() || scope() !== 'provider') return undefined;
+    const id = provider().trim().toLowerCase();
+    if (!id) return undefined;
+    const taken = props.rules.some(
+      (r) =>
+        r.id !== props.editing?.id && r.scope === 'provider' && r.provider.toLowerCase() === id,
+    );
+    return taken ? 'A provider rule for this provider already exists' : undefined;
+  };
+
   const keysError = (): string | undefined => {
     if (!tried()) return undefined;
     if (keyOrder().length === 0) return 'Add at least one key';
@@ -240,14 +354,21 @@ const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
   const submit = () => {
     setTried(true);
     if (
+      providerError() !== undefined ||
       modelError() !== undefined ||
       modelTakenError() !== undefined ||
+      providerTakenError() !== undefined ||
       keysError() !== undefined ||
       props.saving
     ) {
       return;
     }
-    props.onSave({ model: model().trim(), provider: provider(), keyOrder: keyOrder() });
+    props.onSave({
+      scope: scope(),
+      model: scope() === 'provider' ? null : model().trim(),
+      provider: provider().trim(),
+      keyOrder: keyOrder(),
+    });
   };
 
   return (
@@ -279,9 +400,50 @@ const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
           {props.editing ? 'Edit key order rule' : 'Add key order rule'}
         </h2>
         <p class="modal-card__desc">
-          Keys are tried in order and Manifest rotates to the next key when a call fails. The rule
-          applies wherever this model appears — primary or fallback.
+          Keys are tried in order and Manifest rotates to the next key when a call fails. A model
+          override wins over the provider rule for that model; a provider rule applies to every
+          model of the provider without an override.
         </p>
+
+        <fieldset class="key-order-modal__scope">
+          <legend class="modal-card__field-label">Rule scope</legend>
+          <div class="key-order-modal__scope-options" role="radiogroup" aria-label="Rule scope">
+            <label
+              class="key-order-modal__scope-option"
+              classList={{ 'is-selected': scope() === 'model' }}
+            >
+              <input
+                type="radio"
+                name="key-order-scope"
+                value="model"
+                checked={scope() === 'model'}
+                disabled={props.saving || scopeLocked()}
+                onChange={() => setScope('model')}
+              />
+              <span class="key-order-modal__scope-title">Model override</span>
+              <span class="key-order-modal__scope-desc">
+                One model — wins over its provider rule.
+              </span>
+            </label>
+            <label
+              class="key-order-modal__scope-option"
+              classList={{ 'is-selected': scope() === 'provider' }}
+            >
+              <input
+                type="radio"
+                name="key-order-scope"
+                value="provider"
+                checked={scope() === 'provider'}
+                disabled={props.saving || scopeLocked()}
+                onChange={() => setScope('provider')}
+              />
+              <span class="key-order-modal__scope-title">Provider rule</span>
+              <span class="key-order-modal__scope-desc">
+                Every model of this provider without an override.
+              </span>
+            </label>
+          </div>
+        </fieldset>
 
         <label class="modal-card__field-label" for="key-order-provider">
           Provider
@@ -310,31 +472,39 @@ const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
             No active keys for this provider. Add a key on the Providers page first.
           </div>
         </Show>
-
-        <label class="modal-card__field-label" for="key-order-model">
-          Model
-        </label>
-        <input
-          id="key-order-model"
-          class="modal-card__input"
-          classList={{ 'modal-card__input--error': modelError() !== undefined }}
-          type="text"
-          list="key-rule-model-list"
-          autocomplete="off"
-          spellcheck={false}
-          placeholder="e.g. claude-sonnet-5"
-          value={model()}
-          disabled={props.saving}
-          onInput={(e) => setModel(e.currentTarget.value)}
-        />
-        <datalist id="key-rule-model-list">
-          <For each={modelSuggestions()}>{(name) => <option value={name} />}</For>
-        </datalist>
-        <Show when={modelError()}>
-          <div class="key-order-modal__error">{modelError()}</div>
+        <Show when={providerError()}>
+          <div class="key-order-modal__error">{providerError()}</div>
         </Show>
-        <Show when={modelTakenError()}>
-          <div class="key-order-modal__error">{modelTakenError()}</div>
+        <Show when={providerTakenError()}>
+          <div class="key-order-modal__error">{providerTakenError()}</div>
+        </Show>
+
+        <Show when={scope() === 'model'}>
+          <label class="modal-card__field-label" for="key-order-model">
+            Model
+          </label>
+          <input
+            id="key-order-model"
+            class="modal-card__input"
+            classList={{ 'modal-card__input--error': modelError() !== undefined }}
+            type="text"
+            list="key-rule-model-list"
+            autocomplete="off"
+            spellcheck={false}
+            placeholder="e.g. claude-sonnet-5"
+            value={model()}
+            disabled={props.saving}
+            onInput={(e) => setModel(e.currentTarget.value)}
+          />
+          <datalist id="key-rule-model-list">
+            <For each={modelSuggestions()}>{(name) => <option value={name} />}</For>
+          </datalist>
+          <Show when={modelError()}>
+            <div class="key-order-modal__error">{modelError()}</div>
+          </Show>
+          <Show when={modelTakenError()}>
+            <div class="key-order-modal__error">{modelTakenError()}</div>
+          </Show>
         </Show>
 
         <label class="modal-card__field-label">Key order</label>
@@ -429,23 +599,7 @@ const KeyOrderRuleModal: Component<KeyOrderRuleModalProps> = (props) => {
             </ul>
           </Show>
         </div>
-        <select
-          id="key-order-add-key"
-          class="select key-order-modal__add"
-          aria-label="Add a key"
-          value={addSelection()}
-          disabled={props.saving || availableLabels().length === 0}
-          onChange={(e) => {
-            const label = e.currentTarget.value;
-            if (label) addKey(label);
-            setAddSelection('');
-          }}
-        >
-          <option value="" disabled>
-            {availableLabels().length === 0 ? 'No more keys to add' : 'Add a key…'}
-          </option>
-          <For each={availableLabels()}>{(label) => <option value={label}>{label}</option>}</For>
-        </select>
+        <KeyAddControl labels={availableLabels} disabled={props.saving} onAdd={addKey} />
         <Show when={keysError()}>
           <div class="key-order-modal__error">{keysError()}</div>
         </Show>
@@ -495,6 +649,9 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
 
   const rules = (): KeyRotationRule[] => rulesRes() ?? [];
 
+  const providerRules = createMemo(() => rules().filter((r) => r.scope === 'provider'));
+  const modelRules = createMemo(() => rules().filter((r) => r.scope !== 'provider'));
+
   const providerKeyCount = (providerId: string): number =>
     activeKeyRows(props.connectedProviders(), providerId).length;
 
@@ -542,24 +699,40 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
 
   const handleDelete = async (rule: KeyRotationRule) => {
     if (saving()) return;
-    if (!confirm(`Remove the key order rule for "${rule.model}"?`)) return;
+    const name =
+      rule.scope === 'provider'
+        ? providerDisplayName(rule.provider, props.customProviders())
+        : (rule.model ?? rule.provider);
+    const question =
+      rule.scope === 'provider'
+        ? `Remove the provider rule for "${name}"? It applies to every model of ${name} without an override.`
+        : `Remove the key order rule for "${name}"?`;
+    if (!confirm(question)) return;
     const prev = rules();
     const next = rules().filter((r) => r.id !== rule.id);
     const ok = await persist(next, rule.id);
-    if (ok) toast.success('Key order rule removed');
+    if (ok)
+      toast.success(rule.scope === 'provider' ? 'Provider rule removed' : 'Key order rule removed');
     else mutate(prev);
   };
 
-  const handleModalSave = (draft: { model: string; provider: string; keyOrder: string[] }) => {
+  const handleModalSave = (draft: {
+    scope: KeyRotationRuleScope;
+    model: string | null;
+    provider: string;
+    keyOrder: string[];
+  }) => {
     if (saving()) return;
     const editing = modalState() !== 'new' ? (modalState() as KeyRotationRule | null) : null;
     const prev = rules();
     // agentId is never sent: the backend resolves the agent from the URL and
-    // upserts by (agent_id, model), honoring our id when present.
+    // upserts by (agent_id, model) / (agent_id, provider), honoring our id
+    // when present.
     const rule: KeyRotationRuleInput = {
       id: editing?.id ?? browserUuid(),
       model: draft.model,
       provider: draft.provider,
+      scope: draft.scope,
       keyOrder: draft.keyOrder,
     };
     const next = editing
@@ -568,7 +741,16 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
     void persist(next, '__modal__').then((ok) => {
       if (ok) {
         setModalState(null);
-        toast.success(editing ? 'Key order rule updated' : 'Key order rule added');
+        const isProvider = draft.scope === 'provider';
+        toast.success(
+          editing
+            ? isProvider
+              ? 'Provider rule updated'
+              : 'Model override updated'
+            : isProvider
+              ? 'Provider rule added'
+              : 'Model override added',
+        );
       } else {
         mutate(prev);
       }
@@ -581,9 +763,9 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
         <div>
           <h2 class="routing-section__title">Key order rules</h2>
           <span class="routing-section__subtitle">
-            Choose which API key is tried first for a model. Keys are tried in order, and Manifest
-            rotates to the next key when one fails. Rules apply wherever the model appears — primary
-            or fallback — so key pins in the fallback chain aren't needed.
+            Choose which API key is tried first — for a provider, or for one model. Keys are tried
+            in order, and Manifest rotates to the next key when one fails. A model override wins
+            over the provider rule for that model; the provider rule covers the models without one.
           </span>
         </div>
         <button
@@ -621,8 +803,8 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
             <div class="key-order-empty">
               <div class="key-order-empty__title">No key order rules yet</div>
               <div class="key-order-empty__desc">
-                Add a rule to choose which API key is tried first for a model. Manifest rotates to
-                the next key when a call fails.
+                Add a provider rule or a model override to choose which API key is tried first.
+                Manifest rotates to the next key when a call fails.
               </div>
               <Show when={loadFailed()}>
                 <div class="key-order-empty__error">
@@ -640,131 +822,301 @@ const RoutingKeyOrderSection: Component<RoutingKeyOrderSectionProps> = (props) =
             </div>
           }
         >
-          <div class="routing-cards">
-            <For each={rules()}>
-              {(rule) => {
-                const busy = () => savingTarget() === rule.id;
-                return (
-                  <div class="routing-card key-order-card">
-                    <div class="key-order-card__head">
-                      <ProviderGlyph
-                        providerId={rule.provider}
-                        customProviders={props.customProviders}
-                      />
-                      <div class="key-order-card__titles">
-                        <span class="key-order-card__model" title={rule.model}>
-                          {rule.model}
-                        </span>
-                        <span class="key-order-card__provider" title={rule.provider}>
-                          {providerDisplayName(rule.provider, props.customProviders())}
-                          {providerKeyCount(rule.provider) > 0
-                            ? ` · ${providerKeyCount(rule.provider)} key${
-                                providerKeyCount(rule.provider) === 1 ? '' : 's'
-                              }`
-                            : ' · no active keys'}
-                        </span>
-                      </div>
-                      <div class="key-order-card__actions">
-                        <Show
-                          when={busy()}
-                          fallback={
-                            <>
-                              <button
-                                type="button"
-                                class="key-order-card__action"
-                                disabled={saving()}
-                                onClick={() => setModalState(rule)}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                class="key-order-card__action key-order-card__action--danger"
-                                disabled={saving()}
-                                onClick={() => void handleDelete(rule)}
-                              >
-                                Remove
-                              </button>
-                            </>
-                          }
-                        >
-                          <span class="spinner" style="width: 14px; height: 14px;" />
-                        </Show>
-                      </div>
-                    </div>
-                    <ul class="key-order-list">
-                      <For each={rule.keyOrder}>
-                        {(label, i) => (
-                          <li class="key-order-chip">
-                            <span class="key-order-chip__ordinal">{i() + 1}</span>
-                            <span class="key-order-chip__label" title={label}>
-                              {label}
-                            </span>
-                            <button
-                              type="button"
-                              class="key-order-chip__btn"
-                              aria-label={`Move ${label} up`}
-                              title="Move up"
-                              disabled={saving() || i() === 0}
-                              onClick={() => void reorderKey(rule, i(), -1)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path d="m12 6.41 5.29 5.3a1 1 0 0 0 1.42-1.42l-6-6a1 1 0 0 0-1.42 0l-6 6a1 1 0 0 0 1.42 1.42z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              class="key-order-chip__btn"
-                              aria-label={`Move ${label} down`}
-                              title="Move down"
-                              disabled={saving() || i() >= rule.keyOrder.length - 1}
-                              onClick={() => void reorderKey(rule, i(), 1)}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path d="m12 17.59 5.29-5.3a1 1 0 0 1 1.42 1.42l-6 6a1 1 0 0 1-1.42 0l-6-6a1 1 0 0 1 1.42-1.42z" />
-                              </svg>
-                            </button>
-                            <button
-                              type="button"
-                              class="key-order-chip__btn key-order-chip__btn--remove"
-                              aria-label={`Remove ${label}`}
-                              title="Remove"
-                              disabled={saving() || rule.keyOrder.length <= 1}
-                              onClick={() => void removeKey(rule, i())}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path d="M18.3 5.7a1 1 0 0 0-1.42 0L12 10.6 7.12 5.7a1 1 0 1 0-1.42 1.42L10.6 12l-4.9 4.88a1 1 0 1 0 1.42 1.42L12 13.4l4.88 4.9a1 1 0 0 0 1.42-1.42L13.4 12l4.9-4.88a1 1 0 0 0 0-1.42Z" />
-                              </svg>
-                            </button>
-                          </li>
-                        )}
-                      </For>
-                    </ul>
+          <div class="key-order-tiers">
+            {/* ── Provider rules tier ───────────────────────────── */}
+            <div class="key-order-tier">
+              <div class="key-order-tier__head">
+                <h3 class="key-order-tier__title">Provider rules</h3>
+                <span class="key-order-tier__count">{providerRules().length}</span>
+                <span class="key-order-tier__hint">
+                  Applies to every model of this provider without an override.
+                </span>
+              </div>
+              <Show
+                when={providerRules().length > 0}
+                fallback={
+                  <div class="key-order-tier__empty">
+                    No provider rules yet — add one to order keys for every model of a provider.
                   </div>
-                );
-              }}
-            </For>
+                }
+              >
+                <div class="routing-cards">
+                  <For each={providerRules()}>
+                    {(rule) => {
+                      const busy = () => savingTarget() === rule.id;
+                      return (
+                        <div class="routing-card key-order-card">
+                          <div class="key-order-card__head">
+                            <ProviderGlyph
+                              providerId={rule.provider}
+                              customProviders={props.customProviders}
+                            />
+                            <div class="key-order-card__titles">
+                              <span
+                                class="key-order-card__model"
+                                title={providerDisplayName(rule.provider, props.customProviders())}
+                              >
+                                {providerDisplayName(rule.provider, props.customProviders())}
+                              </span>
+                              <span class="key-order-card__provider">
+                                {providerKeyCount(rule.provider) > 0
+                                  ? `All models · ${providerKeyCount(rule.provider)} key${
+                                      providerKeyCount(rule.provider) === 1 ? '' : 's'
+                                    }`
+                                  : 'All models · no active keys'}
+                              </span>
+                            </div>
+                            <div class="key-order-card__actions">
+                              <Show
+                                when={busy()}
+                                fallback={
+                                  <>
+                                    <button
+                                      type="button"
+                                      class="key-order-card__action"
+                                      disabled={saving()}
+                                      onClick={() => setModalState(rule)}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      class="key-order-card__action key-order-card__action--danger"
+                                      disabled={saving()}
+                                      onClick={() => void handleDelete(rule)}
+                                    >
+                                      Remove
+                                    </button>
+                                  </>
+                                }
+                              >
+                                <span class="spinner" style="width: 14px; height: 14px;" />
+                              </Show>
+                            </div>
+                          </div>
+                          <ul class="key-order-list">
+                            <For each={rule.keyOrder}>
+                              {(label, i) => (
+                                <li class="key-order-chip">
+                                  <span class="key-order-chip__ordinal">{i() + 1}</span>
+                                  <span class="key-order-chip__label" title={label}>
+                                    {label}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn"
+                                    aria-label={`Move ${label} up`}
+                                    title="Move up"
+                                    disabled={saving() || i() === 0}
+                                    onClick={() => void reorderKey(rule, i(), -1)}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="m12 6.41 5.29 5.3a1 1 0 0 0 1.42-1.42l-6-6a1 1 0 0 0-1.42 0l-6 6a1 1 0 0 0 1.42 1.42z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn"
+                                    aria-label={`Move ${label} down`}
+                                    title="Move down"
+                                    disabled={saving() || i() >= rule.keyOrder.length - 1}
+                                    onClick={() => void reorderKey(rule, i(), 1)}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="m12 17.59 5.29-5.3a1 1 0 0 1 1.42 1.42l-6 6a1 1 0 0 1-1.42 0l-6-6a1 1 0 0 1 1.42-1.42z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn key-order-chip__btn--remove"
+                                    aria-label={`Remove ${label}`}
+                                    title="Remove"
+                                    disabled={saving() || rule.keyOrder.length <= 1}
+                                    onClick={() => void removeKey(rule, i())}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M18.3 5.7a1 1 0 0 0-1.42 0L12 10.6 7.12 5.7a1 1 0 1 0-1.42 1.42L10.6 12l-4.9 4.88a1 1 0 1 0 1.42 1.42L12 13.4l4.88 4.9a1 1 0 0 0 1.42-1.42L13.4 12l4.9-4.88a1 1 0 0 0 0-1.42Z" />
+                                    </svg>
+                                  </button>
+                                </li>
+                              )}
+                            </For>
+                          </ul>
+                        </div>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
+            </div>
+
+            {/* ── Model overrides tier ─────────────────────────── */}
+            <div class="key-order-tier">
+              <div class="key-order-tier__head">
+                <h3 class="key-order-tier__title">Model overrides</h3>
+                <span class="key-order-tier__count">{modelRules().length}</span>
+                <span class="key-order-tier__hint">Wins over the provider rule for its model.</span>
+              </div>
+              <Show
+                when={modelRules().length > 0}
+                fallback={
+                  <div class="key-order-tier__empty">
+                    No model overrides yet — add one to pin keys for a single model.
+                  </div>
+                }
+              >
+                <div class="routing-cards">
+                  <For each={modelRules()}>
+                    {(rule) => {
+                      const busy = () => savingTarget() === rule.id;
+                      return (
+                        <div class="routing-card key-order-card">
+                          <div class="key-order-card__head">
+                            <ProviderGlyph
+                              providerId={rule.provider}
+                              customProviders={props.customProviders}
+                            />
+                            <div class="key-order-card__titles">
+                              <span
+                                class="key-order-card__model"
+                                title={rule.model ?? rule.provider}
+                              >
+                                {rule.model}
+                              </span>
+                              <span class="key-order-card__provider" title={rule.provider}>
+                                {providerDisplayName(rule.provider, props.customProviders())}
+                                {providerKeyCount(rule.provider) > 0
+                                  ? ` · ${providerKeyCount(rule.provider)} key${
+                                      providerKeyCount(rule.provider) === 1 ? '' : 's'
+                                    }`
+                                  : ' · no active keys'}
+                              </span>
+                            </div>
+                            <div class="key-order-card__actions">
+                              <Show
+                                when={busy()}
+                                fallback={
+                                  <>
+                                    <button
+                                      type="button"
+                                      class="key-order-card__action"
+                                      disabled={saving()}
+                                      onClick={() => setModalState(rule)}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      type="button"
+                                      class="key-order-card__action key-order-card__action--danger"
+                                      disabled={saving()}
+                                      onClick={() => void handleDelete(rule)}
+                                    >
+                                      Remove
+                                    </button>
+                                  </>
+                                }
+                              >
+                                <span class="spinner" style="width: 14px; height: 14px;" />
+                              </Show>
+                            </div>
+                          </div>
+                          <ul class="key-order-list">
+                            <For each={rule.keyOrder}>
+                              {(label, i) => (
+                                <li class="key-order-chip">
+                                  <span class="key-order-chip__ordinal">{i() + 1}</span>
+                                  <span class="key-order-chip__label" title={label}>
+                                    {label}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn"
+                                    aria-label={`Move ${label} up`}
+                                    title="Move up"
+                                    disabled={saving() || i() === 0}
+                                    onClick={() => void reorderKey(rule, i(), -1)}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="m12 6.41 5.29 5.3a1 1 0 0 0 1.42-1.42l-6-6a1 1 0 0 0-1.42 0l-6 6a1 1 0 0 0 1.42 1.42z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn"
+                                    aria-label={`Move ${label} down`}
+                                    title="Move down"
+                                    disabled={saving() || i() >= rule.keyOrder.length - 1}
+                                    onClick={() => void reorderKey(rule, i(), 1)}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="m12 17.59 5.29-5.3a1 1 0 0 1 1.42 1.42l-6 6a1 1 0 0 1-1.42 0l-6-6a1 1 0 0 1 1.42-1.42z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    class="key-order-chip__btn key-order-chip__btn--remove"
+                                    aria-label={`Remove ${label}`}
+                                    title="Remove"
+                                    disabled={saving() || rule.keyOrder.length <= 1}
+                                    onClick={() => void removeKey(rule, i())}
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      width="12"
+                                      height="12"
+                                      fill="currentColor"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                    >
+                                      <path d="M18.3 5.7a1 1 0 0 0-1.42 0L12 10.6 7.12 5.7a1 1 0 1 0-1.42 1.42L10.6 12l-4.9 4.88a1 1 0 1 0 1.42 1.42L12 13.4l4.88 4.9a1 1 0 0 0 1.42-1.42L13.4 12l4.9-4.88a1 1 0 0 0 0-1.42Z" />
+                                    </svg>
+                                  </button>
+                                </li>
+                              )}
+                            </For>
+                          </ul>
+                        </div>
+                      );
+                    }}
+                  </For>
+                </div>
+              </Show>
+            </div>
           </div>
         </Show>
       </Show>

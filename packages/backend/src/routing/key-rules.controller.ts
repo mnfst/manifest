@@ -36,8 +36,9 @@ export class KeyRulesController {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     const payload: Array<Omit<KeyRotationRule, 'id'>> = body.rules.map((r) => ({
       agentId: agent.id,
-      model: r.model,
-      provider: r.provider ?? '',
+      model: r.model ?? null,
+      provider: r.provider,
+      scope: r.scope ?? 'model',
       keyOrder: r.keyOrder,
     }));
     const saved = await this.keyRotationRuleService.replace(agent.id, agent.tenant_id, payload);
