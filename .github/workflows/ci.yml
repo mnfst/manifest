@@ -122,6 +122,18 @@ jobs:
           directory: packages/shared/coverage
           fail_ci_if_error: false
 
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=packages/cli
+      - run: npm test --workspace=packages/cli -- --coverage
+
   changeset-check:
     name: Changeset status
     runs-on: ubuntu-latest
