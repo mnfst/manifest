@@ -1,0 +1,23 @@
+.claude/skills/mnfst-cli/SKILL.md
+  s_55e9f8f22551f6::t_a02e46f68067df 43
+  s_55e9f8f22551f6::t_e089ab39a9f186 40
+  s_55e9f8f22551f6::t_25e95ea999b53d 21
+  s_55e9f8f22551f6::t_55b5dca1d80e0a 44
+  s_55e9f8f22551f6::t_61daf8e186dcdc 52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "9d0de17ff79062c1d5a73b7792ea4f9ac320a63c",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
