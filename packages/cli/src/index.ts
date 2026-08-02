@@ -9,6 +9,7 @@ import * as agent from './commands/agent';
 import * as provider from './commands/provider';
 import * as routing from './commands/routing';
 import * as runCommand from './commands/run';
+import * as models from './commands/models';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -51,6 +52,8 @@ export const COMMANDS: Record<string, Handler> = {
   'routing recording set': routing.routingRecording.set,
 
   run: runCommand.runCmd,
+
+  models: models.modelsList,
 };
 
 export const USAGE = `mnfst ${VERSION} — Manifest management CLI (JSON output, agent-first)
@@ -75,6 +78,9 @@ Providers
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
+
+Models
+  mnfst models [--agent <name>] [--provider <p>]        (models routable for an agent, tier-set ready)
 
 Routing
   mnfst routing status <agent> | mnfst routing tiers <agent>
