@@ -11,7 +11,7 @@ export class AddApiKeyExpiresAt1801700000000 implements MigrationInterface {
     await queryRunner.query(`SET lock_timeout = '5s'`);
     try {
       await queryRunner.query(
-        `ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "expires_at" TIMESTAMP WITH TIME ZONE`,
+        `ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "expires_at" TIMESTAMP`,
       );
     } finally {
       await queryRunner.query(`RESET lock_timeout`);

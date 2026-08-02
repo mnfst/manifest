@@ -342,9 +342,29 @@ describe('ApiKeyGuard', () => {
         expires_at: new Date(Date.now() - 1000).toISOString(),
       },
     ]);
-    const ctx = makeContext({ 'x-api-key': rawKey });
+    const request = {
+      headers: { 'x-api-key': rawKey },
+      ip: '127.0.0.1',
+    } as {
+      headers: Record<string, string>;
+      ip: string;
+      tenantContext?: unknown;
+      user?: unknown;
+      authMethod?: string;
+    };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
 
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    // The expiry check runs BEFORE any credential is attached — an expired key
+    // must never leave a usable tenant/user on the request for a later guard
+    // or filter to pick up, and must not slide its own expiry forward.
+    expect(request.tenantContext).toBeUndefined();
+    expect(request.user).toBeUndefined();
+    expect(request.authMethod).toBeUndefined();
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
