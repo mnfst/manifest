@@ -38,6 +38,7 @@ import { AddRequestRecordings1801300000000 } from './migrations/1801300000000-Ad
 import { MoveRecordingsToProviderAttempts1801400000000 } from './migrations/1801400000000-MoveRecordingsToProviderAttempts';
 import { EnableRecordingForNewAgents1801500000000 } from './migrations/1801500000000-EnableRecordingForNewAgents';
 import { DropLegacyAutofixRolloutColumns1801600000000 } from './migrations/1801600000000-DropLegacyAutofixRolloutColumns';
+import { AddApiKeyExpiresAt1801700000000 } from './migrations/1801700000000-AddApiKeyExpiresAt';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -314,4 +315,5 @@ export const migrations = [
   MoveRecordingsToProviderAttempts1801400000000,
   EnableRecordingForNewAgents1801500000000,
   DropLegacyAutofixRolloutColumns1801600000000,
+  AddApiKeyExpiresAt1801700000000,
 ];

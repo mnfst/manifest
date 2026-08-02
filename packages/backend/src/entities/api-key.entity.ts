@@ -32,4 +32,8 @@ export class ApiKey {
 
   @Column(timestampType(), { nullable: true, default: null })
   last_used_at!: string | null;
+
+  /** NULL = non-expiring (dashboard/CI keys). CLI-minted PATs slide on use. */
+  @Column(timestampType(), { nullable: true, default: null })
+  expires_at!: string | null;
 }
