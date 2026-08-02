@@ -129,6 +129,56 @@ async function resolveDiscoveryAgent(
   return first.agent_name;
 }
 
+const SUBSCRIPTION_DASHBOARD_HINT =
+  'Subscription connections use the provider OAuth flow — connect from the dashboard (Providers → Subscriptions). CLI support is a follow-up.';
+
+/**
+ * Pick the auth type: explicit flag wins (validated against the catalog);
+ * otherwise ask when the provider genuinely offers a choice and the session
+ * is interactive; otherwise default to api_key like the server does.
+ * Subscription is refused with a pointer to the dashboard: this endpoint
+ * stores pasted keys, while subscriptions are established via OAuth.
+ */
+async function resolveAuthType(
+  io: CliIo,
+  args: ReturnType<typeof parseArgs>,
+  providerId: string,
+): Promise<string | undefined> {
+  const entry = PROVIDER_CATALOG.find((p) => p.id === providerId);
+  const supported = entry?.authTypes ?? ['api_key'];
+  const flagged = args.strings['auth-type'];
+  if (flagged) {
+    if (!supported.includes(flagged)) {
+      throw new CliError(
+        'invalid_auth_type',
+        `${providerId} supports: ${supported.join(', ')}`,
+        'Run mnfst provider catalog to see auth types per provider',
+      );
+    }
+    if (flagged === 'subscription') {
+      throw new CliError('subscription_via_dashboard', SUBSCRIPTION_DASHBOARD_HINT);
+    }
+    return flagged;
+  }
+  const choices = supported.filter((t) => t !== 'subscription');
+  if (supported.includes('subscription') && io.isTTY && io.readLine) {
+    const answer = (
+      await io.readLine(`Auth type for ${providerId} [${supported.join(', ')}] (default api_key): `)
+    )
+      .trim()
+      .toLowerCase();
+    if (answer === 'subscription') {
+      throw new CliError('subscription_via_dashboard', SUBSCRIPTION_DASHBOARD_HINT);
+    }
+    if (answer && !supported.includes(answer)) {
+      throw new CliError('invalid_auth_type', `${providerId} supports: ${supported.join(', ')}`);
+    }
+    return answer || undefined; // empty answer → server default (api_key)
+  }
+  // Non-interactive or single-choice: server default (api_key) or the single option.
+  return choices.length === 1 && choices[0] !== 'api_key' ? choices[0] : undefined;
+}
+
 export async function providerConnect(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'provider', 'agent', 'credential-env', 'label', 'region', 'auth-type'],
@@ -136,7 +186,7 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
   });
   const provider = providerFromArgs(args);
   const agent = await resolveDiscoveryAgent(io, args);
-  const authType = args.strings['auth-type'];
+  const authType = await resolveAuthType(io, args, provider);
 
   // API-key providers need a credential; `local` (Ollama) does not.
   const credential =
