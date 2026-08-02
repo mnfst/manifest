@@ -22,7 +22,7 @@ export const COMMANDS: Record<string, Handler> = {
   'config path': auth.configPath,
 
   'agent list': agent.agentList,
-  'agent categories': agent.agentCategories,
+  'agent platforms': agent.agentPlatforms,
   'agent create': agent.agentCreate,
   'agent get': agent.agentGet,
   'agent update': agent.agentUpdate,
@@ -59,8 +59,8 @@ Auth
 
 Agents
   mnfst agent list [--include-playground]
-  mnfst agent categories
-  mnfst agent create --name <name> --category <personal|app|coding> --key-file <path> [--platform <p>]
+  mnfst agent platforms
+  mnfst agent create --name <name> --platform <p> --key-file <path> [--category <c>]
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
   mnfst agent rotate-key <name> --key-file <path> --yes

@@ -6,35 +6,49 @@ import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secret
 const URL_ONLY = { strings: ['url'] } as const;
 
 /**
- * Mirrors AGENT_CATEGORIES in manifest-shared (the backend rejects anything
- * else). Kept as a literal so the CLI stays zero-runtime-dependency; a drift
- * guard in commands.spec.ts pins it against the shared package.
+ * Mirrors AGENT_PLATFORMS in manifest-shared (the backend rejects anything
+ * else). The platform drives the agent's setup instructions, so create makes
+ * it mandatory. Kept as a literal so the CLI stays zero-runtime-dependency;
+ * a drift guard in commands.spec.ts pins it against the shared package.
  */
-export const CLI_AGENT_CATEGORIES = ['personal', 'app', 'coding'] as const;
+export const CLI_AGENT_PLATFORMS = [
+  'openclaw',
+  'hermes',
+  'nanobot',
+  'craft',
+  'claude-code',
+  'opencode',
+  'openai-sdk',
+  'anthropic-sdk',
+  'vercel-ai-sdk',
+  'langchain',
+  'curl',
+  'other',
+] as const;
 
-function requireCategory(args: ParsedArgs): string {
-  const list = CLI_AGENT_CATEGORIES.join(', ');
-  const value = args.strings['category'];
+function requirePlatform(args: ParsedArgs): string {
+  const list = CLI_AGENT_PLATFORMS.join(', ');
+  const value = args.strings['platform'];
   if (!value) {
     throw new CliError(
-      'missing_category',
-      `--category is required. Valid categories: ${list}`,
-      'Run mnfst agent categories to list them',
+      'missing_platform',
+      `--platform is required (it determines the agent setup). Valid platforms: ${list}`,
+      'Run mnfst agent platforms to list them',
     );
   }
-  if (!(CLI_AGENT_CATEGORIES as readonly string[]).includes(value)) {
+  if (!(CLI_AGENT_PLATFORMS as readonly string[]).includes(value)) {
     throw new CliError(
-      'invalid_category',
-      `Unknown category: ${value}. Valid categories: ${list}`,
-      'Run mnfst agent categories to list them',
+      'invalid_platform',
+      `Unknown platform: ${value}. Valid platforms: ${list}`,
+      'Run mnfst agent platforms to list them',
     );
   }
   return value;
 }
 
-export async function agentCategories(io: CliIo, argv: string[]): Promise<void> {
+export async function agentPlatforms(io: CliIo, argv: string[]): Promise<void> {
   parseArgs(argv, {});
-  printJson(io, { categories: [...CLI_AGENT_CATEGORIES] });
+  printJson(io, { platforms: [...CLI_AGENT_PLATFORMS] });
 }
 
 export async function agentList(io: CliIo, argv: string[]): Promise<void> {
@@ -69,15 +83,15 @@ function stripSparklines(result: unknown): unknown {
 export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'name', 'key-file', 'category', 'platform'] });
   const name = requireString(args, 'name');
-  const category = requireCategory(args);
+  const platform = requirePlatform(args);
   const keyFile = validateKeyFileDestination(requireString(args, 'key-file'));
   const { client } = clientFromFlags(io, args);
 
   const result = (await client.request('POST', '/agents', {
     body: {
       name,
-      agent_category: category,
-      ...(args.strings['platform'] ? { agent_platform: args.strings['platform'] } : {}),
+      agent_platform: platform,
+      ...(args.strings['category'] ? { agent_category: args.strings['category'] } : {}),
     },
   })) as { agent: unknown; apiKey: string };
 
