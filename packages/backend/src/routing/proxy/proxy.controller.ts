@@ -263,6 +263,7 @@ export class ProxyController {
         requestedModel: this.extractRequestedModel(body),
         callerAttribution,
         requestHeaders,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
@@ -341,6 +342,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           'plan_request_limit_exceeded',
+          apiMode,
           HttpStatus.PAYMENT_REQUIRED,
           'M204',
           Date.now() - startTime,
@@ -524,6 +526,7 @@ export class ProxyController {
           requestHeaders,
           autofix,
           Date.now() - startTime,
+          apiMode,
         );
       } else {
         recordSuccess(
@@ -582,6 +585,7 @@ export class ProxyController {
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     autofix: AutofixRecord | undefined,
     durationMs: number,
+    apiMode: ProxyApiMode,
   ): void {
     const code = meta.manifest_error_code;
     if (!code || !isRecordableManifestCode(code)) return;
@@ -600,6 +604,7 @@ export class ProxyController {
         autofix,
         attempt: meta.attempt,
         durationMs,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));
   }
@@ -665,6 +670,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           MANIFEST_CODE_TO_REASON[err.code],
+          apiMode,
           status,
           err.code,
           startTime == null ? undefined : Date.now() - startTime,
@@ -684,6 +690,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         MANIFEST_CODE_TO_REASON.M500,
+        apiMode,
         status,
         'M500',
         startTime == null ? undefined : Date.now() - startTime,
@@ -874,6 +881,7 @@ export class ProxyController {
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     reason: ManifestBlockedRequestReason,
+    apiMode: ProxyApiMode,
     httpStatus?: number,
     errorCode?: ManifestErrorCode,
     durationMs?: number,
@@ -894,6 +902,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         durationMs,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest-blocked request: ${e}`));
   }

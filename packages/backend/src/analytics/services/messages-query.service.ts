@@ -469,6 +469,7 @@ export class MessagesQueryService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .addSelect('r.status', 'status')
+      .addSelect('r.api_mode', 'api_mode')
       .addSelect('r.error_message', 'error_message')
       .addSelect('r.error_code', 'error_code')
       .addSelect('r.error_origin', 'error_origin')
