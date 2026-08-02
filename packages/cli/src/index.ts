@@ -30,6 +30,7 @@ export const COMMANDS: Record<string, Handler> = {
   'agent list': agent.agentList,
   'agent platforms': agent.agentPlatforms,
   'agent create': agent.agentCreate,
+  'agent env': agent.agentEnv,
   'agent key path': agent.agentKeyPathCmd,
   'agent key show': agent.agentKeyShow,
   'agent configure': configure.agentConfigure,
@@ -77,6 +78,7 @@ Agents
   mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--tier <custom>] [--autofix true|false] [--recording true|false]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
+  mnfst agent env <name> [--export]                     (dotenv/shell lines: KEY + URL; append to .env or eval)
   mnfst agent key path <name> | mnfst agent key show <name>
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
