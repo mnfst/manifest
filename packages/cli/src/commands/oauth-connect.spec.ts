@@ -15,6 +15,71 @@ afterEach(() => {
   OAUTH_POLL.timeoutMs = 180_000;
 });
 
+describe('device flow', () => {
+  it('shows the code, opens the verification page, and polls to success', async () => {
+    OAUTH_POLL.intervalMs = 1;
+    OAUTH_POLL.timeoutMs = 500;
+    const opened: string[] = [];
+    const io = makeIo({ isTTY: true });
+    io.openBrowser = (url: string) => {
+      opened.push(url);
+      return true;
+    };
+    await subscriptionConnect(
+      io,
+      fakeClient([
+        {
+          flowId: 'f1',
+          userCode: 'ABCD-1234',
+          verificationUri: 'https://kiro/verify',
+          pollIntervalMs: 1,
+        },
+        { status: 'pending' },
+        { status: 'success' },
+      ]),
+      'kiro',
+      'a',
+    );
+    expect(opened[0]).toBe('https://kiro/verify');
+    expect(io.errLines.join('\n')).toContain('ABCD-1234');
+    expect(io.lastJson()).toEqual({ connected: 'kiro', auth_type: 'subscription', agent: 'a' });
+  });
+
+  it('surfaces an error poll and times out on endless pending', async () => {
+    OAUTH_POLL.intervalMs = 1;
+    OAUTH_POLL.timeoutMs = 500;
+    const io = makeIo({ isTTY: true });
+    io.openBrowser = () => true;
+    await expect(
+      subscriptionConnect(
+        io,
+        fakeClient([
+          { flowId: 'f1', userCode: 'C', verificationUri: 'https://m/verify' },
+          { status: 'error', message: 'expired' },
+        ]),
+        'minimax',
+        'a',
+      ),
+    ).rejects.toThrow('expired');
+
+    OAUTH_POLL.timeoutMs = 15;
+    const io2 = makeIo({ isTTY: true });
+    io2.openBrowser = () => false;
+    await expect(
+      subscriptionConnect(
+        io2,
+        fakeClient([
+          { flowId: 'f1', userCode: 'C', verificationUri: 'https://m/verify' },
+          { status: 'pending' },
+        ]),
+        'kiro',
+        'a',
+      ),
+    ).rejects.toThrow(expect.objectContaining({ code: 'oauth_timeout' }));
+    expect(io2.errLines.join('\n')).toContain('Open https://m/verify');
+  });
+});
+
 describe('subscriptionConnect edge paths', () => {
   it('paste flow requires readLine even on a TTY', async () => {
     const io = makeIo({ isTTY: true });

@@ -1084,7 +1084,15 @@ describe('provider commands', () => {
       isTTY: true,
     });
     expect(
-      await run(io, ['provider', 'connect', 'kiro', '--agent', 'a', '--auth-type', 'subscription']),
+      await run(io, [
+        'provider',
+        'connect',
+        'copilot',
+        '--agent',
+        'a',
+        '--auth-type',
+        'subscription',
+      ]),
     ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'subscription_unsupported' });
 

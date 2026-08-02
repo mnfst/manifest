@@ -14,11 +14,13 @@ import { defaultOpenBrowser } from '../oauth-login';
  *   shown by the provider, pastes it into the terminal; POST exchange.
  * - Device-code providers (Kiro, MiniMax, Copilot) are a follow-up.
  */
-const OAUTH_FLOWS: Record<string, 'redirect' | 'paste'> = {
+const OAUTH_FLOWS: Record<string, 'redirect' | 'paste' | 'device'> = {
   xai: 'redirect',
   openai: 'redirect',
   gemini: 'redirect',
   anthropic: 'paste',
+  kiro: 'device',
+  minimax: 'device',
 };
 
 /** Poll cadence; mutable so tests can shrink the clock. */
@@ -61,6 +63,43 @@ export async function subscriptionConnect(
   }
 
   const open = io.openBrowser ?? defaultOpenBrowser;
+
+  if (flow === 'device') {
+    // Device flow is terminal-native: show the code, open the verification
+    // page, poll the backend until the user approves there.
+    const start = (await client.request(
+      'POST',
+      `/oauth/${providerId}/start?agentName=${encodeURIComponent(agent)}`,
+    )) as { flowId: string; userCode: string; verificationUri: string; pollIntervalMs?: number };
+    const opened = open(start.verificationUri);
+    io.stderr(`Your code: ${start.userCode}`);
+    io.stderr(
+      opened
+        ? `Opening ${start.verificationUri} — confirm the code there.`
+        : `Open ${start.verificationUri} and enter the code.`,
+    );
+    const interval = Math.max(1000, start.pollIntervalMs ?? OAUTH_POLL.intervalMs);
+    const deadline = Date.now() + OAUTH_POLL.timeoutMs;
+    while (Date.now() < deadline) {
+      await sleep(Math.min(interval, OAUTH_POLL.intervalMs));
+      const poll = (await client.request(
+        'GET',
+        `/oauth/${providerId}/poll?flowId=${encodeURIComponent(start.flowId)}`,
+      )) as { status: 'pending' | 'success' | 'error'; message?: string };
+      if (poll.status === 'success') {
+        printJson(io, { connected: providerId, auth_type: 'subscription', agent });
+        return;
+      }
+      if (poll.status === 'error') {
+        throw new CliError('oauth_failed', poll.message ?? `${providerId} sign-in failed`);
+      }
+    }
+    throw new CliError(
+      'oauth_timeout',
+      `${providerId} sign-in was not approved within ${Math.round(OAUTH_POLL.timeoutMs / 1000)}s`,
+      'Run the command again to restart the flow',
+    );
+  }
 
   if (flow === 'paste') {
     if (!io.readLine) {
