@@ -1,6 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 import { timestampType } from '../common/utils/postgres-sql';
 import type { CallerAttribution } from '../routing/proxy/caller-classifier';
+import type { ProxyApiMode } from '../routing/proxy/proxy-types';
 import type { AutofixStatus } from 'manifest-shared';
 
 /**
@@ -73,6 +74,14 @@ export class ManifestRequest {
   /** Model requested by the caller, before routing and fallbacks. */
   @Column('varchar', { nullable: true })
   requested_model!: string | null;
+
+  /**
+   * Which Manifest API surface the caller used: 'chat_completions'
+   * (/v1/chat/completions), 'responses' (/v1/responses), or 'messages'
+   * (/v1/messages). NULL when the surface was not known at write time.
+   */
+  @Column('varchar', { nullable: true })
+  api_mode!: ProxyApiMode | null;
 
   @Column('simple-json', { nullable: true })
   caller_attribution!: CallerAttribution | null;
