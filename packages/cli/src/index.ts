@@ -7,6 +7,7 @@ import * as agent from './commands/agent';
 import * as provider from './commands/provider';
 import * as routing from './commands/routing';
 import * as analytics from './commands/analytics';
+import * as runCommand from './commands/run';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -24,6 +25,8 @@ export const COMMANDS: Record<string, Handler> = {
   'agent list': agent.agentList,
   'agent platforms': agent.agentPlatforms,
   'agent create': agent.agentCreate,
+  'agent key path': agent.agentKeyPathCmd,
+  'agent key show': agent.agentKeyShow,
   'agent get': agent.agentGet,
   'agent update': agent.agentUpdate,
   'agent delete': agent.agentDelete,
@@ -48,6 +51,8 @@ export const COMMANDS: Record<string, Handler> = {
   overview: analytics.overview,
   costs: analytics.costs,
   requests: analytics.requests,
+
+  run: runCommand.runCmd,
 };
 
 export const USAGE = `mnfst ${VERSION} — Manifest management CLI (JSON output, agent-first)
@@ -60,10 +65,11 @@ Auth
 Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
-  mnfst agent create --name <name> --platform <p> --key-file <path> [--category <c>]
+  mnfst agent create --name <name> --platform <p> [--category <c>] [--key-file <path>]
+  mnfst agent key path <name> | mnfst agent key show <name>
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
-  mnfst agent rotate-key <name> --key-file <path> --yes
+  mnfst agent rotate-key <name> --yes [--key-file <path>]
 
 Providers
   mnfst provider list
@@ -77,6 +83,11 @@ Routing
   mnfst routing fallbacks get|set|clear <agent> --tier <t> [--models <m1,m2>] [--yes]
   mnfst routing autofix get|set <agent> [--enabled true|false]
   mnfst routing recording get|set <agent> [--enabled true|false]
+
+Run (key injection, 1Password-style)
+  mnfst run --agent <name> [--env <VAR>] -- <command...>
+    Runs the command with the agent's key injected as MANIFEST_AGENT_KEY (or <VAR>)
+    plus MANIFEST_AGENT_URL — the key never crosses stdout or your transcript.
 
 Analytics (read-only)
   mnfst overview [--range <1h|6h|24h|7d|30d|90d|365d>] [--agent <name>]
