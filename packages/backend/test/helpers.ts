@@ -41,6 +41,7 @@ import { BackfillState } from '../src/entities/backfill-state.entity';
 import { PublicErrorPage } from '../src/entities/public-error-page.entity';
 import { WaitlistClaim } from '../src/entities/waitlist-claim.entity';
 import { TenantRequestUsage } from '../src/entities/tenant-request-usage.entity';
+import { CliAuthCode } from '../src/entities/cli-auth-code.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -85,6 +86,7 @@ const entities = [
   PublicErrorPage,
   WaitlistClaim,
   TenantRequestUsage,
+  CliAuthCode,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
