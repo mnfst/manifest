@@ -1405,6 +1405,74 @@ describe('models command', () => {
   });
 });
 
+describe('requests get', () => {
+  it('passes filters through and surfaces the pagination envelope untouched', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: {
+          items: [{ id: 'r1' }, { id: 'r2' }],
+          next_cursor: 'opaque-cursor-abc',
+          total_count: 41,
+          total_count_exact: true,
+        },
+      },
+    ]);
+    expect(
+      await run(io, [
+        'requests',
+        'get',
+        '--agent',
+        'John',
+        '--range',
+        '24h',
+        '--status',
+        'error',
+        '--limit',
+        '2',
+      ]),
+    ).toBe(0);
+    const url = new URL(calls[0].url);
+    expect(url.pathname).toBe('/api/v1/messages');
+    expect(url.searchParams.get('agent_name')).toBe('john');
+    expect(url.searchParams.get('range')).toBe('24h');
+    expect(url.searchParams.get('status')).toBe('error');
+    expect(url.searchParams.get('limit')).toBe('2');
+    expect(io.lastJson()).toEqual({
+      agent: 'john',
+      count: 2,
+      next_cursor: 'opaque-cursor-abc',
+      total_count: 41,
+      total_count_exact: true,
+      requests: [{ id: 'r1' }, { id: 'r2' }],
+    });
+  });
+
+  it('pages with the opaque cursor and reports the last page as null', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { items: [{ id: 'r3' }], next_cursor: null, total_count: 41 } },
+    ]);
+    expect(await run(io, ['requests', 'get', '--cursor', 'opaque-cursor-abc'])).toBe(0);
+    expect(new URL(calls[0].url).searchParams.get('cursor')).toBe('opaque-cursor-abc');
+    expect(io.lastJson()).toMatchObject({ count: 1, next_cursor: null });
+  });
+
+  it('validates --limit against the API cap', async () => {
+    const { io, calls } = authedIo([]);
+    expect(await run(io, ['requests', 'get', '--limit', '500'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_flag' });
+    const { io: io2 } = authedIo([]);
+    expect(await run(io2, ['requests', 'get', '--limit', 'many'])).toBe(1);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('tolerates a null body', async () => {
+    const { io } = authedIo([{ status: 200, body: null }]);
+    expect(await run(io, ['requests', 'get'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({ count: 0, next_cursor: null, requests: [] });
+  });
+});
+
 describe('routing commands', () => {
   it('status composes the real config: default route, custom tiers, toggles', async () => {
     const { io, calls } = authedIo([

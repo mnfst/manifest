@@ -11,6 +11,7 @@ import * as routing from './commands/routing';
 import * as runCommand from './commands/run';
 import * as models from './commands/models';
 import * as configure from './commands/configure';
+import * as requests from './commands/requests';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -51,6 +52,8 @@ export const COMMANDS: Record<string, Handler> = {
   'routing autofix set': routing.routingAutofix.set,
   'routing recording get': routing.routingRecording.get,
   'routing recording set': routing.routingRecording.set,
+
+  'requests get': requests.requestsGet,
 
   run: runCommand.runCmd,
 
@@ -94,6 +97,9 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
   mnfst routing custom delete <agent> <name> --yes
   mnfst routing autofix get|set <agent> [--enabled true|false]
   mnfst routing recording get|set <agent> [--enabled true|false]
+
+Requests (paginated, mirrors the API: opaque cursor, one page per call)
+  mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>]
 
 Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>
