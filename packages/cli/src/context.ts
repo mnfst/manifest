@@ -20,6 +20,10 @@ export interface CliIo {
   stdout: (line: string) => void;
   stderr: (line: string) => void;
   readStdin: () => Promise<string>;
+  /** True when attached to an interactive terminal — gates browser login. */
+  isTTY: boolean;
+  /** Injected browser opener; falls back to defaultOpenBrowser. Returns false when opening failed. */
+  openBrowser?: (url: string) => boolean;
 }
 
 export function getConfigPath(io: CliIo): string {

@@ -1,6 +1,7 @@
 import { CliIo } from './context';
 import { CliError } from './errors';
 import { VERSION } from './version';
+import { defaultOpenBrowser } from './oauth-login';
 import * as auth from './commands/auth';
 import * as agent from './commands/agent';
 import * as provider from './commands/provider';
@@ -51,7 +52,7 @@ export const COMMANDS: Record<string, Handler> = {
 export const USAGE = `mnfst ${VERSION} — Manifest management CLI (JSON output, agent-first)
 
 Auth
-  mnfst login (--token-stdin | --token-env <name>) [--url <base>]
+  mnfst login [--token-stdin | --token-env <name>] [--url <base>]   (no flags: browser login)
   mnfst logout [--url <base>]
   mnfst auth status | mnfst whoami | mnfst config path
 
@@ -161,6 +162,8 @@ export async function main(argv: string[]): Promise<number> {
       }
       return Buffer.concat(chunks).toString('utf8');
     },
+    isTTY: Boolean(process.stdout.isTTY),
+    openBrowser: defaultOpenBrowser,
   };
   return run(io, argv);
 }

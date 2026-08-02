@@ -1,10 +1,11 @@
 import * as fs from 'fs';
+import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import { run } from '../index';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
 
-const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key' };
+const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
 const HOST = 'http://localhost:2099';
 
 function authedIo(
@@ -35,6 +36,7 @@ describe('auth commands', () => {
       tenantId: 't1',
       userId: 'u1',
       authMethod: 'api_key',
+      expiresAt: null,
       source: 'config',
     });
     expect(io.lines.join('\n')).not.toContain('tok-123');
@@ -66,10 +68,106 @@ describe('auth commands', () => {
     expect(fs.existsSync(path.join(io.configDir, 'manifest', 'config.json'))).toBe(false);
   });
 
-  it('login without a token source fails with the no-argv rule', async () => {
-    const io = makeIo();
-    expect(await run(io, ['login'])).toBe(1);
+  it('login with both token sources fails with the no-argv rule', async () => {
+    const io = makeIo({ env: { MNFST_TOKEN: 't' } });
+    expect(await run(io, ['login', '--token-stdin', '--token-env', 'MNFST_TOKEN'])).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'credential_source_required' });
+  });
+
+  it('login with no flags refuses browser login outside a TTY', async () => {
+    const io = makeIo({ env: { MANIFEST_URL: HOST }, isTTY: false });
+    expect(await run(io, ['login'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'no_tty',
+      hint: expect.stringContaining('--token-stdin'),
+    });
+  });
+
+  it('login with no flags runs the browser handshake and stores the minted token', async () => {
+    const calls: Array<{ url: string; body?: string }> = [];
+    const fetchImpl = (async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      calls.push({ url, ...(init?.body ? { body: String(init.body) } : {}) });
+      if (url.endsWith('/api/v1/cli/token')) {
+        return new Response(
+          JSON.stringify({ token: 'mnfst_pat_browser', expiresAt: '2026-09-01T00:00:00.000Z' }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+      return new Response(JSON.stringify({ ...ME, expiresAt: '2026-09-01T00:00:00.000Z' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST },
+      fetchImpl,
+      isTTY: true,
+      openBrowser: (url: string) => {
+        const authUrl = new URL(url);
+        expect(authUrl.pathname).toBe('/cli/auth');
+        http.get(
+          `http://127.0.0.1:${authUrl.searchParams.get('port')}/callback?code=${encodeURIComponent(
+            'code-abcdefghijklmnop',
+          )}&state=${encodeURIComponent(authUrl.searchParams.get('state')!)}`,
+          () => undefined,
+        );
+        return true;
+      },
+    });
+
+    expect(await run(io, ['login'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/cli/token`);
+    expect(JSON.parse(calls[0].body!).code).toBe('code-abcdefghijklmnop');
+    expect(calls[1].url).toBe(`${HOST}/api/v1/me`);
+    expect(io.lastJson()).toEqual({
+      authenticated: true,
+      url: HOST,
+      tenantId: 't1',
+      userId: 'u1',
+      authMethod: 'api_key',
+      expiresAt: '2026-09-01T00:00:00.000Z',
+      source: 'config',
+    });
+    // The raw PAT is never echoed on stdout, only stored.
+    expect(io.lines.join('\n')).not.toContain('mnfst_pat_browser');
+    expect(io.errLines.join('\n')).toContain('/cli/auth');
+    const config = JSON.parse(
+      fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),
+    );
+    expect(config).toEqual({
+      activeHost: HOST,
+      hosts: { [HOST]: { apiKey: 'mnfst_pat_browser' } },
+    });
+  });
+
+  it('login falls back to the code expiry when /me omits one', async () => {
+    const fetchImpl = (async (input: string | URL | Request) => {
+      const url = String(input);
+      const body = url.endsWith('/api/v1/cli/token')
+        ? { token: 'mnfst_pat_browser', expiresAt: '2026-10-01T00:00:00.000Z' }
+        : { ...ME, expiresAt: null };
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST },
+      fetchImpl,
+      isTTY: true,
+      openBrowser: (url: string) => {
+        const authUrl = new URL(url);
+        http.get(
+          `http://127.0.0.1:${authUrl.searchParams.get('port')}/callback?code=c-abcdefghijklmnop&state=${authUrl.searchParams.get('state')}`,
+          () => undefined,
+        );
+        return true;
+      },
+    });
+    expect(await run(io, ['login'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({ expiresAt: '2026-10-01T00:00:00.000Z' });
   });
 
   it('login honors --url over MANIFEST_URL', async () => {
@@ -84,20 +182,48 @@ describe('auth commands', () => {
     expect(stub.calls[0].url).toBe('http://flag-host:2/api/v1/me');
   });
 
-  it('logout on a host with nothing stored reports loggedOut: false', async () => {
-    const io = makeIo({ env: { MANIFEST_URL: HOST } });
+  it('logout on a host with nothing stored reports loggedOut: false and never calls the server', async () => {
+    const stub = fetchStub([{ status: 200, body: { revoked: true } }]);
+    const io = makeIo({ env: { MANIFEST_URL: HOST }, fetchImpl: stub.impl });
     expect(await run(io, ['logout'])).toBe(0);
-    expect(io.lastJson()).toEqual({ loggedOut: false, url: HOST });
+    expect(io.lastJson()).toEqual({ loggedOut: false, revoked: false, url: HOST });
+    expect(stub.calls).toHaveLength(0);
+  });
+
+  it('logout revokes the stored token server-side before deleting it locally', async () => {
+    const stub = fetchStub([{ status: 200, body: { revoked: true } }]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    writeConfig(io, { activeHost: HOST, hosts: { [HOST]: { apiKey: 'stored-pat' } } });
+    expect(await run(io, ['logout', '--url', HOST])).toBe(0);
+    expect(stub.calls[0]).toMatchObject({
+      url: `${HOST}/api/v1/cli/token`,
+      method: 'DELETE',
+    });
+    expect(stub.calls[0].headers['X-API-Key']).toBe('stored-pat');
+    expect(io.lastJson()).toEqual({ loggedOut: true, revoked: true, url: HOST });
+  });
+
+  it('logout still succeeds locally when the revoke call fails', async () => {
+    const stub = fetchStub([{ status: 500, body: { message: 'boom' } }]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    writeConfig(io, { activeHost: HOST, hosts: { [HOST]: { apiKey: 'stored-pat' } } });
+    expect(await run(io, ['logout', '--url', HOST])).toBe(0);
+    expect(io.lastJson()).toEqual({ loggedOut: true, revoked: false, url: HOST });
+    const config = JSON.parse(
+      fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),
+    );
+    expect(config).toEqual({ hosts: {} });
   });
 
   it('logout removes only the target host credential', async () => {
-    const io = makeIo();
+    const stub = fetchStub([{ status: 200, body: { revoked: false } }]);
+    const io = makeIo({ fetchImpl: stub.impl });
     writeConfig(io, {
       activeHost: HOST,
       hosts: { [HOST]: { apiKey: 'a' }, 'http://other:1': { apiKey: 'b' } },
     });
     expect(await run(io, ['logout', '--url', HOST])).toBe(0);
-    expect(io.lastJson()).toEqual({ loggedOut: true, url: HOST });
+    expect(io.lastJson()).toEqual({ loggedOut: true, revoked: false, url: HOST });
     const config = JSON.parse(
       fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),
     );
@@ -122,6 +248,17 @@ describe('auth commands', () => {
     const { io: io2 } = authedIo([{ status: 200, body: ME }]);
     expect(await run(io2, ['whoami'])).toBe(0);
     expect(io2.lastJson()).toEqual({ url: HOST, ...ME });
+  });
+
+  it('auth status surfaces the token expiry reported by /me', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { ...ME, expiresAt: '2026-09-01T00:00:00.000Z' } },
+    ]);
+    expect(await run(io, ['auth', 'status'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({
+      authenticated: true,
+      expiresAt: '2026-09-01T00:00:00.000Z',
+    });
   });
 
   it('config path prints the resolved config location', async () => {
