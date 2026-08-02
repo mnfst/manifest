@@ -131,6 +131,9 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # manifest-shared must be built first: the CLI's gen step and its
+      # drift-guard specs resolve the workspace package at build/test time.
+      - run: npm run build --workspace=packages/shared
       - run: npm run build --workspace=packages/cli
       - run: npm test --workspace=packages/cli -- --coverage
 
