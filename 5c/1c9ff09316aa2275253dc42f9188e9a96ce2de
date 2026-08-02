@@ -1,0 +1,79 @@
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_55e9f8f22551f6::t_26d895c56137fa 1077-1187
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_55e9f8f22551f6::t_f9e9813c9a6d55 1303,1307-1308,1314
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_55e9f8f22551f6::t_91e65a78b6a4c3 507-544
+packages/backend/src/routing/proxy/__tests__/route-credentials.spec.ts
+  s_55e9f8f22551f6::t_0ffe517d77a88e 196-241
+  s_55e9f8f22551f6::t_55295e44ffd519 61,72,83,93-95
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_55e9f8f22551f6::t_19bb0a151fdf76 49-54
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_55e9f8f22551f6::t_e331dec3c0ce6e 577-579,658
+  s_55e9f8f22551f6::t_27b7f0242e2423 727,830
+  s_55e9f8f22551f6::t_a90e79c65e80da 675
+  s_55e9f8f22551f6::t_7331be9beaf603 984
+  s_55e9f8f22551f6::t_d55256bb369378 1002
+  s_55e9f8f22551f6::t_5dbb7ce5320e33 526,632
+  s_55e9f8f22551f6::t_63318b7c271aa2 141,1052-1063,1066
+  s_55e9f8f22551f6::t_59df0edfc96b40 1240
+  s_55e9f8f22551f6::t_ba63365bea97e1 1308
+  s_55e9f8f22551f6::t_9c1676f4857428 142-147
+  s_55e9f8f22551f6::t_17f37b670bdece 1147-1148
+  s_55e9f8f22551f6::t_1db70a36078e6e 380,404
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_55e9f8f22551f6::t_13d78e5c340fbb 104,117,206,221-223
+  s_55e9f8f22551f6::t_c818758d655265 978-1024,1343-1371
+  s_55e9f8f22551f6::t_5aeb80611df4ba 1372
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_55e9f8f22551f6::t_71b739b5b7f87c 288
+  s_55e9f8f22551f6::t_3156a4f9fd01f1 737
+  s_55e9f8f22551f6::t_b81fd07e5cd7ef 361-363
+  s_55e9f8f22551f6::t_37463cc07d7e54 120-122
+  s_55e9f8f22551f6::t_40a29ebd8e8f0d 430-436,448
+packages/backend/src/routing/routing-core/provider-key.service.spec.ts
+  s_55e9f8f22551f6::t_0f4fa2f87be49f 66-105
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_55e9f8f22551f6::t_ae3291e56e5fd9 326,357,461-463,487
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_55e9f8f22551f6::t_c8712f8eaab073 888-890
+  s_55e9f8f22551f6::t_153d6c17cb1da1 931-932,980
+  s_55e9f8f22551f6::t_e5f37d040bc0aa 560-562
+  s_55e9f8f22551f6::t_91fbea2a92628f 799-800,818
+  s_55e9f8f22551f6::t_dd77bbc36c1faf 581
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_55e9f8f22551f6::t_8cb11bca0b580d 470-510
+  s_55e9f8f22551f6::t_3c95b1f0c290c3 23
+packages/backend/src/routing/proxy/route-credentials.ts
+  s_55e9f8f22551f6::t_2ecc7f76914e3e 289-291
+  s_55e9f8f22551f6::t_45907fd81ed4f2 113
+  s_55e9f8f22551f6::t_7368cb19978612 130-131,140
+  s_55e9f8f22551f6::t_f6c54a501d92c0 165-166,177,186,196
+  s_55e9f8f22551f6::t_5554c07b5036ee 52-58
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_55e9f8f22551f6::t_4f7e70d74a3fbe 287,319,328
+  s_55e9f8f22551f6::t_37ebf32bd3f119 312-318,320-327,329
+  s_55e9f8f22551f6::t_e1633a32b05708 2684-2739
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_55e9f8f22551f6::t_32e2a925414135 108-114
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_55e9f8f22551f6::t_fc852ee9894707 1650-1735
+  s_55e9f8f22551f6::t_2246dc9dfaceaa 87-90,147-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5c1c9ff09316aa2275253dc42f9188e9a96ce2de",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
