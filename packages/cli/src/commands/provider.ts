@@ -1,7 +1,7 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
 import { slugifyAgentName } from '../slug';
-import { parseArgs, requireYes } from '../args';
+import { parseArgs, requirePositional, requireYes } from '../args';
 import { readCredential } from '../secrets';
 import { PROVIDER_CATALOG } from '../provider-catalog.gen';
 import { subscriptionConnect } from './oauth-connect';
@@ -191,6 +191,124 @@ function resolveAuthType(
     `--auth-type is required for ${providerId}. Supported: ${supported.join(', ')}`,
     'Run mnfst provider catalog to see auth types per provider',
   );
+}
+
+interface ConnectionRow {
+  id?: string;
+  label?: string;
+}
+
+interface ProviderGroup {
+  provider?: string;
+  auth_type?: string;
+  display_name?: string;
+  connections?: ConnectionRow[];
+}
+
+/**
+ * Resolve a provider reference + optional filters to ONE tenant connection id.
+ * Accepts catalog ids/aliases, raw `custom:<id>` keys, and custom-provider
+ * display names. Zero matches list what exists; several demand a filter.
+ */
+async function resolveConnection(
+  io: CliIo,
+  args: ReturnType<typeof parseArgs>,
+  input: string,
+): Promise<{ id: string; provider: string; label: string }> {
+  let providerId: string | null = null;
+  try {
+    providerId = resolveProviderId(input);
+  } catch {
+    providerId = null; // maybe a custom provider — matched below
+  }
+  const { client } = clientFromFlags(io, args);
+  const result = (await client.request('GET', '/providers')) as { providers?: unknown } | null;
+  const groups = (Array.isArray(result?.providers) ? result.providers : []).filter(
+    (g): g is ProviderGroup => typeof g === 'object' && g !== null,
+  );
+  const needle = input.trim().toLowerCase();
+  const matchesGroup = (g: ProviderGroup) =>
+    (providerId !== null && g.provider === providerId) ||
+    g.provider === input ||
+    (typeof g.display_name === 'string' && g.display_name.toLowerCase() === needle);
+
+  const authType = args.strings['auth-type'];
+  const label = args.strings['label'];
+  const candidates = groups
+    .filter(matchesGroup)
+    .filter((g) => !authType || g.auth_type === authType)
+    .flatMap((g) =>
+      (g.connections ?? [])
+        .filter((c): c is ConnectionRow => typeof c === 'object' && c !== null)
+        .filter((c) => !label || (c.label ?? '').toLowerCase() === label.toLowerCase())
+        .map((c) => ({
+          id: c.id as string,
+          provider: g.provider as string,
+          label: c.label ?? '',
+          auth_type: g.auth_type ?? '',
+        })),
+    )
+    .filter((c) => typeof c.id === 'string');
+
+  if (candidates.length === 1) return candidates[0];
+  if (candidates.length === 0) {
+    throw new CliError(
+      'not_found',
+      `No connection matches "${input}"${authType ? ` (auth-type ${authType})` : ''}${label ? ` (label ${label})` : ''}`,
+      'See mnfst provider list',
+      404,
+    );
+  }
+  throw new CliError(
+    'ambiguous',
+    `"${input}" matches ${candidates.length} connections: ${candidates
+      .map((c) => `${c.provider}/${c.auth_type}/${c.label}`)
+      .join(', ')}`,
+    'Disambiguate with --auth-type and/or --label',
+  );
+}
+
+/** Opt a connection in for one agent (connections are enabled per agent). */
+export async function providerEnable(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, { strings: ['url', 'agent', 'auth-type', 'label'] });
+  const input = requirePositional(args, 0, '<provider>');
+  const agent = await resolveDiscoveryAgentStrict(io, args);
+  const conn = await resolveConnection(io, args, input);
+  const { client } = clientFromFlags(io, args);
+  await client.request(
+    'PUT',
+    `/agents/${encodeURIComponent(agent)}/enabled-providers/${encodeURIComponent(conn.id)}`,
+  );
+  printJson(io, { agent, enabled: true, provider: conn.provider, connection: conn.id });
+}
+
+export async function providerDisable(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, {
+    strings: ['url', 'agent', 'auth-type', 'label'],
+    booleans: ['yes'],
+  });
+  const input = requirePositional(args, 0, '<provider>');
+  const agent = await resolveDiscoveryAgentStrict(io, args);
+  requireYes(args, `disable "${input}" for agent "${agent}"`);
+  const conn = await resolveConnection(io, args, input);
+  const { client } = clientFromFlags(io, args);
+  await client.request(
+    'DELETE',
+    `/agents/${encodeURIComponent(agent)}/enabled-providers/${encodeURIComponent(conn.id)}`,
+  );
+  printJson(io, { agent, enabled: false, provider: conn.provider, connection: conn.id });
+}
+
+/** enable/disable are agent-scoped by nature — never auto-pick silently. */
+async function resolveDiscoveryAgentStrict(
+  io: CliIo,
+  args: ReturnType<typeof parseArgs>,
+): Promise<string> {
+  const explicit = args.strings['agent'];
+  if (!explicit) {
+    throw new CliError('missing_flag', '--agent is required (enable/disable is per-agent)');
+  }
+  return slugifyAgentName(explicit);
 }
 
 export async function providerConnect(io: CliIo, argv: string[]): Promise<void> {
