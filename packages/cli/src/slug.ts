@@ -11,13 +11,19 @@ import { CliError } from './errors';
  * orphan every existing agent, so this copy cannot silently drift.
  */
 export function slugifyAgentName(input: string): string {
-  const slug = input
+  const collapsed = input
     .trim()
     .toLowerCase()
     .replace(/[\s_]+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
-    .replace(/-{2,}/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/-{2,}/g, '-');
+  // Edge-hyphen trim done positionally: the regex form (/-+$/) backtracks
+  // polynomially on long hyphen runs (CodeQL js/polynomial-redos).
+  let start = 0;
+  let end = collapsed.length;
+  while (start < end && collapsed[start] === '-') start++;
+  while (end > start && collapsed[end - 1] === '-') end--;
+  const slug = collapsed.slice(start, end);
   if (!slug) {
     throw new CliError(
       'invalid_agent_name',
