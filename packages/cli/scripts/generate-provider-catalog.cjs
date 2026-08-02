@@ -23,7 +23,6 @@ function deriveCatalog(shared) {
       displayName: p.displayName,
       ...(p.aliases && p.aliases.length ? { aliases: p.aliases } : {}),
       authTypes,
-      ...(p.requiresApiKey && p.keyPlaceholder ? { keyFormat: p.keyPlaceholder } : {}),
     };
   });
 }
@@ -40,7 +39,6 @@ export interface ProviderCatalogEntry {
   displayName: string;
   aliases?: readonly string[];
   authTypes: readonly string[];
-  keyFormat?: string;
 }
 
 export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = ${JSON.stringify(catalog, null, 2)};
