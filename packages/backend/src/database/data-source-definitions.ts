@@ -38,6 +38,7 @@ import { AddRequestRecordings1801300000000 } from './migrations/1801300000000-Ad
 import { MoveRecordingsToProviderAttempts1801400000000 } from './migrations/1801400000000-MoveRecordingsToProviderAttempts';
 import { EnableRecordingForNewAgents1801500000000 } from './migrations/1801500000000-EnableRecordingForNewAgents';
 import { DropLegacyAutofixRolloutColumns1801600000000 } from './migrations/1801600000000-DropLegacyAutofixRolloutColumns';
+import { AddApiKeyExpiresAt1801700000000 } from './migrations/1801700000000-AddApiKeyExpiresAt';
 import { AddRequestApiMode1801720000000 } from './migrations/1801720000000-AddRequestApiMode';
 import { AddAutofixConsentToInstallMetadata1801900000000 } from './migrations/1801900000000-AddAutofixConsentToInstallMetadata';
 import { SlimTenantAgentModelIndex1802000000000 } from './migrations/1802000000000-SlimTenantAgentModelIndex';
@@ -319,6 +320,7 @@ export const migrations = [
   MoveRecordingsToProviderAttempts1801400000000,
   EnableRecordingForNewAgents1801500000000,
   DropLegacyAutofixRolloutColumns1801600000000,
+  AddApiKeyExpiresAt1801700000000,
   AddRequestApiMode1801720000000,
   AddAutofixConsentToInstallMetadata1801900000000,
   SlimTenantAgentModelIndex1802000000000,

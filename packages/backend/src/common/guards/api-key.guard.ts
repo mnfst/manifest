@@ -52,6 +52,10 @@ export class ApiKeyGuard implements CanActivate {
     const found = candidates.find((c) => verifyKey(apiKey, c.key_hash));
 
     if (found) {
+      if (found.expires_at && new Date(found.expires_at).getTime() <= Date.now()) {
+        this.logger.warn(`Rejected expired API key from ${request.ip}`);
+        throw new UnauthorizedException('API key expired — run mnfst login');
+      }
       // Keys are tenant credentials: the tenant comes straight off the key
       // row — no key → user → tenant indirection. The creating user is kept
       // as attribution so @CurrentUser-scoped controllers (and audit writes)
@@ -66,10 +70,21 @@ export class ApiKeyGuard implements CanActivate {
         };
       }
       (request as Request & { authMethod: string }).authMethod = 'api_key';
+      (request as Request & { apiKeyExpiresAt?: string | null }).apiKeyExpiresAt =
+        found.expires_at ?? null;
+      const ttlDays = this.configService.get<number>('app.cliTokenTtlDays', 30);
       this.apiKeyRepo
         .createQueryBuilder()
         .update(ApiKey)
-        .set({ last_used_at: () => 'CURRENT_TIMESTAMP' })
+        .set(
+          found.expires_at
+            ? {
+                last_used_at: () => 'CURRENT_TIMESTAMP',
+                // ttlDays comes from parseInt over env config — always a number
+                expires_at: () => `CURRENT_TIMESTAMP + INTERVAL '${ttlDays} days'`,
+              }
+            : { last_used_at: () => 'CURRENT_TIMESTAMP' },
+        )
         .where('id = :id', { id: found.id })
         .execute()
         .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));

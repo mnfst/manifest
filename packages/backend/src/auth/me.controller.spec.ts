@@ -10,6 +10,7 @@ describe('MeController', () => {
       tenantId: 't1',
       userId: 'u1',
       authMethod: 'api_key',
+      expiresAt: null,
     });
   });
 
@@ -18,6 +19,34 @@ describe('MeController', () => {
       tenantId: 't1',
       userId: null,
       authMethod: null,
+      expiresAt: null,
+    });
+  });
+
+  it('echoes the key expiry the guard stamped on the request', () => {
+    const expiresAt = '2026-09-01T00:00:00.000Z';
+    const request = { authMethod: 'api_key', apiKeyExpiresAt: expiresAt } as Request & {
+      authMethod: string;
+      apiKeyExpiresAt: string;
+    };
+    expect(controller.me({ tenantId: 't1', userId: 'u1' }, request)).toEqual({
+      tenantId: 't1',
+      userId: 'u1',
+      authMethod: 'api_key',
+      expiresAt,
+    });
+  });
+
+  it('reports a null expiry for a non-expiring key', () => {
+    const request = { authMethod: 'api_key', apiKeyExpiresAt: null } as Request & {
+      authMethod: string;
+      apiKeyExpiresAt: string | null;
+    };
+    expect(controller.me({ tenantId: 't1', userId: 'u1' }, request)).toEqual({
+      tenantId: 't1',
+      userId: 'u1',
+      authMethod: 'api_key',
+      expiresAt: null,
     });
   });
 });

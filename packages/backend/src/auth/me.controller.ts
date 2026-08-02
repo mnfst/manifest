@@ -12,10 +12,12 @@ import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.de
 export class MeController {
   @Get()
   me(@TenantCtx() ctx: TenantContext, @Req() request: Request) {
+    const r = request as Request & { authMethod?: string; apiKeyExpiresAt?: string | null };
     return {
       tenantId: ctx.tenantId,
       userId: ctx.userId,
-      authMethod: (request as Request & { authMethod?: string }).authMethod ?? null,
+      authMethod: r.authMethod ?? null,
+      expiresAt: r.apiKeyExpiresAt ?? null,
     };
   }
 }
