@@ -1,7 +1,32 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
+import { CliError } from '../errors';
 import { slugifyAgentName } from '../slug';
 import { parseArgs, requireString, requireYes } from '../args';
 import { readCredential } from '../secrets';
+import { PROVIDER_CATALOG } from '../provider-catalog.gen';
+
+/** Lists what CAN be connected — no auth, no network, straight from the catalog. */
+export async function providerCatalog(io: CliIo, argv: string[]): Promise<void> {
+  parseArgs(argv, {});
+  printJson(io, { providers: PROVIDER_CATALOG });
+}
+
+/**
+ * Resolve a --provider value to its canonical id, accepting aliases
+ * ("google" → gemini). Unknown values fail before any network call.
+ */
+export function resolveProviderId(input: string): string {
+  const needle = input.trim().toLowerCase();
+  const hit = PROVIDER_CATALOG.find((p) => p.id === needle || (p.aliases ?? []).includes(needle));
+  if (!hit) {
+    throw new CliError(
+      'unknown_provider',
+      `Unknown provider: ${input}`,
+      'Run mnfst provider catalog to list connectable providers',
+    );
+  }
+  return hit.id;
+}
 
 export async function providerList(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url'] });
@@ -55,7 +80,7 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
     strings: ['url', 'provider', 'agent', 'credential-env', 'label', 'region', 'auth-type'],
     booleans: ['credential-stdin'],
   });
-  const provider = requireString(args, 'provider');
+  const provider = resolveProviderId(requireString(args, 'provider'));
   const agent = slugifyAgentName(requireString(args, 'agent'));
   const authType = args.strings['auth-type'];
 
@@ -88,7 +113,7 @@ export async function providerDisconnect(io: CliIo, argv: string[]): Promise<voi
     strings: ['url', 'provider', 'agent', 'auth-type', 'label'],
     booleans: ['yes'],
   });
-  const provider = requireString(args, 'provider');
+  const provider = resolveProviderId(requireString(args, 'provider'));
   const agent = slugifyAgentName(requireString(args, 'agent'));
   requireYes(args, `disconnect provider "${provider}" (tenant-wide)`);
   const { client } = clientFromFlags(io, args);

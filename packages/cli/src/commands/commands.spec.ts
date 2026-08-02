@@ -817,6 +817,49 @@ describe('provider commands', () => {
     });
   });
 
+  it('provider catalog lists connectable providers without auth or network', async () => {
+    const stub = fetchStub([]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    expect(await run(io, ['provider', 'catalog'])).toBe(0);
+    const out = io.lastJson() as { providers: Array<{ id: string; authTypes: string[] }> };
+    expect(out.providers.length).toBeGreaterThan(20);
+    expect(out.providers.some((p) => p.id === 'openai')).toBe(true);
+    expect(stub.calls).toHaveLength(0);
+  });
+
+  it('provider connect resolves aliases and rejects unknown providers early', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: {} }], { CRED: 'g-key' });
+    expect(
+      await run(io, [
+        'provider',
+        'connect',
+        '--provider',
+        'google',
+        '--agent',
+        'a',
+        '--credential-env',
+        'CRED',
+      ]),
+    ).toBe(0);
+    expect(JSON.parse(calls[0].body!).provider).toBe('gemini');
+
+    const { io: io2, calls: calls2 } = authedIo([]);
+    expect(
+      await run(io2, [
+        'provider',
+        'connect',
+        '--provider',
+        'skynet-llc',
+        '--agent',
+        'a',
+        '--credential-env',
+        'CRED',
+      ]),
+    ).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'unknown_provider' });
+    expect(calls2).toHaveLength(0);
+  });
+
   it('provider connect sends the credential from a named env var, never argv', async () => {
     const { io, calls } = authedIo([{ status: 201, body: { id: 'p1', provider: 'openai' } }], {
       OPENAI_KEY: 'sk-secret',

@@ -1,0 +1,54 @@
+#!/usr/bin/env node
+'use strict';
+/**
+ * Generates src/provider-catalog.gen.ts from manifest-shared so the CLI can
+ * answer "what can I connect?" offline while staying zero-runtime-dependency.
+ * Runs as part of `npm run build`; the output is committed. The drift spec
+ * (provider-catalog.spec.ts) fails whenever the committed file is stale.
+ */
+const fs = require('fs');
+const path = require('path');
+
+/** Derive the CLI-facing catalog from the shared registry. */
+function deriveCatalog(shared) {
+  return shared.SHARED_PROVIDERS.map((p) => {
+    const subscription = shared.SUPPORTED_SUBSCRIPTION_PROVIDER_IDS.includes(p.id);
+    const authTypes = [
+      ...(p.localOnly ? ['local'] : []),
+      ...(p.requiresApiKey ? ['api_key'] : []),
+      ...(subscription ? ['subscription'] : []),
+    ];
+    return {
+      id: p.id,
+      displayName: p.displayName,
+      ...(p.aliases && p.aliases.length ? { aliases: p.aliases } : {}),
+      authTypes,
+      ...(p.requiresApiKey && p.keyPlaceholder ? { keyFormat: p.keyPlaceholder } : {}),
+    };
+  });
+}
+
+function main() {
+  const shared = require('manifest-shared');
+  const catalog = deriveCatalog(shared);
+  const out = `// GENERATED FILE — do not edit by hand.
+// Source: manifest-shared (SHARED_PROVIDERS + SUPPORTED_SUBSCRIPTION_PROVIDER_IDS).
+// Refresh with: npm run gen (runs automatically in npm run build).
+
+export interface ProviderCatalogEntry {
+  id: string;
+  displayName: string;
+  aliases?: readonly string[];
+  authTypes: readonly string[];
+  keyFormat?: string;
+}
+
+export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = ${JSON.stringify(catalog, null, 2)};
+`;
+  const dest = path.join(__dirname, '..', 'src', 'provider-catalog.gen.ts');
+  fs.writeFileSync(dest, out);
+  console.log(`wrote ${dest}: ${catalog.length} providers`);
+}
+
+module.exports = { deriveCatalog };
+if (require.main === module) main();
