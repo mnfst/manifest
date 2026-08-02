@@ -37,3 +37,7 @@ scripts/verify-free-model-ids.sh
 # Superpowers-generated markdown (plans, brainstorms, specs)
 docs/superpowers/
 docs/plans/
+
+# Ops artifacts
+backup_db.sh
+db_backup/
