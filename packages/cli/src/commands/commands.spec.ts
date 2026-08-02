@@ -999,6 +999,27 @@ describe('provider commands', () => {
     expect(io2.lastJson()).toMatchObject({ error: 'invalid_auth_type' });
   });
 
+  it('provider connect never prompts when a credential flag signals scripting (pty-safe)', async () => {
+    // Agents under a pty look interactive; an explicit --credential-env must
+    // keep the run fully non-blocking.
+    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key', K: 'xai-secret' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async () => {
+        throw new Error('must not prompt');
+      },
+      readSecret: async () => {
+        throw new Error('must not prompt');
+      },
+    });
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--credential-env', 'K']),
+    ).toBe(0);
+    expect(JSON.parse(stub.calls[0].body!)).not.toHaveProperty('authType');
+  });
+
   it('provider connect infers local for local-only providers without prompting', async () => {
     const { io, calls } = authedIo([{ status: 201, body: { id: 'p1' } }]);
     expect(await run(io, ['provider', 'connect', 'ollama', '--agent', 'a'])).toBe(0);
