@@ -7,6 +7,7 @@ import { defaultOpenBrowser } from './oauth-login';
 import * as auth from './commands/auth';
 import * as agent from './commands/agent';
 import * as provider from './commands/provider';
+import * as customProvider from './commands/custom-provider';
 import * as routing from './commands/routing';
 import * as runCommand from './commands/run';
 import * as models from './commands/models';
@@ -42,6 +43,11 @@ export const COMMANDS: Record<string, Handler> = {
   'provider list': provider.providerList,
   'provider catalog': provider.providerCatalog,
   'provider connect': provider.providerConnect,
+  'provider enable': provider.providerEnable,
+  'provider disable': provider.providerDisable,
+  'provider custom add': customProvider.providerCustom.add,
+  'provider custom list': customProvider.providerCustom.list,
+  'provider custom remove': customProvider.providerCustom.remove,
   'provider disconnect': provider.providerDisconnect,
 
   'routing status': routing.routingStatus,
@@ -90,6 +96,9 @@ Providers
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
+  mnfst provider enable|disable <provider> --agent <name> [--auth-type <a>] [--label <l>] [--yes]
+  mnfst provider custom add --name <n> --endpoint <url> [--api openai|anthropic] [--credential-stdin|--credential-env <e>]
+  mnfst provider custom list | mnfst provider custom remove <name> --yes
 
 Models
   mnfst models <agent> [--provider <p>] [--cost] [--capabilities]   (like /v1/models: bare ids; flags opt into metadata)

@@ -1499,6 +1499,205 @@ describe('models command', () => {
   });
 });
 
+describe('provider enable/disable', () => {
+  const groups = {
+    providers: [
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        connections: [{ id: 'conn-a', label: 'Default' }],
+      },
+      {
+        provider: 'openai',
+        auth_type: 'subscription',
+        connections: [{ id: 'conn-b', label: 'Default' }],
+      },
+      {
+        provider: 'custom:abc',
+        auth_type: 'api_key',
+        display_name: 'My LiteLLM',
+        connections: [{ id: 'conn-c', label: 'Default' }],
+      },
+    ],
+  };
+
+  it('enable resolves a unique connection and PUTs the junction', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: groups },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(
+      await run(io, ['provider', 'enable', 'openai', '--agent', 'John', '--auth-type', 'api_key']),
+    ).toBe(0);
+    expect(calls[1].method).toBe('PUT');
+    expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-a`);
+    expect(io.lastJson()).toMatchObject({ agent: 'john', enabled: true, connection: 'conn-a' });
+  });
+
+  it('enable matches custom providers by display name', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: groups },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(await run(io, ['provider', 'enable', 'my litellm', '--agent', 'john'])).toBe(0);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-c`);
+  });
+
+  it('ambiguous matches demand a filter; zero matches 404', async () => {
+    const { io } = authedIo([{ status: 200, body: groups }]);
+    expect(await run(io, ['provider', 'enable', 'openai', '--agent', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'ambiguous',
+      hint: expect.stringContaining('--auth-type'),
+    });
+
+    const { io: io2 } = authedIo([{ status: 200, body: groups }]);
+    expect(await run(io2, ['provider', 'enable', 'groq', '--agent', 'john'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'not_found' });
+  });
+
+  it('disable demands --yes and --agent, and surfaces the route-conflict 409', async () => {
+    const { io } = authedIo([]);
+    expect(await run(io, ['provider', 'disable', 'openai', '--agent', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'confirmation_required' });
+
+    const { io: io2 } = authedIo([]);
+    expect(await run(io2, ['provider', 'disable', 'openai', '--yes'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'missing_flag' });
+
+    const { io: io3 } = authedIo([
+      { status: 200, body: groups },
+      { status: 409, body: { message: "Can't disable provider while its models are assigned" } },
+    ]);
+    expect(
+      await run(io3, [
+        'provider',
+        'disable',
+        'openai',
+        '--agent',
+        'john',
+        '--auth-type',
+        'api_key',
+        '--yes',
+      ]),
+    ).toBe(1);
+    expect((io3.lastJson() as { message: string }).message).toContain("Can't disable");
+  });
+});
+
+describe('provider custom', () => {
+  it('add probes first, then registers with the discovered models', async () => {
+    const { io, calls } = authedIo(
+      [
+        { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+        { status: 200, body: { models: [{ model_name: 'llama-4' }, { model_name: 'qwen-3' }] } },
+        { status: 201, body: { id: 'cp-1', name: 'My LiteLLM' } },
+      ],
+      { LK: 'sk-litellm' },
+    );
+    expect(
+      await run(io, [
+        'provider',
+        'custom',
+        'add',
+        '--name',
+        'My LiteLLM',
+        '--endpoint',
+        'http://gateway.internal:4000',
+        '--credential-env',
+        'LK',
+      ]),
+    ).toBe(0);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/custom-providers/probe`);
+    expect(JSON.parse(calls[1].body!)).toMatchObject({
+      base_url: 'http://gateway.internal:4000',
+      apiKey: 'sk-litellm',
+    });
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/custom-providers`);
+    const created = JSON.parse(calls[2].body!);
+    expect(created.models).toEqual([{ model_name: 'llama-4' }, { model_name: 'qwen-3' }]);
+    expect(io.lastJson()).toMatchObject({ probed_models: 2 });
+    expect(io.lines.join('\n')).not.toContain('sk-litellm');
+  });
+
+  it('add fails when the probe finds no models', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 200, body: { models: [] } },
+    ]);
+    expect(
+      await run(io, ['provider', 'custom', 'add', '--name', 'dead', '--endpoint', 'http://x:1']),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'probe_empty' });
+    expect(calls).toHaveLength(2); // never registered
+  });
+
+  it('add rejects an unknown --api kind; remove 404s on unknown names', async () => {
+    const { io } = authedIo([]);
+    expect(
+      await run(io, [
+        'provider',
+        'custom',
+        'add',
+        '--name',
+        'x',
+        '--endpoint',
+        'http://x:1',
+        '--api',
+        'grpc',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_flag' });
+
+    const { io: io2 } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 200, body: [] },
+    ]);
+    expect(await run(io2, ['provider', 'custom', 'remove', 'ghost', '--yes'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'not_found' });
+  });
+
+  it('disable succeeds end-to-end when no route depends on the connection', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: {
+          providers: [
+            {
+              provider: 'gemini',
+              auth_type: 'api_key',
+              connections: [{ id: 'conn-g', label: 'Default' }],
+            },
+          ],
+        },
+      },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(await run(io, ['provider', 'disable', 'google', '--agent', 'john', '--yes'])).toBe(0);
+    expect(calls[1].method).toBe('DELETE');
+    expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-g`);
+    expect(io.lastJson()).toMatchObject({ enabled: false, provider: 'gemini' });
+  });
+
+  it('list and remove resolve by name with confirmation', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 200, body: [{ id: 'cp-1', name: 'My LiteLLM' }] },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(await run(io, ['provider', 'custom', 'remove', 'my litellm', '--yes'])).toBe(0);
+    expect(calls[2].method).toBe('DELETE');
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/custom-providers/cp-1`);
+
+    const { io: io2, calls: calls2 } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 200, body: [{ id: 'cp-1', name: 'x' }] },
+    ]);
+    expect(await run(io2, ['provider', 'custom', 'list'])).toBe(0);
+    expect(calls2[1].url).toBe(`${HOST}/api/v1/routing/john/custom-providers`);
+  });
+});
+
 describe('routing test', () => {
   const completion = (content: string, model = 'grok-build-0.1') => ({
     status: 200,
