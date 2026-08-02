@@ -1,4 +1,5 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
+import { resolveAgentKey } from './agent';
 import { slugifyAgentName } from '../slug';
 import { CliError } from '../errors';
 import { parseArgs, parseBooleanFlag, requirePositional, requireString, requireYes } from '../args';
@@ -211,6 +212,91 @@ export const routingCustom = {
     );
   },
 };
+
+const TEST_TIMEOUT_MS = 120_000;
+
+/**
+ * Send ONE real request through the agent's route to prove the config works
+ * end-to-end — the closing move after `agent configure`. Not an inference
+ * client: fixed shape, canned default prompt, facts-first output. Manifest
+ * errors that the proxy wraps as HTTP-200 assistant text are unmasked into
+ * real failures so a broken route can never look like an answer.
+ */
+export async function routingTest(io: CliIo, argv: string[]): Promise<number | void> {
+  const args = parseArgs(argv, { strings: ['url', 'tier', 'model'] });
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const prompt = args.positionals.slice(1).join(' ').trim() || 'Reply with exactly: OK';
+  const resolved = await resolveAgentKey(io, args, agent);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
+  const started = Date.now();
+  let response: Response;
+  try {
+    response = await io.fetchImpl(`${resolved.origin}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${resolved.key}`,
+        'Content-Type': 'application/json',
+        ...(args.strings['tier'] ? { 'x-manifest-tier': args.strings['tier'] } : {}),
+      },
+      body: JSON.stringify({
+        model: args.strings['model'] ?? 'auto',
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    throw new CliError(
+      'network_error',
+      `Could not reach ${resolved.origin}: ${error instanceof Error ? error.message : String(error)}`,
+      'Check the URL and that the Manifest server is running',
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+  const durationMs = Date.now() - started;
+
+  const text = await response.text();
+  let parsed: Record<string, unknown> = {};
+  try {
+    const raw: unknown = JSON.parse(text);
+    if (typeof raw === 'object' && raw !== null) parsed = raw as Record<string, unknown>;
+  } catch {
+    /* non-JSON body → generic failure below */
+  }
+  if (!response.ok) {
+    const err = (parsed['error'] as { message?: string } | undefined)?.message;
+    throw new CliError(
+      'route_test_failed',
+      err ?? `Route test failed with HTTP ${response.status}`,
+      'See mnfst routing status ' + agent,
+      response.status,
+    );
+  }
+
+  const choice = (parsed['choices'] as Array<Record<string, unknown>> | undefined)?.[0];
+  const message = choice?.['message'] as { content?: string } | undefined;
+  const reply = message?.content ?? '';
+  if (/^\[🦚 Manifest M\d+\]/.test(reply)) {
+    throw new CliError('route_test_failed', reply, 'See mnfst routing status ' + agent);
+  }
+
+  const usage = parsed['usage'] as
+    { prompt_tokens?: number; completion_tokens?: number } | undefined;
+  printJson(io, {
+    agent,
+    ok: true,
+    requested_model: args.strings['model'] ?? 'auto',
+    ...(args.strings['tier'] ? { tier: args.strings['tier'] } : {}),
+    served_model: typeof parsed['model'] === 'string' ? parsed['model'] : null,
+    duration_ms: durationMs,
+    ...(usage?.prompt_tokens !== undefined
+      ? { tokens: (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) }
+      : {}),
+    reply,
+  });
+}
 
 function toggleCommand(feature: 'autofix' | 'recording') {
   return {

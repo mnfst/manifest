@@ -1448,7 +1448,7 @@ describe('models command', () => {
   });
 });
 
-describe('call', () => {
+describe('routing test', () => {
   const completion = (content: string, model = 'grok-build-0.1') => ({
     status: 200,
     body: {
@@ -1458,94 +1458,81 @@ describe('call', () => {
     },
   });
 
-  it('sends a routed completion and prints the answer on stdout, facts on stderr', async () => {
-    const { io, calls } = authedIo([completion('The answer.')]);
-    saveAgentKey(io.env, HOST, 'john', 'mnfst_call_key');
-    expect(await run(io, ['call', '--agent', 'John', 'what', 'is', 'up?'])).toBe(0);
+  it('sends one canned request through the route and reports facts', async () => {
+    const { io, calls } = authedIo([completion('OK')]);
+    saveAgentKey(io.env, HOST, 'john', 'mnfst_test_key');
+    expect(await run(io, ['routing', 'test', 'John'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/v1/chat/completions`);
-    expect(calls[0].headers['Authorization']).toBe('Bearer mnfst_call_key');
+    expect(calls[0].headers['Authorization']).toBe('Bearer mnfst_test_key');
     const body = JSON.parse(calls[0].body!);
     expect(body.model).toBe('auto');
-    expect(body.messages).toEqual([{ role: 'user', content: 'what is up?' }]);
-    expect(io.lines[io.lines.length - 1]).toBe('The answer.');
-    expect(io.errLines.join('\n')).toContain('agent=john');
-    expect(io.errLines.join('\n')).toContain('tokens=15');
+    expect(body.messages[0].content).toContain('Reply with exactly: OK');
+    expect(io.lastJson()).toMatchObject({
+      agent: 'john',
+      ok: true,
+      requested_model: 'auto',
+      served_model: 'grok-build-0.1',
+      tokens: 15,
+      reply: 'OK',
+    });
   });
 
-  it('forwards --model, --tier, --system and supports --json', async () => {
-    const { io, calls } = authedIo([completion('ok', 'grok-4.5')]);
+  it('proves tier escalation and explicit models, with a custom prompt', async () => {
+    const { io, calls } = authedIo([completion('pong', 'grok-4.5')]);
     saveAgentKey(io.env, HOST, 'john', 'k');
     expect(
       await run(io, [
-        'call',
-        '--agent',
+        'routing',
+        'test',
         'john',
-        '--model',
-        'grok-4.5',
+        'custom',
+        'ping',
         '--tier',
         'thorough',
-        '--system',
-        'be brief',
-        '--json',
-        'hard question',
+        '--model',
+        'grok-4.5',
       ]),
     ).toBe(0);
+    expect(calls[0].headers['x-manifest-tier']).toBe('thorough');
     const body = JSON.parse(calls[0].body!);
     expect(body.model).toBe('grok-4.5');
-    expect(body.messages[0]).toEqual({ role: 'system', content: 'be brief' });
-    expect(calls[0].headers['x-manifest-tier']).toBe('thorough');
-    expect(io.lastJson()).toMatchObject({ model: 'grok-4.5' });
+    expect(body.messages[0].content).toBe('custom ping');
+    expect(io.lastJson()).toMatchObject({ tier: 'thorough', served_model: 'grok-4.5' });
   });
 
-  it('reads the prompt from stdin when no argument is given', async () => {
-    const stub = fetchStub([completion('reviewed')]);
-    const io = makeIo({
-      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
-      fetchImpl: stub.impl,
-      stdin: 'review this patch\n',
-    });
+  it('unmasks fake-200 Manifest errors as loud failures', async () => {
+    const { io } = authedIo([completion('[🦚 Manifest M101] No providers configured. docs')]);
     saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['call', '--agent', 'john'])).toBe(0);
-    expect(JSON.parse(stub.calls[0].body!).messages[0].content).toBe('review this patch');
-  });
-
-  it('rejects an empty prompt and unmasks fake-200 Manifest errors', async () => {
-    const { io } = authedIo([]);
-    expect(await run(io, ['call', '--agent', 'john'])).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'missing_prompt' });
-
-    const { io: io2 } = authedIo([
-      completion('[🦚 Manifest M101] No providers configured. See docs'),
-    ]);
-    saveAgentKey(io2.env, HOST, 'john', 'k');
-    expect(await run(io2, ['call', '--agent', 'john', 'hi'])).toBe(1);
-    expect(io2.lastJson()).toMatchObject({
-      error: 'call_failed',
+    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'route_test_failed',
       message: expect.stringContaining('M101'),
+      hint: expect.stringContaining('routing status john'),
     });
   });
 
-  it('wraps transport failures as network_error', async () => {
-    const io = makeIo({
+  it('surfaces real HTTP errors and transport failures', async () => {
+    const { io } = authedIo([{ status: 429, body: { error: { message: 'rate limited' } } }]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'route_test_failed', status: 429 });
+
+    const io2 = makeIo({
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: (async () => {
         throw new Error('ECONNREFUSED');
       }) as typeof fetch,
     });
-    saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['call', '--agent', 'john', 'hi'])).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'network_error' });
+    saveAgentKey(io2.env, HOST, 'john', 'k');
+    expect(await run(io2, ['routing', 'test', 'john'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'network_error' });
   });
 
-  it('auto-picks an agent when none is given and surfaces real HTTP errors', async () => {
-    const { io, calls } = authedIo([
-      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
-      { status: 429, body: { error: { message: 'rate limited' } } },
-    ]);
+  it('tolerates a non-JSON success body as a loud failure', async () => {
+    const { io } = authedIo([{ status: 502, body: null }]);
     saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['call', 'hi'])).toBe(1);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/agents`);
-    expect(io.lastJson()).toMatchObject({ error: 'call_failed', status: 429 });
+    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'route_test_failed', status: 502 });
   });
 });
 
