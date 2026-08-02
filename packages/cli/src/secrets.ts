@@ -38,6 +38,9 @@ export function keyPrefixOf(secret: string): string {
 
 /**
  * Read a credential from stdin or a named environment variable — never argv.
+ * When neither source is given and the session is interactive, falls back to
+ * a hidden-input prompt (io.readSecret); scripts and agents get the explicit
+ * error instead.
  */
 export async function readCredential(
   io: CliIo,
@@ -45,6 +48,13 @@ export async function readCredential(
   envName: string | undefined,
   what: string,
 ): Promise<string> {
+  if (!useStdin && !envName && io.isTTY && io.readSecret) {
+    const secret = (await io.readSecret(`Paste the ${what} (input hidden): `)).trim();
+    if (!secret) {
+      throw new CliError('credential_empty', `No ${what} entered`);
+    }
+    return secret;
+  }
   if (useStdin === Boolean(envName)) {
     throw new CliError(
       'credential_source_required',

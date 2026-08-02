@@ -34,6 +34,12 @@ export interface CliIo {
     args: string[],
     env: Record<string, string | undefined>,
   ) => Promise<number>;
+  /**
+   * Hidden-input prompt (echo off, prompt on stderr) for interactive secret
+   * entry. Only wired when the process has a TTY; absent in scripts/agents,
+   * which must use the explicit --credential flags.
+   */
+  readSecret?: (promptText: string) => Promise<string>;
 }
 
 export function getConfigPath(io: CliIo): string {

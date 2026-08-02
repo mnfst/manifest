@@ -1,7 +1,7 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
 import { slugifyAgentName } from '../slug';
-import { parseArgs, requireString, requireYes } from '../args';
+import { parseArgs, requireYes } from '../args';
 import { readCredential } from '../secrets';
 import { PROVIDER_CATALOG } from '../provider-catalog.gen';
 
@@ -79,18 +79,63 @@ function stripProviderNoise(result: unknown): unknown {
 }
 
 /**
- * Provider credentials are tenant-global, but connect/disconnect currently
- * live under an agent-scoped API path (model discovery runs through that
- * agent). The CLI therefore requires an explicit --agent — it never picks
- * one silently. A tenant-level API contract is the planned follow-up.
+ * Take the provider as a positional (`provider connect xai`), tolerating the
+ * legacy --provider flag; giving both (or neither) is an error.
  */
+function providerFromArgs(args: ReturnType<typeof parseArgs>): string {
+  const positional = args.positionals[0];
+  const flagged = args.strings['provider'];
+  if (positional && flagged) {
+    throw new CliError(
+      'invalid_flag',
+      'Pass the provider once — positional or --provider, not both',
+    );
+  }
+  const input = positional ?? flagged;
+  if (!input) {
+    throw new CliError(
+      'missing_positional',
+      'Usage: mnfst provider connect <provider>',
+      'Run mnfst provider catalog to list connectable providers',
+    );
+  }
+  return resolveProviderId(input);
+}
+
+/**
+ * Connecting a provider is tenant-wide (the backend enables it for every
+ * agent), but the API path is agent-scoped for model discovery. Any agent
+ * yields the same result, so when --agent is omitted the CLI picks one and
+ * says which it used.
+ */
+async function resolveDiscoveryAgent(
+  io: CliIo,
+  args: ReturnType<typeof parseArgs>,
+): Promise<string> {
+  const explicit = args.strings['agent'];
+  if (explicit) return slugifyAgentName(explicit);
+  const { client } = clientFromFlags(io, args);
+  const result = (await client.request('GET', '/agents')) as {
+    agents?: Array<{ agent_name?: string }>;
+  };
+  const first = result?.agents?.find((a) => typeof a.agent_name === 'string');
+  if (!first?.agent_name) {
+    throw new CliError(
+      'no_agents',
+      'No agent exists yet — connecting a provider needs one for model discovery',
+      'Run mnfst agent create --name <name> --platform <p> first',
+    );
+  }
+  return first.agent_name;
+}
+
 export async function providerConnect(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'provider', 'agent', 'credential-env', 'label', 'region', 'auth-type'],
     booleans: ['credential-stdin'],
   });
-  const provider = resolveProviderId(requireString(args, 'provider'));
-  const agent = slugifyAgentName(requireString(args, 'agent'));
+  const provider = providerFromArgs(args);
+  const agent = await resolveDiscoveryAgent(io, args);
   const authType = args.strings['auth-type'];
 
   // API-key providers need a credential; `local` (Ollama) does not.
@@ -114,7 +159,12 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
       ...(args.strings['region'] ? { region: args.strings['region'] } : {}),
     },
   });
-  printJson(io, result);
+  printJson(
+    io,
+    typeof result === 'object' && result !== null
+      ? { agent, ...(result as Record<string, unknown>) }
+      : { agent, result },
+  );
 }
 
 export async function providerDisconnect(io: CliIo, argv: string[]): Promise<void> {
@@ -122,8 +172,8 @@ export async function providerDisconnect(io: CliIo, argv: string[]): Promise<voi
     strings: ['url', 'provider', 'agent', 'auth-type', 'label'],
     booleans: ['yes'],
   });
-  const provider = resolveProviderId(requireString(args, 'provider'));
-  const agent = slugifyAgentName(requireString(args, 'agent'));
+  const provider = providerFromArgs(args);
+  const agent = await resolveDiscoveryAgent(io, args);
   requireYes(args, `disconnect provider "${provider}" (tenant-wide)`);
   const { client } = clientFromFlags(io, args);
   const result = await client.request(

@@ -1,3 +1,5 @@
+import * as readline from 'readline';
+import { Writable } from 'stream';
 import { CliIo } from './context';
 import { CliError } from './errors';
 import { VERSION } from './version';
@@ -75,8 +77,9 @@ Agents
 Providers
   mnfst provider list                                  (your connections)
   mnfst provider catalog                               (everything connectable: ids + auth types)
-  mnfst provider connect --provider <slug> --agent <name> (--credential-stdin | --credential-env <name>) [--label <l>] [--region <r>] [--auth-type <a>]
-  mnfst provider disconnect --provider <slug> --agent <name> [--auth-type <a>] [--label <l>] --yes
+  mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
+    (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
+  mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
 
 Routing
   mnfst routing status <agent> | mnfst routing tiers <agent>
@@ -179,6 +182,21 @@ export async function main(argv: string[]): Promise<number> {
     },
     isTTY: Boolean(process.stderr.isTTY),
     openBrowser: defaultOpenBrowser,
+    readSecret: (promptText) =>
+      new Promise((resolve) => {
+        process.stderr.write(promptText);
+        const muted = new Writable({ write: (_c, _e, cb) => cb() });
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: muted,
+          terminal: true,
+        });
+        rl.question('', (answer) => {
+          rl.close();
+          process.stderr.write('\n');
+          resolve(answer);
+        });
+      }),
   };
   return run(io, argv);
 }
