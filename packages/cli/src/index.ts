@@ -12,7 +12,6 @@ import * as runCommand from './commands/run';
 import * as models from './commands/models';
 import * as configure from './commands/configure';
 import * as requests from './commands/requests';
-import * as callCmd from './commands/call';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -45,6 +44,7 @@ export const COMMANDS: Record<string, Handler> = {
   'provider disconnect': provider.providerDisconnect,
 
   'routing status': routing.routingStatus,
+  'routing test': routing.routingTest,
   'routing fallbacks get': routing.routingFallbacksGet,
   'routing fallbacks clear': routing.routingFallbacksClear,
   'routing custom list': routing.routingCustom.list,
@@ -56,8 +56,6 @@ export const COMMANDS: Record<string, Handler> = {
   'routing recording set': routing.routingRecording.set,
 
   'requests get': requests.requestsGet,
-
-  call: callCmd.call,
 
   run: runCommand.runCmd,
 
@@ -96,6 +94,7 @@ Models
 
 Routing readouts + custom-tier lifecycle (writes go through mnfst agent configure)
   mnfst routing status <agent>
+  mnfst routing test <agent> [prompt...] [--tier <t>] [--model <m>]   (one real request through the route; fails loudly)
   mnfst routing fallbacks get|clear <agent> [--yes]
   mnfst routing custom list <agent>
   mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]
@@ -105,10 +104,6 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
 
 Requests (paginated, mirrors the API: opaque cursor, one page per call)
   mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>] [--full]
-
-Call (routed LLM completion — the front door for any ad-hoc model call)
-  mnfst call [prompt...] [--agent <name>] [--model <m>] [--tier <t>] [--system <s>] [--json]
-    stdin joins the prompt; answer on stdout, routing facts on stderr
 
 Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>
