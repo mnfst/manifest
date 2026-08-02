@@ -161,7 +161,12 @@ async function resolveAuthType(
     return flagged;
   }
   const choices = supported.filter((t) => t !== 'subscription');
-  if (supported.includes('subscription') && io.isTTY && io.readLine) {
+  // An explicit credential source is a "scripted" signal (agents under a pty
+  // still look like a TTY): never block on a prompt then — api_key is the
+  // only connectable choice anyway.
+  const scripted =
+    Boolean(args.booleans['credential-stdin']) || Boolean(args.strings['credential-env']);
+  if (!scripted && supported.includes('subscription') && io.isTTY && io.readLine) {
     const answer = (
       await io.readLine(`Auth type for ${providerId} [${supported.join(', ')}] (default api_key): `)
     )
