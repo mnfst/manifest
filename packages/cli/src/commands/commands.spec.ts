@@ -712,6 +712,111 @@ describe('provider commands', () => {
     expect(calls[0].url).toBe(`${HOST}/api/v1/providers`);
   });
 
+  it('provider list strips dashboard-only noise but keeps operational signals', async () => {
+    const { io } = authedIo([
+      {
+        status: 200,
+        body: {
+          providers: [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              display_name: null,
+              connection_count: 1,
+              connections: [
+                {
+                  id: 'conn-1',
+                  label: 'Default',
+                  key_prefix: 'sk-fake-',
+                  priority: 0,
+                  connected_at: '2026-08-02T07:25:48.318Z',
+                  models_fetched_at: '2026-08-02T09:29:54.928Z',
+                  cached_model_count: 38,
+                  is_active: true,
+                },
+              ],
+              total_models: 38,
+            },
+            {
+              provider: 'custom:abc',
+              auth_type: 'api_key',
+              display_name: 'My LiteLLM',
+              connection_count: 1,
+              connections: [
+                {
+                  id: 'conn-2',
+                  label: 'Default',
+                  key_prefix: null,
+                  priority: 2,
+                  connected_at: '2026-08-02T07:25:48.318Z',
+                  models_fetched_at: null,
+                  cached_model_count: 0,
+                  is_active: false,
+                },
+              ],
+              total_models: 0,
+            },
+          ],
+          model_counts: { openai: 84, anthropic: 21 },
+        },
+      },
+    ]);
+    expect(await run(io, ['provider', 'list'])).toBe(0);
+    expect(io.lastJson()).toEqual({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          connection_count: 1,
+          connections: [
+            {
+              id: 'conn-1',
+              label: 'Default',
+              connected_at: '2026-08-02T07:25:48.318Z',
+              cached_model_count: 38,
+              is_active: true,
+            },
+          ],
+          total_models: 38,
+        },
+        {
+          provider: 'custom:abc',
+          auth_type: 'api_key',
+          display_name: 'My LiteLLM',
+          connection_count: 1,
+          connections: [
+            {
+              id: 'conn-2',
+              label: 'Default',
+              connected_at: '2026-08-02T07:25:48.318Z',
+              cached_model_count: 0,
+              is_active: false,
+            },
+          ],
+          total_models: 0,
+        },
+      ],
+    });
+  });
+
+  it('provider list passes unexpected payload shapes through untouched', async () => {
+    const { io } = authedIo([{ status: 200, body: { providers: 'weird' } }]);
+    expect(await run(io, ['provider', 'list'])).toBe(0);
+    expect(io.lastJson()).toEqual({ providers: 'weird' });
+
+    const { io: io2 } = authedIo([{ status: 200, body: null }]);
+    expect(await run(io2, ['provider', 'list'])).toBe(0);
+    expect(io2.lastJson()).toBeNull();
+
+    const { io: io3 } = authedIo([
+      { status: 200, body: { providers: ['weird', { provider: 'x', connections: [null, 'w'] }] } },
+    ]);
+    expect(await run(io3, ['provider', 'list'])).toBe(0);
+    expect(io3.lastJson()).toEqual({
+      providers: ['weird', { provider: 'x', connections: [null, 'w'] }],
+    });
+  });
+
   it('provider connect sends the credential from a named env var, never argv', async () => {
     const { io, calls } = authedIo([{ status: 201, body: { id: 'p1', provider: 'openai' } }], {
       OPENAI_KEY: 'sk-secret',

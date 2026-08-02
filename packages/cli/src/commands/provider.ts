@@ -7,7 +7,41 @@ export async function providerList(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url'] });
   const { client } = clientFromFlags(io, args);
   const result = await client.request('GET', '/providers');
-  printJson(io, result);
+  printJson(io, stripProviderNoise(result));
+}
+
+/**
+ * The providers endpoint carries dashboard-only fields: `model_counts` is the
+ * global catalog census (not your connections), `models_fetched_at` and
+ * `priority` render freshness/ordering chrome, `key_prefix` decorates the key
+ * card. Kept: `cached_model_count` (0 = discovery found nothing, routing will
+ * fail on that connection), `is_active`, and `display_name` when set (custom
+ * providers have no other human name).
+ */
+function stripProviderNoise(result: unknown): unknown {
+  if (typeof result !== 'object' || result === null) return result;
+  const record = { ...(result as Record<string, unknown>) };
+  delete record['model_counts'];
+  if (!Array.isArray(record['providers'])) return record;
+  return {
+    ...record,
+    providers: record['providers'].map((provider) => {
+      if (typeof provider !== 'object' || provider === null) return provider;
+      const p = { ...(provider as Record<string, unknown>) };
+      if (p['display_name'] === null) delete p['display_name'];
+      if (Array.isArray(p['connections'])) {
+        p['connections'] = p['connections'].map((conn) => {
+          if (typeof conn !== 'object' || conn === null) return conn;
+          const c = { ...(conn as Record<string, unknown>) };
+          delete c['key_prefix'];
+          delete c['priority'];
+          delete c['models_fetched_at'];
+          return c;
+        });
+      }
+      return p;
+    }),
+  };
 }
 
 /**
