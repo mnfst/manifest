@@ -17,6 +17,20 @@ function derivePlatforms(shared) {
   }));
 }
 
+/**
+ * Render each platform's setup snippet with placeholder tokens — functions
+ * become data. {{ORIGIN}} is the bare host (no /v1); snippets that need the
+ * proxy base receive {{ORIGIN}}/v1 and ones that strip /v1 end up with the
+ * bare origin, matching what each platform's SDK expects.
+ */
+function deriveSetupTemplates(shared) {
+  const out = {};
+  for (const [platform, render] of Object.entries(shared.PLATFORM_SETUP_SNIPPETS)) {
+    out[platform] = render('{{ORIGIN}}/v1', '{{API_KEY}}');
+  }
+  return out;
+}
+
 /** Derive the CLI-facing catalog from the shared registry. */
 function deriveCatalog(shared) {
   return shared.SHARED_PROVIDERS.map((p) => {
@@ -39,6 +53,7 @@ function main() {
   const shared = require('manifest-shared');
   const catalog = deriveCatalog(shared);
   const platforms = derivePlatforms(shared);
+  const setupTemplates = deriveSetupTemplates(shared);
   const out = `// GENERATED FILE — do not edit by hand.
 // Source: manifest-shared (SHARED_PROVIDERS + SUPPORTED_SUBSCRIPTION_PROVIDER_IDS).
 // Refresh with: npm run gen (runs automatically in npm run build).
@@ -58,11 +73,14 @@ export interface PlatformCatalogEntry {
 }
 
 export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = ${JSON.stringify(platforms, null, 2)};
+
+/** Setup snippets with {{ORIGIN}} / {{API_KEY}} placeholders, rendered from manifest-shared. */
+export const SETUP_TEMPLATES: Readonly<Record<string, string>> = ${JSON.stringify(setupTemplates, null, 2)};
 `;
   const dest = path.join(__dirname, '..', 'src', 'provider-catalog.gen.ts');
   fs.writeFileSync(dest, out);
   console.log(`wrote ${dest}: ${catalog.length} providers`);
 }
 
-module.exports = { deriveCatalog, derivePlatforms };
+module.exports = { deriveCatalog, derivePlatforms, deriveSetupTemplates };
 if (require.main === module) main();

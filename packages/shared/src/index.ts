@@ -11,6 +11,12 @@ export {
 } from './agent-type';
 export type { AgentCategory, AgentPlatform, ApiSurface } from './agent-type';
 export {
+  getOpenClawSnippet,
+  getClaudeCodeSettingsSnippet,
+  getNanobotConfigSnippet,
+  PLATFORM_SETUP_SNIPPETS,
+} from './setup-snippets';
+export {
   TIERS,
   TIER_SLOTS,
   DEFAULT_TIER_SLOT,
