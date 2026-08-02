@@ -6,8 +6,8 @@ import { makeIo } from '../test/helpers';
 
 describe('resolveCommand', () => {
   it('prefers the longest matching verb path', () => {
-    expect(resolveCommand(['routing', 'tier', 'set', 'coding'])).toEqual({
-      handler: COMMANDS['routing tier set'],
+    expect(resolveCommand(['routing', 'custom', 'create', 'coding'])).toEqual({
+      handler: COMMANDS['routing custom create'],
       rest: ['coding'],
     });
     expect(resolveCommand(['agent', 'list', '--include-playground'])).toEqual({
