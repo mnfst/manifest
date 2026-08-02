@@ -1,0 +1,28 @@
+packages/cli/src/telemetry.ts
+  s_55e9f8f22551f6::t_d556d4c92bb703 1-74
+packages/cli/src/index.spec.ts
+  s_55e9f8f22551f6::t_274cbdb3498ec5 11,16,19-23
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_d556d4c92bb703 13,128-129,134,140,169,172,175
+packages/cli/src/telemetry.spec.ts
+  s_55e9f8f22551f6::t_274cbdb3498ec5 1-18,20-50,55-63,65-73
+  s_55e9f8f22551f6::t_877d77891e1001 19,51-54,64
+packages/cli/test/helpers.ts
+  s_55e9f8f22551f6::t_877d77891e1001 29-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ffe689f023fa1905685d993279cd1dfe934aac5e",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
