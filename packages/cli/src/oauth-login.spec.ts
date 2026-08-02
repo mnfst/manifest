@@ -177,6 +177,12 @@ describe('browserLogin', () => {
   });
 
   it('falls back to defaultOpenBrowser when io.openBrowser is absent', async () => {
+    // child_process is stubbed so the suite never launches a real browser.
+    jest.resetModules();
+    const spawn = jest.fn().mockReturnValue({ unref: jest.fn() });
+    jest.doMock('child_process', () => ({ spawn }));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- must re-require after doMock
+    const mod = require('./oauth-login') as typeof import('./oauth-login');
     const io: CliIo = {
       env: {},
       fetchImpl: jest.fn() as unknown as typeof fetch,
@@ -185,9 +191,11 @@ describe('browserLogin', () => {
       readStdin: jest.fn(),
       isTTY: true,
     };
-    await expect(browserLogin(io, 'http://127.0.0.1:1', 150)).rejects.toThrow(
+    await expect(mod.browserLogin(io, 'http://localhost:3001', 150)).rejects.toThrow(
       expect.objectContaining({ code: 'login_timeout' }),
     );
+    expect(spawn).toHaveBeenCalled();
+    jest.dontMock('child_process');
   });
 });
 
