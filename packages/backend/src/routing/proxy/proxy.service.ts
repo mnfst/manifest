@@ -640,13 +640,19 @@ export class ProxyService {
 
     // Key rotation runs on ANY failed primary (explicit overrides included —
     // a rule fully controls the model's key choice wherever it's attempted).
-    // Skip key rotation if Auto-fix already ran and did NOT request rotate_key.
-    // The fallback chain itself keeps its existing guards.
+    // Skip key rotation only when Auto-fix successfully healed (a patched
+    // retry already proved the key works). When Auto-fix is unfixable (no
+    // patch) or exhausted (patched retry still failed), the original failure
+    // may be key-specific (e.g. wrong account/region) so rotation should
+    // still try the next key in the rule's key_order.
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       let rotation: PrimaryRotationResult | null = null;
       if (
         ruleControlsPrimary &&
-        (autofixAttempt === null || autofixRequestedKeyRotation(autofixRecord))
+        (autofixAttempt === null ||
+          autofixRequestedKeyRotation(autofixRecord) ||
+          autofixRecord?.outcome === 'unfixable' ||
+          autofixRecord?.outcome === 'exhausted')
       ) {
         rotation = await this.rotatePrimaryAttempts({
           agentId,
