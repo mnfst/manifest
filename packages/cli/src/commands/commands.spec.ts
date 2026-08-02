@@ -1279,19 +1279,46 @@ describe('models command', () => {
     ]);
     expect(await run(io, ['models', 'John'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+    // default mirrors /v1/models: identity only
     expect(io.lastJson()).toEqual({
       agent: 'john',
       count: 1,
-      models: [
-        {
-          model: 'grok-4',
-          provider: 'xai',
-          auth_type: 'api_key',
-          context_window: 256000,
-          input_price_per_token: 0.000003,
-          output_price_per_token: 0.000015,
-        },
-      ],
+      models: [{ model: 'grok-4', provider: 'xai', auth_type: 'api_key' }],
+    });
+  });
+
+  it('opts into cost and capabilities like /v1/models', async () => {
+    const row = {
+      model_name: 'grok-4',
+      provider: 'xai',
+      auth_type: 'api_key',
+      context_window: 256000,
+      input_price_per_token: 0.000003,
+      output_price_per_token: 0.000015,
+      capability_reasoning: true,
+      capability_code: true,
+      input_modalities: ['text'],
+    };
+    const { io } = authedIo([{ status: 200, body: [row] }]);
+    expect(await run(io, ['models', 'john', '--cost'])).toBe(0);
+    expect((io.lastJson() as { models: object[] }).models[0]).toEqual({
+      model: 'grok-4',
+      provider: 'xai',
+      auth_type: 'api_key',
+      input_price_per_token: 0.000003,
+      output_price_per_token: 0.000015,
+    });
+
+    const { io: io2 } = authedIo([{ status: 200, body: [row] }]);
+    expect(await run(io2, ['models', 'john', '--capabilities'])).toBe(0);
+    expect((io2.lastJson() as { models: object[] }).models[0]).toEqual({
+      model: 'grok-4',
+      provider: 'xai',
+      auth_type: 'api_key',
+      context_window: 256000,
+      capability_reasoning: true,
+      capability_code: true,
+      input_modalities: ['text'],
     });
   });
 
@@ -1314,6 +1341,26 @@ describe('models command', () => {
     expect(await run(io2, ['models'])).toBe(1);
     expect(io2.lastJson()).toMatchObject({ error: 'missing_argument' });
     expect(calls2).toHaveLength(0);
+  });
+
+  it('surfaces cost_per_request and tolerates absent capability fields', async () => {
+    const row = {
+      model_name: 'gpt-6-codex',
+      provider: 'opencode-go',
+      auth_type: 'subscription',
+      cost_per_request: 0.004,
+      input_price_per_token: 0,
+      output_price_per_token: 0,
+      context_window: 400000,
+      capability_reasoning: true,
+      capability_code: true,
+    };
+    const { io } = authedIo([{ status: 200, body: [row] }]);
+    expect(await run(io, ['models', 'john', '--cost', '--capabilities'])).toBe(0);
+    const m = (io.lastJson() as { models: Array<Record<string, unknown>> }).models[0];
+    expect(m['cost_per_request']).toBe(0.004);
+    expect(m).not.toHaveProperty('capabilities');
+    expect(m).not.toHaveProperty('input_modalities');
   });
 
   it('handles a non-array payload as zero models', async () => {

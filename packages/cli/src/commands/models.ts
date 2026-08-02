@@ -10,21 +10,31 @@ interface ModelRow {
   context_window?: unknown;
   input_price_per_token?: unknown;
   output_price_per_token?: unknown;
+  cost_per_request?: unknown;
+  capability_reasoning?: unknown;
+  capability_code?: unknown;
+  capabilities?: unknown;
+  input_modalities?: unknown;
 }
 
 /**
- * Models routable for an agent (union of its ENABLED provider connections),
- * trimmed to what `routing tier set` needs: id, provider, auth type, context
- * window, and per-token prices. The agent is a required positional — unlike
- * provider connect, the answer genuinely depends on which agent you ask
- * about, so it is never auto-picked. --provider filters (aliases accepted).
+ * Models routable for an agent (union of its ENABLED provider connections).
+ * Mirrors the /v1/models proxy contract: bare identity by default, --cost and
+ * --capabilities opt into the heavier metadata. The agent is a required
+ * positional — the answer genuinely depends on which agent you ask about.
+ * --provider filters (aliases accepted).
  */
 export async function modelsList(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url', 'provider'] });
+  const args = parseArgs(argv, {
+    strings: ['url', 'provider'],
+    booleans: ['cost', 'capabilities'],
+  });
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const providerFilter = args.strings['provider']
     ? resolveProviderId(args.strings['provider'])
     : null;
-  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const includeCost = Boolean(args.booleans['cost']);
+  const includeCapabilities = Boolean(args.booleans['capabilities']);
   const { client } = clientFromFlags(io, args);
   const rows = (await client.request(
     'GET',
@@ -38,9 +48,22 @@ export async function modelsList(io: CliIo, argv: string[]): Promise<void> {
       model: m.model_name,
       provider: m.provider,
       auth_type: m.auth_type,
-      context_window: m.context_window,
-      input_price_per_token: m.input_price_per_token,
-      output_price_per_token: m.output_price_per_token,
+      ...(includeCost
+        ? {
+            input_price_per_token: m.input_price_per_token,
+            output_price_per_token: m.output_price_per_token,
+            ...(m.cost_per_request != null ? { cost_per_request: m.cost_per_request } : {}),
+          }
+        : {}),
+      ...(includeCapabilities
+        ? {
+            context_window: m.context_window,
+            capability_reasoning: m.capability_reasoning,
+            capability_code: m.capability_code,
+            ...(m.capabilities != null ? { capabilities: m.capabilities } : {}),
+            ...(m.input_modalities != null ? { input_modalities: m.input_modalities } : {}),
+          }
+        : {}),
     }));
 
   printJson(io, { agent, count: models.length, models });
