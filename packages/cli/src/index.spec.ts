@@ -8,13 +8,19 @@ describe('resolveCommand', () => {
   it('prefers the longest matching verb path', () => {
     expect(resolveCommand(['routing', 'custom', 'create', 'coding'])).toEqual({
       handler: COMMANDS['routing custom create'],
+      key: 'routing custom create',
       rest: ['coding'],
     });
     expect(resolveCommand(['agent', 'list', '--include-playground'])).toEqual({
       handler: COMMANDS['agent list'],
+      key: 'agent list',
       rest: ['--include-playground'],
     });
-    expect(resolveCommand(['whoami'])).toEqual({ handler: COMMANDS['whoami'], rest: [] });
+    expect(resolveCommand(['whoami'])).toEqual({
+      handler: COMMANDS['whoami'],
+      key: 'whoami',
+      rest: [],
+    });
   });
 
   it('returns null for unknown commands, including prototype members', () => {

@@ -26,7 +26,9 @@ export function makeIo(options: TestIoOptions = {}): TestIo {
   const lines: string[] = [];
   const errLines: string[] = [];
   return {
-    env: { XDG_CONFIG_HOME: configDir, ...options.env },
+    // Telemetry off by default so command specs' fetch stubs see only
+    // their own traffic; telemetry.spec re-enables explicitly.
+    env: { XDG_CONFIG_HOME: configDir, MANIFEST_TELEMETRY_DISABLED: '1', ...options.env },
     fetchImpl:
       options.fetchImpl ??
       (async () => {

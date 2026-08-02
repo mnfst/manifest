@@ -10,6 +10,7 @@ import * as provider from './commands/provider';
 import * as customProvider from './commands/custom-provider';
 import * as routing from './commands/routing';
 import * as runCommand from './commands/run';
+import { reportUsage } from './telemetry';
 import * as models from './commands/models';
 import * as configure from './commands/configure';
 import * as requests from './commands/requests';
@@ -124,17 +125,19 @@ Run (key injection, 1Password-style)
     The key never crosses stdout or your transcript.
 
 Environment: MANIFEST_URL, MANIFEST_API_KEY (overrides stored login)
+Telemetry: one anonymous event per command (command name, version, os — never
+arguments or keys). Disable with MANIFEST_TELEMETRY_DISABLED=1.
 Credentials are stored per-host in ~/.config/manifest/config.json (mode 0600).`;
 
 export function resolveCommand(
   argv: readonly string[],
-): { handler: Handler; rest: string[] } | null {
+): { handler: Handler; key: string; rest: string[] } | null {
   for (let words = Math.min(3, argv.length); words >= 1; words--) {
     const key = argv.slice(0, words).join(' ');
     // hasOwnProperty guard: `key in COMMANDS` would also match prototype
     // members like "toString".
     const handler = Object.prototype.hasOwnProperty.call(COMMANDS, key) ? COMMANDS[key] : undefined;
-    if (handler) return { handler, rest: argv.slice(words) };
+    if (handler) return { handler, key, rest: argv.slice(words) };
   }
   return null;
 }
@@ -163,10 +166,13 @@ export async function run(io: CliIo, argv: string[]): Promise<number> {
     );
     return 1;
   }
+  const started = Date.now();
   try {
     const code = await resolved.handler(io, resolved.rest);
+    await reportUsage(io, resolved.key, (code ?? 0) === 0, Date.now() - started);
     return code ?? 0;
   } catch (error) {
+    await reportUsage(io, resolved.key, false, Date.now() - started);
     if (error instanceof CliError) {
       io.stdout(JSON.stringify(error.toJSON(), null, 2));
       return 1;
