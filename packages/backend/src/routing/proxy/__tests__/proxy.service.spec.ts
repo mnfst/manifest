@@ -84,7 +84,10 @@ const specCatalog: ProviderParamSpecCatalog = [
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<
-    Pick<ResolveService, 'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier'>
+    Pick<
+      ResolveService,
+      'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier' | 'pinRouteKeyLabel'
+    >
   >;
   let providerKeyService: jest.Mocked<
     Pick<
@@ -141,6 +144,9 @@ describe('ProxyService — orchestration', () => {
       }),
       resolveForTier: jest.fn(),
       resolveHeaderTier: jest.fn().mockResolvedValue(null),
+      // Default: no connection pin configured — the route passes through.
+      // Tests that exercise pinning override this per case.
+      pinRouteKeyLabel: jest.fn(async (_agentId, _tenantId, route: ModelRoute) => route),
     };
     modelDiscovery = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
@@ -1640,6 +1646,92 @@ describe('ProxyService — orchestration', () => {
         model: 'gpt-4o-mini',
       });
       expect(result.meta.fallbackFromModel).toBeUndefined();
+    });
+
+    /**
+     * Regression (#key-label-pin): an explicit `model` bypasses tier
+     * resolution, so it used to drop the operator's connection pin and bill
+     * whichever key sorted first.
+     */
+    describe('connection pin', () => {
+      const connections = [
+        { id: 'up-default', label: 'Default', priority: 0, apiKey: 'sk-default', region: null },
+        { id: 'up-work', label: 'Work', priority: 1, apiKey: 'sk-work', region: null },
+      ];
+
+      beforeEach(() => {
+        modelDiscovery.getModelsForAgent.mockResolvedValue([
+          discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+        ]);
+        // Mirrors ProviderKeyService.selectProviderKey: case-insensitive label
+        // match, else the first (priority-ordered) key.
+        providerKeyService.selectProviderKey.mockImplementation(
+          async (_tenantId, _provider, _authType, label) =>
+            connections.find((c) => c.label.toLowerCase() === label?.toLowerCase()) ??
+            connections[0],
+        );
+      });
+
+      it("uses the default tier's pinned connection for a concrete model name", async () => {
+        resolveService.pinRouteKeyLabel.mockImplementation(async (_a, _t, route) => ({
+          ...route,
+          keyLabel: 'Work',
+        }));
+
+        const result = await svc.proxyRequest(
+          baseOpts({
+            body: { model: 'openai/gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          }),
+        );
+
+        expect(resolveService.pinRouteKeyLabel).toHaveBeenCalledWith(
+          'agent-1',
+          'tenant-1',
+          expect.objectContaining({ provider: 'openai', authType: 'api_key' }),
+        );
+        expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+          'tenant-1',
+          'openai',
+          'api_key',
+          'Work',
+          'agent-1',
+        );
+        expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            apiKey: 'sk-work',
+            providerKeyLabel: 'Work',
+            tenantProviderId: 'up-work',
+          }),
+        );
+        expect(result.meta).toMatchObject({
+          provider_key_label: 'Work',
+          tenantProviderId: 'up-work',
+        });
+      });
+
+      // A pin naming a renamed/deleted connection still serves the default key
+      // (selectProviderKey's documented fallback) — the recorded label must
+      // then name the row that was really used, not the dangling pin.
+      it('records the connection actually used when the pin is stale', async () => {
+        resolveService.pinRouteKeyLabel.mockImplementation(async (_a, _t, route) => ({
+          ...route,
+          keyLabel: 'Retired',
+        }));
+
+        const result = await svc.proxyRequest(
+          baseOpts({
+            body: { model: 'openai/gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          }),
+        );
+
+        expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+          expect.objectContaining({ apiKey: 'sk-default', tenantProviderId: 'up-default' }),
+        );
+        expect(result.meta).toMatchObject({
+          provider_key_label: 'Default',
+          tenantProviderId: 'up-default',
+        });
+      });
     });
   });
 

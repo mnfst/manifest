@@ -504,4 +504,42 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures[0].errorBody).toContain('openai: model_not_found');
     expect(result.failures[1].errorBody).toContain('anthropic: not_found_error');
   });
+
+  it('records each failed hop against its own pinned connection', async () => {
+    providerClient.forward
+      .mockResolvedValueOnce({
+        response: new Response('{"error":"boom"}', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      })
+      .mockResolvedValueOnce({
+        response: new Response('{"error":"boom"}', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+    const routes: ModelRoute[] = [
+      { ...route('openai', 'gpt-4o-mini'), keyLabel: 'Work' },
+      { ...route('anthropic', 'claude-haiku-3.5'), keyLabel: 'Personal' },
+    ];
+    const result = await runFallbacks(['gpt-4o-mini', 'claude-haiku-3.5'], routes);
+
+    expect(result.success).toBeNull();
+    // Each hop carries its own label; without it the recorder would stamp the
+    // primary's connection on every failed fallback row.
+    expect(result.failures.map((f) => f.keyLabel)).toEqual(['Work', 'Personal']);
+  });
+
+  it('keeps the pinned label on a hop that never got credentials', async () => {
+    providerKeyService.getProviderApiKey.mockResolvedValue(null);
+
+    const routes: ModelRoute[] = [{ ...route('openai', 'gpt-4o-mini'), keyLabel: 'Work' }];
+    const result = await runFallbacks(['gpt-4o-mini'], routes);
+
+    expect(providerClient.forward).not.toHaveBeenCalled();
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toMatchObject({ keyLabel: 'Work', status: 401 });
+  });
 });
