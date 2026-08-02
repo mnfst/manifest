@@ -1,0 +1,24 @@
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_55e9f8f22551f6::t_7d092aebee6237 4-5,10-24,26-29
+  s_55e9f8f22551f6::t_9f0bb7435c3f4f 25
+  s_55e9f8f22551f6::t_04ed953485cd6e 111,116-119
+  s_55e9f8f22551f6::t_b25fd2013b3f92 251,263
+  s_55e9f8f22551f6::t_b28e25158a42a3 194-197
+  s_55e9f8f22551f6::t_415a0df03a9ef6 198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "6cd40218cf648e2652198c0504123b0f9755e095",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
