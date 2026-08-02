@@ -3,7 +3,7 @@ import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import { run } from '../index';
-import { CLI_AGENT_CATEGORIES } from './agent';
+import { CLI_AGENT_PLATFORMS } from './agent';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
 
 const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
@@ -432,12 +432,18 @@ describe('agent commands', () => {
         'coding',
         '--key-file',
         keyFile,
+        '--platform',
+        'claude-code',
         '--category',
         'coding',
       ]),
     ).toBe(0);
 
-    expect(JSON.parse(calls[0].body!)).toEqual({ name: 'coding', agent_category: 'coding' });
+    expect(JSON.parse(calls[0].body!)).toEqual({
+      name: 'coding',
+      agent_platform: 'claude-code',
+      agent_category: 'coding',
+    });
     expect(fs.readFileSync(keyFile, 'utf8')).toBe('mnfst_secret_full_key');
     expect(fs.statSync(keyFile).mode & 0o777).toBe(0o600);
     expect(io.lastJson()).toEqual({
@@ -448,7 +454,7 @@ describe('agent commands', () => {
     expect(io.lines.join('\n')).not.toContain('mnfst_secret_full_key');
   });
 
-  it('agent create forwards --platform and omits absent optionals', async () => {
+  it('agent create omits absent optional category', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-agent-'));
     const keyFile = path.join(dir, 'p.key');
     const { io, calls } = authedIo([
@@ -462,28 +468,23 @@ describe('agent commands', () => {
         'p',
         '--key-file',
         keyFile,
-        '--category',
-        'app',
         '--platform',
         'openclaw',
       ]),
     ).toBe(0);
-    expect(JSON.parse(calls[0].body!)).toEqual({
-      name: 'p',
-      agent_category: 'app',
-      agent_platform: 'openclaw',
-    });
+    expect(JSON.parse(calls[0].body!)).toEqual({ name: 'p', agent_platform: 'openclaw' });
   });
 
-  it('agent create without --category fails with the category list before any API call', async () => {
+  it('agent create without --platform fails with the platform list before any API call', async () => {
     const { io, calls } = authedIo([{ status: 201, body: {} }]);
     expect(await run(io, ['agent', 'create', '--name', 'x', '--key-file', '/tmp/x.key'])).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'missing_category' });
-    expect((io.lastJson() as { message: string }).message).toContain('personal, app, coding');
+    expect(io.lastJson()).toMatchObject({ error: 'missing_platform' });
+    expect((io.lastJson() as { message: string }).message).toContain('openclaw');
+    expect((io.lastJson() as { message: string }).message).toContain('other');
     expect(calls).toHaveLength(0);
   });
 
-  it('agent create with an unknown --category fails listing valid ones', async () => {
+  it('agent create with an unknown --platform fails listing valid ones', async () => {
     const { io, calls } = authedIo([{ status: 201, body: {} }]);
     expect(
       await run(io, [
@@ -493,27 +494,27 @@ describe('agent commands', () => {
         'x',
         '--key-file',
         '/tmp/x.key',
-        '--category',
-        'gaming',
+        '--platform',
+        'skynet',
       ]),
     ).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'invalid_category' });
-    expect((io.lastJson() as { message: string }).message).toContain('personal, app, coding');
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_platform' });
+    expect((io.lastJson() as { message: string }).message).toContain('claude-code');
     expect(calls).toHaveLength(0);
   });
 
-  it('agent categories lists valid categories without touching the network', async () => {
+  it('agent platforms lists valid platforms without touching the network', async () => {
     const stub = fetchStub([]);
     const io = makeIo({ fetchImpl: stub.impl });
-    expect(await run(io, ['agent', 'categories'])).toBe(0);
-    expect(io.lastJson()).toEqual({ categories: ['personal', 'app', 'coding'] });
+    expect(await run(io, ['agent', 'platforms'])).toBe(0);
+    expect(io.lastJson()).toEqual({ platforms: [...CLI_AGENT_PLATFORMS] });
     expect(stub.calls).toHaveLength(0);
   });
 
-  it('CLI category list matches manifest-shared (drift guard)', () => {
+  it('CLI platform list matches manifest-shared (drift guard)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const shared = require('manifest-shared') as { AGENT_CATEGORIES: readonly string[] };
-    expect(CLI_AGENT_CATEGORIES).toEqual([...shared.AGENT_CATEGORIES]);
+    const shared = require('manifest-shared') as { AGENT_PLATFORMS: readonly string[] };
+    expect(CLI_AGENT_PLATFORMS).toEqual([...shared.AGENT_PLATFORMS]);
   });
 
   it('agent update maps --category alone', async () => {
@@ -530,8 +531,8 @@ describe('agent commands', () => {
         'create',
         '--name',
         'x',
-        '--category',
-        'coding',
+        '--platform',
+        'claude-code',
         '--key-file',
         '/nonexistent-dir-xyz/k.key',
       ]),
