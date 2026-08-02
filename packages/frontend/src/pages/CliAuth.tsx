@@ -33,10 +33,20 @@ const CliAuth: Component = () => {
     return STATE_RE.test(raw) ? raw : null;
   };
 
-  const valid = () => port() !== null && state() !== null;
+  /**
+   * The whole request, or null if either half is unusable. One accessor so the
+   * button's visibility and the values `authorize` sends can never disagree.
+   */
+  const request = () => {
+    const p = port();
+    const s = state();
+    return p !== null && s !== null ? { port: p, state: s } : null;
+  };
 
   const authorize = async () => {
-    const requestState = state() as string;
+    // Snapshot both params before the await: the callback URL must echo exactly
+    // the state we POSTed. The button only renders when `request()` is non-null.
+    const { port: loopbackPort, state: requestState } = request()!;
     setPhase('working');
     try {
       const { code } = await fetchMutate<{ code: string }>('/cli/authorize', {
@@ -47,10 +57,11 @@ const CliAuth: Component = () => {
       // Hand the one-time code back over loopback. The CLI exchanges it for the
       // token itself, so nothing long-lived ever rides in this URL.
       window.location.assign(
-        `http://127.0.0.1:${port()}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(requestState)}`,
+        `http://127.0.0.1:${loopbackPort}/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(requestState)}`,
       );
       setPhase('done');
     } catch (err) {
+      // Nothing was consumed server-side on a failure, so the user can retry.
       setError(err instanceof Error ? err.message : String(err));
       setPhase('error');
     }
@@ -69,7 +80,7 @@ const CliAuth: Component = () => {
           <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
         </div>
         <Show
-          when={valid()}
+          when={request()}
           fallback={
             <div class="auth-header">
               <h1 class="auth-header__title">Invalid login request</h1>
@@ -80,41 +91,49 @@ const CliAuth: Component = () => {
             </div>
           }
         >
-          <Show when={phase() === 'idle' || phase() === 'working'}>
-            <div class="auth-header">
-              <h1 class="auth-header__title">Authorize the Manifest CLI?</h1>
-              <p class="auth-header__subtitle">
-                The CLI on this machine will get access to your workspace. You can revoke it any
-                time from your account.
-              </p>
-            </div>
-            {/* .auth-form is the column that stretches the submit button edge to
-                edge, exactly as on the sign-in page. */}
-            <div class="auth-form">
-              <button
-                class="auth-form__submit"
-                type="button"
-                onClick={authorize}
-                disabled={phase() === 'working'}
-              >
-                {phase() === 'working' ? 'Authorizing...' : 'Authorize'}
-              </button>
-            </div>
-          </Show>
-          <Show when={phase() === 'done'}>
+          <Show
+            when={phase() === 'done'}
+            fallback={
+              <>
+                <div class="auth-header">
+                  <h1 class="auth-header__title">Authorize the Manifest CLI?</h1>
+                  <p class="auth-header__subtitle">
+                    This grants the CLI on this machine full access to your workspace for 30 days
+                    (renewed while you keep using it). Revoke it any time by running{' '}
+                    <code>mnfst logout</code>.
+                  </p>
+                </div>
+                {/* .auth-form is the column that stretches the submit button edge
+                    to edge, exactly as on the sign-in page. */}
+                <div class="auth-form">
+                  {/* A failed authorize consumed nothing server-side, so the
+                      error is shown above a live button rather than replacing it. */}
+                  <Show when={phase() === 'error'}>
+                    <div class="auth-form__error" role="alert">
+                      {error()}
+                    </div>
+                  </Show>
+                  <button
+                    class="auth-form__submit"
+                    type="button"
+                    onClick={authorize}
+                    disabled={phase() === 'working'}
+                  >
+                    {phase() === 'working'
+                      ? 'Authorizing...'
+                      : phase() === 'error'
+                        ? 'Try again'
+                        : 'Authorize'}
+                  </button>
+                </div>
+              </>
+            }
+          >
             <div class="auth-header">
               <h1 class="auth-header__title">Connected</h1>
               <p class="auth-header__subtitle">
                 You can close this page and return to your terminal.
               </p>
-            </div>
-          </Show>
-          <Show when={phase() === 'error'}>
-            <div class="auth-header">
-              <h1 class="auth-header__title">Authorization failed</h1>
-            </div>
-            <div class="auth-form__error" role="alert">
-              {error()}
             </div>
           </Show>
         </Show>
