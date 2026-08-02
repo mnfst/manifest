@@ -28,6 +28,12 @@ export interface CliIo {
   isTTY: boolean;
   /** Injected browser opener; falls back to defaultOpenBrowser. Returns false when opening failed. */
   openBrowser?: (url: string) => boolean;
+  /** Injected child-process runner for `mnfst run`; defaults to stdio-inherit spawn. */
+  spawnImpl?: (
+    cmd: string,
+    args: string[],
+    env: Record<string, string | undefined>,
+  ) => Promise<number>;
 }
 
 export function getConfigPath(io: CliIo): string {

@@ -2,6 +2,7 @@ import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
 import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } from '../args';
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
+import { agentKeyPath, readAgentKey, saveAgentKey } from '../keystore';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
@@ -84,8 +85,12 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'name', 'key-file', 'category', 'platform'] });
   const name = requireString(args, 'name');
   const platform = requirePlatform(args);
-  const keyFile = validateKeyFileDestination(requireString(args, 'key-file'));
-  const { client } = clientFromFlags(io, args);
+  // --key-file is an explicit override; the default home is the managed
+  // keystore, so nobody has to invent a path to avoid printing a secret.
+  const keyFile = args.strings['key-file']
+    ? validateKeyFileDestination(args.strings['key-file'])
+    : null;
+  const { client, target } = clientFromFlags(io, args);
 
   const result = (await client.request('POST', '/agents', {
     body: {
@@ -95,8 +100,13 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     },
   })) as { agent: unknown; apiKey: string };
 
-  writeKeyFile(keyFile, result.apiKey);
-  printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+  if (keyFile) {
+    writeKeyFile(keyFile, result.apiKey);
+    printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+    return;
+  }
+  const keyPath = saveAgentKey(io.env, target.origin, name, result.apiKey);
+  printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
 }
 
 export async function agentGet(io: CliIo, argv: string[]): Promise<void> {
@@ -144,12 +154,68 @@ export async function agentRotateKey(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'key-file'], booleans: ['yes'] });
   const name = requirePositional(args, 0, '<agent-name>');
   requireYes(args, `rotate the API key of "${name}" (the previous key stops working)`);
-  const keyFile = validateKeyFileDestination(requireString(args, 'key-file'));
-  const { client } = clientFromFlags(io, args);
+  const keyFile = args.strings['key-file']
+    ? validateKeyFileDestination(args.strings['key-file'])
+    : null;
+  const { client, target } = clientFromFlags(io, args);
   const result = (await client.request(
     'POST',
     `/agents/${encodeURIComponent(name)}/rotate-key`,
   )) as { apiKey: string };
-  writeKeyFile(keyFile, result.apiKey);
-  printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+  if (keyFile) {
+    writeKeyFile(keyFile, result.apiKey);
+    printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+    return;
+  }
+  const keyPath = saveAgentKey(io.env, target.origin, name, result.apiKey);
+  printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
+}
+
+/**
+ * Resolve an agent's key: keystore first, else recover the server's copy and
+ * re-cache it. Returns the raw key and where it came from.
+ */
+export async function resolveAgentKey(
+  io: CliIo,
+  args: ParsedArgs,
+  name: string,
+): Promise<{ key: string; path: string; origin: string; source: 'keystore' | 'server' }> {
+  const { client, target } = clientFromFlags(io, args);
+  const cached = readAgentKey(io.env, target.origin, name);
+  if (cached) {
+    return {
+      key: cached,
+      path: agentKeyPath(io.env, target.origin, name),
+      origin: target.origin,
+      source: 'keystore',
+    };
+  }
+  const result = (await client.request('GET', `/agents/${encodeURIComponent(name)}/key`)) as {
+    keyPrefix: string;
+    apiKey?: string;
+  };
+  if (!result.apiKey) {
+    throw new CliError(
+      'key_unrecoverable',
+      `The server cannot recover the key for "${name}"`,
+      `Run mnfst agent rotate-key ${name} --yes to mint a fresh one`,
+    );
+  }
+  const path = saveAgentKey(io.env, target.origin, name, result.apiKey);
+  return { key: result.apiKey, path, origin: target.origin, source: 'server' };
+}
+
+export async function agentKeyPathCmd(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, URL_ONLY);
+  const name = requirePositional(args, 0, '<agent-name>');
+  const resolved = await resolveAgentKey(io, args, name);
+  printJson(io, { agent: name, path: resolved.path, source: resolved.source });
+}
+
+/** Prints the raw key — the one deliberate, greppable way to surface it. */
+export async function agentKeyShow(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, URL_ONLY);
+  const name = requirePositional(args, 0, '<agent-name>');
+  const resolved = await resolveAgentKey(io, args, name);
+  printJson(io, { agent: name, apiKey: resolved.key });
 }

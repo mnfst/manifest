@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { run } from '../index';
 import { CLI_AGENT_PLATFORMS } from './agent';
+import { agentKeyPath, saveAgentKey } from '../keystore';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
 
 const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
@@ -582,6 +583,85 @@ describe('agent commands', () => {
     expect(calls[0].url).toBe(`${HOST}/api/v1/agents/a/rotate-key`);
     expect(fs.readFileSync(keyFile, 'utf8')).toBe('mnfst_rotated_key_value');
     expect(io.lastJson()).toEqual({ rotated: true, keyPrefix: 'mnfst_rota', keyFile });
+  });
+
+  it('agent create without --key-file stores the key in the managed keystore', async () => {
+    const { io } = authedIo([
+      { status: 201, body: { agent: { name: 'kept' }, apiKey: 'mnfst_kept_secret' } },
+    ]);
+    expect(await run(io, ['agent', 'create', '--name', 'kept', '--platform', 'claude-code'])).toBe(
+      0,
+    );
+    const expected = agentKeyPath(io.env, HOST, 'kept');
+    expect(fs.readFileSync(expected, 'utf8')).toBe('mnfst_kept_secret');
+    expect(fs.statSync(expected).mode & 0o777).toBe(0o600);
+    expect(io.lastJson()).toEqual({
+      agent: { name: 'kept' },
+      keyPrefix: 'mnfst_kept',
+      keyPath: expected,
+    });
+    expect(io.lines.join('\n')).not.toContain('mnfst_kept_secret');
+  });
+
+  it('agent rotate-key without --key-file refreshes the keystore entry', async () => {
+    const { io } = authedIo([{ status: 200, body: { apiKey: 'mnfst_fresh_secret' } }]);
+    saveAgentKey(io.env, HOST, 'a', 'mnfst_stale');
+    expect(await run(io, ['agent', 'rotate-key', 'a', '--yes'])).toBe(0);
+    const expected = agentKeyPath(io.env, HOST, 'a');
+    expect(fs.readFileSync(expected, 'utf8')).toBe('mnfst_fresh_secret');
+    expect(io.lastJson()).toEqual({ rotated: true, keyPrefix: 'mnfst_fres', keyPath: expected });
+  });
+
+  it('agent key path serves the cached keystore entry without the network', async () => {
+    const { io, calls } = authedIo([]);
+    saveAgentKey(io.env, HOST, 'my-bot', 'mnfst_cached');
+    expect(await run(io, ['agent', 'key', 'path', 'my-bot'])).toBe(0);
+    expect(io.lastJson()).toEqual({
+      agent: 'my-bot',
+      path: agentKeyPath(io.env, HOST, 'my-bot'),
+      source: 'keystore',
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('agent key path self-heals from the server when the cache is missing', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { keyPrefix: 'mnfst_serv', apiKey: 'mnfst_server_copy' } },
+    ]);
+    expect(await run(io, ['agent', 'key', 'path', 'my-bot'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents/my-bot/key`);
+    const expected = agentKeyPath(io.env, HOST, 'my-bot');
+    expect(fs.readFileSync(expected, 'utf8')).toBe('mnfst_server_copy');
+    expect(io.lastJson()).toEqual({ agent: 'my-bot', path: expected, source: 'server' });
+    expect(io.lines.join('\n')).not.toContain('mnfst_server_copy');
+  });
+
+  it('agent key path fails with a rotate hint when the server cannot recover the key', async () => {
+    const { io } = authedIo([{ status: 200, body: { keyPrefix: 'mnfst_lega' } }]);
+    expect(await run(io, ['agent', 'key', 'path', 'legacy-bot'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'key_unrecoverable',
+      hint: expect.stringContaining('rotate-key'),
+    });
+  });
+
+  it('agent key show prints the raw key as a deliberate act', async () => {
+    const { io, calls } = authedIo([]);
+    saveAgentKey(io.env, HOST, 'my-bot', 'mnfst_cached_secret');
+    expect(await run(io, ['agent', 'key', 'show', 'my-bot'])).toBe(0);
+    expect(io.lastJson()).toEqual({ agent: 'my-bot', apiKey: 'mnfst_cached_secret' });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('agent key show falls back to the server and caches the result', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { keyPrefix: 'mnfst_serv', apiKey: 'mnfst_server_secret' } },
+    ]);
+    expect(await run(io, ['agent', 'key', 'show', 'my-bot'])).toBe(0);
+    expect(io.lastJson()).toEqual({ agent: 'my-bot', apiKey: 'mnfst_server_secret' });
+    expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'my-bot'), 'utf8')).toBe(
+      'mnfst_server_secret',
+    );
   });
 });
 
