@@ -1499,7 +1499,7 @@ describe('models command', () => {
   });
 });
 
-describe('provider enable/disable', () => {
+describe('agent provider enable/disable', () => {
   const groups = {
     providers: [
       {
@@ -1527,7 +1527,7 @@ describe('provider enable/disable', () => {
       { status: 200, body: { ok: true } },
     ]);
     expect(
-      await run(io, ['provider', 'enable', 'openai', '--agent', 'John', '--auth-type', 'api_key']),
+      await run(io, ['agent', 'provider', 'enable', 'John', 'openai', '--auth-type', 'api_key']),
     ).toBe(0);
     expect(calls[1].method).toBe('PUT');
     expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-a`);
@@ -1539,31 +1539,31 @@ describe('provider enable/disable', () => {
       { status: 200, body: groups },
       { status: 200, body: { ok: true } },
     ]);
-    expect(await run(io, ['provider', 'enable', 'my litellm', '--agent', 'john'])).toBe(0);
+    expect(await run(io, ['agent', 'provider', 'enable', 'john', 'my litellm'])).toBe(0);
     expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-c`);
   });
 
   it('ambiguous matches demand a filter; zero matches 404', async () => {
     const { io } = authedIo([{ status: 200, body: groups }]);
-    expect(await run(io, ['provider', 'enable', 'openai', '--agent', 'john'])).toBe(1);
+    expect(await run(io, ['agent', 'provider', 'enable', 'john', 'openai'])).toBe(1);
     expect(io.lastJson()).toMatchObject({
       error: 'ambiguous',
       hint: expect.stringContaining('--auth-type'),
     });
 
     const { io: io2 } = authedIo([{ status: 200, body: groups }]);
-    expect(await run(io2, ['provider', 'enable', 'groq', '--agent', 'john'])).toBe(1);
+    expect(await run(io2, ['agent', 'provider', 'enable', 'john', 'groq'])).toBe(1);
     expect(io2.lastJson()).toMatchObject({ error: 'not_found' });
   });
 
   it('disable demands --yes and --agent, and surfaces the route-conflict 409', async () => {
     const { io } = authedIo([]);
-    expect(await run(io, ['provider', 'disable', 'openai', '--agent', 'john'])).toBe(1);
+    expect(await run(io, ['agent', 'provider', 'disable', 'john', 'openai'])).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'confirmation_required' });
 
     const { io: io2 } = authedIo([]);
-    expect(await run(io2, ['provider', 'disable', 'openai', '--yes'])).toBe(1);
-    expect(io2.lastJson()).toMatchObject({ error: 'missing_flag' });
+    expect(await run(io2, ['agent', 'provider', 'disable', 'john', '--yes'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'missing_argument' });
 
     const { io: io3 } = authedIo([
       { status: 200, body: groups },
@@ -1571,11 +1571,11 @@ describe('provider enable/disable', () => {
     ]);
     expect(
       await run(io3, [
+        'agent',
         'provider',
         'disable',
-        'openai',
-        '--agent',
         'john',
+        'openai',
         '--auth-type',
         'api_key',
         '--yes',
@@ -1673,7 +1673,7 @@ describe('provider custom', () => {
       },
       { status: 200, body: { ok: true } },
     ]);
-    expect(await run(io, ['provider', 'disable', 'google', '--agent', 'john', '--yes'])).toBe(0);
+    expect(await run(io, ['agent', 'provider', 'disable', 'john', 'google', '--yes'])).toBe(0);
     expect(calls[1].method).toBe('DELETE');
     expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers/conn-g`);
     expect(io.lastJson()).toMatchObject({ enabled: false, provider: 'gemini' });
