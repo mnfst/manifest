@@ -1,6 +1,7 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
-import { parseArgs } from '../args';
-import { resolveDiscoveryAgent, resolveProviderId } from './provider';
+import { parseArgs, requirePositional } from '../args';
+import { slugifyAgentName } from '../slug';
+import { resolveProviderId } from './provider';
 
 interface ModelRow {
   model_name?: string;
@@ -12,16 +13,18 @@ interface ModelRow {
 }
 
 /**
- * Models routable for an agent (union of its enabled provider connections),
+ * Models routable for an agent (union of its ENABLED provider connections),
  * trimmed to what `routing tier set` needs: id, provider, auth type, context
- * window, and per-token prices. --provider filters (aliases accepted).
+ * window, and per-token prices. The agent is a required positional — unlike
+ * provider connect, the answer genuinely depends on which agent you ask
+ * about, so it is never auto-picked. --provider filters (aliases accepted).
  */
 export async function modelsList(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url', 'agent', 'provider'] });
+  const args = parseArgs(argv, { strings: ['url', 'provider'] });
   const providerFilter = args.strings['provider']
     ? resolveProviderId(args.strings['provider'])
     : null;
-  const agent = await resolveDiscoveryAgent(io, args);
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
   const rows = (await client.request(
     'GET',
