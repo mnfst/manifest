@@ -924,29 +924,22 @@ describe('provider commands', () => {
         return 'sk-typed-secretly\n';
       },
     });
-    expect(await run(io, ['provider', 'connect', 'openai', '--agent', 'a'])).toBe(0);
+    expect(
+      await run(io, ['provider', 'connect', 'openai', '--agent', 'a', '--auth-type', 'api_key']),
+    ).toBe(0);
     expect(prompts[0]).toContain('input hidden');
     expect(JSON.parse(stub.calls[0].body!).apiKey).toBe('sk-typed-secretly');
     expect(io.lines.join('\n')).not.toContain('sk-typed-secretly');
   });
 
-  it('provider connect asks for the auth type when the provider offers a choice', async () => {
-    const linePrompts: string[] = [];
-    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
-    const io = makeIo({
-      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
-      fetchImpl: stub.impl,
-      isTTY: true,
-      readLine: async (promptText: string) => {
-        linePrompts.push(promptText);
-        return '';
-      },
-      readSecret: async () => 'xai-secret',
+  it('provider connect requires --auth-type when the provider offers a real choice', async () => {
+    const { io, calls } = authedIo([]);
+    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'missing_auth_type',
+      message: expect.stringContaining('api_key, subscription'),
     });
-    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
-    expect(linePrompts[0]).toContain('[api_key, subscription]');
-    // empty answer → server default api_key: no authType field sent
-    expect(JSON.parse(stub.calls[0].body!)).not.toHaveProperty('authType');
+    expect(calls).toHaveLength(0);
   });
 
   afterEach(() => {
@@ -973,13 +966,14 @@ describe('provider commands', () => {
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: stub.impl,
       isTTY: true,
-      readLine: async () => 'subscription',
       openBrowser: (url: string) => {
         opened.push(url);
         return true;
       },
     });
-    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--auth-type', 'subscription']),
+    ).toBe(0);
     expect(stub.calls[1].url).toBe(`${HOST}/api/v1/oauth/xai/authorize?agentName=a`);
     expect(opened[0]).toContain('accounts.x.ai');
     expect(io.lastJson()).toEqual({ connected: 'xai', auth_type: 'subscription', agent: 'a' });
@@ -999,10 +993,11 @@ describe('provider commands', () => {
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: stub.impl,
       isTTY: true,
-      readLine: async () => 'subscription',
       openBrowser: () => true,
     });
-    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--auth-type', 'subscription']),
+    ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'oauth_timeout' });
   });
 
@@ -1015,11 +1010,20 @@ describe('provider commands', () => {
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: stub.impl,
       isTTY: true,
-      readLine: async (promptText: string) =>
-        promptText.startsWith('Auth type') ? 'subscription' : 'the-pasted-code#st-1',
+      readLine: async () => 'the-pasted-code#st-1',
       openBrowser: () => true,
     });
-    expect(await run(io, ['provider', 'connect', 'anthropic', '--agent', 'a'])).toBe(0);
+    expect(
+      await run(io, [
+        'provider',
+        'connect',
+        'anthropic',
+        '--agent',
+        'a',
+        '--auth-type',
+        'subscription',
+      ]),
+    ).toBe(0);
     expect(stub.calls[0].url).toBe(`${HOST}/api/v1/oauth/anthropic/authorize?agentName=a`);
     expect(JSON.parse(stub.calls[1].body!)).toEqual({
       code: 'the-pasted-code#st-1',
@@ -1037,9 +1041,10 @@ describe('provider commands', () => {
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: fetchStub([]).impl,
       isTTY: true,
-      readLine: async () => 'subscription',
     });
-    expect(await run(io, ['provider', 'connect', 'kiro', '--agent', 'a'])).toBe(1);
+    expect(
+      await run(io, ['provider', 'connect', 'kiro', '--agent', 'a', '--auth-type', 'subscription']),
+    ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'subscription_unsupported' });
 
     const { io: io2 } = authedIo([]);
@@ -1047,28 +1052,6 @@ describe('provider commands', () => {
       await run(io2, ['provider', 'connect', 'xai', '--agent', 'a', '--auth-type', 'subscription']),
     ).toBe(1);
     expect(io2.lastJson()).toMatchObject({ error: 'subscription_needs_tty' });
-  });
-
-  it('provider connect accepts an explicit interactive answer and rejects junk', async () => {
-    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
-    const io = makeIo({
-      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
-      fetchImpl: stub.impl,
-      isTTY: true,
-      readLine: async () => 'api_key',
-      readSecret: async () => 'xai-secret',
-    });
-    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
-    expect(JSON.parse(stub.calls[0].body!).authType).toBe('api_key');
-
-    const io2 = makeIo({
-      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
-      fetchImpl: fetchStub([]).impl,
-      isTTY: true,
-      readLine: async () => 'blah',
-    });
-    expect(await run(io2, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
-    expect(io2.lastJson()).toMatchObject({ error: 'invalid_auth_type' });
   });
 
   it('provider connect never prompts when a credential flag signals scripting (pty-safe)', async () => {
@@ -1089,7 +1072,8 @@ describe('provider commands', () => {
     expect(
       await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--credential-env', 'K']),
     ).toBe(0);
-    expect(JSON.parse(stub.calls[0].body!)).not.toHaveProperty('authType');
+    // a credential source can only mean api_key — inferred, never prompted
+    expect(JSON.parse(stub.calls[0].body!).authType).toBe('api_key');
   });
 
   it('provider connect infers local for local-only providers without prompting', async () => {
@@ -1126,7 +1110,9 @@ describe('provider commands', () => {
       isTTY: true,
       readSecret: async () => '   ',
     });
-    expect(await run(io, ['provider', 'connect', 'openai', '--agent', 'a'])).toBe(1);
+    expect(
+      await run(io, ['provider', 'connect', 'openai', '--agent', 'a', '--auth-type', 'api_key']),
+    ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'credential_empty' });
   });
 
@@ -1160,6 +1146,7 @@ describe('provider commands', () => {
     expect(JSON.parse(calls[0].body!)).toEqual({
       provider: 'openai',
       apiKey: 'sk-secret',
+      authType: 'api_key',
       label: 'Main',
     });
     expect(io.lines.join('\n')).not.toContain('sk-secret');
@@ -1185,7 +1172,16 @@ describe('provider commands', () => {
   it('provider connect without a credential source fails before any request', async () => {
     const { io, calls } = authedIo([{ status: 201, body: {} }]);
     expect(
-      await run(io, ['provider', 'connect', '--provider', 'openai', '--agent', 'coding']),
+      await run(io, [
+        'provider',
+        'connect',
+        '--provider',
+        'openai',
+        '--agent',
+        'coding',
+        '--auth-type',
+        'api_key',
+      ]),
     ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'credential_source_required' });
     expect(calls).toHaveLength(0);

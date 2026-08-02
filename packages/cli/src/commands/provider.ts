@@ -131,17 +131,16 @@ async function resolveDiscoveryAgent(
 }
 
 /**
- * Pick the auth type: explicit flag wins (validated against the catalog);
- * otherwise ask when the provider genuinely offers a choice and the session
- * is interactive; otherwise default to api_key like the server does.
- * Subscription is refused with a pointer to the dashboard: this endpoint
- * stores pasted keys, while subscriptions are established via OAuth.
+ * Pick the auth type. Explicit --auth-type wins (validated against the
+ * catalog). Without it: a credential source implies api_key (a pasted key
+ * cannot be anything else), local-only providers imply local, single-choice
+ * providers need no flag — and a genuine multi-way choice is an ERROR, not a
+ * prompt: this CLI is deterministic and agent-first.
  */
-async function resolveAuthType(
-  io: CliIo,
+function resolveAuthType(
   args: ReturnType<typeof parseArgs>,
   providerId: string,
-): Promise<string | undefined> {
+): string | undefined {
   const entry = PROVIDER_CATALOG.find((p) => p.id === providerId);
   const supported = entry?.authTypes ?? ['api_key'];
   const flagged = args.strings['auth-type'];
@@ -155,25 +154,17 @@ async function resolveAuthType(
     }
     return flagged;
   }
-  const choices = supported.filter((t) => t !== 'subscription');
-  // An explicit credential source is a "scripted" signal (agents under a pty
-  // still look like a TTY): never block on a prompt then — api_key is the
-  // only connectable choice anyway.
-  const scripted =
+  const hasCredentialSource =
     Boolean(args.booleans['credential-stdin']) || Boolean(args.strings['credential-env']);
-  if (!scripted && supported.includes('subscription') && io.isTTY && io.readLine) {
-    const answer = (
-      await io.readLine(`Auth type for ${providerId} [${supported.join(', ')}] (default api_key): `)
-    )
-      .trim()
-      .toLowerCase();
-    if (answer && !supported.includes(answer)) {
-      throw new CliError('invalid_auth_type', `${providerId} supports: ${supported.join(', ')}`);
-    }
-    return answer || undefined; // empty answer → server default (api_key)
+  if (hasCredentialSource && supported.includes('api_key')) return 'api_key';
+  if (supported.length === 1) {
+    return supported[0] === 'api_key' ? undefined : supported[0];
   }
-  // Non-interactive or single-choice: server default (api_key) or the single option.
-  return choices.length === 1 && choices[0] !== 'api_key' ? choices[0] : undefined;
+  throw new CliError(
+    'missing_auth_type',
+    `--auth-type is required for ${providerId}. Supported: ${supported.join(', ')}`,
+    'Run mnfst provider catalog to see auth types per provider',
+  );
 }
 
 export async function providerConnect(io: CliIo, argv: string[]): Promise<void> {
@@ -183,7 +174,7 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
   });
   const provider = providerFromArgs(args);
   const agent = await resolveDiscoveryAgent(io, args);
-  const authType = await resolveAuthType(io, args, provider);
+  const authType = resolveAuthType(args, provider);
 
   if (authType === 'subscription') {
     const { client } = clientFromFlags(io, args);
