@@ -79,4 +79,8 @@ export const appConfig = registerAs('app', () => ({
   // `x-internal-secret` header to publish/unpublish curated error pages.
   // Empty by default — the endpoint rejects all writes until it is set.
   errorPagePushSecret: process.env['ERROR_PAGE_PUSH_SECRET'] ?? '',
+  // Sliding lifetime (days) of a CLI-minted management PAT. Every successful
+  // authentication pushes the key's `expires_at` this far into the future, so
+  // an active CLI never has to re-login and an abandoned one lapses.
+  cliTokenTtlDays: optionalPositiveInteger(process.env['CLI_TOKEN_TTL_DAYS']) ?? 30,
 }));

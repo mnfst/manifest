@@ -23,6 +23,30 @@ export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
   coding: 'Coding Assistant',
 };
 
+/**
+ * Which proxy surface a platform's NATIVE traffic speaks. Single source of
+ * truth for anything that impersonates or reasons about platform traffic
+ * (CLI `routing test`, Wingman profiles, docs). Adding a platform above
+ * without a surface here is a type error — the mapping can never go stale.
+ */
+export const API_SURFACES = ['chat_completions', 'messages'] as const;
+export type ApiSurface = (typeof API_SURFACES)[number];
+
+export const PLATFORM_API_SURFACES: Readonly<Record<AgentPlatform, ApiSurface>> = {
+  openclaw: 'chat_completions',
+  hermes: 'chat_completions',
+  nanobot: 'chat_completions',
+  craft: 'chat_completions',
+  'claude-code': 'messages',
+  opencode: 'chat_completions',
+  'openai-sdk': 'chat_completions',
+  'anthropic-sdk': 'messages',
+  'vercel-ai-sdk': 'chat_completions',
+  langchain: 'chat_completions',
+  curl: 'chat_completions',
+  other: 'chat_completions',
+};
+
 export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
   openclaw: 'OpenClaw',
   hermes: 'Hermes Agent',

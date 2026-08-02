@@ -21,27 +21,31 @@ describe('ApiKeyGuard', () => {
   let guard: ApiKeyGuard;
   let mockFind: jest.Mock;
   let mockExecute: jest.Mock;
+  let mockSet: jest.Mock;
   let configGet: jest.Mock;
   let reflector: Reflector;
 
   beforeEach(() => {
     mockFind = jest.fn().mockResolvedValue([]);
     mockExecute = jest.fn().mockResolvedValue({});
+    mockSet = jest.fn().mockImplementation((setObj) => {
+      // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
+      if (setObj) {
+        for (const val of Object.values(setObj)) {
+          if (typeof val === 'function') (val as () => unknown)();
+        }
+      }
+      return mockUpdateQb;
+    });
     const mockUpdateQb = {
       update: jest.fn().mockReturnThis(),
-      set: jest.fn().mockImplementation((setObj) => {
-        // Invoke raw expression functions for coverage (e.g. () => 'CURRENT_TIMESTAMP')
-        if (setObj) {
-          for (const val of Object.values(setObj)) {
-            if (typeof val === 'function') (val as () => unknown)();
-          }
-        }
-        return mockUpdateQb;
-      }),
+      set: mockSet,
       where: jest.fn().mockReturnThis(),
       execute: mockExecute,
     };
-    configGet = jest.fn().mockReturnValue('');
+    configGet = jest
+      .fn()
+      .mockImplementation((key: string) => (key === 'app.cliTokenTtlDays' ? 30 : ''));
     reflector = { getAllAndOverride: jest.fn().mockReturnValue(false) } as unknown as Reflector;
     const configService = { get: configGet } as unknown as ConfigService;
     const mockRepo = {
@@ -324,5 +328,161 @@ describe('ApiKeyGuard', () => {
 
     await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
     expect(mockFind).not.toHaveBeenCalled();
+  });
+
+  it('rejects an expired key with 401', async () => {
+    const rawKey = 'mnfst_pat_expired';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k1',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: new Date(Date.now() - 1000).toISOString(),
+      },
+    ]);
+    const request = {
+      headers: { 'x-api-key': rawKey },
+      ip: '127.0.0.1',
+    } as {
+      headers: Record<string, string>;
+      ip: string;
+      tenantContext?: unknown;
+      user?: unknown;
+      authMethod?: string;
+    };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow(UnauthorizedException);
+    // The expiry check runs BEFORE any credential is attached — an expired key
+    // must never leave a usable tenant/user on the request for a later guard
+    // or filter to pick up, and must not slide its own expiry forward.
+    expect(request.tenantContext).toBeUndefined();
+    expect(request.user).toBeUndefined();
+    expect(request.authMethod).toBeUndefined();
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('surfaces the re-login hint when the key is expired', async () => {
+    const rawKey = 'mnfst_pat_expired2';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k1b',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: new Date(Date.now() - 1000).toISOString(),
+      },
+    ]);
+    const ctx = makeContext({ 'x-api-key': rawKey });
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow('API key expired — run mnfst login');
+  });
+
+  it('slides expires_at forward on successful auth for expiring keys', async () => {
+    const rawKey = 'mnfst_pat_live';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k2',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+      },
+    ]);
+    const ctx = makeContext({ 'x-api-key': rawKey });
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    // the update .set() payload must include BOTH last_used_at and expires_at.
+    // expires_at is a Node-computed naive local timestamp, not a DB expression:
+    // CliAuthService mints with the same clock, so the slide must read it too.
+    expect(mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        last_used_at: expect.any(Function),
+        expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/),
+      }),
+    );
+    const setArg = mockSet.mock.calls[0][0] as { expires_at: string };
+    const slid = new Date(setArg.expires_at).getTime();
+    expect(slid).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect(slid).toBeLessThanOrEqual(Date.now() + 30 * 86_400_000 + 1000);
+  });
+
+  it('does not touch expires_at for non-expiring keys', async () => {
+    const rawKey = 'test-api-key-001';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k3',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: null,
+      },
+    ]);
+    const ctx = makeContext({ 'x-api-key': rawKey });
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    expect(mockSet).toHaveBeenCalledWith({ last_used_at: expect.any(Function) });
+  });
+
+  it('attaches apiKeyExpiresAt to the request', async () => {
+    const rawKey = 'mnfst_pat_live2';
+    const expiresAt = new Date(Date.now() + 86_400_000).toISOString();
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k4',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: expiresAt,
+      },
+    ]);
+    const request = {
+      headers: { 'x-api-key': rawKey },
+      ip: '127.0.0.1',
+    } as { headers: Record<string, string>; ip: string; apiKeyExpiresAt?: string | null };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await guard.canActivate(ctx);
+    expect(request.apiKeyExpiresAt).toBe(expiresAt);
+  });
+
+  it('attaches a null apiKeyExpiresAt for non-expiring keys', async () => {
+    const rawKey = 'never-expires-key';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k5',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: null,
+      },
+    ]);
+    const request = {
+      headers: { 'x-api-key': rawKey },
+      ip: '127.0.0.1',
+    } as { headers: Record<string, string>; ip: string; apiKeyExpiresAt?: string | null };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await guard.canActivate(ctx);
+    expect(request.apiKeyExpiresAt).toBeNull();
   });
 });

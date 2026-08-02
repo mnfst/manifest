@@ -41,6 +41,8 @@ import { BackfillState } from '../src/entities/backfill-state.entity';
 import { PublicErrorPage } from '../src/entities/public-error-page.entity';
 import { WaitlistClaim } from '../src/entities/waitlist-claim.entity';
 import { TenantRequestUsage } from '../src/entities/tenant-request-usage.entity';
+import { CliAuthCode } from '../src/entities/cli-auth-code.entity';
+import { AuthModule } from '../src/auth/auth.module';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -85,6 +87,7 @@ const entities = [
   PublicErrorPage,
   WaitlistClaim,
   TenantRequestUsage,
+  CliAuthCode,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
@@ -196,6 +199,13 @@ class MockSessionGuard implements CanActivate {
 
     request.user = { id: userId, email: 'test@test.com', name: 'Test' };
     request.session = { id: 'test-session', userId };
+    // Production's SessionGuard/ApiKeyGuard stamp how the caller authenticated;
+    // session-only endpoints read it. Tests impersonate API-key auth with the
+    // `x-test-auth-method` header.
+    request.authMethod =
+      typeof request.headers['x-test-auth-method'] === 'string'
+        ? request.headers['x-test-auth-method']
+        : 'session';
 
     // Resolve the user's tenant via owner_user_id (no caching: tests create
     // tenants on the fly and must see them on the next request).
@@ -227,6 +237,7 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
         TypeOrmModule.forRoot(buildTypeOrmConfig(options)),
         TypeOrmModule.forFeature(entities),
         CommonModule,
+        AuthModule,
         HealthModule,
         AnalyticsModule,
         OtlpModule,

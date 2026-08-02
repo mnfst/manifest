@@ -27,6 +27,7 @@ import { AgentEnabledProvider } from '../entities/agent-enabled-provider.entity'
 import { PublicErrorPage } from '../entities/public-error-page.entity';
 import { WaitlistClaim } from '../entities/waitlist-claim.entity';
 import { TenantRequestUsage } from '../entities/tenant-request-usage.entity';
+import { CliAuthCode } from '../entities/cli-auth-code.entity';
 import { RenameWaitlistClaimsTable1800000000000 } from './migrations/1800000000000-RenameWaitlistClaimsTable';
 import { ReclassifyPlanRequestLimitMessages1800100000000 } from './migrations/1800100000000-ReclassifyPlanRequestLimitMessages';
 import { AddMessageErrorCode1800200000000 } from './migrations/1800200000000-AddMessageErrorCode';
@@ -38,6 +39,8 @@ import { AddRequestRecordings1801300000000 } from './migrations/1801300000000-Ad
 import { MoveRecordingsToProviderAttempts1801400000000 } from './migrations/1801400000000-MoveRecordingsToProviderAttempts';
 import { EnableRecordingForNewAgents1801500000000 } from './migrations/1801500000000-EnableRecordingForNewAgents';
 import { DropLegacyAutofixRolloutColumns1801600000000 } from './migrations/1801600000000-DropLegacyAutofixRolloutColumns';
+import { AddApiKeyExpiresAt1801700000000 } from './migrations/1801700000000-AddApiKeyExpiresAt';
+import { CreateCliAuthCodes1801710000000 } from './migrations/1801710000000-CreateCliAuthCodes';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -182,6 +185,7 @@ export const entities = [
   PublicErrorPage,
   WaitlistClaim,
   TenantRequestUsage,
+  CliAuthCode,
 ];
 
 export const migrations = [
@@ -314,4 +318,6 @@ export const migrations = [
   MoveRecordingsToProviderAttempts1801400000000,
   EnableRecordingForNewAgents1801500000000,
   DropLegacyAutofixRolloutColumns1801600000000,
+  AddApiKeyExpiresAt1801700000000,
+  CreateCliAuthCodes1801710000000,
 ];
