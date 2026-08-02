@@ -40,6 +40,8 @@ export interface CliIo {
    * which must use the explicit --credential flags.
    */
   readSecret?: (promptText: string) => Promise<string>;
+  /** Visible-input prompt on stderr for interactive choices; TTY-only like readSecret. */
+  readLine?: (promptText: string) => Promise<string>;
 }
 
 export function getConfigPath(io: CliIo): string {

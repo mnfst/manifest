@@ -17,6 +17,7 @@ export interface TestIoOptions {
   isTTY?: boolean;
   openBrowser?: (url: string) => boolean;
   readSecret?: (promptText: string) => Promise<string>;
+  readLine?: (promptText: string) => Promise<string>;
 }
 
 /** Hermetic CliIo: temp XDG config dir, captured output, stubbed fetch/stdin. */
@@ -37,6 +38,7 @@ export function makeIo(options: TestIoOptions = {}): TestIo {
     isTTY: options.isTTY ?? false,
     ...(options.openBrowser ? { openBrowser: options.openBrowser } : {}),
     ...(options.readSecret ? { readSecret: options.readSecret } : {}),
+    ...(options.readLine ? { readLine: options.readLine } : {}),
     lines,
     errLines,
     configDir,

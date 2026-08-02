@@ -929,6 +929,103 @@ describe('provider commands', () => {
     expect(io.lines.join('\n')).not.toContain('sk-typed-secretly');
   });
 
+  it('provider connect asks for the auth type when the provider offers a choice', async () => {
+    const linePrompts: string[] = [];
+    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async (promptText: string) => {
+        linePrompts.push(promptText);
+        return '';
+      },
+      readSecret: async () => 'xai-secret',
+    });
+    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
+    expect(linePrompts[0]).toContain('[api_key, subscription]');
+    // empty answer → server default api_key: no authType field sent
+    expect(JSON.parse(stub.calls[0].body!)).not.toHaveProperty('authType');
+  });
+
+  it('provider connect refuses subscription with a dashboard pointer', async () => {
+    const { io, calls } = authedIo([], { K: 'k' });
+    expect(
+      await run(io, [
+        'provider',
+        'connect',
+        'xai',
+        '--agent',
+        'a',
+        '--auth-type',
+        'subscription',
+        '--credential-env',
+        'K',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'subscription_via_dashboard' });
+    expect(calls).toHaveLength(0);
+
+    // interactive answer "subscription" gets the same refusal
+    const io2 = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: fetchStub([]).impl,
+      isTTY: true,
+      readLine: async () => 'subscription',
+    });
+    expect(await run(io2, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'subscription_via_dashboard' });
+  });
+
+  it('provider connect accepts an explicit interactive answer and rejects junk', async () => {
+    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async () => 'api_key',
+      readSecret: async () => 'xai-secret',
+    });
+    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
+    expect(JSON.parse(stub.calls[0].body!).authType).toBe('api_key');
+
+    const io2 = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: fetchStub([]).impl,
+      isTTY: true,
+      readLine: async () => 'blah',
+    });
+    expect(await run(io2, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'invalid_auth_type' });
+  });
+
+  it('provider connect infers local for local-only providers without prompting', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: { id: 'p1' } }]);
+    expect(await run(io, ['provider', 'connect', 'ollama', '--agent', 'a'])).toBe(0);
+    const body = JSON.parse(calls[0].body!);
+    expect(body.authType).toBe('local');
+    expect(body).not.toHaveProperty('apiKey');
+  });
+
+  it('provider connect validates --auth-type against the catalog', async () => {
+    const { io, calls } = authedIo([], { K: 'k' });
+    expect(
+      await run(io, [
+        'provider',
+        'connect',
+        'openrouter',
+        '--agent',
+        'a',
+        '--auth-type',
+        'local',
+        '--credential-env',
+        'K',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_auth_type' });
+    expect(calls).toHaveLength(0);
+  });
+
   it('provider connect treats an empty prompted secret as an error', async () => {
     const io = makeIo({
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },

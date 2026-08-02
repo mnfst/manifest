@@ -182,6 +182,14 @@ export async function main(argv: string[]): Promise<number> {
     },
     isTTY: Boolean(process.stderr.isTTY),
     openBrowser: defaultOpenBrowser,
+    readLine: (promptText) =>
+      new Promise((resolve) => {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stderr });
+        rl.question(promptText, (answer) => {
+          rl.close();
+          resolve(answer);
+        });
+      }),
     readSecret: (promptText) =>
       new Promise((resolve) => {
         process.stderr.write(promptText);
