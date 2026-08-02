@@ -1257,6 +1257,69 @@ describe('provider commands', () => {
   });
 });
 
+describe('models command', () => {
+  it('lists routable models trimmed to tier-set fields', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: [
+          {
+            model_name: 'grok-4',
+            provider: 'xai',
+            auth_type: 'api_key',
+            context_window: 256000,
+            input_price_per_token: 0.000003,
+            output_price_per_token: 0.000015,
+            capability_reasoning: true,
+            input_modalities: ['text'],
+          },
+          'junk',
+        ],
+      },
+    ]);
+    expect(await run(io, ['models', '--agent', 'John'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+    expect(io.lastJson()).toEqual({
+      agent: 'john',
+      count: 1,
+      models: [
+        {
+          model: 'grok-4',
+          provider: 'xai',
+          auth_type: 'api_key',
+          context_window: 256000,
+          input_price_per_token: 0.000003,
+          output_price_per_token: 0.000015,
+        },
+      ],
+    });
+  });
+
+  it('filters by provider (alias-aware) and auto-picks the agent', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      {
+        status: 200,
+        body: [
+          { model_name: 'gemini-3-pro', provider: 'gemini', auth_type: 'api_key' },
+          { model_name: 'grok-4', provider: 'xai', auth_type: 'api_key' },
+        ],
+      },
+    ]);
+    expect(await run(io, ['models', '--provider', 'google'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents`);
+    const out = io.lastJson() as { count: number; models: Array<{ model: string }> };
+    expect(out.count).toBe(1);
+    expect(out.models[0].model).toBe('gemini-3-pro');
+  });
+
+  it('handles a non-array payload as zero models', async () => {
+    const { io } = authedIo([{ status: 200, body: { unexpected: true } }]);
+    expect(await run(io, ['models', '--agent', 'a'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({ count: 0, models: [] });
+  });
+});
+
 describe('routing commands', () => {
   it('status and tiers are thin GET wrappers', async () => {
     const { io, calls } = authedIo([{ status: 200, body: { enabled: true, reason: null } }]);

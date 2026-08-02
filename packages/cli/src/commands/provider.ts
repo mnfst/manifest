@@ -135,7 +135,7 @@ function providerFromArgs(args: ReturnType<typeof parseArgs>): string {
  * yields the same result, so when --agent is omitted the CLI picks one and
  * says which it used.
  */
-async function resolveDiscoveryAgent(
+export async function resolveDiscoveryAgent(
   io: CliIo,
   args: ReturnType<typeof parseArgs>,
 ): Promise<string> {
