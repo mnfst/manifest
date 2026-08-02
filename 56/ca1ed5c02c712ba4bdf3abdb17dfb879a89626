@@ -1,0 +1,39 @@
+packages/backend/src/config/app.config.ts
+  s_55e9f8f22551f6::t_b87e5f5147b05d 82-85
+packages/backend/src/common/guards/api-key.guard.ts
+  s_55e9f8f22551f6::t_b75e024a664d75 55-58
+  s_55e9f8f22551f6::t_edf74417d08e9e 73-75,79-87
+packages/backend/src/common/guards/api-key.guard.spec.ts
+  s_55e9f8f22551f6::t_0e477ee02b2fc1 332-463
+  s_55e9f8f22551f6::t_56f67e94ffcd0c 24,31-39,42
+  s_55e9f8f22551f6::t_14cbf22db0ee51 46-48
+packages/backend/src/auth/me.controller.ts
+  s_55e9f8f22551f6::t_863680fed68168 15,19-20
+packages/backend/src/entities/api-key.entity.ts
+  s_55e9f8f22551f6::t_7fc9050eb05764 35-38
+packages/backend/src/database/migrations/1801700000000-AddApiKeyExpiresAt.ts
+  s_55e9f8f22551f6::t_92098364bd41b2 1-29
+packages/backend/src/database/data-source-definitions.ts
+  s_55e9f8f22551f6::t_2f5e77ae6a1eef 41
+  s_55e9f8f22551f6::t_0582bf7672f906 318
+packages/backend/src/database/migrations/1801700000000-AddApiKeyExpiresAt.spec.ts
+  s_55e9f8f22551f6::t_ec1a09c3c27a83 1-52
+packages/backend/src/auth/me.controller.spec.ts
+  s_55e9f8f22551f6::t_74ad52953f2fb8 13,22-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "56ca1ed5c02c712ba4bdf3abdb17dfb879a89626",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
