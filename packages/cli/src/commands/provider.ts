@@ -4,6 +4,7 @@ import { slugifyAgentName } from '../slug';
 import { parseArgs, requireYes } from '../args';
 import { readCredential } from '../secrets';
 import { PROVIDER_CATALOG } from '../provider-catalog.gen';
+import { subscriptionConnect } from './oauth-connect';
 
 /**
  * Lists what CAN be connected — no auth, no network. Aliases stay internal
@@ -129,9 +130,6 @@ async function resolveDiscoveryAgent(
   return first.agent_name;
 }
 
-const SUBSCRIPTION_DASHBOARD_HINT =
-  'Subscription connections use the provider OAuth flow — connect from the dashboard (Providers → Subscriptions). CLI support is a follow-up.';
-
 /**
  * Pick the auth type: explicit flag wins (validated against the catalog);
  * otherwise ask when the provider genuinely offers a choice and the session
@@ -155,9 +153,6 @@ async function resolveAuthType(
         'Run mnfst provider catalog to see auth types per provider',
       );
     }
-    if (flagged === 'subscription') {
-      throw new CliError('subscription_via_dashboard', SUBSCRIPTION_DASHBOARD_HINT);
-    }
     return flagged;
   }
   const choices = supported.filter((t) => t !== 'subscription');
@@ -172,9 +167,6 @@ async function resolveAuthType(
     )
       .trim()
       .toLowerCase();
-    if (answer === 'subscription') {
-      throw new CliError('subscription_via_dashboard', SUBSCRIPTION_DASHBOARD_HINT);
-    }
     if (answer && !supported.includes(answer)) {
       throw new CliError('invalid_auth_type', `${providerId} supports: ${supported.join(', ')}`);
     }
@@ -192,6 +184,12 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
   const provider = providerFromArgs(args);
   const agent = await resolveDiscoveryAgent(io, args);
   const authType = await resolveAuthType(io, args, provider);
+
+  if (authType === 'subscription') {
+    const { client } = clientFromFlags(io, args);
+    await subscriptionConnect(io, client, provider, agent);
+    return;
+  }
 
   // API-key providers need a credential; `local` (Ollama) does not.
   const credential =

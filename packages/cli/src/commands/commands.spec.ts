@@ -5,6 +5,7 @@ import * as path from 'path';
 import { run } from '../index';
 import { CLI_AGENT_PLATFORMS } from './agent';
 import { agentKeyPath, saveAgentKey } from '../keystore';
+import { OAUTH_POLL } from './oauth-connect';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
 
 const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
@@ -948,33 +949,104 @@ describe('provider commands', () => {
     expect(JSON.parse(stub.calls[0].body!)).not.toHaveProperty('authType');
   });
 
-  it('provider connect refuses subscription with a dashboard pointer', async () => {
-    const { io, calls } = authedIo([], { K: 'k' });
-    expect(
-      await run(io, [
-        'provider',
-        'connect',
-        'xai',
-        '--agent',
-        'a',
-        '--auth-type',
-        'subscription',
-        '--credential-env',
-        'K',
-      ]),
-    ).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'subscription_via_dashboard' });
-    expect(calls).toHaveLength(0);
+  afterEach(() => {
+    OAUTH_POLL.intervalMs = 2000;
+    OAUTH_POLL.timeoutMs = 180_000;
+  });
 
-    // interactive answer "subscription" gets the same refusal
-    const io2 = makeIo({
+  it('subscription connect (redirect flow) opens the browser and polls to completion', async () => {
+    OAUTH_POLL.intervalMs = 1;
+    OAUTH_POLL.timeoutMs = 500;
+    const opened: string[] = [];
+    const stub = fetchStub([
+      { status: 200, body: { providers: [] } }, // baseline
+      { status: 200, body: { url: 'https://accounts.x.ai/authorize?x=1' } },
+      { status: 200, body: { providers: [] } }, // first poll: not yet
+      {
+        status: 200,
+        body: {
+          providers: [{ provider: 'xai', auth_type: 'subscription', connection_count: 1 }],
+        },
+      },
+    ]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async () => 'subscription',
+      openBrowser: (url: string) => {
+        opened.push(url);
+        return true;
+      },
+    });
+    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(0);
+    expect(stub.calls[1].url).toBe(`${HOST}/api/v1/oauth/xai/authorize?agentName=a`);
+    expect(opened[0]).toContain('accounts.x.ai');
+    expect(io.lastJson()).toEqual({ connected: 'xai', auth_type: 'subscription', agent: 'a' });
+  });
+
+  it('subscription connect (redirect flow) times out with a helpful error', async () => {
+    OAUTH_POLL.intervalMs = 1;
+    OAUTH_POLL.timeoutMs = 20;
+    const stub = fetchStub(
+      Array.from({ length: 60 }, (_, i) =>
+        i === 1
+          ? { status: 200, body: { url: 'https://accounts.x.ai/a' } }
+          : { status: 200, body: { providers: [] } },
+      ),
+    );
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async () => 'subscription',
+      openBrowser: () => true,
+    });
+    expect(await run(io, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'oauth_timeout' });
+  });
+
+  it('subscription connect (paste flow) exchanges the pasted code', async () => {
+    const stub = fetchStub([
+      { status: 200, body: { url: 'https://claude.ai/oauth/authorize?x=1', state: 'st-1' } },
+      { status: 200, body: { ok: true } },
+    ]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readLine: async (promptText: string) =>
+        promptText.startsWith('Auth type') ? 'subscription' : 'the-pasted-code#st-1',
+      openBrowser: () => true,
+    });
+    expect(await run(io, ['provider', 'connect', 'anthropic', '--agent', 'a'])).toBe(0);
+    expect(stub.calls[0].url).toBe(`${HOST}/api/v1/oauth/anthropic/authorize?agentName=a`);
+    expect(JSON.parse(stub.calls[1].body!)).toEqual({
+      code: 'the-pasted-code#st-1',
+      state: 'st-1',
+    });
+    expect(io.lastJson()).toEqual({
+      connected: 'anthropic',
+      auth_type: 'subscription',
+      agent: 'a',
+    });
+  });
+
+  it('subscription connect refuses device-flow providers and non-TTY sessions', async () => {
+    const io = makeIo({
       env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
       fetchImpl: fetchStub([]).impl,
       isTTY: true,
       readLine: async () => 'subscription',
     });
-    expect(await run(io2, ['provider', 'connect', 'xai', '--agent', 'a'])).toBe(1);
-    expect(io2.lastJson()).toMatchObject({ error: 'subscription_via_dashboard' });
+    expect(await run(io, ['provider', 'connect', 'kiro', '--agent', 'a'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'subscription_unsupported' });
+
+    const { io: io2 } = authedIo([]);
+    expect(
+      await run(io2, ['provider', 'connect', 'xai', '--agent', 'a', '--auth-type', 'subscription']),
+    ).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'subscription_needs_tty' });
   });
 
   it('provider connect accepts an explicit interactive answer and rejects junk', async () => {
