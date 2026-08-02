@@ -3,6 +3,7 @@ import * as http from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import { run } from '../index';
+import { CLI_AGENT_CATEGORIES } from './agent';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
 
 const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
@@ -461,11 +462,58 @@ describe('agent commands', () => {
         'p',
         '--key-file',
         keyFile,
+        '--category',
+        'app',
         '--platform',
         'openclaw',
       ]),
     ).toBe(0);
-    expect(JSON.parse(calls[0].body!)).toEqual({ name: 'p', agent_platform: 'openclaw' });
+    expect(JSON.parse(calls[0].body!)).toEqual({
+      name: 'p',
+      agent_category: 'app',
+      agent_platform: 'openclaw',
+    });
+  });
+
+  it('agent create without --category fails with the category list before any API call', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: {} }]);
+    expect(await run(io, ['agent', 'create', '--name', 'x', '--key-file', '/tmp/x.key'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'missing_category' });
+    expect((io.lastJson() as { message: string }).message).toContain('personal, app, coding');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('agent create with an unknown --category fails listing valid ones', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: {} }]);
+    expect(
+      await run(io, [
+        'agent',
+        'create',
+        '--name',
+        'x',
+        '--key-file',
+        '/tmp/x.key',
+        '--category',
+        'gaming',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_category' });
+    expect((io.lastJson() as { message: string }).message).toContain('personal, app, coding');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('agent categories lists valid categories without touching the network', async () => {
+    const stub = fetchStub([]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    expect(await run(io, ['agent', 'categories'])).toBe(0);
+    expect(io.lastJson()).toEqual({ categories: ['personal', 'app', 'coding'] });
+    expect(stub.calls).toHaveLength(0);
+  });
+
+  it('CLI category list matches manifest-shared (drift guard)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const shared = require('manifest-shared') as { AGENT_CATEGORIES: readonly string[] };
+    expect(CLI_AGENT_CATEGORIES).toEqual([...shared.AGENT_CATEGORIES]);
   });
 
   it('agent update maps --category alone', async () => {
@@ -477,7 +525,16 @@ describe('agent commands', () => {
   it('agent create validates the key file before calling the API', async () => {
     const { io, calls } = authedIo([{ status: 201, body: {} }]);
     expect(
-      await run(io, ['agent', 'create', '--name', 'x', '--key-file', '/nonexistent-dir-xyz/k.key']),
+      await run(io, [
+        'agent',
+        'create',
+        '--name',
+        'x',
+        '--category',
+        'coding',
+        '--key-file',
+        '/nonexistent-dir-xyz/k.key',
+      ]),
     ).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'key_file_dir_missing' });
     expect(calls).toHaveLength(0);
