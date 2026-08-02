@@ -586,6 +586,33 @@ describe('agent commands', () => {
     expect(io.lastJson()).toEqual({ rotated: true, keyPrefix: 'mnfst_rota', keyFile });
   });
 
+  it('agent create --if-absent succeeds on conflict by resolving the existing agent', async () => {
+    const { io, calls } = authedIo([
+      { status: 409, body: { message: 'Agent "kept" already exists', error: 'Conflict' } },
+      { status: 200, body: { agent: { agent_name: 'kept' } } },
+      { status: 200, body: { keyPrefix: 'mnfst_serv', apiKey: 'mnfst_recovered_key' } },
+    ]);
+    expect(
+      await run(io, ['agent', 'create', '--name', 'kept', '--platform', 'curl', '--if-absent']),
+    ).toBe(0);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/agents/kept`);
+    expect(io.lastJson()).toMatchObject({
+      existed: true,
+      keyPrefix: 'mnfst_reco',
+      agent: { agent_name: 'kept' },
+    });
+    // the recovered key lands in the keystore for run/key path
+    expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'kept'), 'utf8')).toBe('mnfst_recovered_key');
+  });
+
+  it('agent create without --if-absent still fails on conflict', async () => {
+    const { io } = authedIo([
+      { status: 409, body: { message: 'Agent "kept" already exists', error: 'Conflict' } },
+    ]);
+    expect(await run(io, ['agent', 'create', '--name', 'kept', '--platform', 'curl'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ status: 409 });
+  });
+
   it('agent create without --key-file stores the key in the managed keystore', async () => {
     const { io } = authedIo([
       { status: 201, body: { agent: { name: 'kept' }, apiKey: 'mnfst_kept_secret' } },
@@ -1379,10 +1406,78 @@ describe('models command', () => {
 });
 
 describe('routing commands', () => {
-  it('status is a thin GET wrapper', async () => {
-    const { io, calls } = authedIo([{ status: 200, body: { tier: 'default' } }]);
+  it('status composes the real config: default route, custom tiers, toggles', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: [
+          { tier: 'simple', override_route: { model: 'old' } },
+          {
+            tier: 'default',
+            override_route: { model: 'grok-4.5', provider: 'xai', authType: 'subscription' },
+            fallback_routes: [{ model: 'grok-4.3', provider: 'xai' }],
+          },
+        ],
+      },
+      {
+        status: 200,
+        body: [
+          {
+            id: 'ht-1',
+            name: 'deep',
+            header_key: 'x-manifest-tier',
+            header_value: 'deep',
+            enabled: true,
+            override_route: { model: 'grok-4.5' },
+            fallback_routes: null,
+          },
+        ],
+      },
+      { status: 200, body: { enabled: true } },
+      { status: 200, body: { enabled: false } },
+    ]);
     expect(await run(io, ['routing', 'status', 'John'])).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/status`);
+    const urls = calls.map((c) => c.url).sort();
+    expect(urls).toEqual(
+      [
+        `${HOST}/api/v1/routing/john/tiers`,
+        `${HOST}/api/v1/routing/john/header-tiers`,
+        `${HOST}/api/v1/routing/john/autofix`,
+        `${HOST}/api/v1/routing/john/recording`,
+      ].sort(),
+    );
+    expect(io.lastJson()).toEqual({
+      agent: 'john',
+      default: {
+        route: { model: 'grok-4.5', provider: 'xai', authType: 'subscription' },
+        fallbacks: [{ model: 'grok-4.3', provider: 'xai' }],
+      },
+      custom_tiers: [
+        {
+          name: 'deep',
+          trigger: 'x-manifest-tier: deep',
+          enabled: true,
+          route: { model: 'grok-4.5' },
+          fallbacks: [],
+        },
+      ],
+      autofix: true,
+      recording: false,
+    });
+  });
+
+  it('status tolerates an unconfigured agent', async () => {
+    const { io } = authedIo([
+      { status: 200, body: [] },
+      { status: 200, body: [] },
+      { status: 200, body: { enabled: false } },
+      { status: 200, body: { enabled: false } },
+    ]);
+    expect(await run(io, ['routing', 'status', 'john'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({
+      default: { route: null, fallbacks: [] },
+      custom_tiers: [],
+    });
   });
 
   it('agent configure writes the default route with fallbacks from --models', async () => {
