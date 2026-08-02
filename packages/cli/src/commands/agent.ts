@@ -3,6 +3,7 @@ import { CliError } from '../errors';
 import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } from '../args';
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
 import { agentKeyPath, readAgentKey, saveAgentKey } from '../keystore';
+import { slugifyAgentName } from '../slug';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
@@ -105,13 +106,13 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
     return;
   }
-  const keyPath = saveAgentKey(io.env, target.origin, name, result.apiKey);
+  const keyPath = saveAgentKey(io.env, target.origin, slugifyAgentName(name), result.apiKey);
   printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
 }
 
 export async function agentGet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
   const result = (await client.request('GET', `/agents/${encodeURIComponent(name)}`)) as {
     agent: unknown | null;
@@ -125,7 +126,7 @@ export async function agentGet(io: CliIo, argv: string[]): Promise<void> {
 
 export async function agentUpdate(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'name', 'category', 'platform'] });
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const body: Record<string, string> = {};
   if (args.strings['name']) body['name'] = args.strings['name'];
   if (args.strings['category']) body['agent_category'] = args.strings['category'];
@@ -143,7 +144,7 @@ export async function agentUpdate(io: CliIo, argv: string[]): Promise<void> {
 
 export async function agentDelete(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url'], booleans: ['yes'] });
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   requireYes(args, `delete agent "${name}"`);
   const { client } = clientFromFlags(io, args);
   const result = await client.request('DELETE', `/agents/${encodeURIComponent(name)}`);
@@ -152,7 +153,7 @@ export async function agentDelete(io: CliIo, argv: string[]): Promise<void> {
 
 export async function agentRotateKey(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'key-file'], booleans: ['yes'] });
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   requireYes(args, `rotate the API key of "${name}" (the previous key stops working)`);
   const keyFile = args.strings['key-file']
     ? validateKeyFileDestination(args.strings['key-file'])
@@ -207,7 +208,7 @@ export async function resolveAgentKey(
 
 export async function agentKeyPathCmd(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const resolved = await resolveAgentKey(io, args, name);
   printJson(io, { agent: name, path: resolved.path, source: resolved.source });
 }
@@ -215,7 +216,7 @@ export async function agentKeyPathCmd(io: CliIo, argv: string[]): Promise<void> 
 /** Prints the raw key — the one deliberate, greppable way to surface it. */
 export async function agentKeyShow(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
-  const name = requirePositional(args, 0, '<agent-name>');
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const resolved = await resolveAgentKey(io, args, name);
   printJson(io, { agent: name, apiKey: resolved.key });
 }

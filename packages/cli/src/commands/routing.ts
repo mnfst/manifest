@@ -1,4 +1,5 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
+import { slugifyAgentName } from '../slug';
 import { CliError } from '../errors';
 import { parseArgs, parseBooleanFlag, requirePositional, requireString, requireYes } from '../args';
 
@@ -10,14 +11,14 @@ function agentPath(agent: string, suffix: string): string {
 
 export async function routingStatus(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
   printJson(io, await client.request('GET', agentPath(agent, '/status')));
 }
 
 export async function routingTiers(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
   printJson(io, await client.request('GET', agentPath(agent, '/tiers')));
 }
@@ -26,7 +27,7 @@ export async function routingTierSet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'tier', 'model', 'provider', 'auth-type', 'key-label'],
   });
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const tier = requireString(args, 'tier');
   const model = requireString(args, 'model');
   const provider = requireString(args, 'provider');
@@ -48,7 +49,7 @@ export async function routingTierSet(io: CliIo, argv: string[]): Promise<void> {
 
 export async function routingTierClear(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'tier'], booleans: ['yes'] });
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const tier = requireString(args, 'tier');
   requireYes(args, `clear the ${tier} tier override of "${agent}"`);
   const { client } = clientFromFlags(io, args);
@@ -60,7 +61,7 @@ export async function routingTierClear(io: CliIo, argv: string[]): Promise<void>
 
 export async function routingFallbacksGet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'tier'] });
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const tier = requireString(args, 'tier');
   const { client } = clientFromFlags(io, args);
   printJson(
@@ -71,7 +72,7 @@ export async function routingFallbacksGet(io: CliIo, argv: string[]): Promise<vo
 
 export async function routingFallbacksSet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'tier', 'models'] });
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const tier = requireString(args, 'tier');
   const models = requireString(args, 'models')
     .split(',')
@@ -93,7 +94,7 @@ export async function routingFallbacksSet(io: CliIo, argv: string[]): Promise<vo
 
 export async function routingFallbacksClear(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'tier'], booleans: ['yes'] });
-  const agent = requirePositional(args, 0, '<agent-name>');
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const tier = requireString(args, 'tier');
   requireYes(args, `clear the ${tier} tier fallbacks of "${agent}"`);
   const { client } = clientFromFlags(io, args);
@@ -110,13 +111,13 @@ function toggleCommand(feature: 'autofix' | 'recording') {
   return {
     get: async (io: CliIo, argv: string[]): Promise<void> => {
       const args = parseArgs(argv, URL_ONLY);
-      const agent = requirePositional(args, 0, '<agent-name>');
+      const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
       const { client } = clientFromFlags(io, args);
       printJson(io, await client.request('GET', agentPath(agent, `/${feature}`)));
     },
     set: async (io: CliIo, argv: string[]): Promise<void> => {
       const args = parseArgs(argv, { strings: ['url', 'enabled'] });
-      const agent = requirePositional(args, 0, '<agent-name>');
+      const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
       const enabled = parseBooleanFlag(requireString(args, 'enabled'), 'enabled');
       const { client } = clientFromFlags(io, args);
       printJson(
