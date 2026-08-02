@@ -21,6 +21,7 @@ const KNOWN_PROVIDERS = [
   'qwen',
   'moonshot',
   'openrouter',
+  'orcarouter',
   'ollama',
   'ollama-cloud',
   'pioneer',
