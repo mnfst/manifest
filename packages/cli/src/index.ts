@@ -40,12 +40,13 @@ export const COMMANDS: Record<string, Handler> = {
   'provider disconnect': provider.providerDisconnect,
 
   'routing status': routing.routingStatus,
-  'routing tiers': routing.routingTiers,
-  'routing tier set': routing.routingTierSet,
-  'routing tier clear': routing.routingTierClear,
+  'routing set': routing.routingSet,
   'routing fallbacks get': routing.routingFallbacksGet,
   'routing fallbacks set': routing.routingFallbacksSet,
   'routing fallbacks clear': routing.routingFallbacksClear,
+  'routing custom list': routing.routingCustom.list,
+  'routing custom create': routing.routingCustom.create,
+  'routing custom delete': routing.routingCustom.delete,
   'routing autofix get': routing.routingAutofix.get,
   'routing autofix set': routing.routingAutofix.set,
   'routing recording get': routing.routingRecording.get,
@@ -82,11 +83,14 @@ Providers
 Models
   mnfst models <agent> [--provider <p>] [--cost] [--capabilities]   (like /v1/models: bare ids; flags opt into metadata)
 
-Routing
-  mnfst routing status <agent> | mnfst routing tiers <agent>
-  mnfst routing tier set <agent> --tier <t> --model <m> --provider <p> [--auth-type <a>] [--key-label <l>]
-  mnfst routing tier clear <agent> --tier <t> --yes
-  mnfst routing fallbacks get|set|clear <agent> --tier <t> [--models <m1,m2>] [--yes]
+Routing (default route + custom header tiers)
+  mnfst routing status <agent>
+  mnfst routing set <agent> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>]
+  mnfst routing fallbacks get|set|clear <agent> [--models <m1,m2>] [--yes]
+  mnfst routing custom list <agent>
+  mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]
+    (triggers on "x-manifest-tier: <name>" by default; callers opt in per request with that header)
+  mnfst routing custom delete <agent> <name> --yes
   mnfst routing autofix get|set <agent> [--enabled true|false]
   mnfst routing recording get|set <agent> [--enabled true|false]
 
