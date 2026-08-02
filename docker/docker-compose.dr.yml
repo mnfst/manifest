@@ -4,15 +4,16 @@
 # exposes it over Tailscale on port 2100. Use this to fall back if the
 # WIP/development build breaks.
 #
+# Requires Tailscale running on the host. The manifest container uses
+# host networking, so it's automatically reachable via the host's
+# Tailscale IP on port 2100. No sidecar needed.
+#
 # Setup:
-#   1. Generate a Tailscale auth key: https://login.tailscale.com/admin/settings/keys
-#      (one-time reusable key or pre-auth key)
+#   1. Ensure Tailscale is running: tailscale status
 #   2. Copy .env.example to .env.dr and fill in:
 #      - BETTER_AUTH_SECRET (required)
-#      - TS_AUTHKEY (required — your Tailscale auth key)
-#      - TS_HOSTNAME (optional — defaults to "manifest-dr")
 #   3. Start: docker compose -f docker-compose.dr.yml --env-file .env.dr up -d
-#   4. Access via Tailscale: http://<ts-hostname>:2100
+#   4. Access via Tailscale: http://<tailscale-ip>:2100
 #
 # This stack is INDEPENDENT of the WIP stack — separate project name
 # (mnfst-dr), separate Postgres volume, separate DB. No data conflicts.
@@ -28,7 +29,7 @@ services:
     environment:
       - PORT=${PORT:-2100}
       - BIND_ADDRESS=0.0.0.0
-      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@localhost:5433/manifest}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env.dr}
       - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2100}}
@@ -107,6 +108,8 @@ services:
 
   postgres:
     image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
+    ports:
+      - "127.0.0.1:5433:5432"
     environment:
       - POSTGRES_USER=manifest
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-manifest}
@@ -125,37 +128,9 @@ services:
         max-file: "5"
     security_opt:
       - no-new-privileges:true
-    networks:
-      - internal
-
-  tailscale:
-    image: tailscale/tailscale:latest
-    hostname: ${TS_HOSTNAME:-manifest-dr}
-    network_mode: host
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY:?TS_AUTHKEY must be set in .env.dr}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=false
-      - TS_ACCEPT_DNS=true
-      - TS_EXTRA_ARGS=--advertise-exposed-ports --advertise-port=${PORT:-2100}
-    volumes:
-      - ts-state:/var/lib/tailscale
-    security_opt:
-      - no-new-privileges:true
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    restart: unless-stopped
-
-networks:
-  internal:
-    driver: bridge
-    internal: true
 
 volumes:
   pgdata:
     name: manifest_dr_pgdata
   recordings:
     name: manifest_dr_request_recordings
-  ts-state:
-    name: manifest_dr_tailscale
