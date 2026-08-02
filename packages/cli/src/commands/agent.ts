@@ -1,9 +1,41 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
-import { parseArgs, requirePositional, requireString, requireYes } from '../args';
+import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } from '../args';
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
 
 const URL_ONLY = { strings: ['url'] } as const;
+
+/**
+ * Mirrors AGENT_CATEGORIES in manifest-shared (the backend rejects anything
+ * else). Kept as a literal so the CLI stays zero-runtime-dependency; a drift
+ * guard in commands.spec.ts pins it against the shared package.
+ */
+export const CLI_AGENT_CATEGORIES = ['personal', 'app', 'coding'] as const;
+
+function requireCategory(args: ParsedArgs): string {
+  const list = CLI_AGENT_CATEGORIES.join(', ');
+  const value = args.strings['category'];
+  if (!value) {
+    throw new CliError(
+      'missing_category',
+      `--category is required. Valid categories: ${list}`,
+      'Run mnfst agent categories to list them',
+    );
+  }
+  if (!(CLI_AGENT_CATEGORIES as readonly string[]).includes(value)) {
+    throw new CliError(
+      'invalid_category',
+      `Unknown category: ${value}. Valid categories: ${list}`,
+      'Run mnfst agent categories to list them',
+    );
+  }
+  return value;
+}
+
+export async function agentCategories(io: CliIo, argv: string[]): Promise<void> {
+  parseArgs(argv, {});
+  printJson(io, { categories: [...CLI_AGENT_CATEGORIES] });
+}
 
 export async function agentList(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url'], booleans: ['include-playground'] });
@@ -37,13 +69,14 @@ function stripSparklines(result: unknown): unknown {
 export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'name', 'key-file', 'category', 'platform'] });
   const name = requireString(args, 'name');
+  const category = requireCategory(args);
   const keyFile = validateKeyFileDestination(requireString(args, 'key-file'));
   const { client } = clientFromFlags(io, args);
 
   const result = (await client.request('POST', '/agents', {
     body: {
       name,
-      ...(args.strings['category'] ? { agent_category: args.strings['category'] } : {}),
+      agent_category: category,
       ...(args.strings['platform'] ? { agent_platform: args.strings['platform'] } : {}),
     },
   })) as { agent: unknown; apiKey: string };
