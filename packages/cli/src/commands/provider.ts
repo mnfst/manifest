@@ -39,10 +39,31 @@ export function resolveProviderId(input: string): string {
 }
 
 export async function providerList(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url'] });
+  const args = parseArgs(argv, { strings: ['url', 'agent'] });
   const { client } = clientFromFlags(io, args);
   const result = await client.request('GET', '/providers');
-  printJson(io, stripProviderNoise(result));
+  if (!args.strings['agent']) {
+    printJson(io, stripProviderNoise(result));
+    return;
+  }
+
+  // Per-agent view: join the tenant connections with the agent's enabled set
+  // (presence in agent_provider_access = enabled for that agent).
+  const agent = slugifyAgentName(args.strings['agent']);
+  const agentRes = (await client.request('GET', `/agents/${encodeURIComponent(agent)}`)) as {
+    agent: unknown | null;
+  };
+  if (!agentRes.agent) {
+    throw new CliError('not_found', `Agent "${agent}" not found`, 'See mnfst agent list', 404);
+  }
+  const enabledRes = (await client.request(
+    'GET',
+    `/agents/${encodeURIComponent(agent)}/enabled-providers`,
+  )) as { enabled: string[] };
+  printJson(io, {
+    agent,
+    ...(stripProviderNoise(result, new Set(enabledRes.enabled)) as Record<string, unknown>),
+  });
 }
 
 /**
@@ -53,7 +74,7 @@ export async function providerList(io: CliIo, argv: string[]): Promise<void> {
  * fail on that connection), `is_active`, and `display_name` when set (custom
  * providers have no other human name).
  */
-function stripProviderNoise(result: unknown): unknown {
+function stripProviderNoise(result: unknown, enabledSet?: Set<string>): unknown {
   if (typeof result !== 'object' || result === null) return result;
   const record = { ...(result as Record<string, unknown>) };
   delete record['model_counts'];
@@ -71,6 +92,9 @@ function stripProviderNoise(result: unknown): unknown {
           delete c['key_prefix'];
           delete c['priority'];
           delete c['models_fetched_at'];
+          if (enabledSet && typeof c['id'] === 'string') {
+            c['enabled'] = enabledSet.has(c['id']);
+          }
           return c;
         });
       }

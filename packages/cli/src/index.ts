@@ -8,7 +8,6 @@ import * as auth from './commands/auth';
 import * as agent from './commands/agent';
 import * as provider from './commands/provider';
 import * as routing from './commands/routing';
-import * as analytics from './commands/analytics';
 import * as runCommand from './commands/run';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
@@ -51,10 +50,6 @@ export const COMMANDS: Record<string, Handler> = {
   'routing recording get': routing.routingRecording.get,
   'routing recording set': routing.routingRecording.set,
 
-  overview: analytics.overview,
-  costs: analytics.costs,
-  requests: analytics.requests,
-
   run: runCommand.runCmd,
 };
 
@@ -75,7 +70,7 @@ Agents
   mnfst agent rotate-key <name> --yes [--key-file <path>]
 
 Providers
-  mnfst provider list                                  (your connections)
+  mnfst provider list [--agent <name>]                 (connections; --agent annotates enabled per agent)
   mnfst provider catalog                               (everything connectable: ids + auth types)
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
@@ -93,11 +88,6 @@ Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>
     Runs the command with the agent's key injected as MANIFEST_AGENT_KEY (or <VAR>)
     plus MANIFEST_AGENT_URL — the key never crosses stdout or your transcript.
-
-Analytics (read-only)
-  mnfst overview [--range <1h|6h|24h|7d|30d|90d|365d>] [--agent <name>]
-  mnfst costs [--range <r>] [--agent <name>]
-  mnfst requests [--range <r>] [--agent <name>] [--limit <n>] [--cursor <c>] [--status <s>] [--provider <p>]
 
 Environment: MANIFEST_URL, MANIFEST_API_KEY (overrides stored login)
 Credentials are stored per-host in ~/.config/manifest/config.json (mode 0600).`;
