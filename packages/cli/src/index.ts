@@ -14,6 +14,8 @@ import { reportUsage } from './telemetry';
 import * as models from './commands/models';
 import * as configure from './commands/configure';
 import * as requests from './commands/requests';
+import * as doctorCommand from './commands/doctor';
+import * as modelPrices from './commands/model-prices';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -50,6 +52,7 @@ export const COMMANDS: Record<string, Handler> = {
   'provider custom list': customProvider.providerCustom.list,
   'provider custom remove': customProvider.providerCustom.remove,
   'provider disconnect': provider.providerDisconnect,
+  'provider refresh': provider.providerRefresh,
 
   'routing status': routing.routingStatus,
   'routing test': routing.routingTest,
@@ -68,6 +71,9 @@ export const COMMANDS: Record<string, Handler> = {
   run: runCommand.runCmd,
 
   models: models.modelsList,
+  'model prices': modelPrices.modelPrices,
+
+  doctor: doctorCommand.doctor,
 };
 
 export const USAGE = `mnfst ${VERSION} — Manifest management CLI (JSON output, agent-first)
@@ -77,13 +83,17 @@ Auth
   mnfst logout [--url <base>]
   mnfst auth status | mnfst whoami | mnfst config path
 
+Diagnostics
+  mnfst doctor [--url <base>]                          (config, host, credential, connections, agents — run this first when something is wrong)
+
 Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
   mnfst agent create --name <name> --platform <p> [--category <personal|app|coding>] [--key-file <path>] [--if-absent]
-  mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--key-label <l>] [--tier <custom>] [--autofix true|false] [--recording true|false]
+  mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--key-label <l>] [--tier <custom>] [--autofix true|false] [--recording true|false] [--force]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
-     default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
+     default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>";
+     models are checked against the agent's discovered set — --force writes them anyway)
   mnfst agent env <name> [--export]                     (dotenv/shell lines: KEY + URL; append to .env or eval)
   mnfst agent setup <name> [--reveal]                   (platform setup instructions, same content as the dashboard)
   mnfst agent provider enable <name> <provider> [--auth-type <a>] [--label <l>]
@@ -98,6 +108,9 @@ Providers
   mnfst provider catalog                               (everything connectable: ids + auth types)
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
+  mnfst provider refresh [<provider>] [--agent <name>] [--auth-type <a>]
+    (re-runs model discovery tenant-wide and reports each connection's model count;
+     the fix for a connection that is active with 0 cached models)
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
   mnfst provider custom add --name <n> --endpoint <url> [--api openai|anthropic] [--credential-stdin|--credential-env <e>] [--agent <name>]
   mnfst provider custom list [--agent <name>]
@@ -106,6 +119,7 @@ Providers
 
 Models
   mnfst models <agent> [--provider <p>] [--cost] [--capabilities]   (like /v1/models: bare ids; flags opt into metadata)
+  mnfst model prices [--provider <p>]                  (install-wide price list — no agent needed)
 
 Routing readouts + custom-tier lifecycle (writes go through mnfst agent configure)
   mnfst routing status <agent>
@@ -113,7 +127,7 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
     (one real request through the surface the agent's platform uses — anthropic-family via /v1/messages)
   mnfst routing fallbacks get|clear <agent> [--yes]
   mnfst routing custom list <agent>
-  mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]
+  mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>] [--force]
   mnfst routing custom delete <agent> <name> --yes
   mnfst routing autofix get <agent> | mnfst routing autofix set <agent> --enabled true|false
   mnfst routing recording get <agent> | mnfst routing recording set <agent> --enabled true|false

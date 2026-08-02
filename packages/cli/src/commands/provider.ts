@@ -347,6 +347,57 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
   );
 }
 
+/** Per-connection model census — what `provider refresh` actually changed. */
+function modelCounts(result: unknown): Array<Record<string, unknown>> {
+  const raw = (result as { providers?: unknown } | null)?.providers;
+  const groups = (Array.isArray(raw) ? raw : []).filter(
+    (g): g is Record<string, unknown> => typeof g === 'object' && g !== null,
+  );
+  return groups.flatMap((g) =>
+    (Array.isArray(g['connections']) ? (g['connections'] as unknown[]) : [])
+      .filter((c): c is Record<string, unknown> => typeof c === 'object' && c !== null)
+      .map((c) => ({
+        provider: g['provider'],
+        auth_type: g['auth_type'],
+        ...(c['label'] ? { label: c['label'] } : {}),
+        is_active: c['is_active'],
+        cached_model_count: c['cached_model_count'],
+      })),
+  );
+}
+
+/**
+ * Re-run model discovery. Connections cache their model list at connect time,
+ * so a provider that shipped a new model — or a connection that was hollow
+ * while its credential was broken — needs this before routing can name it.
+ * Discovery is tenant-wide; the agent in the path only performs the call.
+ */
+export async function providerRefresh(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, { strings: ['url', 'agent', 'auth-type'] });
+  const input = args.positionals[0];
+  const provider = input !== undefined ? resolveProviderId(input) : null;
+  const agent = await resolveDiscoveryAgent(io, args);
+  const { client } = clientFromFlags(io, args);
+
+  const refreshed = await (provider === null
+    ? client.request('POST', `/routing/${encodeURIComponent(agent)}/refresh-models`)
+    : client.request(
+        'POST',
+        `/routing/${encodeURIComponent(agent)}/providers/${encodeURIComponent(provider)}/refresh-models`,
+        { query: { authType: args.strings['auth-type'] } },
+      ));
+
+  // Read back so the caller sees the outcome, not just an ack: a connection
+  // still at 0 models after a refresh is a credential problem, not a stale one.
+  const listed = await client.request('GET', '/providers');
+  printJson(io, {
+    agent,
+    ...(provider !== null ? { provider } : {}),
+    refresh: refreshed,
+    connections: modelCounts(listed),
+  });
+}
+
 export async function providerDisconnect(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'provider', 'agent', 'auth-type', 'label'],

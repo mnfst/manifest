@@ -23,6 +23,9 @@ function authedIo(
   return { io, calls: stub.calls };
 }
 
+/** The /available-models payload shape, for the commands that validate models. */
+const DISCOVERED = (names: string[]) => names.map((model_name) => ({ model_name }));
+
 describe('auth commands', () => {
   it('login --token-env validates via /me, stores host-bound, never echoes the token', async () => {
     const stub = fetchStub([{ status: 200, body: ME }]);
@@ -2151,6 +2154,7 @@ describe('routing commands', () => {
 
   it('agent configure writes the default route with fallbacks from --models', async () => {
     const { io, calls } = authedIo([
+      { status: 200, body: DISCOVERED(['grok-4.5', 'm2', 'm3']) },
       { status: 200, body: { ok: true } },
       { status: 200, body: { models: ['m2', 'm3'] } },
     ]);
@@ -2167,33 +2171,36 @@ describe('routing commands', () => {
         'subscription',
       ]),
     ).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default`);
-    expect(JSON.parse(calls[0].body!)).toEqual({
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/tiers/default`);
+    expect(JSON.parse(calls[1].body!)).toEqual({
       model: 'grok-4.5',
       provider: 'xai',
       authType: 'subscription',
     });
-    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
-    expect(JSON.parse(calls[1].body!)).toEqual({ models: ['m2', 'm3'] });
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
+    expect(JSON.parse(calls[2].body!)).toEqual({ models: ['m2', 'm3'] });
     expect(io.lastJson()).toMatchObject({ agent: 'john', route: { ok: true } });
   });
 
   it('agent configure with a single model clears existing fallbacks', async () => {
     const { io, calls } = authedIo([
+      { status: 200, body: DISCOVERED(['solo']) },
       { status: 200, body: { ok: true } },
       { status: 200, body: { ok: true } },
     ]);
     expect(
       await run(io, ['agent', 'configure', 'john', '--models', 'solo', '--provider', 'openai']),
     ).toBe(0);
-    expect(calls[1].method).toBe('DELETE');
-    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
+    expect(calls[2].method).toBe('DELETE');
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
     expect((io.lastJson() as { fallbacks: unknown }).fallbacks).toEqual([]);
   });
 
   it('agent configure --tier upserts the named custom tier', async () => {
     // existing tier: found by name, no create
     const { io, calls } = authedIo([
+      { status: 200, body: DISCOVERED(['grok-4.5', 'fb']) },
       { status: 200, body: [{ id: 'ht-9', name: 'Test' }] },
       { status: 200, body: { ok: true } },
       { status: 200, body: { models: ['fb'] } },
@@ -2211,12 +2218,13 @@ describe('routing commands', () => {
         'xai',
       ]),
     ).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
-    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-9/override`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-9/override`);
     expect((io.lastJson() as { tier: { created: boolean } }).tier.created).toBe(false);
 
     // missing tier: created with the default trigger
     const { io: io2, calls: calls2 } = authedIo([
+      { status: 200, body: DISCOVERED(['big-model']) },
       { status: 200, body: [] },
       { status: 201, body: { id: 'ht-new' } },
       { status: 200, body: { ok: true } },
@@ -2235,13 +2243,69 @@ describe('routing commands', () => {
         'openai',
       ]),
     ).toBe(0);
-    expect(JSON.parse(calls2[1].body!)).toEqual({
+    expect(JSON.parse(calls2[2].body!)).toEqual({
       name: 'heavy',
       header_key: 'x-manifest-tier',
       header_value: 'heavy',
       badge_color: 'indigo',
     });
     expect((io2.lastJson() as { tier: { created: boolean } }).tier.created).toBe(true);
+  });
+
+  it('agent configure refuses undiscovered models and names both remedies', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: DISCOVERED(['grok-4.5']) }]);
+    expect(
+      await run(io, [
+        'agent',
+        'configure',
+        'john',
+        '--models',
+        'grok-4.5,typo-model',
+        '--provider',
+        'xai',
+      ]),
+    ).toBe(1);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+    const failure = io.lastJson() as { error: string; message: string; hint: string };
+    expect(failure.error).toBe('unknown_model');
+    expect(failure.message).toContain('typo-model');
+    expect(failure.hint).toContain('mnfst provider refresh');
+    expect(failure.hint).toContain('--force');
+
+    // A payload that is not a model array is treated as "nothing discovered".
+    const { io: io2 } = authedIo([{ status: 200, body: { models: 'weird' } }]);
+    expect(
+      await run(io2, ['agent', 'configure', 'john', '--models', 'm', '--provider', 'xai']),
+    ).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'unknown_model' });
+
+    // Rows without a usable model_name are ignored rather than trusted.
+    const { io: io3 } = authedIo([{ status: 200, body: [null, 'x', { model_name: 7 }] }]);
+    expect(
+      await run(io3, ['agent', 'configure', 'john', '--models', 'm', '--provider', 'xai']),
+    ).toBe(1);
+    expect(io3.lastJson()).toMatchObject({ error: 'unknown_model' });
+  });
+
+  it('agent configure --force skips the model check entirely', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { ok: true } },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(
+      await run(io, [
+        'agent',
+        'configure',
+        'john',
+        '--models',
+        'brand-new-model',
+        '--provider',
+        'openai',
+        '--force',
+      ]),
+    ).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default`);
   });
 
   it('agent configure toggles autofix/recording, alone or combined', async () => {
@@ -2306,6 +2370,7 @@ describe('routing commands', () => {
 
   it('custom create makes the tier, routes it, and sets fallbacks', async () => {
     const { io, calls } = authedIo([
+      { status: 200, body: DISCOVERED(['grok-4.5', 'fb-1']) },
       { status: 201, body: { id: 'ht-1', name: 'test' } },
       { status: 200, body: { ok: true } },
       { status: 200, body: { models: ['fb-1'] } },
@@ -2326,20 +2391,21 @@ describe('routing commands', () => {
         'fb-1',
       ]),
     ).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
-    expect(JSON.parse(calls[0].body!)).toEqual({
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
+    expect(JSON.parse(calls[1].body!)).toEqual({
       name: 'test',
       header_key: 'x-manifest-tier',
       header_value: 'test',
       badge_color: 'indigo',
     });
-    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-1/override`);
-    expect(JSON.parse(calls[1].body!)).toEqual({
+    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-1/override`);
+    expect(JSON.parse(calls[2].body!)).toEqual({
       model: 'grok-4.5',
       provider: 'xai',
       authType: 'api_key',
     });
-    expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-1/fallbacks`);
+    expect(calls[3].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-1/fallbacks`);
     expect(io.lastJson()).toMatchObject({ agent: 'john', tier: { id: 'ht-1' } });
   });
 
@@ -2369,6 +2435,7 @@ describe('routing commands', () => {
 
   it('custom create honors custom header key/value', async () => {
     const { io, calls } = authedIo([
+      { status: 200, body: DISCOVERED(['m']) },
       { status: 201, body: { id: 'ht-2' } },
       { status: 200, body: { ok: true } },
     ]);
@@ -2390,7 +2457,57 @@ describe('routing commands', () => {
         'big',
       ]),
     ).toBe(0);
-    expect(JSON.parse(calls[0].body!)).toMatchObject({ header_key: 'x-task', header_value: 'big' });
+    expect(JSON.parse(calls[1].body!)).toMatchObject({ header_key: 'x-task', header_value: 'big' });
+  });
+
+  it('custom create refuses a model the agent has not discovered, and --force overrides', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: DISCOVERED(['known']) }]);
+    expect(
+      await run(io, [
+        'routing',
+        'custom',
+        'create',
+        'john',
+        '--name',
+        'x',
+        '--model',
+        'known',
+        '--provider',
+        'openai',
+        '--fallbacks',
+        'ghost-1,ghost-2',
+      ]),
+    ).toBe(1);
+    // Nothing was written: the tier is not created before the models check.
+    expect(calls).toHaveLength(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'unknown_model',
+      message: 'Not in the models discovered for "john": ghost-1, ghost-2',
+      hint: expect.stringContaining('mnfst provider refresh'),
+    });
+    expect((io.lastJson() as { hint: string }).hint).toContain('--force');
+
+    const { io: io2, calls: calls2 } = authedIo([
+      { status: 201, body: { id: 'ht-f' } },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(
+      await run(io2, [
+        'routing',
+        'custom',
+        'create',
+        'john',
+        '--name',
+        'x',
+        '--model',
+        'brand-new',
+        '--provider',
+        'openai',
+        '--force',
+      ]),
+    ).toBe(0);
+    // --force skips the lookup entirely — the tier POST is the first call.
+    expect(calls2[0].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
   });
 
   it('custom list and delete resolve tiers by name', async () => {
@@ -2421,5 +2538,414 @@ describe('routing commands', () => {
 
     const { io: io3 } = authedIo([]);
     expect(await run(io3, ['routing', 'autofix', 'set', 'a', '--enabled', 'maybe'])).toBe(1);
+  });
+});
+
+describe('provider refresh', () => {
+  const CONNECTIONS = {
+    providers: [
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        connections: [
+          { id: 'c1', label: 'Default', is_active: true, cached_model_count: 38 },
+          { id: 'c2', is_active: false, cached_model_count: 0 },
+        ],
+      },
+    ],
+  };
+
+  it('refreshes every connection when no provider is named, then reports counts', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 200, body: { refreshed: 2 } },
+      { status: 200, body: CONNECTIONS },
+    ]);
+    expect(await run(io, ['provider', 'refresh'])).toBe(0);
+    expect(calls.map((c) => `${c.method} ${c.url}`)).toEqual([
+      `GET ${HOST}/api/v1/agents`,
+      `POST ${HOST}/api/v1/routing/john/refresh-models`,
+      `GET ${HOST}/api/v1/providers`,
+    ]);
+    expect(io.lastJson()).toEqual({
+      agent: 'john',
+      refresh: { refreshed: 2 },
+      connections: [
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: 'Default',
+          is_active: true,
+          cached_model_count: 38,
+        },
+        { provider: 'openai', auth_type: 'api_key', is_active: false, cached_model_count: 0 },
+      ],
+    });
+  });
+
+  it('scopes to one provider (aliases resolved) with --auth-type and --agent', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { ok: true } },
+      { status: 200, body: CONNECTIONS },
+    ]);
+    expect(
+      await run(io, [
+        'provider',
+        'refresh',
+        'google',
+        '--agent',
+        'John Doe',
+        '--auth-type',
+        'subscription',
+      ]),
+    ).toBe(0);
+    expect(calls[0].method).toBe('POST');
+    expect(calls[0].url).toBe(
+      `${HOST}/api/v1/routing/john-doe/providers/gemini/refresh-models?authType=subscription`,
+    );
+    expect(io.lastJson()).toMatchObject({ agent: 'john-doe', provider: 'gemini' });
+  });
+
+  it('rejects an unknown provider before any network call', async () => {
+    const { io, calls } = authedIo([]);
+    expect(await run(io, ['provider', 'refresh', 'nope-ai'])).toBe(1);
+    expect(calls).toHaveLength(0);
+    expect(io.lastJson()).toMatchObject({ error: 'unknown_provider' });
+  });
+
+  it('tolerates a providers payload with no usable rows', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { ok: true } },
+      { status: 200, body: { providers: ['weird', { provider: 'x', connections: 'nope' }, null] } },
+    ]);
+    expect(await run(io, ['provider', 'refresh', 'openai', '--agent', 'a'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({ connections: [] });
+
+    const { io: io2 } = authedIo([
+      { status: 200, body: { ok: true } },
+      { status: 200, body: null },
+    ]);
+    expect(await run(io2, ['provider', 'refresh', 'openai', '--agent', 'a'])).toBe(0);
+    expect(io2.lastJson()).toMatchObject({ connections: [] });
+  });
+});
+
+describe('model prices', () => {
+  const PRICES = {
+    models: [
+      {
+        model_name: 'gpt-5',
+        provider: 'OpenAI',
+        input_price_per_million: 1.25,
+        output_price_per_million: 10,
+        display_name: 'GPT-5',
+        validated: true,
+      },
+      {
+        model_name: 'gemini-3-pro',
+        provider: 'Google',
+        input_price_per_million: 15,
+        output_price_per_million: 75,
+        display_name: null,
+        validated: false,
+      },
+    ],
+    lastSyncedAt: '2026-08-02T09:00:00.000Z',
+  };
+
+  it('lists trimmed price rows without needing an agent', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: PRICES }]);
+    expect(await run(io, ['model', 'prices'])).toBe(0);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/model-prices`);
+    expect(io.lastJson()).toEqual({
+      count: 2,
+      last_synced_at: '2026-08-02T09:00:00.000Z',
+      models: [
+        {
+          model: 'gpt-5',
+          provider: 'OpenAI',
+          input_price_per_million: 1.25,
+          output_price_per_million: 10,
+        },
+        {
+          model: 'gemini-3-pro',
+          provider: 'Google',
+          input_price_per_million: 15,
+          output_price_per_million: 75,
+        },
+      ],
+    });
+  });
+
+  it('--provider filters by id or alias against the display name the API returns', async () => {
+    const { io } = authedIo([{ status: 200, body: PRICES }]);
+    expect(await run(io, ['model', 'prices', '--provider', 'openai'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({
+      provider: 'openai',
+      count: 1,
+      models: [{ model: 'gpt-5' }],
+    });
+
+    // Alias in, canonical id out — and the row's display name ("Google") is
+    // what the endpoint labels it with, not the catalog id.
+    const { io: io2 } = authedIo([{ status: 200, body: PRICES }]);
+    expect(await run(io2, ['model', 'prices', '--provider', 'google'])).toBe(0);
+    expect(io2.lastJson()).toMatchObject({
+      provider: 'gemini',
+      count: 1,
+      models: [{ model: 'gemini-3-pro' }],
+    });
+
+    const { io: io3 } = authedIo([]);
+    expect(await run(io3, ['model', 'prices', '--provider', 'nope-ai'])).toBe(1);
+    expect(io3.lastJson()).toMatchObject({ error: 'unknown_provider' });
+  });
+
+  it('tolerates a payload with no models', async () => {
+    const { io } = authedIo([{ status: 200, body: null }]);
+    expect(await run(io, ['model', 'prices'])).toBe(0);
+    expect(io.lastJson()).toEqual({ count: 0, last_synced_at: null, models: [] });
+
+    const { io: io2 } = authedIo([{ status: 200, body: { models: [null, 'weird'] } }]);
+    expect(await run(io2, ['model', 'prices'])).toBe(0);
+    expect(io2.lastJson()).toMatchObject({ count: 0 });
+  });
+
+  it('does not shadow the per-agent models command', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: [] }]);
+    expect(await run(io, ['models', 'john'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
+  });
+});
+
+describe('doctor', () => {
+  const HEALTHY = { status: 200, body: { status: 'healthy', uptime_seconds: 42 } };
+  const ONE_AGENT = { status: 200, body: { agents: [{ agent_name: 'john' }] } };
+  const LIVE_PROVIDER = {
+    status: 200,
+    body: {
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          connections: [{ is_active: true, cached_model_count: 38 }],
+        },
+      ],
+    },
+  };
+
+  function checksOf(io: { lastJson(): unknown }) {
+    return (io.lastJson() as { checks: Array<Record<string, unknown>> }).checks;
+  }
+
+  it('reports every check green against a healthy install (env credential)', async () => {
+    const { io, calls } = authedIo([HEALTHY, ONE_AGENT, LIVE_PROVIDER]);
+    expect(await run(io, ['doctor'])).toBe(0);
+    expect(calls.map((c) => c.url)).toEqual([
+      `${HOST}/api/v1/health`,
+      `${HOST}/api/v1/agents`,
+      `${HOST}/api/v1/providers`,
+    ]);
+    // The health probe is public — doctor must not send the key to prove that.
+    expect(calls[1].headers['X-API-Key']).toBe('env-key');
+    expect(io.lastJson()).toEqual({
+      ok: true,
+      checks: [
+        {
+          name: 'config',
+          ok: true,
+          detail: `credential from MANIFEST_API_KEY (env) · origin ${HOST} (from MANIFEST_URL)`,
+        },
+        { name: 'host', ok: true, detail: `${HOST}/api/v1/health → healthy` },
+        { name: 'auth', ok: true, detail: `credential accepted by ${HOST}` },
+        { name: 'providers', ok: true, detail: '1 connection(s) across 1 provider(s)' },
+        { name: 'agents', ok: true, detail: '1 agent(s)' },
+      ],
+    });
+  });
+
+  it('names the stored login and the --url flag as the origin source', async () => {
+    const stub = fetchStub([HEALTHY, ONE_AGENT, LIVE_PROVIDER]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    writeConfig(io, { activeHost: HOST, hosts: { [HOST]: { apiKey: 'stored-key' } } });
+    expect(await run(io, ['doctor'])).toBe(0);
+    expect(checksOf(io)[0].detail).toBe(
+      `credential from stored login · origin ${HOST} (from stored login)`,
+    );
+
+    const stub2 = fetchStub([HEALTHY, ONE_AGENT, LIVE_PROVIDER]);
+    const io2 = makeIo({ env: { MANIFEST_API_KEY: 'k' }, fetchImpl: stub2.impl });
+    expect(await run(io2, ['doctor', '--url', HOST])).toBe(0);
+    expect(checksOf(io2)[0].detail).toContain('(from --url)');
+  });
+
+  it('fails closed with no credential at all, skipping everything downstream', async () => {
+    const stub = fetchStub([HEALTHY]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    expect(await run(io, ['doctor'])).toBe(1);
+    const checks = checksOf(io);
+    expect(checks[0]).toEqual({
+      name: 'config',
+      ok: false,
+      detail: 'no credential for https://app.manifest.build (origin from default)',
+      hint: 'Run mnfst login, or set MANIFEST_URL + MANIFEST_API_KEY',
+    });
+    expect(checks[1].ok).toBe(true);
+    expect(checks.slice(2)).toEqual([
+      { name: 'auth', ok: null, skipped: true, detail: 'skipped — no credential resolved' },
+      { name: 'providers', ok: null, skipped: true, detail: 'skipped — auth check did not pass' },
+      { name: 'agents', ok: null, skipped: true, detail: 'skipped — auth check did not pass' },
+    ]);
+  });
+
+  it('calls an unreachable host by its name, and skips auth rather than blaming the key', async () => {
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key', MANIFEST_TELEMETRY_DISABLED: '1' },
+      fetchImpl: (async () => {
+        throw new Error('ECONNREFUSED');
+      }) as typeof fetch,
+    });
+    expect(await run(io, ['doctor'])).toBe(1);
+    const checks = checksOf(io);
+    expect(checks[1]).toEqual({
+      name: 'host',
+      ok: false,
+      detail: `${HOST}/api/v1/health → ECONNREFUSED`,
+      hint: 'host unreachable — is MANIFEST_URL correct?',
+    });
+    expect(checks[2]).toMatchObject({ detail: 'skipped — host check failed' });
+  });
+
+  it('stringifies a non-Error transport failure', async () => {
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'k', MANIFEST_TELEMETRY_DISABLED: '1' },
+      fetchImpl: (() => Promise.reject('dns exploded')) as unknown as typeof fetch,
+    });
+    expect(await run(io, ['doctor'])).toBe(1);
+    expect(checksOf(io)[1].detail).toBe(`${HOST}/api/v1/health → dns exploded`);
+  });
+
+  it('treats a draining or non-JSON health response as unhealthy', async () => {
+    const { io } = authedIo([{ status: 503, body: { status: 'shutting_down' } }]);
+    expect(await run(io, ['doctor'])).toBe(1);
+    expect(checksOf(io)[1]).toEqual({
+      name: 'host',
+      ok: false,
+      detail: `${HOST}/api/v1/health → HTTP 503 (shutting_down)`,
+      hint: 'the server answered but is not healthy — check the install is running and not draining',
+    });
+
+    const io2 = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'k', MANIFEST_TELEMETRY_DISABLED: '1' },
+      fetchImpl: (async () =>
+        new Response('<html>gateway</html>', { status: 502 })) as typeof fetch,
+    });
+    expect(await run(io2, ['doctor'])).toBe(1);
+    expect(checksOf(io2)[1].detail).toBe(`${HOST}/api/v1/health → HTTP 502`);
+  });
+
+  it('blames the host/key pairing — not the login — when a live host rejects an env key', async () => {
+    const { io } = authedIo([HEALTHY, { status: 401, body: { message: 'Invalid API key' } }]);
+    expect(await run(io, ['doctor'])).toBe(1);
+    const auth = checksOf(io)[2];
+    expect(auth).toMatchObject({ name: 'auth', ok: false, detail: 'Invalid API key' });
+    expect(auth.hint).toBe(
+      `${HOST} is alive but this credential is not valid on it — wrong install or wrong key` +
+        ' (check MANIFEST_API_KEY belongs to this host)',
+    );
+    expect(auth.hint).not.toContain('Run mnfst login');
+    // Downstream checks are skipped, not failed.
+    expect(
+      checksOf(io)
+        .slice(3)
+        .map((c) => c.ok),
+    ).toEqual([null, null]);
+  });
+
+  it('points a stored-login 401 at re-authentication instead', async () => {
+    const stub = fetchStub([HEALTHY, { status: 401, body: { message: 'Invalid API key' } }]);
+    const io = makeIo({ fetchImpl: stub.impl });
+    writeConfig(io, { activeHost: HOST, hosts: { [HOST]: { apiKey: 'stale' } } });
+    expect(await run(io, ['doctor'])).toBe(1);
+    expect(checksOf(io)[2].hint).toContain('mnfst login re-authenticates');
+  });
+
+  it('passes a non-401 auth failure through with the client hint', async () => {
+    const { io } = authedIo([HEALTHY, { status: 500, body: { message: 'boom' } }]);
+    expect(await run(io, ['doctor'])).toBe(1);
+    expect(checksOf(io)[2]).toEqual({ name: 'auth', ok: false, detail: 'boom' });
+
+    const { io: io2 } = authedIo([HEALTHY, { status: 404, body: { message: 'gone' } }]);
+    expect(await run(io2, ['doctor'])).toBe(1);
+    expect(checksOf(io2)[2].hint).toContain('Check the resource name');
+  });
+
+  it('flags hollow connections by name and prescribes provider refresh', async () => {
+    const { io } = authedIo([
+      HEALTHY,
+      ONE_AGENT,
+      {
+        status: 200,
+        body: {
+          providers: [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              connections: [
+                { is_active: true, cached_model_count: 0, label: 'Work' },
+                { is_active: true, cached_model_count: 12 },
+                // Inactive with 0 models is disabled, not hollow.
+                { is_active: false, cached_model_count: 0 },
+                'weird',
+              ],
+            },
+            { provider: 'xai', auth_type: 'subscription', connections: 'nope' },
+            null,
+          ],
+        },
+      },
+    ]);
+    expect(await run(io, ['doctor'])).toBe(1);
+    const providers = checksOf(io)[3];
+    expect(providers).toMatchObject({ ok: false, detail: '3 connection(s) across 2 provider(s)' });
+    expect(providers.hint).toBe(
+      'hollow (no discovered models — reconnect with a working credential or run: mnfst provider refresh): openai/api_key/Work',
+    );
+  });
+
+  it('calls out an install with nothing connected and no agents', async () => {
+    const { io } = authedIo([
+      HEALTHY,
+      { status: 200, body: { agents: [] } },
+      { status: 200, body: {} },
+    ]);
+    expect(await run(io, ['doctor'])).toBe(0);
+    expect(checksOf(io)[3]).toEqual({
+      name: 'providers',
+      ok: true,
+      detail: '0 connection(s) across 0 provider(s)',
+      hint: 'nothing to route through yet — mnfst provider connect <provider>',
+    });
+    expect(checksOf(io)[4]).toEqual({
+      name: 'agents',
+      ok: true,
+      detail: '0 agent(s)',
+      hint: 'no agent yet — mnfst agent create --name <name> --platform <p>',
+    });
+  });
+
+  it('fails the providers check when the providers call itself errors', async () => {
+    const { io } = authedIo([HEALTHY, ONE_AGENT, { status: 500, body: { message: 'db down' } }]);
+    expect(await run(io, ['doctor'])).toBe(1);
+    expect(checksOf(io)[3]).toEqual({ name: 'providers', ok: false, detail: 'db down' });
+    // The agents check still reports — it reuses the list auth already fetched.
+    expect(checksOf(io)[4]).toMatchObject({ name: 'agents', ok: true });
+  });
+
+  it('tolerates an agents payload without an array', async () => {
+    const { io } = authedIo([HEALTHY, { status: 200, body: { agents: 'weird' } }, LIVE_PROVIDER]);
+    expect(await run(io, ['doctor'])).toBe(0);
+    expect(checksOf(io)[4]).toMatchObject({ detail: '0 agent(s)' });
   });
 });
