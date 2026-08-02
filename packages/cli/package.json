@@ -20,6 +20,7 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.4.12",
     "typescript": "^5.7.3",
-    "manifest-shared": "*"
+    "manifest-shared": "*",
+    "prettier": "^3.0.0"
   }
 }
