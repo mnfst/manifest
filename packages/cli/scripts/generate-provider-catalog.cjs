@@ -9,6 +9,14 @@
 const fs = require('fs');
 const path = require('path');
 
+/** Derive the CLI-facing platform catalog (id + native proxy surface). */
+function derivePlatforms(shared) {
+  return shared.AGENT_PLATFORMS.map((id) => ({
+    id,
+    surface: shared.PLATFORM_API_SURFACES[id],
+  }));
+}
+
 /** Derive the CLI-facing catalog from the shared registry. */
 function deriveCatalog(shared) {
   return shared.SHARED_PROVIDERS.map((p) => {
@@ -30,6 +38,7 @@ function deriveCatalog(shared) {
 function main() {
   const shared = require('manifest-shared');
   const catalog = deriveCatalog(shared);
+  const platforms = derivePlatforms(shared);
   const out = `// GENERATED FILE — do not edit by hand.
 // Source: manifest-shared (SHARED_PROVIDERS + SUPPORTED_SUBSCRIPTION_PROVIDER_IDS).
 // Refresh with: npm run gen (runs automatically in npm run build).
@@ -42,11 +51,18 @@ export interface ProviderCatalogEntry {
 }
 
 export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = ${JSON.stringify(catalog, null, 2)};
+
+export interface PlatformCatalogEntry {
+  id: string;
+  surface: 'chat_completions' | 'messages';
+}
+
+export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = ${JSON.stringify(platforms, null, 2)};
 `;
   const dest = path.join(__dirname, '..', 'src', 'provider-catalog.gen.ts');
   fs.writeFileSync(dest, out);
   console.log(`wrote ${dest}: ${catalog.length} providers`);
 }
 
-module.exports = { deriveCatalog };
+module.exports = { deriveCatalog, derivePlatforms };
 if (require.main === module) main();
