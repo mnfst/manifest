@@ -105,6 +105,13 @@ export class ProviderKeyService {
     if (label) {
       const match = keys.find((k) => k.label.toLowerCase() === label.toLowerCase());
       if (match) return match;
+      // A pin that names no connection is a stale route (the key was renamed
+      // or deleted). Serving the default keeps traffic flowing, but it silently
+      // bills a connection the operator did not choose — say so.
+      this.logger.warn(
+        `Key label "${label}" matches no ${provider} connection for tenant=${tenantId} ` +
+          `authType=${authType ?? 'any'} — falling back to "${keys[0].label}"`,
+      );
     }
     return keys[0];
   }

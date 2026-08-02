@@ -46,6 +46,12 @@ export interface ProviderAttemptStart {
   model: string;
   authType?: string;
   tenantProviderId?: string | null;
+  /**
+   * Label of the connection serving this attempt. Carried from the start so a
+   * row that never reaches a terminal writer (a cancelled request) still names
+   * the connection it was billed against.
+   */
+  keyLabel?: string;
 }
 
 /** Identity and measured start of one persisted pending Provider Attempt. */

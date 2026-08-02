@@ -117,6 +117,9 @@ export interface FailedFallback {
   // The tenant_providers row that served this failed attempt, so the recorded
   // error row is scoped to the right connection. NULL for local/Ollama.
   tenantProviderId?: string | null;
+  // Label of that same connection, so a failed hop records the key it used
+  // instead of inheriting the primary's label.
+  keyLabel?: string;
   attempt?: ProviderAttemptRef;
   /** False when the route was rejected locally (for example by a cooldown). */
   providerCallStarted?: boolean;
@@ -282,6 +285,7 @@ export class ProxyFallbackService {
             fallbackIndex: i,
             authType,
             tenantProviderId: credentials.tenantProviderId,
+            keyLabel: providerKeyLabel,
             presentation: presentCredentialFailure(
               credentials.reason,
               provider,
@@ -354,6 +358,9 @@ export class ProxyFallbackService {
         errorBody,
         authType,
         tenantProviderId,
+        // Selected-row label (credentials.keyLabel already folded in above),
+        // so this row's label and tenant_provider_id name the same connection.
+        keyLabel: providerKeyLabel,
         attempt: forward.attempt,
         providerCallStarted: forward.providerCallStarted,
       });
@@ -420,7 +427,13 @@ export class ProxyFallbackService {
     healedBody: Record<string, unknown>,
     opts?: Pick<
       ForwardProviderOptions,
-      'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
+      | 'provider'
+      | 'model'
+      | 'authType'
+      | 'tenantProviderId'
+      | 'providerKeyLabel'
+      | 'startProviderAttempt'
+      | 'signal'
     >,
   ): Promise<ForwardResult> {
     if (!forward.retryWireBody) {
@@ -432,6 +445,7 @@ export class ProxyFallbackService {
       model: opts.model,
       authType: opts.authType,
       tenantProviderId: opts.tenantProviderId,
+      keyLabel: opts.providerKeyLabel,
     });
     try {
       const retried = await forward.retryWireBody(healedBody, attempt);
@@ -720,6 +734,7 @@ export class ProxyFallbackService {
       model: opts.model,
       authType,
       tenantProviderId: opts.tenantProviderId,
+      keyLabel: opts.providerKeyLabel,
     });
     try {
       const forward = await this.providerClient.forward({

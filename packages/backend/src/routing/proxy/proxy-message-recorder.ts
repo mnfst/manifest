@@ -557,6 +557,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         provider: canonical.provider,
         auth_type: start.authType ?? null,
         tenant_provider_id: start.tenantProviderId ?? null,
+        // Stamped from the start so an attempt that never reaches a terminal
+        // writer still names the connection it used.
+        provider_key_label: start.keyLabel ?? null,
       }),
     );
     return true;
@@ -575,6 +578,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model: opts.attemptStart?.model ?? null,
       auth_type: opts.attemptStart?.authType ?? null,
       tenant_provider_id: opts.attemptStart?.tenantProviderId ?? null,
+      provider_key_label: opts.attemptStart?.keyLabel ?? null,
       error_message: null,
       error_http_status: null,
     });
@@ -792,6 +796,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled?: boolean;
       lastAsError?: boolean;
       authType?: string;
+      /** Primary connection label, used only for failures with no label of their own. */
+      providerKeyLabel?: string;
       reason?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
@@ -809,6 +815,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       markHandled = false,
       lastAsError = false,
       authType,
+      providerKeyLabel,
       reason,
       callerAttribution,
       requestHeaders,
@@ -878,6 +885,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
           auth_type: recordedAuth,
           // Per-failure connection: each failed fallback carries its own key id.
           tenant_provider_id: f.tenantProviderId ?? null,
+          // Same rule for the label: the hop's own connection first, the
+          // primary's only for rows that predate per-failure labels.
+          provider_key_label: f.keyLabel ?? providerKeyLabel ?? null,
           caller_attribution: callerAttribution ?? null,
           request_headers: requestHeaders ?? null,
           request_params: requestParams ?? null,
@@ -918,6 +928,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       requestDurationMs?: number;
       reason?: string;
       tenantProviderId?: string | null;
+      /** Label of that same connection, so the failed primary names the key it used. */
+      providerKeyLabel?: string;
       callerAttribution?: CallerAttribution | null;
       requestHeaders?: Record<string, string> | null;
       requestParams?: RequestParamDefaults | null;
@@ -965,6 +977,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       fallback_index: null,
       auth_type: authType ?? null,
       tenant_provider_id: opts?.tenantProviderId ?? null,
+      provider_key_label: opts?.providerKeyLabel ?? null,
       caller_attribution: opts?.callerAttribution ?? null,
       request_headers: opts?.requestHeaders ?? null,
       request_params: opts?.requestParams ?? null,

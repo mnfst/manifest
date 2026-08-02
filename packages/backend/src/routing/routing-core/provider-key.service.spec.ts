@@ -63,6 +63,46 @@ describe('ProviderKeyService — selection projections', () => {
       expect(sel?.id).toBe('up-default');
     });
 
+    // Serving the default key silently bills a connection the operator never
+    // chose. The fallback stays (traffic keeps flowing) but it must be visible.
+    it('warns when a supplied label matches no connection', async () => {
+      jest
+        .spyOn(svc, 'getProviderKeys')
+        .mockResolvedValue([key({ id: 'up-default', label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Retired');
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Retired"'));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Default"'));
+    });
+
+    it('names the auth type as "any" in the warning when none was requested', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      await svc.selectProviderKey('u', 'openai', undefined, 'Retired');
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('authType=any'));
+    });
+
+    it('does not warn when the label matches', async () => {
+      jest
+        .spyOn(svc, 'getProviderKeys')
+        .mockResolvedValue([key({ id: 'up-default' }), key({ id: 'up-work', label: 'Work' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Work');
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
     it('returns the first key when no label is given', async () => {
       jest
         .spyOn(svc, 'getProviderKeys')

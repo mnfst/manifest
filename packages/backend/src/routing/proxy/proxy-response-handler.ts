@@ -323,6 +323,7 @@ function handleFallbackExhausted(
       markHandled: true,
       lastAsError: true,
       authType: meta.auth_type,
+      providerKeyLabel: meta.provider_key_label,
       reason: meta.reason,
       callerAttribution,
       requestHeaders,
@@ -353,6 +354,7 @@ function handleFallbackExhausted(
         reason: meta.reason,
         // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
         tenantProviderId: meta.tenantProviderId,
+        providerKeyLabel: meta.provider_key_label,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -456,6 +458,9 @@ export function recordFallbackFailures(
           meta.primaryTenantProviderId === undefined
             ? meta.tenantProviderId
             : meta.primaryTenantProviderId,
+        // meta.provider_key_label holds the winning fallback's label in this
+        // flow, so prefer the preserved primary label (mirrors the id above).
+        providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
@@ -479,6 +484,7 @@ export function recordFallbackFailures(
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
         authType: primaryAuthType,
+        providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
         reason: meta.reason,
         callerAttribution,
         requestHeaders,

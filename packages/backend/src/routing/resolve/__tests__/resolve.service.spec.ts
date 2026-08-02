@@ -1074,4 +1074,115 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('default');
     });
   });
+
+  /**
+   * Shared with the proxy's explicit-model path: a request that names a
+   * concrete model skips tier resolution, so this is the only place its route
+   * can pick up the connection the operator pinned.
+   */
+  describe('pinRouteKeyLabel', () => {
+    const defaultTier = (override: ModelRoute | null): TierAssignment =>
+      ({
+        tier: 'default',
+        override_route: override,
+        auto_assigned_route: null,
+        fallback_routes: null,
+      }) as TierAssignment;
+
+    it('keeps a label the route already pins', async () => {
+      const pinned = { ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Explicit' };
+
+      const result = await svc.pinRouteKeyLabel('agent-1', 'tenant-1', pinned);
+
+      expect(result).toBe(pinned);
+      expect(tierService.getTiers).not.toHaveBeenCalled();
+    });
+
+    it('adopts the default tier pin when provider and auth match', async () => {
+      tierService.getTiers.mockResolvedValue([
+        defaultTier({ ...route('OpenAI', 'api_key', 'gpt-4o-mini'), keyLabel: 'Work' }),
+      ]);
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      // Model differs on purpose: the pin follows the connection, not the model.
+      expect(result).toEqual({ ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Work' });
+      expect(providerKeyService.getDefaultKeyLabel).not.toHaveBeenCalled();
+    });
+
+    it('ignores a default tier pin for a different provider', async () => {
+      tierService.getTiers.mockResolvedValue([
+        defaultTier({ ...route('anthropic', 'api_key', 'claude-sonnet-4-5'), keyLabel: 'Work' }),
+      ]);
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Default');
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      expect(result).toEqual({ ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Default' });
+    });
+
+    it('ignores a default tier pin for a different auth type', async () => {
+      tierService.getTiers.mockResolvedValue([
+        defaultTier({ ...route('openai', 'subscription', 'gpt-5.5'), keyLabel: 'Work' }),
+      ]);
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Default');
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      expect(result).toEqual({ ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Default' });
+    });
+
+    it('falls back to the default connection label when the default tier pins nothing', async () => {
+      tierService.getTiers.mockResolvedValue([
+        defaultTier(route('openai', 'api_key', 'gpt-4o-mini')),
+      ]);
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Default');
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      expect(result).toEqual({ ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Default' });
+    });
+
+    it('falls back to the default connection label when there is no default tier row', async () => {
+      tierService.getTiers.mockResolvedValue([]);
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue('Only');
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      expect(result).toEqual({ ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Only' });
+    });
+
+    it('leaves the route unlabelled when no connection resolves at all', async () => {
+      tierService.getTiers.mockResolvedValue([defaultTier(null)]);
+      providerKeyService.getDefaultKeyLabel.mockResolvedValue(undefined);
+
+      const result = await svc.pinRouteKeyLabel(
+        'agent-1',
+        'tenant-1',
+        route('openai', 'api_key', 'gpt-4o'),
+      );
+
+      expect(result).toEqual(route('openai', 'api_key', 'gpt-4o'));
+    });
+  });
 });

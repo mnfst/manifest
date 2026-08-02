@@ -20,7 +20,7 @@ import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../sc
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
-import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY, DEFAULT_TIER_SLOT } from 'manifest-shared';
 import type {
   AuthType,
   ModelRoute,
@@ -465,6 +465,47 @@ export class ResolveService {
       }
     }
     return { primaryRoute: null, fallbackRoutes: null };
+  }
+
+  /**
+   * Public so the proxy can pin an explicit-model route the same way the
+   * automatic path pins a tier route.
+   *
+   * A request that names a concrete model bypasses tier resolution entirely,
+   * so it never sees the connection the operator pinned on the default tier.
+   * With two connections for one provider that means the *first* key wins and
+   * the pin is silently ignored. Adopt the default tier's `override_route`
+   * label when that override addresses the same (provider, authType) as the
+   * resolved route, then fall back to the default-connection label.
+   */
+  async pinRouteKeyLabel(
+    agentId: string,
+    tenantId: string,
+    route: ModelRoute,
+  ): Promise<ModelRoute> {
+    if (route.keyLabel) return route;
+    const pinned = await this.defaultTierKeyLabel(agentId, route);
+    if (pinned) return { ...route, keyLabel: pinned };
+    return this.enrichRouteKeyLabel(agentId, tenantId, route);
+  }
+
+  /**
+   * The default tier's pinned connection label when its override addresses the
+   * same connection family as `route`. A pin only carries over when both the
+   * provider and the auth mode match — the same label on a different auth
+   * mode is a different `tenant_providers` row.
+   */
+  private async defaultTierKeyLabel(
+    agentId: string,
+    route: ModelRoute,
+  ): Promise<string | undefined> {
+    const tiers = await this.tierService.getTiers(agentId);
+    const assignment = tiers.find((t) => t.tier === DEFAULT_TIER_SLOT);
+    const override = assignment ? readOverrideRoute(assignment) : null;
+    if (!override?.keyLabel) return undefined;
+    if (override.provider.toLowerCase() !== route.provider.toLowerCase()) return undefined;
+    if (override.authType !== route.authType) return undefined;
+    return override.keyLabel;
   }
 
   /**
