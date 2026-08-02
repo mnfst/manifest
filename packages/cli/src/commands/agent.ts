@@ -83,7 +83,10 @@ function stripSparklines(result: unknown): unknown {
 }
 
 export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url', 'name', 'key-file', 'category', 'platform'] });
+  const args = parseArgs(argv, {
+    strings: ['url', 'name', 'key-file', 'category', 'platform'],
+    booleans: ['if-absent'],
+  });
   const name = requireString(args, 'name');
   const platform = requirePlatform(args);
   // --key-file is an explicit override; the default home is the managed
@@ -93,13 +96,34 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     : null;
   const { client, target } = clientFromFlags(io, args);
 
-  const result = (await client.request('POST', '/agents', {
-    body: {
-      name,
-      agent_platform: platform,
-      ...(args.strings['category'] ? { agent_category: args.strings['category'] } : {}),
-    },
-  })) as { agent: unknown; apiKey: string };
+  let result: { agent: unknown; apiKey: string };
+  try {
+    result = (await client.request('POST', '/agents', {
+      body: {
+        name,
+        agent_platform: platform,
+        ...(args.strings['category'] ? { agent_category: args.strings['category'] } : {}),
+      },
+    })) as { agent: unknown; apiKey: string };
+  } catch (error) {
+    // --if-absent makes create re-runnable: an existing agent is success,
+    // resolved to the same output shape (key from keystore/server recovery).
+    if (args.booleans['if-absent'] && error instanceof CliError && error.status === 409) {
+      const slug = slugifyAgentName(name);
+      const existing = (await client.request('GET', `/agents/${encodeURIComponent(slug)}`)) as {
+        agent: unknown | null;
+      };
+      const resolved = await resolveAgentKey(io, args, slug);
+      printJson(io, {
+        agent: existing.agent,
+        existed: true,
+        keyPrefix: keyPrefixOf(resolved.key),
+        keyPath: resolved.path,
+      });
+      return;
+    }
+    throw error;
+  }
 
   if (keyFile) {
     writeKeyFile(keyFile, result.apiKey);

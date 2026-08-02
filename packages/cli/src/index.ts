@@ -67,7 +67,7 @@ Auth
 Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
-  mnfst agent create --name <name> --platform <p> [--category <c>] [--key-file <path>]
+  mnfst agent create --name <name> --platform <p> [--category <c>] [--key-file <path>] [--if-absent]
   mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--tier <custom>] [--autofix true|false] [--recording true|false]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")

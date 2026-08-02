@@ -28,11 +28,63 @@ function parseModelsList(raw: string): string[] {
   return models;
 }
 
+interface TierAssignmentRow {
+  tier?: string;
+  override_route?: unknown;
+  fallback_routes?: unknown;
+}
+
+interface HeaderTierListRow {
+  name?: string;
+  header_key?: string;
+  header_value?: string;
+  enabled?: boolean;
+  override_route?: unknown;
+  fallback_routes?: unknown;
+}
+
+/**
+ * The composite readback for everything `agent configure` writes: default
+ * route + fallbacks, custom tiers with their triggers and routes, and the
+ * autofix/recording toggles. (The backend's /status endpoint only reports the
+ * deprecated complexity-routing flag, so this composes the real config.)
+ */
 export async function routingStatus(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
-  printJson(io, await client.request('GET', agentPath(agent, '/status')));
+
+  const [tiers, customTiers, autofix, recording] = await Promise.all([
+    client.request('GET', agentPath(agent, '/tiers')),
+    client.request('GET', agentPath(agent, '/header-tiers')),
+    client.request('GET', agentPath(agent, '/autofix')),
+    client.request('GET', agentPath(agent, '/recording')),
+  ]);
+
+  const defaultTier = (Array.isArray(tiers) ? tiers : [])
+    .filter((t): t is TierAssignmentRow => typeof t === 'object' && t !== null)
+    .find((t) => t.tier === 'default');
+
+  const custom = (Array.isArray(customTiers) ? customTiers : [])
+    .filter((t): t is HeaderTierListRow => typeof t === 'object' && t !== null)
+    .map((t) => ({
+      name: t.name,
+      trigger: `${t.header_key}: ${t.header_value}`,
+      enabled: t.enabled,
+      route: t.override_route ?? null,
+      fallbacks: t.fallback_routes ?? [],
+    }));
+
+  printJson(io, {
+    agent,
+    default: {
+      route: defaultTier?.override_route ?? null,
+      fallbacks: defaultTier?.fallback_routes ?? [],
+    },
+    custom_tiers: custom,
+    autofix: (autofix as { enabled?: boolean } | null)?.enabled ?? null,
+    recording: (recording as { enabled?: boolean } | null)?.enabled ?? null,
+  });
 }
 
 export async function routingFallbacksGet(io: CliIo, argv: string[]): Promise<void> {
