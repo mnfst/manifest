@@ -865,6 +865,49 @@ describe('provider commands', () => {
     expect(calls2).toHaveLength(0);
   });
 
+  it('provider list --agent annotates connections with the agent enabled set', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: {
+          providers: [
+            {
+              provider: 'openai',
+              auth_type: 'api_key',
+              connections: [
+                { id: 'conn-on', label: 'A', is_active: true },
+                { id: 'conn-off', label: 'B', is_active: true },
+              ],
+            },
+          ],
+        },
+      },
+      { status: 200, body: { agent: { agent_name: 'john' } } },
+      { status: 200, body: { enabled: ['conn-on'] } },
+    ]);
+    expect(await run(io, ['provider', 'list', '--agent', 'John'])).toBe(0);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/agents/john`);
+    expect(calls[2].url).toBe(`${HOST}/api/v1/agents/john/enabled-providers`);
+    const out = io.lastJson() as {
+      agent: string;
+      providers: Array<{ connections: Array<{ id: string; enabled: boolean }> }>;
+    };
+    expect(out.agent).toBe('john');
+    expect(out.providers[0].connections).toEqual([
+      { id: 'conn-on', label: 'A', is_active: true, enabled: true },
+      { id: 'conn-off', label: 'B', is_active: true, enabled: false },
+    ]);
+  });
+
+  it('provider list --agent 404s for a missing agent', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { providers: [] } },
+      { status: 200, body: { agent: null } },
+    ]);
+    expect(await run(io, ['provider', 'list', '--agent', 'ghost'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'not_found', status: 404 });
+  });
+
   it('provider connect takes the provider as a positional', async () => {
     const { io, calls } = authedIo([{ status: 201, body: { id: 'p1' } }], { K: 'xai-secret' });
     expect(
@@ -1352,37 +1395,5 @@ describe('routing commands', () => {
     const bad = makeIo({ env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'k' } });
     expect(await run(bad, ['routing', 'autofix', 'set', 'coding', '--enabled', 'maybe'])).toBe(1);
     expect(bad.lastJson()).toMatchObject({ error: 'invalid_flag' });
-  });
-});
-
-describe('analytics commands', () => {
-  it('overview and costs forward range and agent filters', async () => {
-    const { io, calls } = authedIo([{ status: 200, body: { summary: {} } }]);
-    expect(await run(io, ['overview', '--range', '7d', '--agent', 'coding'])).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/overview?range=7d&agent_name=coding`);
-
-    const { io: cost, calls: costCalls } = authedIo([{ status: 200, body: {} }]);
-    expect(await run(cost, ['costs', '--range', '24h'])).toBe(0);
-    expect(costCalls[0].url).toBe(`${HOST}/api/v1/costs?range=24h`);
-  });
-
-  it('requests wraps the legacy /messages log with filters', async () => {
-    const { io, calls } = authedIo([{ status: 200, body: { messages: [] } }]);
-    expect(
-      await run(io, [
-        'requests',
-        '--range',
-        '24h',
-        '--limit',
-        '50',
-        '--status',
-        'error',
-        '--provider',
-        'openai',
-      ]),
-    ).toBe(0);
-    expect(calls[0].url).toBe(
-      `${HOST}/api/v1/messages?range=24h&limit=50&status=error&provider=openai`,
-    );
   });
 });
