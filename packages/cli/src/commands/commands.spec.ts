@@ -778,7 +778,6 @@ describe('provider commands', () => {
               is_active: true,
             },
           ],
-          total_models: 38,
         },
         {
           provider: 'custom:abc',
@@ -794,7 +793,6 @@ describe('provider commands', () => {
               is_active: false,
             },
           ],
-          total_models: 0,
         },
       ],
     });
