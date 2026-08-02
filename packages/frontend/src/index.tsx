@@ -31,6 +31,7 @@ const Playground = lazyReload(() => import('./pages/Playground.jsx'));
 const Limits = lazyReload(() => import('./pages/Limits.jsx'));
 const Account = lazyReload(() => import('./pages/Account.jsx'));
 const Upgrade = lazyReload(() => import('./pages/Upgrade.jsx'));
+const CliAuth = lazyReload(() => import('./pages/CliAuth.jsx'));
 const Login = lazyReload(() => import('./pages/Login.jsx'));
 const Register = lazyReload(() => import('./pages/Register.jsx'));
 const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
@@ -134,6 +135,9 @@ render(
         </Route>
         <Route path="/upgrade" component={AuthGuard}>
           <Route path="/" component={Upgrade} />
+        </Route>
+        <Route path="/cli/auth" component={AuthGuard}>
+          <Route path="/" component={CliAuth} />
         </Route>
         <Route path="/" component={GuestLayout}>
           <Route path="/login" component={Login} />
