@@ -16,6 +16,7 @@ import { shouldTriggerFallback } from './fallback-status-codes';
 import { Tier, TIERS, ScorerMessage } from '../../scoring/types';
 import type {
   AuthType,
+  KeyRotationRule,
   RequestParamDefaults,
   ResponseMode,
   OutputModality,
@@ -48,6 +49,14 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
+import {
+  createKeyRotationState,
+  markKeyLabelUsed,
+  nextUnusedKeyLabel,
+  usedLabelCount,
+  type KeyRotationState,
+} from './key-rotation';
 import { buildFriendlyResponse, getDashboardUrl } from './proxy-friendly-response';
 import { formatManifestError, type ManifestErrorCode } from '../../common/errors/error-codes';
 import { ManifestError } from '../../common/errors/manifest-error';
@@ -69,13 +78,20 @@ import {
   SUBSCRIPTION_MODEL_SUFFIX,
 } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
+import type { ReforwardOptions } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
+import { hasRotateKeyOperation, type PhoenixOperation } from '../autofix/phoenix.types';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { recordingResponseFromText } from './attempt-recording-capture';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
   explicit_model_unavailable?: string;
 };
+
+function autofixRequestedKeyRotation(record: AutofixRecord | undefined): boolean {
+  return record?.chain.some((entry) => hasRotateKeyOperation(entry.operations)) ?? false;
+}
 
 /**
  * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
@@ -161,6 +177,12 @@ export interface RoutingMeta {
   autofixOriginalAttempt?: ProviderAttemptRef;
   /** Whether the pre-Auto-fix original actually invoked provider transport. */
   autofixOriginalProviderCallStarted?: boolean;
+  /**
+   * True when the winning attempt was a SAME-model key-rotation retry (key A
+   * failed, key B succeeded). Stamped on the requests row as
+   * `recovered_by_key_rotation` unless the request was recovered by Auto-fix.
+   */
+  recoveredByKeyRotation?: boolean;
 }
 
 export interface ProxyResult {
@@ -198,6 +220,18 @@ interface HealedReforwardContext {
   tenantProviderId: string | null;
 }
 
+/**
+ * Outcome of one primary key-rotation pass. `forward` is the first success or
+ * the last failure; `credentials`/`keyLabel` describe the connection that
+ * served the winning attempt (or, when exhausted, the last attempt — used to
+ * attribute the recorded primary failure to the right connection).
+ */
+interface PrimaryRotationResult {
+  forward: ForwardResult;
+  credentials: ResolvedRouteCredentials | null;
+  keyLabel?: string;
+}
+
 @Injectable()
 export class ProxyService {
   private readonly logger = new Logger(ProxyService.name);
@@ -221,6 +255,8 @@ export class ProxyService {
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly autofixService: AutofixService,
+    private readonly keyRotationRules: KeyRotationRuleService,
+    private readonly reasoningCache: ReasoningContentCache,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -281,13 +317,47 @@ export class ProxyService {
     }
 
     const route = resolved.route;
+    const primaryModel = normalizeProviderModel(route.provider, route.model);
+
+    // Key rotation state: one Map per request, threaded through the fallback
+    // chain so labels burned by the primary are never re-tried for the same
+    // model later. When a rotation rule exists for the primary model it fully
+    // controls the primary key choice — the first unused label wins over the
+    // route's pinned keyLabel.
+    const keyRotationState = createKeyRotationState();
+    const primaryKeyRotationRule = await this.keyRotationRules.getRule(
+      primaryModel,
+      agentId,
+      route.provider,
+    );
+    const ruleControlsPrimary =
+      primaryKeyRotationRule !== null &&
+      primaryKeyRotationRule.provider.toLowerCase() === route.provider.toLowerCase();
+    const primaryKeyLabel = ruleControlsPrimary
+      ? nextUnusedKeyLabel(primaryKeyRotationRule!, keyRotationState, primaryModel)
+      : (route.keyLabel ?? undefined);
+
     const credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,
       auth_type: route.authType,
-      provider_key_label: route.keyLabel ?? undefined,
+      provider_key_label: primaryKeyLabel,
     });
+    if (ruleControlsPrimary) {
+      markKeyLabelUsed(keyRotationState, primaryKeyRotationRule!, primaryModel, primaryKeyLabel);
+    }
+    // The connection/label that served the PRIMARY attempt, updated when key
+    // rotation takes over (the winning rotated attempt's row, not the
+    // original primary's). Every success meta below must stamp the row that
+    // actually served the request.
+    let effectivePrimaryCredentials = credentials;
+    let effectivePrimaryKeyLabel = credentials.ok
+      ? (credentials.keyLabel ?? route.keyLabel ?? undefined)
+      : undefined;
+    // Set when a SAME-model key-rotation retry produced the winning attempt —
+    // surfaced to the recorder so the request is categorized "Recovered by
+    // key rotation" (docs/glossary.md), unless Auto-fix recovered it first.
+    let recoveredByKeyRotation = false;
 
-    const primaryModel = normalizeProviderModel(route.provider, route.model);
     this.logger.log(
       `Proxy: tier=${resolved.tier} model=${primaryModel} provider=${route.provider} auth_type=${route.authType} confidence=${resolved.confidence}`,
     );
@@ -360,7 +430,10 @@ export class ProxyService {
       // model override, no merge context, or zero fallback routes — the Manifest
       // stub is the sole record (a Manifest rejection has zero provider
       // attempts), so DON'T start one here: it would INSERT a pending
-      // agent_messages row that nothing ever completes (orphan).
+      // agent_messages row that nothing ever completes (orphan). Key rotation
+      // is the exception: a rotated attempt must be startable so the failed
+      // label's row can be superseded (rotation's own synthetic failures are
+      // completed inline by the rotation loop).
       const willRunChain =
         !explicitModelOverride &&
         !!paramMergeContext &&
@@ -371,16 +444,70 @@ export class ProxyService {
         authType: route.authType,
         tenantProviderId: credentials.tenantProviderId,
         presentation: credentialFailure,
-        startProviderAttempt: willRunChain ? startProviderAttempt : undefined,
+        startProviderAttempt:
+          willRunChain || ruleControlsPrimary ? startProviderAttempt : undefined,
       });
 
-      if (willRunChain && paramMergeContext) {
+      let currentForward = forward;
+      let rotation: PrimaryRotationResult | null = null;
+      if (ruleControlsPrimary) {
+        rotation = await this.rotatePrimaryAttempts({
+          agentId,
+          tenantId,
+          rule: primaryKeyRotationRule!,
+          state: keyRotationState,
+          model: primaryModel,
+          provider: route.provider,
+          authType: route.authType,
+          entryForward: forward,
+          body,
+          resolveChatBody,
+          stream,
+          sessionKey,
+          providerCacheKey,
+          signal,
+          apiMode,
+          signatureLookup,
+          thinkingLookup,
+          paramMergeContext,
+          startProviderAttempt,
+          credentialDashboardUrl: dashboardUrl,
+        });
+        if (rotation) {
+          currentForward = rotation.forward;
+          if (currentForward.response.ok) {
+            effectivePrimaryCredentials = rotation.credentials!;
+            effectivePrimaryKeyLabel = rotation.keyLabel!;
+            recoveredByKeyRotation = true;
+            return {
+              forward: currentForward,
+              meta: this.buildBaseMeta(resolved, primaryModel, {
+                request_params: primaryRequestParams,
+                tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
+                ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+                recoveredByKeyRotation: true,
+                attempt: currentForward.attempt,
+                providerCallStarted: currentForward.providerCallStarted,
+              }),
+            };
+          }
+        }
+      }
+
+      // Chain gate mirrors the fallback-trigger block below: a rotation that
+      // ended on a terminal, non-triggering status (e.g. a hard 4xx) must not
+      // be sprayed across fallback providers.
+      if (
+        willRunChain &&
+        paramMergeContext &&
+        shouldTriggerFallback(currentForward.response.status)
+      ) {
         const fallbackResult = await this.tryFallbackChain({
           agentId,
           tenantId,
           resolved,
           primaryModel,
-          forward,
+          forward: currentForward,
           body,
           resolveChatBody,
           stream,
@@ -392,12 +519,22 @@ export class ProxyService {
           thinkingLookup,
           apiMode,
           paramMergeContext,
-          primaryTenantProviderId: credentials.tenantProviderId,
+          primaryTenantProviderId:
+            rotation?.credentials?.tenantProviderId ?? credentials.tenantProviderId,
           startProviderAttempt,
           credentialDashboardUrl: dashboardUrl,
+          keyRotationState,
         });
         if (fallbackResult) return fallbackResult;
       }
+
+      // No chain ran (none configured, or skipped for a terminal status): the
+      // terminal attempt — the entry credential failure or the last rotation
+      // hop — is this Request's Last Attempt. Complete it as a NON-superseded
+      // failure, or its PENDING row orphans forever and the failed Request has
+      // no terminal attempt (docs/glossary.md). No-op when no attempt was
+      // ever started.
+      await this.completeTerminalForward(currentForward);
 
       return buildFriendlyResponse(
         credentialFailure.message,
@@ -443,6 +580,10 @@ export class ProxyService {
     const wireFormat = forward.wireFormat;
     const retryWireBody = forward.retryWireBody;
     const autofixApiMode = wireApiMode ?? apiMode;
+    const reasoningContentCache = await this.reasoningCache.reasoningContentForHeal(
+      wireRequestBody ?? body,
+      sessionKey,
+    );
     const autofixAttempt =
       wireRequestBody && retryWireBody && (wireApiMode || wireFormat)
         ? await this.autofixService.maybeHeal({
@@ -454,79 +595,137 @@ export class ProxyService {
             authType: route.authType,
             apiMode: autofixApiMode,
             requestBody: wireRequestBody,
-            reforward: (healedBody) =>
-              this.reforwardHealed(healedBody, forward, {
-                agentId,
-                tenantId,
-                apiMode: autofixApiMode,
-                sessionKey,
-                providerCacheKey,
-                sessionMomentumKey,
-                signal,
-                stream,
-                specificityOverride,
-                headers,
-                provider: route.provider,
-                apiKey: credentials.apiKey,
-                rawApiKey: credentials.rawApiKey,
-                model: primaryModel,
-                // Use the resolved (unpinned-subscription-pinned) label so the
-                // healed-retry row stamps the same connection its
-                // tenant_provider_id points at — otherwise a null/blank label
-                // rides next to the selected connection id (the divergence the
-                // primary forward already avoids).
-                keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
-                authType: route.authType,
-                resourceUrl: credentials.resourceUrl,
-                providerRegion: credentials.providerRegion,
-                paramMergeContext,
-                signatureLookup,
-                thinkingLookup,
-                tenantProviderId: credentials.tenantProviderId,
-                startProviderAttempt,
-              }),
+            reasoningContentCache,
+            keyRotationState,
+            reforward: (healedBody, reforwardOpts) =>
+              this.reforwardHealed(
+                healedBody,
+                forward,
+                {
+                  agentId,
+                  tenantId,
+                  apiMode: autofixApiMode,
+                  sessionKey,
+                  providerCacheKey,
+                  sessionMomentumKey,
+                  signal,
+                  stream,
+                  specificityOverride,
+                  headers,
+                  provider: route.provider,
+                  apiKey: credentials.apiKey,
+                  rawApiKey: credentials.rawApiKey,
+                  model: primaryModel,
+                  // Use the resolved (unpinned-subscription-pinned) label so the
+                  // healed-retry row stamps the same connection its
+                  // tenant_provider_id points at — otherwise a null/blank label
+                  // rides next to the selected connection id (the divergence the
+                  // primary forward already avoids).
+                  keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+                  authType: route.authType,
+                  resourceUrl: credentials.resourceUrl,
+                  providerRegion: credentials.providerRegion,
+                  paramMergeContext,
+                  signatureLookup,
+                  thinkingLookup,
+                  tenantProviderId: credentials.tenantProviderId,
+                  startProviderAttempt,
+                },
+                reforwardOpts,
+              ),
           })
         : null;
     const autofixRecord = autofixAttempt?.record;
     if (autofixAttempt) forward = autofixAttempt.forward;
 
-    if (
-      !explicitModelOverride &&
-      !forward.response.ok &&
-      shouldTriggerFallback(forward.response.status) &&
-      paramMergeContext
-    ) {
-      const fallbackResult = await this.tryFallbackChain({
-        agentId,
-        tenantId,
-        resolved,
-        primaryModel,
-        forward,
-        body,
-        resolveChatBody,
-        stream,
-        sessionKey,
-        providerCacheKey,
-        sessionMomentumKey,
-        signal,
-        signatureLookup,
-        thinkingLookup,
-        apiMode,
-        paramMergeContext,
-        primaryTenantProviderId: credentials.tenantProviderId,
-        startProviderAttempt,
-        credentialDashboardUrl: dashboardUrl,
-      });
-      if (fallbackResult) {
-        return {
-          ...fallbackResult,
-          meta: {
-            ...fallbackResult.meta,
-            autofixOriginalAttempt,
-            autofixOriginalProviderCallStarted,
-          },
-          autofix: autofixRecord,
-        };
+    // Key rotation runs on ANY failed primary (explicit overrides included —
+    // a rule fully controls the model's key choice wherever it's attempted).
+    // Skip key rotation only when Auto-fix successfully healed (a patched
+    // retry already proved the key works). When Auto-fix is unfixable (no
+    // patch) or exhausted (patched retry still failed), the original failure
+    // may be key-specific (e.g. wrong account/region) so rotation should
+    // still try the next key in the rule's key_order.
+    if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
+      let rotation: PrimaryRotationResult | null = null;
+      if (
+        ruleControlsPrimary &&
+        (autofixAttempt === null ||
+          autofixRequestedKeyRotation(autofixRecord) ||
+          autofixRecord?.outcome === 'unfixable' ||
+          autofixRecord?.outcome === 'exhausted')
+      ) {
+        rotation = await this.rotatePrimaryAttempts({
+          agentId,
+          tenantId,
+          rule: primaryKeyRotationRule!,
+          state: keyRotationState,
+          model: primaryModel,
+          provider: route.provider,
+          authType: route.authType,
+          entryForward: forward,
+          body,
+          resolveChatBody,
+          stream,
+          sessionKey,
+          providerCacheKey,
+          signal,
+          apiMode,
+          signatureLookup,
+          thinkingLookup,
+          paramMergeContext,
+          startProviderAttempt,
+          credentialDashboardUrl: dashboardUrl,
+        });
+        if (rotation) {
+          forward = rotation.forward;
+          if (forward.response.ok) {
+            effectivePrimaryCredentials = rotation.credentials!;
+            effectivePrimaryKeyLabel = rotation.keyLabel!;
+            recoveredByKeyRotation = true;
+          }
+        }
+      }
+
+      if (
+        !explicitModelOverride &&
+        !forward.response.ok &&
+        shouldTriggerFallback(forward.response.status) &&
+        paramMergeContext
+      ) {
+        const fallbackResult = await this.tryFallbackChain({
+          agentId,
+          tenantId,
+          resolved,
+          primaryModel,
+          forward,
+          body,
+          resolveChatBody,
+          stream,
+          sessionKey,
+          providerCacheKey,
+          sessionMomentumKey,
+          signal,
+          signatureLookup,
+          thinkingLookup,
+          apiMode,
+          paramMergeContext,
+          primaryTenantProviderId:
+            rotation?.credentials?.tenantProviderId ?? effectivePrimaryCredentials.tenantProviderId,
+          startProviderAttempt,
+          credentialDashboardUrl: dashboardUrl,
+          keyRotationState,
+        });
+        if (fallbackResult) {
+          return {
+            ...fallbackResult,
+            meta: {
+              ...fallbackResult.meta,
+              autofixOriginalAttempt,
+              autofixOriginalProviderCallStarted,
+            },
+            autofix: autofixRecord,
+          };
+        }
       }
     }
 
@@ -563,7 +762,9 @@ export class ProxyService {
           forward: peeked,
           meta: this.buildBaseMeta(resolved, primaryModel, {
             request_params: primaryRequestParams,
-            tenantProviderId: credentials.tenantProviderId,
+            tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
+            ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+            ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
             attempt: forward.attempt,
             providerCallStarted: forward.providerCallStarted,
             autofixOriginalAttempt,
@@ -615,9 +816,10 @@ export class ProxyService {
           thinkingLookup,
           apiMode,
           paramMergeContext,
-          primaryTenantProviderId: credentials.tenantProviderId,
+          primaryTenantProviderId: effectivePrimaryCredentials.tenantProviderId,
           startProviderAttempt,
           credentialDashboardUrl: dashboardUrl,
+          keyRotationState,
         });
         if (fallbackResult) {
           return {
@@ -640,7 +842,9 @@ export class ProxyService {
         forward: syntheticForward,
         meta: this.buildBaseMeta(resolved, primaryModel, {
           request_params: primaryRequestParams,
-          tenantProviderId: credentials.tenantProviderId,
+          tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
+          ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+          ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
           attempt: forward.attempt,
           providerCallStarted: forward.providerCallStarted,
           autofixOriginalAttempt,
@@ -656,7 +860,9 @@ export class ProxyService {
       forward,
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: primaryRequestParams,
-        tenantProviderId: credentials.tenantProviderId,
+        tenantProviderId: effectivePrimaryCredentials.tenantProviderId,
+        ...(ruleControlsPrimary ? { provider_key_label: effectivePrimaryKeyLabel } : {}),
+        ...(recoveredByKeyRotation ? { recoveredByKeyRotation: true } : {}),
         attempt: forward.attempt,
         providerCallStarted: forward.providerCallStarted,
         autofixOriginalAttempt,
@@ -696,7 +902,13 @@ export class ProxyService {
     healedBody: Record<string, unknown>,
     originalForward: ForwardResult,
     ctx: HealedReforwardContext,
+    reforwardOpts?: ReforwardOptions,
   ): Promise<ForwardResult> {
+    // rotate_key heal operation: retry the healed body with the NEXT key per
+    // the harness's rule instead of the key that already failed.
+    if (reforwardOpts?.keyRotationLabel) {
+      return this.forwardHealedWithRotatedKey(healedBody, originalForward, ctx, reforwardOpts);
+    }
     const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
     if (healedModel && healedModel !== originalModel) {
@@ -708,6 +920,63 @@ export class ProxyService {
       signal: ctx.signal,
       authType: ctx.authType,
       tenantProviderId: ctx.tenantProviderId,
+      startProviderAttempt: ctx.startProviderAttempt,
+    });
+  }
+
+  /**
+   * Retry a healed body with a NEW key label (the `rotate_key` heal
+   * operation). The label was already marked used in the request's shared
+   * KeyRotationState by AutofixService, so a failed rotated retry is never
+   * re-tried by the fallback loop that runs next. A label that no longer
+   * resolves to a connection degrades to the normal same-key reforward.
+   */
+  private async forwardHealedWithRotatedKey(
+    healedBody: Record<string, unknown>,
+    originalForward: ForwardResult,
+    ctx: HealedReforwardContext,
+    reforwardOpts: ReforwardOptions,
+  ): Promise<ForwardResult> {
+    const label = reforwardOpts.keyRotationLabel!;
+    this.logger.log(
+      `autofix rotate_key: model=${ctx.model} provider=${ctx.provider} label=${label}`,
+    );
+    const credentials = await this.resolveCredentials(ctx.agentId, ctx.tenantId, {
+      provider: ctx.provider,
+      auth_type: ctx.authType,
+      provider_key_label: label,
+    });
+    if (!credentials.ok) {
+      this.logger.warn(
+        `autofix rotate_key: label=${label} unusable for provider=${ctx.provider} ` +
+          `reason=${credentials.reason} — degrading to same-key retry`,
+      );
+      return this.reforwardHealed(healedBody, originalForward, ctx);
+    }
+
+    const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
+    return this.fallbackService.tryForwardToProvider({
+      provider: ctx.provider,
+      apiKey: credentials.apiKey,
+      model: ctx.model,
+      body: healedBody,
+      resolveChatBody,
+      stream: ctx.stream,
+      sessionKey: ctx.sessionKey,
+      providerCacheKey: ctx.providerCacheKey,
+      signal: ctx.signal,
+      agentId: ctx.agentId,
+      tenantId: ctx.tenantId,
+      rawApiKey: credentials.rawApiKey,
+      providerKeyLabel: label,
+      authType: ctx.authType,
+      apiMode: ctx.apiMode,
+      resourceUrl: credentials.resourceUrl,
+      providerRegion: credentials.providerRegion,
+      signatureLookup: ctx.signatureLookup,
+      thinkingLookup: ctx.thinkingLookup,
+      paramMergeContext: ctx.paramMergeContext,
+      tenantProviderId: credentials.tenantProviderId,
       startProviderAttempt: ctx.startProviderAttempt,
     });
   }
@@ -737,6 +1006,11 @@ export class ProxyService {
         'no route resolved for the healed model',
       );
     }
+    // Accepted gap: this heal-reforward path resolves the healed route's
+    // keyLabel directly and does NOT consult key rotation rules/state. A
+    // healed model that has a rule still uses the default/pinned key for
+    // this single hop. Narrow path (Auto-fix model change) and deliberately
+    // out of scope for rotation.
     const credentials = await this.resolveCredentials(ctx.agentId, ctx.tenantId, {
       provider: route.provider,
       auth_type: route.authType,
@@ -956,6 +1230,17 @@ export class ProxyService {
     requestedModel: string,
     headers: ProxyRequestOptions['headers'],
   ): Promise<ResolvedRouting | null> {
+    // Synthetic auto-tier models (e.g. "auto-standard") resolve directly to
+    // the matching header tier's configured route without needing headers.
+    if (requestedModel.startsWith('auto-')) {
+      const autoTier = await this.resolveService.resolveAutoTierModel(
+        agentId,
+        tenantId,
+        requestedModel,
+      );
+      if (autoTier) return autoTier;
+    }
+
     if (headers) {
       const headerTier = await this.resolveService.resolveHeaderTier(agentId, tenantId, headers);
       if (headerTier) return headerTier;
@@ -1073,6 +1358,208 @@ export class ProxyService {
   }
 
   /**
+   * Primary key-rotation loop. When a rule exists for the primary model and
+   * unused labels remain, retry the SAME model with the next label (each
+   * failed attempt is marked superseded and consumes no fallback-chain slot)
+   * before handing the request to the fallback chain.
+   *
+   * Labels that no longer resolve to a connection are skipped: they are
+   * recorded as credential-failure attempts, superseded, and the next label
+   * is tried. The loop is bounded by the rule's own label count. Rate-limit
+   * cooldowns and OAuth token-refresh retries are untouched — they live
+   * inside tryForwardToProvider, which this loop calls per label.
+   *
+   * Returns null when no rule applies or every label was already attempted
+   * (the failed entry forward then flows into the chain unchanged).
+   */
+  private async rotatePrimaryAttempts(opts: {
+    agentId: string;
+    tenantId: string;
+    rule: KeyRotationRule;
+    state: KeyRotationState;
+    model: string;
+    provider: string;
+    authType: AuthType;
+    entryForward: ForwardResult;
+    body: Record<string, unknown>;
+    resolveChatBody?: ResolveChatBody;
+    stream: boolean;
+    sessionKey: string;
+    providerCacheKey?: string;
+    signal?: AbortSignal;
+    apiMode: ProxyApiMode;
+    signatureLookup: SignatureLookup;
+    thinkingLookup: ThinkingBlockLookup;
+    paramMergeContext: ParamMergeContext | undefined;
+    startProviderAttempt?: StartProviderAttempt;
+    credentialDashboardUrl: string;
+  }): Promise<PrimaryRotationResult | null> {
+    const {
+      agentId,
+      tenantId,
+      rule,
+      state,
+      model,
+      provider,
+      authType,
+      entryForward,
+      body,
+      resolveChatBody,
+      stream,
+      sessionKey,
+      providerCacheKey,
+      signal,
+      apiMode,
+      signatureLookup,
+      thinkingLookup,
+      paramMergeContext,
+      startProviderAttempt,
+      credentialDashboardUrl,
+    } = opts;
+    if (rule.provider.toLowerCase() !== provider.toLowerCase()) return null;
+    if (!nextUnusedKeyLabel(rule, state, model)) return null;
+
+    let pending = entryForward;
+    let lastCredentials: ResolvedRouteCredentials | null = null;
+
+    for (;;) {
+      const label = nextUnusedKeyLabel(rule, state, model);
+      if (!label) break;
+      markKeyLabelUsed(state, rule, model, label);
+      this.logger.debug(
+        `Primary key rotation: model=${model} label=${label} ` +
+          `(${usedLabelCount(state, rule, model)}/${rule.keyOrder.length} provider=${provider})`,
+      );
+
+      const credentials = await this.resolveCredentials(agentId, tenantId, {
+        provider,
+        auth_type: authType,
+        provider_key_label: label,
+      });
+      if (!credentials.ok) {
+        // Unresolvable label: record a credential failure, supersede it, and
+        // move on — the rule must not stall on a renamed/removed connection.
+        this.logger.warn(
+          `Primary key rotation: label=${label} unusable for provider=${provider} reason=${credentials.reason}`,
+        );
+        const presentation = presentCredentialFailure(
+          credentials.reason,
+          provider,
+          credentialDashboardUrl,
+        );
+        const synthetic = buildCredentialFailureForward({
+          provider,
+          model,
+          authType,
+          tenantProviderId: credentials.tenantProviderId,
+          presentation,
+          startProviderAttempt,
+        });
+        await this.supersedeForward(synthetic);
+        lastCredentials = credentials;
+        continue;
+      }
+
+      // Previous attempt (the entry primary or an earlier rotation hop) is
+      // superseded before this label's attempt starts.
+      await this.supersedeForward(pending);
+      lastCredentials = credentials;
+
+      const forward = await this.fallbackService.tryForwardToProvider({
+        provider,
+        apiKey: credentials.apiKey,
+        model,
+        body,
+        resolveChatBody,
+        stream,
+        sessionKey,
+        providerCacheKey,
+        signal,
+        agentId,
+        tenantId,
+        rawApiKey: credentials.rawApiKey,
+        providerKeyLabel: label,
+        authType,
+        apiMode,
+        resourceUrl: credentials.resourceUrl,
+        providerRegion: credentials.providerRegion,
+        signatureLookup,
+        thinkingLookup,
+        paramMergeContext,
+        tenantProviderId: credentials.tenantProviderId,
+        startProviderAttempt,
+      });
+
+      if (forward.response.ok) {
+        return { forward, credentials, keyLabel: label };
+      }
+
+      const errorBody = await forward.response.text();
+      await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
+      // Rebuild the response: the body stream above is consumed, and the
+      // chain must be able to re-read this forward as the primary failure.
+      pending = {
+        ...forward,
+        response: new Response(errorBody, {
+          status: forward.response.status,
+          statusText: forward.response.statusText,
+          headers: forward.response.headers,
+        }),
+      };
+
+      // A status that should NOT trigger fallback stops rotation too — the
+      // same break the fallback chain honors (e.g. a terminal 4xx).
+      if (!shouldTriggerFallback(forward.response.status)) break;
+    }
+
+    // Exhausted: the last attempt becomes the primary failure handed to the
+    // chain. `lastCredentials` attributes that row to the right connection.
+    return { forward: pending, credentials: lastCredentials };
+  }
+
+  /**
+   * Complete a superseded attempt (finish recording + mark superseded) so its
+   * PENDING row never orphans. No-op for attempts that were never started.
+   */
+  private async supersedeForward(forward: ForwardResult): Promise<void> {
+    await this.completeForwardAttempt(forward, true);
+  }
+
+  /**
+   * Complete the terminal attempt of a request that failed without reaching a
+   * fallback chain (none configured, or skipped for a terminal status). Marked
+   * NON-superseded: this row is the Request's Last Attempt, not an
+   * intermediate hop (docs/glossary.md:62-66).
+   */
+  private async completeTerminalForward(forward: ForwardResult): Promise<void> {
+    await this.completeForwardAttempt(forward, false);
+  }
+
+  /**
+   * Shared completion for attempts whose response never reached the message
+   * recorder. The body is re-read and the Response rebuilt in place so later
+   * consumers (e.g. the fallback chain) can still read it.
+   */
+  private async completeForwardAttempt(forward: ForwardResult, superseded: boolean): Promise<void> {
+    const attempt = forward.attempt;
+    if (!attempt) return;
+    let errorBody = '';
+    try {
+      errorBody = await forward.response.text();
+      forward.response = new Response(errorBody, {
+        status: forward.response.status,
+        statusText: forward.response.statusText,
+        headers: forward.response.headers,
+      });
+    } catch {
+      // Body already consumed by an earlier hop — record what we know.
+    }
+    const status = forward.response.status;
+    await attempt.finishRecording?.(recordingResponseFromText(errorBody));
+    await attempt.completeFailure?.({ status, errorBody, superseded });
+  }
+
+  /**
    * The effective fallback routes `tryFallbackChain` will actually attempt,
    * after response-mode filtering. Empty when nothing remains. Callers use this
    * to decide whether a chain will run *before* starting work that only the
@@ -1118,6 +1605,8 @@ export class ProxyService {
     startProviderAttempt?: StartProviderAttempt;
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string;
+    /** Per-request key rotation state (see tryFallbacks). */
+    keyRotationState?: KeyRotationState;
   }): Promise<ProxyResult | null> {
     const {
       agentId,
@@ -1168,6 +1657,7 @@ export class ProxyService {
       args.startProviderAttempt,
       args.credentialDashboardUrl,
       providerCacheKey,
+      args.keyRotationState,
     );
 
     this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
@@ -1208,6 +1698,7 @@ export class ProxyService {
           provider_key_label: success.keyLabel,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
+          recoveredByKeyRotation: success.recoveredByKeyRotation === true,
           primaryErrorStatus: primaryStatus,
           primaryErrorBody,
           primaryProvider,

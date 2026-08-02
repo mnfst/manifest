@@ -336,6 +336,90 @@ export class ResolveService {
     };
   }
 
+  /**
+   * Resolve a synthetic `auto-{name}` model directly to the header tier
+   * whose name (case-insensitive) matches the suffix.  This lets clients
+   * request `auto-standard` instead of sending `model:"auto"` + a header.
+   */
+  async resolveAutoTierModel(
+    agentId: string,
+    tenantId: string,
+    requestedModel: string,
+  ): Promise<ResolveResponse | null> {
+    const match = requestedModel.match(/^auto-(.+)$/i);
+    if (!match) return null;
+
+    const suffix = match[1].toLowerCase();
+    const allTiers = await this.headerTierService.list(agentId);
+    const tier = allTiers.find((t) => t.enabled && t.name.toLowerCase() === suffix);
+    if (!tier) return null;
+
+    const overrideRoute = readOverrideRoute(tier);
+    if (!overrideRoute) {
+      this.logger.debug(
+        `auto-tier model "${requestedModel}" matched tier "${tier.name}" but has no route — falling through`,
+      );
+      return null;
+    }
+
+    // Reuse the same availability + fallback logic as header tier resolution.
+    const fallbackRoutes = readFallbackRoutes(tier);
+    let primaryOverride: ModelRoute | null = overrideRoute;
+    let remainingFallbacks: ModelRoute[] | null = fallbackRoutes;
+    if (!(await this.providerKeyService.isRouteAvailable(tenantId, overrideRoute, agentId))) {
+      this.logger.warn(
+        `auto-tier model "${requestedModel}" override ${overrideRoute.model} unavailable ` +
+          `for agent=${agentId} — trying tier fallbacks`,
+      );
+      primaryOverride = null;
+      const candidates = fallbackRoutes ?? [];
+      for (let i = 0; i < candidates.length; i++) {
+        if (await this.providerKeyService.isRouteAvailable(tenantId, candidates[i], agentId)) {
+          primaryOverride = candidates[i];
+          remainingFallbacks = candidates.slice(i + 1);
+          break;
+        }
+      }
+      if (!primaryOverride) {
+        this.logger.warn(
+          `auto-tier model "${requestedModel}" has no available route ` +
+            `for agent=${agentId}; falling through to existing routing`,
+        );
+        return null;
+      }
+    }
+
+    const provider =
+      primaryOverride.provider ||
+      (await this.resolveProviderForModel(agentId, tenantId, primaryOverride.model));
+    const authType: AuthType =
+      primaryOverride.authType ??
+      (await this.providerKeyService.getAuthType(tenantId, provider ?? '', undefined, agentId));
+    const baseRoute: ModelRoute | null =
+      provider && authType
+        ? { provider, authType, model: primaryOverride.model, keyLabel: primaryOverride.keyLabel }
+        : null;
+    const route = baseRoute ? await this.enrichRouteKeyLabel(agentId, tenantId, baseRoute) : null;
+
+    const outputModality = outputModalityFor(tier);
+    const responseMode = responseModeFor(tier);
+    const effectiveRoutes = effectiveRoutesForResponseMode(responseMode, route, remainingFallbacks);
+
+    return {
+      tier: 'standard',
+      route: effectiveRoutes.primaryRoute,
+      fallback_routes: effectiveRoutes.fallbackRoutes,
+      output_modality: outputModality,
+      response_mode: responseMode,
+      confidence: 1,
+      score: 0,
+      reason: 'header-match',
+      header_tier_id: tier.id,
+      header_tier_name: tier.name,
+      header_tier_color: tier.badge_color,
+    };
+  }
+
   private async resolveSpecificity(
     agentId: string,
     tenantId: string,

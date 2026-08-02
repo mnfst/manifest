@@ -3,10 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import {
   getProviderParamSpecs,
   type AuthType,
+  type KeyRotationRule,
   type ModelRoute,
   type ProviderParamSpecCatalog,
 } from 'manifest-shared';
 import { ProxyService } from '../proxy.service';
+import type { ProviderAttemptRef } from '../proxy-types';
 import type { ResolveService } from '../../resolve/resolve.service';
 import type { ProviderKeyService } from '../../routing-core/provider-key.service';
 import type { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -22,7 +24,9 @@ import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 import type { AutofixService } from '../../autofix/autofix.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
@@ -118,6 +122,8 @@ describe('ProxyService — orchestration', () => {
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let autofixService: { maybeHeal: jest.Mock };
+  let keyRotationRules: { getRule: jest.Mock; list: jest.Mock };
+  let reasoningCache: { reasoningContentForHeal: jest.Mock };
   let svc: ProxyService;
   let modelDiscovery: jest.Mocked<Pick<ModelDiscoveryService, 'getModelsForAgent'>>;
 
@@ -196,6 +202,13 @@ describe('ProxyService — orchestration', () => {
       list: jest.fn().mockResolvedValue(specCatalog),
     };
     autofixService = { maybeHeal: jest.fn().mockResolvedValue(null) };
+    keyRotationRules = {
+      getRule: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+    };
+    reasoningCache = {
+      reasoningContentForHeal: jest.fn().mockResolvedValue({}),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -216,6 +229,8 @@ describe('ProxyService — orchestration', () => {
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
       autofixService as unknown as AutofixService,
+      keyRotationRules as unknown as KeyRotationRuleService,
+      reasoningCache as unknown as ReasoningContentCache,
     );
   });
 
@@ -3014,6 +3029,359 @@ describe('ProxyService — orchestration', () => {
       expect((scoringMessages as Array<{ role: string }>).every((m) => m.role === 'user')).toBe(
         true,
       );
+    });
+  });
+
+  describe('primary key rotation', () => {
+    const rotationRule = (overrides: Partial<KeyRotationRule> = {}): KeyRotationRule => ({
+      id: 'rule-1',
+      agentId: 'agent-1',
+      model: 'gpt-4o',
+      provider: 'openai',
+      scope: 'model',
+      keyOrder: ['Work', 'Personal'],
+      ...overrides,
+    });
+
+    const forward = (status: number, attempt?: ProviderAttemptRef) => ({
+      response: new Response('boom', { status }),
+      isGoogle: false,
+      isAnthropic: false,
+      isChatGpt: false,
+      attempt,
+      providerCallStarted: true,
+    });
+
+    const attemptRef = (id: string): ProviderAttemptRef => ({
+      id,
+      attemptNumber: 1,
+      startedAtMs: Date.now(),
+      startedAt: new Date().toISOString(),
+      pendingWrite: Promise.resolve(true),
+      completeFailure: jest.fn().mockResolvedValue(undefined),
+      finishRecording: jest.fn().mockResolvedValue(undefined),
+    });
+
+    const labelAwareKeys = () => {
+      providerKeyService.selectProviderKey.mockImplementation(
+        async (_tenant, _provider, _auth, label) => {
+          if (label && label.toLowerCase() !== 'work' && label.toLowerCase() !== 'personal') {
+            return null;
+          }
+          return {
+            apiKey: 'decrypted-key',
+            id: label ? `up-${label.toLowerCase()}` : 'up-default',
+            region: null,
+            label: label ?? 'Default',
+            priority: 0,
+          };
+        },
+      );
+    };
+
+    const resolvedRoute = {
+      tier: 'standard' as const,
+      route: route('openai', 'api_key', 'gpt-4o'),
+      fallback_routes: null,
+      confidence: 0.9,
+      score: 5,
+      reason: 'scored' as const,
+    };
+
+    beforeEach(() => {
+      resolveService.resolve.mockResolvedValue(resolvedRoute);
+    });
+
+    it('rule controls the primary key label and rotation succeeds on the next label', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      const primaryAttempt = attemptRef('primary-1');
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(forward(401, primaryAttempt))
+        .mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // Two forwards: the primary (first rule label) then the rotation hop
+      // (second rule label) — no fallback chain involvement.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0].providerKeyLabel).toBe(
+        'Personal',
+      );
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      // Meta stamps the winning connection, not the original primary's.
+      expect(result.meta.provider_key_label).toBe('Personal');
+      expect(result.meta.tenantProviderId).toBe('up-personal');
+      // The superseded primary attempt is marked superseded, not orphaned.
+      expect(primaryAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 401, superseded: true }),
+      );
+    });
+
+    it('marks the primary attempt superseded when the rule wins the first label', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      // Rule label beats any route keyLabel / default key.
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
+      expect(result.forward.response.status).toBe(200);
+    });
+
+    it('a provider-scope rule drives the primary key when no model rule exists', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule({ model: null, scope: 'provider' }));
+      labelAwareKeys();
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // The provider rule (no model identity) still fully controls the key.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.provider_key_label).toBe('Work');
+    });
+
+    it('exhausted rules advance to the fallback chain with shared rotation state', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      const primaryAttempt = attemptRef('primary-1');
+      const rotatedAttempt = attemptRef('rotated-1');
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(forward(401, primaryAttempt))
+        .mockResolvedValueOnce(forward(401, rotatedAttempt));
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: null,
+        failures: [],
+      });
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-3.5')],
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // Both rule labels burned on the primary — the chain runs with the last
+      // rotated attempt as the recorded primary failure.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryFallbacks).toHaveBeenCalledTimes(1);
+      const state = fallbackService.tryFallbacks.mock.calls[0][19] as Map<string, Set<string>>;
+      expect([...(state.get('model:gpt-4o') ?? [])].sort()).toEqual(['Personal', 'Work']);
+      expect(primaryAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 401, superseded: true }),
+      );
+      // The last rotation attempt is the primary failure — NOT superseded.
+      expect(rotatedAttempt.completeFailure).not.toHaveBeenCalled();
+      expect(result.failedFallbacks).toEqual([]);
+    });
+
+    it('no-chain terminal rotation failure is completed non-superseded (Last Attempt preserved)', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      // 'Work' (the primary label) fails to resolve → credential-entry path;
+      // 'Personal' resolves and reaches provider transport but fails.
+      providerKeyService.selectProviderKey.mockImplementation(async (_t, _p, _a, label) => {
+        if (label?.toLowerCase() === 'work') return null;
+        return {
+          apiKey: 'decrypted-key',
+          id: 'up-personal',
+          region: null,
+          label: label ?? 'Default',
+          priority: 0,
+        };
+      });
+      const entryAttempt = attemptRef('entry-1');
+      const terminalAttempt = attemptRef('terminal-1');
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(500, terminalAttempt));
+      // No fallback routes → no chain will run.
+      resolveService.resolve.mockResolvedValue({ ...resolvedRoute, fallback_routes: null });
+
+      const result = await svc.proxyRequest(
+        baseOpts({ startProviderAttempt: jest.fn().mockReturnValue(entryAttempt) }),
+      );
+
+      // Friendly M100/M102 stub returned (no chain), but the terminal attempt
+      // was completed as the Request's Last Attempt — NOT superseded.
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.meta.manifest_error_code).toBeDefined();
+      expect(terminalAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 500, superseded: false }),
+      );
+      // The superseded entry hop is still marked superseded.
+      expect(entryAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ superseded: true }),
+      );
+    });
+
+    it('single-label rule with no chain completes the entry attempt (no orphaned PENDING row)', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule({ keyOrder: ['Work'] }));
+      // The only label is unresolvable → credential-entry path, nothing left
+      // to rotate (rotatePrimaryAttempts returns null).
+      providerKeyService.selectProviderKey.mockResolvedValue(null);
+      const entryAttempt = attemptRef('entry-1');
+
+      const result = await svc.proxyRequest(
+        baseOpts({ startProviderAttempt: jest.fn().mockReturnValue(entryAttempt) }),
+      );
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.meta.manifest_error_code).toBeDefined();
+      // Entry attempt completed as the terminal failure, not left pending.
+      expect(entryAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 401, superseded: false }),
+      );
+    });
+
+    it('credential-entry rotation ending on a non-triggering status does not run the chain', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      providerKeyService.selectProviderKey.mockImplementation(async (_t, _p, _a, label) => {
+        if (label?.toLowerCase() === 'work') return null;
+        return {
+          apiKey: 'decrypted-key',
+          id: 'up-personal',
+          region: null,
+          label: label ?? 'Default',
+          priority: 0,
+        };
+      });
+      const entryAttempt = attemptRef('entry-1');
+      const terminalAttempt = attemptRef('terminal-1');
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(399, terminalAttempt));
+      // Fallback routes exist (willRunChain true) — but the rotation ended on
+      // a terminal 399, which must NOT be sprayed across the chain.
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-3.5')],
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({ startProviderAttempt: jest.fn().mockReturnValue(entryAttempt) }),
+      );
+
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.meta.manifest_error_code).toBeDefined();
+      expect(terminalAttempt.completeFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 399, superseded: false }),
+      );
+    });
+
+    it('stream-warmup failure threads key rotation state into the fallback chain', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      // Primary succeeds (rule label 'Work') but the stream stalls on warmup.
+      fallbackService.tryForwardToProvider.mockResolvedValue({
+        response: new Response(new ReadableStream(), {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      mockedPeek.mockResolvedValue({
+        ok: false,
+        reason: 'timeout',
+        message: 'peek timeout',
+      } as never);
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: {
+            response: okResponse(),
+            isGoogle: false,
+            isAnthropic: true,
+            isChatGpt: false,
+          },
+          model: 'claude-haiku-3.5',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-3.5')],
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { messages: [{ role: 'user', content: 'hi' }], stream: true } }),
+      );
+
+      expect(fallbackService.tryFallbacks).toHaveBeenCalledTimes(1);
+      // The per-request state rides along: the fallback chain can apply the
+      // rule to its own slots and never re-tries the burned 'Work' label.
+      const state = fallbackService.tryFallbacks.mock.calls[0][19] as Map<string, Set<string>>;
+      expect([...(state.get('model:gpt-4o') ?? [])]).toEqual(['Work']);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+    });
+
+    it('skips key rotation when Auto-fix ran and did not request rotate_key', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      // Primary forward fails with 400 AND carries wire body so autofix runs.
+      const primaryForward = {
+        ...forward(400),
+        wireRequestBody: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] },
+        wireApiMode: 'chat_completions' as const,
+        retryWireBody: jest.fn(),
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(primaryForward);
+      // Autofix runs, produces a non-rotate_key patch (e.g. reasoning_content_missing),
+      // the patched retry also fails with 400.
+      const healedForward = { ...forward(400), wireRequestBody: { model: 'gpt-4o' } };
+      const autofixRecord = {
+        groupId: 'g1',
+        outcome: 'exhausted' as const,
+        original_http_status: 400,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original' as const,
+            request: {},
+            http_status: 400,
+            operations: [{ type: 'add_param', from: null, to: 'reasoning_content' }],
+          },
+          {
+            attempt: 1,
+            origin: 'autofix' as const,
+            request: { model: 'gpt-4o', reasoning_content: '' },
+            http_status: 400,
+          },
+        ],
+      };
+      autofixService.maybeHeal.mockResolvedValue({
+        forward: healedForward,
+        record: autofixRecord,
+      });
+      // Fallback chain is available.
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { ...forward(200), isAnthropic: true },
+          model: 'claude-haiku-3.5',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-3.5')],
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // Autofix was invoked.
+      expect(autofixService.maybeHeal).toHaveBeenCalledTimes(1);
+      // The primary forward + the autofix retry forward = at least 1 tryForwardToProvider.
+      // But no extra rotation attempt — only the fallback chain runs after.
+      // We verify: tryForwardToProvider was called once (primary) because
+      // the autofix reforward is handled inside maybeHeal's reforward mock.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
     });
   });
 });

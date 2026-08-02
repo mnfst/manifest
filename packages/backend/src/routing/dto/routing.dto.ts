@@ -230,6 +230,45 @@ export function responseModeFromDto(body: SetResponseModeDto): ResponseMode | un
   return body.response_mode ?? body.responseMode;
 }
 
+/** Maximum key labels one rotation rule may list. */
+export const MAX_KEY_ROTATION_LABELS = 10;
+/** Maximum rules accepted in one full-replace PUT. */
+export const MAX_KEY_ROTATION_RULES = 50;
+
+export class KeyRotationRuleDto {
+  // `id`/`agentId` are never accepted from the client: ids are generated on
+  // upsert and the resolved agent from the URL owns every rule in a PUT.
+  // `model` is required for `scope: 'model'` rules and NULL for provider
+  // scope (validated in the service, which knows both scopes).
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  model?: string | null;
+
+  @IsString()
+  @IsNotEmpty()
+  provider!: string;
+
+  @IsOptional()
+  @IsIn(['model', 'provider'])
+  scope?: 'model' | 'provider';
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(MAX_KEY_ROTATION_LABELS)
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  keyOrder!: string[];
+}
+
+export class PutKeyRulesDto {
+  @IsArray()
+  @ArrayMaxSize(MAX_KEY_ROTATION_RULES)
+  @ValidateNested({ each: true })
+  @Type(() => KeyRotationRuleDto)
+  rules!: KeyRotationRuleDto[];
+}
+
 export class UpdateAutofixDto {
   @IsOptional()
   @IsBoolean()

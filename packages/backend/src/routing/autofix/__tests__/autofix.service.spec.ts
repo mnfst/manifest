@@ -6,6 +6,8 @@ import type { ForwardResult } from '../../proxy/provider-client';
 import { AutofixService, type MaybeHealParams } from '../autofix.service';
 import { HealContractError, type HealingClient } from '../healing-client';
 import type { HealResponse } from '../phoenix.types';
+import { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
+import { createKeyRotationState, markKeyLabelUsed } from '../../proxy/key-rotation';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -55,11 +57,16 @@ function makeService(opts: {
   client?: HealingClient;
   repo?: Repository<Agent>;
   config?: ConfigService;
+  keyRotationRules?: unknown;
 }): AutofixService {
   return new AutofixService(
     opts.client ?? (makeHealingClient() as unknown as HealingClient),
     opts.repo ?? makeAgentRepo().repo,
     opts.config ?? makeConfig(),
+    (opts.keyRotationRules ?? {
+      getRule: jest.fn().mockResolvedValue(null),
+      list: jest.fn().mockResolvedValue([]),
+    }) as KeyRotationRuleService,
   );
 }
 
@@ -75,6 +82,7 @@ function makeParams(overrides: Partial<MaybeHealParams>): MaybeHealParams {
     apiMode: 'chat_completions',
     requestBody: { model: 'gpt', max_tokens: 100 },
     url: 'https://api.example.com/v1/chat/completions',
+    keyRotationState: createKeyRotationState(),
     reforward: jest.fn(),
     ...overrides,
   } as MaybeHealParams;
@@ -578,6 +586,99 @@ describe('AutofixService', () => {
         statusCode: 400,
         error: { message: 'boom', type: null, param: null, code: null },
       });
+    });
+
+    // -------------------------------------------------------------------
+    // rotate_key heal operation (Feature C)
+    // -------------------------------------------------------------------
+    const rotationRule = () => ({
+      id: 'rule-1',
+      agentId: 'agent-1',
+      model: 'gpt',
+      provider: 'anthropic',
+      scope: 'model' as const,
+      keyOrder: ['Work', 'Personal'],
+    });
+
+    it('rotate_key operation retries the healed body with the NEXT unused key label', async () => {
+      const rule = rotationRule();
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal({ operations: [{ type: 'rotate_key' }] }));
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo,
+        keyRotationRules: { getRule: jest.fn().mockResolvedValue(rule) },
+      });
+      const state = createKeyRotationState();
+      // The primary already failed on 'Work' — the heal must move to 'Personal'.
+      markKeyLabelUsed(state, rule, 'gpt', 'Work');
+
+      await service.maybeHeal(makeParams({ reforward, keyRotationState: state }));
+
+      expect(reforward).toHaveBeenCalledTimes(1);
+      expect(reforward).toHaveBeenCalledWith(expect.any(Object), {
+        keyRotationLabel: 'Personal',
+      });
+      // The rotated label is marked used in the request's shared state, so a
+      // failed rotated retry is never re-tried by the later fallback loop.
+      expect(state.get('model:gpt')).toEqual(new Set(['Work', 'Personal']));
+    });
+
+    it('rotate_key with no rule degrades to the same-key retry (logged)', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal({ operations: [{ type: 'rotate_key' }] }));
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      // Default keyRotationRules mock: getRule resolves null.
+      const service = makeService({ client: client as unknown as HealingClient, repo });
+
+      await service.maybeHeal(makeParams({ reforward }));
+
+      expect(reforward).toHaveBeenCalledTimes(1);
+      // No rotation option passed — same-key retry.
+      expect(reforward.mock.calls[0]).toHaveLength(1);
+    });
+
+    it('rotate_key with all key labels already used degrades to the same-key retry', async () => {
+      const rule = rotationRule();
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal({ operations: [{ type: 'rotate_key' }] }));
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo,
+        keyRotationRules: { getRule: jest.fn().mockResolvedValue(rule) },
+      });
+      const state = createKeyRotationState();
+      markKeyLabelUsed(state, rule, 'gpt', 'Work');
+      markKeyLabelUsed(state, rule, 'gpt', 'Personal');
+
+      await service.maybeHeal(makeParams({ reforward, keyRotationState: state }));
+
+      expect(reforward).toHaveBeenCalledTimes(1);
+      expect(reforward.mock.calls[0]).toHaveLength(1);
+    });
+
+    it('non-rotate_key operations never request a key rotation', async () => {
+      const client = makeHealingClient();
+      client.heal.mockResolvedValue(patchedHeal({ operations: [{ type: 'rename_param' }] }));
+      const reforward = jest.fn().mockResolvedValue(makeForward('{"ok":true}', 200));
+      const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      const getRule = jest.fn();
+      const service = makeService({
+        client: client as unknown as HealingClient,
+        repo,
+        keyRotationRules: { getRule },
+      });
+
+      await service.maybeHeal(makeParams({ reforward }));
+
+      expect(reforward.mock.calls[0]).toHaveLength(1);
+      // The rule service is never consulted without a rotate_key operation.
+      expect(getRule).not.toHaveBeenCalled();
     });
   });
 
@@ -1220,6 +1321,53 @@ describe('AutofixService', () => {
       expect(cache.size).toBe(1);
       expect(cache.has('tenant-1:agent-1')).toBe(true);
     });
+  });
+
+  it('passes reasoningContentCache through to the heal request', async () => {
+    const client = makeHealingClient();
+    client.heal.mockResolvedValue({
+      status: 'patched',
+      issueId: 'issue-rc',
+      patchId: 'patch-rc',
+      healAttemptId: 'heal-rc',
+      operations: [{ type: 'add_param', to: 'reasoning_content' }],
+      healedBody: { model: 'deepseek', messages: [] },
+    });
+    client.reportOutcome.mockResolvedValue(null);
+    const service = makeService({
+      client: client as unknown as HealingClient,
+      repo: makeAgentRepo(() => ({ autofix_enabled: true })).repo,
+    });
+    const reforward = jest.fn().mockResolvedValue(makeForward('ok', 200));
+
+    await service.maybeHeal(
+      makeParams({
+        forward: makeForward('{"error":{"message":"reasoning_content required"}}', 400),
+        provider: 'deepseek',
+        model: 'deepseek-v4-flash',
+        requestBody: {
+          model: 'deepseek-v4-flash',
+          messages: [
+            {
+              role: 'assistant',
+              content: '',
+              tool_calls: [
+                { id: 'call_123', type: 'function', function: { name: 'f', arguments: '{}' } },
+              ],
+            },
+            { role: 'tool', tool_call_id: 'call_123', content: '{}' },
+          ],
+        },
+        reasoningContentCache: { call_123: 'original reasoning text' },
+        reforward,
+      }),
+    );
+
+    expect(client.heal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reasoningContentCache: { call_123: 'original reasoning text' },
+      }),
+    );
   });
 });
 

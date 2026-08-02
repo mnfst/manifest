@@ -5,6 +5,13 @@ import type { AuthType, ModelRoute } from 'manifest-shared';
 import { applyRequestParamDefaults } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
+import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
+import {
+  KeyRotationState,
+  keyRotationStateKey,
+  markKeyLabelUsed,
+  usedLabelCount,
+} from './key-rotation';
 
 /**
  * Context for the per-attempt param-defaults merge. Carries the agentId so
@@ -143,6 +150,7 @@ export class ProxyFallbackService {
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly reasoningCache: ReasoningContentCache,
+    private readonly keyRotationRules: KeyRotationRuleService,
   ) {}
 
   /**
@@ -195,6 +203,15 @@ export class ProxyFallbackService {
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
     providerCacheKey?: string,
+    /**
+     * Per-request key rotation state, threaded from the primary flow. When a
+     * route's model has a rotation rule, the rule's unused labels fully
+     * control this slot's key choice (first unused wins over route.keyLabel)
+     * and each fallback-triggering failure rotates to the next label for the
+     * SAME model without consuming an extra chain slot. Omit to keep legacy
+     * behavior (no rotation).
+     */
+    keyRotationState?: KeyRotationState,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -204,6 +221,8 @@ export class ProxyFallbackService {
       authType?: AuthType;
       keyLabel?: string;
       tenantProviderId: string | null;
+      /** True when the winning attempt was a same-model key-rotation retry. */
+      recoveredByKeyRotation?: boolean;
     } | null;
     failures: FailedFallback[];
   }> {
@@ -226,12 +245,6 @@ export class ProxyFallbackService {
       const route = useStructuredRoutes ? fallbackRoutes![i] : null;
       let provider: string | undefined;
       let authType: AuthType;
-      // Pinned key label: prefer the structured route's keyLabel. Each
-      // fallback can be pinned to a specific provider key (e.g. "Work" vs
-      // "Personal" Anthropic Console). When no label is supplied for a
-      // subscription fallback, resolve the priority-0 key's label so OAuth
-      // refresh persistence updates the same key getProviderApiKey selected.
-      let providerKeyLabel = route?.keyLabel ?? undefined;
 
       if (route) {
         provider = route.provider;
@@ -263,107 +276,163 @@ export class ProxyFallbackService {
         )) as AuthType;
       }
       const model = normalizeProviderModel(provider, requestedModel);
-      // Same credential resolution as primary (select key + OAuth unwrap).
-      const credentials = await resolveRouteCredentials(this.routeCredentialDeps(), {
-        agentId,
-        tenantId,
-        provider,
-        authType,
-        providerKeyLabel,
-      });
-      if (!credentials.ok) {
+
+      // Key rotation: when a rule exists for this model, the rule fully
+      // controls this slot's key choice — its unused labels (in order) are
+      // attempted for the SAME model, and each fallback-triggering failure
+      // advances to the next label without consuming an extra chain slot.
+      // Exhausted rules count the model as failed and the chain advances.
+      const state = keyRotationState;
+      // Provider passed explicitly so provider-scope rules resolve for bare
+      // model ids that carry no prefix.
+      const rule = state ? await this.keyRotationRules.getRule(model, agentId, provider) : null;
+      // `applyRule` implies both `state` and `rule` are non-null below.
+      const applyRule =
+        state !== undefined &&
+        rule !== null &&
+        rule.provider.toLowerCase() === provider.toLowerCase();
+      const labels = applyRule
+        ? rule!.keyOrder.filter(
+            (label) => !state!.get(keyRotationStateKey(rule!, model))?.has(label),
+          )
+        : [route?.keyLabel ?? undefined];
+      if (applyRule && labels.length === 0) {
         this.logger.debug(
-          `Fallback ${i}: credential failure model=${model} provider=${provider} reason=${credentials.reason}`,
-        );
-        failures.push(
-          buildCredentialFailureFallback({
-            model,
-            provider,
-            fallbackIndex: i,
-            authType,
-            tenantProviderId: credentials.tenantProviderId,
-            presentation: presentCredentialFailure(
-              credentials.reason,
-              provider,
-              credentialDashboardUrl ?? 'the dashboard',
-            ),
-            startProviderAttempt,
-          }),
+          `Fallback ${i}: skipping model=${model} (key rotation labels exhausted this request)`,
         );
         continue;
       }
-      providerKeyLabel = credentials.keyLabel ?? providerKeyLabel;
-      const tenantProviderId = credentials.tenantProviderId;
 
-      this.logger.log(
-        `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
-      );
+      let breakChain = false;
+      for (const [labelIndex, label] of labels.entries()) {
+        if (applyRule) {
+          markKeyLabelUsed(state!, rule!, model, label);
+          this.logger.debug(
+            `Fallback ${i}: key rotation model=${model} label=${label} ` +
+              `(${usedLabelCount(state!, rule!, model)}/${rule!.keyOrder.length}, primary=${primaryModel})`,
+          );
+        }
+        let providerKeyLabel = label;
 
-      const forward = await this.tryForwardToProvider({
-        provider,
-        apiKey: credentials.apiKey,
-        model,
-        body,
-        resolveChatBody,
-        stream,
-        sessionKey,
-        providerCacheKey,
-        signal,
-        agentId,
-        tenantId,
-        rawApiKey: credentials.rawApiKey,
-        providerKeyLabel,
-        authType,
-        apiMode,
-        resourceUrl: credentials.resourceUrl,
-        providerRegion: credentials.providerRegion,
-        signatureLookup,
-        thinkingLookup,
-        paramMergeContext,
-        tenantProviderId,
-        startProviderAttempt,
-      });
+        // Same credential resolution as primary (select key + OAuth unwrap).
+        const credentials = await resolveRouteCredentials(this.routeCredentialDeps(), {
+          agentId,
+          tenantId,
+          provider,
+          authType,
+          providerKeyLabel,
+        });
+        if (!credentials.ok) {
+          this.logger.debug(
+            `Fallback ${i}: credential failure model=${model} provider=${provider} ` +
+              `label=${providerKeyLabel} reason=${credentials.reason}`,
+          );
+          failures.push(
+            buildCredentialFailureFallback({
+              model,
+              provider,
+              fallbackIndex: i,
+              authType,
+              tenantProviderId: credentials.tenantProviderId,
+              presentation: presentCredentialFailure(
+                credentials.reason,
+                provider,
+                credentialDashboardUrl ?? 'the dashboard',
+              ),
+              startProviderAttempt,
+            }),
+          );
+          continue;
+        }
+        providerKeyLabel = credentials.keyLabel ?? providerKeyLabel;
+        const tenantProviderId = credentials.tenantProviderId;
 
-      if (forward.response.ok) {
-        return {
-          success: {
-            forward,
-            model,
-            provider,
-            fallbackIndex: i,
-            authType,
-            // Label of the connection row that served the attempt — stamped
-            // alongside its tenant_provider_id so the pair always matches.
-            // Synthetic rows (Ollama) keep the pinned label, if any.
-            keyLabel: tenantProviderId
-              ? (credentials.keyLabel ?? providerKeyLabel)
-              : providerKeyLabel,
-            tenantProviderId,
-          },
-          failures,
-        };
+        this.logger.log(
+          `Fallback ${i}: trying model=${model} provider=${provider} auth_type=${authType} (primary=${primaryModel})`,
+        );
+
+        const forward = await this.tryForwardToProvider({
+          provider,
+          apiKey: credentials.apiKey,
+          model,
+          body,
+          resolveChatBody,
+          stream,
+          sessionKey,
+          providerCacheKey,
+          signal,
+          agentId,
+          tenantId,
+          rawApiKey: credentials.rawApiKey,
+          providerKeyLabel,
+          authType,
+          apiMode,
+          resourceUrl: credentials.resourceUrl,
+          providerRegion: credentials.providerRegion,
+          signatureLookup,
+          thinkingLookup,
+          paramMergeContext,
+          tenantProviderId,
+          startProviderAttempt,
+        });
+
+        if (forward.response.ok) {
+          return {
+            success: {
+              forward,
+              model,
+              provider,
+              fallbackIndex: i,
+              authType,
+              // Label of the connection row that served the attempt — stamped
+              // alongside its tenant_provider_id so the pair always matches.
+              // Synthetic rows (Ollama) keep the pinned label, if any.
+              keyLabel: tenantProviderId
+                ? (credentials.keyLabel ?? providerKeyLabel)
+                : providerKeyLabel,
+              tenantProviderId,
+              // "Recovered by key rotation": the winning label was NOT the
+              // slot's first label (an earlier key for this model failed) —
+              // either a later index in this slot's filtered list, or labels
+              // already burned by the primary path before this slot ran —
+              // AND the winning model is the SAME model that failed; a
+              // different-model chain recovery stays "Recovered by fallback".
+              recoveredByKeyRotation:
+                applyRule &&
+                (usedLabelCount(state!, rule!, model) > 0 || labelIndex > 0) &&
+                model.toLowerCase() === primaryModel.toLowerCase(),
+            },
+            failures,
+          };
+        }
+
+        const errorBody = await forward.response.text();
+        await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
+        failures.push({
+          model,
+          provider,
+          fallbackIndex: i,
+          status: forward.response.status,
+          errorBody,
+          authType,
+          tenantProviderId,
+          attempt: forward.attempt,
+          providerCallStarted: forward.providerCallStarted,
+        });
+
+        const existing = failedAuthByProvider.get(provider.toLowerCase());
+        const updated = new Set(existing);
+        updated.add(authType);
+        failedAuthByProvider.set(provider.toLowerCase(), updated);
+
+        // A status that should NOT trigger fallback breaks out of the
+        // rotation loop AND the chain — same as the non-rotation path.
+        if (!shouldTriggerFallback(forward.response.status)) {
+          breakChain = true;
+          break;
+        }
       }
-
-      const errorBody = await forward.response.text();
-      await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
-      failures.push({
-        model,
-        provider,
-        fallbackIndex: i,
-        status: forward.response.status,
-        errorBody,
-        authType,
-        tenantProviderId,
-        attempt: forward.attempt,
-        providerCallStarted: forward.providerCallStarted,
-      });
-
-      const existing = failedAuthByProvider.get(provider.toLowerCase());
-      const updated = new Set(existing);
-      updated.add(authType);
-      failedAuthByProvider.set(provider.toLowerCase(), updated);
-
-      if (!shouldTriggerFallback(forward.response.status)) break;
+      if (breakChain) break;
     }
     return { success: null, failures };
   }

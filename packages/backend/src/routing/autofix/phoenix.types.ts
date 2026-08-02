@@ -65,6 +65,14 @@ export interface HealRequest {
   request: Record<string, unknown>;
   response: PhoenixProviderResponse;
   providerExchange?: PhoenixProviderExchange;
+  /**
+   * Cached `reasoning_content` values keyed by the assistant turn's first
+   * `tool_call.id`. Manifest's ReasoningContentCache holds the original
+   * reasoning_content DeepSeek requires on replay; the healer's
+   * `reasoning_content_missing` patch fills these real values instead of empty
+   * strings. Absent/empty when no replayable turns or no cache hits.
+   */
+  reasoningContentCache?: Record<string, string>;
   responseTimeMs?: number;
   responseSizeBytes?: number;
 }
@@ -87,6 +95,20 @@ export interface PhoenixOperation {
   type: string;
   from?: string;
   to?: string;
+}
+
+/**
+ * Known Phoenix operation types. `rotate_key` tells Manifest the failed
+ * provider call was a key/quota problem: the healed body must be retried with
+ * the NEXT key per the harness's key-order rule instead of the same key.
+ * Kept as a runtime const so contract specs can assert it stays in lockstep
+ * with the OpenAPI catalog.
+ */
+export const PHOENIX_OPERATIONS = ['rename_param', 'rotate_key'] as const;
+export type PhoenixOperationType = (typeof PHOENIX_OPERATIONS)[number];
+
+export function hasRotateKeyOperation(operations: PhoenixOperation[] | null | undefined): boolean {
+  return operations?.some((op) => op.type === 'rotate_key') ?? false;
 }
 
 /**

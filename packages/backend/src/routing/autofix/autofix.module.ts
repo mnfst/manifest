@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ManifestRequest } from '../../entities/request.entity';
+import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { AutofixService } from './autofix.service';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
@@ -23,7 +24,12 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  *   loop can be exercised locally without an external Phoenix.
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest])],
+  imports: [
+    TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]),
+    // Exposes KeyRotationRuleService to AutofixService for `rotate_key` heal
+    // operations (retry with the next key per the harness's rule).
+    RoutingCoreModule,
+  ],
   providers: [
     AutofixService,
     AutofixHealthProbe,

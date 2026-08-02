@@ -324,6 +324,38 @@ function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
 }
 
 /**
+ * Normalize tool function schemas whose `parameters` is malformed. SDKs
+ * sometimes emit `type: "null"` or omit `type` entirely; strict providers
+ * (DeepSeek, OpenAI) reject these with "Invalid schema for function". A tool
+ * without a usable schema still needs a valid container, so coerce the
+ * parameter object to `type: "object"` with its existing `properties`
+ * preserved. Passes through tools that already have a valid `type`.
+ */
+function sanitizeToolSchemas(tools: unknown[]): unknown[] {
+  return tools.map((tool) => {
+    if (!tool || typeof tool !== 'object' || Array.isArray(tool)) return tool;
+    const entry = tool as Record<string, unknown>;
+    if (entry.type !== 'function' || !entry.function || typeof entry.function !== 'object') {
+      return entry;
+    }
+    const fn = entry.function as Record<string, unknown>;
+    const params = fn.parameters as Record<string, unknown> | undefined;
+    if (
+      params &&
+      typeof params === 'object' &&
+      params.type !== 'object' &&
+      (!('type' in params) || params.type === 'null' || params.type === null)
+    ) {
+      return {
+        ...entry,
+        function: { ...fn, parameters: { type: 'object', properties: params.properties ?? {} } },
+      };
+    }
+    return entry;
+  });
+}
+
+/**
  * Strip OpenAI-specific fields and normalise `max_completion_tokens` -> `max_tokens`
  * for providers that use the OpenAI format but reject unknown fields.
  */
@@ -344,6 +376,15 @@ export function sanitizeOpenAiBody(
   for (const [key, value] of Object.entries(body)) {
     if (key === 'messages') {
       cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model);
+      continue;
+    }
+    // Some SDKs emit tool function schemas with `type: "null"` or no type at
+    // all, which DeepSeek (and other strict providers) reject with
+    // "Invalid schema for function / schema must be a JSON Schema". Normalize
+    // those to `type: "object"` up front so a well-formed request never has to
+    // round-trip through Auto-fix for a schema-only defect.
+    if (key === 'tools' && Array.isArray(value)) {
+      cleaned[key] = sanitizeToolSchemas(value);
       continue;
     }
     // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that

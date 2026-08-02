@@ -154,6 +154,25 @@ describe('provider-client-converters', () => {
       }
     });
 
+    it('should normalize tool function schemas with type:"null" to type:"object"', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'refactor' }],
+        tools: [
+          {
+            type: 'function',
+            function: { name: 'ast_grep_replace', parameters: { type: 'null', properties: {} } },
+          },
+        ],
+      };
+
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash') as {
+        tools?: Array<{ function: { parameters: { type: string } } }>;
+      };
+
+      expect(result.tools).toBeDefined();
+      expect(result.tools![0].function.parameters.type).toBe('object');
+    });
+
     it('should keep thinking params for compatible OpenAI-format providers', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
