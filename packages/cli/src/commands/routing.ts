@@ -35,50 +35,11 @@ export async function routingStatus(io: CliIo, argv: string[]): Promise<void> {
   printJson(io, await client.request('GET', agentPath(agent, '/status')));
 }
 
-/** One command for the whole default route: model + optional fallbacks. */
-export async function routingSet(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, {
-    strings: ['url', 'model', 'provider', 'auth-type', 'key-label', 'fallbacks'],
-  });
-  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
-  const model = requireString(args, 'model');
-  const provider = requireString(args, 'provider');
-  const { client } = clientFromFlags(io, args);
-  const route = await client.request('PUT', agentPath(agent, '/tiers/default'), {
-    body: {
-      model,
-      provider,
-      authType: args.strings['auth-type'] ?? 'api_key',
-      ...(args.strings['key-label'] ? { providerKeyLabel: args.strings['key-label'] } : {}),
-    },
-  });
-  let fallbacks: unknown;
-  if (args.strings['fallbacks']) {
-    fallbacks = await client.request('PUT', agentPath(agent, '/tiers/default/fallbacks'), {
-      body: { models: parseModelsList(args.strings['fallbacks']) },
-    });
-  }
-  printJson(io, { agent, route, ...(fallbacks !== undefined ? { fallbacks } : {}) });
-}
-
 export async function routingFallbacksGet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const { client } = clientFromFlags(io, args);
   printJson(io, await client.request('GET', agentPath(agent, '/tiers/default/fallbacks')));
-}
-
-export async function routingFallbacksSet(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url', 'models'] });
-  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
-  const models = parseModelsList(requireString(args, 'models'));
-  const { client } = clientFromFlags(io, args);
-  printJson(
-    io,
-    await client.request('PUT', agentPath(agent, '/tiers/default/fallbacks'), {
-      body: { models },
-    }),
-  );
 }
 
 export async function routingFallbacksClear(io: CliIo, argv: string[]): Promise<void> {

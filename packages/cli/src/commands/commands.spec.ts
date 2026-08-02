@@ -1377,24 +1377,22 @@ describe('routing commands', () => {
     expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/status`);
   });
 
-  it('routing set writes the default route and optional fallbacks in one command', async () => {
+  it('agent configure writes the default route with fallbacks from --models', async () => {
     const { io, calls } = authedIo([
       { status: 200, body: { ok: true } },
       { status: 200, body: { models: ['m2', 'm3'] } },
     ]);
     expect(
       await run(io, [
-        'routing',
-        'set',
-        'john',
-        '--model',
-        'grok-4.5',
+        'agent',
+        'configure',
+        'John',
+        '--models',
+        'grok-4.5, m2, m3',
         '--provider',
         'xai',
         '--auth-type',
         'subscription',
-        '--fallbacks',
-        'm2, m3',
       ]),
     ).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default`);
@@ -1405,20 +1403,108 @@ describe('routing commands', () => {
     });
     expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
     expect(JSON.parse(calls[1].body!)).toEqual({ models: ['m2', 'm3'] });
-    expect(io.lastJson()).toEqual({
-      agent: 'john',
-      route: { ok: true },
-      fallbacks: { models: ['m2', 'm3'] },
+    expect(io.lastJson()).toMatchObject({ agent: 'john', route: { ok: true } });
+  });
+
+  it('agent configure with a single model clears existing fallbacks', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { ok: true } },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(
+      await run(io, ['agent', 'configure', 'john', '--models', 'solo', '--provider', 'openai']),
+    ).toBe(0);
+    expect(calls[1].method).toBe('DELETE');
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
+    expect((io.lastJson() as { fallbacks: unknown }).fallbacks).toEqual([]);
+  });
+
+  it('agent configure --tier upserts the named custom tier', async () => {
+    // existing tier: found by name, no create
+    const { io, calls } = authedIo([
+      { status: 200, body: [{ id: 'ht-9', name: 'Test' }] },
+      { status: 200, body: { ok: true } },
+      { status: 200, body: { models: ['fb'] } },
+    ]);
+    expect(
+      await run(io, [
+        'agent',
+        'configure',
+        'john',
+        '--tier',
+        'test',
+        '--models',
+        'grok-4.5,fb',
+        '--provider',
+        'xai',
+      ]),
+    ).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/header-tiers`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-9/override`);
+    expect((io.lastJson() as { tier: { created: boolean } }).tier.created).toBe(false);
+
+    // missing tier: created with the default trigger
+    const { io: io2, calls: calls2 } = authedIo([
+      { status: 200, body: [] },
+      { status: 201, body: { id: 'ht-new' } },
+      { status: 200, body: { ok: true } },
+      { status: 200, body: { ok: true } },
+    ]);
+    expect(
+      await run(io2, [
+        'agent',
+        'configure',
+        'john',
+        '--tier',
+        'heavy',
+        '--models',
+        'big-model',
+        '--provider',
+        'openai',
+      ]),
+    ).toBe(0);
+    expect(JSON.parse(calls2[1].body!)).toEqual({
+      name: 'heavy',
+      header_key: 'x-manifest-tier',
+      header_value: 'heavy',
+      badge_color: 'indigo',
+    });
+    expect((io2.lastJson() as { tier: { created: boolean } }).tier.created).toBe(true);
+  });
+
+  it('agent configure toggles autofix/recording, alone or combined', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { enabled: true } },
+      { status: 200, body: { enabled: false } },
+    ]);
+    expect(
+      await run(io, ['agent', 'configure', 'john', '--autofix', 'true', '--recording', 'false']),
+    ).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/autofix`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/recording`);
+    expect(io.lastJson()).toMatchObject({
+      autofix: { enabled: true },
+      recording: { enabled: false },
     });
   });
 
-  it('routing set without fallbacks makes one call with api_key default', async () => {
-    const { io, calls } = authedIo([{ status: 200, body: { ok: true } }]);
-    expect(await run(io, ['routing', 'set', 'john', '--model', 'm', '--provider', 'openai'])).toBe(
-      0,
-    );
-    expect(calls).toHaveLength(1);
-    expect(JSON.parse(calls[0].body!).authType).toBe('api_key');
+  it('agent configure validates its input combinations', async () => {
+    const { io } = authedIo([]);
+    expect(await run(io, ['agent', 'configure', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'missing_flag' });
+
+    const { io: io2 } = authedIo([]);
+    // --autofix keeps the command non-empty so the tier-needs-route rule fires
+    expect(
+      await run(io2, ['agent', 'configure', 'john', '--tier', 'test', '--autofix', 'true']),
+    ).toBe(1);
+    expect((io2.lastJson() as { message: string }).message).toContain('--tier needs');
+
+    const { io: io3 } = authedIo([]);
+    expect(
+      await run(io3, ['agent', 'configure', 'john', '--models', ' , ', '--provider', 'x']),
+    ).toBe(1);
+    expect(io3.lastJson()).toMatchObject({ error: 'missing_flag' });
   });
 
   it('the deprecated complexity-tier commands are gone', async () => {
@@ -1430,26 +1516,20 @@ describe('routing commands', () => {
     expect(io2.lastJson()).toMatchObject({ error: 'unknown_command' });
   });
 
-  it('fallbacks get/set/clear target the default route only', async () => {
+  it('fallbacks get/clear target the default route (writes live in agent configure)', async () => {
     const { io, calls } = authedIo([{ status: 200, body: {} }]);
     expect(await run(io, ['routing', 'fallbacks', 'get', 'john'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
 
-    const { io: io2, calls: calls2 } = authedIo([{ status: 200, body: {} }]);
-    expect(await run(io2, ['routing', 'fallbacks', 'set', 'john', '--models', 'a,b'])).toBe(0);
-    expect(JSON.parse(calls2[0].body!)).toEqual({ models: ['a', 'b'] });
+    const { io: io2 } = authedIo([{ status: 200, body: {} }]);
+    expect(await run(io2, ['routing', 'fallbacks', 'clear', 'john'])).toBe(1); // no --yes
+    const { io: io3, calls: calls3 } = authedIo([{ status: 200, body: {} }]);
+    expect(await run(io3, ['routing', 'fallbacks', 'clear', 'john', '--yes'])).toBe(0);
+    expect(calls3[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
 
-    const { io: io3 } = authedIo([{ status: 200, body: {} }]);
-    expect(await run(io3, ['routing', 'fallbacks', 'clear', 'john'])).toBe(1); // no --yes
-    const { io: io4, calls: calls4 } = authedIo([{ status: 200, body: {} }]);
-    expect(await run(io4, ['routing', 'fallbacks', 'clear', 'john', '--yes'])).toBe(0);
-    expect(calls4[0].url).toBe(`${HOST}/api/v1/routing/john/tiers/default/fallbacks`);
-  });
-
-  it('fallbacks set rejects an empty models list', async () => {
-    const { io } = authedIo([]);
-    expect(await run(io, ['routing', 'fallbacks', 'set', 'john', '--models', ' , '])).toBe(1);
-    expect(io.lastJson()).toMatchObject({ error: 'missing_flag' });
+    const { io: io4 } = authedIo([]);
+    expect(await run(io4, ['routing', 'fallbacks', 'set', 'john', '--models', 'a'])).toBe(1);
+    expect(io4.lastJson()).toMatchObject({ error: 'unknown_command' });
   });
 
   it('custom create makes the tier, routes it, and sets fallbacks', async () => {
@@ -1489,6 +1569,30 @@ describe('routing commands', () => {
     });
     expect(calls[2].url).toBe(`${HOST}/api/v1/routing/john/header-tiers/ht-1/fallbacks`);
     expect(io.lastJson()).toMatchObject({ agent: 'john', tier: { id: 'ht-1' } });
+  });
+
+  it('custom create rejects an empty --fallbacks list', async () => {
+    const { io } = authedIo([
+      { status: 201, body: { id: 'ht-x' } },
+      { status: 200, body: {} },
+    ]);
+    expect(
+      await run(io, [
+        'routing',
+        'custom',
+        'create',
+        'john',
+        '--name',
+        'x',
+        '--model',
+        'm',
+        '--provider',
+        'p',
+        '--fallbacks',
+        ' , ',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'missing_flag' });
   });
 
   it('custom create honors custom header key/value', async () => {
