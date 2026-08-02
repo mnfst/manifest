@@ -47,6 +47,8 @@ function trimRow(row: unknown): unknown {
   return out;
 }
 
+const VALID_RANGES = ['1h', '6h', '24h', '7d', '30d', '90d', '365d'] as const;
+
 export async function requestsGet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'agent', 'range', 'status', 'provider', 'limit', 'cursor', 'origin'],
@@ -58,6 +60,12 @@ export async function requestsGet(io: CliIo, argv: string[]): Promise<void> {
     if (!Number.isInteger(limit) || limit < 1 || limit > 200) {
       throw new CliError('invalid_flag', '--limit must be an integer between 1 and 200');
     }
+  }
+  if (
+    args.strings['range'] !== undefined &&
+    !(VALID_RANGES as readonly string[]).includes(args.strings['range'])
+  ) {
+    throw new CliError('invalid_flag', `--range must be one of: ${VALID_RANGES.join(', ')}`);
   }
   const agent = args.strings['agent'] ? slugifyAgentName(args.strings['agent']) : undefined;
   const { client } = clientFromFlags(io, args);

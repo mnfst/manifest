@@ -66,5 +66,16 @@ export async function modelsList(io: CliIo, argv: string[]): Promise<void> {
         : {}),
     }));
 
-  printJson(io, { agent, count: models.length, models });
+  printJson(io, {
+    agent,
+    count: models.length,
+    // A connection only contributes models when it is active AND discovery
+    // cached its list — an empty result usually means one of those is off.
+    ...(models.length === 0
+      ? {
+          hint: `No routable models${providerFilter ? ` for ${providerFilter}` : ''} — check connections are active and models were fetched: mnfst provider list --agent ${agent}`,
+        }
+      : {}),
+    models,
+  });
 }
