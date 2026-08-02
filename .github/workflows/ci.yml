@@ -135,10 +135,10 @@ jobs:
       # drift-guard specs resolve the workspace package at build/test time.
       - run: npm run build --workspace=packages/shared
       - run: npm run build --workspace=packages/cli
-      # A stale committed catalog must fail CI. The build regenerates the file,
-      # so the drift specs compare against the freshly generated copy and can
-      # never catch it — only the working-tree diff can.
-      - run: git diff --exit-code -- packages/cli/src/provider-catalog.gen.ts
+      # A stale committed catalog (or embedded skill) must fail CI. The build
+      # regenerates both files, so the drift specs compare against the freshly
+      # generated copy and can never catch it — only the working-tree diff can.
+      - run: git diff --exit-code -- packages/cli/src/provider-catalog.gen.ts packages/cli/src/skill-content.gen.ts
       - run: npm test --workspace=packages/cli -- --coverage
 
   changeset-check:

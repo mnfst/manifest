@@ -36,6 +36,29 @@ describe('telemetry', () => {
     });
   });
 
+  it('adds agent_runtime only when a coding agent is driving the CLI', async () => {
+    const bodies: string[] = [];
+    const impl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body));
+      return new Response('{}', { status: 202 });
+    }) as typeof fetch;
+
+    const agent = makeIo({
+      env: { MANIFEST_TELEMETRY_DISABLED: '0', CLAUDECODE: '1' },
+      fetchImpl: impl,
+    });
+    await reportUsage(agent, 'doctor', true, 1);
+    expect(JSON.parse(bodies[0])).toMatchObject({
+      schema_version: 1,
+      agent_runtime: 'claude-code',
+    });
+
+    // A human run carries no such key at all — the shape is unchanged.
+    const human = makeIo({ env: { MANIFEST_TELEMETRY_DISABLED: '0' }, fetchImpl: impl });
+    await reportUsage(human, 'doctor', true, 1);
+    expect(JSON.parse(bodies[1])).not.toHaveProperty('agent_runtime');
+  });
+
   it('honors MANIFEST_TELEMETRY_DISABLED and a custom endpoint', async () => {
     const calls: string[] = [];
     const impl = (async (url: string | URL | Request) => {

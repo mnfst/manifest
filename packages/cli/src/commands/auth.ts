@@ -5,6 +5,7 @@ import { parseArgs } from '../args';
 import { readCredential } from '../secrets';
 import { browserLogin } from '../oauth-login';
 import { CliError } from '../errors';
+import { SKILL_NUDGE } from './skill';
 
 interface MeResponse {
   tenantId: string | null;
@@ -78,6 +79,9 @@ export async function login(io: CliIo, argv: string[]): Promise<void> {
     expiresAt: me.expiresAt ?? expiresAt,
     source: 'config',
   });
+  // Stderr only: stdout is the JSON contract, and a fresh login is the one
+  // moment an agent is certain to be reading this CLI's output.
+  io.stderr(SKILL_NUDGE);
 }
 
 export async function logout(io: CliIo, argv: string[]): Promise<void> {

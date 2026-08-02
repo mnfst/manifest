@@ -7,6 +7,9 @@ import { CLI_AGENT_PLATFORMS } from './agent';
 import { agentKeyPath, saveAgentKey } from '../keystore';
 import { OAUTH_POLL } from './oauth-connect';
 import { fetchStub, makeIo, writeConfig } from '../../test/helpers';
+import { SKILL_MD, SKILL_VERSION } from '../skill-content.gen';
+import { SKILL_NUDGE } from './skill';
+import { detectAgentRuntime, resolveHomePath } from '../agent-runtime';
 
 const ME = { tenantId: 't1', userId: 'u1', authMethod: 'api_key', expiresAt: null };
 const HOST = 'http://localhost:2099';
@@ -2735,12 +2738,15 @@ describe('doctor', () => {
     },
   };
 
+  /** A HOME with no skill installed, so the informational check is stable. */
+  const BARE_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-bare-home-'));
+
   function checksOf(io: { lastJson(): unknown }) {
     return (io.lastJson() as { checks: Array<Record<string, unknown>> }).checks;
   }
 
   it('reports every check green against a healthy install (env credential)', async () => {
-    const { io, calls } = authedIo([HEALTHY, ONE_AGENT, LIVE_PROVIDER]);
+    const { io, calls } = authedIo([HEALTHY, ONE_AGENT, LIVE_PROVIDER], { HOME: BARE_HOME });
     expect(await run(io, ['doctor'])).toBe(0);
     expect(calls.map((c) => c.url)).toEqual([
       `${HOST}/api/v1/health`,
@@ -2761,7 +2767,39 @@ describe('doctor', () => {
         { name: 'auth', ok: true, detail: `credential accepted by ${HOST}` },
         { name: 'providers', ok: true, detail: '1 connection(s) across 1 provider(s)' },
         { name: 'agents', ok: true, detail: '1 agent(s)' },
+        { name: 'skill', ok: true, detail: 'not_found', hint: 'mnfst skill install' },
       ],
+    });
+  });
+
+  it('reports the skill as informational: found, never failing the run', async () => {
+    // Installed under the detected runtime's directory.
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-home-'));
+    const file = path.join(home, '.claude', 'skills', 'mnfst-cli', 'SKILL.md');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, SKILL_MD);
+    const { io } = authedIo([HEALTHY, ONE_AGENT, LIVE_PROVIDER], {
+      HOME: home,
+      CLAUDECODE: '1',
+    });
+    expect(await run(io, ['doctor'])).toBe(0);
+    expect(checksOf(io)[5]).toEqual({
+      name: 'skill',
+      ok: true,
+      detail: `installed at ${file} · Claude Code detected`,
+    });
+
+    // Missing, with a runtime detected: still ok, still exit 0.
+    const { io: io2 } = authedIo([HEALTHY, ONE_AGENT, LIVE_PROVIDER], {
+      HOME: fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-home-')),
+      CURSOR_TRACE_ID: 'x',
+    });
+    expect(await run(io2, ['doctor'])).toBe(0);
+    expect(checksOf(io2)[5]).toEqual({
+      name: 'skill',
+      ok: true,
+      detail: 'not_found · Cursor detected',
+      hint: 'mnfst skill install',
     });
   });
 
@@ -2782,7 +2820,7 @@ describe('doctor', () => {
 
   it('fails closed with no credential at all, skipping everything downstream', async () => {
     const stub = fetchStub([HEALTHY]);
-    const io = makeIo({ fetchImpl: stub.impl });
+    const io = makeIo({ fetchImpl: stub.impl, env: { HOME: BARE_HOME } });
     expect(await run(io, ['doctor'])).toBe(1);
     const checks = checksOf(io);
     expect(checks[0]).toEqual({
@@ -2792,11 +2830,13 @@ describe('doctor', () => {
       hint: 'Run mnfst login, or set MANIFEST_URL + MANIFEST_API_KEY',
     });
     expect(checks[1].ok).toBe(true);
-    expect(checks.slice(2)).toEqual([
+    expect(checks.slice(2, 5)).toEqual([
       { name: 'auth', ok: null, skipped: true, detail: 'skipped — no credential resolved' },
       { name: 'providers', ok: null, skipped: true, detail: 'skipped — auth check did not pass' },
       { name: 'agents', ok: null, skipped: true, detail: 'skipped — auth check did not pass' },
     ]);
+    // The informational skill check never turns a run red on its own.
+    expect(checks[5]).toMatchObject({ name: 'skill', ok: true });
   });
 
   it('calls an unreachable host by its name, and skips auth rather than blaming the key', async () => {
@@ -2858,7 +2898,7 @@ describe('doctor', () => {
     // Downstream checks are skipped, not failed.
     expect(
       checksOf(io)
-        .slice(3)
+        .slice(3, 5)
         .map((c) => c.ok),
     ).toEqual([null, null]);
   });
@@ -2947,5 +2987,231 @@ describe('doctor', () => {
     const { io } = authedIo([HEALTHY, { status: 200, body: { agents: 'weird' } }, LIVE_PROVIDER]);
     expect(await run(io, ['doctor'])).toBe(0);
     expect(checksOf(io)[4]).toMatchObject({ detail: '0 agent(s)' });
+  });
+});
+
+describe('skill', () => {
+  /** A throwaway HOME so nothing reads or writes the developer's real one. */
+  function tempHome() {
+    return fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-home-'));
+  }
+  const skillFile = (base: string, ...segments: string[]) =>
+    path.join(base, ...segments, 'mnfst-cli', 'SKILL.md');
+
+  it('skill show prints raw markdown on stdout, and bare `skill` is the same command', async () => {
+    const io = makeIo();
+    expect(await run(io, ['skill', 'show'])).toBe(0);
+    expect(io.lines).toHaveLength(1);
+    expect(io.lines[0]).toBe(SKILL_MD);
+    // Deliberately not JSON — the second exception after `agent env`.
+    expect(() => JSON.parse(io.lines[0])).toThrow();
+
+    const io2 = makeIo();
+    expect(await run(io2, ['skill'])).toBe(0);
+    expect(io2.lines[0]).toBe(SKILL_MD);
+  });
+
+  it('skill install writes ~/.claude/skills/mnfst-cli/SKILL.md and is idempotent', async () => {
+    const home = tempHome();
+    const io = makeIo({ env: { HOME: home } });
+    expect(await run(io, ['skill', 'install'])).toBe(0);
+    const expected = skillFile(home, '.claude', 'skills');
+    expect(io.lastJson()).toEqual({
+      path: expected,
+      updated: true,
+      target: 'default',
+      version: SKILL_VERSION,
+    });
+    expect(fs.readFileSync(expected, 'utf8')).toBe(SKILL_MD);
+
+    // Second run: identical content, so nothing is rewritten.
+    const io2 = makeIo({ env: { HOME: home } });
+    expect(await run(io2, ['skill', 'install'])).toBe(0);
+    expect(io2.lastJson()).toMatchObject({ updated: false, target: 'default' });
+
+    // A drifted copy is replaced — the command owns exactly this one file.
+    fs.writeFileSync(expected, 'stale');
+    const io3 = makeIo({ env: { HOME: home } });
+    expect(await run(io3, ['skill', 'install'])).toBe(0);
+    expect(io3.lastJson()).toMatchObject({ updated: true });
+    expect(fs.readFileSync(expected, 'utf8')).toBe(SKILL_MD);
+  });
+
+  it('flags outrank detection, detection outranks the default', async () => {
+    const home = tempHome();
+    // --agents-dir wins even though Claude Code is detected.
+    const io = makeIo({ env: { HOME: home, CLAUDECODE: '1' } });
+    expect(await run(io, ['skill', 'install', '--agents-dir'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({
+      path: skillFile(home, '.agents', 'skills'),
+      target: 'flag',
+    });
+
+    // Detected runtime decides when no flag is given.
+    const home2 = tempHome();
+    const io2 = makeIo({ env: { HOME: home2, CURSOR_TRACE_ID: 'x' } });
+    expect(await run(io2, ['skill', 'install'])).toBe(0);
+    expect(io2.lastJson()).toMatchObject({
+      path: skillFile(home2, '.agents', 'skills'),
+      target: 'detected:cursor',
+    });
+
+    const project = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-project-'));
+    const cwd = jest.spyOn(process, 'cwd').mockReturnValue(project);
+    try {
+      const io3 = makeIo({ env: { HOME: tempHome() } });
+      expect(await run(io3, ['skill', 'install', '--project'])).toBe(0);
+      expect(io3.lastJson()).toMatchObject({
+        path: skillFile(project, '.claude', 'skills'),
+        target: 'flag',
+      });
+      expect(fs.readFileSync(skillFile(project, '.claude', 'skills'), 'utf8')).toBe(SKILL_MD);
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it('refuses two destinations at once', async () => {
+    const io = makeIo({ env: { HOME: tempHome() } });
+    expect(await run(io, ['skill', 'install', '--agents-dir', '--project'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'invalid_flag',
+      message: 'Pass one destination: --agents-dir or --project, not both',
+    });
+  });
+
+  it('fails with a clear error when the destination cannot be written', async () => {
+    const home = tempHome();
+    // A FILE where the skills tree needs a directory: mkdir -p fails.
+    fs.writeFileSync(path.join(home, '.claude'), 'not a directory');
+    const io = makeIo({ env: { HOME: home } });
+    expect(await run(io, ['skill', 'install'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'write_failed',
+      message: expect.stringContaining('Could not write'),
+      hint: expect.stringContaining('--project'),
+    });
+  });
+
+  it('login nudges about the skill on stderr, never on stdout', async () => {
+    const stub = fetchStub([{ status: 200, body: ME }]);
+    const io = makeIo({
+      env: { MNFST_TOKEN: 'tok-123', MANIFEST_URL: HOST, HOME: tempHome() },
+      fetchImpl: stub.impl,
+    });
+    expect(await run(io, ['login', '--token-env', 'MNFST_TOKEN'])).toBe(0);
+    expect(io.errLines).toContain(SKILL_NUDGE);
+    expect(io.lines.join('\n')).not.toContain(SKILL_NUDGE);
+  });
+});
+
+describe('agent runtime detection', () => {
+  it('maps each marker to its runtime and skills directory', () => {
+    expect(detectAgentRuntime({ CLAUDECODE: '1' })).toEqual({
+      id: 'claude-code',
+      name: 'Claude Code',
+      skillsDir: '~/.claude/skills',
+    });
+    expect(detectAgentRuntime({ CURSOR_TRACE_ID: 'abc' })).toMatchObject({ id: 'cursor' });
+    expect(detectAgentRuntime({ CODEX_SANDBOX: 'seatbelt' })).toMatchObject({ id: 'codex' });
+    expect(detectAgentRuntime({ CODEX_HOME: '/tmp/codex' })).toMatchObject({
+      id: 'codex',
+      name: 'Codex CLI',
+      skillsDir: '~/.agents/skills',
+    });
+  });
+
+  it('detects nothing for a human shell, and ignores empty markers', () => {
+    expect(detectAgentRuntime({})).toBeNull();
+    expect(detectAgentRuntime({ PATH: '/usr/bin', CLAUDECODE: '' })).toBeNull();
+  });
+
+  it('expands a leading ~ from HOME, and leaves absolute paths alone', () => {
+    expect(resolveHomePath({ HOME: '/home/me' }, '~/.claude/skills')).toBe(
+      '/home/me/.claude/skills',
+    );
+    expect(resolveHomePath({ HOME: '/home/me' }, '/etc/skills')).toBe('/etc/skills');
+    // No HOME → the OS answer, which is what os.homedir() is for.
+    expect(resolveHomePath({}, '~/x')).toBe(path.join(os.homedir(), 'x'));
+  });
+});
+
+describe('skill nudge', () => {
+  function nudgeIo(env: Record<string, string | undefined> = {}) {
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-home-'));
+    return { home, io: makeIo({ env: { HOME: home, CLAUDECODE: '1', ...env } }) };
+  }
+  const HINT = /Claude Code detected — run 'mnfst skill install'/;
+
+  it('fires once per runtime after a successful command, then stays silent', async () => {
+    const { home, io } = nudgeIo();
+    const cfg = io.configDir;
+    expect(await run(io, ['config', 'path'])).toBe(0);
+    expect(io.errLines.join('\n')).toMatch(HINT);
+    expect(io.errLines.join('\n')).toContain('Shown once.');
+    expect(io.lines.join('\n')).not.toMatch(HINT);
+
+    // State persisted next to the config — a later run says nothing.
+    const state = JSON.parse(
+      fs.readFileSync(path.join(cfg, 'manifest', 'skill-nudge.json'), 'utf8'),
+    ) as { shown: Record<string, string> };
+    expect(Date.parse(state.shown['claude-code'])).not.toBeNaN();
+
+    const io2 = makeIo({ env: { HOME: home, CLAUDECODE: '1', XDG_CONFIG_HOME: cfg } });
+    expect(await run(io2, ['config', 'path'])).toBe(0);
+    expect(io2.errLines.join('\n')).not.toMatch(HINT);
+
+    // A different runtime on the same machine is nudged on its own terms.
+    const io3 = makeIo({ env: { HOME: home, CURSOR_TRACE_ID: 'x', XDG_CONFIG_HOME: cfg } });
+    expect(await run(io3, ['config', 'path'])).toBe(0);
+    expect(io3.errLines.join('\n')).toMatch(/Cursor detected/);
+  });
+
+  it('stays silent for humans, for the skill commands, and on failure', async () => {
+    const noRuntime = makeIo({ env: { HOME: fs.mkdtempSync(path.join(os.tmpdir(), 'h-')) } });
+    expect(await run(noRuntime, ['config', 'path'])).toBe(0);
+    expect(noRuntime.errLines.join('\n')).not.toMatch(HINT);
+
+    const { io: onSkill } = nudgeIo();
+    expect(await run(onSkill, ['skill', 'install'])).toBe(0);
+    expect(onSkill.errLines.join('\n')).not.toMatch(HINT);
+
+    const { io: onShow } = nudgeIo();
+    expect(await run(onShow, ['skill'])).toBe(0);
+    expect(onShow.errLines.join('\n')).not.toMatch(HINT);
+
+    const { io: onFailure } = nudgeIo();
+    expect(await run(onFailure, ['agent', 'delete', 'x'])).toBe(1);
+    expect(onFailure.errLines.join('\n')).not.toMatch(HINT);
+  });
+
+  it('stays silent once the runtime already has the skill', async () => {
+    const { home, io } = nudgeIo();
+    const file = path.join(home, '.claude', 'skills', 'mnfst-cli', 'SKILL.md');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, SKILL_MD);
+    expect(await run(io, ['config', 'path'])).toBe(0);
+    expect(io.errLines.join('\n')).not.toMatch(HINT);
+  });
+
+  it('tolerates corrupt state, and swallows an unwritable state file', async () => {
+    // Corrupt JSON → treated as "never shown", so the hint still fires.
+    const { io } = nudgeIo();
+    const configDir = path.join(io.configDir, 'manifest');
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(path.join(configDir, 'skill-nudge.json'), '{not json');
+    expect(await run(io, ['config', 'path'])).toBe(0);
+    expect(io.errLines.join('\n')).toMatch(HINT);
+
+    // Unwritable state (a FILE where the config dir must be): hint still
+    // printed, command still succeeds, nothing thrown.
+    const brokenHome = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-home-'));
+    const brokenConfig = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-cfg-'));
+    fs.writeFileSync(path.join(brokenConfig, 'manifest'), 'not a directory');
+    const io2 = makeIo({
+      env: { HOME: brokenHome, CLAUDECODE: '1', XDG_CONFIG_HOME: brokenConfig },
+    });
+    expect(await run(io2, ['config', 'path'])).toBe(0);
+    expect(io2.errLines.join('\n')).toMatch(HINT);
   });
 });
