@@ -1,0 +1,179 @@
+# Disaster Recovery stack — port 2100.
+# Identical to docker-compose.yml but with separate project name, volumes,
+# ports, and network names so both stacks coexist on the same host.
+#
+# Usage:
+#   docker compose -f docker-compose.dr.yml --env-file .env.dr up -d
+#   docker compose -f docker-compose.dr.yml --env-file .env.dr down
+#
+# Snapshot prod DB into DR:
+#   ./scripts/switch-manifest.sh snapshot
+
+name: mnfst-dr
+
+services:
+  manifest:
+    image: manifestdotbuild/manifest:${MANIFEST_VERSION:-latest}
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${PORT:-2100}:${PORT:-2100}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - PORT=${PORT:-2100}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env.dr}
+      - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2100}}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - PROVIDER_TIMEOUT_MS=${PROVIDER_TIMEOUT_MS:-180000}
+      - STREAM_WARMUP_MS=${STREAM_WARMUP_MS:-15000}
+      - CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS=${CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS:-60000}
+      - SEED_DATA=false
+      - NODE_ENV=production
+      - MANIFEST_MODE=${MANIFEST_MODE:-selfhosted}
+      - REQUEST_RECORDING_STORAGE=${REQUEST_RECORDING_STORAGE:-auto}
+      - REQUEST_RECORDING_FILESYSTEM_PATH=/data/request-recordings
+      - REQUEST_RECORDING_RETENTION_DAYS=${REQUEST_RECORDING_RETENTION_DAYS:-}
+      - REQUEST_RECORDING_S3_BUCKET=${REQUEST_RECORDING_S3_BUCKET:-}
+      - REQUEST_RECORDING_S3_ENDPOINT=${REQUEST_RECORDING_S3_ENDPOINT:-}
+      - REQUEST_RECORDING_S3_REGION=${REQUEST_RECORDING_S3_REGION:-}
+      - REQUEST_RECORDING_S3_ACCESS_KEY_ID=${REQUEST_RECORDING_S3_ACCESS_KEY_ID:-}
+      - REQUEST_RECORDING_S3_SECRET_ACCESS_KEY=${REQUEST_RECORDING_S3_SECRET_ACCESS_KEY:-}
+      - REQUEST_RECORDING_S3_FORCE_PATH_STYLE=${REQUEST_RECORDING_S3_FORCE_PATH_STYLE:-false}
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-}
+      - EMAIL_API_KEY=${EMAIL_API_KEY:-}
+      - EMAIL_DOMAIN=${EMAIL_DOMAIN:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      - OPENAI_OAUTH_CLIENT_ID=${OPENAI_OAUTH_CLIENT_ID:-}
+      - MINIMAX_OAUTH_CLIENT_ID=${MINIMAX_OAUTH_CLIENT_ID:-}
+      - API_KEY=${API_KEY:-}
+      - THROTTLE_TTL=${THROTTLE_TTL:-60000}
+      - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
+      - DB_POOL_MAX=${DB_POOL_MAX:-30}
+      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-10}
+      - DB_TUNE_SESSION=${DB_TUNE_SESSION:-}
+      - RUN_MIGRATIONS_ON_BOOT=${RUN_MIGRATIONS_ON_BOOT:-true}
+      - SHUTDOWN_DRAIN_MS=${SHUTDOWN_DRAIN_MS:-10000}
+      - MANIFEST_DISABLE_HSTS=${MANIFEST_DISABLE_HSTS:-}
+      - WINGMAN_CORS_ORIGINS=${WINGMAN_CORS_ORIGINS:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-}
+      - SENTRY_RELEASE=${SENTRY_RELEASE:-}
+      - AUTOFIX_HEALING_URL=${AUTOFIX_HEALING_URL:-http://healer:3100}
+      - AUTOFIX_HEALING_API_KEY=${AUTOFIX_HEALING_API_KEY:-}
+      - AUTOFIX_GLOBAL_ENABLED=${AUTOFIX_GLOBAL_ENABLED:-true}
+      - AUTOFIX_TIMEOUT_MS=${AUTOFIX_TIMEOUT_MS:-10000}
+      - AUTOFIX_REPAIRABLE_STATUSES=${AUTOFIX_REPAIRABLE_STATUSES:-400,404,422}
+      - AUTOFIX_REPORT_ALL_4XX=${AUTOFIX_REPORT_ALL_4XX:-false}
+      - MANIFEST_TELEMETRY_DISABLED=${MANIFEST_TELEMETRY_DISABLED:-0}
+      - TELEMETRY_ENDPOINT=${TELEMETRY_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "const p=process.env.PORT||'2100';fetch(`http://127.0.0.1:$${p}/api/v1/health`).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 512
+    volumes:
+      - recordings:/data/request-recordings
+    networks:
+      - internal
+      - frontend
+
+  healer:
+    build:
+      context: ../healer
+      dockerfile: Dockerfile
+    ports:
+      - "${HEALER_PORT:-3101}:3100"
+    environment:
+      - HEALER_API_KEY=${HEALER_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://127.0.0.1:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 256m
+    pids_limit: 128
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
+    environment:
+      - POSTGRES_USER=manifest
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-manifest}
+      - POSTGRES_DB=manifest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U manifest
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  frontend:
+    driver: bridge
+
+volumes:
+  pgdata:
+    name: manifest_dr_pgdata
+  recordings:
+    name: manifest_dr_request_recordings
