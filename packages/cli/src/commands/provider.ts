@@ -268,11 +268,15 @@ async function resolveConnection(
   );
 }
 
-/** Opt a connection in for one agent (connections are enabled per agent). */
-export async function providerEnable(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, { strings: ['url', 'agent', 'auth-type', 'label'] });
-  const input = requirePositional(args, 0, '<provider>');
-  const agent = await resolveDiscoveryAgentStrict(io, args);
+/**
+ * Opt a connection in/out for one agent. Lives under `agent provider` —
+ * connections are tenant resources, but enabling is a property OF an agent,
+ * so the agent is the first positional, like every agent-scoped command.
+ */
+export async function agentProviderEnable(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, { strings: ['url', 'auth-type', 'label'] });
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const input = requirePositional(args, 1, '<provider>');
   const conn = await resolveConnection(io, args, input);
   const { client } = clientFromFlags(io, args);
   await client.request(
@@ -282,13 +286,13 @@ export async function providerEnable(io: CliIo, argv: string[]): Promise<void> {
   printJson(io, { agent, enabled: true, provider: conn.provider, connection: conn.id });
 }
 
-export async function providerDisable(io: CliIo, argv: string[]): Promise<void> {
+export async function agentProviderDisable(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
-    strings: ['url', 'agent', 'auth-type', 'label'],
+    strings: ['url', 'auth-type', 'label'],
     booleans: ['yes'],
   });
-  const input = requirePositional(args, 0, '<provider>');
-  const agent = await resolveDiscoveryAgentStrict(io, args);
+  const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const input = requirePositional(args, 1, '<provider>');
   requireYes(args, `disable "${input}" for agent "${agent}"`);
   const conn = await resolveConnection(io, args, input);
   const { client } = clientFromFlags(io, args);
@@ -297,18 +301,6 @@ export async function providerDisable(io: CliIo, argv: string[]): Promise<void> 
     `/agents/${encodeURIComponent(agent)}/enabled-providers/${encodeURIComponent(conn.id)}`,
   );
   printJson(io, { agent, enabled: false, provider: conn.provider, connection: conn.id });
-}
-
-/** enable/disable are agent-scoped by nature — never auto-pick silently. */
-async function resolveDiscoveryAgentStrict(
-  io: CliIo,
-  args: ReturnType<typeof parseArgs>,
-): Promise<string> {
-  const explicit = args.strings['agent'];
-  if (!explicit) {
-    throw new CliError('missing_flag', '--agent is required (enable/disable is per-agent)');
-  }
-  return slugifyAgentName(explicit);
 }
 
 export async function providerConnect(io: CliIo, argv: string[]): Promise<void> {

@@ -31,6 +31,8 @@ export const COMMANDS: Record<string, Handler> = {
   'agent platforms': agent.agentPlatforms,
   'agent create': agent.agentCreate,
   'agent env': agent.agentEnv,
+  'agent provider enable': provider.agentProviderEnable,
+  'agent provider disable': provider.agentProviderDisable,
   'agent setup': agent.agentSetup,
   'agent key path': agent.agentKeyPathCmd,
   'agent key show': agent.agentKeyShow,
@@ -43,8 +45,6 @@ export const COMMANDS: Record<string, Handler> = {
   'provider list': provider.providerList,
   'provider catalog': provider.providerCatalog,
   'provider connect': provider.providerConnect,
-  'provider enable': provider.providerEnable,
-  'provider disable': provider.providerDisable,
   'provider custom add': customProvider.providerCustom.add,
   'provider custom list': customProvider.providerCustom.list,
   'provider custom remove': customProvider.providerCustom.remove,
@@ -85,6 +85,7 @@ Agents
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
   mnfst agent env <name> [--export]                     (dotenv/shell lines: KEY + URL; append to .env or eval)
   mnfst agent setup <name> [--reveal]                   (platform setup instructions, same content as the dashboard)
+  mnfst agent provider enable|disable <name> <provider> [--auth-type <a>] [--label <l>] [--yes]
   mnfst agent key path <name> | mnfst agent key show <name>
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
@@ -96,7 +97,6 @@ Providers
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
-  mnfst provider enable|disable <provider> --agent <name> [--auth-type <a>] [--label <l>] [--yes]
   mnfst provider custom add --name <n> --endpoint <url> [--api openai|anthropic] [--credential-stdin|--credential-env <e>]
   mnfst provider custom list | mnfst provider custom remove <name> --yes
 
