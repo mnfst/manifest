@@ -26,6 +26,7 @@ import { AgentModelParamsService } from '../../routing-core/agent-model-params.s
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 import type { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 import type { AutofixService } from '../../autofix/autofix.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 
@@ -122,6 +123,7 @@ describe('ProxyService — orchestration', () => {
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let autofixService: { maybeHeal: jest.Mock };
   let keyRotationRules: { getRule: jest.Mock; list: jest.Mock };
+  let reasoningCache: { reasoningContentForHeal: jest.Mock };
   let svc: ProxyService;
   let modelDiscovery: jest.Mocked<Pick<ModelDiscoveryService, 'getModelsForAgent'>>;
 
@@ -204,6 +206,9 @@ describe('ProxyService — orchestration', () => {
       getRule: jest.fn().mockResolvedValue(null),
       list: jest.fn().mockResolvedValue([]),
     };
+    reasoningCache = {
+      reasoningContentForHeal: jest.fn().mockResolvedValue({}),
+    };
 
     svc = new ProxyService(
       resolveService as unknown as ResolveService,
@@ -225,6 +230,7 @@ describe('ProxyService — orchestration', () => {
       providerParamSpecs as unknown as ProviderParamSpecService,
       autofixService as unknown as AutofixService,
       keyRotationRules as unknown as KeyRotationRuleService,
+      reasoningCache as unknown as ReasoningContentCache,
     );
   });
 
@@ -3310,6 +3316,71 @@ describe('ProxyService — orchestration', () => {
       // rule to its own slots and never re-tries the burned 'Work' label.
       const state = fallbackService.tryFallbacks.mock.calls[0][19] as Map<string, Set<string>>;
       expect([...(state.get('model:gpt-4o') ?? [])]).toEqual(['Work']);
+      expect(result.meta.fallbackFromModel).toBe('gpt-4o');
+    });
+
+    it('skips key rotation when Auto-fix ran and did not request rotate_key', async () => {
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      // Primary forward fails with 400 AND carries wire body so autofix runs.
+      const primaryForward = {
+        ...forward(400),
+        wireRequestBody: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] },
+        wireApiMode: 'chat_completions' as const,
+        retryWireBody: jest.fn(),
+      };
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(primaryForward);
+      // Autofix runs, produces a non-rotate_key patch (e.g. reasoning_content_missing),
+      // the patched retry also fails with 400.
+      const healedForward = { ...forward(400), wireRequestBody: { model: 'gpt-4o' } };
+      const autofixRecord = {
+        groupId: 'g1',
+        outcome: 'exhausted' as const,
+        original_http_status: 400,
+        chain: [
+          {
+            attempt: 0,
+            origin: 'original' as const,
+            request: {},
+            http_status: 400,
+            operations: [{ type: 'add_param', from: null, to: 'reasoning_content' }],
+          },
+          {
+            attempt: 1,
+            origin: 'autofix' as const,
+            request: { model: 'gpt-4o', reasoning_content: '' },
+            http_status: 400,
+          },
+        ],
+      };
+      autofixService.maybeHeal.mockResolvedValue({
+        forward: healedForward,
+        record: autofixRecord,
+      });
+      // Fallback chain is available.
+      fallbackService.tryFallbacks.mockResolvedValue({
+        success: {
+          forward: { ...forward(200), isAnthropic: true },
+          model: 'claude-haiku-3.5',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+        },
+        failures: [],
+      } as never);
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-3.5')],
+      });
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // Autofix was invoked.
+      expect(autofixService.maybeHeal).toHaveBeenCalledTimes(1);
+      // The primary forward + the autofix retry forward = at least 1 tryForwardToProvider.
+      // But no extra rotation attempt — only the fallback chain runs after.
+      // We verify: tryForwardToProvider was called once (primary) because
+      // the autofix reforward is handled inside maybeHeal's reforward mock.
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       expect(result.meta.fallbackFromModel).toBe('gpt-4o');
     });
   });

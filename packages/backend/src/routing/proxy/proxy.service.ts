@@ -80,12 +80,18 @@ import {
 import { AutofixService } from '../autofix/autofix.service';
 import type { ReforwardOptions } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
+import { hasRotateKeyOperation, type PhoenixOperation } from '../autofix/phoenix.types';
+import { ReasoningContentCache } from './reasoning-content-cache';
 import { recordingResponseFromText } from './attempt-recording-capture';
 
 type ResolvedRouting = Awaited<ReturnType<ResolveService['resolve']>> & {
   explicit_model_override?: boolean;
   explicit_model_unavailable?: string;
 };
+
+function autofixRequestedKeyRotation(record: AutofixRecord | undefined): boolean {
+  return record?.chain.some((entry) => hasRotateKeyOperation(entry.operations)) ?? false;
+}
 
 /**
  * Roles excluded from scoring. AI agents (OpenClaw, Hermes, and
@@ -250,6 +256,7 @@ export class ProxyService {
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly autofixService: AutofixService,
     private readonly keyRotationRules: KeyRotationRuleService,
+    private readonly reasoningCache: ReasoningContentCache,
   ) {}
 
   async proxyRequest(opts: ProxyRequestOptions): Promise<ProxyResult> {
@@ -573,6 +580,10 @@ export class ProxyService {
     const wireFormat = forward.wireFormat;
     const retryWireBody = forward.retryWireBody;
     const autofixApiMode = wireApiMode ?? apiMode;
+    const reasoningContentCache = await this.reasoningCache.reasoningContentForHeal(
+      wireRequestBody ?? body,
+      sessionKey,
+    );
     const autofixAttempt =
       wireRequestBody && retryWireBody && (wireApiMode || wireFormat)
         ? await this.autofixService.maybeHeal({
@@ -584,6 +595,7 @@ export class ProxyService {
             authType: route.authType,
             apiMode: autofixApiMode,
             requestBody: wireRequestBody,
+            reasoningContentCache,
             keyRotationState,
             reforward: (healedBody, reforwardOpts) =>
               this.reforwardHealed(
@@ -628,10 +640,14 @@ export class ProxyService {
 
     // Key rotation runs on ANY failed primary (explicit overrides included —
     // a rule fully controls the model's key choice wherever it's attempted).
+    // Skip key rotation if Auto-fix already ran and did NOT request rotate_key.
     // The fallback chain itself keeps its existing guards.
     if (!forward.response.ok && shouldTriggerFallback(forward.response.status)) {
       let rotation: PrimaryRotationResult | null = null;
-      if (ruleControlsPrimary) {
+      if (
+        ruleControlsPrimary &&
+        (autofixAttempt === null || autofixRequestedKeyRotation(autofixRecord))
+      ) {
         rotation = await this.rotatePrimaryAttempts({
           agentId,
           tenantId,

@@ -1322,6 +1322,53 @@ describe('AutofixService', () => {
       expect(cache.has('tenant-1:agent-1')).toBe(true);
     });
   });
+
+  it('passes reasoningContentCache through to the heal request', async () => {
+    const client = makeHealingClient();
+    client.heal.mockResolvedValue({
+      status: 'patched',
+      issueId: 'issue-rc',
+      patchId: 'patch-rc',
+      healAttemptId: 'heal-rc',
+      operations: [{ type: 'add_param', to: 'reasoning_content' }],
+      healedBody: { model: 'deepseek', messages: [] },
+    });
+    client.reportOutcome.mockResolvedValue(null);
+    const service = makeService({
+      client: client as unknown as HealingClient,
+      repo: makeAgentRepo(() => ({ autofix_enabled: true })).repo,
+    });
+    const reforward = jest.fn().mockResolvedValue(makeForward('ok', 200));
+
+    await service.maybeHeal(
+      makeParams({
+        forward: makeForward('{"error":{"message":"reasoning_content required"}}', 400),
+        provider: 'deepseek',
+        model: 'deepseek-v4-flash',
+        requestBody: {
+          model: 'deepseek-v4-flash',
+          messages: [
+            {
+              role: 'assistant',
+              content: '',
+              tool_calls: [
+                { id: 'call_123', type: 'function', function: { name: 'f', arguments: '{}' } },
+              ],
+            },
+            { role: 'tool', tool_call_id: 'call_123', content: '{}' },
+          ],
+        },
+        reasoningContentCache: { call_123: 'original reasoning text' },
+        reforward,
+      }),
+    );
+
+    expect(client.heal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reasoningContentCache: { call_123: 'original reasoning text' },
+      }),
+    );
+  });
 });
 
 describe('isActiveFor (the consent gate)', () => {

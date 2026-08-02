@@ -148,6 +148,38 @@ export class ReasoningContentCache {
     return changed ? { ...body, messages: nextMessages } : body;
   }
 
+  /**
+   * Build a map of tool_call_id → cached reasoning_content for every assistant
+   * tool-call turn in `body.messages` that is missing reasoning_content. Used to
+   * hand the healer the *original* reasoning_content so its patch fills the real
+   * value instead of an empty string (DeepSeek v4 Flash requires the original).
+   * Returns an empty map when the body has no replayable turns or the cache has
+   * no entries for them.
+   */
+  async reasoningContentForHeal(
+    body: Record<string, unknown>,
+    sessionKey: string | undefined,
+  ): Promise<Record<string, string>> {
+    if (!sessionKey || !body || !Array.isArray(body.messages)) return {};
+
+    const candidates = body.messages.map(reasoningReplayCandidate);
+    const keys = candidates.flatMap((candidate) =>
+      candidate?.cacheKey ? [candidate.cacheKey] : [],
+    );
+
+    if (keys.length === 0) return {};
+
+    const cached = await this.retrieveMany(sessionKey, keys);
+    const result: Record<string, string> = {};
+    for (const [key, content] of cached.entries()) {
+      if (content) {
+        result[key] = content;
+      }
+    }
+
+    return result;
+  }
+
   /** Clear all cached reasoning_content for a session. */
   clearSession(sessionKey: string): void {
     const prefix = `${sessionKey}:`;

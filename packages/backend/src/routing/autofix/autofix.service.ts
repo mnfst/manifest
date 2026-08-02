@@ -42,6 +42,7 @@ export interface MaybeHealParams {
   requestBody: Record<string, unknown>;
   /** Optional endpoint URL, forwarded to Phoenix as readability context. */
   url?: string;
+  reasoningContentCache?: Record<string, string>;
   /**
    * The request's shared key-rotation state. rotate_key heal operations mark
    * the rotated label used here so the later fallback loop never re-tries it.
@@ -362,6 +363,7 @@ export class AutofixService {
         url: params.url,
         request: params.requestBody,
         response: { statusCode: status, error: normalized },
+        reasoningContentCache: params.reasoningContentCache,
         ...(originalForward.wireFormat
           ? {
               providerExchange: {

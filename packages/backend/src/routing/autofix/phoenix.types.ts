@@ -65,6 +65,14 @@ export interface HealRequest {
   request: Record<string, unknown>;
   response: PhoenixProviderResponse;
   providerExchange?: PhoenixProviderExchange;
+  /**
+   * Cached `reasoning_content` values keyed by the assistant turn's first
+   * `tool_call.id`. Manifest's ReasoningContentCache holds the original
+   * reasoning_content DeepSeek requires on replay; the healer's
+   * `reasoning_content_missing` patch fills these real values instead of empty
+   * strings. Absent/empty when no replayable turns or no cache hits.
+   */
+  reasoningContentCache?: Record<string, string>;
   responseTimeMs?: number;
   responseSizeBytes?: number;
 }

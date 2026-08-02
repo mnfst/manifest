@@ -105,10 +105,33 @@ const RULES = [
   {
     name: 'invalid_function_schema',
     match: (req, res) => {
+      // Proactive: check request body for tools with bad schemas
+      const tools = req.request?.tools;
+      if (Array.isArray(tools)) {
+        for (const t of tools) {
+          const fn = t?.function;
+          if (fn && fn.parameters) {
+            const p = fn.parameters;
+            if (
+              p.type === 'null' ||
+              p.type === 'NULL' ||
+              p.type === null ||
+              (typeof p === 'object' && !p.type)
+            ) {
+              return true;
+            }
+          }
+          if (fn && !fn.parameters) {
+            // parameters undefined/null — the provider may reject it
+            return true;
+          }
+        }
+      }
+      // Reactive: check error message
       const msg = res?.error?.message || '';
       return /schema must be a JSON Schema/i.test(msg) || /Invalid schema for function/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       if (fixed.tools) {
         fixed.tools = sanitizeToolSchemas(fixed.tools);
@@ -124,7 +147,7 @@ const RULES = [
       const body = req.request || {};
       return body.top_p === 0;
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.top_p; // remove invalid param, let provider use default
       return fixed;
@@ -138,7 +161,7 @@ const RULES = [
       const body = req.request || {};
       return typeof body.top_p === 'number' && body.top_p < 0;
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.top_p;
       return fixed;
@@ -153,7 +176,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return body.temperature === 0 && /temperature/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       return { ...body, temperature: 1 };
     },
     explanation: 'Changed temperature:0 to temperature:1 (provider requires >0)',
@@ -166,7 +189,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return body.max_tokens !== undefined && /max_completion_tokens|max_output_tokens/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       fixed.max_completion_tokens = fixed.max_tokens;
       delete fixed.max_tokens;
@@ -181,20 +204,30 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /reasoning_content.*must be passed/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, ctx) => {
+      const cache = ctx?.reasoningContentCache || {};
       const fixed = { ...body };
-      // Ensure all assistant messages have reasoning_content field
       if (fixed.messages) {
         fixed.messages = fixed.messages.map((m) => {
           if (m.role === 'assistant' && m.reasoning_content === undefined) {
-            return { ...m, reasoning_content: '' };
+            // DeepSeek requires the ORIGINAL reasoning_content it returned on the
+            // prior turn. Manifest caches it by the first tool_call id; use the
+            // cached value when available, else fall back to empty string (still
+            // satisfies the "must be passed" requirement, though the turn's
+            // reasoning won't be replayed).
+            const firstToolCallId =
+              Array.isArray(m.tool_calls) && m.tool_calls[0] && typeof m.tool_calls[0].id === 'string'
+                ? m.tool_calls[0].id
+                : null;
+            const content = (firstToolCallId && cache[firstToolCallId]) || '';
+            return { ...m, reasoning_content: content };
           }
           return m;
         });
       }
       return fixed;
     },
-    explanation: 'Added missing reasoning_content field to assistant messages',
+    explanation: 'Restored missing reasoning_content from cache (or empty string when uncached) on assistant tool-call turns',
     ops: [{ type: 'add_param', from: null, to: 'reasoning_content' }],
   },
   {
@@ -203,7 +236,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /tool_choice/i.test(msg) && /invalid|not supported|unsupported/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.tool_choice;
       return fixed;
@@ -217,7 +250,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /response_format/i.test(msg) && /invalid|not supported|unsupported/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.response_format;
       return fixed;
@@ -231,7 +264,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /parallel_tool_calls/i.test(msg) && /not supported|unsupported|invalid/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.parallel_tool_calls;
       return fixed;
@@ -245,7 +278,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /stream_options/i.test(msg) && /not supported|unsupported|invalid/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       const fixed = { ...body };
       delete fixed.stream_options;
       return fixed;
@@ -266,7 +299,7 @@ const RULES = [
       const msg = res?.error?.message || '';
       return /quota|rate limit|insufficient|api key|invalid key|invalid api|unauthorized|permission denied|billing|limit reached/i.test(msg);
     },
-    patch: (body) => {
+    patch: (body, _ctx) => {
       // The request itself is fine; the key is the problem. Return unchanged.
       return body;
     },
@@ -279,7 +312,7 @@ const RULES = [
 // POST /api/heal
 // ─────────────────────────────────────────────
 app.post('/api/heal', (req, res) => {
-  const { traceId, provider, model, response: providerRes, request: requestBody } = req.body;
+  const { traceId, provider, model, response: providerRes, request: requestBody, reasoningContentCache } = req.body;
 
   if (!traceId) {
     return res.status(400).json({ error: 'traceId is required' });
@@ -306,9 +339,11 @@ app.post('/api/heal', (req, res) => {
       issueId: `issue_no_match_${crypto.randomUUID().slice(0, 6)}`,
     });
   }
+  console.log(`[healer] Matched rule: ${rule.name} for ${provider}/${model} (${statusCode})`);
+  console.log(`[healer]   msg snippet: ${(providerRes?.error?.message || '').slice(0, 120)}`);
 
   // Apply patch
-  const healedBody = rule.patch(requestBody || {});
+  const healedBody = rule.patch(requestBody || {}, { reasoningContentCache: reasoningContentCache || {} });
   const fingerprint = `${provider}:${model}:${rule.name}`;
   const issue = getOrCreateIssue(fingerprint);
   const attemptId = `attempt_${crypto.randomUUID().slice(0, 8)}`;

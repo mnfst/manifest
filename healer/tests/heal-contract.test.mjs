@@ -275,3 +275,67 @@ test('module does not self-listen on import', () => {
   assert.ok(base.startsWith('http://127.0.0.1:'));
   assert.notEqual(new URL(base).port, '3100');
 });
+
+// ── reasoning_content cache tests ──────────────────────────────
+test('reasoning_content filled from cache', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    request: {
+      model: 'deepseek-v4-flash',
+      messages: [
+        { role: 'user', content: 'hello' },
+        {
+          role: 'assistant',
+          tool_calls: [{ id: 'call_42', type: 'function', function: { name: 'x', arguments: '{}' } }],
+        },
+      ],
+    },
+    response: { statusCode: 400, error: { message: 'The reasoning_content in the thinking mode must be passed back to the API.' } },
+    reasoningContentCache: { call_42: 'the original reasoning' },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.equal(body.patchId, 'patch_reasoning_content_missing');
+  assert.equal(body.healedBody.messages[1].reasoning_content, 'the original reasoning');
+});
+
+test('reasoning_content falls back to empty string when cache miss', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    request: {
+      model: 'deepseek-v4-flash',
+      messages: [
+        { role: 'user', content: 'hello' },
+        {
+          role: 'assistant',
+          tool_calls: [{ id: 'call_99', type: 'function', function: { name: 'x', arguments: '{}' } }],
+        },
+      ],
+    },
+    response: { statusCode: 400, error: { message: 'The reasoning_content in the thinking mode must be passed back to the API.' } },
+    reasoningContentCache: {},
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.equal(body.patchId, 'patch_reasoning_content_missing');
+  assert.equal(body.healedBody.messages[1].reasoning_content, '');
+});
+
+test('reasoning_content rule does not match non-reasoning errors', async () => {
+  const res = await post(`${base}/api/heal`, healBody({
+    request: { model: 'deepseek-v4-flash', messages: [{ role: 'user', content: 'hi' }] },
+    response: { statusCode: 400, error: { message: 'invalid model' } },
+  }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'no_patch');
+});
+
+test('existing rules still work (top_p_zero) with ctx param change', async () => {
+  const res = await post(`${base}/api/heal`, healBody());
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.status, 'patched');
+  assert.equal(body.patchId, 'patch_top_p_zero');
+  assert.equal(body.healedBody.top_p, undefined);
+});
