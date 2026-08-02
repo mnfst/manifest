@@ -28,6 +28,14 @@ export function saveAgentKey(env: Env, origin: string, agentName: string, key: s
   return filePath;
 }
 
+export function deleteAgentKey(env: Env, origin: string, agentName: string): void {
+  try {
+    fs.unlinkSync(agentKeyPath(env, origin, agentName));
+  } catch {
+    // best-effort: nothing cached is a fine end state
+  }
+}
+
 export function readAgentKey(env: Env, origin: string, agentName: string): string | null {
   try {
     const raw = fs.readFileSync(agentKeyPath(env, origin, agentName), 'utf8');

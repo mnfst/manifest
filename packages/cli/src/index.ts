@@ -12,6 +12,7 @@ import * as runCommand from './commands/run';
 import * as models from './commands/models';
 import * as configure from './commands/configure';
 import * as requests from './commands/requests';
+import * as callCmd from './commands/call';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -55,6 +56,8 @@ export const COMMANDS: Record<string, Handler> = {
 
   'requests get': requests.requestsGet,
 
+  call: callCmd.call,
+
   run: runCommand.runCmd,
 
   models: models.modelsList,
@@ -70,7 +73,7 @@ Auth
 Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
-  mnfst agent create --name <name> --platform <p> [--category <c>] [--key-file <path>] [--if-absent]
+  mnfst agent create --name <name> --platform <p> [--category <personal|app|coding>] [--key-file <path>] [--if-absent]
   mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--tier <custom>] [--autofix true|false] [--recording true|false]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
@@ -101,10 +104,15 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
 Requests (paginated, mirrors the API: opaque cursor, one page per call)
   mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>] [--full]
 
+Call (routed LLM completion — the front door for any ad-hoc model call)
+  mnfst call [prompt...] [--agent <name>] [--model <m>] [--tier <t>] [--system <s>] [--json]
+    stdin joins the prompt; answer on stdout, routing facts on stderr
+
 Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>
-    Runs the command with the agent's key injected as MANIFEST_AGENT_KEY (or <VAR>)
-    plus MANIFEST_AGENT_URL — the key never crosses stdout or your transcript.
+    Runs the command with the agent's key injected as MANIFEST_AGENT_KEY (or <VAR>) plus
+    MANIFEST_AGENT_URL (already ends in /v1 — append /chat/completions directly).
+    The key never crosses stdout or your transcript.
 
 Environment: MANIFEST_URL, MANIFEST_API_KEY (overrides stored login)
 Credentials are stored per-host in ~/.config/manifest/config.json (mode 0600).`;

@@ -2,7 +2,7 @@ import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
 import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } from '../args';
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
-import { agentKeyPath, readAgentKey, saveAgentKey } from '../keystore';
+import { agentKeyPath, deleteAgentKey, readAgentKey, saveAgentKey } from '../keystore';
 import { slugifyAgentName } from '../slug';
 
 const URL_ONLY = { strings: ['url'] } as const;
@@ -125,12 +125,14 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     throw error;
   }
 
+  // The keystore is the CLI's memory of the key — ALWAYS refresh it, or
+  // run/key-show would keep serving a stale credential after this mutation.
+  const keyPath = saveAgentKey(io.env, target.origin, slugifyAgentName(name), result.apiKey);
   if (keyFile) {
     writeKeyFile(keyFile, result.apiKey);
-    printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+    printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile, keyPath });
     return;
   }
-  const keyPath = saveAgentKey(io.env, target.origin, slugifyAgentName(name), result.apiKey);
   printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
 }
 
@@ -170,8 +172,10 @@ export async function agentDelete(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url'], booleans: ['yes'] });
   const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   requireYes(args, `delete agent "${name}"`);
-  const { client } = clientFromFlags(io, args);
+  const { client, target } = clientFromFlags(io, args);
   const result = await client.request('DELETE', `/agents/${encodeURIComponent(name)}`);
+  // The key died with the agent — drop the local cache entry too.
+  deleteAgentKey(io.env, target.origin, name);
   printJson(io, result);
 }
 
@@ -187,12 +191,12 @@ export async function agentRotateKey(io: CliIo, argv: string[]): Promise<void> {
     'POST',
     `/agents/${encodeURIComponent(name)}/rotate-key`,
   )) as { apiKey: string };
+  const keyPath = saveAgentKey(io.env, target.origin, name, result.apiKey);
   if (keyFile) {
     writeKeyFile(keyFile, result.apiKey);
-    printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyFile });
+    printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyFile, keyPath });
     return;
   }
-  const keyPath = saveAgentKey(io.env, target.origin, name, result.apiKey);
   printJson(io, { rotated: true, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
 }
 

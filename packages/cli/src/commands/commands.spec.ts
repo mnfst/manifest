@@ -448,10 +448,15 @@ describe('agent commands', () => {
     });
     expect(fs.readFileSync(keyFile, 'utf8')).toBe('mnfst_secret_full_key');
     expect(fs.statSync(keyFile).mode & 0o777).toBe(0o600);
+    // --key-file is an ADDITIONAL copy; the keystore cache is always refreshed
+    expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'coding'), 'utf8')).toBe(
+      'mnfst_secret_full_key',
+    );
     expect(io.lastJson()).toEqual({
       agent: { id: 'a1', name: 'coding' },
       keyPrefix: 'mnfst_secr',
       keyFile,
+      keyPath: agentKeyPath(io.env, HOST, 'coding'),
     });
     expect(io.lines.join('\n')).not.toContain('mnfst_secret_full_key');
   });
@@ -580,10 +585,28 @@ describe('agent commands', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-rotate-'));
     const keyFile = path.join(dir, 'rotated.key');
     const { io, calls } = authedIo([{ status: 200, body: { apiKey: 'mnfst_rotated_key_value' } }]);
+    saveAgentKey(io.env, HOST, 'a', 'mnfst_STALE_REVOKED');
     expect(await run(io, ['agent', 'rotate-key', 'a', '--key-file', keyFile, '--yes'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/api/v1/agents/a/rotate-key`);
     expect(fs.readFileSync(keyFile, 'utf8')).toBe('mnfst_rotated_key_value');
-    expect(io.lastJson()).toEqual({ rotated: true, keyPrefix: 'mnfst_rota', keyFile });
+    // regression (sim-B): --key-file must not leave the keystore serving the
+    // revoked key through mnfst run / agent key show
+    expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'a'), 'utf8')).toBe(
+      'mnfst_rotated_key_value',
+    );
+    expect(io.lastJson()).toEqual({
+      rotated: true,
+      keyPrefix: 'mnfst_rota',
+      keyFile,
+      keyPath: agentKeyPath(io.env, HOST, 'a'),
+    });
+  });
+
+  it('agent delete drops the local keystore entry', async () => {
+    const { io } = authedIo([{ status: 200, body: { ok: true } }]);
+    const p = saveAgentKey(io.env, HOST, 'gone-bot', 'mnfst_dead');
+    expect(await run(io, ['agent', 'delete', 'gone-bot', '--yes'])).toBe(0);
+    expect(fs.existsSync(p)).toBe(false);
   });
 
   it('agent create --if-absent succeeds on conflict by resolving the existing agent', async () => {
@@ -1398,10 +1421,115 @@ describe('models command', () => {
     expect(m).not.toHaveProperty('input_modalities');
   });
 
-  it('handles a non-array payload as zero models', async () => {
+  it('handles a non-array payload as zero models, with a hint', async () => {
     const { io } = authedIo([{ status: 200, body: { unexpected: true } }]);
     expect(await run(io, ['models', 'a'])).toBe(0);
-    expect(io.lastJson()).toMatchObject({ count: 0, models: [] });
+    expect(io.lastJson()).toMatchObject({
+      count: 0,
+      models: [],
+      hint: expect.stringContaining('provider list --agent a'),
+    });
+  });
+});
+
+describe('call', () => {
+  const completion = (content: string, model = 'grok-build-0.1') => ({
+    status: 200,
+    body: {
+      model,
+      choices: [{ message: { role: 'assistant', content } }],
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+    },
+  });
+
+  it('sends a routed completion and prints the answer on stdout, facts on stderr', async () => {
+    const { io, calls } = authedIo([completion('The answer.')]);
+    saveAgentKey(io.env, HOST, 'john', 'mnfst_call_key');
+    expect(await run(io, ['call', '--agent', 'John', 'what', 'is', 'up?'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/v1/chat/completions`);
+    expect(calls[0].headers['Authorization']).toBe('Bearer mnfst_call_key');
+    const body = JSON.parse(calls[0].body!);
+    expect(body.model).toBe('auto');
+    expect(body.messages).toEqual([{ role: 'user', content: 'what is up?' }]);
+    expect(io.lines[io.lines.length - 1]).toBe('The answer.');
+    expect(io.errLines.join('\n')).toContain('agent=john');
+    expect(io.errLines.join('\n')).toContain('tokens=15');
+  });
+
+  it('forwards --model, --tier, --system and supports --json', async () => {
+    const { io, calls } = authedIo([completion('ok', 'grok-4.5')]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(
+      await run(io, [
+        'call',
+        '--agent',
+        'john',
+        '--model',
+        'grok-4.5',
+        '--tier',
+        'thorough',
+        '--system',
+        'be brief',
+        '--json',
+        'hard question',
+      ]),
+    ).toBe(0);
+    const body = JSON.parse(calls[0].body!);
+    expect(body.model).toBe('grok-4.5');
+    expect(body.messages[0]).toEqual({ role: 'system', content: 'be brief' });
+    expect(calls[0].headers['x-manifest-tier']).toBe('thorough');
+    expect(io.lastJson()).toMatchObject({ model: 'grok-4.5' });
+  });
+
+  it('reads the prompt from stdin when no argument is given', async () => {
+    const stub = fetchStub([completion('reviewed')]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      stdin: 'review this patch\n',
+    });
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['call', '--agent', 'john'])).toBe(0);
+    expect(JSON.parse(stub.calls[0].body!).messages[0].content).toBe('review this patch');
+  });
+
+  it('rejects an empty prompt and unmasks fake-200 Manifest errors', async () => {
+    const { io } = authedIo([]);
+    expect(await run(io, ['call', '--agent', 'john'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'missing_prompt' });
+
+    const { io: io2 } = authedIo([
+      completion('[🦚 Manifest M101] No providers configured. See docs'),
+    ]);
+    saveAgentKey(io2.env, HOST, 'john', 'k');
+    expect(await run(io2, ['call', '--agent', 'john', 'hi'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({
+      error: 'call_failed',
+      message: expect.stringContaining('M101'),
+    });
+  });
+
+  it('wraps transport failures as network_error', async () => {
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: (async () => {
+        throw new Error('ECONNREFUSED');
+      }) as typeof fetch,
+    });
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['call', '--agent', 'john', 'hi'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'network_error' });
+  });
+
+  it('auto-picks an agent when none is given and surfaces real HTTP errors', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+      { status: 429, body: { error: { message: 'rate limited' } } },
+    ]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['call', 'hi'])).toBe(1);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents`);
+    expect(io.lastJson()).toMatchObject({ error: 'call_failed', status: 429 });
   });
 });
 
@@ -1545,6 +1673,13 @@ describe('requests get', () => {
     expect(io.lastJson()).toMatchObject({ error: 'invalid_flag' });
     const { io: io2 } = authedIo([]);
     expect(await run(io2, ['requests', 'get', '--limit', 'many'])).toBe(1);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('validates --range against the known windows', async () => {
+    const { io, calls } = authedIo([]);
+    expect(await run(io, ['requests', 'get', '--range', 'bogus'])).toBe(1);
+    expect((io.lastJson() as { message: string }).message).toContain('24h');
     expect(calls).toHaveLength(0);
   });
 
