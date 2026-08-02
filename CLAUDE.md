@@ -401,6 +401,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `BETTER_AUTH_URL` — Base URL for Better Auth. Default: `http://localhost:{PORT}`
 - `FRONTEND_PORT` — Extra trusted origin port for Better Auth.
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
+- `CLI_TOKEN_TTL_DAYS` — Sliding TTL in days for CLI-minted tokens (`mnfst login`); every authenticated request pushes the expiry out again. Default: `30`
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
 - `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `30`
