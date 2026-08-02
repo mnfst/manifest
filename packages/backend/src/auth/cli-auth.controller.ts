@@ -1,20 +1,28 @@
 import { Body, Controller, Delete, ForbiddenException, HttpCode, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { Matches } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
 import { Public } from '../common/decorators/public.decorator';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { CliAuthService } from './cli-auth.service';
 
+const STATE_MESSAGE =
+  'state must be 16-128 URL-safe characters (letters, numbers, dashes, underscores)';
+
 class AuthorizeDto {
-  @Matches(/^[A-Za-z0-9_-]{16,128}$/)
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{16,128}$/, { message: STATE_MESSAGE })
   state!: string;
 }
 
 class ExchangeDto {
-  @Matches(/^[A-Za-z0-9_-]{20,100}$/)
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{20,100}$/, {
+    message: 'code must be 20-100 URL-safe characters (letters, numbers, dashes, underscores)',
+  })
   code!: string;
 
-  @Matches(/^[A-Za-z0-9_-]{16,128}$/)
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{16,128}$/, { message: STATE_MESSAGE })
   state!: string;
 }
 

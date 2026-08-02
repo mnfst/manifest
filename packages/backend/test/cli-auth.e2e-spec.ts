@@ -1,6 +1,8 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
+import { toLocalSqlTimestamp } from '../src/common/utils/postgres-sql';
 import { createTestApp, TEST_API_KEY } from './helpers';
 
 const STATE = 'e2e-state-abcdef1234567890';
@@ -35,19 +37,30 @@ describe('CLI browser login (e2e)', () => {
     return Number(rows[0].n);
   }
 
-  it('authorize → exchange mints a working expiring cli PAT', async () => {
+  it('authorize → exchange mints an expiring cli PAT', async () => {
+    const before = await countCliKeys();
     const code = await authorize();
     const res = await request(app.getHttpServer())
       .post('/api/v1/cli/token')
       .send({ code, state: STATE })
       .expect(200);
     expect(res.body.token).toMatch(/^mnfst_pat_/);
-    expect(typeof res.body.expiresAt).toBe('string');
+
+    // Exactly one key, not two: a `LIMIT 1` row-shape check would pass a
+    // double-mint just as happily.
+    expect(await countCliKeys()).toBe(before + 1);
+
+    // Pin the wire contract: ISO-8601 UTC (round-trips byte-for-byte through
+    // Date), ttlDays out — the CLI must never have to guess the server's TZ.
+    expect(new Date(res.body.expiresAt).toISOString()).toBe(res.body.expiresAt);
+    const ttlDays = app.get(ConfigService).get<number>('app.cliTokenTtlDays', 30);
+    const daysOut = (new Date(res.body.expiresAt).getTime() - Date.now()) / 86_400_000;
+    expect(daysOut).toBeGreaterThan(ttlDays - 1);
+    expect(daysOut).toBeLessThanOrEqual(ttlDays);
 
     const rows = await ds.query(
       `SELECT name, expires_at, key FROM api_keys WHERE name = 'cli' ORDER BY created_at DESC LIMIT 1`,
     );
-    expect(rows).toHaveLength(1);
     expect(rows[0].key).toBeNull();
     expect(rows[0].expires_at).not.toBeNull();
   });
@@ -78,7 +91,16 @@ describe('CLI browser login (e2e)', () => {
 
   it('an expired code is rejected', async () => {
     const code = await authorize();
-    await ds.query(`UPDATE cli_auth_codes SET expires_at = now() - interval '1 minute'`);
+    // Age out the code on the *Node* clock, scoped to the row just minted.
+    // `expires_at` is a naive `timestamp` column whose invariant is the
+    // process's local wall time (toLocalSqlTimestamp), so SQL `now()` — the DB
+    // container's UTC — would land in the future on any host west of UTC and
+    // silently flip this test to expecting 400 and getting 200.
+    const [row] = await ds.query(`SELECT id FROM cli_auth_codes ORDER BY created_at DESC LIMIT 1`);
+    await ds.query(`UPDATE cli_auth_codes SET expires_at = $1 WHERE id = $2`, [
+      toLocalSqlTimestamp(new Date(Date.now() - 60_000)),
+      row.id,
+    ]);
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
       .send({ code, state: STATE })
