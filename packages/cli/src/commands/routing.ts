@@ -5,6 +5,7 @@ import { slugifyAgentName } from '../slug';
 import { CliError } from '../errors';
 import { parseArgs, parseBooleanFlag, requirePositional, requireString, requireYes } from '../args';
 import { ApiClient } from '../client';
+import { assertModelsDiscovered } from './model-check';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
@@ -145,6 +146,11 @@ export const routingCustom = {
    * Create a custom tier and route it in one command. The tier triggers on
    * `<header-key>: <header-value>` (defaults: x-manifest-tier: <name>), so a
    * caller opts in per request with a single header.
+   *
+   * Models are validated against the agent's discovered set — the same gate
+   * `agent configure` applies, so the two ways of writing a route cannot
+   * disagree — and the check runs BEFORE the tier is created so a typo does
+   * not leave an unrouted tier behind. --force skips it.
    */
   create: async (io: CliIo, argv: string[]): Promise<void> => {
     const args = parseArgs(argv, {
@@ -158,12 +164,22 @@ export const routingCustom = {
         'header-key',
         'header-value',
       ],
+      booleans: ['force'],
     });
     const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
     const name = requireString(args, 'name');
     const model = requireString(args, 'model');
     const provider = requireString(args, 'provider');
+    const fallbackModels = args.strings['fallbacks']
+      ? parseModelsList(args.strings['fallbacks'])
+      : [];
     const { client } = clientFromFlags(io, args);
+    await assertModelsDiscovered(
+      client,
+      agent,
+      [model, ...fallbackModels],
+      Boolean(args.booleans['force']),
+    );
 
     const tier = (await client.request('POST', agentPath(agent, '/header-tiers'), {
       body: {
@@ -182,11 +198,11 @@ export const routingCustom = {
       },
     );
     let fallbacks: unknown;
-    if (args.strings['fallbacks']) {
+    if (fallbackModels.length > 0) {
       fallbacks = await client.request(
         'PUT',
         agentPath(agent, `/header-tiers/${encodeURIComponent(tier.id)}/fallbacks`),
-        { body: { models: parseModelsList(args.strings['fallbacks']) } },
+        { body: { models: fallbackModels } },
       );
     }
     printJson(io, {

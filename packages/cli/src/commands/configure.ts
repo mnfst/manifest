@@ -3,6 +3,7 @@ import { CliIo, clientFromFlags, printJson } from '../context';
 import { CliError } from '../errors';
 import { parseArgs, parseBooleanFlag, requirePositional, requireString } from '../args';
 import { slugifyAgentName } from '../slug';
+import { assertModelsDiscovered } from './model-check';
 
 function agentPath(agent: string, suffix: string): string {
   return `/routing/${encodeURIComponent(agent)}${suffix}`;
@@ -19,6 +20,9 @@ function agentPath(agent: string, suffix: string): string {
  * fallbacks, and stating a single model clears any existing fallbacks.
  * Without --tier the DEFAULT route changes; with --tier <name> the named
  * custom header tier is upserted (created on first use, updated after).
+ *
+ * Every named model is checked against the agent's discovered models before
+ * anything is written; --force skips that check.
  */
 export async function agentConfigure(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
@@ -32,6 +36,7 @@ export async function agentConfigure(io: CliIo, argv: string[]): Promise<void> {
       'autofix',
       'recording',
     ],
+    booleans: ['force'],
   });
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
 
@@ -60,6 +65,7 @@ export async function agentConfigure(io: CliIo, argv: string[]): Promise<void> {
       throw new CliError('missing_flag', '--models must be a comma-separated list of model ids');
     }
     const provider = requireString(args, 'provider');
+    await assertModelsDiscovered(client, agent, models, Boolean(args.booleans['force']));
     const route = {
       model: models[0],
       provider,
