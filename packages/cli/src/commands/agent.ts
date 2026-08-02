@@ -11,7 +11,27 @@ export async function agentList(io: CliIo, argv: string[]): Promise<void> {
   const result = await client.request('GET', '/agents', {
     query: { includePlayground: args.booleans['include-playground'] ? 'true' : undefined },
   });
-  printJson(io, result);
+  printJson(io, stripSparklines(result));
+}
+
+/**
+ * The agents endpoint bundles per-agent `sparkline` series for the
+ * dashboard's mini-charts. Terminal and agent consumers have no use for
+ * render-only data, so drop it rather than make every caller skip it.
+ */
+function stripSparklines(result: unknown): unknown {
+  if (typeof result !== 'object' || result === null) return result;
+  const record = result as Record<string, unknown>;
+  if (!Array.isArray(record['agents'])) return result;
+  return {
+    ...record,
+    agents: record['agents'].map((agent) => {
+      if (typeof agent !== 'object' || agent === null) return agent;
+      const rest = { ...(agent as Record<string, unknown>) };
+      delete rest['sparkline'];
+      return rest;
+    }),
+  };
 }
 
 export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
