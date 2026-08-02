@@ -2681,6 +2681,27 @@ describe('model prices', () => {
     });
   });
 
+  it('collapses IEEE float noise in prices and passes non-numbers through', async () => {
+    const noisy = {
+      models: [
+        {
+          model_name: 'grok-5-mini',
+          provider: 'xAI',
+          input_price_per_million: 0.09999999999999999,
+          output_price_per_million: null,
+        },
+      ],
+      lastSyncedAt: null,
+    };
+    const { io } = authedIo([{ status: 200, body: noisy }]);
+    expect(await run(io, ['model', 'prices'])).toBe(0);
+    expect(io.lastJson()).toMatchObject({
+      models: [
+        { model: 'grok-5-mini', input_price_per_million: 0.1, output_price_per_million: null },
+      ],
+    });
+  });
+
   it('--provider filters by id or alias against the display name the API returns', async () => {
     const { io } = authedIo([{ status: 200, body: PRICES }]);
     expect(await run(io, ['model', 'prices', '--provider', 'openai'])).toBe(0);
