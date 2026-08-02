@@ -85,6 +85,8 @@ function stripProviderNoise(result: unknown, enabledSet?: Set<string>): unknown 
       if (typeof provider !== 'object' || provider === null) return provider;
       const p = { ...(provider as Record<string, unknown>) };
       if (p['display_name'] === null) delete p['display_name'];
+      // Redundant aggregate: it is the sum of the connections' cached_model_count.
+      delete p['total_models'];
       if (Array.isArray(p['connections'])) {
         p['connections'] = p['connections'].map((conn) => {
           if (typeof conn !== 'object' || conn === null) return conn;
