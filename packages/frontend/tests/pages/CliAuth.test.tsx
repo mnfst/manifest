@@ -59,6 +59,17 @@ describe('CliAuth', () => {
     expect(screen.getByRole('button', { name: /authorize/i })).toBeTruthy();
   });
 
+  it('states the full scope, the 30-day term, and how to revoke', () => {
+    render(() => <CliAuth />);
+    // The informed-consent boundary: understating the grant is a spec failure.
+    expect(
+      screen.getByText(
+        /full access to your workspace for 30 days \(renewed while you keep using it\)/i,
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText('mnfst logout')).toBeTruthy();
+  });
+
   it('rejects a port below the unprivileged range', () => {
     searchParams = { ...VALID, port: '80' };
     render(() => <CliAuth />);
@@ -178,5 +189,26 @@ describe('CliAuth', () => {
     render(() => <CliAuth />);
     fireEvent.click(screen.getByRole('button', { name: /authorize/i }));
     expect(await screen.findByText(/plain string failure/)).toBeTruthy();
+  });
+
+  it('lets the user retry after a failure', async () => {
+    mockFetchMutate.mockRejectedValueOnce(new Error('nope'));
+    const { assign, restore } = stubLocation();
+    restoreLocation = restore;
+
+    render(() => <CliAuth />);
+    fireEvent.click(screen.getByRole('button', { name: /authorize/i }));
+    // The failure leaves a live button, not a dead end.
+    const retry = (await screen.findByRole('button', { name: /try again/i })) as HTMLButtonElement;
+    expect(retry.disabled).toBe(false);
+
+    mockFetchMutate.mockResolvedValue({ code: 'the-code' });
+    fireEvent.click(retry);
+
+    await waitFor(() => expect(mockFetchMutate).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(assign).toHaveBeenCalled());
+    expect(await screen.findByText(/close this page/i)).toBeTruthy();
+    // The error box clears once the retry is under way.
+    expect(screen.queryByText(/nope/)).toBeNull();
   });
 });
