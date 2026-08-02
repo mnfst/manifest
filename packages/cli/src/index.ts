@@ -10,6 +10,7 @@ import * as provider from './commands/provider';
 import * as routing from './commands/routing';
 import * as runCommand from './commands/run';
 import * as models from './commands/models';
+import * as configure from './commands/configure';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -29,6 +30,7 @@ export const COMMANDS: Record<string, Handler> = {
   'agent create': agent.agentCreate,
   'agent key path': agent.agentKeyPathCmd,
   'agent key show': agent.agentKeyShow,
+  'agent configure': configure.agentConfigure,
   'agent get': agent.agentGet,
   'agent update': agent.agentUpdate,
   'agent delete': agent.agentDelete,
@@ -40,9 +42,7 @@ export const COMMANDS: Record<string, Handler> = {
   'provider disconnect': provider.providerDisconnect,
 
   'routing status': routing.routingStatus,
-  'routing set': routing.routingSet,
   'routing fallbacks get': routing.routingFallbacksGet,
-  'routing fallbacks set': routing.routingFallbacksSet,
   'routing fallbacks clear': routing.routingFallbacksClear,
   'routing custom list': routing.routingCustom.list,
   'routing custom create': routing.routingCustom.create,
@@ -68,6 +68,9 @@ Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
   mnfst agent create --name <name> --platform <p> [--category <c>] [--key-file <path>]
+  mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--tier <custom>] [--autofix true|false] [--recording true|false]
+    (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
+     default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
   mnfst agent key path <name> | mnfst agent key show <name>
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
@@ -83,13 +86,11 @@ Providers
 Models
   mnfst models <agent> [--provider <p>] [--cost] [--capabilities]   (like /v1/models: bare ids; flags opt into metadata)
 
-Routing (default route + custom header tiers)
+Routing readouts + custom-tier lifecycle (writes go through mnfst agent configure)
   mnfst routing status <agent>
-  mnfst routing set <agent> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>]
-  mnfst routing fallbacks get|set|clear <agent> [--models <m1,m2>] [--yes]
+  mnfst routing fallbacks get|clear <agent> [--yes]
   mnfst routing custom list <agent>
   mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]
-    (triggers on "x-manifest-tier: <name>" by default; callers opt in per request with that header)
   mnfst routing custom delete <agent> <name> --yes
   mnfst routing autofix get|set <agent> [--enabled true|false]
   mnfst routing recording get|set <agent> [--enabled true|false]
