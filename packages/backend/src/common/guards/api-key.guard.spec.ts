@@ -400,15 +400,19 @@ describe('ApiKeyGuard', () => {
     const ctx = makeContext({ 'x-api-key': rawKey });
 
     await expect(guard.canActivate(ctx)).resolves.toBe(true);
-    // the update .set() payload must include BOTH last_used_at and expires_at
+    // the update .set() payload must include BOTH last_used_at and expires_at.
+    // expires_at is a Node-computed naive local timestamp, not a DB expression:
+    // CliAuthService mints with the same clock, so the slide must read it too.
     expect(mockSet).toHaveBeenCalledWith(
       expect.objectContaining({
         last_used_at: expect.any(Function),
-        expires_at: expect.any(Function),
+        expires_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/),
       }),
     );
-    const setArg = mockSet.mock.calls[0][0] as { expires_at: () => string };
-    expect(setArg.expires_at()).toBe(`CURRENT_TIMESTAMP + INTERVAL '30 days'`);
+    const setArg = mockSet.mock.calls[0][0] as { expires_at: string };
+    const slid = new Date(setArg.expires_at).getTime();
+    expect(slid).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect(slid).toBeLessThanOrEqual(Date.now() + 30 * 86_400_000 + 1000);
   });
 
   it('does not touch expires_at for non-expiring keys', async () => {

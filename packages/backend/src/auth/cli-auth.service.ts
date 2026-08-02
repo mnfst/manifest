@@ -68,7 +68,10 @@ export class CliAuthService {
 
     const ttlDays = this.configService.get<number>('app.cliTokenTtlDays', 30);
     const token = PAT_PREFIX + randomBytes(32).toString('base64url');
-    const expiresAt = toLocalSqlTimestamp(new Date(Date.now() + ttlDays * 86_400_000));
+    // One instant, two renderings: naive-local for the DB column (the format
+    // every other writer of expires_at uses), ISO-UTC on the wire so the CLI
+    // never has to guess the server's timezone.
+    const expiresDate = new Date(Date.now() + ttlDays * 86_400_000);
     await this.apiKeyRepo.insert({
       id: randomUUID(),
       key: null,
@@ -77,9 +80,9 @@ export class CliAuthService {
       tenant_id: row.tenant_id,
       created_by_user_id: row.user_id,
       name: CLI_KEY_NAME,
-      expires_at: expiresAt,
+      expires_at: toLocalSqlTimestamp(expiresDate),
     });
-    return { token, expiresAt };
+    return { token, expiresAt: expiresDate.toISOString() };
   }
 
   async revokeByRawKey(rawKey: string): Promise<{ revoked: boolean }> {
