@@ -864,6 +864,90 @@ describe('provider commands', () => {
     expect(calls2).toHaveLength(0);
   });
 
+  it('provider connect takes the provider as a positional', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: { id: 'p1' } }], { K: 'xai-secret' });
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--credential-env', 'K']),
+    ).toBe(0);
+    expect(JSON.parse(calls[0].body!).provider).toBe('xai');
+    expect((io.lastJson() as { agent: string }).agent).toBe('a');
+  });
+
+  it('provider connect rejects provider given both ways, and neither way', async () => {
+    const { io } = authedIo([]);
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--provider', 'openai', '--agent', 'a']),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_flag' });
+
+    const { io: io2 } = authedIo([]);
+    expect(await run(io2, ['provider', 'connect', '--agent', 'a'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({
+      error: 'missing_positional',
+      hint: expect.stringContaining('provider catalog'),
+    });
+  });
+
+  it('provider connect auto-picks an agent (tenant-wide effect) when --agent is omitted', async () => {
+    const { io, calls } = authedIo(
+      [
+        { status: 200, body: { agents: [{ agent_name: 'john' }, { agent_name: 'other' }] } },
+        { status: 201, body: { id: 'p1' } },
+      ],
+      { K: 'xai-secret' },
+    );
+    expect(await run(io, ['provider', 'connect', 'xai', '--credential-env', 'K'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents`);
+    expect(calls[1].url).toBe(`${HOST}/api/v1/routing/john/providers`);
+    expect((io.lastJson() as { agent: string }).agent).toBe('john');
+  });
+
+  it('provider connect with no agents at all explains what to do', async () => {
+    const { io } = authedIo([{ status: 200, body: { agents: [] } }], { K: 'k' });
+    expect(await run(io, ['provider', 'connect', 'xai', '--credential-env', 'K'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'no_agents',
+      hint: expect.stringContaining('agent create'),
+    });
+  });
+
+  it('provider connect prompts with hidden input on a TTY when no source is given', async () => {
+    const prompts: string[] = [];
+    const stub = fetchStub([{ status: 201, body: { id: 'p1' } }]);
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: stub.impl,
+      isTTY: true,
+      readSecret: async (promptText: string) => {
+        prompts.push(promptText);
+        return 'sk-typed-secretly\n';
+      },
+    });
+    expect(await run(io, ['provider', 'connect', 'openai', '--agent', 'a'])).toBe(0);
+    expect(prompts[0]).toContain('input hidden');
+    expect(JSON.parse(stub.calls[0].body!).apiKey).toBe('sk-typed-secretly');
+    expect(io.lines.join('\n')).not.toContain('sk-typed-secretly');
+  });
+
+  it('provider connect treats an empty prompted secret as an error', async () => {
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST, MANIFEST_API_KEY: 'env-key' },
+      fetchImpl: fetchStub([]).impl,
+      isTTY: true,
+      readSecret: async () => '   ',
+    });
+    expect(await run(io, ['provider', 'connect', 'openai', '--agent', 'a'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'credential_empty' });
+  });
+
+  it('provider connect wraps a non-object response body with the agent used', async () => {
+    const { io } = authedIo([{ status: 201, body: null }], { K: 'k' });
+    expect(
+      await run(io, ['provider', 'connect', 'xai', '--agent', 'a', '--credential-env', 'K']),
+    ).toBe(0);
+    expect(io.lastJson()).toEqual({ agent: 'a', result: null });
+  });
+
   it('provider connect sends the credential from a named env var, never argv', async () => {
     const { io, calls } = authedIo([{ status: 201, body: { id: 'p1', provider: 'openai' } }], {
       OPENAI_KEY: 'sk-secret',
