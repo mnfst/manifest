@@ -1,0 +1,49 @@
+packages/cli/src/commands/run.ts
+  s_55e9f8f22551f6::t_c252c6e09f58f0 1-66
+packages/cli/src/context.ts
+  s_55e9f8f22551f6::t_70b2e9b91bbe46 31-36
+packages/cli/src/commands/agent.ts
+  s_55e9f8f22551f6::t_a34aafebebb7d0 182,186-191
+  s_55e9f8f22551f6::t_3d0a6d92369fff 195,197,204-205
+  s_55e9f8f22551f6::t_07fb4ebd56fbb8 5
+  s_55e9f8f22551f6::t_c5310f32cb247f 88-93,103-109
+  s_55e9f8f22551f6::t_250f13a5b137d3 157-160,165-181,183-185,192-194,196,198-203,206-220
+packages/cli/src/commands/run.spec.ts
+  s_55e9f8f22551f6::t_7842259281a96f 1-52,54-98,122-128,130-147,149-163
+  s_55e9f8f22551f6::t_f6c4ead45fc747 99-105,107-121
+  s_55e9f8f22551f6::t_c60d62b97de88c 53
+  s_55e9f8f22551f6::t_3673001a27af4e 106,129,148
+  s_55e9f8f22551f6::t_90ff84163e26df 164-167
+packages/cli/src/keystore.ts
+  s_55e9f8f22551f6::t_520cfeb7dce053 1-33
+  s_55e9f8f22551f6::t_41e1a63848713f 34-38
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_db3a6818b5478c 68-69
+  s_55e9f8f22551f6::t_ec9db76a5916ab 54-55
+  s_55e9f8f22551f6::t_7c33470d1cd2d8 87-91
+  s_55e9f8f22551f6::t_bc00ebff1304c2 28-29
+  s_55e9f8f22551f6::t_73f36f40e56025 10
+  s_55e9f8f22551f6::t_a7ab07a167e3ae 72
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_b9d07c6888f489 7
+  s_55e9f8f22551f6::t_1fed66d34ed95f 587-628,630-657,659-665
+  s_55e9f8f22551f6::t_c60d62b97de88c 629,658
+packages/cli/src/keystore.spec.ts
+  s_55e9f8f22551f6::t_750ad86516bb8c 1-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "c3413031c1fcf2fb41ed008b5276f86b6fc9cce9",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
