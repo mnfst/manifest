@@ -21,9 +21,11 @@ export async function login(io: CliIo, argv: string[]): Promise<void> {
   const useStdin = Boolean(args.booleans['token-stdin']);
   const tokenEnv = args.strings['token-env'];
 
+  const viaBrowser = !useStdin && !tokenEnv;
+
   let token: string;
   let expiresAt: string | null = null;
-  if (!useStdin && !tokenEnv) {
+  if (viaBrowser) {
     if (!io.isTTY) {
       throw new CliError(
         'no_tty',
@@ -38,14 +40,34 @@ export async function login(io: CliIo, argv: string[]): Promise<void> {
     token = await readCredential(io, useStdin, tokenEnv, 'token');
   }
 
-  const client = new ApiClient({ origin, apiKey: token, fetchImpl: io.fetchImpl });
-  const me = (await client.request('GET', '/me')) as MeResponse;
-
   const configPath = getConfigPath(io);
-  const config = loadConfig(configPath);
-  config.hosts = { ...config.hosts, [origin]: { apiKey: token } };
-  config.activeHost = origin;
-  saveConfig(configPath, config);
+  const store = (): void => {
+    const config = loadConfig(configPath);
+    config.hosts = { ...config.hosts, [origin]: { apiKey: token } };
+    config.activeHost = origin;
+    saveConfig(configPath, config);
+  };
+
+  // Ordering differs by source, deliberately. A browser token was just minted
+  // by this server, so it is valid by construction — store it BEFORE /me, or a
+  // failing validation call strands a live 30-day PAT that the user can no
+  // longer revoke with `mnfst logout`. A user-supplied token may be garbage, so
+  // that path keeps validate-then-store and writes nothing on failure.
+  if (viaBrowser) store();
+
+  const client = new ApiClient({ origin, apiKey: token, fetchImpl: io.fetchImpl });
+  let me: MeResponse;
+  try {
+    me = (await client.request('GET', '/me')) as MeResponse;
+  } catch (error) {
+    if (!viaBrowser) throw error;
+    throw new CliError(
+      'login_validation_failed',
+      error instanceof Error ? error.message : String(error),
+      `Credential stored for ${origin} — run mnfst auth status to retry, or mnfst logout to revoke`,
+    );
+  }
+  if (!viaBrowser) store();
 
   printJson(io, {
     authenticated: true,
@@ -96,7 +118,7 @@ export async function authStatus(io: CliIo, argv: string[]): Promise<number | vo
     printJson(io, {
       authenticated: false,
       url: target.origin,
-      hint: 'Run mnfst login (--token-stdin or --token-env <name>), or set MANIFEST_API_KEY',
+      hint: 'Run mnfst login, or set MANIFEST_API_KEY',
     });
     return 1;
   }

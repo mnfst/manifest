@@ -162,7 +162,7 @@ export async function main(argv: string[]): Promise<number> {
       }
       return Buffer.concat(chunks).toString('utf8');
     },
-    isTTY: Boolean(process.stdout.isTTY),
+    isTTY: Boolean(process.stderr.isTTY),
     openBrowser: defaultOpenBrowser,
   };
   return run(io, argv);

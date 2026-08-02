@@ -182,6 +182,94 @@ describe('auth commands', () => {
     expect(stub.calls[0].url).toBe('http://flag-host:2/api/v1/me');
   });
 
+  it('browser login stores the minted token even when /me then fails', async () => {
+    // The server just minted this PAT, so it is live. Bailing out without
+    // storing it would strand a 30-day credential the user cannot revoke.
+    const fetchImpl = (async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.endsWith('/api/v1/cli/token')) {
+        return new Response(JSON.stringify({ token: 'mnfst_pat_orphan', expiresAt: null }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ message: 'Service Unavailable' }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST },
+      fetchImpl,
+      isTTY: true,
+      openBrowser: (url: string) => {
+        const authUrl = new URL(url);
+        http.get(
+          `http://127.0.0.1:${authUrl.searchParams.get('port')}/callback?code=c-abcdefghijklmnop&state=${authUrl.searchParams.get('state')}`,
+          () => undefined,
+        );
+        return true;
+      },
+    });
+
+    expect(await run(io, ['login'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'login_validation_failed',
+      message: 'Service Unavailable',
+      hint: expect.stringContaining('mnfst logout'),
+    });
+    // Stored anyway, so `mnfst logout` can still revoke it server-side.
+    const config = JSON.parse(
+      fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),
+    );
+    expect(config).toEqual({ activeHost: HOST, hosts: { [HOST]: { apiKey: 'mnfst_pat_orphan' } } });
+  });
+
+  it('browser login reports a non-Error validation failure without losing the token', async () => {
+    const fetchImpl = (async (input: string | URL | Request) => {
+      if (String(input).endsWith('/api/v1/cli/token')) {
+        return new Response(JSON.stringify({ token: 'mnfst_pat_weird', expiresAt: null }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      // A body that rejects with a bare string, not an Error.
+      return { ok: true, status: 200, text: () => Promise.reject('stream torn') } as Response;
+    }) as typeof fetch;
+    const io = makeIo({
+      env: { MANIFEST_URL: HOST },
+      fetchImpl,
+      isTTY: true,
+      openBrowser: (url: string) => {
+        const authUrl = new URL(url);
+        http.get(
+          `http://127.0.0.1:${authUrl.searchParams.get('port')}/callback?code=c-abcdefghijklmnop&state=${authUrl.searchParams.get('state')}`,
+          () => undefined,
+        );
+        return true;
+      },
+    });
+    expect(await run(io, ['login'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'login_validation_failed',
+      message: 'stream torn',
+    });
+    const config = JSON.parse(
+      fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),
+    );
+    expect(config.hosts[HOST].apiKey).toBe('mnfst_pat_weird');
+  });
+
+  it('token-flag login stores nothing when /me rejects the user-supplied token', async () => {
+    // Mirror image of the browser path: a token the user typed may be garbage,
+    // so it must prove itself before it is written to disk.
+    const stub = fetchStub([{ status: 401, body: { message: 'Invalid API key' } }]);
+    const io = makeIo({ env: { MNFST_TOKEN: 'bad', MANIFEST_URL: HOST }, fetchImpl: stub.impl });
+    expect(await run(io, ['login', '--token-env', 'MNFST_TOKEN'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ message: 'Invalid API key', status: 401 });
+    expect(fs.existsSync(path.join(io.configDir, 'manifest', 'config.json'))).toBe(false);
+  });
+
   it('logout on a host with nothing stored reports loggedOut: false and never calls the server', async () => {
     const stub = fetchStub([{ status: 200, body: { revoked: true } }]);
     const io = makeIo({ env: { MANIFEST_URL: HOST }, fetchImpl: stub.impl });

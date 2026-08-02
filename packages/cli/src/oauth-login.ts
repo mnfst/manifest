@@ -6,22 +6,41 @@ import { CliError } from './errors';
 import { CliIo } from './context';
 
 export const LOGIN_TIMEOUT_MS = 120_000;
+const EXCHANGE_TIMEOUT_MS = 30_000;
 
 const SUCCESS_HTML = `<!doctype html><meta charset="utf-8"><title>Manifest CLI</title><body style="font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>&#10003; Connected</h1><p>You can close this page and return to the terminal.</p></div></body>`;
 const FAILURE_HTML = `<!doctype html><meta charset="utf-8"><title>Manifest CLI</title><body style="font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>Login failed</h1><p>State mismatch &mdash; return to the terminal and retry.</p></div></body>`;
 
-/** Open a URL with the platform opener, detached so the CLI never blocks on it. */
+/**
+ * Open a URL with the platform opener, detached so the CLI never blocks on it.
+ *
+ * The return value is best-effort only: a missing opener binary surfaces as an
+ * ASYNCHRONOUS 'error' event on the child, long after this function has already
+ * returned true. The listener below swallows it — without one, Node treats an
+ * unhandled 'error' as fatal and the CLI dies with a raw stack mid-login. That
+ * is also why browserLogin always prints the URL for manual opening.
+ */
 export function defaultOpenBrowser(url: string): boolean {
-  const cmd =
-    process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open';
-  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
+  const win32 = process.platform === 'win32';
+  const cmd = process.platform === 'darwin' ? 'open' : win32 ? 'cmd' : 'xdg-open';
+  // `cmd /c start` re-parses its arguments, so &, |, ^, <, > and parens must be
+  // caret-escaped or the query string is truncated at the first `&state=…`.
+  const args = win32 ? ['/c', 'start', '', escapeForCmd(url)] : [url];
   try {
     const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
+    child.on('error', () => {
+      /* opener missing or blocked — the manual-open URL is already on stderr */
+    });
     child.unref();
     return true;
   } catch {
     return false;
   }
+}
+
+/** Caret-escape the cmd.exe metacharacters that would otherwise split the URL. */
+function escapeForCmd(url: string): string {
+  return url.replace(/[&|^<>()]/g, '^$&');
 }
 
 /**
@@ -33,6 +52,7 @@ export async function browserLogin(
   io: CliIo,
   origin: string,
   timeoutMs: number = LOGIN_TIMEOUT_MS,
+  exchangeTimeoutMs: number = EXCHANGE_TIMEOUT_MS,
 ): Promise<{ token: string; expiresAt: string | null }> {
   const state = randomBytes(24).toString('base64url');
   const server = http.createServer();
@@ -61,19 +81,25 @@ export async function browserLogin(
         if (url.pathname !== '/callback' || url.searchParams.get('state') !== state || !gotCode) {
           res.statusCode = 400;
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
           res.end(FAILURE_HTML);
           return; // keep listening — a stray request must not kill the login
         }
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        // The one-time code rides in this request's URL — keep it out of caches.
+        res.setHeader('Cache-Control', 'no-store');
         res.end(SUCCESS_HTML);
         clearTimeout(timer);
         resolve(gotCode);
       });
+      // Always print the URL: opening the browser can fail asynchronously (or
+      // silently, in a container or over SSH), so the user must never be left
+      // staring at a spinner with no way to continue by hand.
       const opened = (io.openBrowser ?? defaultOpenBrowser)(authUrl);
       io.stderr(
         opened
-          ? `Opening your browser to authorize the CLI… (${authUrl})`
+          ? `Opening your browser to authorize the CLI… If nothing opens, visit: ${authUrl}`
           : `Open this URL in your browser to authorize the CLI: ${authUrl}`,
       );
     });
@@ -82,12 +108,17 @@ export async function browserLogin(
   }
 
   // Exchange the one-time code — a public endpoint, so no X-API-Key here.
+  // Bounded by the same 30s budget ApiClient uses, so a hung server cannot
+  // wedge the CLI forever holding a code that is about to expire anyway.
+  const controller = new AbortController();
+  const exchangeTimer = setTimeout(() => controller.abort(), exchangeTimeoutMs);
   let response: Response;
   try {
     response = await io.fetchImpl(`${origin}/api/v1/cli/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code, state }),
+      signal: controller.signal,
     });
   } catch (error) {
     throw new CliError(
@@ -95,6 +126,8 @@ export async function browserLogin(
       `Could not reach ${origin}: ${error instanceof Error ? error.message : String(error)}`,
       'Check the URL and that the Manifest server is running',
     );
+  } finally {
+    clearTimeout(exchangeTimer);
   }
   const text = await response.text();
   let parsed: Record<string, unknown> = {};
