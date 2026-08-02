@@ -135,7 +135,12 @@ function recordAutofixOriginalIfRetried(
       requestHeaders,
       requestParams: meta.request_params,
       specificityCategory: meta.specificity_category,
-      providerKeyLabel: meta.provider_key_label,
+      // Same rule as tenantProviderId below: on a fallback-success flow
+      // `provider_key_label` names the connection that RECOVERED the request,
+      // while this row belongs to the primary that failed. The direct-success
+      // call site is guarded by `!meta.fallbackFromModel`, so primaryKeyLabel
+      // is absent there and the meta label is already the right one.
+      providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
       tenantProviderId:
         route?.tenantProviderId === undefined ? meta.tenantProviderId : route.tenantProviderId,
       headerTierId: meta.header_tier_id,

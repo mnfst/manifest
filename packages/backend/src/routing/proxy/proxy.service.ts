@@ -429,7 +429,9 @@ export class ProxyService {
       agentId,
       tenantId,
       rawApiKey: credentials.rawApiKey,
-      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+      // Always the selected row's label (see resolveRouteCredentials), so the
+      // forwarded connection and the recorded one can never diverge.
+      providerKeyLabel: credentials.keyLabel,
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -479,12 +481,9 @@ export class ProxyService {
                 apiKey: credentials.apiKey,
                 rawApiKey: credentials.rawApiKey,
                 model: primaryModel,
-                // Use the resolved (unpinned-subscription-pinned) label so the
-                // healed-retry row stamps the same connection its
-                // tenant_provider_id points at — otherwise a null/blank label
-                // rides next to the selected connection id (the divergence the
-                // primary forward already avoids).
-                keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+                // The selected row's label, so the healed-retry row stamps the
+                // same connection its tenant_provider_id points at.
+                keyLabel: credentials.keyLabel,
                 authType: route.authType,
                 resourceUrl: credentials.resourceUrl,
                 providerRegion: credentials.providerRegion,
@@ -787,9 +786,9 @@ export class ProxyService {
       agentId: ctx.agentId,
       tenantId: ctx.tenantId,
       rawApiKey: credentials.rawApiKey,
-      // Resolved label (pins an unpinned subscription to the selected row) so
-      // the recorded connection matches credentials.tenantProviderId.
-      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+      // Selected row's label so the recorded connection matches
+      // credentials.tenantProviderId.
+      providerKeyLabel: credentials.keyLabel,
       authType: route.authType,
       apiMode: ctx.apiMode,
       resourceUrl: credentials.resourceUrl,

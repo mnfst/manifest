@@ -90,6 +90,33 @@ describe('ProviderKeyService — selection projections', () => {
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('authType=any'));
     });
 
+    it('sanitizes a label that carries control characters into the log line', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      // A newline in a user-authored label would otherwise forge a log line.
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Work\nWARN fake entry');
+
+      const line = warn.mock.calls[0][0] as string;
+      expect(line).not.toContain('\n');
+      expect(line).toContain('Work WARN fake entry');
+    });
+
+    it('truncates an over-long label in the log line', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'L'.repeat(200));
+
+      const line = warn.mock.calls[0][0] as string;
+      expect(line).toContain(`${'L'.repeat(64)}…`);
+      expect(line).not.toContain('L'.repeat(65));
+    });
+
     it('does not warn when the label matches', async () => {
       jest
         .spyOn(svc, 'getProviderKeys')
