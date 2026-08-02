@@ -96,6 +96,33 @@ describe('run', () => {
       expect(USAGE).toContain(firstWord);
     }
   });
+
+  it('usage advertises only flags the commands actually accept', () => {
+    // `enable` has no --yes (nothing destructive to confirm); `disable` requires it.
+    expect(USAGE).toContain(
+      'mnfst agent provider enable <name> <provider> [--auth-type <a>] [--label <l>]\n',
+    );
+    expect(USAGE).toContain('mnfst agent provider disable <name> <provider>');
+    expect(USAGE).toMatch(/agent provider disable[^\n]*--yes/);
+    // Flags that existed but went undocumented.
+    expect(USAGE).toMatch(/agent configure[^\n]*--key-label/);
+    expect(USAGE).toMatch(/provider custom add[^\n]*--agent <name>/);
+    expect(USAGE).toMatch(/provider custom list \[--agent <name>\]/);
+    expect(USAGE).toMatch(/provider custom remove[^\n]*--agent <name>/);
+    expect(USAGE).toMatch(/agent key show <name> \[--raw\]/);
+    // --enabled belongs to `set`, not `get`.
+    expect(USAGE).toContain(
+      'mnfst routing autofix get <agent> | mnfst routing autofix set <agent> --enabled true|false',
+    );
+    expect(USAGE).toContain(
+      'mnfst routing recording get <agent> | mnfst routing recording set <agent> --enabled true|false',
+    );
+  });
+
+  it('usage names the persistent anonymous install id in the telemetry notice', () => {
+    expect(USAGE).toContain('~/.config/manifest/telemetry-id');
+    expect(USAGE).toContain('MANIFEST_TELEMETRY_DISABLED=1');
+  });
 });
 
 describe('version constant', () => {

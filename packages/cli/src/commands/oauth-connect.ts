@@ -23,8 +23,25 @@ const OAUTH_FLOWS: Record<string, 'redirect' | 'paste' | 'device'> = {
   minimax: 'device',
 };
 
-/** Poll cadence; mutable so tests can shrink the clock. */
-export const OAUTH_POLL = { intervalMs: 2000, timeoutMs: 180_000 };
+/**
+ * Poll cadence; mutable so tests can shrink the clock.
+ * `intervalMs` drives the redirect flow only. The device flow obeys the
+ * SERVER's suggested interval (Kiro asks for 5s, and the OAuth device spec
+ * lets the server raise it mid-flow) — capping that at `intervalMs` would poll
+ * faster than the provider allows. `deviceIntervalOverrideMs` is the test
+ * escape hatch: when set it is used verbatim, no floor, no server value.
+ */
+export const OAUTH_POLL: {
+  intervalMs: number;
+  timeoutMs: number;
+  deviceIntervalOverrideMs: number | null;
+} = { intervalMs: 2000, timeoutMs: 180_000, deviceIntervalOverrideMs: null };
+
+/** Server-suggested cadence with a 1s floor, unless a test overrides it. */
+function deviceSleepMs(suggestedMs: number | undefined): number {
+  if (OAUTH_POLL.deviceIntervalOverrideMs !== null) return OAUTH_POLL.deviceIntervalOverrideMs;
+  return Math.max(1000, suggestedMs ?? OAUTH_POLL.intervalMs);
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -78,14 +95,16 @@ export async function subscriptionConnect(
         ? `Opening ${start.verificationUri} — confirm the code there.`
         : `Open ${start.verificationUri} and enter the code.`,
     );
-    const interval = Math.max(1000, start.pollIntervalMs ?? OAUTH_POLL.intervalMs);
+    let interval = deviceSleepMs(start.pollIntervalMs);
     const deadline = Date.now() + OAUTH_POLL.timeoutMs;
     while (Date.now() < deadline) {
-      await sleep(Math.min(interval, OAUTH_POLL.intervalMs));
+      await sleep(interval);
       const poll = (await client.request(
         'GET',
         `/oauth/${providerId}/poll?flowId=${encodeURIComponent(start.flowId)}`,
-      )) as { status: 'pending' | 'success' | 'error'; message?: string };
+      )) as { status: 'pending' | 'success' | 'error'; message?: string; pollIntervalMs?: number };
+      // A pending response may slow us down (slow_down in the device spec).
+      if (poll.pollIntervalMs !== undefined) interval = deviceSleepMs(poll.pollIntervalMs);
       if (poll.status === 'success') {
         printJson(io, { connected: providerId, auth_type: 'subscription', agent });
         return;

@@ -253,6 +253,9 @@ export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = [
   },
 ];
 
+/** Valid --category values (source: manifest-shared AGENT_CATEGORIES). */
+export const CATEGORY_CATALOG: readonly string[] = ['personal', 'app', 'coding'];
+
 /** Setup snippets with {{ORIGIN}} / {{API_KEY}} placeholders, rendered from manifest-shared. */
 export const SETUP_TEMPLATES: Readonly<Record<string, string>> = {
   openclaw:

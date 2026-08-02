@@ -81,13 +81,14 @@ Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
   mnfst agent create --name <name> --platform <p> [--category <personal|app|coding>] [--key-file <path>] [--if-absent]
-  mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--tier <custom>] [--autofix true|false] [--recording true|false]
+  mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--key-label <l>] [--tier <custom>] [--autofix true|false] [--recording true|false]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
   mnfst agent env <name> [--export]                     (dotenv/shell lines: KEY + URL; append to .env or eval)
   mnfst agent setup <name> [--reveal]                   (platform setup instructions, same content as the dashboard)
-  mnfst agent provider enable|disable <name> <provider> [--auth-type <a>] [--label <l>] [--yes]
-  mnfst agent key path <name> | mnfst agent key show <name>
+  mnfst agent provider enable <name> <provider> [--auth-type <a>] [--label <l>]
+  mnfst agent provider disable <name> <provider> [--auth-type <a>] [--label <l>] --yes
+  mnfst agent key path <name> | mnfst agent key show <name> [--raw]
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
   mnfst agent rotate-key <name> --yes [--key-file <path>]
@@ -98,8 +99,10 @@ Providers
   mnfst provider connect <provider> [--credential-stdin | --credential-env <name>] [--agent <name>] [--label <l>] [--region <r>] [--auth-type <a>]
     (interactive terminals are prompted for the key, input hidden; agent auto-picked — the connection is tenant-wide)
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
-  mnfst provider custom add --name <n> --endpoint <url> [--api openai|anthropic] [--credential-stdin|--credential-env <e>]
-  mnfst provider custom list | mnfst provider custom remove <name> --yes
+  mnfst provider custom add --name <n> --endpoint <url> [--api openai|anthropic] [--credential-stdin|--credential-env <e>] [--agent <name>]
+  mnfst provider custom list [--agent <name>]
+  mnfst provider custom remove <name> --yes [--agent <name>]
+    (custom providers are tenant-wide; --agent only picks which agent performs the discovery call)
 
 Models
   mnfst models <agent> [--provider <p>] [--cost] [--capabilities]   (like /v1/models: bare ids; flags opt into metadata)
@@ -112,8 +115,8 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
   mnfst routing custom list <agent>
   mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]
   mnfst routing custom delete <agent> <name> --yes
-  mnfst routing autofix get|set <agent> [--enabled true|false]
-  mnfst routing recording get|set <agent> [--enabled true|false]
+  mnfst routing autofix get <agent> | mnfst routing autofix set <agent> --enabled true|false
+  mnfst routing recording get <agent> | mnfst routing recording set <agent> --enabled true|false
 
 Requests (paginated, mirrors the API: opaque cursor, one page per call)
   mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>] [--full]
@@ -125,8 +128,10 @@ Run (key injection, 1Password-style)
     The key never crosses stdout or your transcript.
 
 Environment: MANIFEST_URL, MANIFEST_API_KEY (overrides stored login)
-Telemetry: one anonymous event per command (command name, version, os — never
-arguments or keys). Disable with MANIFEST_TELEMETRY_DISABLED=1.
+Telemetry: one anonymous event per command — a persistent anonymous install id
+(a random UUID stored at ~/.config/manifest/telemetry-id), the command name,
+CLI version, ok, duration, and os. Never arguments, agent names, URLs, or keys.
+Disable with MANIFEST_TELEMETRY_DISABLED=1. Details: packages/cli/README.md.
 Credentials are stored per-host in ~/.config/manifest/config.json (mode 0600).`;
 
 export function resolveCommand(

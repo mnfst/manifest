@@ -58,6 +58,24 @@ describe('telemetry', () => {
     expect(calls[0]).toBe('http://peacock.local/v1/cli-event');
   });
 
+  it('drains the response body so an unread socket cannot delay exit', async () => {
+    const streamed = new Response('{"ok":true}', { status: 202 });
+    const io = makeIo({
+      env: { MANIFEST_TELEMETRY_DISABLED: '0' },
+      fetchImpl: (async () => streamed) as typeof fetch,
+    });
+    await reportUsage(io, 'whoami', true, 1);
+    expect(streamed.bodyUsed).toBe(true);
+
+    // A bodyless reply (204) has no stream to cancel — the arrayBuffer path.
+    const empty = new Response(null, { status: 204 });
+    const io2 = makeIo({
+      env: { MANIFEST_TELEMETRY_DISABLED: '0' },
+      fetchImpl: (async () => empty) as typeof fetch,
+    });
+    await expect(reportUsage(io2, 'whoami', true, 1)).resolves.toBeUndefined();
+  });
+
   it('swallows transport failures and clamps duration', async () => {
     const bodies: string[] = [];
     const io = makeIo({

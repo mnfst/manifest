@@ -510,6 +510,34 @@ describe('agent commands', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('agent create with an unknown --category fails before any API call', async () => {
+    const { io, calls } = authedIo([{ status: 201, body: {} }]);
+    expect(
+      await run(io, [
+        'agent',
+        'create',
+        '--name',
+        'x',
+        '--platform',
+        'curl',
+        '--category',
+        'devops',
+      ]),
+    ).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'invalid_category',
+      message: expect.stringContaining('personal, app, coding'),
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('agent update with an unknown --category fails before any API call', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: {} }]);
+    expect(await run(io, ['agent', 'update', 'a', '--category', 'devops'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_category' });
+    expect(calls).toHaveLength(0);
+  });
+
   it('agent platforms lists valid platforms without touching the network', async () => {
     const stub = fetchStub([]);
     const io = makeIo({ fetchImpl: stub.impl });
@@ -636,6 +664,27 @@ describe('agent commands', () => {
     });
     // the recovered key lands in the keystore for run/key path
     expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'kept'), 'utf8')).toBe('mnfst_recovered_key');
+    // an --if-absent re-run is the idempotent setup path: it must carry the
+    // same wiring instructions the create path prints
+    const setup = (io.lastJson() as { setup: string }).setup;
+    expect(setup).toContain('base URL');
+    expect(setup).toContain('<MNFST_AGENT_KEY — run: mnfst agent key show kept --raw>');
+    expect(setup).not.toContain('mnfst_recovered_key');
+  });
+
+  it('agent create --if-absent renders setup from the EXISTING agent platform', async () => {
+    const { io } = authedIo([
+      { status: 409, body: { message: 'exists', error: 'Conflict' } },
+      { status: 200, body: { agent: { agent_name: 'kept', agent_platform: 'openclaw' } } },
+      { status: 200, body: { keyPrefix: 'mnfst_serv', apiKey: 'mnfst_recovered_key' } },
+    ]);
+    // asked for curl, but the stored agent is an openclaw one — the record wins
+    expect(
+      await run(io, ['agent', 'create', '--name', 'kept', '--platform', 'curl', '--if-absent']),
+    ).toBe(0);
+    expect((io.lastJson() as { setup: string }).setup).toContain(
+      'openclaw config set models.providers.manifest',
+    );
   });
 
   it('agent create without --if-absent still fails on conflict', async () => {
@@ -665,7 +714,10 @@ describe('agent commands', () => {
     const setup = (io.lastJson() as { setup: string }).setup;
     expect(setup).toContain('ANTHROPIC_BASE_URL');
     expect(setup).toContain(HOST);
-    expect(setup).toContain('$(mnfst agent key show kept)');
+    // A literal placeholder, not a command substitution: the snippets embed it
+    // in JSON / single-quoted contexts where no shell would expand it.
+    expect(setup).toContain('<MNFST_AGENT_KEY — run: mnfst agent key show kept --raw>');
+    expect(setup).not.toContain('$(');
     expect(setup).not.toContain('mnfst_kept_secret');
     expect(io.lines.join('\n')).not.toContain('mnfst_kept_secret');
   });
@@ -720,7 +772,7 @@ describe('agent commands', () => {
     const out = io.lastJson() as { setup: string; hint?: string };
     expect(out.setup).toContain('openclaw config set models.providers.manifest');
     expect(out.setup).toContain(`${HOST}/v1`);
-    expect(out.setup).toContain('$(mnfst agent key show bot)');
+    expect(out.setup).toContain('<MNFST_AGENT_KEY — run: mnfst agent key show bot --raw>');
     expect(out.hint).toContain('--reveal');
 
     const { io: io2 } = authedIo([
@@ -769,6 +821,14 @@ describe('agent commands', () => {
     expect(await run(io, ['agent', 'key', 'show', 'my-bot'])).toBe(0);
     expect(io.lastJson()).toEqual({ agent: 'my-bot', apiKey: 'mnfst_cached_secret' });
     expect(calls).toHaveLength(0);
+  });
+
+  it('agent key show --raw prints the bare key with no JSON envelope', async () => {
+    const { io } = authedIo([]);
+    saveAgentKey(io.env, HOST, 'my-bot', 'mnfst_cached_secret');
+    expect(await run(io, ['agent', 'key', 'show', 'my-bot', '--raw'])).toBe(0);
+    // exactly the key — substitutable into a config file, pipeable
+    expect(io.lines).toEqual(['mnfst_cached_secret']);
   });
 
   it('agent commands slugify display-name input like the backend does', async () => {
@@ -1774,13 +1834,45 @@ describe('routing test', () => {
     expect(calls[1].headers['anthropic-version']).toBe('2023-06-01');
     const body = JSON.parse(calls[1].body!);
     expect(body.max_tokens).toBe(64);
+    // "auto" routes on /v1/messages exactly like the completions surface —
+    // only a concrete model is an explicit route override there.
+    expect(body.model).toBe('auto');
     expect(io.lastJson()).toMatchObject({
       surface: 'messages',
       platform: 'claude-code',
+      requested_model: 'auto',
       served_model: 'claude-sonnet-5',
       tokens: 14,
       reply: 'OK',
     });
+  });
+
+  it('--model overrides the route on the messages surface too', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: { model: 'claude-opus-5', content: [{ type: 'text', text: 'OK' }] },
+      },
+    ]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(
+      await run(io, ['routing', 'test', 'john', '--as', 'claude-code', '--model', 'claude-opus-5']),
+    ).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/v1/messages`);
+    expect(JSON.parse(calls[0].body!).model).toBe('claude-opus-5');
+    expect(io.lastJson()).toMatchObject({ requested_model: 'claude-opus-5' });
+  });
+
+  it('rejects an unknown --as before any network call', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: {} }]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['routing', 'test', 'john', '--as', 'skynet'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({
+      error: 'invalid_platform',
+      message: expect.stringContaining('claude-code'),
+      hint: expect.stringContaining('agent platforms'),
+    });
+    expect(calls).toHaveLength(0);
   });
 
   it('unmasks fake-200 Manifest errors as loud failures', async () => {

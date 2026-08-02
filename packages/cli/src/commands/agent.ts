@@ -4,7 +4,7 @@ import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } f
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
 import { agentKeyPath, deleteAgentKey, readAgentKey, saveAgentKey } from '../keystore';
 import { slugifyAgentName } from '../slug';
-import { PLATFORM_CATALOG, SETUP_TEMPLATES } from '../provider-catalog.gen';
+import { CATEGORY_CATALOG, PLATFORM_CATALOG, SETUP_TEMPLATES } from '../provider-catalog.gen';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
@@ -36,11 +36,38 @@ function requirePlatform(args: ParsedArgs): string {
 }
 
 /**
+ * Categories are validated client-side against the generated catalog (source
+ * of truth: manifest-shared AGENT_CATEGORIES) so a typo fails before any
+ * network call, with the valid values in the message.
+ */
+function validateCategory(args: ParsedArgs): string | undefined {
+  const value = args.strings['category'];
+  if (value === undefined) return undefined;
+  if (!CATEGORY_CATALOG.includes(value)) {
+    throw new CliError(
+      'invalid_category',
+      `Unknown category: ${value}. Valid categories: ${CATEGORY_CATALOG.join(', ')}`,
+    );
+  }
+  return value;
+}
+
+/**
+ * The masked stand-in for the agent key in setup text. Deliberately NOT a
+ * shell command substitution: the snippets embed it in JSON and single-quoted
+ * contexts where no shell would expand it, so a literal placeholder that names
+ * the command to run is the honest rendering — a human or agent substitutes it.
+ */
+function maskedKeyRef(slug: string): string {
+  return `<MNFST_AGENT_KEY — run: mnfst agent key show ${slug} --raw>`;
+}
+
+/**
  * Render the platform's setup instructions. Templates come from
  * manifest-shared (the dashboard shows the same content); platforms without
  * a first-class snippet get generic OpenAI-compatible wiring guidance.
- * The key is masked by default — a command substitution the reader can run —
- * so setup text is safe to log; `keyRef` carries the real key on --reveal.
+ * The key is masked by default so setup text is safe to log; `keyRef` carries
+ * the real key on --reveal.
  */
 function renderSetup(platform: string | undefined, origin: string, keyRef: string): string {
   const template = platform ? SETUP_TEMPLATES[platform] : undefined;
@@ -68,7 +95,7 @@ export async function agentSetup(io: CliIo, argv: string[]): Promise<void> {
   }
   const keyRef = args.booleans['reveal']
     ? (await resolveAgentKey(io, args, slug)).key
-    : `$(mnfst agent key show ${slug})`;
+    : maskedKeyRef(slug);
   printJson(io, {
     agent: slug,
     platform: info.agent.agent_platform ?? null,
@@ -118,6 +145,7 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
   });
   const name = requireString(args, 'name');
   const platform = requirePlatform(args);
+  const category = validateCategory(args);
   // --key-file is an explicit override; the default home is the managed
   // keystore, so nobody has to invent a path to avoid printing a secret.
   const keyFile = args.strings['key-file']
@@ -131,7 +159,7 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
       body: {
         name,
         agent_platform: platform,
-        ...(args.strings['category'] ? { agent_category: args.strings['category'] } : {}),
+        ...(category ? { agent_category: category } : {}),
       },
     })) as { agent: unknown; apiKey: string };
   } catch (error) {
@@ -140,7 +168,7 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     if (args.booleans['if-absent'] && error instanceof CliError && error.status === 409) {
       const slug = slugifyAgentName(name);
       const existing = (await client.request('GET', `/agents/${encodeURIComponent(slug)}`)) as {
-        agent: unknown | null;
+        agent: { agent_platform?: string | null } | null;
       };
       const resolved = await resolveAgentKey(io, args, slug);
       printJson(io, {
@@ -148,6 +176,14 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
         existed: true,
         keyPrefix: keyPrefixOf(resolved.key),
         keyPath: resolved.path,
+        // Same wiring instructions the create path prints — an --if-absent
+        // re-run is the idempotent setup path, so it must not be poorer.
+        // The stored platform wins: it is what the agent actually is.
+        setup: renderSetup(
+          existing.agent?.agent_platform ?? platform,
+          target.origin,
+          maskedKeyRef(slug),
+        ),
       });
       return;
     }
@@ -166,11 +202,7 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     agent: result.agent,
     keyPrefix: keyPrefixOf(result.apiKey),
     keyPath,
-    setup: renderSetup(
-      platform,
-      target.origin,
-      `$(mnfst agent key show ${slugifyAgentName(name)})`,
-    ),
+    setup: renderSetup(platform, target.origin, maskedKeyRef(slugifyAgentName(name))),
   });
 }
 
@@ -191,9 +223,10 @@ export async function agentGet(io: CliIo, argv: string[]): Promise<void> {
 export async function agentUpdate(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, { strings: ['url', 'name', 'category', 'platform'] });
   const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const category = validateCategory(args);
   const body: Record<string, string> = {};
   if (args.strings['name']) body['name'] = args.strings['name'];
-  if (args.strings['category']) body['agent_category'] = args.strings['category'];
+  if (category) body['agent_category'] = category;
   if (args.strings['platform']) body['agent_platform'] = args.strings['platform'];
   if (Object.keys(body).length === 0) {
     throw new CliError(
@@ -294,10 +327,18 @@ export async function agentEnv(io: CliIo, argv: string[]): Promise<void> {
   io.stdout(`${prefix}MANIFEST_AGENT_URL=${resolved.origin}/v1`);
 }
 
-/** Prints the raw key — the one deliberate, greppable way to surface it. */
+/**
+ * Prints the raw key — the one deliberate, greppable way to surface it.
+ * `--raw` prints the bare key with no JSON envelope, so it can be piped or
+ * substituted into a config file; the key still never rides in argv.
+ */
 export async function agentKeyShow(io: CliIo, argv: string[]): Promise<void> {
-  const args = parseArgs(argv, URL_ONLY);
+  const args = parseArgs(argv, { strings: ['url'], booleans: ['raw'] });
   const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const resolved = await resolveAgentKey(io, args, name);
+  if (args.booleans['raw']) {
+    io.stdout(resolved.key);
+    return;
+  }
   printJson(io, { agent: name, apiKey: resolved.key });
 }
