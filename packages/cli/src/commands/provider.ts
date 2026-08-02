@@ -1,4 +1,5 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
+import { slugifyAgentName } from '../slug';
 import { parseArgs, requireString, requireYes } from '../args';
 import { readCredential } from '../secrets';
 
@@ -21,7 +22,7 @@ export async function providerConnect(io: CliIo, argv: string[]): Promise<void> 
     booleans: ['credential-stdin'],
   });
   const provider = requireString(args, 'provider');
-  const agent = requireString(args, 'agent');
+  const agent = slugifyAgentName(requireString(args, 'agent'));
   const authType = args.strings['auth-type'];
 
   // API-key providers need a credential; `local` (Ollama) does not.
@@ -54,7 +55,7 @@ export async function providerDisconnect(io: CliIo, argv: string[]): Promise<voi
     booleans: ['yes'],
   });
   const provider = requireString(args, 'provider');
-  const agent = requireString(args, 'agent');
+  const agent = slugifyAgentName(requireString(args, 'agent'));
   requireYes(args, `disconnect provider "${provider}" (tenant-wide)`);
   const { client } = clientFromFlags(io, args);
   const result = await client.request(

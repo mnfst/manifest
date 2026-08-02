@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { slugifyAgentName } from '../slug';
 import { CliIo } from '../context';
 import { CliError } from '../errors';
 import { parseArgs, requireString } from '../args';
@@ -49,7 +50,7 @@ export async function runCmd(io: CliIo, argv: string[]): Promise<number> {
   }
 
   const args = parseArgs(argv.slice(0, sep), { strings: ['url', 'agent', 'env'] });
-  const agentName = requireString(args, 'agent');
+  const agentName = slugifyAgentName(requireString(args, 'agent'));
   const envVar = args.strings['env'] ?? 'MANIFEST_AGENT_KEY';
   if (!ENV_NAME_RE.test(envVar)) {
     throw new CliError('invalid_env_name', `Not a valid environment variable name: ${envVar}`);

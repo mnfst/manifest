@@ -653,6 +653,46 @@ describe('agent commands', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('agent commands slugify display-name input like the backend does', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: { agent: { agent_name: 'john' } } }]);
+    expect(await run(io, ['agent', 'get', 'John'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents/john`);
+
+    const { io: io2, calls: calls2 } = authedIo([{ status: 200, body: {} }]);
+    expect(await run(io2, ['agent', 'delete', 'My Cool Agent', '--yes'])).toBe(0);
+    expect(calls2[0].url).toBe(`${HOST}/api/v1/agents/my-cool-agent`);
+  });
+
+  it('routing and run take display names too', async () => {
+    const { io, calls } = authedIo([{ status: 200, body: {} }]);
+    expect(await run(io, ['routing', 'status', 'John'])).toBe(0);
+    expect(calls[0].url).toContain('/routing/john/');
+
+    const { io: io2 } = authedIo([]);
+    saveAgentKey(io2.env, HOST, 'john', 'k');
+    io2.spawnImpl = async () => 0;
+    expect(await run(io2, ['run', '--agent', 'John', '--', 'tool'])).toBe(0);
+  });
+
+  it('create with a spaced name stores the keystore entry under the slug', async () => {
+    const { io } = authedIo([
+      { status: 201, body: { agent: { display_name: 'My Cool Agent' }, apiKey: 'mnfst_spaced' } },
+    ]);
+    expect(
+      await run(io, ['agent', 'create', '--name', 'My Cool Agent', '--platform', 'other']),
+    ).toBe(0);
+    const expected = agentKeyPath(io.env, HOST, 'my-cool-agent');
+    expect(fs.readFileSync(expected, 'utf8')).toBe('mnfst_spaced');
+    expect((io.lastJson() as { keyPath: string }).keyPath).toBe(expected);
+  });
+
+  it('a name that slugifies to nothing fails fast', async () => {
+    const { io, calls } = authedIo([]);
+    expect(await run(io, ['agent', 'get', '!!!'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'invalid_agent_name' });
+    expect(calls).toHaveLength(0);
+  });
+
   it('agent key show falls back to the server and caches the result', async () => {
     const { io } = authedIo([
       { status: 200, body: { keyPrefix: 'mnfst_serv', apiKey: 'mnfst_server_secret' } },
