@@ -1,0 +1,31 @@
+packages/backend/src/database/migrations/1801710000000-CreateCliAuthCodes.spec.ts
+  s_55e9f8f22551f6::t_8c2ab1e96f3aee 1-47
+packages/backend/src/entities/cli-auth-code.entity.ts
+  s_55e9f8f22551f6::t_5c5dd3bcfcce04 1-34
+packages/backend/src/database/data-source-definitions.ts
+  s_55e9f8f22551f6::t_c02c40db8d8970 322
+  s_55e9f8f22551f6::t_8f1e95fc27ed36 188
+  s_55e9f8f22551f6::t_b55483cfa2f658 30
+  s_55e9f8f22551f6::t_e8ec365293c81d 43
+packages/backend/src/database/migrations/1801710000000-CreateCliAuthCodes.ts
+  s_55e9f8f22551f6::t_c40babcdff7c19 1-28
+packages/backend/test/helpers.ts
+  s_55e9f8f22551f6::t_9a7854792dbc43 89
+  s_55e9f8f22551f6::t_f98fdf237261d9 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ae85157a2015e57255df337f2834a350e4858cf7",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
