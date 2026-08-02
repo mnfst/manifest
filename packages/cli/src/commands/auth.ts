@@ -3,24 +3,40 @@ import { loadConfig, normalizeOrigin, saveConfig, DEFAULT_URL } from '../config'
 import { CliIo, clientFromFlags, getConfigPath, printJson, resolveFromFlags } from '../context';
 import { parseArgs } from '../args';
 import { readCredential } from '../secrets';
+import { browserLogin } from '../oauth-login';
+import { CliError } from '../errors';
 
 interface MeResponse {
   tenantId: string | null;
   userId: string | null;
   authMethod: string | null;
+  expiresAt: string | null;
 }
 
 const LOGIN_FLAGS = { strings: ['token-env', 'url'], booleans: ['token-stdin'] } as const;
 
 export async function login(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, LOGIN_FLAGS);
-  const token = await readCredential(
-    io,
-    Boolean(args.booleans['token-stdin']),
-    args.strings['token-env'],
-    'token',
-  );
   const origin = normalizeOrigin(args.strings['url'] ?? io.env['MANIFEST_URL'] ?? DEFAULT_URL);
+  const useStdin = Boolean(args.booleans['token-stdin']);
+  const tokenEnv = args.strings['token-env'];
+
+  let token: string;
+  let expiresAt: string | null = null;
+  if (!useStdin && !tokenEnv) {
+    if (!io.isTTY) {
+      throw new CliError(
+        'no_tty',
+        'Browser login needs an interactive terminal',
+        'Use mnfst login --token-stdin or --token-env <name> in scripts',
+      );
+    }
+    const result = await browserLogin(io, origin);
+    token = result.token;
+    expiresAt = result.expiresAt;
+  } else {
+    token = await readCredential(io, useStdin, tokenEnv, 'token');
+  }
 
   const client = new ApiClient({ origin, apiKey: token, fetchImpl: io.fetchImpl });
   const me = (await client.request('GET', '/me')) as MeResponse;
@@ -37,6 +53,7 @@ export async function login(io: CliIo, argv: string[]): Promise<void> {
     tenantId: me.tenantId,
     userId: me.userId,
     authMethod: me.authMethod,
+    expiresAt: me.expiresAt ?? expiresAt,
     source: 'config',
   });
 }
@@ -49,12 +66,27 @@ export async function logout(io: CliIo, argv: string[]): Promise<void> {
     args.strings['url'] ?? io.env['MANIFEST_URL'] ?? config.activeHost ?? DEFAULT_URL,
   );
 
+  const stored = config.hosts?.[origin]?.apiKey;
+  let revoked = false;
+  if (stored) {
+    try {
+      const result = (await new ApiClient({
+        origin,
+        apiKey: stored,
+        fetchImpl: io.fetchImpl,
+      }).request('DELETE', '/cli/token')) as { revoked?: boolean } | null;
+      revoked = Boolean(result?.revoked);
+    } catch {
+      // Best-effort: local logout must succeed even when the server is gone.
+    }
+  }
+
   const existed = Boolean(config.hosts?.[origin]);
   if (config.hosts) delete config.hosts[origin];
   if (config.activeHost === origin) delete config.activeHost;
   saveConfig(configPath, config);
 
-  printJson(io, { loggedOut: existed, url: origin });
+  printJson(io, { loggedOut: existed, revoked, url: origin });
 }
 
 export async function authStatus(io: CliIo, argv: string[]): Promise<number | void> {
@@ -81,6 +113,7 @@ export async function authStatus(io: CliIo, argv: string[]): Promise<number | vo
     tenantId: me.tenantId,
     userId: me.userId,
     authMethod: me.authMethod,
+    expiresAt: me.expiresAt,
   });
 }
 

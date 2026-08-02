@@ -21,7 +21,10 @@ One global API key (a tenant credential from the `api_keys` table — e.g. the s
 `--key-file` paths with mode `0600`.
 
 ```bash
-# store a host-bound credential (never passed as an argument)
+# browser login (default): opens the dashboard, you approve, the CLI gets a token
+mnfst login --url http://localhost:2099
+
+# non-interactive alternatives — the secret is never passed as an argument
 printf '%s' "$MY_KEY" | mnfst login --token-stdin --url http://localhost:2099
 # or: mnfst login --token-env MY_KEY --url http://localhost:2099
 
@@ -37,6 +40,13 @@ Credentials resolve as: `MANIFEST_API_KEY` env var → the stored credential who
 exactly matches the target (`--url` → `MANIFEST_URL` → active login → Cloud). A key
 stored for one host is never sent to another. Config lives at
 `~/.config/manifest/config.json` (mode `0600`).
+
+Browser login runs a one-shot loopback listener on `127.0.0.1`, sends the browser to
+`/cli/auth?port=…&state=…`, and exchanges the returned one-time code for a token over a
+direct CLI→server call — the token itself never travels through the browser. It needs an
+interactive terminal (`no_tty` otherwise, so scripts get a clear pointer to
+`--token-stdin`). `mnfst logout` revokes the stored token server-side on a best-effort
+basis before deleting it locally, and reports `revoked` in its JSON.
 
 Destructive commands (`delete`, `rotate-key`, `disconnect`, `clear`) require `--yes`
 and fail rather than prompt. Run `mnfst --help` for the full command list.

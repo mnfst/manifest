@@ -14,6 +14,8 @@ export interface TestIoOptions {
   env?: Record<string, string | undefined>;
   fetchImpl?: typeof fetch;
   stdin?: string;
+  isTTY?: boolean;
+  openBrowser?: (url: string) => boolean;
 }
 
 /** Hermetic CliIo: temp XDG config dir, captured output, stubbed fetch/stdin. */
@@ -31,6 +33,8 @@ export function makeIo(options: TestIoOptions = {}): TestIo {
     stdout: (line) => lines.push(line),
     stderr: (line) => errLines.push(line),
     readStdin: async () => options.stdin ?? '',
+    isTTY: options.isTTY ?? false,
+    ...(options.openBrowser ? { openBrowser: options.openBrowser } : {}),
     lines,
     errLines,
     configDir,
