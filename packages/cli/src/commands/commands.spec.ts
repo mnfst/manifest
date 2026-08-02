@@ -518,10 +518,20 @@ describe('agent commands', () => {
     expect(stub.calls).toHaveLength(0);
   });
 
-  it('CLI platform list matches manifest-shared (drift guard)', () => {
+  it('CLI platform catalog matches manifest-shared, surfaces included (drift guard)', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const shared = require('manifest-shared') as { AGENT_PLATFORMS: readonly string[] };
+    const shared = require('manifest-shared') as {
+      AGENT_PLATFORMS: readonly string[];
+      PLATFORM_API_SURFACES: Record<string, string>;
+    };
     expect(CLI_AGENT_PLATFORMS).toEqual([...shared.AGENT_PLATFORMS]);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { derivePlatforms } = require('../../scripts/generate-provider-catalog.cjs') as {
+      derivePlatforms: (s: unknown) => unknown;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const gen = require('../provider-catalog.gen') as { PLATFORM_CATALOG: unknown };
+    expect(JSON.parse(JSON.stringify(gen.PLATFORM_CATALOG))).toEqual(derivePlatforms(shared));
   });
 
   it('agent update maps --category alone', async () => {

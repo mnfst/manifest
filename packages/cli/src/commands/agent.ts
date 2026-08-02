@@ -4,29 +4,16 @@ import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } f
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
 import { agentKeyPath, deleteAgentKey, readAgentKey, saveAgentKey } from '../keystore';
 import { slugifyAgentName } from '../slug';
+import { PLATFORM_CATALOG } from '../provider-catalog.gen';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
 /**
- * Mirrors AGENT_PLATFORMS in manifest-shared (the backend rejects anything
- * else). The platform drives the agent's setup instructions, so create makes
- * it mandatory. Kept as a literal so the CLI stays zero-runtime-dependency;
- * a drift guard in commands.spec.ts pins it against the shared package.
+ * Platforms come from the generated catalog (manifest-shared is the source of
+ * truth; `npm run gen` refreshes it at build, a drift spec pins it) — a new
+ * platform in Manifest lands in the CLI on the next build, never by hand.
  */
-export const CLI_AGENT_PLATFORMS = [
-  'openclaw',
-  'hermes',
-  'nanobot',
-  'craft',
-  'claude-code',
-  'opencode',
-  'openai-sdk',
-  'anthropic-sdk',
-  'vercel-ai-sdk',
-  'langchain',
-  'curl',
-  'other',
-] as const;
+export const CLI_AGENT_PLATFORMS: readonly string[] = PLATFORM_CATALOG.map((p) => p.id);
 
 function requirePlatform(args: ParsedArgs): string {
   const list = CLI_AGENT_PLATFORMS.join(', ');

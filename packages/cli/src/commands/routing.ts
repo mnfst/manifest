@@ -1,5 +1,6 @@
 import { CliIo, clientFromFlags, printJson } from '../context';
 import { resolveAgentKey } from './agent';
+import { PLATFORM_CATALOG } from '../provider-catalog.gen';
 import { slugifyAgentName } from '../slug';
 import { CliError } from '../errors';
 import { parseArgs, parseBooleanFlag, requirePositional, requireString, requireYes } from '../args';
@@ -216,13 +217,11 @@ export const routingCustom = {
 const TEST_TIMEOUT_MS = 120_000;
 
 /**
- * Which proxy surface a platform's real traffic uses. Wingman-style
- * impersonation at minimal scale: an anthropic-family agent is tested through
- * /v1/messages with an Anthropic body, everyone else through OpenAI-style
- * /v1/chat/completions — so the test exercises the path the agent's actual
- * requests will take, not just A path.
+ * Which proxy surface a platform's real traffic uses — read from the
+ * generated catalog (source of truth: manifest-shared PLATFORM_API_SURFACES),
+ * so a platform added in Manifest gets the right test surface automatically.
  */
-const ANTHROPIC_SURFACE_PLATFORMS = new Set(['claude-code', 'anthropic-sdk']);
+const SURFACE_BY_PLATFORM = new Map(PLATFORM_CATALOG.map((p) => [p.id, p.surface]));
 
 interface SurfaceResult {
   reply: string;
@@ -279,7 +278,7 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
     };
     platform = info.agent?.agent_platform ?? undefined;
   }
-  const surface = ANTHROPIC_SURFACE_PLATFORMS.has(platform ?? '') ? 'messages' : 'chat_completions';
+  const surface = SURFACE_BY_PLATFORM.get(platform ?? '') ?? 'chat_completions';
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);

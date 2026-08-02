@@ -7,8 +7,10 @@ export {
   PLATFORM_ICONS,
   coerceAgentPlatform,
   platformIcon,
+  API_SURFACES,
+  PLATFORM_API_SURFACES,
 } from './agent-type';
-export type { AgentCategory, AgentPlatform } from './agent-type';
+export type { AgentCategory, AgentPlatform, ApiSurface } from './agent-type';
 export {
   TIERS,
   TIER_SLOTS,

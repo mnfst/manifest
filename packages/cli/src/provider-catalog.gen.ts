@@ -196,3 +196,59 @@ export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
     authTypes: ['api_key', 'subscription'],
   },
 ];
+
+export interface PlatformCatalogEntry {
+  id: string;
+  surface: 'chat_completions' | 'messages';
+}
+
+export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = [
+  {
+    id: 'openclaw',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'hermes',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'nanobot',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'craft',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'claude-code',
+    surface: 'messages',
+  },
+  {
+    id: 'opencode',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'openai-sdk',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'anthropic-sdk',
+    surface: 'messages',
+  },
+  {
+    id: 'vercel-ai-sdk',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'langchain',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'curl',
+    surface: 'chat_completions',
+  },
+  {
+    id: 'other',
+    surface: 'chat_completions',
+  },
+];
