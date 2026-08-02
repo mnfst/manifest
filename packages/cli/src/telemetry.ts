@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { CliIo } from './context';
 import { configFilePath } from './config';
 import { VERSION } from './version';
+import { detectAgentRuntime } from './agent-runtime';
 
 export const DEFAULT_TELEMETRY_ENDPOINT = 'https://telemetry.manifest.build/v1/cli-event';
 const SEND_TIMEOUT_MS = 500;
@@ -49,6 +50,11 @@ export async function reportUsage(
 ): Promise<void> {
   if (telemetryDisabled(io)) return;
   const endpoint = io.env['MANIFEST_CLI_TELEMETRY_ENDPOINT'] ?? DEFAULT_TELEMETRY_ENDPOINT;
+  // Which coding agent is driving the CLI, when one is — a coarse runtime id
+  // ("claude-code"), never a version, path, or anything about the session. The
+  // key is omitted entirely for human/script runs, so the payload shape does
+  // not change for existing installs and schema_version stays at 1.
+  const runtime = detectAgentRuntime(io.env);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
   try {
@@ -63,6 +69,7 @@ export async function reportUsage(
         ok,
         duration_ms: Math.max(0, Math.min(600_000, Math.round(durationMs))),
         os: ['darwin', 'linux', 'win32'].includes(process.platform) ? process.platform : 'other',
+        ...(runtime ? { agent_runtime: runtime.id } : {}),
       }),
       signal: controller.signal,
     });

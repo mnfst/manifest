@@ -16,6 +16,7 @@ import * as configure from './commands/configure';
 import * as requests from './commands/requests';
 import * as doctorCommand from './commands/doctor';
 import * as modelPrices from './commands/model-prices';
+import * as skill from './commands/skill';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -74,9 +75,14 @@ export const COMMANDS: Record<string, Handler> = {
   'model prices': modelPrices.modelPrices,
 
   doctor: doctorCommand.doctor,
+
+  'skill show': skill.skillShow,
+  'skill install': skill.skillInstall,
+  skill: skill.skillShow,
 };
 
 export const USAGE = `mnfst ${VERSION} — Manifest management CLI (JSON output, agent-first)
+${skill.SKILL_NUDGE}
 
 Auth
   mnfst login [--token-stdin | --token-env <name>] [--url <base>]   (no flags: browser login)
@@ -135,6 +141,12 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
 Requests (paginated, mirrors the API: opaque cursor, one page per call)
   mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>] [--full]
 
+Agent skill (this CLI ships the operating guide it wants an agent to read)
+  mnfst skill show                                     (raw markdown on stdout, NOT JSON — like agent env)
+  mnfst skill install [--agents-dir | --project]        (writes <dir>/mnfst-cli/SKILL.md; --agents-dir ~/.agents/skills,
+                                                        --project ./.claude/skills; otherwise the detected agent
+                                                        runtime's own skills dir, else ~/.claude/skills)
+
 Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>
     Runs the command with the agent's key injected as MANIFEST_AGENT_KEY (or <VAR>) plus
@@ -188,7 +200,10 @@ export async function run(io: CliIo, argv: string[]): Promise<number> {
   const started = Date.now();
   try {
     const code = await resolved.handler(io, resolved.rest);
-    await reportUsage(io, resolved.key, (code ?? 0) === 0, Date.now() - started);
+    const ok = (code ?? 0) === 0;
+    await reportUsage(io, resolved.key, ok, Date.now() - started);
+    // Only after a success: a failing command's stderr belongs to the failure.
+    if (ok) skill.maybeNudgeSkill(io, resolved.key);
     return code ?? 0;
   } catch (error) {
     await reportUsage(io, resolved.key, false, Date.now() - started);

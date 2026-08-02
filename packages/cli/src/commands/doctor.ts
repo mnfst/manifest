@@ -2,6 +2,8 @@ import { ApiClient } from '../client';
 import { CliIo, getConfig, printJson, resolveFromFlags } from '../context';
 import { CliError } from '../errors';
 import { parseArgs } from '../args';
+import { detectAgentRuntime } from '../agent-runtime';
+import { installedSkillPath } from './skill';
 
 /**
  * One check. `ok: null` means the check never ran because a prerequisite
@@ -199,6 +201,20 @@ export async function doctor(io: CliIo, argv: string[]): Promise<number> {
         : {}),
     });
   }
+
+  // f. skill — informational only. A missing operating guide is not a broken
+  // install, so this check never fails the run; it just tells an agent the
+  // guide exists and where it would land.
+  const skillPath = installedSkillPath(io);
+  const runtime = detectAgentRuntime(io.env);
+  checks.push({
+    name: 'skill',
+    ok: true,
+    detail: skillPath
+      ? `installed at ${skillPath}${runtime ? ` · ${runtime.name} detected` : ''}`
+      : `not_found${runtime ? ` · ${runtime.name} detected` : ''}`,
+    ...(skillPath ? {} : { hint: 'mnfst skill install' }),
+  });
 
   const ok = checks.every((c) => c.ok !== false);
   printJson(io, { ok, checks });

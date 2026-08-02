@@ -12,7 +12,7 @@
     "build": "npm run gen && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
     "test": "jest",
-    "gen": "node scripts/generate-provider-catalog.cjs"
+    "gen": "node scripts/generate-provider-catalog.cjs && node scripts/generate-skill-content.cjs"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
