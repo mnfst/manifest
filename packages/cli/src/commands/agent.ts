@@ -4,7 +4,7 @@ import { ParsedArgs, parseArgs, requirePositional, requireString, requireYes } f
 import { keyPrefixOf, validateKeyFileDestination, writeKeyFile } from '../secrets';
 import { agentKeyPath, deleteAgentKey, readAgentKey, saveAgentKey } from '../keystore';
 import { slugifyAgentName } from '../slug';
-import { PLATFORM_CATALOG } from '../provider-catalog.gen';
+import { PLATFORM_CATALOG, SETUP_TEMPLATES } from '../provider-catalog.gen';
 
 const URL_ONLY = { strings: ['url'] } as const;
 
@@ -33,6 +33,48 @@ function requirePlatform(args: ParsedArgs): string {
     );
   }
   return value;
+}
+
+/**
+ * Render the platform's setup instructions. Templates come from
+ * manifest-shared (the dashboard shows the same content); platforms without
+ * a first-class snippet get generic OpenAI-compatible wiring guidance.
+ * The key is masked by default — a command substitution the reader can run —
+ * so setup text is safe to log; `keyRef` carries the real key on --reveal.
+ */
+function renderSetup(platform: string | undefined, origin: string, keyRef: string): string {
+  const template = platform ? SETUP_TEMPLATES[platform] : undefined;
+  if (template) {
+    return template.replaceAll('{{ORIGIN}}', origin).replaceAll('{{API_KEY}}', keyRef);
+  }
+  return [
+    `Point your tool's OpenAI-compatible client at Manifest:`,
+    `  base URL: ${origin}/v1`,
+    `  API key:  ${keyRef}`,
+    `Or wire it via env: mnfst agent env <name> >> .env`,
+  ].join('\n');
+}
+
+export async function agentSetup(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, { strings: ['url'], booleans: ['reveal'] });
+  const name = requirePositional(args, 0, '<agent-name>');
+  const slug = slugifyAgentName(name);
+  const { client, target } = clientFromFlags(io, args);
+  const info = (await client.request('GET', `/agents/${encodeURIComponent(slug)}`)) as {
+    agent: { agent_platform?: string | null } | null;
+  };
+  if (!info.agent) {
+    throw new CliError('not_found', `Agent "${slug}" not found`, 'See mnfst agent list', 404);
+  }
+  const keyRef = args.booleans['reveal']
+    ? (await resolveAgentKey(io, args, slug)).key
+    : `$(mnfst agent key show ${slug})`;
+  printJson(io, {
+    agent: slug,
+    platform: info.agent.agent_platform ?? null,
+    setup: renderSetup(info.agent.agent_platform ?? undefined, target.origin, keyRef),
+    ...(args.booleans['reveal'] ? {} : { hint: 'Pass --reveal to embed the real key' }),
+  });
 }
 
 export async function agentPlatforms(io: CliIo, argv: string[]): Promise<void> {
@@ -120,7 +162,16 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
     printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyFile, keyPath });
     return;
   }
-  printJson(io, { agent: result.agent, keyPrefix: keyPrefixOf(result.apiKey), keyPath });
+  printJson(io, {
+    agent: result.agent,
+    keyPrefix: keyPrefixOf(result.apiKey),
+    keyPath,
+    setup: renderSetup(
+      platform,
+      target.origin,
+      `$(mnfst agent key show ${slugifyAgentName(name)})`,
+    ),
+  });
 }
 
 export async function agentGet(io: CliIo, argv: string[]): Promise<void> {

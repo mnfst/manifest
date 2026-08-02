@@ -452,7 +452,7 @@ describe('agent commands', () => {
     expect(fs.readFileSync(agentKeyPath(io.env, HOST, 'coding'), 'utf8')).toBe(
       'mnfst_secret_full_key',
     );
-    expect(io.lastJson()).toEqual({
+    expect(io.lastJson()).toMatchObject({
       agent: { id: 'a1', name: 'coding' },
       keyPrefix: 'mnfst_secr',
       keyFile,
@@ -656,11 +656,17 @@ describe('agent commands', () => {
     const expected = agentKeyPath(io.env, HOST, 'kept');
     expect(fs.readFileSync(expected, 'utf8')).toBe('mnfst_kept_secret');
     expect(fs.statSync(expected).mode & 0o777).toBe(0o600);
-    expect(io.lastJson()).toEqual({
+    expect(io.lastJson()).toMatchObject({
       agent: { name: 'kept' },
       keyPrefix: 'mnfst_kept',
       keyPath: expected,
     });
+    // setup instructions ride along, platform-templated, key masked
+    const setup = (io.lastJson() as { setup: string }).setup;
+    expect(setup).toContain('ANTHROPIC_BASE_URL');
+    expect(setup).toContain(HOST);
+    expect(setup).toContain('$(mnfst agent key show kept)');
+    expect(setup).not.toContain('mnfst_kept_secret');
     expect(io.lines.join('\n')).not.toContain('mnfst_kept_secret');
   });
 
@@ -704,6 +710,41 @@ describe('agent commands', () => {
       error: 'key_unrecoverable',
       hint: expect.stringContaining('rotate-key'),
     });
+  });
+
+  it('agent setup renders the platform template masked, --reveal embeds the key', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { agent: { agent_name: 'bot', agent_platform: 'openclaw' } } },
+    ]);
+    expect(await run(io, ['agent', 'setup', 'bot'])).toBe(0);
+    const out = io.lastJson() as { setup: string; hint?: string };
+    expect(out.setup).toContain('openclaw config set models.providers.manifest');
+    expect(out.setup).toContain(`${HOST}/v1`);
+    expect(out.setup).toContain('$(mnfst agent key show bot)');
+    expect(out.hint).toContain('--reveal');
+
+    const { io: io2 } = authedIo([
+      { status: 200, body: { agent: { agent_name: 'bot', agent_platform: 'openclaw' } } },
+    ]);
+    saveAgentKey(io2.env, HOST, 'bot', 'mnfst_real_key');
+    expect(await run(io2, ['agent', 'setup', 'bot', '--reveal'])).toBe(0);
+    expect((io2.lastJson() as { setup: string }).setup).toContain('mnfst_real_key');
+  });
+
+  it('agent setup 404s for a missing agent', async () => {
+    const { io } = authedIo([{ status: 200, body: { agent: null } }]);
+    expect(await run(io, ['agent', 'setup', 'ghost'])).toBe(1);
+    expect(io.lastJson()).toMatchObject({ error: 'not_found', status: 404 });
+  });
+
+  it('agent setup falls back to generic wiring for platforms without a template', async () => {
+    const { io } = authedIo([
+      { status: 200, body: { agent: { agent_name: 'bot', agent_platform: 'langchain' } } },
+    ]);
+    expect(await run(io, ['agent', 'setup', 'bot'])).toBe(0);
+    const out = io.lastJson() as { setup: string };
+    expect(out.setup).toContain('base URL');
+    expect(out.setup).toContain(`${HOST}/v1`);
   });
 
   it('agent env emits dotenv lines, and --export shell lines', async () => {

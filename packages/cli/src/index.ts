@@ -30,6 +30,7 @@ export const COMMANDS: Record<string, Handler> = {
   'agent platforms': agent.agentPlatforms,
   'agent create': agent.agentCreate,
   'agent env': agent.agentEnv,
+  'agent setup': agent.agentSetup,
   'agent key path': agent.agentKeyPathCmd,
   'agent key show': agent.agentKeyShow,
   'agent configure': configure.agentConfigure,
@@ -77,6 +78,7 @@ Agents
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>")
   mnfst agent env <name> [--export]                     (dotenv/shell lines: KEY + URL; append to .env or eval)
+  mnfst agent setup <name> [--reveal]                   (platform setup instructions, same content as the dashboard)
   mnfst agent key path <name> | mnfst agent key show <name>
   mnfst agent get <name> | mnfst agent update <name> [--name|--category|--platform]
   mnfst agent delete <name> --yes
