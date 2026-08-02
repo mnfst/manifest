@@ -33,6 +33,7 @@ export const COMMANDS: Record<string, Handler> = {
   'agent rotate-key': agent.agentRotateKey,
 
   'provider list': provider.providerList,
+  'provider catalog': provider.providerCatalog,
   'provider connect': provider.providerConnect,
   'provider disconnect': provider.providerDisconnect,
 
@@ -72,7 +73,8 @@ Agents
   mnfst agent rotate-key <name> --yes [--key-file <path>]
 
 Providers
-  mnfst provider list
+  mnfst provider list                                  (your connections)
+  mnfst provider catalog                               (everything connectable: ids, aliases, auth types, key format)
   mnfst provider connect --provider <slug> --agent <name> (--credential-stdin | --credential-env <name>) [--label <l>] [--region <r>] [--auth-type <a>]
   mnfst provider disconnect --provider <slug> --agent <name> [--auth-type <a>] [--label <l>] --yes
 

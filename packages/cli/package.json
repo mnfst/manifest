@@ -2,22 +2,24 @@
   "name": "mnfst-cli",
   "version": "0.1.0",
   "private": true,
-  "description": "Manifest management CLI (mnfst) — configure agents, providers, and routing from the terminal",
+  "description": "Manifest management CLI (mnfst) \u2014 configure agents, providers, and routing from the terminal",
   "license": "MIT",
   "bin": {
     "mnfst": "./bin/mnfst.js"
   },
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "npm run gen && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "gen": "node scripts/generate-provider-catalog.cjs"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.12",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "manifest-shared": "*"
   }
 }
