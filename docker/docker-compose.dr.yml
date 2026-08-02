@@ -29,7 +29,7 @@ services:
     environment:
       - PORT=${PORT:-2100}
       - BIND_ADDRESS=0.0.0.0
-      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@localhost:5433/manifest}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env.dr}
       - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2100}}
@@ -108,6 +108,8 @@ services:
 
   postgres:
     image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
+    ports:
+      - "127.0.0.1:5433:5432"
     environment:
       - POSTGRES_USER=manifest
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-manifest}
@@ -126,13 +128,6 @@ services:
         max-file: "5"
     security_opt:
       - no-new-privileges:true
-    networks:
-      - internal
-
-networks:
-  internal:
-    driver: bridge
-    internal: true
 
 volumes:
   pgdata:
