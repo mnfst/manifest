@@ -216,6 +216,48 @@ export const routingCustom = {
 const TEST_TIMEOUT_MS = 120_000;
 
 /**
+ * Which proxy surface a platform's real traffic uses. Wingman-style
+ * impersonation at minimal scale: an anthropic-family agent is tested through
+ * /v1/messages with an Anthropic body, everyone else through OpenAI-style
+ * /v1/chat/completions — so the test exercises the path the agent's actual
+ * requests will take, not just A path.
+ */
+const ANTHROPIC_SURFACE_PLATFORMS = new Set(['claude-code', 'anthropic-sdk']);
+
+interface SurfaceResult {
+  reply: string;
+  servedModel: string | null;
+  tokens?: number;
+}
+
+function parseCompletionSurface(parsed: Record<string, unknown>): SurfaceResult {
+  const choice = (parsed['choices'] as Array<Record<string, unknown>> | undefined)?.[0];
+  const message = choice?.['message'] as { content?: string } | undefined;
+  const usage = parsed['usage'] as
+    { prompt_tokens?: number; completion_tokens?: number } | undefined;
+  return {
+    reply: message?.content ?? '',
+    servedModel: typeof parsed['model'] === 'string' ? parsed['model'] : null,
+    ...(usage?.prompt_tokens !== undefined
+      ? { tokens: (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) }
+      : {}),
+  };
+}
+
+function parseMessagesSurface(parsed: Record<string, unknown>): SurfaceResult {
+  const blocks = parsed['content'] as Array<Record<string, unknown>> | undefined;
+  const textBlock = blocks?.find((b) => b['type'] === 'text');
+  const usage = parsed['usage'] as { input_tokens?: number; output_tokens?: number } | undefined;
+  return {
+    reply: typeof textBlock?.['text'] === 'string' ? (textBlock['text'] as string) : '',
+    servedModel: typeof parsed['model'] === 'string' ? parsed['model'] : null,
+    ...(usage?.input_tokens !== undefined
+      ? { tokens: (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) }
+      : {}),
+  };
+}
+
+/**
  * Send ONE real request through the agent's route to prove the config works
  * end-to-end — the closing move after `agent configure`. Not an inference
  * client: fixed shape, canned default prompt, facts-first output. Manifest
@@ -223,27 +265,53 @@ const TEST_TIMEOUT_MS = 120_000;
  * real failures so a broken route can never look like an answer.
  */
 export async function routingTest(io: CliIo, argv: string[]): Promise<number | void> {
-  const args = parseArgs(argv, { strings: ['url', 'tier', 'model'] });
+  const args = parseArgs(argv, { strings: ['url', 'tier', 'model', 'as'] });
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const prompt = args.positionals.slice(1).join(' ').trim() || 'Reply with exactly: OK';
   const resolved = await resolveAgentKey(io, args, agent);
 
+  // Surface selection: --as override, else the agent's own stored platform.
+  let platform: string | undefined = args.strings['as'];
+  if (!platform) {
+    const { client } = clientFromFlags(io, args);
+    const info = (await client.request('GET', `/agents/${encodeURIComponent(agent)}`)) as {
+      agent: { agent_platform?: string | null } | null;
+    };
+    platform = info.agent?.agent_platform ?? undefined;
+  }
+  const surface = ANTHROPIC_SURFACE_PLATFORMS.has(platform ?? '') ? 'messages' : 'chat_completions';
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TEST_TIMEOUT_MS);
   const started = Date.now();
+  const endpoint =
+    surface === 'messages'
+      ? `${resolved.origin}/v1/messages`
+      : `${resolved.origin}/v1/chat/completions`;
+  const requestBody =
+    surface === 'messages'
+      ? {
+          // The Anthropic Messages surface takes a provider-native model —
+          // "auto" is not a route override there, so omit unless explicit.
+          model: args.strings['model'] ?? 'claude-sonnet-5',
+          max_tokens: 64,
+          messages: [{ role: 'user', content: prompt }],
+        }
+      : {
+          model: args.strings['model'] ?? 'auto',
+          messages: [{ role: 'user', content: prompt }],
+        };
   let response: Response;
   try {
-    response = await io.fetchImpl(`${resolved.origin}/v1/chat/completions`, {
+    response = await io.fetchImpl(endpoint, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${resolved.key}`,
         'Content-Type': 'application/json',
+        ...(surface === 'messages' ? { 'anthropic-version': '2023-06-01' } : {}),
         ...(args.strings['tier'] ? { 'x-manifest-tier': args.strings['tier'] } : {}),
       },
-      body: JSON.stringify({
-        model: args.strings['model'] ?? 'auto',
-        messages: [{ role: 'user', content: prompt }],
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
   } catch (error) {
@@ -275,26 +343,23 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
     );
   }
 
-  const choice = (parsed['choices'] as Array<Record<string, unknown>> | undefined)?.[0];
-  const message = choice?.['message'] as { content?: string } | undefined;
-  const reply = message?.content ?? '';
-  if (/^\[🦚 Manifest M\d+\]/.test(reply)) {
-    throw new CliError('route_test_failed', reply, 'See mnfst routing status ' + agent);
+  const result =
+    surface === 'messages' ? parseMessagesSurface(parsed) : parseCompletionSurface(parsed);
+  if (/^\[🦚 Manifest M\d+\]/.test(result.reply)) {
+    throw new CliError('route_test_failed', result.reply, 'See mnfst routing status ' + agent);
   }
 
-  const usage = parsed['usage'] as
-    { prompt_tokens?: number; completion_tokens?: number } | undefined;
   printJson(io, {
     agent,
     ok: true,
-    requested_model: args.strings['model'] ?? 'auto',
+    surface,
+    ...(platform ? { platform } : {}),
+    requested_model: (requestBody as { model: string }).model,
     ...(args.strings['tier'] ? { tier: args.strings['tier'] } : {}),
-    served_model: typeof parsed['model'] === 'string' ? parsed['model'] : null,
+    served_model: result.servedModel,
     duration_ms: durationMs,
-    ...(usage?.prompt_tokens !== undefined
-      ? { tokens: (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) }
-      : {}),
-    reply,
+    ...(result.tokens !== undefined ? { tokens: result.tokens } : {}),
+    reply: result.reply,
   });
 }
 

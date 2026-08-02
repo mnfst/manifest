@@ -94,7 +94,8 @@ Models
 
 Routing readouts + custom-tier lifecycle (writes go through mnfst agent configure)
   mnfst routing status <agent>
-  mnfst routing test <agent> [prompt...] [--tier <t>] [--model <m>]   (one real request through the route; fails loudly)
+  mnfst routing test <agent> [prompt...] [--tier <t>] [--model <m>] [--as <platform>]
+    (one real request through the surface the agent's platform uses — anthropic-family via /v1/messages)
   mnfst routing fallbacks get|clear <agent> [--yes]
   mnfst routing custom list <agent>
   mnfst routing custom create <agent> --name <n> --model <m> --provider <p> [--auth-type <a>] [--fallbacks <m1,m2>] [--header-key <k>] [--header-value <v>]

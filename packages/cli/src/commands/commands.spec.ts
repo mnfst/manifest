@@ -1461,7 +1461,7 @@ describe('routing test', () => {
   it('sends one canned request through the route and reports facts', async () => {
     const { io, calls } = authedIo([completion('OK')]);
     saveAgentKey(io.env, HOST, 'john', 'mnfst_test_key');
-    expect(await run(io, ['routing', 'test', 'John'])).toBe(0);
+    expect(await run(io, ['routing', 'test', 'John', '--as', 'openclaw'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/v1/chat/completions`);
     expect(calls[0].headers['Authorization']).toBe('Bearer mnfst_test_key');
     const body = JSON.parse(calls[0].body!);
@@ -1470,6 +1470,8 @@ describe('routing test', () => {
     expect(io.lastJson()).toMatchObject({
       agent: 'john',
       ok: true,
+      surface: 'chat_completions',
+      platform: 'openclaw',
       requested_model: 'auto',
       served_model: 'grok-build-0.1',
       tokens: 15,
@@ -1487,6 +1489,8 @@ describe('routing test', () => {
         'john',
         'custom',
         'ping',
+        '--as',
+        'openclaw',
         '--tier',
         'thorough',
         '--model',
@@ -1500,10 +1504,39 @@ describe('routing test', () => {
     expect(io.lastJson()).toMatchObject({ tier: 'thorough', served_model: 'grok-4.5' });
   });
 
+  it('tests anthropic-family agents through /v1/messages with an Anthropic body', async () => {
+    const { io, calls } = authedIo([
+      { status: 200, body: { agent: { agent_name: 'john', agent_platform: 'claude-code' } } },
+      {
+        status: 200,
+        body: {
+          model: 'claude-sonnet-5',
+          content: [{ type: 'text', text: 'OK' }],
+          usage: { input_tokens: 12, output_tokens: 2 },
+        },
+      },
+    ]);
+    saveAgentKey(io.env, HOST, 'john', 'k');
+    expect(await run(io, ['routing', 'test', 'john'])).toBe(0);
+    // platform discovered from the agent record, then the messages surface used
+    expect(calls[0].url).toBe(`${HOST}/api/v1/agents/john`);
+    expect(calls[1].url).toBe(`${HOST}/v1/messages`);
+    expect(calls[1].headers['anthropic-version']).toBe('2023-06-01');
+    const body = JSON.parse(calls[1].body!);
+    expect(body.max_tokens).toBe(64);
+    expect(io.lastJson()).toMatchObject({
+      surface: 'messages',
+      platform: 'claude-code',
+      served_model: 'claude-sonnet-5',
+      tokens: 14,
+      reply: 'OK',
+    });
+  });
+
   it('unmasks fake-200 Manifest errors as loud failures', async () => {
     const { io } = authedIo([completion('[🦚 Manifest M101] No providers configured. docs')]);
     saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(await run(io, ['routing', 'test', 'john', '--as', 'openclaw'])).toBe(1);
     expect(io.lastJson()).toMatchObject({
       error: 'route_test_failed',
       message: expect.stringContaining('M101'),
@@ -1514,7 +1547,7 @@ describe('routing test', () => {
   it('surfaces real HTTP errors and transport failures', async () => {
     const { io } = authedIo([{ status: 429, body: { error: { message: 'rate limited' } } }]);
     saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(await run(io, ['routing', 'test', 'john', '--as', 'openclaw'])).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'route_test_failed', status: 429 });
 
     const io2 = makeIo({
@@ -1524,14 +1557,14 @@ describe('routing test', () => {
       }) as typeof fetch,
     });
     saveAgentKey(io2.env, HOST, 'john', 'k');
-    expect(await run(io2, ['routing', 'test', 'john'])).toBe(1);
+    expect(await run(io2, ['routing', 'test', 'john', '--as', 'openclaw'])).toBe(1);
     expect(io2.lastJson()).toMatchObject({ error: 'network_error' });
   });
 
   it('tolerates a non-JSON success body as a loud failure', async () => {
     const { io } = authedIo([{ status: 502, body: null }]);
     saveAgentKey(io.env, HOST, 'john', 'k');
-    expect(await run(io, ['routing', 'test', 'john'])).toBe(1);
+    expect(await run(io, ['routing', 'test', 'john', '--as', 'openclaw'])).toBe(1);
     expect(io.lastJson()).toMatchObject({ error: 'route_test_failed', status: 502 });
   });
 });
