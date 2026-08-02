@@ -99,7 +99,7 @@ Routing readouts + custom-tier lifecycle (writes go through mnfst agent configur
   mnfst routing recording get|set <agent> [--enabled true|false]
 
 Requests (paginated, mirrors the API: opaque cursor, one page per call)
-  mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>]
+  mnfst requests get [--agent <name>] [--range <r>] [--status <s>] [--provider <p>] [--origin <o>] [--limit <1-200>] [--cursor <c>] [--full]
 
 Run (key injection, 1Password-style)
   mnfst run --agent <name> [--env <VAR>] -- <command...>

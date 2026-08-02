@@ -11,9 +11,46 @@ import { slugifyAgentName } from '../slug';
  *   mnfst requests get --agent john --limit 50
  *   mnfst requests get --agent john --cursor <next_cursor from last page>
  */
+/** Always present on a trimmed row. */
+const CORE_FIELDS = [
+  'id',
+  'agent_name',
+  'timestamp',
+  'status',
+  'model',
+  'provider',
+  'auth_type',
+  'cost',
+  'input_tokens',
+  'output_tokens',
+  'duration_ms',
+  'attempt_count',
+] as const;
+
+/** Included only when they carry a value — noise-free happy path. */
+const WHEN_SET_FIELDS = [
+  'error_code',
+  'error_message',
+  'error_origin',
+  'fallback_from_model',
+  'header_tier_name',
+  'custom_provider_name',
+] as const;
+
+function trimRow(row: unknown): unknown {
+  if (typeof row !== 'object' || row === null) return row;
+  const r = row as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const f of CORE_FIELDS) if (f in r) out[f] = r[f];
+  for (const f of WHEN_SET_FIELDS) if (r[f] !== null && r[f] !== undefined) out[f] = r[f];
+  if (r['autofix_applied'] === true) out['autofix_applied'] = true;
+  return out;
+}
+
 export async function requestsGet(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, {
     strings: ['url', 'agent', 'range', 'status', 'provider', 'limit', 'cursor', 'origin'],
+    booleans: ['full'],
   });
   let limit: number | undefined;
   if (args.strings['limit'] !== undefined) {
@@ -49,6 +86,7 @@ export async function requestsGet(io: CliIo, argv: string[]): Promise<void> {
     next_cursor: result?.next_cursor ?? null,
     total_count: result?.total_count,
     total_count_exact: result?.total_count_exact,
-    requests: items,
+    // Trimmed to decision-relevant fields; --full passes API rows untouched.
+    requests: args.booleans['full'] ? items : items.map(trimRow),
   });
 }

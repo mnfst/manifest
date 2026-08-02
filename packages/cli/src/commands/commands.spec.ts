@@ -1448,6 +1448,88 @@ describe('requests get', () => {
     });
   });
 
+  it('trims rows to decision fields, omitting nulls; --full passes everything', async () => {
+    const row = {
+      id: 'r1',
+      agent_name: 'john',
+      timestamp: 't',
+      status: 'failed',
+      model: 'auto',
+      provider: null,
+      auth_type: null,
+      cost: '0',
+      input_tokens: '0',
+      output_tokens: '0',
+      duration_ms: 3,
+      attempt_count: 0,
+      error_code: 'M101',
+      error_message: 'no providers',
+      error_origin: 'config',
+      error_http_status: null,
+      error_class: 'no_provider',
+      feedback_rating: null,
+      display_name: 'auto',
+      routing_tier: null,
+      routing_reason: null,
+      specificity_category: null,
+      fallback_from_model: null,
+      fallback_index: null,
+      header_tier_id: null,
+      header_tier_name: null,
+      header_tier_color: null,
+      provider_key_label: null,
+      custom_provider_name: null,
+      autofix_applied: false,
+      autofix_role: null,
+      cache_read_tokens: '0',
+      cache_creation_tokens: '0',
+    };
+    const { io } = authedIo([{ status: 200, body: { items: [row], next_cursor: null } }]);
+    expect(await run(io, ['requests', 'get'])).toBe(0);
+    expect((io.lastJson() as { requests: object[] }).requests[0]).toEqual({
+      id: 'r1',
+      agent_name: 'john',
+      timestamp: 't',
+      status: 'failed',
+      model: 'auto',
+      provider: null,
+      auth_type: null,
+      cost: '0',
+      input_tokens: '0',
+      output_tokens: '0',
+      duration_ms: 3,
+      attempt_count: 0,
+      error_code: 'M101',
+      error_message: 'no providers',
+      error_origin: 'config',
+    });
+
+    const { io: io2 } = authedIo([{ status: 200, body: { items: [row], next_cursor: null } }]);
+    expect(await run(io2, ['requests', 'get', '--full'])).toBe(0);
+    const full = (io2.lastJson() as { requests: Record<string, unknown>[] }).requests[0];
+    expect(full).toHaveProperty('header_tier_color');
+    expect(full).toHaveProperty('cache_read_tokens');
+  });
+
+  it('keeps meaningful conditionals: custom tier, fallback, autofix', async () => {
+    const row = {
+      id: 'r2',
+      status: 'ok',
+      header_tier_name: 'deep',
+      fallback_from_model: 'grok-4.5',
+      autofix_applied: true,
+      custom_provider_name: 'My LiteLLM',
+    };
+    const { io } = authedIo([{ status: 200, body: { items: [row], next_cursor: null } }]);
+    expect(await run(io, ['requests', 'get'])).toBe(0);
+    expect((io.lastJson() as { requests: object[] }).requests[0]).toMatchObject({
+      header_tier_name: 'deep',
+      fallback_from_model: 'grok-4.5',
+      autofix_applied: true,
+      custom_provider_name: 'My LiteLLM',
+    });
+  });
+
   it('pages with the opaque cursor and reports the last page as null', async () => {
     const { io, calls } = authedIo([
       { status: 200, body: { items: [{ id: 'r3' }], next_cursor: null, total_count: 41 } },
@@ -1464,6 +1546,12 @@ describe('requests get', () => {
     const { io: io2 } = authedIo([]);
     expect(await run(io2, ['requests', 'get', '--limit', 'many'])).toBe(1);
     expect(calls).toHaveLength(0);
+  });
+
+  it('passes non-object rows through untouched', async () => {
+    const { io } = authedIo([{ status: 200, body: { items: ['junk', null], next_cursor: null } }]);
+    expect(await run(io, ['requests', 'get'])).toBe(0);
+    expect((io.lastJson() as { requests: unknown[] }).requests).toEqual(['junk', null]);
   });
 
   it('tolerates a null body', async () => {
