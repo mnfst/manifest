@@ -20,7 +20,11 @@ export interface CliIo {
   stdout: (line: string) => void;
   stderr: (line: string) => void;
   readStdin: () => Promise<string>;
-  /** True when attached to an interactive terminal — gates browser login. */
+  /**
+   * True when attached to an interactive terminal — gates browser login.
+   * Wired from stderr, not stdout: stdout is JSON-only and is routinely piped
+   * (`mnfst login | jq`), which must not disable browser login.
+   */
   isTTY: boolean;
   /** Injected browser opener; falls back to defaultOpenBrowser. Returns false when opening failed. */
   openBrowser?: (url: string) => boolean;
@@ -48,7 +52,7 @@ export function clientFromFlags(
     throw new CliError(
       'not_authenticated',
       `No credential for ${target.origin}`,
-      'Run mnfst login (--token-stdin or --token-env <name>), or set MANIFEST_API_KEY',
+      'Run mnfst login, or set MANIFEST_API_KEY',
       401,
     );
   }
