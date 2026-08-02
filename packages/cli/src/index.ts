@@ -80,7 +80,7 @@ Providers
   mnfst provider disconnect <provider> --yes [--agent <name>] [--auth-type <a>] [--label <l>]
 
 Models
-  mnfst models [--agent <name>] [--provider <p>]        (models routable for an agent, tier-set ready)
+  mnfst models <agent> [--provider <p>]                 (models routable for that agent, tier-set ready)
 
 Routing
   mnfst routing status <agent> | mnfst routing tiers <agent>

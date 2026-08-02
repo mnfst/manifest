@@ -1277,7 +1277,7 @@ describe('models command', () => {
         ],
       },
     ]);
-    expect(await run(io, ['models', '--agent', 'John'])).toBe(0);
+    expect(await run(io, ['models', 'John'])).toBe(0);
     expect(calls[0].url).toBe(`${HOST}/api/v1/routing/john/available-models`);
     expect(io.lastJson()).toEqual({
       agent: 'john',
@@ -1295,9 +1295,8 @@ describe('models command', () => {
     });
   });
 
-  it('filters by provider (alias-aware) and auto-picks the agent', async () => {
-    const { io, calls } = authedIo([
-      { status: 200, body: { agents: [{ agent_name: 'john' }] } },
+  it('filters by provider (alias-aware) and requires the agent explicitly', async () => {
+    const { io } = authedIo([
       {
         status: 200,
         body: [
@@ -1306,16 +1305,20 @@ describe('models command', () => {
         ],
       },
     ]);
-    expect(await run(io, ['models', '--provider', 'google'])).toBe(0);
-    expect(calls[0].url).toBe(`${HOST}/api/v1/agents`);
+    expect(await run(io, ['models', 'john', '--provider', 'google'])).toBe(0);
     const out = io.lastJson() as { count: number; models: Array<{ model: string }> };
     expect(out.count).toBe(1);
     expect(out.models[0].model).toBe('gemini-3-pro');
+
+    const { io: io2, calls: calls2 } = authedIo([]);
+    expect(await run(io2, ['models'])).toBe(1);
+    expect(io2.lastJson()).toMatchObject({ error: 'missing_argument' });
+    expect(calls2).toHaveLength(0);
   });
 
   it('handles a non-array payload as zero models', async () => {
     const { io } = authedIo([{ status: 200, body: { unexpected: true } }]);
-    expect(await run(io, ['models', '--agent', 'a'])).toBe(0);
+    expect(await run(io, ['models', 'a'])).toBe(0);
     expect(io.lastJson()).toMatchObject({ count: 0, models: [] });
   });
 });
