@@ -377,6 +377,43 @@ describe('agent commands', () => {
     expect(calls[0].url).toBe(`${HOST}/api/v1/agents?includePlayground=true`);
   });
 
+  it('agent list strips dashboard-only sparkline data', async () => {
+    const { io } = authedIo([
+      {
+        status: 200,
+        body: {
+          agents: [
+            { id: 'a1', name: 'bot-1', sparkline: [0, 3, 12, 8] },
+            { id: 'a2', name: 'bot-2', sparkline: [] },
+          ],
+        },
+      },
+    ]);
+    expect(await run(io, ['agent', 'list'])).toBe(0);
+    expect(io.lastJson()).toEqual({
+      agents: [
+        { id: 'a1', name: 'bot-1' },
+        { id: 'a2', name: 'bot-2' },
+      ],
+    });
+  });
+
+  it('agent list passes non-object payloads through untouched', async () => {
+    const { io } = authedIo([{ status: 200, body: { agents: 'unexpected' } }]);
+    expect(await run(io, ['agent', 'list'])).toBe(0);
+    expect(io.lastJson()).toEqual({ agents: 'unexpected' });
+  });
+
+  it('agent list passes a null body and non-object agent entries through untouched', async () => {
+    const { io } = authedIo([{ status: 200, body: null }]);
+    expect(await run(io, ['agent', 'list'])).toBe(0);
+    expect(io.lastJson()).toBeNull();
+
+    const { io: io2 } = authedIo([{ status: 200, body: { agents: ['weird', null] } }]);
+    expect(await run(io2, ['agent', 'list'])).toBe(0);
+    expect(io2.lastJson()).toEqual({ agents: ['weird', null] });
+  });
+
   it('agent create writes the key file 0600 and prints only the prefix', async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mnfst-agent-'));
     const keyFile = path.join(dir, 'coding.key');
