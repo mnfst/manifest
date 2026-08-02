@@ -15,6 +15,7 @@ import { ApiKey } from '../../entities/api-key.entity';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { RequestWithTenantContext } from '../decorators/tenant-context.decorator';
 import { verifyKey, keyPrefix as computePrefix } from '../utils/hash.util';
+import { toLocalSqlTimestamp } from '../utils/postgres-sql';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -80,8 +81,10 @@ export class ApiKeyGuard implements CanActivate {
           found.expires_at
             ? {
                 last_used_at: () => 'CURRENT_TIMESTAMP',
-                // ttlDays comes from parseInt over env config — always a number
-                expires_at: () => `CURRENT_TIMESTAMP + INTERVAL '${ttlDays} days'`,
+                // Node clock, not CURRENT_TIMESTAMP: CliAuthService mints
+                // expiries with toLocalSqlTimestamp, and one column must not
+                // be written by two different clocks.
+                expires_at: toLocalSqlTimestamp(new Date(Date.now() + ttlDays * 86_400_000)),
               }
             : { last_used_at: () => 'CURRENT_TIMESTAMP' },
         )

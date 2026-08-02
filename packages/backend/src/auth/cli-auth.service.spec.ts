@@ -79,9 +79,14 @@ describe('CliAuthService', () => {
     expect(key.created_by_user_id).toBe('u1');
     expect(key.key).toBeNull();
     expect(key.key_prefix).toBe(token.substring(0, 12));
-    expect(key.expires_at).toBe(expiresAt);
-    expect(expiresAt).toMatch(LOCAL_SQL_TIMESTAMP);
+    // Persisted naive-local for the DB, returned ISO-UTC on the wire — same instant.
+    expect(key.expires_at).toMatch(LOCAL_SQL_TIMESTAMP);
+    expect(expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    expect(new Date(key.expires_at).getTime()).toBe(
+      Math.floor(new Date(expiresAt).getTime() / 1000) * 1000,
+    );
     expect(new Date(expiresAt).getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect(new Date(expiresAt).getTime()).toBeLessThanOrEqual(Date.now() + 30 * 86_400_000 + 1000);
   });
 
   it('exchange rejects an unknown code', async () => {
