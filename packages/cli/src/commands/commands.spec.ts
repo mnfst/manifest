@@ -821,9 +821,13 @@ describe('provider commands', () => {
     const stub = fetchStub([]);
     const io = makeIo({ fetchImpl: stub.impl });
     expect(await run(io, ['provider', 'catalog'])).toBe(0);
-    const out = io.lastJson() as { providers: Array<{ id: string; authTypes: string[] }> };
+    const out = io.lastJson() as { providers: Array<Record<string, unknown>> };
     expect(out.providers.length).toBeGreaterThan(20);
-    expect(out.providers.some((p) => p.id === 'openai')).toBe(true);
+    expect(out.providers.some((p) => p['id'] === 'openai')).toBe(true);
+    // display-only noise stays out of the CLI surface
+    for (const p of out.providers) {
+      expect(Object.keys(p).sort()).toEqual(['authTypes', 'displayName', 'id']);
+    }
     expect(stub.calls).toHaveLength(0);
   });
 

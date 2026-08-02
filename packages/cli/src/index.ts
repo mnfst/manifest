@@ -74,7 +74,7 @@ Agents
 
 Providers
   mnfst provider list                                  (your connections)
-  mnfst provider catalog                               (everything connectable: ids, aliases, auth types, key format)
+  mnfst provider catalog                               (everything connectable: ids + auth types)
   mnfst provider connect --provider <slug> --agent <name> (--credential-stdin | --credential-env <name>) [--label <l>] [--region <r>] [--auth-type <a>]
   mnfst provider disconnect --provider <slug> --agent <name> [--auth-type <a>] [--label <l>] --yes
 

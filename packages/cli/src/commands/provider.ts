@@ -5,10 +5,19 @@ import { parseArgs, requireString, requireYes } from '../args';
 import { readCredential } from '../secrets';
 import { PROVIDER_CATALOG } from '../provider-catalog.gen';
 
-/** Lists what CAN be connected — no auth, no network, straight from the catalog. */
+/**
+ * Lists what CAN be connected — no auth, no network. Aliases stay internal
+ * (they feed resolveProviderId); the output is id + displayName + authTypes.
+ */
 export async function providerCatalog(io: CliIo, argv: string[]): Promise<void> {
   parseArgs(argv, {});
-  printJson(io, { providers: PROVIDER_CATALOG });
+  printJson(io, {
+    providers: PROVIDER_CATALOG.map(({ id, displayName, authTypes }) => ({
+      id,
+      displayName,
+      authTypes,
+    })),
+  });
 }
 
 /**
