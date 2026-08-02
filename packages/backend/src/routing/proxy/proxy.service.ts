@@ -1224,6 +1224,17 @@ export class ProxyService {
     requestedModel: string,
     headers: ProxyRequestOptions['headers'],
   ): Promise<ResolvedRouting | null> {
+    // Synthetic auto-tier models (e.g. "auto-standard") resolve directly to
+    // the matching header tier's configured route without needing headers.
+    if (requestedModel.startsWith('auto-')) {
+      const autoTier = await this.resolveService.resolveAutoTierModel(
+        agentId,
+        tenantId,
+        requestedModel,
+      );
+      if (autoTier) return autoTier;
+    }
+
     if (headers) {
       const headerTier = await this.resolveService.resolveHeaderTier(agentId, tenantId, headers);
       if (headerTier) return headerTier;

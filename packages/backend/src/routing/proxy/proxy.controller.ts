@@ -67,6 +67,7 @@ import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
 import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
 import { AttemptRecordingService } from './attempt-recording.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 import {
   createAttemptRecordingCapture,
   recordingResponseFromText,
@@ -142,6 +143,8 @@ export class ProxyController {
     private readonly recordingCache?: AgentRecordingCacheService,
     @Optional()
     private readonly attemptRecording?: AttemptRecordingService,
+    @Optional()
+    private readonly headerTierService?: HeaderTierService,
   ) {}
 
   @Get('models')
@@ -194,6 +197,24 @@ export class ProxyController {
         if (modelCost) entry.cost = modelCost;
       }
       data.push(entry);
+    }
+
+    // Synthetic auto-tier models: each enabled header tier with an override
+    // route becomes an auto-{name} model clients can request directly.
+    if (this.headerTierService) {
+      const tiers = await this.headerTierService.list(req.ingestionContext.agentId);
+      for (const tier of tiers) {
+        if (!tier.enabled || !tier.override_route) continue;
+        const id = `auto-${tier.name.toLowerCase()}`;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        data.push({
+          id,
+          object: 'model',
+          created: MODEL_CREATED_UNKNOWN,
+          owned_by: 'manifest',
+        });
+      }
     }
 
     return {
