@@ -296,7 +296,9 @@ export class ProxyFallbackService {
         );
         continue;
       }
-      providerKeyLabel = credentials.keyLabel ?? providerKeyLabel;
+      // resolveRouteCredentials always reports the row it selected, which may
+      // differ from the pin when the pin matched nothing.
+      providerKeyLabel = credentials.keyLabel;
       const tenantProviderId = credentials.tenantProviderId;
 
       this.logger.log(
@@ -338,10 +340,7 @@ export class ProxyFallbackService {
             authType,
             // Label of the connection row that served the attempt — stamped
             // alongside its tenant_provider_id so the pair always matches.
-            // Synthetic rows (Ollama) keep the pinned label, if any.
-            keyLabel: tenantProviderId
-              ? (credentials.keyLabel ?? providerKeyLabel)
-              : providerKeyLabel,
+            keyLabel: providerKeyLabel,
             tenantProviderId,
           },
           failures,

@@ -742,6 +742,40 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('attributes the Auto-fix original row to the primary connection label', () => {
+      // The retry that failed ran on the PRIMARY connection; meta.provider_key_label
+      // already names the fallback that recovered the request, so the
+      // autofix_role='original' row must read primaryKeyLabel instead —
+      // otherwise it pairs the primary's tenant_provider_id with the
+      // fallback's label.
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        primaryProvider: 'openai',
+        primaryAuthType: 'api_key',
+        primaryTenantProviderId: 'up-work',
+        primaryKeyLabel: 'Work',
+        provider: 'anthropic',
+        model: 'claude-sonnet',
+        provider_key_label: 'Personal',
+      });
+      const autofix = failedAutofixRetry();
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any, null, null, autofix);
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({
+          provider: 'openai',
+          tenantProviderId: 'up-work',
+          providerKeyLabel: 'Work',
+        }),
+      );
+    });
+
     it('does not attribute the Auto-fix original to the fallback provider', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({
