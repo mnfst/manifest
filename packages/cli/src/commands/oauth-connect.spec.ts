@@ -13,11 +13,13 @@ function fakeClient(replies: unknown[]): ApiClient {
 afterEach(() => {
   OAUTH_POLL.intervalMs = 2000;
   OAUTH_POLL.timeoutMs = 180_000;
+  OAUTH_POLL.deviceIntervalOverrideMs = null;
 });
 
 describe('device flow', () => {
   it('shows the code, opens the verification page, and polls to success', async () => {
-    OAUTH_POLL.intervalMs = 1;
+    // The device flow ignores intervalMs entirely; the override is the clock.
+    OAUTH_POLL.deviceIntervalOverrideMs = 1;
     OAUTH_POLL.timeoutMs = 500;
     const opened: string[] = [];
     const io = makeIo({ isTTY: true });
@@ -32,7 +34,7 @@ describe('device flow', () => {
           flowId: 'f1',
           userCode: 'ABCD-1234',
           verificationUri: 'https://kiro/verify',
-          pollIntervalMs: 1,
+          pollIntervalMs: 5000,
         },
         { status: 'pending' },
         { status: 'success' },
@@ -45,8 +47,78 @@ describe('device flow', () => {
     expect(io.lastJson()).toEqual({ connected: 'kiro', auth_type: 'subscription', agent: 'a' });
   });
 
+  it("sleeps the server's interval — never capped by the redirect cadence", async () => {
+    const slept: number[] = [];
+    const realSetTimeout = global.setTimeout;
+    const spy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+      fn: () => void,
+      ms?: number,
+    ) => {
+      slept.push(ms ?? 0);
+      return realSetTimeout(fn, 0);
+    }) as unknown as typeof setTimeout);
+    try {
+      OAUTH_POLL.intervalMs = 2000;
+      OAUTH_POLL.timeoutMs = 5000;
+      const io = makeIo({ isTTY: true });
+      io.openBrowser = () => true;
+      await subscriptionConnect(
+        io,
+        fakeClient([
+          {
+            flowId: 'f1',
+            userCode: 'C',
+            verificationUri: 'https://kiro/verify',
+            // Kiro asks for 5s: honored verbatim, not clamped down to 2s.
+            pollIntervalMs: 5000,
+          },
+          // and a pending response may slow us down further mid-flow
+          { status: 'pending', pollIntervalMs: 9000 },
+          { status: 'success' },
+        ]),
+        'kiro',
+        'a',
+      );
+      expect(slept).toEqual([5000, 9000]);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('floors a too-eager server interval at 1s and defaults when absent', async () => {
+    const slept: number[] = [];
+    const realSetTimeout = global.setTimeout;
+    const spy = jest.spyOn(global, 'setTimeout').mockImplementation(((
+      fn: () => void,
+      ms?: number,
+    ) => {
+      slept.push(ms ?? 0);
+      return realSetTimeout(fn, 0);
+    }) as unknown as typeof setTimeout);
+    try {
+      OAUTH_POLL.intervalMs = 2000;
+      OAUTH_POLL.timeoutMs = 5000;
+      const io = makeIo({ isTTY: true });
+      io.openBrowser = () => true;
+      await subscriptionConnect(
+        io,
+        fakeClient([
+          // no pollIntervalMs → falls back to intervalMs
+          { flowId: 'f1', userCode: 'C', verificationUri: 'https://m/verify' },
+          { status: 'pending', pollIntervalMs: 10 },
+          { status: 'success' },
+        ]),
+        'minimax',
+        'a',
+      );
+      expect(slept).toEqual([2000, 1000]);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('surfaces an error poll and times out on endless pending', async () => {
-    OAUTH_POLL.intervalMs = 1;
+    OAUTH_POLL.deviceIntervalOverrideMs = 1;
     OAUTH_POLL.timeoutMs = 500;
     const io = makeIo({ isTTY: true });
     io.openBrowser = () => true;

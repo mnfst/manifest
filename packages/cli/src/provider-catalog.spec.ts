@@ -1,8 +1,14 @@
-import { PROVIDER_CATALOG } from './provider-catalog.gen';
+import { CATEGORY_CATALOG, PROVIDER_CATALOG, SETUP_TEMPLATES } from './provider-catalog.gen';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { deriveCatalog } = require('../scripts/generate-provider-catalog.cjs') as {
+const {
+  deriveCatalog,
+  deriveCategories,
+  deriveSetupTemplates,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+} = require('../scripts/generate-provider-catalog.cjs') as {
   deriveCatalog: (shared: unknown) => unknown;
+  deriveCategories: (shared: unknown) => unknown;
+  deriveSetupTemplates: (shared: unknown) => unknown;
 };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const shared = require('manifest-shared');
@@ -12,6 +18,14 @@ describe('provider catalog', () => {
     // Same derivation the generator runs at build time — if this fails,
     // run `npm run gen --workspace=packages/cli` and commit the result.
     expect(JSON.parse(JSON.stringify(PROVIDER_CATALOG))).toEqual(deriveCatalog(shared));
+  });
+
+  it('committed setup templates match manifest-shared (drift guard)', () => {
+    expect(JSON.parse(JSON.stringify(SETUP_TEMPLATES))).toEqual(deriveSetupTemplates(shared));
+  });
+
+  it('committed category catalog matches manifest-shared (drift guard)', () => {
+    expect([...CATEGORY_CATALOG]).toEqual(deriveCategories(shared));
   });
 
   it('every entry has an id and at least one auth type', () => {

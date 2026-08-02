@@ -610,6 +610,27 @@ describe('AgentKeyAuthGuard', () => {
     jest.useRealTimers();
   });
 
+  it('onModuleDestroy clears the static caches so they cannot leak between contexts', () => {
+    const destroyedGuard = new AgentKeyAuthGuard(buildMockRepo(), createMockConfig());
+    const internalCache = (AgentKeyAuthGuard as unknown as { cache: Map<string, unknown> }).cache;
+    const negativeCache = (AgentKeyAuthGuard as unknown as { negativeCache: Map<string, number> })
+      .negativeCache;
+    internalCache.set(testCacheKey('mnfst_survivor'), {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() + 60_000,
+      keyExpiresAt: null,
+    });
+    negativeCache.set(testCacheKey('mnfst_rejected'), Date.now() + 60_000);
+
+    destroyedGuard.onModuleDestroy();
+
+    expect(internalCache.size).toBe(0);
+    expect(negativeCache.size).toBe(0);
+  });
+
   it('does not store plaintext tokens in cache', async () => {
     const token = 'mnfst_plaintext-check-key';
     mockGetMany.mockResolvedValue([

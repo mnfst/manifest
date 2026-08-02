@@ -107,6 +107,10 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
 
   onModuleDestroy(): void {
     clearInterval(this.cleanupTimer);
+    // The caches are static, so they outlive the instance and leak across
+    // application contexts (test isolation, and any repeated Nest bootstrap in
+    // one process). Tearing the module down clears them.
+    this.clearCache();
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

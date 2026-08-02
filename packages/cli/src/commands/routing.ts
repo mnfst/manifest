@@ -267,10 +267,21 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
   const args = parseArgs(argv, { strings: ['url', 'tier', 'model', 'as'] });
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
   const prompt = args.positionals.slice(1).join(' ').trim() || 'Reply with exactly: OK';
-  const resolved = await resolveAgentKey(io, args, agent);
 
   // Surface selection: --as override, else the agent's own stored platform.
+  // An unknown --as would silently fall back to chat_completions and test the
+  // wrong surface, so it fails loudly — before any network call, like agent
+  // create's --platform.
   let platform: string | undefined = args.strings['as'];
+  if (platform !== undefined && !SURFACE_BY_PLATFORM.has(platform)) {
+    throw new CliError(
+      'invalid_platform',
+      `Unknown platform: ${platform}. Valid platforms: ${[...SURFACE_BY_PLATFORM.keys()].join(', ')}`,
+      'Run mnfst agent platforms to list them',
+    );
+  }
+
+  const resolved = await resolveAgentKey(io, args, agent);
   if (!platform) {
     const { client } = clientFromFlags(io, args);
     const info = (await client.request('GET', `/agents/${encodeURIComponent(agent)}`)) as {
@@ -290,9 +301,10 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
   const requestBody =
     surface === 'messages'
       ? {
-          // The Anthropic Messages surface takes a provider-native model —
-          // "auto" is not a route override there, so omit unless explicit.
-          model: args.strings['model'] ?? 'claude-sonnet-5',
+          // "auto" means "route me" on every public surface, /v1/messages
+          // included — a concrete model is what the proxy reads as an explicit
+          // route override. --model is that override when the caller wants it.
+          model: args.strings['model'] ?? 'auto',
           max_tokens: 64,
           messages: [{ role: 'user', content: prompt }],
         }

@@ -54,7 +54,7 @@ export const providerCustom = {
       throw new CliError(
         'probe_empty',
         `${baseUrl} answered but exposed no models`,
-        'Check the endpoint serves /v1/models (openai) or /v1/models (anthropic) and the credential is right',
+        "Check the endpoint serves the provider's models endpoint (/v1/models for openai, /v1/models with an anthropic-version header for anthropic) and the credential is right",
       );
     }
 

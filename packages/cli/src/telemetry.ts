@@ -52,7 +52,7 @@ export async function reportUsage(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), SEND_TIMEOUT_MS);
   try {
-    await io.fetchImpl(endpoint, {
+    const response = await io.fetchImpl(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -66,6 +66,9 @@ export async function reportUsage(
       }),
       signal: controller.signal,
     });
+    // Drain the body: an unread response keeps the socket alive and can delay
+    // process exit past the command's own work — telemetry must be invisible.
+    await (response.body?.cancel() ?? response.arrayBuffer());
   } catch {
     /* telemetry must never affect the command */
   } finally {
