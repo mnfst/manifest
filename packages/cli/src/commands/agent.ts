@@ -241,6 +241,21 @@ export async function agentKeyPathCmd(io: CliIo, argv: string[]): Promise<void> 
   printJson(io, { agent: name, path: resolved.path, source: resolved.source });
 }
 
+/**
+ * Emit the agent's connection config as env lines — the mainstream wiring
+ * path: `mnfst agent env my-bot >> .env`, or eval `--export` in a shell, or
+ * pipe into a platform CLI (railway variables set, vercel env add, ...).
+ * Deliberately prints the raw key, like `agent key show`.
+ */
+export async function agentEnv(io: CliIo, argv: string[]): Promise<void> {
+  const args = parseArgs(argv, { strings: ['url'], booleans: ['export'] });
+  const name = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
+  const resolved = await resolveAgentKey(io, args, name);
+  const prefix = args.booleans['export'] ? 'export ' : '';
+  io.stdout(`${prefix}MANIFEST_AGENT_KEY=${resolved.key}`);
+  io.stdout(`${prefix}MANIFEST_AGENT_URL=${resolved.origin}/v1`);
+}
+
 /** Prints the raw key — the one deliberate, greppable way to surface it. */
 export async function agentKeyShow(io: CliIo, argv: string[]): Promise<void> {
   const args = parseArgs(argv, URL_ONLY);

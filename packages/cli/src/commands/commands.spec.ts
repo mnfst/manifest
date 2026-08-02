@@ -696,6 +696,22 @@ describe('agent commands', () => {
     });
   });
 
+  it('agent env emits dotenv lines, and --export shell lines', async () => {
+    const { io, calls } = authedIo([]);
+    saveAgentKey(io.env, HOST, 'my-bot', 'mnfst_env_secret');
+    expect(await run(io, ['agent', 'env', 'My Bot'])).toBe(0);
+    expect(io.lines.slice(-2)).toEqual([
+      'MANIFEST_AGENT_KEY=mnfst_env_secret',
+      `MANIFEST_AGENT_URL=${HOST}/v1`,
+    ]);
+    expect(calls).toHaveLength(0);
+
+    const { io: io2 } = authedIo([]);
+    saveAgentKey(io2.env, HOST, 'my-bot', 'k2');
+    expect(await run(io2, ['agent', 'env', 'my-bot', '--export'])).toBe(0);
+    expect(io2.lines.slice(-2)[0]).toBe('export MANIFEST_AGENT_KEY=k2');
+  });
+
   it('agent key show prints the raw key as a deliberate act', async () => {
     const { io, calls } = authedIo([]);
     saveAgentKey(io.env, HOST, 'my-bot', 'mnfst_cached_secret');
