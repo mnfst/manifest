@@ -82,5 +82,5 @@ export const appConfig = registerAs('app', () => ({
   // Sliding lifetime (days) of a CLI-minted management PAT. Every successful
   // authentication pushes the key's `expires_at` this far into the future, so
   // an active CLI never has to re-login and an abandoned one lapses.
-  cliTokenTtlDays: parseInt(process.env['CLI_TOKEN_TTL_DAYS'] ?? '30', 10),
+  cliTokenTtlDays: optionalPositiveInteger(process.env['CLI_TOKEN_TTL_DAYS']) ?? 30,
 }));

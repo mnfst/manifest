@@ -12,10 +12,16 @@ function fakeRunner(): { runner: QueryRunner; queries: string[] } {
 }
 
 describe('AddApiKeyExpiresAt1801700000000', () => {
-  it('up adds a nullable expires_at column and resets lock_timeout', async () => {
+  it('up adds a nullable naive-timestamp expires_at column and resets lock_timeout', async () => {
     const { runner, queries } = fakeRunner();
     await new AddApiKeyExpiresAt1801700000000().up(runner);
-    expect(queries.some((q) => q.includes('ADD COLUMN IF NOT EXISTS "expires_at"'))).toBe(true);
+    // The column type must match the entity's timestampType() (naive `timestamp`).
+    // A `TIMESTAMP WITH TIME ZONE` column would diverge from every other
+    // timestamp in the schema and from toLocalSqlTimestamp() writes.
+    expect(queries).toContain(
+      `ALTER TABLE "api_keys" ADD COLUMN IF NOT EXISTS "expires_at" TIMESTAMP`,
+    );
+    expect(queries.join(' ')).not.toMatch(/WITH TIME ZONE/i);
     expect(queries[queries.length - 1]).toContain('RESET lock_timeout');
   });
 

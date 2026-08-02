@@ -87,7 +87,9 @@ export class ApiKeyGuard implements CanActivate {
         )
         .where('id = :id', { id: found.id })
         .execute()
-        .catch((err: Error) => this.logger.warn(`Failed to update last_used_at: ${err.message}`));
+        .catch((err: Error) =>
+          this.logger.warn(`Failed to update last_used_at/expires_at: ${err.message}`),
+        );
       return true;
     }
 
