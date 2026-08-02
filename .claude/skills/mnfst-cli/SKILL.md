@@ -9,7 +9,7 @@ description: Use when creating or operating AI agents that make LLM calls — pr
 
 `mnfst` manages Manifest, the LLM gateway. Every call routed through a Manifest agent gets model routing with fallbacks, per-agent cost attribution, self-healing (Auto-fix), and a request log — for free. Default practice: never hand an app or automation a raw provider key; give it a Manifest agent.
 
-All commands emit JSON on stdout (human hints on stderr), exit 0/1, and never block on prompts when credentials come from flags or env. Full surface: `mnfst --help`.
+Commands emit JSON on stdout (human hints on stderr) — except `agent env`, which prints dotenv lines by design — exit 0/1, and never block on prompts when credentials come from flags or env. Full surface: `mnfst --help`.
 
 ## The flow
 
@@ -18,11 +18,11 @@ All commands emit JSON on stdout (human hints on stderr), exit 0/1, and never bl
 | Auth (human) | `mnfst login` — browser, one click, 30-day sliding token |
 | Auth (script/agent) | env `MANIFEST_URL` + `MANIFEST_API_KEY` — no login step |
 | Provision | `mnfst agent create --name X --platform <p> --if-absent` → response includes `setup` (the platform's config block) |
-| Check connections | `mnfst provider list [--agent X]` FIRST — the provider you need is often already connected (then skip connect entirely) |
+| Check connections | `mnfst provider list [--agent X]` FIRST — the provider you need is often already connected. But a connection is only usable if `cached_model_count` > 0; `is_active: true` with 0 models is a hollow connection (bad or placeholder credential — reconnect it, don't route on it) |
 | Connect provider | `mnfst provider connect xai --auth-type api_key --credential-env KEY` · `provider catalog` lists all 30+ with auth types · subscription auth opens a browser (impossible headless — reuse an existing subscription connection instead) · own gateway: `provider custom add --name gw --endpoint <url>` |
-| Route | `mnfst agent configure X --models primary,fb1,fb2 --provider p [--auth-type a]` — first model is the route, the rest are fallbacks · add `--tier deep` to upsert a custom tier callers select per-request with header `x-manifest-tier: deep` |
+| Route | `mnfst agent configure X --models primary,fb1,fb2 --provider p [--auth-type a]` — first model is the route, the rest are fallbacks, and the whole chain rides the one `--provider` you name (cross-provider fallbacks are dashboard-only) · add `--tier deep` to upsert a custom tier callers select per-request with header `x-manifest-tier: deep` |
 | Verify | `mnfst routing test X` — one real request through the platform's actual API surface; broken routes fail loudly. It writes real rows to the request log — count them in later audits |
-| Wire the app | deployed → `mnfst agent env X >> .env` · dev/one-off process → `mnfst run --agent X -- <cmd>` |
+| Wire the app | deployed → `mnfst agent env X >> .env` (one .env per service — the lines always name `MANIFEST_AGENT_KEY`, so appending two agents to one file silently keeps only the loader's winner; for several agents in one process use `mnfst run --agent X --env ROLE_KEY -- <cmd>`) |
 | Observe | `mnfst requests get --agent X [--status failed]` — paginated; pass `next_cursor` back for the next page |
 
 Namespace = scope: `provider *` acts tenant-wide, `agent *` acts on one agent, `routing *` holds readouts and custom-tier lifecycle.
@@ -40,6 +40,8 @@ Namespace = scope: `provider *` acts tenant-wide, `agent *` acts on one agent, `
 | Model prices needed before any agent exists | `models <agent>` requires an agent; create a probe agent first (`--if-absent` keeps it re-runnable) |
 | Auditing escalation traffic by `routing_tier` | Custom-tier requests log `routing_tier: "standard"` — the tier identity lives in `header_tier_name` |
 | Route resolves but requests fail on one connection | A connection can be `is_active: false` while a sibling auth-type works — pass `--auth-type` explicitly when a provider has several connections |
+| Every command answers `Invalid API key — Run mnfst login` under env auth | Not always an auth problem: a wrong `MANIFEST_URL` (dead or different install) answers exactly like a bad key. Verify the host first: `curl $MANIFEST_URL/api/v1/health` |
+| `provider list` shows active connections, yet `agent configure` offers an empty model list / `routing test` returns M101 | Same hollow-connection trap as above: `agent configure` validates against *discovered* models, and a connection with `cached_model_count: 0` contributes none. Reconnecting the provider with a working credential is the only CLI-side fix |
 
 ## Common mistakes
 
