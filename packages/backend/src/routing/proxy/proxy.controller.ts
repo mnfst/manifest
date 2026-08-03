@@ -636,6 +636,7 @@ export class ProxyController {
           attemptStart: currentAttemptStart,
           requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
           traceId,
+          apiMode,
         })
         .catch((e) => this.logger.warn(`Failed to record cancelled Request: ${e}`));
       if (!res.writableEnded) res.end();

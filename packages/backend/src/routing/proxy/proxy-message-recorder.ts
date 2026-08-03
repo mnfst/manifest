@@ -201,6 +201,8 @@ export interface CancelledRequestOpts {
   attemptStart?: ProviderAttemptStart;
   requestDurationMs?: number;
   traceId?: string;
+  /** API surface to retain when cancellation creates or repairs the Request. */
+  apiMode?: ProxyApiMode;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -466,32 +468,29 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const row = buildRequestRow(ctx, requestId, attempt, terminal, autofix, apiMode);
     const insert = repo.createQueryBuilder().insert().into(ManifestRequest).values(row);
     if (terminal) {
-      // `api_mode` is deliberately absent from the update list: the surface is
-      // known at ingress and never changes, so the pending row's value wins over
-      // a terminal writer that may not have it in scope.
-      await insert
-        .orUpdate(
-          [
-            'user_id',
-            'agent_name',
-            'trace_id',
-            'session_key',
-            'session_id',
-            'duration_ms',
-            'status',
-            'autofix_status',
-            'error_message',
-            'error_http_status',
-            'error_code',
-            'error_origin',
-            'error_class',
-            'caller_attribution',
-            'request_headers',
-            'request_params',
-          ],
-          ['id'],
-        )
-        .execute();
+      // Most terminal writers do not need to repeat the ingress surface. When
+      // they do have it, let them repair a missing/failed pending write without
+      // allowing an undefined surface to erase an existing value.
+      const updatedColumns = [
+        'user_id',
+        'agent_name',
+        'trace_id',
+        'session_key',
+        'session_id',
+        'duration_ms',
+        'status',
+        'autofix_status',
+        'error_message',
+        'error_http_status',
+        'error_code',
+        'error_origin',
+        'error_class',
+        'caller_attribution',
+        'request_headers',
+        'request_params',
+        ...(apiMode == null ? [] : ['api_mode']),
+      ];
+      await insert.orUpdate(updatedColumns, ['id']).execute();
     } else {
       await insert.orIgnore().execute();
     }
@@ -604,7 +603,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       error_message: null,
       error_http_status: null,
     });
-    await this.persistRequest(ctx, opts.requestId, row, true);
+    await this.persistRequest(ctx, opts.requestId, row, true, undefined, opts.apiMode);
     if (opts.attempt) await this.persistAttempt(row, opts.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -970,6 +969,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix?: AutofixRecord;
       /** HTTP status returned to the caller when every fallback was exhausted. */
       terminalHttpStatus?: number;
+      /** API surface to retain when the exhausted chain creates the Request. */
+      apiMode?: ProxyApiMode;
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -1022,6 +1023,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       requestOutcome,
       Boolean(opts?.terminalHttpStatus),
       opts?.autofix,
+      opts?.apiMode,
     );
     if (!opts?.skipAttempt) await this.persistAttempt(row, opts?.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);

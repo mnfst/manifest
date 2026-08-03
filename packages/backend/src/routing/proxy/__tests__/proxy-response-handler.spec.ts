@@ -312,6 +312,13 @@ describe('proxy-response-handler', () => {
         'Bad Gateway',
         failedFallbacks,
         recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-exhausted',
+        undefined,
+        'messages',
       );
 
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
@@ -332,7 +339,7 @@ describe('proxy-response-handler', () => {
         'Bad Gateway',
         expect.any(String),
         undefined,
-        expect.objectContaining({ providerKeyLabel: 'Work' }),
+        expect.objectContaining({ providerKeyLabel: 'Work', apiMode: 'messages' }),
       );
       expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
       expect(res.json).toHaveBeenCalledWith(

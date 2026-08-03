@@ -254,6 +254,7 @@ export async function handleProviderError(
       autofix,
       requestId,
       requestDurationMs,
+      apiMode,
     );
     return;
   }
@@ -318,6 +319,7 @@ function handleFallbackExhausted(
   autofix: AutofixRecord | undefined,
   requestId: string,
   requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): void {
   const baseTime = Date.now();
   const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
@@ -373,6 +375,7 @@ function handleFallbackExhausted(
         // When a patched retry exists this row is that retry; otherwise it is
         // the plain original failure carrying only Phoenix's audit.
         autofix,
+        apiMode,
       },
     ),
     'primary failure',

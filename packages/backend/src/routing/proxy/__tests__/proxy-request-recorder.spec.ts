@@ -215,6 +215,38 @@ describe('ProxyMessageRecorder request parents', () => {
     },
   );
 
+  it('repairs api_mode when a terminal writer has the surface in scope', async () => {
+    const { recorder, requestQb, requestValues } = setup();
+
+    await recorder.recordProviderError(ctx, 503, 'upstream down', {
+      requestId: 'request-repaired-surface',
+      provider: 'openai',
+      model: 'gpt-4o',
+      apiMode: 'responses',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-repaired-surface', api_mode: 'responses' }),
+    );
+    const updatedColumns = requestQb.orUpdate.mock.calls[0][0] as string[];
+    expect(updatedColumns).toContain('api_mode');
+    recorder.onModuleDestroy();
+  });
+
+  it('stamps api_mode when cancellation creates the Request', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordCancelledRequest(ctx, {
+      requestId: 'request-cancelled-surface',
+      apiMode: 'messages',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-cancelled-surface', api_mode: 'messages' }),
+    );
+    recorder.onModuleDestroy();
+  });
+
   it('stamps the API surface on a Manifest-blocked Request', async () => {
     const { recorder, requestValues } = setup();
 
