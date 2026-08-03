@@ -225,6 +225,7 @@ export async function handleProviderError(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -282,6 +283,7 @@ export async function handleProviderError(
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
       autofix,
+      apiMode,
     }),
     'provider error',
   );
@@ -845,6 +847,7 @@ export function recordSuccess(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   attemptNumber: number = currentPrimaryAttemptNumber(autofix),
+  apiMode?: ProxyApiMode,
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     const requestDurationMs = startTime == null ? undefined : Date.now() - startTime;
@@ -871,6 +874,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        apiMode,
       }),
       'fallback success',
     );
@@ -897,6 +901,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        apiMode,
       }),
       'success message',
     );

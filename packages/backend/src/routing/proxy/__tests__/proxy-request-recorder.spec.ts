@@ -52,6 +52,7 @@ describe('ProxyMessageRecorder request parents', () => {
       requestId: 'request-1',
       provider: 'openai',
       model: 'gpt-4o',
+      apiMode: 'responses',
     });
 
     expect(execute).toHaveBeenCalledTimes(1);
@@ -61,9 +62,28 @@ describe('ProxyMessageRecorder request parents', () => {
         status: 'failed',
         autofix_status: null,
         error_origin: 'transport',
+        api_mode: 'responses',
       }),
     );
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ request_id: 'request-1' }));
+    recorder.onModuleDestroy();
+  });
+
+  it('stamps api_mode when a success terminal write creates the Request', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordSuccessMessage(
+      ctx,
+      'gpt-4o',
+      'standard',
+      'scored',
+      { prompt_tokens: 10, completion_tokens: 5 },
+      { requestId: 'request-success-first', provider: 'openai', apiMode: 'messages' },
+    );
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-success-first', api_mode: 'messages' }),
+    );
     recorder.onModuleDestroy();
   });
 
