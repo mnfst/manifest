@@ -1,8 +1,9 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
-import { supportsReasoningContent } from './reasoning-format';
+import { supportsReasoningContent, type ReasoningModelCatalog } from './reasoning-format';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 
 interface CachedReasoningContent {
   content: string;
@@ -41,7 +42,19 @@ export class ReasoningContentCache {
     @Optional()
     @InjectRepository(ReasoningContentCacheEntry)
     private readonly repo?: Repository<ReasoningContentCacheEntry>,
+    @Optional()
+    @Inject(ModelsDevReasoningCatalog)
+    readonly modelCatalog?: ReasoningModelCatalog,
   ) {}
+
+  /**
+   * Whether this (endpoint, model) pair speaks the `reasoning_content`
+   * dialect. The cache owns the question because it owns the catalog handle —
+   * the response handler asks rather than re-deriving it.
+   */
+  supportsFor(endpointKey: string, model: string): boolean {
+    return supportsReasoningContent(endpointKey, model, this.modelCatalog);
+  }
 
   /** Store the reasoning_content string for an assistant tool-call turn. */
   store(sessionKey: string, firstToolCallId: string, content: string): void {
@@ -119,7 +132,7 @@ export class ReasoningContentCache {
     endpointKey: string | null,
     model: string,
   ): Promise<Record<string, unknown>> {
-    if (!endpointKey || !supportsReasoningContent(endpointKey, model)) return body;
+    if (!endpointKey || !this.supportsFor(endpointKey, model)) return body;
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 

@@ -1296,3 +1296,45 @@ describe('provider-client-converters', () => {
     });
   });
 });
+
+describe('sanitizeOpenAiBody reasoning dialect', () => {
+  const zenCatalog = {
+    isReasoningModel: (_endpointKey: string, model: string) =>
+      model.toLowerCase().endsWith('big-pickle') ? true : undefined,
+  };
+
+  const bodyWithReasoning = () => ({
+    messages: [
+      {
+        role: 'assistant',
+        content: '',
+        reasoning_content: 'upstream thinking',
+        tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+      },
+    ],
+  });
+
+  it('keeps reasoning_content for a Zen model the catalog marks as reasoning', () => {
+    const result = sanitizeOpenAiBody(
+      bodyWithReasoning(),
+      'opencode-zen',
+      'opencode-zen/big-pickle',
+      zenCatalog,
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBe('upstream thinking');
+  });
+
+  it('still strips reasoning_content for a Zen slug nothing vouches for', () => {
+    const result = sanitizeOpenAiBody(
+      bodyWithReasoning(),
+      'opencode-zen',
+      'opencode-zen/mystery-slug',
+      zenCatalog,
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBeUndefined();
+  });
+});

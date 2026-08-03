@@ -350,3 +350,62 @@ describe('ReasoningContentCache', () => {
     Date.now = realNow;
   });
 });
+
+describe('ReasoningContentCache catalog wiring', () => {
+  const zenCatalog = {
+    isReasoningModel: (_endpointKey: string, model: string) =>
+      model.toLowerCase().endsWith('big-pickle') ? true : undefined,
+  };
+
+  it('prepares Zen codename tool turns the catalog marks as reasoning', async () => {
+    const cache = new ReasoningContentCache(undefined, zenCatalog);
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await cache.prepareRequest(
+      body,
+      'session-1',
+      'opencode-zen',
+      'opencode-zen/big-pickle',
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBe('');
+  });
+
+  it('leaves Zen slugs alone when the catalog does not know them', async () => {
+    const cache = new ReasoningContentCache(undefined, zenCatalog);
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await cache.prepareRequest(
+      body,
+      'session-1',
+      'opencode-zen',
+      'opencode-zen/mystery-slug',
+    );
+
+    expect(result).toBe(body);
+  });
+
+  it('answers the reasoning-dialect question for the response handler', () => {
+    const cache = new ReasoningContentCache(undefined, zenCatalog);
+
+    expect(cache.supportsFor('opencode-zen', 'opencode-zen/big-pickle')).toBe(true);
+    expect(cache.supportsFor('opencode-zen', 'opencode-zen/mystery-slug')).toBe(false);
+  });
+});
