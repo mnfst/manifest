@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-08-03
 
 ## What Manifest Is
 
@@ -78,13 +78,13 @@ packages/
 │   │   │   └── current-user.decorator.ts    # @CurrentUser() param decorator
 │   │   ├── database/
 │   │   │   ├── database.module.ts           # TypeORM PostgreSQL config
-│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, security events)
+│   │   │   ├── database-seeder.service.ts   # Seeds demo data (users, agents, sample requests)
 │   │   │   ├── datasource.ts               # CLI DataSource for migration commands
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (24 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -113,6 +113,7 @@ packages/
 │   │   │   ├── custom-provider/             # Custom provider CRUD
 │   │   │   ├── header-tiers/               # Header-based tier overrides
 │   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── managed-free-provider/       # Managed free-tier provider provisioning
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
@@ -149,7 +150,7 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
+│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards; AgentOverview still builds on the shared Overview.tsx
 │   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
 │   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
 │   │   │   ├── Account.tsx                  # User profile (session data)
@@ -190,8 +191,8 @@ npm run build     # Turborepo: frontend (Vite) then backend (Nest)
 npm start         # node packages/backend/dist/main.js — serves frontend + API
 ```
 
-- API routes (`/api/*`, `/otlp/*`) are excluded from static file serving.
-- Dev mode: Vite on `:3000` proxies `/api` and `/otlp` to backend on `:3001`.
+- API routes (`/api/*`, `/v1/*`) are excluded from static file serving. `/otlp/*` legacy compat routes are handled separately by `SpaFallbackFilter`, which returns JSON instead of the SPA shell for non-SPA path prefixes.
+- Dev mode: Vite on `:3000` proxies `/api`, `/otlp`, and `/v1` to backend on `:3001`.
 
 ## Commands
 
@@ -217,9 +218,8 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 
 - **Admin user**: `admin@manifest.build` / `manifest` (email verification email is skipped if Mailgun is not configured — user is created but unverified)
 - **Tenant**: `seed-tenant-001` linked to the admin user
-- **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
+- **Agent**: `demo-agent` with OTLP key `mnfst_dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
-- **Security events**: 12 sample events for the security dashboard
 - **Requests and provider attempts**: Sample telemetry for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
@@ -353,13 +353,14 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH                     | `/api/v1/agents/:agentName`                     | Session/API Key                     | Rename agent                                                                                                |
 | GET                       | `/api/v1/messages`                              | Session/API Key                     | Paginated Requests log (legacy route name)                                                                  |
 | GET/PATCH/DELETE          | `/api/v1/messages/:id/*`                        | Session/API Key                     | Request details, feedback, miscategorized flag (legacy route name)                                          |
-| GET                       | `/api/v1/security`                              | Session/API Key                     | Security score + events                                                                                     |
+| GET                       | `/api/v1/messages/filter-options`               | Session/API Key                     | Distinct filter values for the Requests log                                                                 |
 | GET                       | `/api/v1/model-prices`                          | Session/API Key                     | Model pricing list                                                                                          |
 | GET                       | `/api/v1/free-models`                           | Session/API Key                     | Free LLM model catalog                                                                                      |
 | GET                       | `/api/v1/agent/usage`                           | Bearer (mnfst\_\*)                  | Token usage for the calling agent                                                                           |
 | GET                       | `/api/v1/agent/costs`                           | Bearer (mnfst\_\*)                  | Cost data for the calling agent                                                                             |
 | GET                       | `/api/v1/overview/*`                            | Session/API Key                     | Overview timeseries/breakdown sub-endpoints                                                                 |
 | GET                       | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key                     | Connected provider list + usage                                                                             |
+| POST                      | `/api/v1/providers/:providerId/ensure`          | Session/API Key                     | Provision a managed free-tier provider                                                                      |
 | GET                       | `/api/v1/provider-analytics/*`                  | Session/API Key                     | Per-provider analytics                                                                                      |
 | GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
 | GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status + email preferences (Stripe)                                                                 |
@@ -368,10 +369,11 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
+| GET                       | `/api/v1/autofix/status`                        | Session/API Key                     | Autofix Phoenix health status                                                                               |
 | POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
 | GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
 | POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
-| GET/POST/DELETE           | `/api/v1/oauth/:provider/*`                     | Session/API Key                     | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax)                                                 |
+| GET/POST                  | `/api/v1/oauth/:provider/*`                     | Session/API Key                     | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax); revocation is `POST .../revoke`, not `DELETE`  |
 | POST                      | `/api/v1/routing/resolve`                       | Bearer (mnfst\_\*)                  | Model resolution                                                                                            |
 | POST                      | `/api/v1/routing/subscription-providers`        | Bearer (mnfst\_\*)                  | Subscription provider config                                                                                |
 | GET                       | `/api/v1/setup/status`                          | Public                              | First-run setup status                                                                                      |
@@ -382,6 +384,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST                      | `/v1/responses`                                 | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI Responses API)                                                                            |
 | POST                      | `/v1/messages`                                  | Bearer (mnfst\_\*)                  | LLM proxy (Anthropic Messages API)                                                                          |
 | POST                      | `/chat/completions`                             | Bearer (mnfst\_\*)                  | Legacy root-level OTLP-compatible proxy alias                                                               |
+| ALL                       | `/otlp/v1/*`, `/api/v1/otlp/v1/*`, `/v1/{metrics,traces,logs}` | Bearer (mnfst\_\*)   | Deprecated OTLP ingest aliases; the standalone OTLP pipeline itself was removed in favor of the proxy routes |
 | GET/POST/PATCH            | `/api/v1/playground/*`                          | Session/API Key                     | Playground runs (run, list, star, mark best)                                                                |
 | GET                       | `/api/v1/events`                                | Session                             | SSE real-time events                                                                                        |
 | GET                       | `/api/v1/github/stars`                          | Public                              | GitHub star count                                                                                           |
@@ -431,6 +434,14 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream an agent's request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Serves no fix and creates no heal attempt; it only lets Phoenix see the body that failed. Wider than the heal path in scope (not limited to `AUTOFIX_REPAIRABLE_STATUSES`, and it catches fallback-model failures the heal path never reports) but **gated to agents with Auto-fix on** — `AutofixService.isActiveFor()`, the same per-agent flag that healing checks. Turning Auto-fix on is what consents to sending failing requests to the healing service; the check fails closed. Off by default: a second, deployment-level switch on top. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Auto-fix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRO_PRICE_ID` — Billing (cloud only). See `packages/backend/src/billing/`.
 - `PLAN_LIMIT_FREE_REQUESTS` / `PLAN_LIMIT_PRO_REQUESTS` / `PLAN_REQUEST_QUOTA_RESET_AT` — Per-plan request quotas enforced by `plan.service.ts`.
+- `REQUEST_RECORDING_STORAGE` / `REQUEST_RECORDING_RETENTION_DAYS` / `REQUEST_RECORDING_FILESYSTEM_PATH` / `REQUEST_RECORDING_S3_*` — Raw request/response body recording backend (`auto` detects filesystem vs S3), retention window (default 365 days), and storage location.
+- `STREAM_IDLE_TIMEOUT_MS` — Idle timeout (ms) between chunks of a streaming proxy response before Manifest aborts it. Default: `180000`.
+- `DB_TUNE_SESSION` — Set `false` to skip role-level PostgreSQL session tuning at boot. Default: `true`.
+- `SHUTDOWN_DRAIN_MS` — Graceful shutdown drain window (ms) before the process exits. Default: `10000`.
+- `MIGRATION_DATABASE_URL` / `BACKFILL_DATABASE_URL` — Direct (unpooled) PostgreSQL URL for migration and backfill CLI scripts; falls back to `DATABASE_URL`.
+- `ERROR_PAGE_PUSH_SECRET` — Shared secret validating the Peacock CMS push API for custom error pages (`x-internal-secret` header).
+- `CREDITS_BASE_URL` / `CREDITS_MASTER_KEY` / `CREDITS_AUTO_PROVISION_ALLOWLIST` / `CREDITS_GEMINI_FREE_MAX_BUDGET` — Config for provisioning managed free-tier providers (e.g. Gemini Free) via the credits service (`common/constants/managed-free-providers.ts`).
+- `MANIFEST_FRONTEND_DIR` / `MANIFEST_EMBEDDED` — Override the served frontend build directory and skip mounting static frontend files, for embedding the backend inside another process.
 
 ## Domain Terminology
 
@@ -559,10 +570,10 @@ configuration simply leaves it unset by default.
 
 ## Architecture Notes
 
-- **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
-- **Dev mode**: Vite dev server on `:3000` proxies `/api` and `/otlp` to backend on `:3001`. CORS enabled only in dev.
+- **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/v1/*`) are excluded; legacy `/otlp/*` paths are caught separately by `SpaFallbackFilter` and return JSON instead of the SPA shell.
+- **Dev mode**: Vite dev server on `:3000` proxies `/api`, `/otlp`, and `/v1` to backend on `:3001`. CORS enabled only in dev.
 - **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.urlencoded()`.
-- **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
+- **QueryBuilder API**: Analytics and request-serving code use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Seeding, backfill/migration CLIs, and a handful of setup/billing services still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
 - **PostgreSQL time functions**: `NOW() - CAST(:interval AS interval)`, `to_char(date_trunc('hour', timestamp), ...)`, `timestamp::date`.
 - **Better Auth database**: Uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. See `packages/backend/src/auth/auth.instance.ts`.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
