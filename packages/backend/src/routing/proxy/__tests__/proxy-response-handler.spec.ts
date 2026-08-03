@@ -284,7 +284,7 @@ describe('proxy-response-handler', () => {
     it('should handle fallback exhausted when failedFallbacks present and no fallbackFromModel', async () => {
       const { res, headers } = mockResponse();
       const recorder = mockRecorder();
-      const meta = makeMeta(); // no fallbackFromModel
+      const meta = makeMeta({ provider_key_label: 'Work' }); // no fallbackFromModel
       const metaHeaders = buildMetaHeaders(meta);
       const failedFallbacks: FailedFallback[] = [
         {
@@ -309,6 +309,24 @@ describe('proxy-response-handler', () => {
 
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
       expect(recorder.recordPrimaryFailure).toHaveBeenCalled();
+      // Exhausted chain: meta still describes the primary, so both failure
+      // recorders get its connection label.
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'gpt-4o',
+        failedFallbacks,
+        expect.objectContaining({ providerKeyLabel: 'Work' }),
+      );
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'gpt-4o',
+        'Bad Gateway',
+        expect.any(String),
+        undefined,
+        expect.objectContaining({ providerKeyLabel: 'Work' }),
+      );
       expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -721,6 +739,40 @@ describe('proxy-response-handler', () => {
         expect.any(String),
         'api_key',
         expect.objectContaining({ autofix, httpStatus: 422 }),
+      );
+    });
+
+    it('attributes the Auto-fix original row to the primary connection label', () => {
+      // The retry that failed ran on the PRIMARY connection; meta.provider_key_label
+      // already names the fallback that recovered the request, so the
+      // autofix_role='original' row must read primaryKeyLabel instead —
+      // otherwise it pairs the primary's tenant_provider_id with the
+      // fallback's label.
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'gpt-4o',
+        primaryProvider: 'openai',
+        primaryAuthType: 'api_key',
+        primaryTenantProviderId: 'up-work',
+        primaryKeyLabel: 'Work',
+        provider: 'anthropic',
+        model: 'claude-sonnet',
+        provider_key_label: 'Personal',
+      });
+      const autofix = failedAutofixRetry();
+
+      recordFallbackFailures(testCtx, meta, undefined, recorder as any, null, null, autofix);
+
+      expect(recorder.recordAutofixOriginal).toHaveBeenCalledWith(
+        testCtx,
+        'gpt-4o',
+        'standard',
+        autofix,
+        expect.objectContaining({
+          provider: 'openai',
+          tenantProviderId: 'up-work',
+          providerKeyLabel: 'Work',
+        }),
       );
     });
 
@@ -2660,6 +2712,62 @@ describe('proxy-response-handler', () => {
         'claude-sonnet-4',
         failedFallbacks,
         expect.objectContaining({ reason: 'header-match' }),
+      );
+    });
+
+    it('recordFallbackFailures attributes the primary label, not the winning fallback one', () => {
+      // In a fallback-success flow meta.provider_key_label holds the connection
+      // that RECOVERED the request; the primary-failure row must keep the one
+      // that actually failed (mirrors primaryTenantProviderId).
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+        provider_key_label: 'Fallback key',
+        primaryKeyLabel: 'Primary key',
+      });
+      const failedFallbacks: FailedFallback[] = [
+        { model: 'x', provider: 'y', fallbackIndex: 0, status: 500, errorBody: '' },
+      ];
+
+      recordFallbackFailures(testCtx, meta, failedFallbacks, recorder as any);
+
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        expect.any(String),
+        expect.any(String),
+        undefined,
+        expect.objectContaining({ providerKeyLabel: 'Primary key' }),
+      );
+      expect(recorder.recordFailedFallbacks).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        failedFallbacks,
+        expect.objectContaining({ providerKeyLabel: 'Primary key' }),
+      );
+    });
+
+    it('recordFallbackFailures falls back to provider_key_label when no primary label was preserved', () => {
+      const recorder = mockRecorder();
+      const meta = makeMeta({
+        fallbackFromModel: 'claude-sonnet-4',
+        primaryProvider: 'anthropic',
+        provider_key_label: 'Only key',
+      });
+
+      recordFallbackFailures(testCtx, meta, [], recorder as any);
+
+      expect(recorder.recordPrimaryFailure).toHaveBeenCalledWith(
+        testCtx,
+        'standard',
+        'claude-sonnet-4',
+        expect.any(String),
+        expect.any(String),
+        undefined,
+        expect.objectContaining({ providerKeyLabel: 'Only key' }),
       );
     });
 

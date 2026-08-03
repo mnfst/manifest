@@ -139,6 +139,13 @@ export interface RoutingMeta {
    */
   primaryTenantProviderId?: string | null;
   /**
+   * The primary's connection label when a fallback ultimately succeeded.
+   * Same reason as primaryTenantProviderId: `provider_key_label` then names the
+   * winning fallback's connection, and the primary-failure row must not inherit
+   * a label belonging to a different key.
+   */
+  primaryKeyLabel?: string;
+  /**
    * Effective request body parameters for this attempt: client body values,
    * route-scoped `agent_model_params`, and MPS provider param defaults.
    * Persisted on `agent_messages.request_params` so the dashboard can show
@@ -370,6 +377,7 @@ export class ProxyService {
         model: primaryModel,
         authType: route.authType,
         tenantProviderId: credentials.tenantProviderId,
+        keyLabel: route.keyLabel ?? undefined,
         presentation: credentialFailure,
         startProviderAttempt: willRunChain ? startProviderAttempt : undefined,
       });
@@ -393,6 +401,7 @@ export class ProxyService {
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
+          primaryKeyLabel: route.keyLabel ?? undefined,
           startProviderAttempt,
           credentialDashboardUrl: dashboardUrl,
         });
@@ -420,7 +429,9 @@ export class ProxyService {
       agentId,
       tenantId,
       rawApiKey: credentials.rawApiKey,
-      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+      // Always the selected row's label (see resolveRouteCredentials), so the
+      // forwarded connection and the recorded one can never diverge.
+      providerKeyLabel: credentials.keyLabel,
       authType: route.authType,
       apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -470,12 +481,9 @@ export class ProxyService {
                 apiKey: credentials.apiKey,
                 rawApiKey: credentials.rawApiKey,
                 model: primaryModel,
-                // Use the resolved (unpinned-subscription-pinned) label so the
-                // healed-retry row stamps the same connection its
-                // tenant_provider_id points at — otherwise a null/blank label
-                // rides next to the selected connection id (the divergence the
-                // primary forward already avoids).
-                keyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+                // The selected row's label, so the healed-retry row stamps the
+                // same connection its tenant_provider_id points at.
+                keyLabel: credentials.keyLabel,
                 authType: route.authType,
                 resourceUrl: credentials.resourceUrl,
                 providerRegion: credentials.providerRegion,
@@ -514,6 +522,7 @@ export class ProxyService {
         apiMode,
         paramMergeContext,
         primaryTenantProviderId: credentials.tenantProviderId,
+        primaryKeyLabel: credentials.keyLabel,
         startProviderAttempt,
         credentialDashboardUrl: dashboardUrl,
       });
@@ -564,6 +573,9 @@ export class ProxyService {
           meta: this.buildBaseMeta(resolved, primaryModel, {
             request_params: primaryRequestParams,
             tenantProviderId: credentials.tenantProviderId,
+            // Label of the row actually selected — a stale pin resolves to the
+            // default key, and the recorded label must follow the key used.
+            provider_key_label: credentials.keyLabel,
             attempt: forward.attempt,
             providerCallStarted: forward.providerCallStarted,
             autofixOriginalAttempt,
@@ -616,6 +628,7 @@ export class ProxyService {
           apiMode,
           paramMergeContext,
           primaryTenantProviderId: credentials.tenantProviderId,
+          primaryKeyLabel: credentials.keyLabel,
           startProviderAttempt,
           credentialDashboardUrl: dashboardUrl,
         });
@@ -641,6 +654,7 @@ export class ProxyService {
         meta: this.buildBaseMeta(resolved, primaryModel, {
           request_params: primaryRequestParams,
           tenantProviderId: credentials.tenantProviderId,
+          provider_key_label: credentials.keyLabel,
           attempt: forward.attempt,
           providerCallStarted: forward.providerCallStarted,
           autofixOriginalAttempt,
@@ -657,6 +671,7 @@ export class ProxyService {
       meta: this.buildBaseMeta(resolved, primaryModel, {
         request_params: primaryRequestParams,
         tenantProviderId: credentials.tenantProviderId,
+        provider_key_label: credentials.keyLabel,
         attempt: forward.attempt,
         providerCallStarted: forward.providerCallStarted,
         autofixOriginalAttempt,
@@ -708,6 +723,7 @@ export class ProxyService {
       signal: ctx.signal,
       authType: ctx.authType,
       tenantProviderId: ctx.tenantProviderId,
+      providerKeyLabel: ctx.keyLabel,
       startProviderAttempt: ctx.startProviderAttempt,
     });
   }
@@ -770,9 +786,9 @@ export class ProxyService {
       agentId: ctx.agentId,
       tenantId: ctx.tenantId,
       rawApiKey: credentials.rawApiKey,
-      // Resolved label (pins an unpinned subscription to the selected row) so
-      // the recorded connection matches credentials.tenantProviderId.
-      providerKeyLabel: credentials.keyLabel ?? route.keyLabel ?? undefined,
+      // Selected row's label so the recorded connection matches
+      // credentials.tenantProviderId.
+      providerKeyLabel: credentials.keyLabel,
       authType: route.authType,
       apiMode: ctx.apiMode,
       resourceUrl: credentials.resourceUrl,
@@ -810,6 +826,7 @@ export class ProxyService {
       signal: ctx.signal,
       authType: ctx.authType,
       tenantProviderId: ctx.tenantProviderId,
+      providerKeyLabel: ctx.keyLabel,
       startProviderAttempt: ctx.startProviderAttempt,
     });
   }
@@ -963,7 +980,7 @@ export class ProxyService {
 
     const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
     const catalogRoute = routeForOpenAiModelId(requestedModel, models);
-    if (catalogRoute) return this.explicitRouting(catalogRoute);
+    if (catalogRoute) return this.explicitRouting(agentId, tenantId, catalogRoute);
 
     // A bare ID already present under multiple connections is ambiguous, not
     // undiscovered. Preserve M302 instead of silently picking an auth type.
@@ -981,7 +998,7 @@ export class ProxyService {
       return null;
     }
 
-    return this.explicitRouting(route);
+    return this.explicitRouting(agentId, tenantId, route);
   }
 
   /**
@@ -1031,10 +1048,21 @@ export class ProxyService {
     return connected.length === 1 ? connected[0].route : null;
   }
 
-  private explicitRouting(route: NonNullable<ResolvedRouting['route']>): ResolvedRouting {
+  /**
+   * The single funnel for both explicit-model branches (catalog match and
+   * uncatalogued passthrough). Neither branch knows about connections, so the
+   * route arrives without a `keyLabel` and would resolve to the first key of
+   * the provider. Pin it here — through the same logic tier routing uses — so
+   * an operator's connection choice survives a request that names a model.
+   */
+  private async explicitRouting(
+    agentId: string,
+    tenantId: string,
+    route: NonNullable<ResolvedRouting['route']>,
+  ): Promise<ResolvedRouting> {
     return {
       tier: 'default' as const,
-      route,
+      route: await this.resolveService.pinRouteKeyLabel(agentId, tenantId, route),
       fallback_routes: null,
       response_mode: DEFAULT_RESPONSE_MODE,
       confidence: 1,
@@ -1115,6 +1143,8 @@ export class ProxyService {
     /** Primary connection id, carried so a fallback-success flow can attribute
      * its recorded primary-failure row to the connection that actually failed. */
     primaryTenantProviderId: string | null;
+    /** Label of that same primary connection, for the same attribution reason. */
+    primaryKeyLabel?: string;
     startProviderAttempt?: StartProviderAttempt;
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string;
@@ -1206,6 +1236,7 @@ export class ProxyService {
           // buildBaseMeta would otherwise stamp the PRIMARY route's label
           // next to the fallback's tenant_provider_id.
           provider_key_label: success.keyLabel,
+          primaryKeyLabel: args.primaryKeyLabel,
           fallbackFromModel: primaryModel,
           fallbackIndex: success.fallbackIndex,
           primaryErrorStatus: primaryStatus,
@@ -1273,6 +1304,7 @@ export class ProxyService {
         request_params: exhaustedRequestParams,
         // Exhausted chain is recorded against the primary connection.
         tenantProviderId: args.primaryTenantProviderId,
+        provider_key_label: args.primaryKeyLabel ?? resolved.route?.keyLabel ?? undefined,
         primaryAttempt: forward.attempt,
         primaryProviderCallStarted: forward.providerCallStarted,
         attempt: failures[failures.length - 1]?.attempt ?? forward.attempt,
