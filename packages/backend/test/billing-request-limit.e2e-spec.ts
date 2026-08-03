@@ -89,6 +89,19 @@ afterAll(async () => {
 
 describe('request limit gate (/v1 proxy)', () => {
   it('blocks a free tenant over the monthly request cap with a real 402 for tool callers', async () => {
+    const tenantRows = await ds.query(`SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1`, [
+      TEST_USER_ID,
+    ]);
+    const tenantId = tenantRows[0].id;
+    const blocksBefore = await ds.query(
+      `SELECT COUNT(*)::int AS n
+         FROM requests
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'plan_request_limit_exceeded'
+          AND error_http_status = 402`,
+      [tenantId],
+    );
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')
       .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
@@ -99,6 +112,9 @@ describe('request limit gate (/v1 proxy)', () => {
     expect(res.body.error.type).toBe('insufficient_quota');
     expect(res.body.error.message).toContain('Upgrade to Pro');
     expect(res.body.limit).toBe(0);
+    expect(await waitForManifestBlockCount(tenantId, blocksBefore[0].n + 1)).toBe(
+      blocksBefore[0].n + 1,
+    );
   });
 
   it('records the blocked request as a visible Manifest failure without counting it toward quota', async () => {

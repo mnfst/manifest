@@ -162,6 +162,12 @@ describe('proxy-response-handler', () => {
         undefined,
         recorder as any,
         'trace-1',
+        undefined,
+        undefined,
+        undefined,
+        'request-1',
+        undefined,
+        'responses',
       );
 
       expect(recorder.recordProviderError).toHaveBeenCalledWith(
@@ -179,6 +185,7 @@ describe('proxy-response-handler', () => {
           authType: undefined,
           reason: 'auto',
           specificityCategory: undefined,
+          apiMode: 'responses',
         }),
       );
       expect(res.status).toHaveBeenCalledWith(500);
@@ -305,6 +312,13 @@ describe('proxy-response-handler', () => {
         'Bad Gateway',
         failedFallbacks,
         recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'request-exhausted',
+        undefined,
+        'messages',
       );
 
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
@@ -325,7 +339,7 @@ describe('proxy-response-handler', () => {
         'Bad Gateway',
         expect.any(String),
         undefined,
-        expect.objectContaining({ providerKeyLabel: 'Work' }),
+        expect.objectContaining({ providerKeyLabel: 'Work', apiMode: 'messages' }),
       );
       expect(res.setHeader).toHaveBeenCalledWith('X-Manifest-Fallback-Exhausted', 'true');
       expect(res.json).toHaveBeenCalledWith(
@@ -2287,7 +2301,22 @@ describe('proxy-response-handler', () => {
       const meta = makeMeta();
       const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
 
-      recordSuccess(testCtx, meta, usage, undefined, recorder as any, 'trace-1', 'session-1', 1000);
+      recordSuccess(
+        testCtx,
+        meta,
+        usage,
+        undefined,
+        recorder as any,
+        'trace-1',
+        'session-1',
+        1000,
+        undefined,
+        undefined,
+        undefined,
+        'request-1',
+        1,
+        'messages',
+      );
 
       expect(recorder.recordSuccessMessage).toHaveBeenCalledWith(
         testCtx,
@@ -2304,6 +2333,7 @@ describe('proxy-response-handler', () => {
           sessionKey: 'session-1',
           durationMs: expect.any(Number),
           specificityCategory: undefined,
+          apiMode: 'messages',
         }),
       );
     });

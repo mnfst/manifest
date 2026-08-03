@@ -577,6 +577,38 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
+  it.each([
+    ['chatCompletions', 'chat_completions', { messages: [{ role: 'user', content: 'hi' }] }],
+    ['responses', 'responses', { input: 'hi' }],
+    ['messages', 'messages', { max_tokens: 8, messages: [{ role: 'user', content: 'hi' }] }],
+  ] as const)(
+    'stamps the API surface of /v1/%s on the pending Request',
+    async (route, expectedApiMode, body) => {
+      const mockProviderResp = new Response(
+        JSON.stringify({ choices: [{ message: { content: 'hello' } }] }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+      const pending = jest.spyOn(recorder, 'recordPendingRequest').mockResolvedValue(undefined);
+      const { res } = mockResponse();
+
+      await controller[route](mockRequest({ ...body }) as never, res as never);
+
+      expect(pending).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ apiMode: expectedApiMode }),
+      );
+    },
+  );
+
   it('records the exact provider request and response on its Provider Attempt', async () => {
     recordingCache.isRecording.mockResolvedValue(true);
     const responseBody = {

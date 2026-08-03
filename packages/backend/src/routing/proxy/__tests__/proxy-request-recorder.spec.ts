@@ -52,6 +52,7 @@ describe('ProxyMessageRecorder request parents', () => {
       requestId: 'request-1',
       provider: 'openai',
       model: 'gpt-4o',
+      apiMode: 'responses',
     });
 
     expect(execute).toHaveBeenCalledTimes(1);
@@ -61,9 +62,28 @@ describe('ProxyMessageRecorder request parents', () => {
         status: 'failed',
         autofix_status: null,
         error_origin: 'transport',
+        api_mode: 'responses',
       }),
     );
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ request_id: 'request-1' }));
+    recorder.onModuleDestroy();
+  });
+
+  it('stamps api_mode when a success terminal write creates the Request', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordSuccessMessage(
+      ctx,
+      'gpt-4o',
+      'standard',
+      'scored',
+      { prompt_tokens: 10, completion_tokens: 5 },
+      { requestId: 'request-success-first', provider: 'openai', apiMode: 'messages' },
+    );
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-success-first', api_mode: 'messages' }),
+    );
     recorder.onModuleDestroy();
   });
 
@@ -118,6 +138,129 @@ describe('ProxyMessageRecorder request parents', () => {
       }),
     );
     expect(insert).not.toHaveBeenCalled();
+    recorder.onModuleDestroy();
+  });
+
+  it.each(['chat_completions', 'responses', 'messages'] as const)(
+    'stamps the %s API surface on the pending Request',
+    async (apiMode) => {
+      const { recorder, requestValues } = setup();
+
+      await recorder.recordPendingRequest(ctx, {
+        requestId: `request-${apiMode}`,
+        timestamp: '2026-07-16T12:00:00.000Z',
+        apiMode,
+      });
+
+      expect(requestValues).toHaveBeenCalledWith(
+        expect.objectContaining({ id: `request-${apiMode}`, status: 'pending', api_mode: apiMode }),
+      );
+      recorder.onModuleDestroy();
+    },
+  );
+
+  it('leaves api_mode null when the surface was not supplied', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordPendingRequest(ctx, {
+      requestId: 'request-no-surface',
+      timestamp: '2026-07-16T12:00:00.000Z',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(expect.objectContaining({ api_mode: null }));
+    recorder.onModuleDestroy();
+  });
+
+  it.each([true, false] as const)(
+    'preserves the ingress api_mode through the terminal write (success=%s)',
+    async (succeeded) => {
+      const { recorder, requestValues, requestQb } = setup();
+      const requestId = `request-terminal-${succeeded}`;
+
+      await recorder.recordPendingRequest(ctx, {
+        requestId,
+        timestamp: '2026-07-16T12:00:00.000Z',
+        apiMode: 'messages',
+      });
+      if (succeeded) {
+        await recorder.recordSuccessMessage(
+          ctx,
+          'claude-sonnet',
+          'standard',
+          'scored',
+          { prompt_tokens: 10, completion_tokens: 5 },
+          { requestId, provider: 'anthropic' },
+        );
+      } else {
+        await recorder.recordProviderError(ctx, 503, 'upstream down', {
+          requestId,
+          provider: 'anthropic',
+          model: 'claude-sonnet',
+        });
+      }
+
+      expect(requestValues).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ status: 'pending', api_mode: 'messages' }),
+      );
+      expect(requestValues).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ status: succeeded ? 'success' : 'failed' }),
+      );
+      // The terminal upsert must not list api_mode, or a writer without the
+      // surface in scope would null out what ingress already recorded.
+      const updatedColumns = requestQb.orUpdate.mock.calls[0][0] as string[];
+      expect(updatedColumns).not.toContain('api_mode');
+      recorder.onModuleDestroy();
+    },
+  );
+
+  it('repairs api_mode when a terminal writer has the surface in scope', async () => {
+    const { recorder, requestQb, requestValues } = setup();
+
+    await recorder.recordProviderError(ctx, 503, 'upstream down', {
+      requestId: 'request-repaired-surface',
+      provider: 'openai',
+      model: 'gpt-4o',
+      apiMode: 'responses',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-repaired-surface', api_mode: 'responses' }),
+    );
+    const updatedColumns = requestQb.orUpdate.mock.calls[0][0] as string[];
+    expect(updatedColumns).toContain('api_mode');
+    recorder.onModuleDestroy();
+  });
+
+  it('stamps api_mode when cancellation creates the Request', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordCancelledRequest(ctx, {
+      requestId: 'request-cancelled-surface',
+      apiMode: 'messages',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-cancelled-surface', api_mode: 'messages' }),
+    );
+    recorder.onModuleDestroy();
+  });
+
+  it('stamps the API surface on a Manifest-blocked Request', async () => {
+    const { recorder, requestValues } = setup();
+
+    await recorder.recordManifestBlockedRequest(ctx, {
+      requestId: 'request-blocked-surface',
+      reason: 'no_provider_key',
+      errorMessage: 'No provider key',
+      errorCode: 'M100',
+      apiMode: 'responses',
+    });
+
+    expect(requestValues).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'request-blocked-surface', api_mode: 'responses' }),
+    );
     recorder.onModuleDestroy();
   });
 

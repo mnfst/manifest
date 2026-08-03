@@ -21,7 +21,7 @@ import { StreamUsage } from './stream-writer';
 import { computeTokenCost } from '../../common/utils/cost-calculator';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { CallerAttribution } from './caller-classifier';
-import type { ProviderAttemptRef, ProviderAttemptStart } from './proxy-types';
+import type { ProviderAttemptRef, ProviderAttemptStart, ProxyApiMode } from './proxy-types';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
@@ -141,6 +141,8 @@ export interface ProviderErrorOpts extends HeaderTierRef {
   requestParams?: RequestParamDefaults | null;
   /** Auto-fix audit when this error was the terminal outcome after healing. */
   autofix?: AutofixRecord;
+  /** API surface to retain when this terminal write creates the Request. */
+  apiMode?: ProxyApiMode;
 }
 
 export type { ManifestBlockedRequestReason };
@@ -173,6 +175,12 @@ export interface ManifestBlockedRequestOpts {
   autofix?: AutofixRecord;
   /** End-to-end time until Manifest returned the rejection. */
   durationMs?: number;
+  /**
+   * The Manifest API surface the caller used. Stamped so a rejection that never
+   * got a pending row (the guard-level M004 path writes the terminal row first)
+   * still names its surface.
+   */
+  apiMode?: ProxyApiMode;
 }
 
 export interface PendingRequestOpts {
@@ -183,6 +191,8 @@ export interface PendingRequestOpts {
   requestedModel?: string;
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
+  /** The Manifest API surface the caller used. Persisted to requests.api_mode. */
+  apiMode?: ProxyApiMode;
 }
 
 export interface CancelledRequestOpts {
@@ -191,6 +201,8 @@ export interface CancelledRequestOpts {
   attemptStart?: ProviderAttemptStart;
   requestDurationMs?: number;
   traceId?: string;
+  /** API surface to retain when cancellation creates or repairs the Request. */
+  apiMode?: ProxyApiMode;
 }
 
 export interface FallbackSuccessOpts extends HeaderTierRef {
@@ -228,6 +240,8 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   requestParams?: RequestParamDefaults | null;
   /** Request-level Auto-fix outcome when a failed retry later fell back. */
   autofix?: AutofixRecord;
+  /** API surface to retain when this terminal write creates the Request. */
+  apiMode?: ProxyApiMode;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
@@ -252,6 +266,8 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   requestParams?: RequestParamDefaults | null;
   /** Auto-fix audit when a healed request succeeded. */
   autofix?: AutofixRecord;
+  /** API surface to retain when this terminal write creates the Request. */
+  apiMode?: ProxyApiMode;
 }
 
 export interface AutofixOriginalOpts extends HeaderTierRef {
@@ -329,6 +345,7 @@ function buildRequestRow(
   attempt: Partial<AgentMessage>,
   terminal: boolean,
   autofix?: AutofixRecord,
+  apiMode?: ProxyApiMode,
 ): ManifestRequest {
   const classified = classifyRow(attempt);
   // classifyRow above reads the rich attempt status; the request row stores the
@@ -360,6 +377,7 @@ function buildRequestRow(
     error_origin: terminal ? classified.error_origin : null,
     error_class: terminal ? classified.error_class : null,
     requested_model: attempt.fallback_from_model ?? attempt.model ?? null,
+    api_mode: apiMode ?? null,
     caller_attribution: attempt.caller_attribution ?? null,
     request_headers: attempt.request_headers ?? null,
     request_params: attempt.request_params ?? null,
@@ -439,6 +457,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     attempt: Partial<AgentMessage>,
     terminal: boolean,
     autofix?: AutofixRecord,
+    apiMode?: ProxyApiMode,
   ): Promise<boolean> {
     // Unit-test repository doubles predate the request table. Production
     // repositories always expose manager.getRepository().
@@ -446,32 +465,32 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (!getRepository) return false;
     const repo = getRepository(ManifestRequest);
     if (typeof repo.createQueryBuilder !== 'function') return false;
-    const row = buildRequestRow(ctx, requestId, attempt, terminal, autofix);
+    const row = buildRequestRow(ctx, requestId, attempt, terminal, autofix, apiMode);
     const insert = repo.createQueryBuilder().insert().into(ManifestRequest).values(row);
     if (terminal) {
-      await insert
-        .orUpdate(
-          [
-            'user_id',
-            'agent_name',
-            'trace_id',
-            'session_key',
-            'session_id',
-            'duration_ms',
-            'status',
-            'autofix_status',
-            'error_message',
-            'error_http_status',
-            'error_code',
-            'error_origin',
-            'error_class',
-            'caller_attribution',
-            'request_headers',
-            'request_params',
-          ],
-          ['id'],
-        )
-        .execute();
+      // Most terminal writers do not need to repeat the ingress surface. When
+      // they do have it, let them repair a missing/failed pending write without
+      // allowing an undefined surface to erase an existing value.
+      const updatedColumns = [
+        'user_id',
+        'agent_name',
+        'trace_id',
+        'session_key',
+        'session_id',
+        'duration_ms',
+        'status',
+        'autofix_status',
+        'error_message',
+        'error_http_status',
+        'error_code',
+        'error_origin',
+        'error_class',
+        'caller_attribution',
+        'request_headers',
+        'request_params',
+        ...(apiMode == null ? [] : ['api_mode']),
+      ];
+      await insert.orUpdate(updatedColumns, ['id']).execute();
     } else {
       await insert.orIgnore().execute();
     }
@@ -531,6 +550,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         request_headers: opts.requestHeaders ?? null,
       },
       false,
+      undefined,
+      opts.apiMode,
     );
   }
 
@@ -582,7 +603,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       error_message: null,
       error_http_status: null,
     });
-    await this.persistRequest(ctx, opts.requestId, row, true);
+    await this.persistRequest(ctx, opts.requestId, row, true, undefined, opts.apiMode);
     if (opts.attempt) await this.persistAttempt(row, opts.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -644,6 +665,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
       autofix,
+      apiMode,
     } = opts ?? {};
     // A real Auto-fix retry must never disappear behind the generic 429
     // deduplication window; it is required to complete the linked attempt story.
@@ -695,7 +717,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: headerTierName ?? null,
       header_tier_color: headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, true, autofix);
+    await this.persistRequest(ctx, requestId, row, true, autofix, apiMode);
     if (!skipAttempt) await this.persistAttempt(row, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -730,6 +752,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix,
       durationMs,
       attempt,
+      apiMode,
     } = opts;
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -768,7 +791,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     // A Manifest-level rejection normally has zero provider attempts. An M302
     // patched retry is real provider work, though, even when Manifest ultimately
     // returns its friendly stub; finish that pending Attempt from the audit.
-    const wroteRequest = await this.persistRequest(ctx, requestId, row, true, autofix);
+    const wroteRequest = await this.persistRequest(ctx, requestId, row, true, autofix, apiMode);
     const retry = getAutofixRetry(autofix);
     if (attempt && retry?.error) {
       await attempt.completeFailure?.({
@@ -946,6 +969,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix?: AutofixRecord;
       /** HTTP status returned to the caller when every fallback was exhausted. */
       terminalHttpStatus?: number;
+      /** API surface to retain when the exhausted chain creates the Request. */
+      apiMode?: ProxyApiMode;
     },
   ): Promise<void> {
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -998,6 +1023,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       requestOutcome,
       Boolean(opts?.terminalHttpStatus),
       opts?.autofix,
+      opts?.apiMode,
     );
     if (!opts?.skipAttempt) await this.persistAttempt(row, opts?.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
@@ -1031,6 +1057,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
       autofix,
+      apiMode,
     } = opts ?? {};
 
     const inputTokens = usage?.prompt_tokens ?? 0;
@@ -1087,7 +1114,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: headerTierName ?? null,
       header_tier_color: headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, true, autofix);
+    await this.persistRequest(ctx, requestId, row, true, autofix, apiMode);
     await this.persistAttempt(row, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -1119,6 +1146,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
       autofix,
+      apiMode,
     } = opts ?? {};
     const requestId = providedRequestId ?? uuid();
 
@@ -1181,7 +1209,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_color: headerTierColor ?? null,
       ...autofixColumns(autofix, 'retry'),
     });
-    await this.persistRequest(ctx, requestId, requestRow, true, autofix);
+    await this.persistRequest(ctx, requestId, requestRow, true, autofix, apiMode);
     await this.persistAttempt(requestRow, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }

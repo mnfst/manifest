@@ -225,6 +225,7 @@ export async function handleProviderError(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): Promise<void> {
   recordAutofixOriginalIfRetried(
     ctx,
@@ -253,6 +254,7 @@ export async function handleProviderError(
       autofix,
       requestId,
       requestDurationMs,
+      apiMode,
     );
     return;
   }
@@ -282,6 +284,7 @@ export async function handleProviderError(
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
       autofix,
+      apiMode,
     }),
     'provider error',
   );
@@ -316,6 +319,7 @@ function handleFallbackExhausted(
   autofix: AutofixRecord | undefined,
   requestId: string,
   requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): void {
   const baseTime = Date.now();
   const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
@@ -371,6 +375,7 @@ function handleFallbackExhausted(
         // When a patched retry exists this row is that retry; otherwise it is
         // the plain original failure carrying only Phoenix's audit.
         autofix,
+        apiMode,
       },
     ),
     'primary failure',
@@ -845,6 +850,7 @@ export function recordSuccess(
   autofix?: AutofixRecord,
   requestId: string = uuid(),
   attemptNumber: number = currentPrimaryAttemptNumber(autofix),
+  apiMode?: ProxyApiMode,
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
     const requestDurationMs = startTime == null ? undefined : Date.now() - startTime;
@@ -871,6 +877,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        apiMode,
       }),
       'fallback success',
     );
@@ -897,6 +904,7 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        apiMode,
       }),
       'success message',
     );
