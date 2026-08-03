@@ -39,10 +39,17 @@ export class ModelsDevReasoningCatalog implements ReasoningModelCatalog {
     const scoped = this.modelsDev.lookupModel(normalizedEndpoint, bare);
     if (scoped) return reasoningOf(scoped);
 
-    // Not every aggregator is a models.dev provider — OpenRouter has no entry of
-    // its own, so an endpoint-scoped lookup can only ever miss. Its ids carry the
-    // vendor prefix (`deepseek/deepseek-r1`), which the cross-provider lookup
-    // resolves against the underlying maker's catalog.
+    // A gateway models.dev keys has already given its answer: a miss means the
+    // catalog does not know this slug, and staying silent hands the decision to
+    // the reasoning-family fallback. Guessing across providers here would let a
+    // same-named model under an unrelated maker return a definitive `false` and
+    // strip a field the fallback would have kept.
+    if (this.modelsDev.isProviderSupported(normalizedEndpoint)) return undefined;
+
+    // Endpoints models.dev does not key at all (OpenRouter) can only ever miss
+    // the scoped lookup. Their ids carry the vendor prefix
+    // (`deepseek/deepseek-r1`), which the cross-provider lookup resolves against
+    // the underlying maker's catalog.
     return reasoningOf(this.modelsDev.lookupModelAcrossProviders(model.toLowerCase()));
   }
 }

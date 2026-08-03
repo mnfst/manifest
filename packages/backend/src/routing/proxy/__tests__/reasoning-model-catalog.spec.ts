@@ -21,7 +21,13 @@ class FakeSync {
   constructor(
     private readonly byProvider: Record<string, ModelsDevModelEntry> = {},
     private readonly byModel: Record<string, ModelsDevModelEntry> = {},
+    /** models.dev keys these endpoints; anything else has no catalog of its own. */
+    private readonly supportedProviders: string[] = ['opencode-zen', 'opencode-go'],
   ) {}
+
+  isProviderSupported(providerId: string): boolean {
+    return this.supportedProviders.includes(providerId);
+  }
 
   lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null {
     this.providerLookups.push([providerId, modelId]);
@@ -94,6 +100,18 @@ describe('ModelsDevReasoningCatalog', () => {
     const sync = new FakeSync({}, { 'moonshotai/kimi-k2': entry(false) });
 
     expect(catalogWith(sync).isReasoningModel('openrouter', 'moonshotai/kimi-k2')).toBe(false);
+  });
+
+  it('stays silent for a gateway models.dev keys, rather than guessing across providers', () => {
+    // A same-named model under an unrelated provider must not answer for Zen:
+    // a definitive false here would strip the field that the family fallback
+    // would have preserved.
+    const sync = new FakeSync({}, { 'glm-5': entry(false) });
+
+    expect(catalogWith(sync).isReasoningModel('opencode-zen', 'opencode-zen/glm-5')).toBe(
+      undefined,
+    );
+    expect(sync.crossProviderLookups).toEqual([]);
   });
 
   it('returns undefined when no sync service is wired', () => {
