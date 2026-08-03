@@ -1,0 +1,22 @@
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_e6e2541cc5c67f::t_a60c02ed92d15f 28-29,51,133-152
+packages/backend/src/routing/routing-core/provider-key.service.spec.ts
+  s_e6e2541cc5c67f::t_a60c02ed92d15f 82-105,107-116,118-120
+  s_e6e2541cc5c67f::t_84b8bdc32dfcd7 106,117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "9658aca8b13552b33776a902080754a72c34b5cf",
+  "prompts": {},
+  "sessions": {
+    "s_e6e2541cc5c67f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc6a3-9a32-7f31-a49c-c2df7b1cec8f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
