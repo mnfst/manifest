@@ -79,6 +79,45 @@ describe('ProviderKeyService — selection projections', () => {
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('"Default"'));
     });
 
+    it('throttles repeated warnings for the same stale pin', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Retired', 'agent-1');
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Retired', 'agent-1');
+
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('warns again after the stale-pin throttle window', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      const warn = jest
+        .spyOn(svc['logger'], 'warn')
+        .mockImplementation(() => undefined as unknown as void);
+      const now = jest.spyOn(Date, 'now');
+      now.mockReturnValueOnce(1_000).mockReturnValueOnce(61_000);
+
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Retired', 'agent-1');
+      await svc.selectProviderKey('u', 'openai', 'api_key', 'Retired', 'agent-1');
+
+      expect(warn).toHaveBeenCalledTimes(2);
+      now.mockRestore();
+    });
+
+    it('bounds stale-pin warning keys', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
+      jest.spyOn(svc['logger'], 'warn').mockImplementation(() => undefined as unknown as void);
+
+      for (let i = 0; i < 257; i++) {
+        await svc.selectProviderKey('u', 'openai', 'api_key', `Retired-${i}`, 'agent-1');
+      }
+
+      expect(svc['stalePinWarnings'].size).toBe(256);
+      expect(svc['stalePinWarnings'].has('u\0agent-1\0openai\0api_key\0retired-0')).toBe(false);
+    });
+
     it('names the auth type as "any" in the warning when none was requested', async () => {
       jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([key({ label: 'Default' })]);
       const warn = jest
