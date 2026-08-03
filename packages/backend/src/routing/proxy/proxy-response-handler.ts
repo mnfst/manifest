@@ -645,7 +645,11 @@ export async function handleStreamResponse(
       relayOptions,
     );
   }
-  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
+  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(
+    meta.provider,
+    meta.model,
+    reasoningCache?.modelCatalog,
+  );
   if (reasoningStreamFormat) {
     const onReasoningContent =
       reasoningCache && sessionKey
@@ -773,7 +777,7 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
-    if (supportsReasoningContent(meta.provider, meta.model)) {
+    if (supportsReasoningContent(meta.provider, meta.model, reasoningCache?.modelCatalog)) {
       cacheReasoningContent(responseBody, reasoningCache, sessionKey);
     }
   }

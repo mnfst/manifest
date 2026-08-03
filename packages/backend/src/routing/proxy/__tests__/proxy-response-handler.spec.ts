@@ -1475,6 +1475,39 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('normalizes Zen reasoning streams when the cache exposes a model catalog', async () => {
+      const { res } = mockResponse();
+      const forward = mockForward();
+      const client = mockProviderClient();
+      const meta = makeMeta({ provider: 'opencode-zen', model: 'opencode-zen/big-pickle' });
+      const reasoningCache = {
+        store: jest.fn(),
+        modelCatalog: { isReasoningModel: () => true },
+      };
+      client.createReasoningContentStreamTransformer.mockReturnValue(jest.fn());
+
+      await handleStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess-zen-stream',
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(client.createReasoningContentStreamTransformer).toHaveBeenCalledWith(
+        expect.any(Function),
+        {
+          outputStreamDeltaPaths: ['reasoning_content'],
+          clientStreamDeltaPath: 'reasoning_content',
+        },
+      );
+    });
+
     it('does not configure assistant-message reasoning cache callbacks for streams without tool calls', async () => {
       const { res } = mockResponse();
       const forward = mockForward();
@@ -2180,6 +2213,51 @@ describe('proxy-response-handler', () => {
         'I should call the tool.',
       );
       expect(res.json).toHaveBeenCalledWith(body);
+    });
+
+    it('caches Zen reasoning_content when the cache exposes a model catalog', async () => {
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const reasoningCache = {
+        store: jest.fn(),
+        modelCatalog: { isReasoningModel: () => true },
+      };
+      const body = {
+        id: 'chatcmpl-zen',
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: '',
+              reasoning_content: 'zen thinking',
+              tool_calls: [
+                { id: 'call_zen', type: 'function', function: { name: 'x', arguments: '{}' } },
+              ],
+            },
+          },
+        ],
+      };
+      const forward = mockForward(body);
+      const meta = makeMeta({ provider: 'opencode-zen', model: 'opencode-zen/big-pickle' });
+
+      await handleNonStreamResponse(
+        res as any,
+        forward as any,
+        meta,
+        {},
+        client as any,
+        undefined,
+        'sess-zen-json',
+        undefined,
+        'chat_completions',
+        reasoningCache as any,
+      );
+
+      expect(reasoningCache.store).toHaveBeenCalledWith(
+        'sess-zen-json',
+        'call_zen',
+        'zen thinking',
+      );
     });
 
     it('does not cache reasoning_content from compatible non-stream assistant responses without tool calls', async () => {

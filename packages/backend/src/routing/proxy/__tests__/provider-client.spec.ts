@@ -4752,3 +4752,61 @@ describe('ProviderClient', () => {
     });
   });
 });
+
+describe('ProviderClient reasoning catalog', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
+
+  beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
+  });
+
+  const reasoningBody = {
+    messages: [
+      {
+        role: 'assistant',
+        content: '',
+        reasoning_content: 'upstream thinking',
+        tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+      },
+    ],
+  };
+
+  it('forwards reasoning_content to Zen when the injected catalog vouches for the model', async () => {
+    const catalogClient = new ProviderClient(undefined, undefined, undefined, {
+      isReasoningModel: () => true,
+    });
+
+    await catalogClient.forward({
+      provider: 'opencode-zen',
+      apiKey: 'zen-token',
+      model: 'opencode-zen/big-pickle',
+      body: reasoningBody,
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(sentBody.messages[0].reasoning_content).toBe('upstream thinking');
+  });
+
+  it('strips reasoning_content for Zen when no catalog is wired', async () => {
+    const bareClient = new ProviderClient();
+
+    await bareClient.forward({
+      provider: 'opencode-zen',
+      apiKey: 'zen-token',
+      model: 'opencode-zen/big-pickle',
+      body: reasoningBody,
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(sentBody.messages[0].reasoning_content).toBeUndefined();
+  });
+});

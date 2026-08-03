@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { HttpStatus, Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
@@ -7,6 +7,8 @@ import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenAiMessageCacheControl, injectOpenRouterCacheControl } from './cache-injection';
+import type { ReasoningModelCatalog } from './reasoning-format';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 import {
   applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
@@ -230,6 +232,9 @@ export class ProviderClient {
     private readonly modelRegistry?: ProviderModelRegistryService,
     @Optional()
     codexAffinity?: CodexSessionAffinity,
+    @Optional()
+    @Inject(ModelsDevReasoningCatalog)
+    private readonly reasoningCatalog?: ReasoningModelCatalog,
   ) {
     this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
   }
@@ -670,7 +675,12 @@ export class ProviderClient {
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
+    const sanitized = sanitizeOpenAiBody(
+      requestSource,
+      endpointKey,
+      ctx.model,
+      this.reasoningCatalog,
+    );
     if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null

@@ -1,8 +1,9 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
-import { supportsReasoningContent } from './reasoning-format';
+import { supportsReasoningContent, type ReasoningModelCatalog } from './reasoning-format';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 
 interface CachedReasoningContent {
   content: string;
@@ -41,6 +42,13 @@ export class ReasoningContentCache {
     @Optional()
     @InjectRepository(ReasoningContentCacheEntry)
     private readonly repo?: Repository<ReasoningContentCacheEntry>,
+    /**
+     * Read by the response handler too, which needs it for the stream-format
+     * question `supportsReasoningContent` alone can't answer.
+     */
+    @Optional()
+    @Inject(ModelsDevReasoningCatalog)
+    readonly modelCatalog?: ReasoningModelCatalog,
   ) {}
 
   /** Store the reasoning_content string for an assistant tool-call turn. */
@@ -119,7 +127,9 @@ export class ReasoningContentCache {
     endpointKey: string | null,
     model: string,
   ): Promise<Record<string, unknown>> {
-    if (!endpointKey || !supportsReasoningContent(endpointKey, model)) return body;
+    if (!endpointKey || !supportsReasoningContent(endpointKey, model, this.modelCatalog)) {
+      return body;
+    }
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
