@@ -109,6 +109,16 @@ describe('supportsReasoningContent', () => {
       ).toBe(false);
     });
 
+    it('lets the catalog strip an OpenRouter moonshotai model it marks non-reasoning', () => {
+      expect(
+        supportsReasoningContent(
+          'openrouter',
+          'moonshotai/kimi-k2',
+          catalogOf({ 'moonshotai/kimi-k2': false }),
+        ),
+      ).toBe(false);
+    });
+
     it('preserves OpenRouter moonshotai and deepseek slugs', () => {
       expect(supportsReasoningContent('openrouter', 'moonshotai/kimi-k2-thinking')).toBe(true);
       expect(supportsReasoningContent('openrouter', 'deepseek/deepseek-r1')).toBe(true);

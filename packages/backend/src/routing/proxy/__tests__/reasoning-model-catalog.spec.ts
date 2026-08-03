@@ -81,6 +81,21 @@ describe('ModelsDevReasoningCatalog', () => {
     expect(sync.crossProviderLookups).toContain('kimi-k3');
   });
 
+  it('falls back to the cross-provider lookup for aggregators the catalog does not key', () => {
+    // models.dev has no `openrouter` provider, so the endpoint-scoped lookup
+    // always misses; the vendor prefix is what resolves it.
+    const sync = new FakeSync({}, { 'deepseek/deepseek-r1': entry(true) });
+
+    expect(catalogWith(sync).isReasoningModel('openrouter', 'deepseek/deepseek-r1')).toBe(true);
+    expect(sync.crossProviderLookups).toContain('deepseek/deepseek-r1');
+  });
+
+  it('reports an aggregator model the catalog marks non-reasoning as false', () => {
+    const sync = new FakeSync({}, { 'moonshotai/kimi-k2': entry(false) });
+
+    expect(catalogWith(sync).isReasoningModel('openrouter', 'moonshotai/kimi-k2')).toBe(false);
+  });
+
   it('returns undefined when no sync service is wired', () => {
     expect(new ModelsDevReasoningCatalog().isReasoningModel('opencode-zen', 'anything')).toBe(
       undefined,

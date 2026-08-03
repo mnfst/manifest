@@ -42,19 +42,14 @@ export class ReasoningContentCache {
     @Optional()
     @InjectRepository(ReasoningContentCacheEntry)
     private readonly repo?: Repository<ReasoningContentCacheEntry>,
+    /**
+     * Read by the response handler too, which needs it for the stream-format
+     * question `supportsReasoningContent` alone can't answer.
+     */
     @Optional()
     @Inject(ModelsDevReasoningCatalog)
     readonly modelCatalog?: ReasoningModelCatalog,
   ) {}
-
-  /**
-   * Whether this (endpoint, model) pair speaks the `reasoning_content`
-   * dialect. The cache owns the question because it owns the catalog handle —
-   * the response handler asks rather than re-deriving it.
-   */
-  supportsFor(endpointKey: string, model: string): boolean {
-    return supportsReasoningContent(endpointKey, model, this.modelCatalog);
-  }
 
   /** Store the reasoning_content string for an assistant tool-call turn. */
   store(sessionKey: string, firstToolCallId: string, content: string): void {
@@ -132,7 +127,9 @@ export class ReasoningContentCache {
     endpointKey: string | null,
     model: string,
   ): Promise<Record<string, unknown>> {
-    if (!endpointKey || !this.supportsFor(endpointKey, model)) return body;
+    if (!endpointKey || !supportsReasoningContent(endpointKey, model, this.modelCatalog)) {
+      return body;
+    }
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 

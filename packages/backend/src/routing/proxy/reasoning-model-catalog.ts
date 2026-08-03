@@ -36,7 +36,14 @@ export class ModelsDevReasoningCatalog implements ReasoningModelCatalog {
     // (`deepseek/deepseek-r1`), the OpenCode gateways don't (`glm-5`).
     const prefixed = this.modelsDev.lookupModel(normalizedEndpoint, model.toLowerCase());
     if (prefixed) return reasoningOf(prefixed);
-    return reasoningOf(this.modelsDev.lookupModel(normalizedEndpoint, bare));
+    const scoped = this.modelsDev.lookupModel(normalizedEndpoint, bare);
+    if (scoped) return reasoningOf(scoped);
+
+    // Not every aggregator is a models.dev provider — OpenRouter has no entry of
+    // its own, so an endpoint-scoped lookup can only ever miss. Its ids carry the
+    // vendor prefix (`deepseek/deepseek-r1`), which the cross-provider lookup
+    // resolves against the underlying maker's catalog.
+    return reasoningOf(this.modelsDev.lookupModelAcrossProviders(model.toLowerCase()));
   }
 }
 

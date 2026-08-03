@@ -401,11 +401,4 @@ describe('ReasoningContentCache catalog wiring', () => {
 
     expect(result).toBe(body);
   });
-
-  it('answers the reasoning-dialect question for the response handler', () => {
-    const cache = new ReasoningContentCache(undefined, zenCatalog);
-
-    expect(cache.supportsFor('opencode-zen', 'opencode-zen/big-pickle')).toBe(true);
-    expect(cache.supportsFor('opencode-zen', 'opencode-zen/mystery-slug')).toBe(false);
-  });
 });

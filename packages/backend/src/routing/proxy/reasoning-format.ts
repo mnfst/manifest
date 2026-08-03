@@ -96,11 +96,13 @@ export function supportsReasoningContent(
   // are handled.)
   const bare = model.toLowerCase().split('/').pop() ?? '';
   if (TRANSLATED_DIALECT_FAMILY_RE.test(bare)) return false;
+  const catalogued = catalog?.isReasoningModel(endpointKey, model);
+  if (catalogued !== undefined) return catalogued;
+  // Kimi speaks the dialect, so an uncatalogued OpenRouter `moonshotai/*` slug
+  // is preserved. The catalog outranks this: it is a fallback, not an override.
   if (key === 'openrouter' && model.toLowerCase().startsWith('moonshotai/')) {
     return true;
   }
-  const catalogued = catalog?.isReasoningModel(endpointKey, model);
-  if (catalogued !== undefined) return catalogued;
   // OpenRouter exposes community fine-tunes under vendor prefixes, so an
   // uncatalogued slug only counts when the DeepSeek engine is named outright.
   if (key === 'openrouter') return bare.includes('deepseek');
