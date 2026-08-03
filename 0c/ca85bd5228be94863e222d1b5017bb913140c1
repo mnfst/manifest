@@ -1,0 +1,27 @@
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_4a7ee2539d1eb4::t_ad7a6251284817 99-102
+packages/backend/src/routing/proxy/reasoning-model-catalog.ts
+  s_4a7ee2539d1eb4::t_ad7a6251284817 39-46
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_4a7ee2539d1eb4::t_3f326f4762d991 45-48,130-132
+packages/backend/src/routing/proxy/__tests__/reasoning-format.spec.ts
+  s_4a7ee2539d1eb4::t_aae081b7c9957f 112-121
+packages/backend/src/routing/proxy/__tests__/reasoning-model-catalog.spec.ts
+  s_4a7ee2539d1eb4::t_aae081b7c9957f 84-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "0cca85bd5228be94863e222d1b5017bb913140c1",
+  "prompts": {},
+  "sessions": {
+    "s_4a7ee2539d1eb4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "74a9fe2e-061a-42e2-b786-16ccf69c8317",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
