@@ -9,26 +9,18 @@ export class AddRequestApiMode1801720000000 implements MigrationInterface {
   name = 'AddRequestApiMode1801720000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`SET lock_timeout = '5s'`);
-    try {
-      await queryRunner.query(`
-        ALTER TABLE "requests"
-          ADD COLUMN IF NOT EXISTS "api_mode" character varying
-      `);
-    } finally {
-      await queryRunner.query(`RESET lock_timeout`);
-    }
+    await queryRunner.query(`SET LOCAL lock_timeout = '5s'`);
+    await queryRunner.query(`
+      ALTER TABLE "requests"
+        ADD COLUMN IF NOT EXISTS "api_mode" character varying
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`SET lock_timeout = '5s'`);
-    try {
-      await queryRunner.query(`
-        ALTER TABLE "requests"
-          DROP COLUMN IF EXISTS "api_mode"
-      `);
-    } finally {
-      await queryRunner.query(`RESET lock_timeout`);
-    }
+    await queryRunner.query(`SET LOCAL lock_timeout = '5s'`);
+    await queryRunner.query(`
+      ALTER TABLE "requests"
+        DROP COLUMN IF EXISTS "api_mode"
+    `);
   }
 }

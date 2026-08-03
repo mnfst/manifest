@@ -460,6 +460,7 @@ export class ProxyController {
           autofix,
           requestId,
           Date.now() - startTime,
+          apiMode,
         );
         return;
       }
@@ -544,6 +545,7 @@ export class ProxyController {
           requestId,
           currentPrimaryAttemptNumber(autofix) +
             (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
+          apiMode,
         );
       }
     } catch (err: unknown) {
@@ -724,6 +726,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
+          apiMode,
         })
         .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
     }

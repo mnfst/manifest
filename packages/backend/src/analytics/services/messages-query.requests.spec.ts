@@ -172,6 +172,7 @@ describe('MessagesQueryService request-first queries', () => {
     expect(requestQb.setQueryRunner).toHaveBeenCalledWith(runner);
     expect(legacyCountQb.setQueryRunner).toHaveBeenCalledWith(runner);
     expect(legacyDataQb.setQueryRunner).toHaveBeenCalledWith(runner);
+    expect(legacyDataQb.addSelect).toHaveBeenCalledWith('NULL', 'api_mode');
     expect(runner.commitTransaction).toHaveBeenCalledTimes(1);
     expect(runner.rollbackTransaction).not.toHaveBeenCalled();
     expect(runner.release).toHaveBeenCalledTimes(1);
