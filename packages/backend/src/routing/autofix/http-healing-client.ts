@@ -1,27 +1,23 @@
 import { Logger } from '@nestjs/common';
 import {
-  INSTANCE_CREDENTIAL_SCHEMA_VERSION,
-  InstanceCredentialService,
-} from './instance-credential.service';
-import {
   HealContractError,
   type HealingClient,
   type HealingRequestContext,
 } from './healing-client';
-import type {
-  ConfirmResponse,
-  HealOutcome,
-  HealRequest,
-  HealResponse,
-  RegisterInstanceRequest,
-  RegisterInstanceResponse,
-} from './phoenix.types';
+import type { ConfirmResponse, HealOutcome, HealRequest, HealResponse } from './phoenix.types';
+
+/** Resolves the install identity self-hosted calls announce to Phoenix. */
+export type InstanceIdProvider = () => Promise<string>;
 
 /**
  * HTTP client for Phoenix. Static API keys retain the cloud path unchanged.
- * Self-hosted clients without a static key lazily register an encrypted
- * instance credential, refresh it once on 401, and attach bounded identity
- * headers to every protected call.
+ * Self-hosted clients announce the install's anonymous id on every call.
+ *
+ * The id is the *identifier* Phoenix keys an install's history on, not a
+ * credential: it is not secret, and Phoenix creates the instance row the first
+ * time it sees one. There is deliberately no registration handshake — it would
+ * only have carried `version`, which already rides on every request as
+ * `X-Manifest-Version`.
  */
 export class HttpHealingClient implements HealingClient {
   private readonly logger = new Logger(HttpHealingClient.name);
@@ -31,7 +27,7 @@ export class HttpHealingClient implements HealingClient {
     baseUrl: string,
     private readonly timeoutMs: number,
     private readonly apiKey?: string,
-    private readonly instanceCredentials?: InstanceCredentialService,
+    private readonly instanceId?: InstanceIdProvider,
     private readonly manifestVersion?: string,
   ) {
     this.baseUrl = baseUrl.trim().replace(/\/+$/, '');
@@ -113,21 +109,13 @@ export class HttpHealingClient implements HealingClient {
         'x-api-key': this.apiKey,
       });
     }
-    if (!this.instanceCredentials) {
+    if (!this.instanceId) {
       return this.request(path, init, { 'content-type': 'application/json' });
     }
     if (!context) {
-      throw new Error('Autofix harness is required for instance-authenticated requests');
+      throw new Error('Autofix harness is required for instance-identified requests');
     }
-
-    let credential = await this.instanceCredentials.getOrRegister(() => this.register());
-    let res = await this.request(path, init, this.instanceHeaders(credential, context));
-    if (res.status !== 401) return res;
-
-    await res.body?.cancel();
-    await this.instanceCredentials.clear(credential.instanceId);
-    credential = await this.instanceCredentials.getOrRegister(() => this.register());
-    return this.request(path, init, this.instanceHeaders(credential, context));
+    return this.request(path, init, this.instanceHeaders(await this.instanceId(), context));
   }
 
   private request(
@@ -143,44 +131,14 @@ export class HttpHealingClient implements HealingClient {
   }
 
   private instanceHeaders(
-    credential: { instanceId: string; secret: string },
+    instanceId: string,
     context: HealingRequestContext,
   ): Record<string, string> {
     return {
       'content-type': 'application/json',
-      Authorization: `Bearer ${credential.secret}`,
-      'X-Manifest-Instance': credential.instanceId,
+      'X-Manifest-Instance': instanceId,
       'X-Manifest-Version': this.manifestVersion ?? 'unknown',
       'X-Manifest-Harness': context.harness,
     };
-  }
-
-  private async register(): Promise<RegisterInstanceResponse> {
-    const body: RegisterInstanceRequest = {
-      version: this.manifestVersion ?? 'unknown',
-      schema_version: INSTANCE_CREDENTIAL_SCHEMA_VERSION,
-    };
-    const res = await this.request(
-      '/api/instances/register',
-      { method: 'POST', body: JSON.stringify(body) },
-      { 'content-type': 'application/json' },
-    );
-    if (res.status !== 201) {
-      const message = `Phoenix /api/instances/register responded ${res.status}`;
-      if (res.status >= 400 && res.status < 500) {
-        throw new HealContractError(res.status, message);
-      }
-      throw new Error(message);
-    }
-    const issued = (await res.json()) as Partial<RegisterInstanceResponse>;
-    if (
-      typeof issued.instance_id !== 'string' ||
-      issued.instance_id.length === 0 ||
-      typeof issued.secret !== 'string' ||
-      issued.secret.length === 0
-    ) {
-      throw new HealContractError(201, 'Phoenix registration response was malformed');
-    }
-    return issued as RegisterInstanceResponse;
   }
 }

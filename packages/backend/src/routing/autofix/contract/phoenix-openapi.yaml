@@ -16,35 +16,12 @@ security:
   - ApiKeyAuth: []
 
 paths:
-  /api/instances/register:
-    post:
-      summary: Register a self-hosted Manifest instance
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InstanceRegistration'
-      responses:
-        '201':
-          description: Newly issued anonymous instance credential.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InstanceCredential'
-        '400':
-          description: Malformed version or schema version.
-        '429':
-          description: Registration rate limit exceeded.
-
   /api/heal:
     post:
       summary: Resolve a patch for a failed request
       security:
         - ApiKeyAuth: []
-        - InstanceBearerAuth: []
-          ManifestInstanceAuth: []
+        - ManifestInstanceAuth: []
       parameters:
         - $ref: '#/components/parameters/ManifestVersion'
         - $ref: '#/components/parameters/ManifestHarness'
@@ -80,8 +57,7 @@ paths:
       summary: Record failed requests as diagnostic evidence
       security:
         - ApiKeyAuth: []
-        - InstanceBearerAuth: []
-          ManifestInstanceAuth: []
+        - ManifestInstanceAuth: []
       parameters:
         - $ref: '#/components/parameters/ManifestVersion'
         - $ref: '#/components/parameters/ManifestHarness'
@@ -117,8 +93,7 @@ paths:
       summary: Report the outcome of a retried request
       security:
         - ApiKeyAuth: []
-        - InstanceBearerAuth: []
-          ManifestInstanceAuth: []
+        - ManifestInstanceAuth: []
       parameters:
         - $ref: '#/components/parameters/ManifestVersion'
         - $ref: '#/components/parameters/ManifestHarness'
@@ -324,18 +299,16 @@ components:
         Static API key. Send as `x-api-key: <key>` (an `Authorization: Bearer
         <key>` header is also accepted). Enforced in deployed environments where
         the API_KEY env var is set; disabled locally when it is unset.
-    InstanceBearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: opaque
-      description: >
-        Secret issued by POST /api/instances/register. Accepted only on Manifest
-        gateway write operations and must be paired with ManifestInstanceAuth.
     ManifestInstanceAuth:
       type: apiKey
       in: header
       name: X-Manifest-Instance
-      description: UUID issued with the instance bearer secret.
+      description: >
+        Anonymous install identifier announced by a self-hosted Manifest. This
+        is an identifier, not a credential: it is not secret and no registration
+        handshake issues it. Phoenix creates the instance row the first time it
+        sees an id. Accepted in place of ApiKeyAuth on the gateway write
+        operations.
 
   parameters:
     Id:

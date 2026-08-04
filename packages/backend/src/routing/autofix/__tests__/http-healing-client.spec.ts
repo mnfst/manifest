@@ -1,9 +1,5 @@
 import { HealContractError } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
-import type {
-  AutofixInstanceCredential,
-  InstanceCredentialService,
-} from '../instance-credential.service';
 import type { HealOutcome, HealRequest, HealResponse } from '../phoenix.types';
 
 /** Minimal Response-like stub for fetch resolutions. */
@@ -27,23 +23,8 @@ function makeHealRequest(): HealRequest {
   };
 }
 
-function makeInstanceCredentials(initial: AutofixInstanceCredential | null = null) {
-  let cached = initial;
-  const service = {
-    getOrRegister: jest.fn(
-      async (register: () => Promise<{ instance_id: string; secret: string }>) => {
-        if (!cached) {
-          const issued = await register();
-          cached = { instanceId: issued.instance_id, secret: issued.secret };
-        }
-        return cached;
-      },
-    ),
-    clear: jest.fn(async (rejectedInstanceId: string) => {
-      if (cached?.instanceId === rejectedInstanceId) cached = null;
-    }),
-  } as unknown as jest.Mocked<InstanceCredentialService>;
-  return service;
+function makeInstanceId(id = 'install-1') {
+  return jest.fn(async () => id);
 }
 
 const context = { harness: 'claude-code' } as const;
@@ -111,157 +92,81 @@ describe('HttpHealingClient', () => {
       });
     });
 
-    it('registers lazily and sends all instance identity headers', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'instance-1', secret: 'instance-secret' }),
-        )
-        .mockResolvedValueOnce(fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }));
-      const credentials = makeInstanceCredentials();
-      const client = new HttpHealingClient('http://x', 1000, undefined, credentials, '6.15.1');
+    it('announces the install id on the first call, with no registration round-trip', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }));
+      const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
       await client.heal(makeHealRequest(), context);
 
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fetchSpy.mock.calls[0][0]).toBe('http://x/api/instances/register');
-      expect(fetchSpy.mock.calls[0][1].body).toBe(
-        JSON.stringify({ version: '6.15.1', schema_version: 1 }),
-      );
+      // One call, straight to /api/heal. The old design spent a request on
+      // /api/instances/register before it could send anything.
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy.mock.calls[0][0]).toBe('http://x/api/heal');
       expect(fetchSpy.mock.calls[0][1].headers).toEqual({
         'content-type': 'application/json',
-      });
-      expect(fetchSpy.mock.calls[1][1].headers).toEqual({
-        'content-type': 'application/json',
-        Authorization: 'Bearer instance-secret',
-        'X-Manifest-Instance': 'instance-1',
+        'X-Manifest-Instance': 'install-1',
         'X-Manifest-Version': '6.15.1',
         'X-Manifest-Harness': 'claude-code',
       });
     });
 
-    it('reuses the credential without another registration', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'instance-1', secret: 'secret' }),
-        )
-        .mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }));
-      const client = new HttpHealingClient(
-        'http://x',
-        1000,
-        undefined,
-        makeInstanceCredentials(),
-        '6.15.1',
-      );
+    it('sends no bearer secret: the id is an identifier, not a credential', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
+      const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
       await client.heal(makeHealRequest(), context);
-      await client.heal(makeHealRequest(), context);
 
-      expect(
-        fetchSpy.mock.calls.filter(([url]) => String(url).endsWith('/api/instances/register')),
-      ).toHaveLength(1);
+      expect(fetchSpy.mock.calls[0][1].headers).not.toHaveProperty('Authorization');
     });
 
-    it('clears, re-registers once, and retries the original call once after a 401', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'old-id', secret: 'old-secret' }),
-        )
-        .mockResolvedValueOnce(fakeResponse(false, 401, {}))
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'new-id', secret: 'new-secret' }),
-        )
-        .mockResolvedValueOnce(fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }));
-      const credentials = makeInstanceCredentials();
-      const client = new HttpHealingClient('http://x', 1000, undefined, credentials, '6.15.1');
-
-      await expect(client.heal(makeHealRequest(), context)).resolves.toMatchObject({
-        status: 'no_patch',
-      });
-      expect(credentials.clear).toHaveBeenCalledWith('old-id');
-      expect(fetchSpy).toHaveBeenCalledTimes(4);
-      expect(fetchSpy.mock.calls[3][1].headers.Authorization).toBe('Bearer new-secret');
-    });
-
-    it('surfaces a second consecutive 401 without looping', async () => {
-      fetchSpy
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'old-id', secret: 'old-secret' }),
-        )
-        .mockResolvedValueOnce(fakeResponse(false, 401, {}))
-        .mockResolvedValueOnce(
-          fakeResponse(true, 201, { instance_id: 'new-id', secret: 'new-secret' }),
-        )
-        .mockResolvedValueOnce(fakeResponse(false, 401, {}));
-      const client = new HttpHealingClient(
-        'http://x',
-        1000,
-        undefined,
-        makeInstanceCredentials(),
-        '6.15.1',
-      );
+    it('surfaces a 401 instead of rotating, since there is nothing to rotate', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(false, 401, {}));
+      const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
       const err = await client.heal(makeHealRequest(), context).catch((e: unknown) => e);
+
       expect(err).toBeInstanceOf(HealContractError);
       expect((err as HealContractError).status).toBe(401);
-      expect(fetchSpy).toHaveBeenCalledTimes(4);
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('treats registration 5xx as a transport failure', async () => {
-      fetchSpy.mockResolvedValue(fakeResponse(false, 503, {}));
-      const client = new HttpHealingClient(
-        'http://x',
-        1000,
-        undefined,
-        makeInstanceCredentials(),
-        '6.15.1',
-      );
+    it('resolves the id through the provider on every call', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
+      const instanceId = makeInstanceId();
+      const client = new HttpHealingClient('http://x', 1000, undefined, instanceId, '6.15.1');
 
-      const err = await client.heal(makeHealRequest(), context).catch((e: unknown) => e);
-      expect(err).toBeInstanceOf(Error);
-      expect(err).not.toBeInstanceOf(HealContractError);
-      expect((err as Error).message).toContain('register responded 503');
+      await client.heal(makeHealRequest(), context);
+      await client.heal(makeHealRequest(), context);
+
+      // The provider caches; the client stays stateless so it never holds a
+      // stale id across a rotation on the telemetry side.
+      expect(instanceId).toHaveBeenCalledTimes(2);
     });
 
-    it('treats registration 4xx and malformed 201 responses as contract failures', async () => {
-      const client = new HttpHealingClient(
-        'http://x',
-        1000,
-        undefined,
-        makeInstanceCredentials(),
-        '6.15.1',
-      );
-      fetchSpy.mockResolvedValueOnce(fakeResponse(false, 429, {}));
-      await expect(client.heal(makeHealRequest(), context)).rejects.toBeInstanceOf(
-        HealContractError,
-      );
+    it('falls back to "unknown" when the manifest version is unavailable', async () => {
+      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
+      const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId());
 
-      fetchSpy.mockResolvedValueOnce(fakeResponse(true, 201, { instance_id: '', secret: '' }));
-      await expect(client.heal(makeHealRequest(), context)).rejects.toBeInstanceOf(
-        HealContractError,
-      );
+      await client.heal(makeHealRequest(), context);
+
+      expect(fetchSpy.mock.calls[0][1].headers['X-Manifest-Version']).toBe('unknown');
     });
 
-    it('requires a bounded harness on the instance-credential path', async () => {
-      const client = new HttpHealingClient(
-        'http://x',
-        1000,
-        undefined,
-        makeInstanceCredentials(),
-        '6.15.1',
-      );
+    it('requires a bounded harness on the instance-identified path', async () => {
+      const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
       await expect(client.heal(makeHealRequest())).rejects.toThrow('Autofix harness is required');
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('gives the static API key precedence over instance registration', async () => {
+    it('gives the static API key precedence over the instance id', async () => {
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
-      const credentials = makeInstanceCredentials();
-      const client = new HttpHealingClient('http://x', 1000, 'static-key', credentials, '6.15.1');
+      const instanceId = makeInstanceId();
+      const client = new HttpHealingClient('http://x', 1000, 'static-key', instanceId, '6.15.1');
 
       await client.heal(makeHealRequest(), context);
 
-      expect(credentials.getOrRegister).not.toHaveBeenCalled();
+      expect(instanceId).not.toHaveBeenCalled();
       expect(fetchSpy.mock.calls[0][1].headers).toEqual({
         'content-type': 'application/json',
         'x-api-key': 'static-key',
@@ -332,14 +237,15 @@ describe('HttpHealingClient', () => {
         'http://x',
         1000,
         undefined,
-        makeInstanceCredentials({ instanceId: 'instance-1', secret: 'secret' }),
+        makeInstanceId('instance-1'),
         '6.15.1',
       );
 
       await client.reportOutcome('h', outcome, context);
 
       expect(fetchSpy.mock.calls[0][1].headers['X-Manifest-Harness']).toBe('claude-code');
-      expect(fetchSpy.mock.calls[0][1].headers.Authorization).toBe('Bearer secret');
+      expect(fetchSpy.mock.calls[0][1].headers['X-Manifest-Instance']).toBe('instance-1');
+      expect(fetchSpy.mock.calls[0][1].headers).not.toHaveProperty('Authorization');
     });
 
     it('returns null on a non-ok response', async () => {
@@ -393,14 +299,15 @@ describe('HttpHealingClient', () => {
         'http://x',
         1000,
         undefined,
-        makeInstanceCredentials({ instanceId: 'instance-1', secret: 'secret' }),
+        makeInstanceId('instance-1'),
         '6.15.1',
       );
 
       await client.observe([makeHealRequest()], context);
 
       expect(fetchSpy.mock.calls[0][1].headers['X-Manifest-Harness']).toBe('claude-code');
-      expect(fetchSpy.mock.calls[0][1].headers.Authorization).toBe('Bearer secret');
+      expect(fetchSpy.mock.calls[0][1].headers['X-Manifest-Instance']).toBe('instance-1');
+      expect(fetchSpy.mock.calls[0][1].headers).not.toHaveProperty('Authorization');
     });
 
     it('releases the response body so the connection is not held open', async () => {

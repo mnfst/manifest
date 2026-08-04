@@ -3,16 +3,16 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { InstanceCredential } from '../../entities/instance-credential.entity';
 import { ManifestRequest } from '../../entities/request.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { readManifestVersion } from '../../telemetry/telemetry.config';
+import { TelemetryModule } from '../../telemetry/telemetry.module';
 import { AutofixService } from './autofix.service';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { resolveHttpHealingUrl } from './autofix-healing-config';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
-import { InstanceCredentialService } from './instance-credential.service';
+import { InstallIdService } from '../../telemetry/install-id.service';
 import { MockHealingClient } from './mock-healing-client';
 import { NoopHealingClient } from './noop-healing-client';
 import { ObservationReporter } from './observation-reporter';
@@ -29,19 +29,16 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Agent, AgentMessage, InstanceCredential, ManifestRequest]),
+    TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]),
+    TelemetryModule,
   ],
   providers: [
     AutofixService,
     AutofixHealthProbe,
     ObservationReporter,
-    InstanceCredentialService,
     {
       provide: HEALING_CLIENT,
-      useFactory: (
-        config: ConfigService,
-        instanceCredentials: InstanceCredentialService,
-      ): HealingClient => {
+      useFactory: (config: ConfigService, installIds: InstallIdService): HealingClient => {
         const rawUrl = config.get<string>('AUTOFIX_HEALING_URL');
         const nodeEnv = config.get<string>('NODE_ENV');
         const selfHosted = isSelfHosted();
@@ -59,17 +56,18 @@ const DEFAULT_TIMEOUT_MS = 10_000;
           // Phoenix guards /api/heal* and fails closed in production; send the key
           // when configured (omit it for a keyless dev/test Phoenix).
           const apiKey = config.get<string>('AUTOFIX_HEALING_API_KEY')?.trim() || undefined;
-          return new HttpHealingClient(
-            url,
-            timeoutMs,
-            apiKey,
-            !apiKey && selfHosted ? instanceCredentials : undefined,
-            readManifestVersion(),
-          );
+          // Self-hosted with no static key announces the install's anonymous id.
+          // It is created on first use, so an install that never enables
+          // Auto-fix (or never reports telemetry) never mints one.
+          const instanceId =
+            !apiKey && selfHosted
+              ? async () => (await installIds.getOrCreate()).install_id
+              : undefined;
+          return new HttpHealingClient(url, timeoutMs, apiKey, instanceId, readManifestVersion());
         }
         return nodeEnv === 'production' ? new NoopHealingClient() : new MockHealingClient();
       },
-      inject: [ConfigService, InstanceCredentialService],
+      inject: [ConfigService, InstallIdService],
     },
   ],
   exports: [AutofixService, ObservationReporter],

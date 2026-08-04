@@ -2,4 +2,4 @@
 'manifest': minor
 ---
 
-Enable opt-in hosted Autofix for self-hosted installs with anonymous instance credentials.
+Enable hosted Autofix for self-hosted installs, identified by the anonymous install id.

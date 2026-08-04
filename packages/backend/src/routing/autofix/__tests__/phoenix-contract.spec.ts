@@ -109,35 +109,35 @@ describe('Phoenix wire contract (vendored OpenAPI)', () => {
     });
   });
 
-  describe('instance registration and authentication', () => {
-    it('validates the register request and response shapes', () => {
-      const validateRequest = validator('InstanceRegistration');
-      const validateResponse = validator('InstanceCredential');
-      const UUID = '11111111-1111-4111-8111-111111111111';
-
-      expect(validateRequest({ version: '6.15.1', schema_version: 1 })).toBe(true);
-      expect(validateRequest({ version: 'unknown', schema_version: 1 })).toBe(false);
-      expect(validateRequest({ version: '6.15.1', schema_version: 2 })).toBe(false);
-      expect(validateResponse({ instance_id: UUID, secret: 'opaque-token' })).toBe(true);
-      expect(validateResponse({ instance_id: 'not-a-uuid', secret: 'opaque-token' })).toBe(false);
+  describe('instance identification', () => {
+    it('exposes no registration handshake', () => {
+      // The id is announced, never issued: there is nothing to register for.
+      expect(doc.paths['/api/instances/register']).toBeUndefined();
     });
 
-    it('keeps registration public and protects other endpoints with either auth mode', () => {
-      expect(doc.paths['/api/instances/register'].post.security).toEqual([]);
+    it('accepts a static key or a bare instance id on the gateway operations', () => {
       expect(doc.security).toEqual([{ ApiKeyAuth: [] }]);
       for (const operation of [
         doc.paths['/api/heal'].post,
         doc.paths['/api/heal/observe'].post,
         doc.paths['/api/heal-attempts/{id}'].patch,
       ]) {
-        expect(operation.security).toEqual([
-          { ApiKeyAuth: [] },
-          { InstanceBearerAuth: [], ManifestInstanceAuth: [] },
-        ]);
+        expect(operation.security).toEqual([{ ApiKeyAuth: [] }, { ManifestInstanceAuth: [] }]);
       }
       expect(doc.components.securitySchemes).toHaveProperty('ApiKeyAuth');
-      expect(doc.components.securitySchemes).toHaveProperty('InstanceBearerAuth');
       expect(doc.components.securitySchemes).toHaveProperty('ManifestInstanceAuth');
+    });
+
+    it('carries no bearer-secret scheme', () => {
+      // Identifier, not credential — a secret scheme reappearing here means
+      // Phoenix went back to issuing credentials and Manifest must follow.
+      expect(doc.components.securitySchemes).not.toHaveProperty('InstanceBearerAuth');
+      const scheme = doc.components.securitySchemes.ManifestInstanceAuth as {
+        in: string;
+        name: string;
+      };
+      expect(scheme.in).toBe('header');
+      expect(scheme.name).toBe('X-Manifest-Instance');
     });
 
     it('keeps the harness header allowlist in lockstep with AGENT_PLATFORMS', () => {

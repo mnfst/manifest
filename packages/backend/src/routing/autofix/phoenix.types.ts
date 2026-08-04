@@ -1,18 +1,6 @@
 import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
 import type { AuthType } from 'manifest-shared';
 
-/** POST /api/instances/register request body. */
-export interface RegisterInstanceRequest {
-  version: string;
-  schema_version: number;
-}
-
-/** POST /api/instances/register response body. */
-export interface RegisterInstanceResponse {
-  instance_id: string;
-  secret: string;
-}
-
 /**
  * Wire contract for the Phoenix healing service (mnfst/phoenix). Mirrors
  * Phoenix's `phoenix-openapi.yaml` (the source of truth): POST /api/heal returns

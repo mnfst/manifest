@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Agent } from '../../../entities/agent.entity';
 import { AgentMessage } from '../../../entities/agent-message.entity';
-import { InstanceCredential } from '../../../entities/instance-credential.entity';
 import { ManifestRequest } from '../../../entities/request.entity';
+import { InstallMetadata } from '../../../entities/install-metadata.entity';
 import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
@@ -35,7 +35,9 @@ async function resolveHealingClient(configValues: Record<string, string>) {
       .useValue({})
       .overrideProvider(getRepositoryToken(ManifestRequest))
       .useValue({})
-      .overrideProvider(getRepositoryToken(InstanceCredential))
+      // Auto-fix pulls the install id from TelemetryModule; stub its repo so the
+      // module graph resolves without a database.
+      .overrideProvider(getRepositoryToken(InstallMetadata))
       .useValue({})
       .compile();
 

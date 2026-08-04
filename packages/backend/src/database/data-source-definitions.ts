@@ -18,7 +18,6 @@ import { CustomProvider } from '../entities/custom-provider.entity';
 import { SpecificityAssignment } from '../entities/specificity-assignment.entity';
 import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
-import { InstanceCredential } from '../entities/instance-credential.entity';
 import { BackfillState } from '../entities/backfill-state.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
@@ -32,7 +31,6 @@ import { RenameWaitlistClaimsTable1800000000000 } from './migrations/18000000000
 import { ReclassifyPlanRequestLimitMessages1800100000000 } from './migrations/1800100000000-ReclassifyPlanRequestLimitMessages';
 import { AddMessageErrorCode1800200000000 } from './migrations/1800200000000-AddMessageErrorCode';
 import { DropUnusedAgentMessageIndexes1800300000000 } from './migrations/1800300000000-DropUnusedAgentMessageIndexes';
-import { AddInstanceCredential1800400000000 } from './migrations/1800400000000-AddInstanceCredential';
 import { ExtendDashboardCoveringIndex1801200000000 } from './migrations/1801200000000-ExtendDashboardCoveringIndex';
 
 import { AddTenantRequestUsage1801300000000 } from './migrations/1801300000000-AddTenantRequestUsage';
@@ -176,7 +174,6 @@ export const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  InstanceCredential,
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
@@ -309,7 +306,6 @@ export const migrations = [
   ReclassifyPlanRequestLimitMessages1800100000000,
   AddMessageErrorCode1800200000000,
   DropUnusedAgentMessageIndexes1800300000000,
-  AddInstanceCredential1800400000000,
   AddRequestsAndProviderAttempts1801000000000,
   AddProviderAttemptOrdering1801100000000,
   ExtendDashboardCoveringIndex1801200000000,

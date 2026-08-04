@@ -32,7 +32,6 @@ import { EmailProviderConfig } from '../src/entities/email-provider-config.entit
 import { SpecificityAssignment } from '../src/entities/specificity-assignment.entity';
 import { HeaderTier } from '../src/entities/header-tier.entity';
 import { InstallMetadata } from '../src/entities/install-metadata.entity';
-import { InstanceCredential } from '../src/entities/instance-credential.entity';
 import { AgentModelParams } from '../src/entities/agent-model-params.entity';
 import { PlaygroundRun } from '../src/entities/playground-run.entity';
 import { PlaygroundColumn } from '../src/entities/playground-column.entity';
@@ -77,7 +76,6 @@ const entities = [
   SpecificityAssignment,
   HeaderTier,
   InstallMetadata,
-  InstanceCredential,
   AgentModelParams,
   PlaygroundRun,
   PlaygroundColumn,
