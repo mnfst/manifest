@@ -25,10 +25,9 @@ describe('ProxyMessageRecorder request parents', () => {
     }
     const requestRepo = { createQueryBuilder: jest.fn(() => requestQb) };
     const insert = jest.fn().mockResolvedValue(undefined);
-    const query = jest.fn().mockResolvedValue(undefined);
     const messageRepo = {
       insert,
-      manager: { getRepository: jest.fn(() => requestRepo), query },
+      manager: { getRepository: jest.fn(() => requestRepo) },
     };
     const recorder = new ProxyMessageRecorder(
       messageRepo as never,
@@ -44,7 +43,7 @@ describe('ProxyMessageRecorder request parents', () => {
       } as never,
       {} as never,
     );
-    return { recorder, insert, query, requestValues, execute, requestQb };
+    return { recorder, insert, requestValues, execute, requestQb };
   }
 
   it('creates a terminal request before its provider attempt', async () => {
@@ -101,8 +100,8 @@ describe('ProxyMessageRecorder request parents', () => {
     recorder.onModuleDestroy();
   });
 
-  it('finishes a locally rejected Request without inserting a Provider Attempt', async () => {
-    const { recorder, insert, query, requestValues, execute } = setup();
+  it('records a locally rejected route as a failed attempt', async () => {
+    const { recorder, insert, requestValues, execute } = setup();
     await recorder.recordProviderError(ctx, 429, 'route cooling down', {
       requestId: 'request-local-rejection',
       provider: 'openai',
@@ -114,12 +113,16 @@ describe('ProxyMessageRecorder request parents', () => {
     expect(requestValues).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'request-local-rejection', status: 'failed' }),
     );
-    expect(insert).not.toHaveBeenCalled();
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('SET "manifest_steps"'), [
-      expect.stringContaining('"reason":"provider_cooldown"'),
-      'request-local-rejection',
-      'tenant-1',
-    ]);
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-local-rejection',
+        provider: 'openai',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+      }),
+    );
     recorder.onModuleDestroy();
   });
 
@@ -318,8 +321,8 @@ describe('ProxyMessageRecorder request parents', () => {
     recorder.onModuleDestroy();
   });
 
-  it('records a Manifest rejection with zero provider attempts', async () => {
-    const { recorder, insert, query, requestValues } = setup();
+  it('records a Manifest rejection as a failed attempt', async () => {
+    const { recorder, insert, requestValues } = setup();
     await recorder.recordManifestBlockedRequest(ctx, {
       requestId: 'request-2',
       reason: 'no_provider_key',
@@ -336,17 +339,20 @@ describe('ProxyMessageRecorder request parents', () => {
         duration_ms: 42,
       }),
     );
-    expect(insert).not.toHaveBeenCalled();
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('SET "manifest_steps"'), [
-      expect.stringContaining('"reason":"no_provider_key"'),
-      'request-2',
-      'tenant-1',
-    ]);
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-2',
+        status: 'failed',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+        routing_reason: 'no_provider_key',
+      }),
+    );
     recorder.onModuleDestroy();
   });
 
-  it('records a cooled-down fallback as a Manifest step only', async () => {
-    const { recorder, insert, query } = setup();
+  it('records a cooled-down fallback as a failed attempt', async () => {
+    const { recorder, insert } = setup();
 
     await recorder.recordFailedFallbacks(
       ctx,
@@ -365,12 +371,49 @@ describe('ProxyMessageRecorder request parents', () => {
       { requestId: 'request-cooldown-fallback' },
     );
 
-    expect(insert).not.toHaveBeenCalled();
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('SET "manifest_steps"'), [
-      expect.stringMatching(/"route_index":1.*"provider":"deepseek"/),
-      'request-cooldown-fallback',
-      'tenant-1',
+    expect(insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        request_id: 'request-cooldown-fallback',
+        provider: 'deepseek',
+        model: 'deepseek-v4-flash',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+        fallback_index: 0,
+      }),
     ]);
+    recorder.onModuleDestroy();
+  });
+
+  it('records a cooled-down primary route as a failed attempt', async () => {
+    const { recorder, insert } = setup();
+
+    await recorder.recordPrimaryFailure(
+      ctx,
+      'default',
+      'claude-fable-5',
+      'Provider route temporarily cooling down after an upstream 429',
+      '2026-08-04T16:17:55.000Z',
+      'subscription',
+      {
+        requestId: 'request-cooldown-primary',
+        provider: 'anthropic',
+        skipAttempt: true,
+      },
+    );
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-cooldown-primary',
+        provider: 'anthropic',
+        model: 'claude-fable-5',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+      }),
+    );
     recorder.onModuleDestroy();
   });
 

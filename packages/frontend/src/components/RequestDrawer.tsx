@@ -37,9 +37,7 @@ type AttemptTab = 'details' | 'messages' | 'tools' | 'raw' | 'headers' | 'params
 interface Attempt {
   id: string;
   index: number;
-  source: 'provider' | 'manifest';
-  route_index: number;
-  type: 'initial' | 'fallback' | 'auto-fix' | 'manifest';
+  type: 'initial' | 'fallback' | 'auto-fix';
   status: string;
   provider: string;
   model: string;
@@ -69,7 +67,6 @@ interface Attempt {
   autofix_role?: string;
   autofix_sibling?: any;
   recording?: AttemptRecording | null;
-  reason?: string;
 }
 
 function fmtDate(iso: string): string {
@@ -125,7 +122,6 @@ function attemptErrorMessage(
 }
 
 function inferType(att: any, index: number, msg: any): Attempt['type'] {
-  if (att.source === 'manifest') return 'manifest';
   if (att.autofix_role === 'retry') return 'auto-fix';
   if (att.fallback_from_model || att.fallback_index) return 'fallback';
   // For backend summary attempts (no autofix_role/fallback fields),
@@ -138,11 +134,9 @@ function inferType(att: any, index: number, msg: any): Attempt['type'] {
 function buildAttempts(msg: any): Attempt[] {
   // When the backend provides a real attempts array, use it
   if (Array.isArray(msg.attempts)) {
-    const providerAttempts: Attempt[] = msg.attempts.map((att: any, i: number) => ({
+    return msg.attempts.map((att: any, i: number) => ({
       id: att.id,
       index: i + 1,
-      source: 'provider',
-      route_index: att.fallback_index != null ? att.fallback_index + 1 : 0,
       type: inferType(att, i, msg),
       status: att.status,
       provider: att.provider ?? msg.provider,
@@ -174,31 +168,6 @@ function buildAttempts(msg: any): Attempt[] {
       autofix_sibling: att.autofix_sibling ?? msg.autofix_sibling,
       recording: att.recording ?? null,
     }));
-    const manifestSteps: Attempt[] = (msg.manifest_steps ?? []).map((step: any) => ({
-      id: step.id,
-      index: 0,
-      source: 'manifest',
-      route_index: step.route_index ?? 0,
-      type: 'manifest',
-      status: step.status,
-      provider: step.provider,
-      model: step.model,
-      auth_type: step.auth_type,
-      error_message: step.error_message,
-      error_origin: step.error_origin,
-      error_class: step.error_class,
-      error_http_status: step.error_http_status,
-      reason: step.reason,
-      recording: null,
-    }));
-    return [...providerAttempts, ...manifestSteps]
-      .sort((a, b) => {
-        const routeOrder = a.route_index - b.route_index;
-        if (routeOrder !== 0) return routeOrder;
-        if (a.source === b.source) return 0;
-        return a.source === 'manifest' ? -1 : 1;
-      })
-      .map((attempt, index) => ({ ...attempt, index: index + 1 }));
   }
 
   // Fallback: single attempt from the message row itself
@@ -210,8 +179,6 @@ function buildAttempts(msg: any): Attempt[] {
     {
       id: msg.id,
       index: 1,
-      source: 'provider',
-      route_index: msg.fallback_index != null ? msg.fallback_index + 1 : 0,
       type,
       status: msg.status,
       provider: msg.provider,
@@ -393,10 +360,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
               </div>
 
               <div class="drawer__split">
-                {/* Request timeline — provider attempts plus local Manifest failures */}
+                {/* Attempts sidebar — hidden when no attempts */}
                 <Show when={attempts().length > 0}>
                   <div class="drawer__sidebar">
-                    <div class="drawer__sidebar-title">Steps</div>
+                    <div class="drawer__sidebar-title">Attempts</div>
                     <For each={attempts()}>
                       {(att, idx) => (
                         <button
@@ -413,8 +380,6 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                               <FallbackIcon />
                             ) : att.type === 'auto-fix' ? (
                               <AutofixIcon />
-                            ) : att.type === 'manifest' ? (
-                              <span class="attempt-item__manifest-icon">M</span>
                             ) : (
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -518,14 +483,10 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                 </div>
                                 <div class="drawer-kv">
                                   <span class="drawer-kv__key">Type</span>
-                                  <span style="text-transform: capitalize;">
-                                    {att().source === 'manifest' ? 'Manifest' : att().type}
-                                  </span>
+                                  <span style="text-transform: capitalize;">{att().type}</span>
                                 </div>
                                 <div class="drawer-kv">
-                                  <span class="drawer-kv__key">
-                                    {att().source === 'manifest' ? 'Route provider' : 'Provider'}
-                                  </span>
+                                  <span class="drawer-kv__key">Provider</span>
                                   <span style="display: inline-flex; align-items: center; gap: 6px;">
                                     {providerIcon(att().provider, 14)}
                                     {att().provider ?? '-'}
@@ -589,16 +550,14 @@ const RequestDrawer: Component<RequestDrawerProps> = (props) => {
                                     <span>${att().cost?.toFixed(4)}</span>
                                   </div>
                                 </Show>
-                                <Show when={att().source === 'provider'}>
-                                  <div class="drawer-kv">
-                                    <span class="drawer-kv__key">Input tokens</span>
-                                    <span>{att().input_tokens?.toLocaleString()}</span>
-                                  </div>
-                                  <div class="drawer-kv">
-                                    <span class="drawer-kv__key">Output tokens</span>
-                                    <span>{att().output_tokens?.toLocaleString()}</span>
-                                  </div>
-                                </Show>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Input tokens</span>
+                                  <span>{att().input_tokens?.toLocaleString()}</span>
+                                </div>
+                                <div class="drawer-kv">
+                                  <span class="drawer-kv__key">Output tokens</span>
+                                  <span>{att().output_tokens?.toLocaleString()}</span>
+                                </div>
 
                                 {/* ── The attempt's story, in reading order ──────
                                   1. ORIGIN cards (why this attempt exists) —

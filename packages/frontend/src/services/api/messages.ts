@@ -99,23 +99,6 @@ export interface MessageDetailResponse {
     autofix_decision: AutofixDecision | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
-    /** Manifest-authored failures that happened without an upstream provider call. */
-    manifest_steps?: Array<{
-      id: string;
-      route_index: number;
-      timestamp: string;
-      status: 'failed';
-      source: 'manifest';
-      provider: string | null;
-      model: string | null;
-      auth_type: string | null;
-      error_message: string;
-      error_code: string | null;
-      error_http_status: number | null;
-      error_origin: string | null;
-      error_class: string | null;
-      reason: string | null;
-    }>;
     attempts?: Array<{
       id: string;
       model: string | null;

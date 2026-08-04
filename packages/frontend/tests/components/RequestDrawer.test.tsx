@@ -105,61 +105,6 @@ const fullMessage = {
 };
 
 describe('RequestDrawer', () => {
-  it('shows a skipped Manifest route before the provider fallback that succeeded', async () => {
-    mockGetMessageDetails.mockResolvedValue({
-      message: {
-        ...fullMessage,
-        status: 'success',
-        autofix_applied: false,
-        autofix_status: null,
-        attempts: [
-          {
-            id: 'attempt-deepseek',
-            status: 'success',
-            provider: 'deepseek',
-            model: 'deepseek-v4-flash',
-            auth_type: 'api_key',
-            fallback_from_model: 'claude-fable-5',
-            fallback_index: 0,
-          },
-        ],
-        manifest_steps: [
-          {
-            id: 'manifest-claude-cooldown',
-            route_index: 0,
-            timestamp: '2026-08-04T16:17:55Z',
-            status: 'failed',
-            source: 'manifest',
-            provider: 'anthropic',
-            model: 'claude-fable-5',
-            auth_type: 'subscription',
-            error_message:
-              'Provider route temporarily cooling down after an upstream 429: anthropic/claude-fable-5',
-            error_code: null,
-            error_http_status: 429,
-            error_origin: 'policy',
-            error_class: 'rate_limit',
-            reason: 'provider_cooldown',
-          },
-        ],
-      },
-    });
-    const { container } = render(() => (
-      <RequestDrawer messageId="request-cooldown" onClose={vi.fn()} />
-    ));
-
-    await waitFor(() => expect(screen.getByText('Steps')).toBeDefined());
-    const steps = container.querySelectorAll('.attempt-item');
-    expect(steps).toHaveLength(2);
-    expect(steps[0]?.textContent).toContain('claude-fable-5');
-    expect(steps[0]?.textContent).toContain('429');
-    expect(steps[1]?.textContent).toContain('deepseek-v4-flash');
-    expect(steps[1]?.textContent).toContain('200');
-    expect(container.querySelector('.attempt-item__manifest-icon')).not.toBeNull();
-    expect(screen.getByText('Manifest')).toBeDefined();
-    expect(container.textContent).toContain('temporarily cooling down after an upstream 429');
-  });
-
   it('renders request attempts, metadata, tabs, and close interactions', async () => {
     mockGetMessageDetails.mockResolvedValue({ message: fullMessage });
     const onClose = vi.fn();

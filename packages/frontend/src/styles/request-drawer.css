@@ -178,18 +178,6 @@
   flex-shrink: 0;
   color: hsl(var(--muted-foreground));
 }
-.attempt-item__manifest-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  background: hsl(var(--destructive) / 0.12);
-  color: hsl(var(--destructive));
-  font-size: 9px;
-  font-weight: 700;
-}
 .attempt-item__model {
   font-size: var(--font-size-xs);
   font-weight: 500;

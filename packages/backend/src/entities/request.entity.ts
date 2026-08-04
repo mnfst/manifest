@@ -4,23 +4,6 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 import type { ProxyApiMode } from '../routing/proxy/proxy-types';
 import type { AutofixStatus } from 'manifest-shared';
 
-export interface ManifestRequestStep {
-  id: string;
-  route_index: number;
-  timestamp: string;
-  status: 'failed';
-  source: 'manifest';
-  provider: string | null;
-  model: string | null;
-  auth_type: string | null;
-  error_message: string;
-  error_code: string | null;
-  error_http_status: number | null;
-  error_origin: string | null;
-  error_class: string | null;
-  reason: string | null;
-}
-
 /**
  * One request made by a caller to Manifest.
  *
@@ -108,10 +91,6 @@ export class ManifestRequest {
 
   @Column('jsonb', { nullable: true })
   request_params!: object | null;
-
-  /** Manifest-authored routing failures that did not contact a provider. */
-  @Column('jsonb', { default: () => "'[]'::jsonb" })
-  manifest_steps!: ManifestRequestStep[];
 
   @Column('varchar', { nullable: true })
   feedback_rating!: string | null;
