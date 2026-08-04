@@ -1,10 +1,13 @@
 import { createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
+import { Portal } from 'solid-js/web';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
+import { getWorkspaceAutofixStatus } from '../services/api/analytics.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
 import { refreshAgents } from '../services/sse.js';
+import { useFocusTrap } from '../services/use-focus-trap.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
@@ -30,6 +33,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   // self-hosted).
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
   const [recordingEnabled, setRecordingEnabled] = createSignal(true);
+  const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
+  let autofixDialogRef: HTMLDivElement | undefined;
+  useFocusTrap(confirmingAutofix, () => autofixDialogRef);
 
   // Tracks whether the user dismissed the modal (overlay click / Escape) while a
   // create request was still in flight. A dismissed create must NOT run its
@@ -54,7 +60,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
   };
 
-  const handleCreate = async () => {
+  const createAgentNow = async () => {
     const agentName = name().trim();
     if (!agentName) return;
     cancelled = false;
@@ -112,12 +118,30 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     }
   };
 
+  const handleCreate = async () => {
+    if (!name().trim()) return;
+    if (autofixEnabled()) {
+      let consented = false;
+      try {
+        consented = (await getWorkspaceAutofixStatus()).consented;
+      } catch {
+        // Fail closed: if consent cannot be verified, ask before enabling.
+      }
+      if (!consented) {
+        setConfirmingAutofix(true);
+        return;
+      }
+    }
+    await createAgentNow();
+  };
+
   const resetForm = () => {
     setName('');
     setCategory('personal');
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
     setAutofixEnabled(true);
     setRecordingEnabled(true);
+    setConfirmingAutofix(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -133,6 +157,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           style="max-width: 540px;"
           role="dialog"
           aria-modal="true"
+          aria-hidden={confirmingAutofix() ? 'true' : undefined}
           aria-labelledby="add-agent-title"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
@@ -219,22 +244,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
           </div>
 
-          <Show when={autofixEnabled()}>
-            <p class="autofix-consent__legal">
-              Failed requests may be sent to Manifest Auto-fix for diagnosis and repair. Provider
-              authorization credentials are not sent. By creating this harness with Auto-fix
-              enabled, you agree to Manifest&apos;s{' '}
-              <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
-                Terms
-              </a>{' '}
-              and{' '}
-              <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
-                Privacy Policy
-              </a>
-              .
-            </p>
-          </Show>
-
           <div class="modal-card__footer">
             <button
               class="btn btn--primary btn--sm"
@@ -245,6 +254,82 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </button>
           </div>
         </div>
+
+        <Portal>
+          <Show when={confirmingAutofix()}>
+            <div
+              class="modal-overlay"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) setConfirmingAutofix(false);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setConfirmingAutofix(false);
+              }}
+            >
+              <div
+                ref={autofixDialogRef}
+                class="modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-agent-autofix-consent-title"
+                aria-describedby="create-agent-autofix-consent-description"
+                style="max-width: 560px;"
+              >
+                <h2 class="modal-card__title" id="create-agent-autofix-consent-title">
+                  Enable hosted Auto-fix?
+                </h2>
+                <p class="modal-card__desc" id="create-agent-autofix-consent-description">
+                  Failed requests will be sent to Manifest Auto-fix for diagnosis and repair.
+                  Provider authorization credentials are not sent. This enables Auto-fix for this
+                  harness.{' '}
+                  <a
+                    href="https://manifest.build/docs/autofix/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    How Auto-fix works
+                  </a>
+                  .
+                </p>
+                <p class="autofix-consent__legal">
+                  By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+                  <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                    Terms
+                  </a>{' '}
+                  and{' '}
+                  <a
+                    href="https://manifest.build/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+                <div class="modal-card__footer">
+                  <button
+                    type="button"
+                    class="btn btn--outline btn--sm"
+                    onClick={() => setConfirmingAutofix(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn--primary btn--sm"
+                    disabled={creating()}
+                    onClick={() => {
+                      setConfirmingAutofix(false);
+                      void createAgentNow();
+                    }}
+                  >
+                    Agree &amp; create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Show>
+        </Portal>
       </div>
     </Show>
   );

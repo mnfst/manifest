@@ -13,6 +13,11 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
+const mockGetWorkspaceAutofixStatus = vi.fn();
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetWorkspaceAutofixStatus(...args),
+}));
+
 vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
@@ -70,6 +75,7 @@ describe('AddAgentModal', () => {
     vi.clearAllMocks();
     mockCreateAgent.mockResolvedValue({ agent: { name: 'new-agent' }, apiKey: 'key-1' });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: true });
   });
 
   it('renders nothing when closed', () => {
@@ -83,18 +89,48 @@ describe('AddAgentModal', () => {
     expect(container.textContent).toContain('Name your harness to start tracking');
   });
 
-  it('discloses hosted Auto-fix consent while the default opt-in is enabled', () => {
-    const { container } = renderOpen();
-    expect(container.textContent).toContain('Provider authorization credentials are not sent');
-    expect(container.querySelector('a[href="https://manifest.build/terms"]')).not.toBeNull();
-    expect(container.querySelector('a[href="https://manifest.build/privacy"]')).not.toBeNull();
+  it('asks for consent before creating the first Auto-fix-enabled agent', async () => {
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
+    const { input, createBtn } = renderOpen();
+    fireEvent.input(input, { target: { value: 'first-agent' } });
+    fireEvent.click(createBtn);
+
+    await screen.findByText('Enable hosted Auto-fix?');
+    expect(mockCreateAgent).not.toHaveBeenCalled();
+    expect(screen.getByText(/Provider authorization credentials are not sent/)).toBeDefined();
+    expect(document.querySelector('a[href="https://manifest.build/terms"]')).not.toBeNull();
+    expect(document.querySelector('a[href="https://manifest.build/privacy"]')).not.toBeNull();
+
+    fireEvent.click(screen.getByText('Agree & create'));
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
   });
 
-  it('hides the Auto-fix consent disclosure after an explicit opt-out', () => {
-    const { container } = renderOpen();
-    const autofixSwitch = container.querySelector('.settings-switch')!;
-    fireEvent.click(autofixSwitch);
-    expect(container.textContent).not.toContain('Provider authorization credentials are not sent');
+  it('creates without consent when Auto-fix is explicitly disabled', async () => {
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
+    const { container, input, createBtn } = renderOpen();
+    fireEvent.click(container.querySelector('.settings-switch')!);
+    fireEvent.input(input, { target: { value: 'disabled-agent' } });
+    fireEvent.click(createBtn);
+
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+    expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
+    expect(mockGetWorkspaceAutofixStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns to the create dialog when first-use consent is cancelled', async () => {
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
+    const { container, input, createBtn } = renderOpen();
+    fireEvent.input(input, { target: { value: 'first-agent' } });
+    fireEvent.click(createBtn);
+
+    await screen.findByText('Enable hosted Auto-fix?');
+    expect(container.querySelector('.modal-card')?.getAttribute('aria-hidden')).toBe('true');
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
+    expect(screen.getByText('Connect Harness')).toBeDefined();
+    expect(container.querySelector('.modal-card')?.getAttribute('aria-hidden')).toBeNull();
+    expect(mockCreateAgent).not.toHaveBeenCalled();
   });
 
   it('keeps Create disabled until a non-blank name is entered', () => {
