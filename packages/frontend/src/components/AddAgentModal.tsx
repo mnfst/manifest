@@ -219,6 +219,22 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
           </div>
 
+          <Show when={autofixEnabled()}>
+            <p class="autofix-consent__legal">
+              Failed requests may be sent to Manifest Auto-fix for diagnosis and repair. Provider
+              authorization credentials are not sent. By creating this harness with Auto-fix
+              enabled, you agree to Manifest&apos;s{' '}
+              <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </Show>
+
           <div class="modal-card__footer">
             <button
               class="btn btn--primary btn--sm"

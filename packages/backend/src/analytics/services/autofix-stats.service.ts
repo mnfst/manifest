@@ -28,6 +28,8 @@ export interface AutofixStatusResponse {
   any_enabled: boolean;
   /** Names of agents effectively enabled after deployment-mode defaults. */
   enabled_agents: string[];
+  /** Legacy agents need the one-time fleet enable action. */
+  needs_enable_all: boolean;
   /**
    * Self-hosted consent-once. Cloud always reports true (no gate). False only
    * when the install has never confirmed the enable modal.
@@ -102,7 +104,12 @@ export class AutofixStatsService {
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
     if (!tenantId) {
-      return { any_enabled: false, enabled_agents: [], consented: await this.hasConsent() };
+      return {
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: await this.hasConsent(),
+      };
     }
 
     const agents = await this.agentRepo.find({
@@ -116,6 +123,11 @@ export class AutofixStatsService {
     return {
       any_enabled: enabledAgents.length > 0,
       enabled_agents: enabledAgents,
+      // Existing agents upgraded from before the explicit creation toggle have
+      // NULL here. New agents always send true or false, so no release-date
+      // cutoff is needed and an explicit opt-out never triggers the fleet CTA.
+      needs_enable_all:
+        enabledAgents.length === 0 && agents.some((agent) => agent.autofix_enabled == null),
       consented: await this.hasConsent(),
     };
   }
@@ -134,7 +146,7 @@ export class AutofixStatsService {
       { autofix_enabled: true },
     );
     this.autofix.invalidateTenantConfig(tenantId);
-    await this.recordConsent();
+    await this.recordAutofixConsent();
     return this.getWorkspaceStatus(tenantId);
   }
 
@@ -144,14 +156,18 @@ export class AutofixStatsService {
     return row?.autofix_consented_at != null;
   }
 
-  private async recordConsent(): Promise<void> {
+  async recordAutofixConsent(): Promise<void> {
     if (!isSelfHosted()) return;
     if (await this.hasConsent()) return;
     await this.installMetadataRepo
       .createQueryBuilder()
       .insert()
       .into(InstallMetadata)
-      .values({ id: 'singleton', install_id: uuid(), autofix_consented_at: new Date().toISOString() })
+      .values({
+        id: 'singleton',
+        install_id: uuid(),
+        autofix_consented_at: new Date().toISOString(),
+      })
       .orUpdate(['autofix_consented_at'], ['id'])
       .execute();
   }

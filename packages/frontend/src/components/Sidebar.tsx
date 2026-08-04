@@ -4,10 +4,7 @@ import { Portal } from 'solid-js/web';
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
-import {
-  enableAutofixForAllAgents,
-  getWorkspaceAutofixStatus,
-} from '../services/api/analytics.js';
+import { enableAutofixForAllAgents, getWorkspaceAutofixStatus } from '../services/api/analytics.js';
 import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
@@ -46,17 +43,19 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
   // Fail soft: a status-fetch blip must not take down the whole authenticated
-  // shell. Treat errors as "nothing enabled, not consented" so the CTA still
-  // renders and the user can recover by enabling.
-  const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(
-    async () => {
-      try {
-        return await getWorkspaceAutofixStatus();
-      } catch {
-        return { any_enabled: false, enabled_agents: [], consented: false };
-      }
-    },
-  );
+  // shell or surface a fleet action without knowing legacy agents need it.
+  const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(async () => {
+    try {
+      return await getWorkspaceAutofixStatus();
+    } catch {
+      return {
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: false,
+      };
+    }
+  });
   const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
   const [enablingAutofix, setEnablingAutofix] = createSignal(false);
   let autofixDialogRef: HTMLDivElement | undefined;
@@ -275,7 +274,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
             </svg>
             <span class="sidebar-autofix__title">
-              {autofixStatus()?.any_enabled || autofixStatus()?.consented
+              {autofixStatus()?.any_enabled ||
+              autofixStatus()?.consented ||
+              !autofixStatus()?.needs_enable_all
                 ? 'Auto-fix'
                 : 'Discover Auto-fix'}
             </span>
@@ -286,7 +287,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               : 'Auto-fix can repair eligible failing requests before they reach the model.'}
           </p>
           <Show
-            when={!autofixStatus.loading && !autofixStatus()?.any_enabled}
+            when={!autofixStatus.loading && autofixStatus()?.needs_enable_all}
             fallback={
               <a
                 class="sidebar-autofix__btn"
@@ -404,8 +405,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
               </h2>
               <p class="modal-card__desc" id="sidebar-autofix-consent-description">
                 Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
-                authorization credentials are not sent. This enables Auto-fix for every agent in your
-                workspace.{' '}
+                authorization credentials are not sent. This enables Auto-fix for every agent in
+                your workspace.{' '}
                 <a
                   href="https://manifest.build/docs/autofix/"
                   target="_blank"

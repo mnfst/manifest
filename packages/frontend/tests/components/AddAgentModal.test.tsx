@@ -83,6 +83,20 @@ describe('AddAgentModal', () => {
     expect(container.textContent).toContain('Name your harness to start tracking');
   });
 
+  it('discloses hosted Auto-fix consent while the default opt-in is enabled', () => {
+    const { container } = renderOpen();
+    expect(container.textContent).toContain('Provider authorization credentials are not sent');
+    expect(container.querySelector('a[href="https://manifest.build/terms"]')).not.toBeNull();
+    expect(container.querySelector('a[href="https://manifest.build/privacy"]')).not.toBeNull();
+  });
+
+  it('hides the Auto-fix consent disclosure after an explicit opt-out', () => {
+    const { container } = renderOpen();
+    const autofixSwitch = container.querySelector('.settings-switch')!;
+    fireEvent.click(autofixSwitch);
+    expect(container.textContent).not.toContain('Provider authorization credentials are not sent');
+  });
+
   it('keeps Create disabled until a non-blank name is entered', () => {
     const { input, createBtn } = renderOpen();
     expect((createBtn as HTMLButtonElement).disabled).toBe(true);

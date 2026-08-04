@@ -87,6 +87,7 @@ describe('AutofixStatsService', () => {
       any_enabled: false,
       consented: true,
       enabled_agents: [],
+      needs_enable_all: false,
     });
     expect(agentRepo.find).not.toHaveBeenCalled();
   });
@@ -100,6 +101,7 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['inherited', 'enabled'],
+      needs_enable_all: false,
       consented: true,
     });
     expect(agentRepo.find).toHaveBeenCalledWith({
@@ -118,7 +120,36 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['enabled'],
+      needs_enable_all: false,
       consented: true,
+    });
+  });
+
+  it('offers fleet enable only for legacy unconfigured agents', async () => {
+    autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
+    agentRepo.find.mockResolvedValue([
+      { name: 'legacy', autofix_enabled: null },
+      { name: 'explicitly-disabled', autofix_enabled: false },
+    ]);
+
+    await expect(service.getWorkspaceStatus('tenant')).resolves.toMatchObject({
+      any_enabled: false,
+      enabled_agents: [],
+      needs_enable_all: true,
+    });
+  });
+
+  it.each([
+    ['an empty workspace', []],
+    ['only explicitly disabled new agents', [{ name: 'new-agent', autofix_enabled: false }]],
+  ])('does not offer fleet enable for %s', async (_label, agents) => {
+    autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
+    agentRepo.find.mockResolvedValue(agents);
+
+    await expect(service.getWorkspaceStatus('tenant')).resolves.toMatchObject({
+      any_enabled: false,
+      enabled_agents: [],
+      needs_enable_all: false,
     });
   });
 

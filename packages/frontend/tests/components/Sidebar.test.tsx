@@ -98,6 +98,7 @@ beforeEach(() => {
     mockGetAutofixStatus.mockResolvedValue({
       any_enabled: false,
       enabled_agents: [],
+      needs_enable_all: true,
       consented: false,
     });
   vi.clearAllMocks();
@@ -523,6 +524,20 @@ describe("Sidebar — Auto-fix card", () => {
     expect(btn?.textContent).toBe("Enable");
   });
 
+  it("does not offer fleet enable when no legacy agents need it", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      needs_enable_all: false,
+      consented: false,
+    });
+
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Learn more");
+    expect(screen.queryByText("Discover Auto-fix")).toBeNull();
+    expect(container.querySelector("button.sidebar-autofix__btn")).toBeNull();
+  });
+
   it("dismisses the consent modal via Cancel, overlay, and Escape without enabling", async () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Discover Auto-fix");
@@ -562,11 +577,13 @@ describe("Sidebar — Auto-fix card", () => {
     mockGetAutofixStatus.mockResolvedValue({
       any_enabled: false,
       enabled_agents: [],
+      needs_enable_all: true,
       consented: true,
     });
     mockEnableAllAutofix.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ["demo"],
+      needs_enable_all: false,
       consented: true,
     });
     const { container } = render(() => <Sidebar />);
@@ -582,6 +599,7 @@ describe("Sidebar — Auto-fix card", () => {
     mockGetAutofixStatus.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ["demo"],
+      needs_enable_all: false,
       consented: true,
     });
     const { container } = render(() => <Sidebar />);

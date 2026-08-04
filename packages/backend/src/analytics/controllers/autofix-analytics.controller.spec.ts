@@ -16,7 +16,12 @@ describe('AutofixAnalyticsController', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('delegates every Auto-fix analytics route with tenant scope', async () => {
-    service.getWorkspaceStatus.mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'], consented: true });
+    service.getWorkspaceStatus.mockResolvedValue({
+      any_enabled: true,
+      enabled_agents: ['demo'],
+      needs_enable_all: false,
+      consented: true,
+    });
     service.getStats.mockResolvedValue({ autofix_saves: { value: 1 } });
     service.getTimeseries.mockResolvedValue({ buckets: [] });
     service.getPerAgentStats.mockResolvedValue([]);
@@ -67,11 +72,13 @@ describe('AutofixAnalyticsController', () => {
     service.enableAll.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ['demo'],
+      needs_enable_all: false,
       consented: true,
     });
     await expect(controller.enableAll(ctx)).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['demo'],
+      needs_enable_all: false,
       consented: true,
     });
     expect(service.enableAll).toHaveBeenCalledWith('tenant');

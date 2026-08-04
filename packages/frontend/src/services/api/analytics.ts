@@ -269,6 +269,8 @@ export interface AttemptTimeseries {
 export interface AutofixStatus {
   any_enabled: boolean;
   enabled_agents: string[];
+  /** True only when legacy/unconfigured agents need the fleet enable action. */
+  needs_enable_all: boolean;
   /** Self-hosted consent-once; cloud always true. */
   consented: boolean;
 }
