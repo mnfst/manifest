@@ -19,8 +19,6 @@ AI Agents that don't break
 </p>
 
 <p align="center">
-  <span><img src="https://img.shields.io/badge/status-beta-yellow" alt="beta" /></span>
-  &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
   <a href="https://hub.docker.com/r/manifestdotbuild/manifest"><img src="https://img.shields.io/docker/pulls/manifestdotbuild/manifest?color=2496ED&label=docker%20pulls" alt="Docker pulls" /></a>
