@@ -30,11 +30,24 @@ const queryBuilder = () => {
   return qb;
 };
 
+const ORIGINAL_MANIFEST_MODE = process.env.MANIFEST_MODE;
+
 describe('AutofixStatsService', () => {
-  const agentRepo = { find: jest.fn() };
+  beforeAll(() => {
+    // Pin cloud mode so consented:true assertions hold regardless of the
+    // shell's MANIFEST_MODE (dev often exports selfhosted).
+    process.env.MANIFEST_MODE = 'cloud';
+  });
+  afterAll(() => {
+    if (ORIGINAL_MANIFEST_MODE === undefined) delete process.env.MANIFEST_MODE;
+    else process.env.MANIFEST_MODE = ORIGINAL_MANIFEST_MODE;
+  });
+
+  const agentRepo = { find: jest.fn(), update: jest.fn() };
   const messageRepo = { createQueryBuilder: jest.fn() };
   const autofix = {
     resolveEnabled: jest.fn((stored: boolean | null) => stored ?? true),
+    invalidateTenantConfig: jest.fn(),
   };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),
@@ -347,5 +360,28 @@ describe('AutofixStatsService', () => {
     expect(filterSql).toContain("r.autofix_status <> 'retry_succeeded'");
     expect(filterSql).toContain('FROM agent_messages sib');
     expect(filterSql).not.toContain('FROM provider_attempts sib');
+  });
+
+  describe('enableAll', () => {
+    it('updates only live non-playground agents and records consent', async () => {
+      agentRepo.update.mockResolvedValue({ affected: 2 });
+      agentRepo.find.mockResolvedValue([
+        { name: 'a', autofix_enabled: true },
+      ]);
+      await expect(service.enableAll('tenant')).resolves.toMatchObject({
+        any_enabled: true,
+        enabled_agents: ['a'],
+      });
+      expect(agentRepo.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenant_id: 'tenant',
+          is_playground: false,
+          // deleted_at: IsNull() — presence is what matters
+        }),
+        { autofix_enabled: true },
+      );
+      const where = agentRepo.update.mock.calls[0][0];
+      expect(where).toHaveProperty('deleted_at');
+    });
   });
 });

@@ -126,8 +126,11 @@ export class AutofixStatsService {
    * per-agent toggle, which only ever touches one agent.
    */
   async enableAll(tenantId: string): Promise<AutofixStatusResponse> {
+    // Match getWorkspaceStatus: only live, non-playground agents. Soft-deleted
+    // rows must keep whatever they had — resurrecting them later shouldn't
+    // surprise the operator with Auto-fix flipped on.
     await this.agentRepo.update(
-      { tenant_id: tenantId, is_playground: false },
+      { tenant_id: tenantId, is_playground: false, deleted_at: IsNull() },
       { autofix_enabled: true },
     );
     this.autofix.invalidateTenantConfig(tenantId);

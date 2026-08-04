@@ -121,7 +121,7 @@ describe('SettingsAutofixSection', () => {
     expect(privacy.getAttribute('href')).toBe('https://manifest.build/privacy');
 
     fireEvent.click(screen.getByRole('button', { name: 'Agree & enable Auto-fix' }));
-    // The slider defaults on, so confirming also enables every existing agent.
+    // Per-agent confirm enables only this agent; fleet enable is the sidebar CTA.
     expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
     await waitFor(() => expect(btn.getAttribute('aria-checked')).toBe('true'));
   });

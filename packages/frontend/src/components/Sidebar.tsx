@@ -45,8 +45,17 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
+  // Fail soft: a status-fetch blip must not take down the whole authenticated
+  // shell. Treat errors as "nothing enabled, not consented" so the CTA still
+  // renders and the user can recover by enabling.
   const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(
-    getWorkspaceAutofixStatus,
+    async () => {
+      try {
+        return await getWorkspaceAutofixStatus();
+      } catch {
+        return { any_enabled: false, enabled_agents: [], consented: false };
+      }
+    },
   );
   const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
   const [enablingAutofix, setEnablingAutofix] = createSignal(false);

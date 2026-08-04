@@ -9,7 +9,8 @@ describe('AutofixAnalyticsController', () => {
     getPerAgentStats: jest.fn(),
     getPerProviderStats: jest.fn(),
   };
-  const controller = new AutofixAnalyticsController(service as never);
+  const cache = { del: jest.fn().mockResolvedValue(undefined) };
+  const controller = new AutofixAnalyticsController(service as never, cache as never);
   const ctx = { tenantId: 'tenant' } as never;
 
   beforeEach(() => jest.clearAllMocks());
@@ -62,7 +63,7 @@ describe('AutofixAnalyticsController', () => {
     });
   });
 
-  it('delegates enable-all to the stats service', async () => {
+  it('delegates enable-all to the stats service and busts the status cache', async () => {
     service.enableAll.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ['demo'],
@@ -74,6 +75,7 @@ describe('AutofixAnalyticsController', () => {
       consented: true,
     });
     expect(service.enableAll).toHaveBeenCalledWith('tenant');
+    expect(cache.del).toHaveBeenCalledWith('tenant:/api/v1/autofix/status');
   });
 
   it('rejects enable-all without a resolved tenant', async () => {
