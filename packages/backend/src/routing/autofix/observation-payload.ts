@@ -1,5 +1,7 @@
+import { isAnthropicExtraUsageError } from 'manifest-shared';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
-import type { ProxyApiMode } from '../proxy/proxy-types';
+import type { ProviderWireFormat, ProxyApiMode } from '../proxy/proxy-types';
+import type { AuthType } from 'manifest-shared';
 import { normalizeProviderError } from './provider-error-normalizer';
 import type { HealRequest } from './phoenix.types';
 
@@ -57,6 +59,21 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/** Keep the resolved endpoint while removing credentials from query parameters. */
+export function scrubProviderUrl(raw: string): string {
+  try {
+    const url = new URL(raw);
+    for (const key of [...url.searchParams.keys()]) {
+      if (/key|token|secret|signature|credential/i.test(key)) {
+        url.searchParams.set(key, '[REDACTED]');
+      }
+    }
+    return url.toString();
+  } catch {
+    return scrubSecrets(raw);
+  }
+}
+
 /**
  * Recursively scrub credentials out of a body.
  *
@@ -108,22 +125,20 @@ export interface ObservationInput {
    */
   agentId: string;
   provider: string;
+  /** Logical model identity when the provider encodes it in the URL. */
+  model: string;
+  authType: AuthType;
   apiMode: ProxyApiMode;
   /**
-   * The forwarded body, with inline base64 images already redacted
-   * (`routingBody`). The heal path reports the raw body instead, because a patch
-   * has to be applied to what the provider actually received; an observation is
-   * only evidence, and no operation Phoenix can resolve looks at image bytes —
-   * so the smaller, less sensitive body is the right one to ship.
+   * The provider-facing body. Inline base64 images are redacted below because an
+   * observation is evidence only and no Phoenix operation needs the image bytes.
    */
   requestBody: Record<string, unknown>;
-  /**
-   * The concrete provider model the request routed to. The body may name a
-   * routing alias (`auto`) that Phoenix's model-keyed catalog can't resolve, so
-   * the reported body carries the resolved id instead — same substitution the
-   * heal path makes.
-   */
-  resolvedModel?: string;
+  providerWire?: {
+    format: ProviderWireFormat;
+    url?: string;
+    body: Record<string, unknown>;
+  };
   status: number;
   /** Raw text of the provider's error response. */
   errorBody: string;
@@ -136,21 +151,47 @@ export interface ObservationInput {
  */
 export function toObservation(input: ObservationInput): HealRequest | null {
   if (!isReportableStatus(input.status)) return null;
+  if (
+    isAnthropicExtraUsageError({
+      provider: input.provider,
+      httpStatus: input.status,
+      errorBody: input.errorBody,
+    })
+  ) {
+    return null;
+  }
   const scrubbed = scrubBody(input.requestBody);
   if (!scrubbed) return null;
+  const scrubbedProviderBody = input.providerWire ? scrubBody(input.providerWire.body) : null;
+  if (input.providerWire && !scrubbedProviderBody) return null;
 
-  const request =
-    input.resolvedModel && input.resolvedModel !== scrubbed.model
-      ? { ...scrubbed, model: input.resolvedModel }
-      : scrubbed;
+  const safeErrorBody = scrubSecrets(input.errorBody);
+  let providerResponseBody: unknown = safeErrorBody;
+  try {
+    providerResponseBody = JSON.parse(safeErrorBody) as unknown;
+  } catch {
+    // Plain-text provider responses remain plain text.
+  }
 
   return {
     traceId: input.traceId,
     tenantId: input.tenantId,
     provider: input.provider,
+    model: input.model,
+    authType: input.authType,
     api: input.apiMode,
-    request,
+    request: scrubbed,
     response: { statusCode: input.status, error: normalizeProviderError(input.errorBody) },
+    ...(input.providerWire
+      ? {
+          providerExchange: {
+            format: input.providerWire.format,
+            ...(input.providerWire.url ? { url: scrubProviderUrl(input.providerWire.url) } : {}),
+            request: { body: scrubbedProviderBody!, redactedFields: [] },
+            response: { statusCode: input.status, body: providerResponseBody },
+          },
+        }
+      : {}),
     ...(input.responseTimeMs != null ? { responseTimeMs: input.responseTimeMs } : {}),
   };
 }

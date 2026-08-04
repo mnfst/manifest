@@ -39,7 +39,7 @@ export interface ProviderDetailViewProps {
   validationError: Accessor<string | null>;
   setValidationError: Setter<string | null>;
   onBack: () => void;
-  onUpdate: () => void;
+  onUpdate: () => void | Promise<void>;
   onPollProviders?: () => void | Promise<void>;
   onClose: () => void;
   initialAddKey?: boolean;
@@ -140,12 +140,17 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
   };
 
   const [refreshing, setRefreshing] = createSignal(false);
+  const [refreshedModelCount, setRefreshedModelCount] = createSignal<number | null>(null);
+  const [refreshedAt, setRefreshedAt] = createSignal<string | null>(null);
 
   const activeProviderRow = () => getProviderByAuth(props.selectedAuthType());
-  const lastFetchedAgo = () => formatTimeAgo(activeProviderRow()?.models_fetched_at ?? null);
+  const modelCount = () => refreshedModelCount() ?? activeProviderRow()?.cached_model_count ?? 0;
+  const lastFetchedAgo = () =>
+    formatTimeAgo(refreshedAt() ?? activeProviderRow()?.models_fetched_at ?? null);
 
   const handleRefreshModels = async () => {
     setRefreshing(true);
+    let refreshed = false;
     try {
       const result = await refreshProviderModels(
         props.agentName,
@@ -153,13 +158,20 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
         props.selectedAuthType(),
       );
       if (result.ok) {
+        refreshed = true;
+        setRefreshedModelCount(result.model_count);
+        setRefreshedAt(result.last_fetched_at);
         toast.success(
           `${provDef.name}: refreshed ${result.model_count} model${result.model_count === 1 ? '' : 's'}`,
         );
       } else {
         toast.error(result.error ?? `Couldn't refresh ${provDef.name}`);
       }
-      props.onUpdate();
+      await props.onUpdate();
+      if (refreshed) {
+        setRefreshedModelCount(null);
+        setRefreshedAt(null);
+      }
     } catch {
       // network/server error toast already raised by fetchMutate
     } finally {
@@ -270,9 +282,9 @@ const ProviderDetailView: Component<ProviderDetailViewProps> = (props) => {
       <Show when={connected()}>
         <div class="provider-detail__models-bar">
           <span>
-            {activeProviderRow()?.cached_model_count ?? 0} model
-            {(activeProviderRow()?.cached_model_count ?? 0) === 1 ? '' : 's'}
-            <Show when={lastFetchedAgo()}> – last refreshed: {lastFetchedAgo()}</Show>
+            {modelCount()} model
+            {modelCount() === 1 ? '' : 's'}
+            <Show when={lastFetchedAgo()}> - last refreshed: {lastFetchedAgo()}</Show>
           </span>
           <button
             class="btn btn--outline btn--sm provider-detail__refresh-btn"

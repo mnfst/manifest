@@ -1,8 +1,9 @@
 import { Logger } from '@nestjs/common';
+import { v4 as uuid } from 'uuid';
 import { Response as ExpressResponse } from 'express';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { RoutingMeta } from './proxy.service';
-import type { AutofixRecord } from '../autofix/autofix.types';
+import { getAutofixRetry, type AutofixRecord } from '../autofix/autofix.types';
 import { FailedFallback } from './proxy-fallback.service';
 import { ForwardResult } from './provider-client';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
@@ -14,6 +15,7 @@ import {
   pipeStream,
   StreamUsage,
 } from './stream-writer';
+import { createSsePayloadParser } from './sse-parser';
 import {
   classifyProviderError,
   openAiErrorTypeForStatus,
@@ -47,11 +49,106 @@ import {
   unwrapCodeAssistResponse,
   unwrapCodeAssistStreamPayload,
 } from '../oauth/gemini/codeassist-envelope';
+import type { AttemptRecordingCapture } from './attempt-recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
+/** The current primary is attempt 2 only when Auto-fix actually sent a retry. */
+export function currentPrimaryAttemptNumber(autofix: AutofixRecord | undefined): number {
+  return getAutofixRetry(autofix) ? 2 : 1;
+}
+
+interface ResponsesSequenceTracker {
+  feed(chunk: string): void;
+  next(): number;
+}
+
+function createResponsesSequenceTracker(): ResponsesSequenceTracker {
+  const parser = createSsePayloadParser();
+  let nextSequenceNumber = 0;
+
+  const feed = (chunk: string): void => {
+    for (const event of parser.feed(chunk)) {
+      const payload = event
+        .split('\n')
+        .filter((line) => !line.startsWith('event:') && !line.startsWith('id:'))
+        .join('\n');
+      try {
+        const data = JSON.parse(payload) as { sequence_number?: unknown };
+        const sequenceNumber = data.sequence_number;
+        if (
+          typeof sequenceNumber === 'number' &&
+          Number.isInteger(sequenceNumber) &&
+          sequenceNumber >= 0
+        ) {
+          nextSequenceNumber = Math.max(nextSequenceNumber, sequenceNumber + 1);
+        } else {
+          nextSequenceNumber += 1;
+        }
+      } catch {
+        nextSequenceNumber += 1;
+      }
+    }
+  };
+
+  return { feed, next: () => nextSequenceNumber };
+}
+
+const responsesSequenceTrackers = new WeakMap<ExpressResponse, ResponsesSequenceTracker>();
+
+export function nextResponsesSequenceNumber(res: ExpressResponse): number {
+  return responsesSequenceTrackers.get(res)?.next() ?? 0;
+}
+
 function recordSafely(promise: Promise<unknown>, label: string): void {
   promise.catch((e) => logger.warn(`Failed to record ${label}: ${e}`));
+}
+
+function recordAutofixOriginalIfRetried(
+  ctx: IngestionContext,
+  meta: RoutingMeta,
+  recorder: ProxyMessageRecorder,
+  autofix: AutofixRecord | undefined,
+  traceId?: string,
+  callerAttribution?: CallerAttribution | null,
+  requestHeaders?: Record<string, string> | null,
+  requestId?: string,
+  route?: {
+    model?: string;
+    provider?: string;
+    authType?: string;
+    tenantProviderId?: string | null;
+  },
+): void {
+  if (!autofix || !getAutofixRetry(autofix) || meta.autofixOriginalProviderCallStarted === false)
+    return;
+  recordSafely(
+    recorder.recordAutofixOriginal(ctx, route?.model ?? meta.model, meta.tier, autofix, {
+      requestId,
+      attemptNumber: 1,
+      attempt: meta.autofixOriginalAttempt,
+      provider: route ? route.provider : meta.provider,
+      reason: meta.reason,
+      authType: route?.authType ?? meta.auth_type,
+      traceId,
+      callerAttribution,
+      requestHeaders,
+      requestParams: meta.request_params,
+      specificityCategory: meta.specificity_category,
+      // Same rule as tenantProviderId below: on a fallback-success flow
+      // `provider_key_label` names the connection that RECOVERED the request,
+      // while this row belongs to the primary that failed. The direct-success
+      // call site is guarded by `!meta.fallbackFromModel`, so primaryKeyLabel
+      // is absent there and the meta label is already the right one.
+      providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
+      tenantProviderId:
+        route?.tenantProviderId === undefined ? meta.tenantProviderId : route.tenantProviderId,
+      headerTierId: meta.header_tier_id,
+      headerTierName: meta.header_tier_name,
+      headerTierColor: meta.header_tier_color,
+    }),
+    'autofix original',
+  );
 }
 
 function thinkingRouteContext(meta: RoutingMeta): ThinkingBlockRouteContext {
@@ -126,7 +223,21 @@ export async function handleProviderError(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
+  requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): Promise<void> {
+  recordAutofixOriginalIfRetried(
+    ctx,
+    meta,
+    recorder,
+    autofix,
+    traceId,
+    callerAttribution,
+    requestHeaders,
+    requestId,
+  );
+
   if (failedFallbacks && failedFallbacks.length > 0 && !meta.fallbackFromModel) {
     await handleFallbackExhausted(
       res,
@@ -141,12 +252,20 @@ export async function handleProviderError(
       callerAttribution,
       requestHeaders,
       autofix,
+      requestId,
+      requestDurationMs,
+      apiMode,
     );
     return;
   }
 
   recordSafely(
     recorder.recordProviderError(ctx, errorStatus, errorBody, {
+      requestId,
+      attemptNumber: currentPrimaryAttemptNumber(autofix),
+      attempt: meta.attempt,
+      skipAttempt: meta.providerCallStarted === false,
+      requestDurationMs,
       model: meta.model,
       provider: meta.provider,
       tier: meta.tier,
@@ -165,6 +284,7 @@ export async function handleProviderError(
       headerTierName: meta.header_tier_name,
       headerTierColor: meta.header_tier_color,
       autofix,
+      apiMode,
     }),
     'provider error',
   );
@@ -174,13 +294,14 @@ export async function handleProviderError(
   );
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: 'provider',
       provider: meta.provider,
       model: meta.model,
     }),
-  });
+  };
+  res.json(responseBody);
 }
 
 function handleFallbackExhausted(
@@ -192,19 +313,26 @@ function handleFallbackExhausted(
   errorBody: string,
   failedFallbacks: FailedFallback[],
   recorder: ProxyMessageRecorder,
-  traceId?: string,
-  callerAttribution?: CallerAttribution | null,
-  requestHeaders?: Record<string, string> | null,
-  autofix?: AutofixRecord,
+  traceId: string | undefined,
+  callerAttribution: CallerAttribution | null | undefined,
+  requestHeaders: Record<string, string> | null | undefined,
+  autofix: AutofixRecord | undefined,
+  requestId: string,
+  requestDurationMs?: number,
+  apiMode?: ProxyApiMode,
 ): void {
   const baseTime = Date.now();
+  const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
   recordSafely(
     recorder.recordFailedFallbacks(ctx, meta.tier, meta.model, failedFallbacks, {
+      requestId,
+      firstAttemptNumber: primaryAttemptNumber + 1,
       traceId,
       baseTimeMs: baseTime,
       markHandled: true,
       lastAsError: true,
       authType: meta.auth_type,
+      providerKeyLabel: meta.provider_key_label,
       reason: meta.reason,
       callerAttribution,
       requestHeaders,
@@ -226,19 +354,28 @@ function handleFallbackExhausted(
       primaryTs,
       meta.auth_type,
       {
+        requestId,
+        attemptNumber: primaryAttemptNumber,
+        attempt: meta.primaryAttempt,
+        skipAttempt: meta.primaryProviderCallStarted === false,
+        requestDurationMs,
         provider: meta.provider,
         reason: meta.reason,
         // Exhausted chain: primary connection (meta.tenantProviderId holds it here).
         tenantProviderId: meta.tenantProviderId,
+        providerKeyLabel: meta.provider_key_label,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
-        // Auto-fix ran on this primary before the chain exhausted — stamp its
-        // audit onto the single primary-failure row (no separate `auto_fixed`).
+        httpStatus: errorStatus,
+        terminalHttpStatus: errorStatus,
+        // When a patched retry exists this row is that retry; otherwise it is
+        // the plain original failure carrying only Phoenix's audit.
         autofix,
+        apiMode,
       },
     ),
     'primary failure',
@@ -249,7 +386,7 @@ function handleFallbackExhausted(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
-  res.json({
+  const responseBody = {
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: classified?.source ?? 'manifest',
       code: classified?.code ?? 'fallback_exhausted',
@@ -265,7 +402,8 @@ function handleFallbackExhausted(
         })),
       },
     }),
-  });
+  };
+  res.json(responseBody);
 }
 
 export function recordFallbackFailures(
@@ -276,16 +414,34 @@ export function recordFallbackFailures(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
 ): string | undefined {
   if (!meta.fallbackFromModel) return undefined;
 
   const fallbackBaseTime = Date.now();
   const failures = failedFallbacks ?? [];
+  const primaryAttemptNumber = currentPrimaryAttemptNumber(autofix);
 
   // The primary's auth_type is preserved separately on a fallback-success flow
   // (see RoutingMeta.primaryAuthType / #1173). Older meta shapes only carry
   // `auth_type`, so fall back to it when primaryAuthType is absent.
   const primaryAuthType = meta.primaryAuthType ?? meta.auth_type;
+  recordAutofixOriginalIfRetried(
+    ctx,
+    meta,
+    recorder,
+    autofix,
+    undefined,
+    callerAttribution,
+    requestHeaders,
+    requestId,
+    {
+      model: meta.fallbackFromModel,
+      provider: meta.primaryProvider,
+      authType: primaryAuthType,
+      tenantProviderId: meta.primaryTenantProviderId,
+    },
+  );
   recordSafely(
     recorder.recordPrimaryFailure(
       ctx,
@@ -295,6 +451,10 @@ export function recordFallbackFailures(
       new Date(fallbackBaseTime).toISOString(),
       primaryAuthType,
       {
+        requestId,
+        attemptNumber: primaryAttemptNumber,
+        attempt: meta.primaryAttempt,
+        skipAttempt: meta.primaryProviderCallStarted === false,
         // Use the primary provider explicitly — meta.provider holds the
         // succeeding fallback's provider in this flow, not the primary's.
         provider: meta.primaryProvider,
@@ -308,15 +468,18 @@ export function recordFallbackFailures(
           meta.primaryTenantProviderId === undefined
             ? meta.tenantProviderId
             : meta.primaryTenantProviderId,
+        // meta.provider_key_label holds the winning fallback's label in this
+        // flow, so prefer the preserved primary label (mirrors the id above).
+        providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
         callerAttribution,
         requestHeaders,
         requestParams: meta.request_params,
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
-        // Heal-then-fallback: stamp the Auto-fix audit onto the single primary
-        // row here; `recordAutofixOriginals` is guarded on outcome==='healed'
-        // so it no longer emits a duplicate `auto_fixed` row for this failure.
+        httpStatus: meta.primaryErrorStatus,
+        // A failed patched retry is the primary failure that triggered fallback.
+        // No-patch consultations remain an unmarked original with audit only.
         autofix,
       },
     ),
@@ -326,9 +489,12 @@ export function recordFallbackFailures(
   if (failures.length > 0) {
     recordSafely(
       recorder.recordFailedFallbacks(ctx, meta.tier, meta.fallbackFromModel, failures, {
+        requestId,
+        firstAttemptNumber: primaryAttemptNumber + 1,
         baseTimeMs: fallbackBaseTime,
         markHandled: true,
         authType: primaryAuthType,
+        providerKeyLabel: meta.primaryKeyLabel ?? meta.provider_key_label,
         reason: meta.reason,
         callerAttribution,
         requestHeaders,
@@ -355,10 +521,30 @@ export async function handleStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   initSseHeaders(res, metaHeaders, 200);
 
-  const onClient = undefined;
+  const responsesSequenceTracker =
+    apiMode === 'responses' ? createResponsesSequenceTracker() : null;
+  if (responsesSequenceTracker) responsesSequenceTrackers.set(res, responsesSequenceTracker);
+  const onClient = responsesSequenceTracker
+    ? (chunk: string) => responsesSequenceTracker.feed(chunk)
+    : undefined;
+  const relayOptions = {
+    protocol:
+      forward.wireFormat ??
+      (forward.isGoogle
+        ? forward.isCodeAssist
+          ? ('google_code_assist' as const)
+          : ('google_generate_content' as const)
+        : forward.isAnthropic
+          ? ('anthropic_messages' as const)
+          : forward.isChatGpt || forward.isResponses
+            ? ('openai_responses' as const)
+            : ('openai_chat_completions' as const)),
+    ...(capture ? { onUpstreamChunk: (chunk: string) => capture.appendRaw(chunk) } : {}),
+  };
 
   const messagesTransformer =
     apiMode === 'messages' ? createMessagesStreamTransformer(meta.model) : null;
@@ -381,7 +567,7 @@ export async function handleStreamResponse(
     : (chunk: string) => chunk;
 
   if (apiMode === 'responses' && forward.isResponses) {
-    return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+    return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
   }
 
   if (forward.isGoogle) {
@@ -403,6 +589,7 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (forward.isAnthropic) {
@@ -424,7 +611,13 @@ export async function handleStreamResponse(
     // transformer runs purely as a tap — thinking-block cache via callback
     // and OpenAI-shape usage parsed off its return value by pipePassthrough.
     if (apiMode === 'messages') {
-      return pipePassthrough(forward.response.body!, res, anthropicTransformer, onClient);
+      return pipePassthrough(
+        forward.response.body!,
+        res,
+        anthropicTransformer,
+        onClient,
+        relayOptions,
+      );
     }
     return pipeStream(
       forward.response.body!,
@@ -435,6 +628,7 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (forward.isChatGpt) {
@@ -450,9 +644,14 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
-  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(meta.provider, meta.model);
+  const reasoningStreamFormat = getOpenAiReasoningStreamFormat(
+    meta.provider,
+    meta.model,
+    reasoningCache?.modelCatalog,
+  );
   if (reasoningStreamFormat) {
     const onReasoningContent =
       reasoningCache && sessionKey
@@ -473,12 +672,13 @@ export async function handleStreamResponse(
       },
       finalize,
       onClient,
+      relayOptions,
     );
   }
   if (apiMode === 'responses' || apiMode === 'messages') {
-    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient);
+    return pipeStream(forward.response.body!, res, toClientChunk, finalize, onClient, relayOptions);
   }
-  return pipeStream(forward.response.body!, res, undefined, undefined, onClient);
+  return pipeStream(forward.response.body!, res, undefined, undefined, onClient, relayOptions);
 }
 
 function cacheReasoningContent(
@@ -493,8 +693,7 @@ function cacheReasoningContent(
   const firstChoice = choices[0];
   if (!firstChoice || typeof firstChoice !== 'object' || Array.isArray(firstChoice)) return;
   const message = (firstChoice as Record<string, unknown>).message as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   if (!message) return;
   const reasoningContent = message.reasoning_content;
   if (typeof reasoningContent !== 'string' || !reasoningContent) return;
@@ -523,8 +722,10 @@ export async function handleNonStreamResponse(
   thinkingCache?: ThinkingBlockCache,
   apiMode: ProxyApiMode = 'chat_completions',
   reasoningCache?: ReasoningContentCache,
+  capture?: AttemptRecordingCapture,
 ): Promise<StreamUsage | null> {
   let responseBody: unknown;
+  const recordedResponse = capture ? forward.response.clone() : null;
 
   if (apiMode === 'responses' && forward.isResponses) {
     responseBody = await readNativeResponsesBody(forward.response);
@@ -533,8 +734,7 @@ export async function handleNonStreamResponse(
     const googleData = forward.isCodeAssist ? unwrapCodeAssistResponse(rawData) : rawData;
     responseBody = providerClient.convertGoogleResponse(googleData, meta.model);
     const sigs = (responseBody as Record<string, unknown>)?._extractedSignatures as
-      | ExtractedSignature[]
-      | undefined;
+      ExtractedSignature[] | undefined;
     if (sigs && signatureCache && sessionKey) {
       for (const s of sigs) signatureCache.store(sessionKey, s.toolCallId, s.signature);
     }
@@ -562,8 +762,7 @@ export async function handleNonStreamResponse(
     const anthropicData = (await forward.response.json()) as Record<string, unknown>;
     responseBody = providerClient.convertAnthropicResponse(anthropicData, meta.model);
     const extracted = (responseBody as Record<string, unknown>)?._extractedThinkingBlocks as
-      | ExtractedThinkingBlocks
-      | undefined;
+      ExtractedThinkingBlocks | undefined;
     if (extracted && thinkingCache && sessionKey) {
       thinkingCache.store(
         sessionKey,
@@ -580,7 +779,7 @@ export async function handleNonStreamResponse(
     responseBody = providerClient.collectChatGptSseResponse(sseText, meta.model);
   } else {
     responseBody = await forward.response.json();
-    if (supportsReasoningContent(meta.provider, meta.model)) {
+    if (supportsReasoningContent(meta.provider, meta.model, reasoningCache?.modelCatalog)) {
       cacheReasoningContent(responseBody, reasoningCache, sessionKey);
     }
   }
@@ -603,6 +802,24 @@ export async function handleNonStreamResponse(
   const body = responseBody as Record<string, unknown> | undefined;
   const streamUsage = parseUsageObject(body?.usage);
 
+  if (recordedResponse && capture) {
+    const raw = await recordedResponse.text();
+    const contentType = recordedResponse.headers.get('content-type') ?? '';
+    const trimmed = raw.trimStart();
+    if (
+      contentType.includes('text/event-stream') ||
+      trimmed.startsWith('event:') ||
+      trimmed.startsWith('data:')
+    ) {
+      capture.setRaw(raw);
+    } else {
+      try {
+        capture.setJson(JSON.parse(raw) as unknown);
+      } catch {
+        capture.setJson(raw);
+      }
+    }
+  }
   res.status(200);
   setHeaders(res, metaHeaders);
   res.json(responseBody);
@@ -637,10 +854,18 @@ export function recordSuccess(
   callerAttribution?: CallerAttribution | null,
   requestHeaders?: Record<string, string> | null,
   autofix?: AutofixRecord,
+  requestId: string = uuid(),
+  attemptNumber: number = currentPrimaryAttemptNumber(autofix),
+  apiMode?: ProxyApiMode,
 ): void {
   if (meta.fallbackFromModel && fallbackSuccessTs) {
+    const requestDurationMs = startTime == null ? undefined : Date.now() - startTime;
     recordSafely(
       recorder.recordFallbackSuccess(ctx, meta.model, meta.tier, {
+        requestId,
+        attemptNumber,
+        attempt: meta.attempt,
+        requestDurationMs,
         traceId,
         provider: meta.provider,
         fallbackFromModel: meta.fallbackFromModel,
@@ -657,6 +882,8 @@ export function recordSuccess(
         headerTierId: meta.header_tier_id,
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
+        autofix,
+        apiMode,
       }),
       'fallback success',
     );
@@ -665,6 +892,9 @@ export function recordSuccess(
     const durationMs = startTime ? Date.now() - startTime : undefined;
     recordSafely(
       recorder.recordSuccessMessage(ctx, meta.model, meta.tier, meta.reason, usage, {
+        requestId,
+        attemptNumber,
+        attempt: meta.attempt,
         traceId,
         provider: meta.provider,
         authType: meta.auth_type,
@@ -680,40 +910,24 @@ export function recordSuccess(
         headerTierName: meta.header_tier_name,
         headerTierColor: meta.header_tier_color,
         autofix,
+        apiMode,
       }),
       'success message',
     );
   }
 
-  // Record the failed original as its own `auto_fixed` row ONLY when healing
-  // actually succeeded — that row is linked to the retry above via groupId and
-  // is the sole record of the pre-heal failure. When healing did NOT heal, the
-  // primary failure is already recorded exactly once elsewhere (the terminal
-  // error row, or the `fallback_error` row when a fallback took over), both of
-  // which carry the Auto-fix stamp — so emitting an `auto_fixed` row here too
-  // would double-count the same failure (and under the wrong, fallback model).
-  // `!meta.fallbackFromModel`: if a fallback took over after the heal, `meta.model`
-  // here is the fallback route, and the fallback path already stamps the pre-heal
-  // failure with the Auto-fix audit — so recording a standalone `auto_fixed` row
-  // now would double-count it under the wrong model.
-  if (autofix && autofix.outcome === 'healed' && !meta.fallbackFromModel) {
-    recordSafely(
-      recorder.recordAutofixOriginals(ctx, meta.model, meta.tier, autofix, {
-        provider: meta.provider,
-        reason: meta.reason,
-        authType: meta.auth_type,
-        traceId,
-        callerAttribution,
-        requestHeaders,
-        requestParams: meta.request_params,
-        specificityCategory: meta.specificity_category,
-        providerKeyLabel: meta.provider_key_label,
-        tenantProviderId: meta.tenantProviderId,
-        headerTierId: meta.header_tier_id,
-        headerTierName: meta.header_tier_name,
-        headerTierColor: meta.header_tier_color,
-      }),
-      'autofix originals',
+  // Fallback-success flows recorded the original and failed retry above in
+  // recordFallbackFailures. A direct Auto-fix success records its original here.
+  if (!meta.fallbackFromModel) {
+    recordAutofixOriginalIfRetried(
+      ctx,
+      meta,
+      recorder,
+      autofix,
+      traceId,
+      callerAttribution,
+      requestHeaders,
+      requestId,
     );
   }
 }

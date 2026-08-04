@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { defineConfig, type ProxyOptions } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 import { codecovVitePlugin } from '@codecov/vite-plugin';
+import { resolveWingmanDrawerUrl, wingmanDevProxy } from './wingman-dev-proxy';
 
 // Dial the backend on 127.0.0.1, not `localhost`. The dev backend binds
 // 127.0.0.1 (IPv4), but on dual-stack machines `localhost` can resolve to
@@ -47,6 +48,14 @@ const manifestVersion = (() => {
   }
 })();
 
+// The hosted Wingman SPA, and the loopback port the dev proxy republishes it
+// on. `WINGMAN_PORT` is the same knob the backend reads for its dev CORS
+// allow-list and CSP `frame-src`, so the three stay in step.
+const HOSTED_WINGMAN_URL = 'https://wingman.manifest.build';
+const wingmanUpstream = process.env.VITE_WINGMAN_URL || HOSTED_WINGMAN_URL;
+const wingmanPort = Number(process.env.WINGMAN_PORT || process.env.VITE_WINGMAN_PORT || 3002);
+const wingmanDrawerUrl = resolveWingmanDrawerUrl(wingmanUpstream, wingmanPort);
+
 export default defineConfig(({ command }) => ({
   define: {
     __MANIFEST_VERSION__: JSON.stringify(manifestVersion),
@@ -56,12 +65,16 @@ export default defineConfig(({ command }) => ({
     // cloud, anything else — gets `__DEV_MODE__ = false`, so esbuild
     // dead-code-eliminates the FAB, drawer, and badge.
     __DEV_MODE__: JSON.stringify(command === 'serve'),
-    // Optional build-time override for the Wingman drawer; otherwise it
-    // points at the hosted SPA at https://wingman.manifest.build.
-    __WINGMAN_URL__: JSON.stringify(process.env.VITE_WINGMAN_URL || ''),
+    // Where the drawer's iframe points. In dev this is the loopback origin the
+    // Wingman dev proxy serves on, so the iframe and the gateway share an
+    // address space — a public HTTPS iframe cannot reach a localhost gateway
+    // (see wingman-dev-proxy.ts). Empty in a production build, where the
+    // drawer is dead-code-eliminated anyway.
+    __WINGMAN_URL__: JSON.stringify(command === 'serve' ? wingmanDrawerUrl : ''),
   },
   plugins: [
     solidPlugin(),
+    wingmanDevProxy({ port: wingmanPort, upstream: wingmanUpstream }),
     codecovVitePlugin({
       enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
       bundleName: 'manifest-frontend',

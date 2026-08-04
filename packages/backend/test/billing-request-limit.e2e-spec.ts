@@ -3,13 +3,12 @@ import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { createTestApp, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { PlanService } from '../src/billing/plan.service';
+import { REQUEST_USAGE_CUTOVER_STATE } from '../src/billing/request-quota-window';
 
-// Enforces the monthly routed-request cap on the /v1/* proxy. Billing env must
-// be set BEFORE the app is created so isBillingEnabled() resolves true. We drive
-// the block with PLAN_LIMIT_FREE_REQUESTS=0 so the gate trips on the first
-// request — no need to seed thousands of agent_messages rows or stub a provider
-// (the gate runs before any upstream call). Env is restored in afterAll so it
-// can't leak into sibling e2e files sharing the --runInBand worker.
+// Enforces the monthly routed-request cap on the /v1/* proxy. The schema-only
+// harness enables billing after app init because it does not install the Cloud
+// quota trigger. We drive the block with PLAN_LIMIT_FREE_REQUESTS=0 so the gate
+// trips before any upstream call. Env is restored in afterAll.
 let app: INestApplication;
 let ds: DataSource;
 
@@ -28,7 +27,7 @@ async function waitForManifestBlockCount(tenantId: string, minimum: number): Pro
   do {
     const rows = await ds.query(
       `SELECT COUNT(*)::int AS n
-         FROM agent_messages
+         FROM requests
         WHERE tenant_id = $1
           AND error_origin = 'policy'
           AND error_class = 'plan_request_limit_exceeded'
@@ -45,13 +44,16 @@ async function waitForManifestBlockCount(tenantId: string, minimum: number): Pro
 beforeAll(async () => {
   for (const key of BILLING_ENV_VARS) envSnapshots[key] = process.env[key];
   process.env['MANIFEST_MODE'] = 'cloud';
-  process.env['STRIPE_SECRET_KEY'] = 'sk_test_dummy';
-  process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_dummy';
-  process.env['STRIPE_PRO_PRICE_ID'] = 'price_dummy';
   process.env['PLAN_LIMIT_FREE_REQUESTS'] = '0';
+  delete process.env['STRIPE_SECRET_KEY'];
+  delete process.env['STRIPE_WEBHOOK_SECRET'];
+  delete process.env['STRIPE_PRO_PRICE_ID'];
 
   app = await createTestApp();
   ds = app.get(DataSource);
+  process.env['STRIPE_SECRET_KEY'] = 'sk_test_dummy';
+  process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_dummy';
+  process.env['STRIPE_PRO_PRICE_ID'] = 'price_dummy';
   // better-auth's runMigrations doesn't run in the e2e harness, so create the
   // Stripe plugin's subscription table shape ourselves (PlanService.getPlan
   // queries it). camelCase quoted columns match the real schema.
@@ -66,6 +68,12 @@ beforeAll(async () => {
     "periodEnd" timestamptz,
     "cancelAtPeriodEnd" boolean DEFAULT false
   )`);
+  await ds.query(
+    `INSERT INTO "backfill_state" ("name", "completed_at")
+     VALUES ($1, clock_timestamp() AT TIME ZONE 'UTC')
+     ON CONFLICT ("name") DO NOTHING`,
+    [REQUEST_USAGE_CUTOVER_STATE],
+  );
 });
 
 afterAll(async () => {
@@ -81,6 +89,19 @@ afterAll(async () => {
 
 describe('request limit gate (/v1 proxy)', () => {
   it('blocks a free tenant over the monthly request cap with a real 402 for tool callers', async () => {
+    const tenantRows = await ds.query(`SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1`, [
+      TEST_USER_ID,
+    ]);
+    const tenantId = tenantRows[0].id;
+    const blocksBefore = await ds.query(
+      `SELECT COUNT(*)::int AS n
+         FROM requests
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'plan_request_limit_exceeded'
+          AND error_http_status = 402`,
+      [tenantId],
+    );
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')
       .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
@@ -91,6 +112,9 @@ describe('request limit gate (/v1 proxy)', () => {
     expect(res.body.error.type).toBe('insufficient_quota');
     expect(res.body.error.message).toContain('Upgrade to Pro');
     expect(res.body.limit).toBe(0);
+    expect(await waitForManifestBlockCount(tenantId, blocksBefore[0].n + 1)).toBe(
+      blocksBefore[0].n + 1,
+    );
   });
 
   it('records the blocked request as a visible Manifest failure without counting it toward quota', async () => {
@@ -100,15 +124,17 @@ describe('request limit gate (/v1 proxy)', () => {
     const tenantId = tenantRows[0].id;
     const monthStartMs = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1);
     const planService = app.get(PlanService);
-    planService.invalidateRequestCountCache(tenantId);
     const billableBefore = await planService.countRequestsSince(tenantId, monthStartMs);
-    const before = await ds.query(
+    const before = await ds.query(`SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`, [
+      tenantId,
+    ]);
+    const attemptsBefore = await ds.query(
       `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
     );
     const manifestBlocksBefore = await ds.query(
       `SELECT COUNT(*)::int AS n
-         FROM agent_messages
+         FROM requests
         WHERE tenant_id = $1
           AND error_origin = 'policy'
           AND error_class = 'plan_request_limit_exceeded'
@@ -125,13 +151,16 @@ describe('request limit gate (/v1 proxy)', () => {
       tenantId,
       manifestBlocksBefore[0].n + 1,
     );
-    const after = await ds.query(
+    const after = await ds.query(`SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`, [
+      tenantId,
+    ]);
+    const attemptsAfter = await ds.query(
       `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
     );
     const latestBlock = await ds.query(
-      `SELECT status, error_origin, error_class, error_http_status, routing_reason
-         FROM agent_messages
+      `SELECT status, error_origin, error_class, error_http_status, error_code
+         FROM requests
         WHERE tenant_id = $1
           AND error_origin = 'policy'
           AND error_class = 'plan_request_limit_exceeded'
@@ -140,18 +169,18 @@ describe('request limit gate (/v1 proxy)', () => {
         LIMIT 1`,
       [tenantId],
     );
-    planService.invalidateRequestCountCache(tenantId);
     const billableAfter = await planService.countRequestsSince(tenantId, monthStartMs);
 
     expect(after[0].n).toBe(before[0].n + 1);
+    expect(attemptsAfter[0].n).toBe(attemptsBefore[0].n);
     expect(manifestBlocksAfter).toBe(manifestBlocksBefore[0].n + 1);
     expect(latestBlock[0]).toEqual(
       expect.objectContaining({
-        status: 'error',
+        status: 'failed',
         error_origin: 'policy',
         error_class: 'plan_request_limit_exceeded',
         error_http_status: 402,
-        routing_reason: 'plan_request_limit_exceeded',
+        error_code: 'M204',
       }),
     );
     expect(billableAfter).toBe(billableBefore);

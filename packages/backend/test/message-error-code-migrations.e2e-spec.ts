@@ -6,6 +6,7 @@
  */
 import { DataSource } from 'typeorm';
 import { AddMessageErrorCode1800200000000 } from '../src/database/migrations/1800200000000-AddMessageErrorCode';
+import { AddRequestsAndProviderAttempts1801000000000 } from '../src/database/migrations/1801000000000-AddRequestsAndProviderAttempts';
 
 const TENANT = 'errcode-tenant-1';
 const AGENT = 'errcode-agent-1';
@@ -102,6 +103,10 @@ describe('AddMessageErrorCode migration — data backfill (e2e)', () => {
     });
     await ds.initialize();
     await ds.runMigrations({ transaction: 'each' });
+
+    const schemaQr = ds.createQueryRunner();
+    await new AddRequestsAndProviderAttempts1801000000000().down(schemaQr);
+    await schemaQr.release();
 
     // Back to the pre-migration schema, then seed rows exactly as the old proxy
     // wrote them: canned stubs carrying provider='manifest' / tier='simple'.

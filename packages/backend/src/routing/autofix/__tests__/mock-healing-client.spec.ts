@@ -10,6 +10,7 @@ function makeRequest(error: PhoenixProviderError, request: Record<string, unknow
     traceId: 'trace-1',
     tenantId: 'tenant-1',
     provider: 'openai',
+    authType: 'api_key',
     api: 'responses',
     request,
     response: { statusCode: 400, error },

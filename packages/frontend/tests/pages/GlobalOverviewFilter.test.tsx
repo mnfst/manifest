@@ -17,11 +17,12 @@ const apiMocks = vi.hoisted(() => ({
   getOverviewAgentUsage: vi.fn(),
   getOverviewProviderUsage: vi.fn(),
   getBillingStatus: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 const sseMocks = vi.hoisted(() => ({
   bumpAgent: undefined as undefined | (() => void),
-  bumpMessage: undefined as undefined | (() => void),
+  bumpAnalytics: undefined as undefined | (() => void),
   bumpRouting: undefined as undefined | (() => void),
   reset: undefined as undefined | (() => void),
 }));
@@ -31,6 +32,7 @@ let filterSelectProps: {
   onSelectAll: () => void;
   items: string[];
 } | null = null;
+let providerChartProps: Record<string, unknown> | null = null;
 let mockSearchParams: Record<string, string | undefined> = {};
 
 vi.mock('@solidjs/meta', () => ({
@@ -43,7 +45,7 @@ vi.mock('@solidjs/router', () => ({
       {props.children}
     </a>
   ),
-  useNavigate: () => vi.fn(),
+  useNavigate: () => apiMocks.navigate,
   useSearchParams: () => [mockSearchParams],
 }));
 
@@ -60,9 +62,66 @@ vi.mock('../../src/services/api.js', async () => {
 });
 
 vi.mock('../../src/services/api/analytics.js', () => ({
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
+  totalAttemptsTooltip: (doctor: boolean) =>
+    doctor
+      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
+  MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
+  PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D:
+    'Successful attempts over all attempts for this connection, over the last 30 days.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this connection, on the filtered period.',
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this harness on this connection.',
+  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
+  HARNESS_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
+    !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
+  selfHealedCount: (row: { autofixed: number; fallback_saves?: number }) =>
+    row.autofixed + (row.fallback_saves ?? 0),
+  successRate: (row: { requests: number; succeeded?: number }) =>
+    !row.requests || row.succeeded == null ? null : row.succeeded / row.requests,
+  getPerAgentReliability: () =>
+    Promise.resolve([
+      {
+        agent_name: 'demo-agent',
+        requests: 18,
+        failed: 1,
+        autofixed: 1,
+        fallback_saves: 1,
+        succeeded: 17,
+      },
+    ]),
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
   getOverviewAgentUsage: (...args: unknown[]) => apiMocks.getOverviewAgentUsage(...args),
   getOverviewProviderUsage: (...args: unknown[]) => apiMocks.getOverviewProviderUsage(...args),
+  getAttemptStats: () =>
+    Promise.resolve({
+      total_attempts: { value: 20, previous: 10 },
+      fallbacked_attempts: { value: 2, previous: 1 },
+    }),
+  getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () =>
+    Promise.resolve([
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        key_label: 'Default',
+        attempts: 10,
+        succeeded: 7,
+      },
+    ]),
+  getPerModelReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -97,7 +156,10 @@ vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
 }));
 
 vi.mock('../../src/components/ProviderChartCard.jsx', () => ({
-  default: () => <div data-testid="provider-chart-card" />,
+  default: (props: Record<string, unknown>) => {
+    providerChartProps = props;
+    return <div data-testid="provider-chart-card" />;
+  },
 }));
 
 vi.mock('../../src/components/Sparkline.jsx', () => ({
@@ -159,17 +221,17 @@ vi.mock('../../src/components/GlobalOverviewSkeleton.jsx', () => ({
 vi.mock('../../src/services/sse.js', async () => {
   const { createSignal } = await vi.importActual<typeof import('solid-js')>('solid-js');
   const [agentPing, setAgentPing] = createSignal(0);
-  const [messagePing, setMessagePing] = createSignal(0);
+  const [analyticsPing, setAnalyticsPing] = createSignal(0);
   const [routingPing, setRoutingPing] = createSignal(0);
   sseMocks.bumpAgent = () => setAgentPing((n) => n + 1);
-  sseMocks.bumpMessage = () => setMessagePing((n) => n + 1);
+  sseMocks.bumpAnalytics = () => setAnalyticsPing((n) => n + 1);
   sseMocks.bumpRouting = () => setRoutingPing((n) => n + 1);
   sseMocks.reset = () => {
     setAgentPing(0);
-    setMessagePing(0);
+    setAnalyticsPing(0);
     setRoutingPing(0);
   };
-  return { agentPing, messagePing, routingPing };
+  return { agentPing, analyticsPing, routingPing };
 });
 
 vi.mock('../../src/services/scroll-fade.js', () => ({
@@ -215,6 +277,15 @@ const overviewResponse = {
   recent_activity: [],
   has_data: true,
   has_providers: true,
+  request_reliability: {
+    total: 18,
+    successful: 17,
+    success_rate: 94.4,
+    attempt_success_rate: 88.9,
+    manifest_lift_pct: 5.5,
+    recovered: 1,
+    previous_total: 16,
+  },
 };
 
 const providersResponse = {
@@ -263,8 +334,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   sessionStorage.clear();
+  localStorage.setItem('manifest_global_group', 'provider');
   mockIsSelfHosted = false;
   filterSelectProps = null;
+  providerChartProps = null;
   mockSearchParams = {};
   sseMocks.reset?.();
 
@@ -289,52 +362,7 @@ afterEach(() => {
 });
 
 describe('GlobalOverview filter onUnselectAll', () => {
-  it('clears the selection and persists an empty set when "unselect all" fires', async () => {
-    // Default grouping is "provider" → storageKey is global-agent-filter:provider.
-    const { getByTestId } = render(() => <GlobalOverview />);
-
-    // The multi-select renders once 2+ provider series resolve.
-    await waitFor(() => expect(getByTestId('filter-select')).toBeDefined());
-    expect(getByTestId('filter-item-count').textContent).toBe('2');
-
-    // Seed a non-empty persisted selection via "select all" first, so the
-    // unselect actually changes state and writes [].
-    fireEvent.click(getByTestId('filter-select-all'));
-    await waitFor(() =>
-      expect(sessionStorage.getItem('global-agent-filter:provider')).toContain('openai'),
-    );
-
-    // Fire the unselect-all handler (GlobalOverview's inline callback).
-    fireEvent.click(getByTestId('filter-unselect-all'));
-
-    await waitFor(() => expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('[]'));
-  });
-
-  it('swallows a sessionStorage write failure during "unselect all"', async () => {
-    // The persist is wrapped in try/catch; a throwing setItem must not crash
-    // the page (covers the catch branch of onUnselectAll).
-    const { getByTestId } = render(() => <GlobalOverview />);
-    await waitFor(() => expect(getByTestId('filter-select')).toBeDefined());
-
-    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('quota');
-    });
-    try {
-      expect(() => fireEvent.click(getByTestId('filter-unselect-all'))).not.toThrow();
-      // State still cleared even though persistence threw.
-      expect(getByTestId('filter-item-count').textContent).toBe('2');
-    } finally {
-      setItemSpy.mockRestore();
-    }
-  });
-
-  it('exposes the unselect-all callback to FilterSelect', async () => {
-    render(() => <GlobalOverview />);
-    await waitFor(() => expect(filterSelectProps).not.toBeNull());
-    expect(typeof filterSelectProps!.onUnselectAll).toBe('function');
-  });
-
-  it('refetches global usage data when a message SSE ping lands', async () => {
+  it('refetches global usage data when an analytics SSE ping lands', async () => {
     render(() => <GlobalOverview />);
 
     await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(1));
@@ -343,13 +371,78 @@ describe('GlobalOverview filter onUnselectAll', () => {
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(1);
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(1);
 
-    sseMocks.bumpMessage?.();
+    sseMocks.bumpAnalytics?.();
 
     await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalledTimes(2));
     expect(apiMocks.getAgents).toHaveBeenCalledTimes(2);
     expect(apiMocks.getGlobalProviders).toHaveBeenCalledTimes(1);
     expect(apiMocks.getGlobalProviderUsage).toHaveBeenCalledTimes(2);
     expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the skeleton on a range change but not on a background ping refetch', async () => {
+    const { container, queryByTestId } = render(() => <GlobalOverview />);
+
+    // Wait for the initial load to paint the dashboard (skeleton gone).
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+
+    // A background SSE ping refetch keeps the dashboard in place (no skeleton).
+    apiMocks.getOverview.mockReturnValue(new Promise(() => {}));
+    sseMocks.bumpAnalytics?.();
+    await Promise.resolve();
+    expect(queryByTestId('global-overview-skeleton')).toBeNull();
+    expect(container.querySelector('.chart-card')).not.toBeNull();
+
+    // A range change swaps in the skeleton while the new range loads.
+    const rangeSelect = [...container.querySelectorAll('select')].find((s) =>
+      [...s.options].some((o) => o.value === '365d'),
+    ) as HTMLSelectElement;
+    rangeSelect.value = '24h';
+    fireEvent.change(rangeSelect);
+    await waitFor(() => expect(queryByTestId('global-overview-skeleton')).not.toBeNull());
+  });
+
+  it('links the harness total-requests count to the agent-scoped Requests log', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      const link = [...container.querySelectorAll('a')].find(
+        (a) => a.getAttribute('href') === '/messages?agent=demo-agent&range=7d',
+      );
+      expect(link).toBeDefined();
+    });
+  });
+
+  it('links the recovered-requests count to the scoped Requests log', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    const href =
+      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback';
+    const link = await waitFor(() => {
+      const found = [...container.querySelectorAll('a')].find(
+        (candidate) => candidate.getAttribute('href') === href,
+      );
+      expect(found).toBeDefined();
+      return found!;
+    });
+
+    expect(link.textContent).toContain('2');
+    fireEvent.click(link);
+    expect(apiMocks.navigate).toHaveBeenCalledWith(href);
+  });
+
+  it('links the connection failed-attempts count to the scoped Requests log', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => {
+      const link = [...container.querySelectorAll('a')].find((a) =>
+        a.getAttribute('href')?.includes('attempts=has_failed'),
+      );
+      expect(link).toBeDefined();
+      // failed = attempts - succeeded = 3, scoped to the connection + window.
+      expect(link!.textContent).toContain('3');
+      expect(link!.getAttribute('href')).toBe(
+        '/messages?connections=conn-openai&range=7d&attempts=has_failed',
+      );
+    });
   });
 
   it('opens the Pro success modal when upgraded=1 is present', async () => {
@@ -360,7 +453,9 @@ describe('GlobalOverview filter onUnselectAll', () => {
       render(() => <GlobalOverview />);
 
       await waitFor(() => expect(localStorage.getItem('manifest_plan_chosen_u1')).toBe('1'));
-      await waitFor(() => expect(document.body.textContent).toContain("You're now on the Pro plan"));
+      await waitFor(() =>
+        expect(document.body.textContent).toContain("You're now on the Pro plan"),
+      );
 
       await waitFor(() => expect(document.querySelector('.modal-backdrop')).not.toBeNull());
       fireEvent.click(document.querySelector('.modal-backdrop')!);
@@ -369,5 +464,19 @@ describe('GlobalOverview filter onUnselectAll', () => {
     } finally {
       replaceState.mockRestore();
     }
+  });
+
+  it('opens the user-discovery modal after agents load and dismisses it', async () => {
+    render(() => <GlobalOverview />);
+
+    await waitFor(() => expect(document.body.textContent).toContain('Book my slot to get $25'));
+
+    const later = [...document.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Maybe later',
+    ) as HTMLButtonElement;
+    fireEvent.click(later);
+
+    expect(localStorage.getItem('manifest:user-discovery-modal-dismissed:v1')).toBe('true');
+    await waitFor(() => expect(document.body.textContent).not.toContain('Book my slot to get $25'));
   });
 });

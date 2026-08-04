@@ -1,3 +1,7 @@
+import {
+  getManagedFreeLiteLlmBaseUrl,
+  MANAGED_FREE_PROVIDER_CONFIGS,
+} from '../../common/constants/managed-free-providers';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import {
@@ -119,6 +123,7 @@ const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const NOUS_PORTAL_BASE = 'https://inference-api.nousresearch.com';
 const NVIDIA_NIM_BASE = 'https://integrate.api.nvidia.com';
 const FIREWORKS_INFERENCE_BASE = 'https://api.fireworks.ai/inference';
+const HUGGING_FACE_INFERENCE_BASE = 'https://router.huggingface.co';
 const PIONEER_BASE = 'https://api.pioneer.ai';
 const chatgptSubscriptionHeaders = (apiKey: string) => ({
   Authorization: `Bearer ${apiKey}`,
@@ -126,6 +131,21 @@ const chatgptSubscriptionHeaders = (apiKey: string) => ({
   originator: CODEX_CLI_ORIGINATOR,
   'user-agent': CODEX_CLI_USER_AGENT,
 });
+
+const MANAGED_FREE_ENDPOINTS: Record<string, ProviderEndpoint> = Object.fromEntries(
+  MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [
+    config.id,
+    {
+      get baseUrl() {
+        return getManagedFreeLiteLlmBaseUrl();
+      },
+      buildHeaders: openaiHeaders,
+      buildPath: openaiPath,
+      format: 'openai',
+      ...openaiStreamUsage,
+    },
+  ]),
+);
 
 export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   openai: {
@@ -226,6 +246,13 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   },
   groq: {
     baseUrl: 'https://api.groq.com/openai',
+    buildHeaders: openaiHeaders,
+    buildPath: openaiPath,
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
+  huggingface: {
+    baseUrl: HUGGING_FACE_INFERENCE_BASE,
     buildHeaders: openaiHeaders,
     buildPath: openaiPath,
     format: 'openai',
@@ -415,6 +442,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  ...MANAGED_FREE_ENDPOINTS,
   ollama: {
     baseUrl: OLLAMA_HOST,
     buildHeaders: () => ({ 'Content-Type': 'application/json' }),

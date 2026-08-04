@@ -77,6 +77,7 @@ vi.mock('../../src/components/Sparkline.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => 0,
+  analyticsPing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
   refreshAgents: vi.fn(),
@@ -233,7 +234,7 @@ describe('Workspace', () => {
     const { container } = render(() => <Workspace />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Tokens');
-      expect(container.textContent).toContain('Messages');
+      expect(container.textContent).toContain('Requests');
     });
   });
 

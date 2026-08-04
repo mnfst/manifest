@@ -123,6 +123,7 @@ describe('formatErrorClass', () => {
     expect(formatErrorClass('rate_limit')).toBe('Rate limit');
     expect(formatErrorClass('billing')).toBe('Billing');
     expect(formatErrorClass('no_provider_key')).toBe('Missing API key');
+    expect(formatErrorClass('subscription_credentials_unusable')).toBe('Subscription credentials');
     expect(formatErrorClass('limit_exceeded')).toBe('Limit exceeded');
     expect(formatErrorClass('plan_request_limit_exceeded')).toBe('Plan request limit');
     expect(formatErrorClass('server_error')).toBe('Server error');

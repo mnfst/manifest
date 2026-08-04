@@ -14,11 +14,12 @@ import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.s
 import { ModelDiscoveryService } from '../src/model-discovery/model-discovery.service';
 
 let app: INestApplication;
+let ds: DataSource;
 
 beforeAll(async () => {
   app = await createTestApp();
 
-  const ds = app.get(DataSource);
+  ds = app.get(DataSource);
 
   // Populate PricingSyncService cache with gpt-4o-mini pricing (use prefixed key
   // so ModelPricingCacheService.inferProvider() resolves the correct provider name)
@@ -157,6 +158,55 @@ describe('Proxy E2E — /v1/chat/completions', () => {
 
     expect(res.body.error.type).toBe('invalid_request_error');
     expect(res.body.error.message).toContain('messages');
+  });
+
+  it('#2494 returns M101 when an auto route points at a disconnected provider', async () => {
+    const staleRoute = JSON.stringify({
+      provider: 'opencode-go',
+      authType: 'api_key',
+      model: 'glm-5.2',
+    });
+    const restoredRoute = JSON.stringify({
+      provider: 'openai',
+      authType: 'api_key',
+      model: 'gpt-4o-mini',
+    });
+    const routingCache = app.get(RoutingCacheService);
+
+    await ds.query(`UPDATE agents SET complexity_routing_enabled = false WHERE id = $1`, [
+      TEST_AGENT_ID,
+    ]);
+    await ds.query(
+      `UPDATE tier_assignments
+       SET override_route = NULL, auto_assigned_route = $1::jsonb, fallback_routes = NULL
+       WHERE agent_id = $2 AND tier = 'default'`,
+      [staleRoute, TEST_AGENT_ID],
+    );
+    routingCache.invalidateAgent(TEST_AGENT_ID);
+    routingCache.invalidateTenant(TEST_TENANT_ID);
+
+    try {
+      const res = await bearer(api().post('/v1/responses'))
+        .send({ model: 'auto', input: 'Hello', store: false })
+        .expect(200);
+      const body = JSON.stringify(res.body);
+
+      expect(body).toContain('M101');
+      expect(body).not.toContain('M100');
+      expect(body).not.toContain('opencode-go');
+    } finally {
+      await ds.query(`UPDATE agents SET complexity_routing_enabled = true WHERE id = $1`, [
+        TEST_AGENT_ID,
+      ]);
+      await ds.query(
+        `UPDATE tier_assignments
+         SET override_route = $1::jsonb, auto_assigned_route = NULL, fallback_routes = NULL
+         WHERE agent_id = $2 AND tier = 'default'`,
+        [restoredRoute, TEST_AGENT_ID],
+      );
+      routingCache.invalidateAgent(TEST_AGENT_ID);
+      routingCache.invalidateTenant(TEST_TENANT_ID);
+    }
   });
 
   it('returns HTTP 400 when messages array is empty', async () => {

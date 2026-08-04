@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { CustomProviderService } from './custom-provider/custom-provider.service';
@@ -11,14 +11,17 @@ import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import {
   inputModalitiesFromCapabilities,
-  mergeModelCapabilities,
-  modelSupportsStreaming,
+  resolveModelCapabilityMetadata,
 } from '../model-discovery/model-capabilities';
 import {
   AgentNameParamDto,
   AgentProviderParamDto,
   RemoveProviderQueryDto,
 } from './dto/routing.dto';
+import {
+  CLOUD_LOCAL_PROVIDER_MESSAGE,
+  isProviderAvailableForDeployment,
+} from '../common/utils/provider-availability';
 
 function formatModelSlug(slug: string): string {
   return slug.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
@@ -104,6 +107,9 @@ export class ModelController {
 
   @Post('ollama/sync')
   async syncOllama() {
+    if (!isProviderAvailableForDeployment('ollama')) {
+      throw new BadRequestException(CLOUD_LOCAL_PROVIDER_MESSAGE);
+    }
     return this.ollamaSync.sync();
   }
 
@@ -127,28 +133,13 @@ export class ModelController {
       models.map(async (m) => {
         const isCustom = CustomProviderService.isCustom(m.provider);
         const authType = m.authType ?? 'api_key';
-        const capabilities = await this.providerParamSpecs.getCapabilities(
-          m.provider,
-          authType,
-          m.id,
-        );
-        // Some routable ids proxy another provider's model namespace (gateway
-        // ids, Bedrock vendor-prefixed ids). Resolve that provenance for
-        // metadata only; the routable provider/model below stay unchanged.
-        const capId = resolveProviderMetadataIdentity(m.provider, m.id);
-        const capProvider = capId.provider ?? m.provider;
-        const modelsDevEntry = this.modelsDevSync.lookupModel(capProvider, capId.model);
-        const modelsDevCapabilities = modelsDevEntry?.capabilities;
-        const modelCapabilities = mergeModelCapabilities(
-          m.capabilities,
-          modelsDevCapabilities,
-          capabilities,
-          modelSupportsStreaming(capProvider, capId.model) ? ['stream'] : undefined,
-        );
+        const {
+          capabilities: modelCapabilities,
+          inputModalities: knownInputModalities,
+          modelsDevEntry,
+        } = await resolveModelCapabilityMetadata(m, this.providerParamSpecs, this.modelsDevSync);
         const inputModalities =
-          modelsDevEntry?.inputModalities ??
-          m.inputModalities ??
-          inputModalitiesFromCapabilities(modelCapabilities);
+          knownInputModalities ?? inputModalitiesFromCapabilities(modelCapabilities);
         // OpenCode Go bills a per-request slice of its dollar quota rather than
         // per token, so surface that cost; other subscriptions stay flat-fee.
         const costPerRequest =

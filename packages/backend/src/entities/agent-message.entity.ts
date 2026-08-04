@@ -12,8 +12,9 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 @Index(['tenant_id', 'trace_id'])
 @Index(['tenant_id', 'model'])
 @Index(['tenant_id', 'agent_id', 'status'])
-// Per-completion success dedup (ProxyMessageDedup.findExistingSuccessMessage)
-// filters tenant_id + agent_id + model + status='ok' and orders by timestamp.
+// Originally added for the per-completion success dedup, which is gone. Kept
+// because the planner still picks it for other tenant+agent+model reads; at
+// ~1.7 GB it is a drop candidate once those are attributed to another index.
 @Index(['tenant_id', 'agent_id', 'model', 'status', 'timestamp'])
 // Per-connection analytics scope by the exact key that served each message
 // (tenant_provider_id) ordered by recency, and the FK below resolves its
@@ -26,6 +27,21 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 export class AgentMessage {
   @PrimaryColumn('varchar')
   id!: string;
+
+  /** Parent caller request. NULL only while the historical backfill is running. */
+  @Column('varchar', { nullable: true })
+  request_id!: string | null;
+
+  /**
+   * Positive provider-call start order within the parent Request. NULL only for
+   * legacy rows that have not been assigned an unambiguous order.
+   */
+  @Column('integer', { nullable: true })
+  attempt_number!: number | null;
+
+  /** External S3/filesystem object for this Provider Attempt's exact payload. */
+  @Column('varchar', { nullable: true })
+  recording_key!: string | null;
 
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
@@ -63,7 +79,7 @@ export class AgentMessage {
   @Column('decimal', { precision: 10, scale: 6, nullable: true })
   cost_usd!: number | null;
 
-  @Column('varchar', { default: 'ok' })
+  @Column('varchar', { default: 'pending' })
   status!: string;
 
   @Column('varchar', { nullable: true })
@@ -95,8 +111,9 @@ export class AgentMessage {
   /**
    * WHAT kind of failure it was (normalized): 'rate_limit' | 'auth' |
    * 'invalid_request' | 'billing' | 'server_error' | 'timeout' | 'network' |
-   * 'no_provider' | 'no_provider_key' | 'limit_exceeded' |
-   * 'plan_request_limit_exceeded' | 'internal' | … A rate limit is a *class*
+   * 'no_provider' | 'no_provider_key' | 'local_provider_unavailable' |
+   * 'limit_exceeded' | 'plan_request_limit_exceeded' | 'internal' | … A rate
+   * limit is a *class*
    * of error here, not a top-level status. NULL on success.
    */
   @Column('varchar', { nullable: true })
@@ -221,9 +238,9 @@ export class AgentMessage {
   @Column('jsonb', { nullable: true })
   autofix_operations!: object | null;
 
-  // Phoenix's own identifiers for the heal decision behind this row
-  // ({ issueId, patchId, healAttemptId }) — lets a Manifest message be
-  // cross-referenced with the healing service's issue/patch timeline.
-  @Column('jsonb', { nullable: true })
-  autofix_phoenix!: object | null;
+  // Phoenix's decision behind this attempt ({ status, issueId, patchId,
+  // healAttemptId, explanation }). Keep the physical legacy column name so
+  // replicas from the previous release can keep writing during a rolling deploy.
+  @Column('jsonb', { name: 'autofix_phoenix', nullable: true })
+  autofix_decision!: object | null;
 }

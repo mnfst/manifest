@@ -31,11 +31,22 @@ export {
   OK_STATUS,
   RATE_LIMITED_STATUS,
   SUPERSEDED_STATUS,
+  SUPERSEDED_STATUSES,
+  AUTOFIX_ORIGINAL_STATUS,
+  PENDING_STATUS,
+  CANCELLED_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+  REQUEST_STATUSES,
+  ATTEMPT_STATUSES,
   TRANSPORT_NETWORK_HTTP_STATUS,
   TRANSPORT_TIMEOUT_HTTP_STATUS,
   classifyHttpErrorClass,
   classifyMessageError,
   isManifestErrorOrigin,
+  normalizeStatus,
+  isSuccessStatus,
+  isFailedStatus,
 } from './error-taxonomy';
 export type {
   ErrorOrigin,
@@ -43,7 +54,11 @@ export type {
   ManifestErrorOrigin,
   MessageErrorSignals,
   MessageErrorClassification,
+  RequestStatus,
+  AttemptStatus,
 } from './error-taxonomy';
+export { isAnthropicExtraUsageError } from './provider-error-semantics';
+export type { ProviderErrorSignals } from './provider-error-semantics';
 export { MANIFEST_ERRORS_DOCS_BASE, manifestErrorDocsUrl } from './manifest-error-docs';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
 export type { ResponseMode } from './response-mode';
@@ -100,6 +115,7 @@ export {
 } from './model-params-scope';
 export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { API_KEY_PREFIX } from './api-key';
+export { MAX_KEYS_PER_PROVIDER } from './provider-limits';
 export {
   FALLBACK_KEY_DELIMITER,
   parseFallbackEntry,
@@ -131,7 +147,6 @@ export {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
-  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
@@ -151,8 +166,21 @@ export {
 } from './plan-limits';
 export type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,
   PlanLimits,
 } from './plan-limits';
+export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
+export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';
+export {
+  coerceContentToText,
+  extractRecordedConversationMessages,
+  extractRequestMessages,
+  extractRequestTools,
+  extractResponseMessages,
+  extractResponseToolCalls,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RecordedResponseBody, Role, ToolCall } from './chat-message';

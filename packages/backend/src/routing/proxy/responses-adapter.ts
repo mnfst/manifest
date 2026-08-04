@@ -400,10 +400,15 @@ function toResponsesUsage(usage: unknown): JsonRecord | null {
     typeof usage.total_tokens === 'number' ? usage.total_tokens : promptTokens + completionTokens;
   const cachedTokens =
     typeof usage.cache_read_tokens === 'number' ? usage.cache_read_tokens : undefined;
+  const cacheWriteTokens =
+    typeof usage.cache_creation_tokens === 'number' ? usage.cache_creation_tokens : undefined;
 
   return {
     input_tokens: promptTokens,
-    input_tokens_details: { cached_tokens: cachedTokens ?? 0 },
+    input_tokens_details: {
+      cached_tokens: cachedTokens ?? 0,
+      cache_write_tokens: cacheWriteTokens ?? 0,
+    },
     output_tokens: completionTokens,
     output_tokens_details: { reasoning_tokens: 0 },
     total_tokens: totalTokens,

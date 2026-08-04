@@ -9,7 +9,7 @@ import { getAgents, deleteAgent } from '../services/api.js';
 import { toast } from '../services/toast-store.js';
 import { formatNumber } from '../services/formatters.js';
 import Sparkline from '../components/Sparkline.jsx';
-import { agentPing, messagePing } from '../services/sse.js';
+import { agentPing, analyticsPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 
 interface Agent {
@@ -65,7 +65,7 @@ const DeleteIcon: Component = () => (
 
 const Workspace: Component = () => {
   const [data, { refetch }] = createResource(
-    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
+    () => ({ _agentPing: agentPing(), _analyticsPing: analyticsPing() }),
     () => getAgents() as Promise<AgentsData>,
   );
   const [modalOpen, setModalOpen] = createSignal(false);
@@ -113,7 +113,7 @@ const Workspace: Component = () => {
       <Title>My Harnesses - Manifest</Title>
       <Meta
         name="description"
-        content="View and manage all your harnesses. Monitor usage, messages, and costs."
+        content="View and manage all your harnesses. Monitor usage, requests, and costs."
       />
       <div class="page-header">
         <div>
@@ -210,7 +210,7 @@ const Workspace: Component = () => {
                           </span>
                         </div>
                         <div class="agent-card__stat">
-                          <span class="agent-card__stat-label">Messages</span>
+                          <span class="agent-card__stat-label">Requests</span>
                           <span class="agent-card__stat-value">{agent.message_count}</span>
                         </div>
                       </div>

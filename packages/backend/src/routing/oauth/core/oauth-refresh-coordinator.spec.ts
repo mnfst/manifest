@@ -6,6 +6,7 @@ import {
   PERSIST_MAX_ATTEMPTS,
   REFRESH_EXPIRY_SKEW_MS,
   type CoordinatedRefreshParams,
+  type CredentialLockOps,
 } from './oauth-refresh-coordinator';
 
 interface TestBlob {
@@ -21,7 +22,12 @@ function fakeLogger(): Logger {
 const expired = (): TestBlob => ({ t: 'old', e: Date.now() - 1_000, r: 'refresh-old' });
 const valid = (t = 'fresh'): TestBlob => ({ t, e: Date.now() + 5 * 60_000, r: 'refresh-new' });
 
-function makeParams(overrides: Partial<CoordinatedRefreshParams<TestBlob>> = {}): {
+function makeParams(
+  overrides: Partial<CoordinatedRefreshParams<TestBlob>> & {
+    persist?: jest.Mock;
+    readFreshRaw?: jest.Mock;
+  } = {},
+): {
   params: CoordinatedRefreshParams<TestBlob>;
   refresh: jest.Mock;
   persist: jest.Mock;
@@ -30,16 +36,20 @@ function makeParams(overrides: Partial<CoordinatedRefreshParams<TestBlob>> = {})
 } {
   const logger = overrides.logger ?? fakeLogger();
   const refresh = (overrides.refresh as jest.Mock) ?? jest.fn().mockResolvedValue(valid());
-  const persist = (overrides.persist as jest.Mock) ?? jest.fn().mockResolvedValue(undefined);
-  const readFreshRaw = (overrides.readFreshRaw as jest.Mock) ?? jest.fn().mockResolvedValue(null);
+  const persist = overrides.persist ?? jest.fn().mockResolvedValue(undefined);
+  const readFreshRaw = overrides.readFreshRaw ?? jest.fn().mockResolvedValue(null);
+  // Default withLock just runs the critical section with the mock ops — same
+  // as a single-process test without a real DB lock.
+  const withLock =
+    overrides.withLock ??
+    (<R>(fn: (ops: CredentialLockOps<TestBlob>) => Promise<R>) => fn({ readFreshRaw, persist }));
   const params: CoordinatedRefreshParams<TestBlob> = {
     key: overrides.key ?? 'openai:user-1:agent-1:Default',
     logger,
     callerBlob: overrides.callerBlob ?? expired(),
-    readFreshRaw,
     parse: overrides.parse ?? ((raw: string) => JSON.parse(raw) as TestBlob),
     refresh,
-    persist,
+    withLock,
   };
   return { params, refresh, persist, readFreshRaw, logger };
 }
@@ -183,5 +193,32 @@ describe('coordinateOAuthRefresh', () => {
     await coordinateOAuthRefresh(params);
 
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs the critical section inside withLock', async () => {
+    const order: string[] = [];
+    const withLock: CoordinatedRefreshParams<TestBlob>['withLock'] = async (fn) => {
+      order.push('lock');
+      const result = await fn({
+        readFreshRaw: async () => {
+          order.push('read');
+          return null;
+        },
+        persist: async () => {
+          order.push('persist');
+        },
+      });
+      order.push('unlock');
+      return result;
+    };
+    const refresh = jest.fn(async () => {
+      order.push('refresh');
+      return valid('x');
+    });
+    const { params } = makeParams({ withLock, refresh });
+
+    await coordinateOAuthRefresh(params);
+
+    expect(order).toEqual(['lock', 'read', 'refresh', 'persist', 'unlock']);
   });
 });

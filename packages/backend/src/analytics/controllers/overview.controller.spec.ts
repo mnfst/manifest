@@ -13,6 +13,15 @@ function mockAggregation(): Record<string, jest.Mock> {
     // Previous-window totals power the trend arrows; the current-window summary
     // is derived from the timeseries buckets below.
     getPreviousWindowMetrics: jest.fn().mockResolvedValue({ tokens: 900, cost: 4.0, messages: 45 }),
+    getRequestReliability: jest.fn().mockResolvedValue({
+      total: 50,
+      successful: 48,
+      success_rate: 96,
+      attempt_success_rate: 90,
+      manifest_lift_pct: 6,
+      recovered: 3,
+      previous_total: 45,
+    }),
     hasAnyData: jest.fn().mockResolvedValue(true),
   };
 }
@@ -97,13 +106,17 @@ describe('OverviewController', () => {
       undefined,
       undefined,
       true,
+      undefined,
+      undefined,
+      false,
     );
   });
 
-  it('derives the current-window summary by summing the timeseries buckets', async () => {
+  it('derives token and cost totals from buckets and messages from requests', async () => {
     const result = await controller.getOverview({ range: '24h' }, ctx as never);
 
-    // 600 + 400 input/output tokens, $5 cost, 50 messages from the buckets.
+    // Tokens and cost come from attempt buckets; the message total comes from
+    // request reliability (the fixtures intentionally both contain 50).
     expect(result.summary.tokens_today.value).toBe(1000);
     expect(result.summary.tokens_today.sub_values).toEqual({ input: 600, output: 400 });
     expect(result.summary.cost_today.value).toBe(5.0);
@@ -112,6 +125,15 @@ describe('OverviewController', () => {
     expect(result.summary.tokens_today.trend_pct).toBe(11); // (1000-900)/900
     expect(result.summary.cost_today.trend_pct).toBe(25); // (5-4)/4
     expect(result.summary.messages.trend_pct).toBe(11); // (50-45)/45
+    expect(result.request_reliability).toEqual({
+      total: 50,
+      successful: 48,
+      success_rate: 96,
+      attempt_success_rate: 90,
+      manifest_lift_pct: 6,
+      recovered: 3,
+      previous_total: 45,
+    });
   });
 
   it('returns overview with daily timeseries for 7d range', async () => {
@@ -126,6 +148,60 @@ describe('OverviewController', () => {
       undefined,
       undefined,
       true,
+      undefined,
+      undefined,
+      false,
+    );
+  });
+
+  it('uses request rows for recent activity when the request query service is available', async () => {
+    const requestItems = [{ id: 'request-1', status: 'ok' }];
+    const messagesQuery = { getMessages: jest.fn().mockResolvedValue({ items: requestItems }) };
+    const requestAwareController = new OverviewController(
+      agg as never,
+      ts as never,
+      { getProviders: mockGetProviders } as never,
+      { resolve: mockResolveAgent } as never,
+      { find: mockAccessFind } as never,
+      messagesQuery as never,
+    );
+
+    const result = await requestAwareController.getOverview(
+      { range: '24h', agent_name: 'bot-1' },
+      ctx as never,
+    );
+
+    expect(result.recent_activity).toEqual(requestItems);
+    expect(messagesQuery.getMessages).toHaveBeenCalledWith({
+      range: '24h',
+      tenantId: 'tenant-123',
+      agent_name: 'bot-1',
+      limit: 5,
+      include_total: false,
+      include_filter_options: false,
+      exclude_playground: true,
+      exclude_direct: true,
+    });
+    expect(ts.getRecentActivity).not.toHaveBeenCalled();
+  });
+
+  it('keeps direct requests in the recent-activity query on the global overview', async () => {
+    // Recent activity is served by the request log, which is also what backs the
+    // Requests page — so the exclusion has to be opt-in per call, not baked in.
+    const messagesQuery = { getMessages: jest.fn().mockResolvedValue({ items: [] }) };
+    const requestAwareController = new OverviewController(
+      agg as never,
+      ts as never,
+      { getProviders: mockGetProviders } as never,
+      { resolve: mockResolveAgent } as never,
+      { find: mockAccessFind } as never,
+      messagesQuery as never,
+    );
+
+    await requestAwareController.getOverview({ range: '24h' }, ctx as never);
+
+    expect(messagesQuery.getMessages).toHaveBeenCalledWith(
+      expect.objectContaining({ agent_name: undefined, exclude_direct: false }),
     );
   });
 
@@ -142,13 +218,32 @@ describe('OverviewController', () => {
   it('defaults range to 24h when not specified', async () => {
     await controller.getOverview({}, ctx as never);
 
-    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', 'tenant-123', undefined, true);
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      undefined,
+      true,
+      false,
+    );
   });
 
   it('passes agent_name and tenantId to all calls, excluding Playground everywhere', async () => {
     await controller.getOverview({ range: '24h', agent_name: 'bot-1' }, ctx as never);
 
-    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      'bot-1',
+      true,
+      true,
+    );
+    expect(agg.getRequestReliability).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      'bot-1',
+      true,
+      true,
+    );
     expect(ts.getTimeseries).toHaveBeenCalledWith(
       '24h',
       'tenant-123',
@@ -157,11 +252,32 @@ describe('OverviewController', () => {
       undefined,
       undefined,
       true,
+      undefined,
+      undefined,
+      true,
     );
-    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
-    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'tenant-123', 5, 'bot-1', true);
-    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true);
-    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', 'bot-1', true);
+    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true, true);
+    expect(ts.getRecentActivity).toHaveBeenCalledWith('24h', 'tenant-123', 5, 'bot-1', true, true);
+    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', 'bot-1', true, true);
+    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', 'bot-1', true, true);
+  });
+
+  it('keeps client-pinned (direct) requests on the global overview', async () => {
+    // No agent_name => the cross-harness view, which must stay complete: it is
+    // where direct requests are accounted for and where total spend reconciles.
+    await controller.getOverview({ range: '24h' }, ctx as never);
+
+    expect(ts.getRecentActivity).toHaveBeenCalledWith(
+      '24h',
+      'tenant-123',
+      5,
+      undefined,
+      true,
+      false,
+    );
+    expect(ts.getCostByModel).toHaveBeenCalledWith('24h', 'tenant-123', undefined, true, false);
+    expect(ts.getActiveSkills).toHaveBeenCalledWith('24h', 'tenant-123', undefined, true, false);
+    expect(agg.hasAnyData).toHaveBeenCalledWith('tenant-123', undefined, true, false);
   });
 
   it('includes services_hit placeholder in summary', async () => {
@@ -187,7 +303,7 @@ describe('OverviewController', () => {
     const nullCtx = { tenantId: null, userId: 'u1' };
     await controller.getOverview({ range: '24h' }, nullCtx as never);
 
-    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', null, undefined, true);
+    expect(agg.getPreviousWindowMetrics).toHaveBeenCalledWith('24h', null, undefined, true, false);
   });
 
   it('returns has_providers true when agent has active providers', async () => {

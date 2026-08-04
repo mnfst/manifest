@@ -1,4 +1,4 @@
-import type { ModelRoute } from 'manifest-shared';
+import { MAX_KEYS_PER_PROVIDER, type ModelRoute } from 'manifest-shared';
 import { ProviderService } from '../provider.service';
 import { TenantProvider } from '../../../entities/tenant-provider.entity';
 import { TierAssignment } from '../../../entities/tier-assignment.entity';
@@ -56,6 +56,7 @@ const makeRepo = (agents: AgentRow[] = ['agent-1']) => ({
 });
 
 describe('ProviderService — route-only cleanup paths', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
   let providerRepo: ReturnType<typeof makeRepo>;
   let tierRepo: ReturnType<typeof makeRepo>;
   let specRepo: ReturnType<typeof makeRepo>;
@@ -70,6 +71,7 @@ describe('ProviderService — route-only cleanup paths', () => {
   let svc: ProviderService;
 
   beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
     providerRepo = makeRepo();
     tierRepo = makeRepo();
     specRepo = makeRepo();
@@ -91,6 +93,11 @@ describe('ProviderService — route-only cleanup paths', () => {
       pricingCache as unknown as ModelPricingCacheService,
       routingCache as unknown as RoutingCacheService,
     );
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
   });
 
   describe('removeProvider — route guards', () => {
@@ -1066,6 +1073,19 @@ describe('ProviderService — route-only cleanup paths', () => {
       expect(result).toBe(cached);
       expect(providerRepo.find).not.toHaveBeenCalled();
     });
+
+    it('filters legacy built-in local providers from cloud routing', async () => {
+      process.env['MANIFEST_MODE'] = 'cloud';
+      providerRepo.find.mockResolvedValue([
+        { id: 'p1', provider: 'ollama', auth_type: 'local', is_active: true },
+        { id: 'p2', provider: 'custom:runtime-id', auth_type: 'local', is_active: true },
+      ]);
+
+      const result = await svc.getProviders('tenant-1');
+
+      expect(result.map((provider) => provider.provider)).toEqual(['custom:runtime-id']);
+      expect(routingCache.setProviders).toHaveBeenCalledWith('tenant-1', result);
+    });
   });
 
   describe('registerSubscriptionProvider', () => {
@@ -1615,6 +1635,34 @@ describe('ProviderService — symmetric provider↔agent auto-connect', () => {
         { agent: 'agent-1', provider: provider.id },
         { agent: 'agent-2', provider: provider.id },
       ]);
+    });
+
+    it('rejects a new credential only at the 50-key safety ceiling', async () => {
+      const enabled: Array<{ agent: string; provider: string }> = [];
+      const { svc, providerRepo } = build(['agent-1'], enabled);
+      providerRepo.find.mockResolvedValue(
+        Array.from({ length: MAX_KEYS_PER_PROVIDER }, (_, index) => ({
+          id: `provider-${index}`,
+          provider: 'openai',
+          auth_type: 'api_key',
+          label: `Key ${index + 1}`,
+          priority: index,
+          is_active: true,
+        })) as TenantProvider[],
+      );
+
+      await expect(
+        svc.upsertProvider(
+          'agent-1',
+          'tenant-1',
+          'openai',
+          'sk-overflow',
+          'api_key',
+          undefined,
+          'Overflow',
+        ),
+      ).rejects.toThrow(`at most ${MAX_KEYS_PER_PROVIDER}`);
+      expect(providerRepo.insert).not.toHaveBeenCalled();
     });
 
     it('enables a brand-new tokenless subscription provider for every owned agent', async () => {

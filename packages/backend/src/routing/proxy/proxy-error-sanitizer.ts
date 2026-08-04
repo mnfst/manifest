@@ -56,6 +56,31 @@ function extractProviderMessage(rawBody: string): string | null {
   }
 }
 
+function isHtmlErrorBody(rawBody: string): boolean {
+  let offset = 0;
+  while (offset < rawBody.length) {
+    while (/\s/.test(rawBody.charAt(offset))) offset += 1;
+    if (!rawBody.startsWith('<!--', offset)) break;
+
+    const commentEnd = rawBody.indexOf('-->', offset + 4);
+    if (commentEnd === -1) return false;
+    offset = commentEnd + 3;
+  }
+
+  return /^(?:<!doctype\s+html|<html)\b/i.test(rawBody.slice(offset));
+}
+
+function htmlEndpointError(status: number | null | undefined, rawBody: string): string | null {
+  if (!isHtmlErrorBody(rawBody)) return null;
+  const ngrokCode = rawBody.match(/\bERR_NGROK_\d+\b/i)?.[0]?.toUpperCase();
+  if (ngrokCode && /\bendpoint\b[\s\S]{0,300}\bis offline\b/i.test(rawBody)) {
+    return `Tunnel endpoint is offline (${ngrokCode})`;
+  }
+  return status == null
+    ? 'Upstream endpoint returned an HTML error page'
+    : `Upstream endpoint returned HTTP ${status}`;
+}
+
 function extractProviderErrorCode(rawBody: string): string | null {
   try {
     const parsed = JSON.parse(rawBody) as Record<string, unknown>;
@@ -107,6 +132,8 @@ export function classifyProviderError(
 
 export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?: string): string {
   const generic = KNOWN_ERROR_MESSAGES[status] ?? `Upstream provider returned HTTP ${status}`;
+  const endpointError = htmlEndpointError(status, rawBody);
+  if (endpointError) return endpointError;
   const classified = classifyProviderError(status, rawBody);
   if (classified) return classified.message;
 
@@ -119,4 +146,11 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
   }
 
   return generic;
+}
+
+export function normalizeProviderErrorForStorage(
+  status: number | null | undefined,
+  rawBody: string,
+): string {
+  return htmlEndpointError(status, rawBody) ?? rawBody;
 }

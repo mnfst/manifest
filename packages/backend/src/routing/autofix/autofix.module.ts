@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
-import { Tenant } from '../../entities/tenant.entity';
+import { AgentMessage } from '../../entities/agent-message.entity';
+import { ManifestRequest } from '../../entities/request.entity';
 import { AutofixService } from './autofix.service';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
@@ -22,7 +23,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  *   loop can be exercised locally without an external Phoenix.
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent, Tenant])],
+  imports: [TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest])],
   providers: [
     AutofixService,
     AutofixHealthProbe,

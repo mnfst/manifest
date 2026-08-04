@@ -41,7 +41,13 @@ import {
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
+import { lookupKnownModalities } from './known-model-modalities';
 import { mergeModelCapabilities, modelSupportsStreaming } from './model-capabilities';
+import {
+  CLOUD_LOCAL_PROVIDER_MESSAGE,
+  filterProvidersForDeployment,
+  isProviderAvailableForDeployment,
+} from '../common/utils/provider-availability';
 // Import static helpers directly to avoid circular dependency with RoutingModule
 const customProviderKey = (id: string) => `custom:${id}`;
 const customModelKey = (id: string, modelName: string) => `custom:${id}/${modelName}`;
@@ -126,6 +132,7 @@ export class ModelDiscoveryService {
     provider: TenantProvider,
     options: DiscoverModelsOptions = {},
   ): Promise<DiscoveredModel[]> {
+    if (!isProviderAvailableForDeployment(provider.provider)) return [];
     let apiKey = '';
     let endpointOverride: string | undefined;
     const lowerProvider = provider.provider.toLowerCase();
@@ -232,13 +239,16 @@ export class ModelDiscoveryService {
     // subscription discovery is also static so connecting Claude Code does
     // not spend live /models or /messages calls before the first real request.
     if (useCuratedSubscriptionModels) {
-      raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+      raw = buildSubscriptionFallbackModels(provider.provider);
       if (raw.length > 0) {
         this.logger.log(
           `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
         );
       }
-    } else if (prefersModelsDevCatalog(provider.provider)) {
+    } else if (
+      provider.auth_type !== 'subscription' &&
+      prefersModelsDevCatalog(provider.provider)
+    ) {
       raw = buildModelsDevModels();
       if (raw.length > 0) {
         this.logger.log(`Using ${raw.length} models from models.dev for ${provider.provider}`);
@@ -258,7 +268,7 @@ export class ModelDiscoveryService {
       // actually grants must use the curated `knownModels` list — otherwise
       // the routing UI offers models that 404 at chat time.
       if (raw.length === 0 && provider.auth_type === 'subscription') {
-        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        raw = buildSubscriptionFallbackModels(provider.provider);
         if (raw.length > 0) {
           this.logger.log(
             `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
@@ -266,8 +276,9 @@ export class ModelDiscoveryService {
         }
       }
 
-      // If native API returned no models, try models.dev first, then OpenRouter.
-      if (raw.length === 0) {
+      // External catalogs may enrich provider-discovered models, but they must
+      // never determine which models a subscription can access.
+      if (raw.length === 0 && provider.auth_type !== 'subscription') {
         raw = buildModelsDevModels();
         if (raw.length > 0) {
           this.logger.log(
@@ -277,7 +288,11 @@ export class ModelDiscoveryService {
       }
       // If models.dev also had nothing, fall back to OpenRouter filtered by confirmed models.
       // Qwen is excluded because OpenRouter/pricing ids can diverge from DashScope ids.
-      if (raw.length === 0 && !isQwenProvider(provider.provider)) {
+      if (
+        raw.length === 0 &&
+        provider.auth_type !== 'subscription' &&
+        !isQwenProvider(provider.provider)
+      ) {
         const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
         raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
         if (raw.length > 0) {
@@ -288,8 +303,8 @@ export class ModelDiscoveryService {
       }
     }
 
-    // For subscription providers, supplement with knownModels so users can
-    // always select them, even if the live API or OpenRouter didn't return them.
+    // For subscription providers, supplement live discovery with the explicit
+    // curated list so users can always select known supported models.
     if (provider.auth_type === 'subscription') {
       raw = supplementWithKnownModels(raw, provider.provider);
     }
@@ -345,9 +360,11 @@ export class ModelDiscoveryService {
     const discoveryOptions = options.forceRefresh
       ? { ...options, skipModelsDevRefresh: true }
       : options;
-    const providers = await this.providerRepo.find({
-      where: { tenant_id: tenantId, is_active: true },
-    });
+    const providers = filterProvidersForDeployment(
+      await this.providerRepo.find({
+        where: { tenant_id: tenantId, is_active: true },
+      }),
+    );
     await Promise.all(
       providers
         .filter((p) => !p.provider.startsWith('custom:'))
@@ -379,51 +396,92 @@ export class ModelDiscoveryService {
     last_fetched_at: string | null;
     error: string | null;
   }> {
+    if (!isProviderAvailableForDeployment(providerId)) {
+      return {
+        ok: false,
+        model_count: 0,
+        last_fetched_at: null,
+        error: CLOUD_LOCAL_PROVIDER_MESSAGE,
+      };
+    }
     const where: { tenant_id: string; provider: string; is_active: true; auth_type?: AuthType } = {
       tenant_id: tenantId,
       provider: providerId,
       is_active: true,
     };
     if (authType) where.auth_type = authType;
-    const provider = await this.providerRepo.findOne({ where });
-    if (!provider) {
+    // A tenant can connect multiple keys for the same provider/auth type. The
+    // picker reads whichever rows are enabled for the agent, so refresh all of
+    // them instead of leaving an arbitrary `findOne` row's siblings stale.
+    const providers = await this.providerRepo.find({ where });
+    if (providers.length === 0) {
       return { ok: false, model_count: 0, last_fetched_at: null, error: 'Provider not found' };
     }
-    // Snapshot the pre-refresh state so error/skip paths can report the count
-    // and timestamp the user already had on disk, even after `discoverModels`
-    // mutates the entity in-memory.
-    const previousCount = Array.isArray(provider.cached_models) ? provider.cached_models.length : 0;
-    const previousFetchedAt = provider.models_fetched_at;
 
-    if (provider.provider.startsWith('custom:')) {
+    if (providers[0].provider.startsWith('custom:')) {
+      const previousCount = Math.max(
+        ...providers.map((provider) =>
+          Array.isArray(provider.cached_models) ? provider.cached_models.length : 0,
+        ),
+      );
+      const previousFetchedAt = providers
+        .map((provider) => provider.models_fetched_at)
+        .filter((value): value is string => value !== null)
+        .sort()
+        .pop();
       return {
         ok: false,
         model_count: previousCount,
-        last_fetched_at: previousFetchedAt,
+        last_fetched_at: previousFetchedAt ?? null,
         error: 'Custom providers are managed manually — edit the provider to update its model list',
       };
     }
 
-    try {
-      const models = await this.discoverModels(provider, { forceRefresh: true });
-      return {
-        ok: models.length > 0,
-        model_count: models.length,
-        last_fetched_at: provider.models_fetched_at,
-        error: models.length === 0 ? 'Provider returned no models' : null,
-      };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(
-        `Per-provider refresh failed for ${provider.provider} (tenant ${tenantId}): ${message}`,
-      );
-      return {
-        ok: false,
-        model_count: previousCount,
-        last_fetched_at: previousFetchedAt,
-        error: message,
-      };
-    }
+    await this.refreshModelsDevCache();
+    const results = await Promise.all(
+      providers.map(async (provider) => {
+        const previousCount = Array.isArray(provider.cached_models)
+          ? provider.cached_models.length
+          : 0;
+        const previousFetchedAt = provider.models_fetched_at;
+        try {
+          const models = await this.discoverModels(provider, {
+            forceRefresh: true,
+            skipModelsDevRefresh: true,
+          });
+          return {
+            ok: models.length > 0,
+            modelCount: models.length,
+            lastFetchedAt: provider.models_fetched_at,
+            error: models.length === 0 ? 'Provider returned no models' : null,
+          };
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          this.logger.warn(
+            `Per-provider refresh failed for ${provider.provider} (tenant ${tenantId}): ${message}`,
+          );
+          return {
+            ok: false,
+            modelCount: previousCount,
+            lastFetchedAt: previousFetchedAt,
+            error: message,
+          };
+        }
+      }),
+    );
+
+    const failed = results.find((result) => !result.ok);
+    const lastFetchedAt = results
+      .map((result) => result.lastFetchedAt)
+      .filter((value): value is string => value !== null)
+      .sort()
+      .pop();
+    return {
+      ok: failed === undefined,
+      model_count: Math.max(...results.map((result) => result.modelCount)),
+      last_fetched_at: lastFetchedAt ?? null,
+      error: failed?.error ?? null,
+    };
   }
 
   /**
@@ -475,9 +533,11 @@ export class ModelDiscoveryService {
     tenantId: string,
     agentId?: string,
   ): Promise<DiscoveredModel[]> {
-    const allProviders = await this.providerRepo.find({
-      where: { tenant_id: tenantId, is_active: true },
-    });
+    const allProviders = filterProvidersForDeployment(
+      await this.providerRepo.find({
+        where: { tenant_id: tenantId, is_active: true },
+      }),
+    );
     const providers = await this.filterProvidersForAgent(allProviders, agentId);
 
     const models: DiscoveredModel[] = [];
@@ -576,6 +636,18 @@ export class ModelDiscoveryService {
   }
 
   private enrichModel(model: DiscoveredModel, providerId: string): DiscoveredModel {
+    // Fill modality gaps from the curated list before enrichment, so
+    // provider-native and models.dev modalities (applied below) still win.
+    const knownModalities = lookupKnownModalities(providerId, model.id);
+    if (knownModalities) {
+      model = {
+        ...model,
+        inputModalities: model.inputModalities ?? knownModalities.input,
+        outputModalities: model.outputModalities ?? knownModalities.output,
+        capabilities: mergeModelCapabilities(model.capabilities, knownModalities.capabilities),
+      };
+    }
+
     // Skip pricing enrichment when both prices are already set (price=0 for free/subscription)
     // but still apply capability flags from models.dev for better scoring
     if (

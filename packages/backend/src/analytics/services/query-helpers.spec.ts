@@ -6,6 +6,9 @@ import {
   selectMessageRowColumns,
   excludePlaygroundAgents,
   EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+  excludeDirectAttempts,
+  EXCLUDE_DIRECT_ATTEMPTS_PREDICATE,
+  sqlExcludeDirectRequests,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
   filterByKeyLabel,
@@ -247,6 +250,55 @@ describe('excludePlaygroundAgents', () => {
   it('returns the query builder for chaining', () => {
     const { qb } = makeMockQb();
     expect(excludePlaygroundAgents(qb)).toBe(qb);
+  });
+});
+
+describe('excludeDirectAttempts', () => {
+  function makeMockQb() {
+    const mockAndWhere = jest.fn();
+    const qb = { andWhere: mockAndWhere.mockImplementation(() => qb) };
+    return { qb: qb as unknown as SelectQueryBuilder<never>, mockAndWhere };
+  }
+
+  it('drops rows the caller pinned a model on', () => {
+    const { qb, mockAndWhere } = makeMockQb();
+    excludeDirectAttempts(qb);
+    expect(mockAndWhere).toHaveBeenCalledWith(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+  });
+
+  it('uses IS DISTINCT FROM so NULL-reason rows survive', () => {
+    // A pending/cancelled row is stamped before a route is chosen, so its
+    // routing_reason is NULL. Under `!= 'direct'` NULL compares to NULL and the
+    // row would silently vanish from the harness Overview.
+    expect(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE).toBe("at.routing_reason IS DISTINCT FROM 'direct'");
+  });
+
+  it('returns the query builder for chaining', () => {
+    const { qb } = makeMockQb();
+    expect(excludeDirectAttempts(qb)).toBe(qb);
+  });
+});
+
+describe('sqlExcludeDirectRequests', () => {
+  it('tests the parent request through its attempts, where routing_reason lives', () => {
+    // `requests` carries no routing_reason column, so a request-level aggregate
+    // has to reach into agent_messages by request_id.
+    const sql = sqlExcludeDirectRequests('r');
+    expect(sql).toContain('NOT EXISTS');
+    expect(sql).toContain('FROM agent_messages direct_attempt');
+    expect(sql).toContain('direct_attempt.request_id = r.id');
+    expect(sql).toContain("direct_attempt.routing_reason = 'direct'");
+  });
+
+  it('honours the caller alias', () => {
+    expect(sqlExcludeDirectRequests('req')).toContain('direct_attempt.request_id = req.id');
+  });
+
+  it('keeps a request that has no attempts at all', () => {
+    // NOT EXISTS over an empty attempt set is true: a request recorded before any
+    // provider was contacted has nothing claiming `direct`, so it survives —
+    // matching how the attempt-level predicate keeps NULL routing_reason rows.
+    expect(sqlExcludeDirectRequests('r').startsWith('NOT EXISTS')).toBe(true);
   });
 });
 
@@ -494,28 +546,24 @@ describe('selectMessageRowColumns', () => {
 });
 
 describe('sqlCountMessages', () => {
-  it('excludes every error status and counts NULL status as a real message', () => {
-    expect(sqlCountMessages()).toBe(
-      "COUNT(*) FILTER (WHERE at.status IS NULL OR at.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
-    );
+  it('counts logical requests rather than provider hops', () => {
+    expect(sqlCountMessages()).toContain('COUNT(DISTINCT COALESCE(at.request_id, at.id))');
+    expect(sqlCountMessages()).toContain("at.status NOT IN ('error', 'fallback_error'");
   });
 
   it('honours a custom table alias', () => {
-    expect(sqlCountMessages('m')).toBe(
-      "COUNT(*) FILTER (WHERE m.status IS NULL OR m.status NOT IN ('error', 'fallback_error', 'rate_limited', 'auto_fixed'))",
-    );
+    expect(sqlCountMessages('m')).toContain('COUNT(DISTINCT COALESCE(m.request_id, m.id))');
+    expect(sqlCountMessages('m')).toContain('m.status IS NULL');
   });
 
-  it('derives the excluded list from the shared error-status set', () => {
+  it('keeps the shared error-status set for request log filters', () => {
     expect(ERROR_MESSAGE_STATUSES).toEqual([
       'error',
       'fallback_error',
       'rate_limited',
       'auto_fixed',
+      'failed',
     ]);
-    for (const status of ERROR_MESSAGE_STATUSES) {
-      expect(sqlCountMessages()).toContain(`'${status}'`);
-    }
   });
 });
 

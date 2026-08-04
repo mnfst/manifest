@@ -10,6 +10,7 @@ import {
   type Accessor,
   type Setter,
 } from 'solid-js';
+import { MAX_KEYS_PER_PROVIDER as SHARED_MAX_KEYS_PER_PROVIDER } from 'manifest-shared';
 import type { ProviderDef, SubscriptionEndpointRegion } from '../services/providers.js';
 import { validateApiKey, validateSubscriptionKey } from '../services/provider-utils.js';
 import {
@@ -27,7 +28,7 @@ import {
 import { suggestNextProviderKeyLabel } from '../services/provider-key-labels.js';
 import { toast } from '../services/toast-store.js';
 
-export const MAX_KEYS_PER_PROVIDER = 5;
+export const MAX_KEYS_PER_PROVIDER = SHARED_MAX_KEYS_PER_PROVIDER;
 const MAX_LABEL_LENGTH = 50;
 const WORKSPACE_ID_PLACEHOLDER = '<workspace-id>';
 

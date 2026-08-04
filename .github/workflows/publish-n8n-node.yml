@@ -1,9 +1,19 @@
 name: Publish n8n Community Node
 
+# Publishes automatically when the n8n package manifest or lockfile lands on
+# main with a version that has not been published yet.
+# The committed package.json is the single source of truth: the workflow
+# skips if that exact version is already on npm, and pushes the matching
+# n8n-nodes-manifest-v<version> tag after a successful publish.
+
 on:
   push:
-    tags:
-      - 'n8n-nodes-manifest-v*'
+    branches:
+      - main
+    paths:
+      - 'integrations/n8n-nodes-manifest/package.json'
+      - 'integrations/n8n-nodes-manifest/package-lock.json'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -11,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     defaults:
@@ -32,12 +42,35 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      - name: Check if version needs publishing
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "n8n-nodes-manifest@$VERSION" version >/dev/null 2>&1; then
+            echo "n8n-nodes-manifest@$VERSION already on npm — skipping publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install dependencies
+        if: steps.version.outputs.publish == 'true'
         run: npm ci
 
       - name: Publish
+        if: steps.version.outputs.publish == 'true'
         run: npm run release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_ACCESS: public
           NPM_CONFIG_PROVENANCE: true
+
+      - name: Tag release
+        if: steps.version.outputs.publish == 'true'
+        run: |
+          TAG="n8n-nodes-manifest-v${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"

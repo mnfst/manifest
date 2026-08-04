@@ -32,6 +32,10 @@ import {
 import { QWEN_REGION_VALIDATION_MESSAGE, isQwenRegion } from './qwen-region';
 import { getSubscriptionEndpointRegionConfig } from './subscription-region';
 import { isBedrockProvider, isBedrockRegion } from './bedrock-region';
+import {
+  CLOUD_LOCAL_PROVIDER_MESSAGE,
+  isProviderAvailableForDeployment,
+} from '../common/utils/provider-availability';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -108,6 +112,12 @@ export class ProviderController {
       allowPlayground: true,
     });
     const lowerProvider = body.provider.toLowerCase();
+    if (
+      !isProviderAvailableForDeployment(lowerProvider) ||
+      (body.authType === 'local' && !isProviderAvailableForDeployment('ollama'))
+    ) {
+      throw new BadRequestException(CLOUD_LOCAL_PROVIDER_MESSAGE);
+    }
     const isQwenProvider = lowerProvider === 'qwen' || lowerProvider === 'alibaba';
     const qwenBaseUrl = body.baseUrl ?? body.base_url;
     const qwenRegion = qwenBaseUrl ?? body.region;

@@ -8,7 +8,6 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import AddAgentModal from './AddAgentModal.jsx';
-import AutofixModal from './AutofixModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -39,7 +38,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
-  const [autofixModalOpen, setAutofixModalOpen] = createSignal(false);
   // Local providers only exist on self-hosted installs — a cloud backend
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
@@ -103,25 +101,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
         classList={{ active: isGlobalActive('/messages') }}
         aria-current={isGlobalActive('/messages') ? 'page' : undefined}
       >
-        Messages
+        Requests
       </A>
       <div class="sidebar__section-label">PROVIDERS</div>
-      <A
-        href="/providers/subscriptions"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/subscriptions') }}
-        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
-      >
-        Subscriptions
-      </A>
-      <A
-        href="/providers/usage-based"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/usage-based') }}
-        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
-      >
-        Usage-based
-      </A>
       <Show when={selfHosted()}>
         <A
           href="/providers/local"
@@ -132,6 +114,22 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Local
         </A>
       </Show>
+      <A
+        href="/providers/usage-based"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/usage-based') }}
+        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
+      >
+        Usage-based
+      </A>
+      <A
+        href="/providers/subscriptions"
+        class="sidebar__link"
+        classList={{ active: isGlobalActive('/providers/subscriptions') }}
+        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
+      >
+        Subscriptions
+      </A>
 
       {/* Harnesses — collapsible section with a + create button.
           The collapse toggle and the create button are sibling buttons (never
@@ -244,7 +242,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <span class="sidebar-autofix__title">Discover Auto-fix</span>
             </div>
             <p class="sidebar-autofix__desc">
-              Failing requests are automatically fixed before reaching the model.
+              Auto-fix can repair eligible failing requests before they reach the model.
             </p>
             <a
               class="sidebar-autofix__btn"
@@ -318,7 +316,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       {/* Create-harness modal, opened by the HARNESSES section + button */}
       <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
-      <AutofixModal open={autofixModalOpen()} onClose={() => setAutofixModalOpen(false)} />
     </nav>
   );
 };

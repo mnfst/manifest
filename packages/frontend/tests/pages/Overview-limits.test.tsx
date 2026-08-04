@@ -31,6 +31,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => 0,
+  analyticsPing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
 }));
@@ -58,9 +59,46 @@ vi.mock('../../src/components/ProviderIcon.jsx', () => ({
 // (uPlot) and fetches per-provider timeseries; stub both so jsdom doesn't load
 // the real chart (which calls matchMedia).
 vi.mock('../../src/services/api/analytics.js', () => ({
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
+  totalAttemptsTooltip: (doctor: boolean) =>
+    doctor
+      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
+  MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
+  PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP_30D:
+    'Successful attempts over all attempts for this connection, over the last 30 days.',
+  CONNECTION_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this connection, on the filtered period.',
+  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this harness on this connection.',
+  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
+  HARNESS_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
+    !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderMessageTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
   getPerProviderCostTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
+  getAttemptStats: () =>
+    Promise.resolve({
+      total_attempts: { value: 0, previous: 0 },
+      fallbacked_attempts: { value: 0, previous: 0 },
+    }),
+  getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
+  getAutofixStats: () => Promise.resolve(null),
+  getAutofixTimeseries: () =>
+    Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
+  getPerProviderReliability: () => Promise.resolve([]),
+  getPerModelReliability: () => Promise.resolve([]),
+  getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
+}));
+
+vi.mock('../../src/services/api/routing.js', () => ({
+  getAutofix: () => Promise.resolve({ enabled: false }),
 }));
 vi.mock('../../src/components/MultiAgentTokenChart.jsx', () => ({
   AGENT_COLORS: ['#111111', '#222222'],
@@ -127,6 +165,7 @@ describe('Overview - trend badges and status display', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('manifest_global_group', 'provider');
     mockAgentName = 'test-agent';
   });
 

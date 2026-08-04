@@ -23,6 +23,8 @@ vi.mock('@solidjs/meta', () => ({
 
 const mockUpgrade = vi.fn();
 const mockBillingPortal = vi.fn();
+const mockListAccounts = vi.fn();
+const mockChangePassword = vi.fn();
 
 vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
@@ -34,6 +36,8 @@ vi.mock('../../src/services/auth-client.js', () => ({
       upgrade: (...a: unknown[]) => mockUpgrade(...a),
       billingPortal: (...a: unknown[]) => mockBillingPortal(...a),
     },
+    listAccounts: (...a: unknown[]) => mockListAccounts(...a),
+    changePassword: (...a: unknown[]) => mockChangePassword(...a),
   },
 }));
 
@@ -120,6 +124,8 @@ describe('Account', () => {
     mockUpdateBillingEmailPreferences.mockResolvedValue({ usageAlerts: true });
     mockUpgrade.mockResolvedValue(undefined);
     mockBillingPortal.mockResolvedValue({ data: { url: 'https://billing.stripe.com/session' } });
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'credential' }], error: null });
+    mockChangePassword.mockResolvedValue({ data: {}, error: null });
     fakeTab = { location: { href: '' }, opener: {}, close: vi.fn() };
     vi.spyOn(window, 'open').mockImplementation(() => fakeTab as unknown as Window);
   });
@@ -161,6 +167,118 @@ describe('Account', () => {
   it('shows profile information section', () => {
     render(() => <Account />);
     expect(screen.getByText('Profile information')).toBeDefined();
+  });
+
+  it('shows Security section for a credential account', async () => {
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'credential' }], error: null });
+    render(() => <Account />);
+    expect(await screen.findByText('Security')).toBeDefined();
+    expect(screen.getByLabelText('Current password')).toBeDefined();
+    expect(screen.getByLabelText('New password')).toBeDefined();
+    expect(screen.getByLabelText('Confirm new password')).toBeDefined();
+  });
+
+  it('hides Security section for an OAuth-only account', async () => {
+    mockListAccounts.mockResolvedValue({ data: [{ providerId: 'google' }], error: null });
+    render(() => <Account />);
+    await screen.findByText('Profile information');
+    expect(screen.queryByText('Security')).toBeNull();
+  });
+
+  it('hides Security section when listAccounts returns no data', async () => {
+    mockListAccounts.mockResolvedValue({ data: null, error: { message: 'boom' } });
+    render(() => <Account />);
+    await screen.findByText('Profile information');
+    expect(screen.queryByText('Security')).toBeNull();
+  });
+
+  const fillPw = (current: string, next: string, confirm: string) => {
+    fireEvent.input(screen.getByLabelText('Current password'), { target: { value: current } });
+    fireEvent.input(screen.getByLabelText('New password'), { target: { value: next } });
+    fireEvent.input(screen.getByLabelText('Confirm new password'), { target: { value: confirm } });
+  };
+
+  it('rejects when new and confirm do not match', async () => {
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('oldpass1', 'newpass12', 'different12');
+    fireEvent.click(screen.getByText('Change password'));
+    expect(await screen.findByText('New passwords do not match')).toBeDefined();
+    expect(mockChangePassword).not.toHaveBeenCalled();
+  });
+
+  it('rejects a new password shorter than 8 characters', async () => {
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('oldpass1', 'short', 'short');
+    fireEvent.click(screen.getByText('Change password'));
+    expect(await screen.findByText('New password must be at least 8 characters')).toBeDefined();
+    expect(mockChangePassword).not.toHaveBeenCalled();
+  });
+
+  it('rejects when the new password equals the current password', async () => {
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('samepass1', 'samepass1', 'samepass1');
+    fireEvent.click(screen.getByText('Change password'));
+    expect(
+      await screen.findByText('New password must differ from the current password'),
+    ).toBeDefined();
+    expect(mockChangePassword).not.toHaveBeenCalled();
+  });
+
+  it('changes the password and revokes other sessions on success', async () => {
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('oldpass1', 'newpass12', 'newpass12');
+    fireEvent.click(screen.getByText('Change password'));
+    await waitFor(() =>
+      expect(mockChangePassword).toHaveBeenCalledWith({
+        currentPassword: 'oldpass1',
+        newPassword: 'newpass12',
+        revokeOtherSessions: true,
+      }),
+    );
+    await waitFor(() =>
+      expect(mockToastSuccess).toHaveBeenCalledWith(
+        'Password changed. Other devices have been signed out.',
+      ),
+    );
+    expect((screen.getByLabelText('Current password') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('New password') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('Confirm new password') as HTMLInputElement).value).toBe('');
+  });
+
+  it('shows an inline error when changePassword fails', async () => {
+    mockChangePassword.mockResolvedValue({ data: null, error: { message: 'Invalid password' } });
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('wrongpass1', 'newpass12', 'newpass12');
+    fireEvent.click(screen.getByText('Change password'));
+    expect(await screen.findByText('Invalid password')).toBeDefined();
+    expect(mockToastSuccess).not.toHaveBeenCalledWith(
+      'Password changed. Other devices have been signed out.',
+    );
+  });
+
+  it('falls back to a generic error message when changePassword error has no message', async () => {
+    mockChangePassword.mockResolvedValue({ data: null, error: {} });
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('wrongpass1', 'newpass12', 'newpass12');
+    fireEvent.click(screen.getByText('Change password'));
+    expect(await screen.findByText('Failed to change password')).toBeDefined();
+  });
+
+  it('recovers and re-enables the button when changePassword rejects', async () => {
+    mockChangePassword.mockRejectedValue(new Error('network down'));
+    render(() => <Account />);
+    await screen.findByText('Security');
+    fillPw('oldpass1', 'newpass12', 'newpass12');
+    const button = screen.getByText('Change password') as HTMLButtonElement;
+    fireEvent.click(button);
+    expect(await screen.findByText('Failed to change password')).toBeDefined();
+    await waitFor(() => expect(button.disabled).toBe(false));
   });
 
   it('shows appearance section', () => {

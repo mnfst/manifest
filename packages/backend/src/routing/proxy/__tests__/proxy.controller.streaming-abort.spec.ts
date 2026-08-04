@@ -1,6 +1,5 @@
 import { ProxyController } from '../proxy.controller';
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
-import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { ThoughtSignatureCache } from '../thought-signature-cache';
 import { ThinkingBlockCache } from '../thinking-block-cache';
@@ -65,7 +64,6 @@ function makeRecorder(repo: { insert: jest.Mock; findOne: jest.Mock; find: jest.
   return new ProxyMessageRecorder(
     repo as never,
     pricingCache as never,
-    new ProxyMessageDedup(),
     { emit: jest.fn() } as unknown as IngestEventBusService,
     {
       canonicalizeAgentMessageKeys: jest
@@ -133,6 +131,8 @@ describe('ProxyController streaming abort', () => {
       modelDiscovery as never,
       { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) } as never,
       { report: jest.fn() } as never,
+      { getCapabilities: jest.fn().mockResolvedValue(null) } as never,
+      { lookupModel: jest.fn().mockReturnValue(null) } as never,
     );
   });
 
@@ -141,6 +141,7 @@ describe('ProxyController streaming abort', () => {
   });
 
   it('ends response once and swallows error when abort fires while proxyRequest is pending', async () => {
+    const cancelledSpy = jest.spyOn(recorder, 'recordCancelledRequest');
     // proxyService returns a Promise that resolves only when the abort signal
     // fires — modeling an in-flight request that gets cancelled mid-pipe.
     proxyService.proxyRequest.mockImplementation(
@@ -189,6 +190,13 @@ describe('ProxyController streaming abort', () => {
     expect(res.end).toHaveBeenCalledTimes(1);
     expect(res.json).not.toHaveBeenCalled();
     expect(opts.signal.aborted).toBe(true);
+    expect(cancelledSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantId: 'tenant-1', agentId: 'agent-1' }),
+      expect.objectContaining({
+        requestId: expect.any(String),
+        attempt: undefined,
+      }),
+    );
 
     // Slot must still be released even though the request was aborted.
     expect(rateLimiter.releaseSlot).toHaveBeenCalledWith('tenant-1');

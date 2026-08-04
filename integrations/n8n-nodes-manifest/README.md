@@ -2,13 +2,45 @@
 
 Use [Manifest](https://manifest.build) from n8n workflows. Manifest routes requests through the right AI model behind one OpenAI-compatible API.
 
-## Operations
+This package ships two nodes:
+
+## Manifest Chat Model (recommended)
+
+A language-model sub-node built on [`@n8n/ai-node-sdk`](https://github.com/n8n-io/n8n/tree/master/packages/%40n8n/ai-node-sdk). Connect it to the **AI Agent** or **Basic LLM Chain** node exactly like the OpenAI Chat Model node — Manifest sits between your agent and the providers and routes each request to the cheapest capable model.
+
+- Model list is loaded from your Manifest instance; the default `auto` lets Manifest route every request.
+- Supports streaming, tool calling, and (optionally) the OpenAI Responses API.
+- Requires an n8n version that ships `@n8n/ai-node-sdk` (2026 releases).
+
+## Manifest (action node)
+
+A regular node for calling Manifest directly from a workflow, without an AI Agent:
 
 - List models from `GET /v1/models`
 - Create chat completions with `POST /v1/chat/completions`
 - Create Responses API calls with `POST /v1/responses`
 
-The first version intentionally returns non-streaming JSON responses.
+### Response output
+
+The action node handles both response formats returned by Manifest:
+
+- Buffered responses are returned as the API's JSON object.
+- Streamed responses are returned as parsed server-sent events after the stream completes:
+
+```json
+{
+  "responseMode": "stream",
+  "events": [
+    {
+      "event": "message",
+      "data": { "choices": [{ "delta": { "content": "Hello" } }] }
+    },
+    { "event": "message", "data": "[DONE]" }
+  ]
+}
+```
+
+The action node waits for a streamed response to finish before passing its parsed events to the next workflow node. Do not set `stream` in **Additional Body**; the node ignores that field so response behavior remains consistent with the route configured in Manifest.
 
 ## Credentials
 
@@ -41,15 +73,16 @@ npm run dev
 
 ## Release
 
-This package is designed to publish from GitHub Actions with npm provenance.
+This package publishes from GitHub Actions with npm provenance (required for
+n8n verified community nodes since May 2026). The committed `package.json`
+version is the single source of truth — never publish from a local machine.
 
-1. Update the package version in `package.json` and `CHANGELOG.md`.
-2. Commit the change.
-3. Push a tag named `n8n-nodes-manifest-v<version>`, for example:
+1. Bump the version in `package.json` (and `package-lock.json`) and add a `CHANGELOG.md` entry.
+2. Merge to `main`.
 
-```bash
-git tag n8n-nodes-manifest-v0.1.0
-git push origin n8n-nodes-manifest-v0.1.0
-```
+That's it. The `publish-n8n-node.yml` workflow detects the version change,
+skips if that version is already on npm, publishes with provenance, and pushes
+the matching `n8n-nodes-manifest-v<version>` tag automatically.
 
-Configure npm Trusted Publishing for the GitHub workflow named `publish-n8n-node.yml`, or set an `NPM_TOKEN` repository secret. The workflow runs `npm run release`, which n8n uses to publish with npm provenance inside GitHub Actions.
+Configure npm Trusted Publishing for the workflow, or set an `NPM_TOKEN`
+repository secret.

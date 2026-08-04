@@ -108,7 +108,7 @@ export function createCorsOriginHandler(allowedOrigins: string[]): CorsOriginHan
 
 // Preflight cache lifetime (seconds), shared by the dev and production CORS
 // paths. Without a max-age the browser re-runs the preflight — including the
-// dev Private Network Access preflight — roughly every 5s, so every dashboard
+// legacy dev Private Network Access preflight — roughly every 5s, so every dashboard
 // reload (dev) or burst of Wingman requests (production) re-issues one. Each
 // round trip is another chance for a transient blip to surface as a spurious
 // CORS error. Caching the preflight collapses those repeats. 7200s (2h) is the
@@ -138,12 +138,26 @@ export function buildCorsOptions(allowedOrigins: string[]): CorsOptions {
   };
 }
 
-// Chrome's Private Network Access blocks public HTTPS origins (e.g. the
-// hosted Wingman SPA at https://wingman.manifest.build) from reaching
-// loopback addresses unless the server echoes back
-// `Access-Control-Allow-Private-Network: true` on the preflight. Only
-// echo for origins that already passed the CORS allow-list so this
-// header isn't a free pass for arbitrary callers.
+// LEGACY — kept for old browsers only. Do not reach for this when debugging a
+// blocked loopback request; it will not help, and believing it does has cost
+// us the same bug more than once.
+//
+// Chrome's Private Network Access let a server opt in to public-HTTPS →
+// loopback requests by echoing `Access-Control-Allow-Private-Network: true` on
+// the preflight. Chrome ≥ 138 replaced PNA with **Local Network Access**, which
+// is a *user permission* — no response header can grant it, and in a
+// cross-origin iframe it's denied by permissions policy unless the embedder
+// sends `allow="local-network-access"`, so the prompt never even appears.
+//
+// The browser still reports the block as a CORS error, which is exactly why it
+// keeps being mistaken for one. Verified on Chrome 148: the request fails with
+// this header present and succeeds with
+// `--disable-features=LocalNetworkAccessChecks`.
+//
+// The fix is not to send another header — it's to not cross the address-space
+// boundary. The dashboard's dev drawer serves Wingman from a loopback origin
+// for that reason (see packages/frontend/wingman-dev-proxy.ts). This header
+// stays because pre-138 Chrome still honours it and it costs nothing.
 //
 // Shape kept narrow on purpose: takes only the request fields read and
 // a setHeader callback so it composes with Express middleware and unit

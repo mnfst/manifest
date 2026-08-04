@@ -91,7 +91,7 @@ describe('DuplicateAgentModal', () => {
     const headers = qa('.duplicate-agent__section-header').map((h) => h.textContent?.trim());
     expect(headers.some((h) => h?.includes('What is copied'))).toBe(true);
     expect(headers.some((h) => h?.includes('What is not copied'))).toBe(true);
-    expect(list.some((t) => t === 'Messages')).toBe(true);
+    expect(list.some((t) => t === 'Requests')).toBe(true);
     expect(list.some((t) => t === 'Logs')).toBe(true);
     expect(list.some((t) => t === 'Notification rules')).toBe(true);
 

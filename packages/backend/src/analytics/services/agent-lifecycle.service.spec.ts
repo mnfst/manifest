@@ -294,7 +294,7 @@ describe('AgentLifecycleService', () => {
       await service.renameAgent('test-user', 'old-agent', 'new-agent', 'New Agent');
 
       expect(mockTransaction).toHaveBeenCalledTimes(1);
-      expect(mockExecute).toHaveBeenCalledTimes(3);
+      expect(mockExecute).toHaveBeenCalledTimes(4);
       expect(mockManagerQb.update).toHaveBeenCalledWith('agents');
       expect(mockManagerQb.set).toHaveBeenCalledWith({
         name: 'new-agent',
@@ -304,13 +304,14 @@ describe('AgentLifecycleService', () => {
       const updateCalls = mockManagerQb.update.mock.calls.map((c: unknown[]) => c[0]);
       expect(updateCalls).toContain('agents');
       expect(updateCalls).toContain('agent_messages');
+      expect(updateCalls).toContain('requests');
       expect(updateCalls).toContain('notification_rules');
       expect(updateCalls).not.toContain('notification_logs');
 
       const tenantScopedWhereCalls = mockManagerQb.where.mock.calls.filter(
         (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('tenant_id'),
       );
-      expect(tenantScopedWhereCalls.length).toBe(2);
+      expect(tenantScopedWhereCalls.length).toBe(3);
       for (const call of tenantScopedWhereCalls) {
         expect(call[1]).toEqual({ tenantId: 'tenant-1', currentName: 'old-agent' });
       }

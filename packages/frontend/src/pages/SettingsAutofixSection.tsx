@@ -1,4 +1,5 @@
-import { createResource, createSignal, Show, type Component } from 'solid-js';
+import { createResource, createSignal, createEffect, type Component } from 'solid-js';
+import { useSearchParams } from '@solidjs/router';
 import { getAutofix, updateAutofix } from '../services/api.js';
 
 /**
@@ -20,11 +21,6 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   // Also disabled after a failed read: without a known current state a click
   // would blindly write a value the user never saw.
   const busy = () => saving() || config.loading || Boolean(config.error);
-  // Early-access gate: the toggle only appears for tenants with Auto-fix access
-  // (hand-picked, or on the waitlist once that rollout phase opens — see
-  // AUTOFIX_ROLLOUT). Everyone else uses the "Get early access" sidebar card.
-  const available = () => (config.error ? false : (config()?.available ?? false));
-
   const toggle = async () => {
     if (busy()) return;
     // Pin the agent this click targets. If the user switches harnesses before
@@ -42,10 +38,19 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
     }
   };
 
+  const [searchParams] = useSearchParams();
+  const [highlighted, setHighlighted] = createSignal(searchParams.highlight === 'autofix');
+  createEffect(() => {
+    if (highlighted()) {
+      const timer = setTimeout(() => setHighlighted(false), 1500);
+      return () => clearTimeout(timer);
+    }
+  });
+
   return (
-    <Show when={available()}>
+    <>
       <h2 class="settings-section__title">Auto-fix</h2>
-      <div class="settings-card">
+      <div class="settings-card" classList={{ 'settings-card--highlight': highlighted() }}>
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Auto-fix failing requests</span>
@@ -72,7 +77,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
           </div>
         </div>
       </div>
-    </Show>
+    </>
   );
 };
 

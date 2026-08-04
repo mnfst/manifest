@@ -51,7 +51,7 @@ describe('ProxyFallbackService', () => {
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
-  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'prepareRequest'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -161,7 +161,7 @@ describe('ProxyFallbackService', () => {
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
-      reinjectMissingReasoningContent: jest.fn(
+      prepareRequest: jest.fn(
         async (
           requestBody: Record<string, unknown>,
           _sessionKey: string,
@@ -328,6 +328,16 @@ describe('ProxyFallbackService', () => {
       'refreshes and retries rejected $provider OAuth subscription tokens',
       async ({ provider, rawBlob, setup, unwrap, expectedApiKey, expectedProviderResource }) => {
         setup();
+        const completeFailure = jest.fn().mockResolvedValue(undefined);
+        let attemptNumber = 0;
+        const startProviderAttempt = jest.fn(() => ({
+          id: `attempt-${attemptNumber + 1}`,
+          attemptNumber: ++attemptNumber,
+          startedAtMs: Date.now(),
+          startedAt: new Date().toISOString(),
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        }));
         providerClient.forward
           .mockResolvedValueOnce({
             response: new Response('unauthorized', { status: 401 }),
@@ -354,10 +364,18 @@ describe('ProxyFallbackService', () => {
           stream: false,
           sessionKey: 'sess-1',
           authType: 'subscription',
+          startProviderAttempt,
         });
 
         expect(result.response.status).toBe(200);
         expect(providerClient.forward).toHaveBeenCalledTimes(2);
+        expect(startProviderAttempt).toHaveBeenCalledTimes(2);
+        expect(result.attempt?.attemptNumber).toBe(2);
+        expect(completeFailure).toHaveBeenCalledWith({
+          status: 401,
+          errorBody: 'unauthorized',
+          superseded: true,
+        });
         expect(providerClient.forward.mock.calls[0][0].apiKey).toBe('old-access-token');
         expect(providerClient.forward.mock.calls[1][0].apiKey).toBe(expectedApiKey);
         expect(providerClient.forward.mock.calls[1][0].providerResource).toBe(
@@ -433,6 +451,13 @@ describe('ProxyFallbackService', () => {
 
     it('catches transport errors and returns synthetic response', async () => {
       providerClient.forward.mockRejectedValue(new Error('fetch failed'));
+      const attempt = {
+        id: 'attempt-transport',
+        attemptNumber: 1,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
 
       const result = await service.tryForwardToProvider({
         provider: 'OpenAI',
@@ -441,10 +466,78 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'sess-1',
+        startProviderAttempt: jest.fn(() => attempt),
       });
 
       expect(result.response.ok).toBe(false);
       expect(result.response.status).toBe(503);
+      expect(result.attempt).toBe(attempt);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+    });
+
+    it('returns a tagged transport failure when an OAuth retry cannot connect', async () => {
+      openaiOauth.unwrapToken.mockResolvedValue('fresh-access-token');
+      const completeFailure = jest.fn().mockResolvedValue(undefined);
+      let attemptNumber = 0;
+      const attempts: Array<{
+        id: string;
+        attemptNumber: number;
+        startedAtMs: number;
+        startedAt: string;
+        pendingWrite: Promise<boolean>;
+        completeFailure: jest.Mock;
+        completedAtMs?: number;
+      }> = [];
+      const startProviderAttempt = jest.fn(() => {
+        const attempt = {
+          id: `attempt-${attemptNumber + 1}`,
+          attemptNumber: ++attemptNumber,
+          startedAtMs: Date.now(),
+          startedAt: new Date().toISOString(),
+          pendingWrite: Promise.resolve(true),
+          completeFailure,
+        };
+        attempts.push(attempt);
+        return attempt;
+      });
+      providerClient.forward
+        .mockResolvedValueOnce({
+          response: {
+            status: 401,
+            clone: () => ({ text: () => Promise.reject(new Error('body unavailable')) }),
+          } as unknown as Response,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: true,
+        })
+        .mockRejectedValueOnce(new Error('fetch failed'));
+
+      const result = await service.tryForwardToProvider({
+        provider: 'openai',
+        apiKey: 'old-access-token',
+        rawApiKey: JSON.stringify({
+          t: 'old-access-token',
+          r: 'refresh-token',
+          e: Date.now() + 10 * 60 * 1000,
+        }),
+        agentId: 'agent-1',
+        tenantId: 'tenant-1',
+        model: 'gpt-5.3-codex',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'subscription',
+        startProviderAttempt,
+      });
+
+      expect(result.response.status).toBe(503);
+      expect(result.attempt).toBe(attempts[1]);
+      expect(result.providerCallStarted).toBe(true);
+      expect(completeFailure).toHaveBeenCalledWith({
+        status: 401,
+        errorBody: 'OAuth token rejected',
+        superseded: true,
+      });
     });
 
     it('rethrows non-transport errors', async () => {
@@ -494,6 +587,42 @@ describe('ProxyFallbackService', () => {
           body: expect.objectContaining({ thinking: { type: 'disabled' } }),
         }),
       );
+    });
+
+    it('merges params into a lazy cross-protocol body once per attempt', async () => {
+      const convertedBody = { messages: [{ role: 'user', content: 'hi' }] };
+      const resolveChatBody = jest.fn().mockResolvedValue(convertedBody);
+      modelParamsService.get.mockResolvedValue({ thinking: { type: 'disabled' } });
+      providerClient.forward.mockImplementation(async (options) => {
+        const first = await options.resolveChatBody!();
+        const second = await options.resolveChatBody!();
+        expect(second).toBe(first);
+        expect(first).toEqual({
+          ...convertedBody,
+          thinking: { type: 'disabled' },
+        });
+        return {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        };
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: { input: 'hi' },
+        resolveChatBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+        apiMode: 'responses',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
     });
 
     it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
@@ -595,7 +724,7 @@ describe('ProxyFallbackService', () => {
           },
         ],
       };
-      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+      reasoningCache.prepareRequest.mockResolvedValueOnce(enrichedBody);
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -607,7 +736,7 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
       });
 
-      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+      expect(reasoningCache.prepareRequest).toHaveBeenCalledWith(
         requestBody,
         'sess-1',
         'deepseek',
@@ -668,6 +797,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'my-session',
+        providerCacheKey: 'v1:scoped-session',
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith(
@@ -677,8 +807,36 @@ describe('ProxyFallbackService', () => {
           model: 'grok-2',
           body,
           stream: false,
-          extraHeaders: { 'x-grok-conv-id': 'my-session' },
+          extraHeaders: {
+            'x-grok-conv-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+          },
           sessionKey: 'my-session',
+          providerCacheKey: 'v1:scoped-session',
+        }),
+      );
+    });
+
+    it('omits provider cache headers without an explicit scoped key', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-2',
+        body,
+        stream: false,
+        sessionKey: 'default',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          extraHeaders: undefined,
+          providerCacheKey: undefined,
         }),
       );
     });
@@ -1090,6 +1248,114 @@ describe('ProxyFallbackService', () => {
     });
   });
 
+  describe('retryWireBody', () => {
+    it('delegates the healed body to the captured provider transport', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const retried = {
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      };
+      const retryWireBody = jest.fn().mockResolvedValue(retried);
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      await expect(service.retryWireBody(original, healedBody)).resolves.toBe(retried);
+      expect(retryWireBody).toHaveBeenCalledWith(healedBody);
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+
+    it('tracks the provider attempt for an exact wire-body retry', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const attempt = {
+        id: 'attempt-2',
+        attemptNumber: 2,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
+      const startProviderAttempt = jest.fn(() => attempt);
+      const retryWireBody = jest.fn().mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      const result = await service.retryWireBody(original, healedBody, {
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        providerKeyLabel: 'Work',
+        startProviderAttempt,
+      });
+
+      // The retry rides the same connection as the original call, so the
+      // pending attempt row it opens must name that connection's label too.
+      expect(startProviderAttempt).toHaveBeenCalledWith({
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        keyLabel: 'Work',
+      });
+      expect(result.attempt).toBe(attempt);
+      expect(result.providerCallStarted).toBe(true);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+
+    it('tracks transport failures from an exact wire-body retry', async () => {
+      const healedBody = { model: 'gpt-4o', max_tokens: 128 };
+      const attempt = {
+        id: 'attempt-2',
+        attemptNumber: 2,
+        startedAtMs: Date.now(),
+        startedAt: new Date().toISOString(),
+        pendingWrite: Promise.resolve(true),
+      };
+      const retryWireBody = jest.fn().mockRejectedValue(new Error('fetch failed'));
+      const original = {
+        response: new Response('{}', { status: 400 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        retryWireBody,
+      };
+
+      const result = await service.retryWireBody(original, healedBody, {
+        provider: 'openai',
+        model: 'gpt-4o',
+        authType: 'api_key',
+        tenantProviderId: 'connection-1',
+        startProviderAttempt: jest.fn(() => attempt),
+      });
+
+      expect(result.response.status).toBe(503);
+      await expect(result.response.json()).resolves.toEqual({
+        error: { message: 'Failed to reach upstream provider' },
+      });
+      expect(result.attempt).toBe(attempt);
+      expect(result.providerCallStarted).toBe(true);
+      expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+      expect(providerClient.forward).not.toHaveBeenCalled();
+    });
+  });
+
   describe('tryFallbacks', () => {
     it('returns success on first successful fallback', async () => {
       providerKeyService.getProviderApiKey.mockResolvedValue('sk-ant');
@@ -1161,7 +1427,7 @@ describe('ProxyFallbackService', () => {
       expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
-    it('skips models with no API key', async () => {
+    it('records a credential failure when a model has no API key', async () => {
       pricingCache.getByModel.mockReturnValue({ provider: 'Anthropic' } as never);
       providerKeyService.getProviderApiKey.mockResolvedValue(null);
 
@@ -1176,7 +1442,15 @@ describe('ProxyFallbackService', () => {
       );
 
       expect(result.success).toBeNull();
-      expect(result.failures).toHaveLength(0);
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures[0]).toMatchObject({
+        provider: 'Anthropic',
+        model: 'claude-sonnet-4',
+        status: 401,
+        providerCallStarted: true,
+      });
+      expect(result.failures[0].errorBody).toContain('M100');
+      expect(providerClient.forward).not.toHaveBeenCalled();
     });
 
     it('resolves custom provider from model prefix', async () => {

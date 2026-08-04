@@ -200,6 +200,25 @@
   overflow: hidden;
 }
 
+.settings-card--highlight {
+  animation: settings-highlight-blink 1.5s ease;
+}
+
+@keyframes settings-highlight-blink {
+  0% {
+    background: hsl(var(--card));
+  }
+  15% {
+    background: hsl(38, 92%, 50%, 0.15);
+  }
+  70% {
+    background: hsl(38, 92%, 50%, 0.15);
+  }
+  100% {
+    background: hsl(var(--card));
+  }
+}
+
 .settings-card__row {
   display: flex;
   align-items: center;
@@ -347,6 +366,17 @@
   justify-content: flex-start;
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
+}
+
+.account-security-footer {
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-lg);
+}
+
+.account-security-error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
 }
 
 @media (max-width: 640px) {

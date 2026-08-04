@@ -7,7 +7,17 @@ import {
   MANIFEST_ERROR_ORIGINS,
   TRANSPORT_NETWORK_HTTP_STATUS,
   TRANSPORT_TIMEOUT_HTTP_STATUS,
+  REQUEST_STATUSES,
+  ATTEMPT_STATUSES,
+  CANCELLED_STATUS,
+  PENDING_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+  normalizeStatus,
+  isSuccessStatus,
+  isFailedStatus,
 } from '../src/error-taxonomy';
+import { isAnthropicExtraUsageError } from '../src/provider-error-semantics';
 
 describe('error-taxonomy constants', () => {
   it('pins the synthetic transport codes to 503/504', () => {
@@ -57,6 +67,13 @@ describe('classifyHttpErrorClass', () => {
 });
 
 describe('classifyMessageError', () => {
+  it('does not classify a pending operation as an error', () => {
+    expect(classifyMessageError({ status: 'pending' })).toEqual({
+      error_origin: null,
+      error_class: null,
+      superseded: false,
+    });
+  });
   it('classifies an ok row as no error and never superseded', () => {
     expect(classifyMessageError({ status: 'ok', errorHttpStatus: 200 })).toEqual({
       error_origin: null,
@@ -68,6 +85,8 @@ describe('classifyMessageError', () => {
   it.each([
     ['no_provider', 'config', 'no_provider'],
     ['no_provider_key', 'config', 'no_provider_key'],
+    ['subscription_credentials_unusable', 'config', 'subscription_credentials_unusable'],
+    ['local_provider_unavailable', 'config', 'local_provider_unavailable'],
     ['key_expired', 'config', 'auth'],
     ['limit_exceeded', 'policy', 'limit_exceeded'],
     ['plan_request_limit_exceeded', 'policy', 'plan_request_limit_exceeded'],
@@ -123,6 +142,27 @@ describe('classifyMessageError', () => {
     expect(classifyMessageError({ status: 'error', errorHttpStatus: 500 })).toEqual({
       error_origin: 'provider',
       error_class: 'server_error',
+      superseded: false,
+    });
+  });
+
+  it('classifies Anthropic extra-usage exhaustion as billing while preserving HTTP 400', () => {
+    expect(
+      classifyMessageError({
+        status: 'error',
+        errorHttpStatus: 400,
+        provider: 'anthropic',
+        errorMessage: JSON.stringify({
+          type: 'error',
+          error: {
+            type: 'invalid_request_error',
+            message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+          },
+        }),
+      }),
+    ).toEqual({
+      error_origin: 'provider',
+      error_class: 'billing',
       superseded: false,
     });
   });
@@ -194,6 +234,69 @@ describe('classifyMessageError', () => {
   });
 });
 
+describe('isAnthropicExtraUsageError', () => {
+  const errorBody = JSON.stringify({
+    type: 'error',
+    error: {
+      type: 'invalid_request_error',
+      message: "You're out of extra usage. Add more at claude.ai to keep going.",
+    },
+  });
+
+  it('matches the Anthropic 400 invalid-request billing envelope', () => {
+    expect(
+      isAnthropicExtraUsageError({
+        provider: 'anthropic',
+        httpStatus: 400,
+        errorBody,
+      }),
+    ).toBe(true);
+  });
+
+  it('matches a top-level Anthropic error envelope', () => {
+    expect(
+      isAnthropicExtraUsageError({
+        provider: 'anthropic',
+        httpStatus: 400,
+        errorBody: JSON.stringify({
+          type: 'invalid_request_error',
+          message: 'You are out of extra usage.',
+        }),
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['openai', 400, errorBody],
+    ['anthropic', 429, errorBody],
+    ['anthropic', 400, ''],
+    ['anthropic', 400, 'null'],
+    ['anthropic', 400, 'not json'],
+    [
+      'anthropic',
+      400,
+      JSON.stringify({
+        error: { type: 'invalid_request_error', message: 'max_tokens is required' },
+      }),
+    ],
+    [
+      'anthropic',
+      400,
+      JSON.stringify({
+        error: { type: 'rate_limit_error', message: 'You are out of extra usage.' },
+      }),
+    ],
+  ])('does not match unrelated provider errors', (provider, httpStatus, body) => {
+    expect(
+      isAnthropicExtraUsageError({
+        provider,
+        httpStatus,
+        errorBody: body,
+      }),
+    ).toBe(false);
+  });
+});
+
 describe('isManifestErrorOrigin', () => {
   it.each(['config', 'policy', 'internal'])('returns true for the manifest origin %s', (origin) => {
     expect(isManifestErrorOrigin(origin)).toBe(true);
@@ -207,5 +310,83 @@ describe('isManifestErrorOrigin', () => {
     expect(isManifestErrorOrigin(null)).toBe(false);
     expect(isManifestErrorOrigin(undefined)).toBe(false);
     expect(isManifestErrorOrigin('nonsense')).toBe(false);
+  });
+});
+
+describe('canonical status vocabulary', () => {
+  it('pins the canonical request and attempt statuses', () => {
+    expect(REQUEST_STATUSES).toEqual([
+      PENDING_STATUS,
+      CANCELLED_STATUS,
+      SUCCESS_STATUS,
+      FAILED_STATUS,
+    ]);
+    expect(ATTEMPT_STATUSES).toEqual([
+      PENDING_STATUS,
+      CANCELLED_STATUS,
+      SUCCESS_STATUS,
+      FAILED_STATUS,
+    ]);
+    expect([PENDING_STATUS, CANCELLED_STATUS, SUCCESS_STATUS, FAILED_STATUS]).toEqual([
+      'pending',
+      'cancelled',
+      'success',
+      'failed',
+    ]);
+  });
+
+  describe('normalizeStatus', () => {
+    it('keeps pending', () => {
+      expect(normalizeStatus('pending')).toBe('pending');
+    });
+
+    it('keeps cancelled', () => {
+      expect(normalizeStatus('cancelled')).toBe('cancelled');
+    });
+
+    it('maps legacy and canonical success onto success', () => {
+      expect(normalizeStatus('ok')).toBe('success');
+      expect(normalizeStatus('success')).toBe('success');
+    });
+
+    it('treats nullish as success (legacy absent-status convention)', () => {
+      expect(normalizeStatus(null)).toBe('success');
+      expect(normalizeStatus(undefined)).toBe('success');
+    });
+
+    it.each(['error', 'rate_limited', 'fallback_error', 'auto_fixed', 'failed', 'anything-else'])(
+      'collapses %s onto failed',
+      (value) => {
+        expect(normalizeStatus(value)).toBe('failed');
+      },
+    );
+  });
+
+  describe('isSuccessStatus / isFailedStatus', () => {
+    it('recognizes success across vocabularies', () => {
+      expect(isSuccessStatus('ok')).toBe(true);
+      expect(isSuccessStatus('success')).toBe(true);
+      expect(isSuccessStatus(null)).toBe(true);
+      expect(isSuccessStatus('error')).toBe(false);
+      expect(isSuccessStatus('failed')).toBe(false);
+      expect(isSuccessStatus('cancelled')).toBe(false);
+    });
+
+    it('recognizes failure across vocabularies', () => {
+      expect(isFailedStatus('error')).toBe(true);
+      expect(isFailedStatus('fallback_error')).toBe(true);
+      expect(isFailedStatus('failed')).toBe(true);
+      expect(isFailedStatus('cancelled')).toBe(false);
+      expect(isFailedStatus('ok')).toBe(false);
+      expect(isFailedStatus('pending')).toBe(false);
+    });
+  });
+
+  it('classifyMessageError short-circuits the canonical success value', () => {
+    expect(classifyMessageError({ status: 'success' })).toEqual({
+      error_origin: null,
+      error_class: null,
+      superseded: false,
+    });
   });
 });

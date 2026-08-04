@@ -1,8 +1,9 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { ReasoningContentCacheEntry } from '../../entities/reasoning-content-cache-entry.entity';
-import { supportsReasoningContent } from './reasoning-format';
+import { supportsReasoningContent, type ReasoningModelCatalog } from './reasoning-format';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 
 interface CachedReasoningContent {
   content: string;
@@ -41,6 +42,13 @@ export class ReasoningContentCache {
     @Optional()
     @InjectRepository(ReasoningContentCacheEntry)
     private readonly repo?: Repository<ReasoningContentCacheEntry>,
+    /**
+     * Read by the response handler too, which needs it for the stream-format
+     * question `supportsReasoningContent` alone can't answer.
+     */
+    @Optional()
+    @Inject(ModelsDevReasoningCatalog)
+    readonly modelCatalog?: ReasoningModelCatalog,
   ) {}
 
   /** Store the reasoning_content string for an assistant tool-call turn. */
@@ -113,31 +121,36 @@ export class ReasoningContentCache {
     return result;
   }
 
-  async reinjectMissingReasoningContent(
+  async prepareRequest(
     body: Record<string, unknown>,
     sessionKey: string,
     endpointKey: string | null,
     model: string,
   ): Promise<Record<string, unknown>> {
-    if (!endpointKey || !supportsReasoningContent(endpointKey, model)) return body;
+    if (!endpointKey || !supportsReasoningContent(endpointKey, model, this.modelCatalog)) {
+      return body;
+    }
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
-    const keysByIndex = messages.map((message) => reasoningReplayKeyMissingReasoning(message));
-    const keys = keysByIndex.filter((id): id is string => typeof id === 'string');
-    if (keys.length === 0) return body;
-    const repeatedKeys = repeatedReplayKeys(keys);
+    const candidates = messages.map(reasoningReplayCandidate);
+    if (!candidates.some(Boolean)) return body;
 
-    const cached = await this.retrieveMany(sessionKey, keys);
-    if (cached.size === 0) return body;
+    const keys = candidates.flatMap((candidate) =>
+      candidate?.cacheKey ? [candidate.cacheKey] : [],
+    );
+    const repeatedKeys = repeatedReplayKeys(keys);
+    const cached = keys.length > 0 ? await this.retrieveMany(sessionKey, keys) : new Map();
 
     let changed = false;
     const nextMessages = messages.map((message, index) => {
-      const key = keysByIndex[index];
-      if (!key) return message;
-      if (repeatedKeys.has(key)) return message;
-      const content = cached.get(key);
-      if (!content) return message;
+      const candidate = candidates[index];
+      if (!candidate) return message;
+      const content =
+        candidate.cacheKey && !repeatedKeys.has(candidate.cacheKey)
+          ? (cached.get(candidate.cacheKey) ?? '')
+          : '';
+      if ((message as Record<string, unknown>).reasoning_content === content) return message;
       changed = true;
       return { ...(message as Record<string, unknown>), reasoning_content: content };
     });
@@ -229,21 +242,21 @@ export class ReasoningContentCache {
   }
 }
 
-function firstToolCallIdMissingReasoning(message: unknown): string | null {
+interface ReasoningReplayCandidate {
+  cacheKey: string | null;
+}
+
+function reasoningReplayCandidate(message: unknown): ReasoningReplayCandidate | null {
   if (!message || typeof message !== 'object' || Array.isArray(message)) return null;
   const record = message as Record<string, unknown>;
   if (typeof record.reasoning_content === 'string' && record.reasoning_content) return null;
   if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) return null;
   const firstToolCall = record.tool_calls[0];
   if (!firstToolCall || typeof firstToolCall !== 'object' || Array.isArray(firstToolCall)) {
-    return null;
+    return { cacheKey: null };
   }
   const id = (firstToolCall as Record<string, unknown>).id;
-  return typeof id === 'string' && id ? id : null;
-}
-
-function reasoningReplayKeyMissingReasoning(message: unknown): string | null {
-  return firstToolCallIdMissingReasoning(message);
+  return { cacheKey: typeof id === 'string' && id ? id : null };
 }
 
 function repeatedReplayKeys(keys: string[]): Set<string> {

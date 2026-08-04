@@ -22,7 +22,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import { MAX_KEYS_PER_PROVIDER, type AuthType, type ModelRoute } from 'manifest-shared';
 import {
   QWEN_REGION_VALIDATION_MESSAGE,
   detectQwenRegion,
@@ -40,10 +40,18 @@ import {
   getSubscriptionEndpointRegionConfig,
   SubscriptionEndpointRegionConfig,
 } from '../subscription-region';
+import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
+import { getManagedFreeProviderConfig } from '../../common/constants/managed-free-providers';
 
-const MAX_KEYS_PER_PROVIDER = 5;
+const MAX_KEYS_MANAGED_FREE_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
+// Bounds for withSubscriptionCredentialLock's critical section (the provider
+// OAuth refresh HTTP call runs inside it). lock_timeout caps a second replica's
+// wait for the row lock; idle_in_transaction caps how long a hung refresh pins
+// the pooled connection.
+const SUBSCRIPTION_LOCK_TIMEOUT = '5s';
+const SUBSCRIPTION_REFRESH_IDLE_TIMEOUT = '20s';
 
 interface ProviderRouteReference {
   agentId: string;
@@ -128,11 +136,13 @@ export class ProviderService {
 
   async getProviders(tenantId: string): Promise<TenantProvider[]> {
     const cached = this.routingCache.getProviders(tenantId);
-    if (cached) return cached;
+    if (cached) return filterProvidersForDeployment(cached);
 
     await this.cleanupUnsupportedSubscriptionProviders(tenantId);
-    const providers = (await this.providerRepo.find({ where: { tenant_id: tenantId } })).filter(
-      isManifestUsableProvider,
+    const providers = filterProvidersForDeployment(
+      (await this.providerRepo.find({ where: { tenant_id: tenantId } })).filter(
+        isManifestUsableProvider,
+      ),
     );
     this.routingCache.setProviders(tenantId, providers);
     return providers;
@@ -217,10 +227,9 @@ export class ProviderService {
 
   /**
    * Read the freshest persisted subscription credential straight from the DB,
-   * decrypted, bypassing the routing cache. The OAuth refresh coordinator uses
-   * this so a lazy token refresh never rotates based on a stale cached blob
-   * (see issue #2012). Returns the decrypted raw stored value, or null when
-   * there is no row / no stored credential / it cannot be decrypted.
+   * decrypted, bypassing the routing cache. Prefer
+   * {@link withSubscriptionCredentialLock} for OAuth refresh — that path
+   * holds a row lock so multi-replica refreshes cannot collide.
    */
   async getFreshSubscriptionCredential(
     tenantId: string,
@@ -243,6 +252,105 @@ export class ProviderService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Run OAuth refresh work while holding a row lock on the subscription
+   * credential (`SELECT … FOR UPDATE`). Multi-replica backends serialize on
+   * this lock so two instances cannot rotate the same refresh token.
+   *
+   * Keep the critical section short: re-read → maybe refresh → write. The
+   * provider refresh HTTP call runs while the lock is held (needed so two
+   * replicas cannot both rotate), so the section is BOUNDED: `lock_timeout`
+   * caps how long a second replica waits for the lock, and
+   * `idle_in_transaction_session_timeout` caps how long a hung refresh can pin
+   * this pooled connection — without them a stuck provider could hold a
+   * connection indefinitely and starve the pool. `SET LOCAL` scopes both to
+   * this transaction (the sanctioned pattern under PgBouncer, which strips the
+   * server defaults).
+   */
+  async withSubscriptionCredentialLock<T>(
+    tenantId: string,
+    provider: string,
+    label: string | undefined,
+    fn: (ops: {
+      readFreshRaw: () => Promise<string | null>;
+      writeRaw: (raw: string) => Promise<void>;
+    }) => Promise<T>,
+  ): Promise<T> {
+    // Trim before lowercasing to match normalizeLabel (which trims at store
+    // time) — a label carrying stray whitespace must still find its stored row,
+    // otherwise the lock misses an existing credential and a rotated token is
+    // discarded (bricking it).
+    const wantedLabel = (label ?? DEFAULT_LABEL).trim().toLowerCase();
+    let didWrite = false;
+    const result = await this.providerRepo.manager.transaction(async (manager) => {
+      const repo = manager.getRepository(TenantProvider);
+      await manager.query(`SET LOCAL lock_timeout = '${SUBSCRIPTION_LOCK_TIMEOUT}'`);
+      await manager.query(
+        `SET LOCAL idle_in_transaction_session_timeout = '${SUBSCRIPTION_REFRESH_IDLE_TIMEOUT}'`,
+      );
+      // Lock the matching subscription row for this tenant/provider/label.
+      // LOWER(label) matches the unique index and pinned-route casing quirks.
+      const row =
+        (await repo
+          .createQueryBuilder('tp')
+          .setLock('pessimistic_write')
+          .where('tp.tenant_id = :tenantId', { tenantId })
+          .andWhere('tp.provider = :provider', { provider })
+          .andWhere(`tp.auth_type = 'subscription'`)
+          .andWhere('LOWER(tp.label) = :label', { label: wantedLabel })
+          .getOne()) ?? null;
+
+      return fn({
+        readFreshRaw: async () => {
+          if (!row?.api_key_encrypted) return null;
+          try {
+            return decrypt(row.api_key_encrypted, getEncryptionSecret());
+          } catch {
+            return null;
+          }
+        },
+        writeRaw: async (raw: string) => {
+          if (!row) {
+            throw new Error(
+              `No subscription credential row to persist for ${provider}/${wantedLabel}`,
+            );
+          }
+          const encrypted = encrypt(raw, getEncryptionSecret());
+          const keyPrefix = raw.substring(0, 8);
+          const updatedAt = new Date().toISOString();
+          // Write inside a SAVEPOINT (nested transaction) so a transient save
+          // failure rolls back only this statement, not the whole locked
+          // transaction. A bare save on the outer tx would abort it, and the
+          // coordinator's persist retry — running on the same held lock — would
+          // then fail every attempt with "current transaction is aborted",
+          // silently discarding the already-rotated token (a brick).
+          await manager.transaction(async (sub) => {
+            await sub
+              .getRepository(TenantProvider)
+              .update(
+                { id: row.id },
+                { api_key_encrypted: encrypted, key_prefix: keyPrefix, updated_at: updatedAt },
+              );
+          });
+          // Keep the in-memory row consistent for any subsequent readFreshRaw.
+          row.api_key_encrypted = encrypted;
+          row.key_prefix = keyPrefix;
+          row.updated_at = updatedAt;
+          didWrite = true;
+          // Cache invalidation is deferred until AFTER commit (below).
+          // Invalidating here — before COMMIT — opens a window where a
+          // concurrent read re-caches the still-committed pre-rotation blob,
+          // which would then be refreshed again on the next hop.
+        },
+      });
+    });
+    // Post-commit: the rotated blob is durable, so busting the cache now
+    // guarantees the next hop reads the new value and no reader can re-cache the
+    // old one.
+    if (didWrite) this.routingCache.invalidateTenant(tenantId);
+    return result;
   }
 
   async upsertProvider(
@@ -378,9 +486,13 @@ export class ProviderService {
     }
 
     const activeCount = existingRows.filter((r) => r.is_active).length;
-    if (activeCount >= MAX_KEYS_PER_PROVIDER) {
+    const managedFreeConfig = getManagedFreeProviderConfig(provider);
+    const maxKeys = managedFreeConfig ? MAX_KEYS_MANAGED_FREE_PROVIDER : MAX_KEYS_PER_PROVIDER;
+    if (activeCount >= maxKeys) {
       throw new BadRequestException(
-        `You can connect at most ${MAX_KEYS_PER_PROVIDER} keys per provider`,
+        maxKeys === 1
+          ? `You can connect at most 1 key for ${managedFreeConfig!.displayName}`
+          : `You can connect at most ${maxKeys} keys per provider`,
       );
     }
 

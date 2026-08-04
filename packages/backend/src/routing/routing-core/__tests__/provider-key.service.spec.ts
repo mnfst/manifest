@@ -662,6 +662,40 @@ describe('ProviderKeyService', () => {
     });
   });
 
+  describe('hasRouteCredentials', () => {
+    it('reuses the provider-key lookup for a pinned route', async () => {
+      const getProviderKeys = jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([
+        {
+          id: 'provider-key-1',
+          label: 'Default',
+          priority: 0,
+          apiKey: 'decrypted',
+          region: null,
+        },
+      ]);
+      const pinned = {
+        provider: 'openai',
+        authType: 'api_key',
+        model: 'gpt-4o',
+      } as const;
+
+      await expect(svc.hasRouteCredentials('tenant-1', pinned, 'agent-1')).resolves.toBe(true);
+      expect(getProviderKeys).toHaveBeenCalledWith('tenant-1', 'openai', 'api_key', 'agent-1');
+    });
+
+    it('rejects routes whose provider-key chain is empty', async () => {
+      jest.spyOn(svc, 'getProviderKeys').mockResolvedValue([]);
+
+      await expect(
+        svc.hasRouteCredentials(
+          'tenant-1',
+          { provider: 'opencode-go', authType: 'api_key', model: 'glm-5.2' },
+          'agent-1',
+        ),
+      ).resolves.toBe(false);
+    });
+  });
+
   describe('resolveProviderKeys ordering and local keys', () => {
     it('orders same-auth-type matches by priority when no auth type is preferred', async () => {
       providerRepo.find.mockResolvedValue([

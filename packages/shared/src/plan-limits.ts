@@ -27,6 +27,16 @@ export interface BillingEmailPreferences {
   usageAlerts: boolean;
 }
 
+/**
+ * Light plan lookup for surfaces that only gate UI on the tenant's plan
+ * (range locks, AuthGuard bootstrap). Deliberately excludes usage and price —
+ * consumers that render those use the full {@link BillingStatus}.
+ */
+export interface BillingPlanStatus {
+  enabled: boolean;
+  plan: Plan;
+}
+
 export interface BillingStatus {
   enabled: boolean;
   plan: Plan;

@@ -2,6 +2,7 @@ import {
   MAX_BODY_BYTES,
   isReportableStatus,
   scrubBody,
+  scrubProviderUrl,
   toObservation,
   type ObservationInput,
 } from './observation-payload';
@@ -11,6 +12,8 @@ const baseInput: ObservationInput = {
   tenantId: 'tenant-1',
   agentId: 'agent-1',
   provider: 'openai',
+  model: 'gpt-5.1',
+  authType: 'api_key',
   apiMode: 'chat_completions',
   requestBody: { model: 'gpt-5.1', temperature: 5, messages: [{ role: 'user', content: 'hi' }] },
   status: 400,
@@ -97,6 +100,18 @@ describe('scrubBody', () => {
   });
 });
 
+describe('scrubProviderUrl', () => {
+  it('keeps routing query parameters but removes credentials', () => {
+    expect(scrubProviderUrl('https://provider.test/generate?alt=sse&key=secret-value')).toBe(
+      'https://provider.test/generate?alt=sse&key=%5BREDACTED%5D',
+    );
+  });
+
+  it('scrubs secrets even when the provider URL is malformed', () => {
+    expect(scrubProviderUrl('not-a-url sk-ant-abcdefghijklmno')).toBe('not-a-url [REDACTED]');
+  });
+});
+
 describe('toObservation', () => {
   it('builds the observe payload with the normalized provider error', () => {
     const obs = toObservation(baseInput);
@@ -104,6 +119,7 @@ describe('toObservation', () => {
     expect(obs!.traceId).toBe('trace-1');
     expect(obs!.tenantId).toBe('tenant-1');
     expect(obs!.provider).toBe('openai');
+    expect(obs!.authType).toBe('api_key');
     expect(obs!.api).toBe('chat_completions');
     expect(obs!.request).toMatchObject({ model: 'gpt-5.1', temperature: 5 });
     expect(obs!.response.statusCode).toBe(400);
@@ -121,18 +137,82 @@ describe('toObservation', () => {
     expect(JSON.stringify(obs)).not.toContain('agent-1');
   });
 
-  it('substitutes the resolved model for a routing alias', () => {
+  it('keeps the provider-facing model and body shape intact', () => {
     const obs = toObservation({
       ...baseInput,
-      requestBody: { ...baseInput.requestBody, model: 'auto' },
-      resolvedModel: 'gpt-5.1',
+      apiMode: 'messages',
+      requestBody: {
+        model: 'claude-opus-4-8',
+        thinking: { type: 'adaptive', budget_tokens: 8192 },
+      },
     });
-    expect(obs!.request.model).toBe('gpt-5.1');
+    expect(obs!.api).toBe('messages');
+    expect(obs!.request).toEqual({
+      model: 'claude-opus-4-8',
+      thinking: { type: 'adaptive', budget_tokens: 8192 },
+    });
   });
 
-  it('leaves the model alone when it already matches the resolved one', () => {
-    const obs = toObservation({ ...baseInput, resolvedModel: 'gpt-5.1' });
-    expect(obs!.request.model).toBe('gpt-5.1');
+  it('keeps a native Gemini provider exchange separate from Phoenix patch identity', () => {
+    const wireBody = {
+      generationConfig: { maxOutputTokens: 32000, topP: 1, temperature: 1 },
+      contents: [{ role: 'user', parts: [{ text: 'hi' }] }],
+    };
+    const obs = toObservation({
+      ...baseInput,
+      provider: 'gemini',
+      model: 'gemini-2.5-flash-lite',
+      requestBody: wireBody,
+      providerWire: {
+        format: 'google_generate_content',
+        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        body: wireBody,
+      },
+    });
+    expect(obs?.model).toBe('gemini-2.5-flash-lite');
+    expect(obs?.request).toEqual(wireBody);
+    expect(obs?.request).not.toHaveProperty('model');
+    expect(obs?.providerExchange).toEqual({
+      format: 'google_generate_content',
+      url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+      request: { body: wireBody, redactedFields: [] },
+      response: {
+        statusCode: 400,
+        body: { error: { message: 'temperature must be <= 2', code: 'bad_param' } },
+      },
+    });
+  });
+
+  it('omits an absent provider URL from the exchange', () => {
+    const obs = toObservation({
+      ...baseInput,
+      providerWire: {
+        format: 'openai_chat_completions',
+        body: { model: 'gpt-5.1', max_tokens: 128 },
+      },
+      errorBody: 'plain provider failure',
+    });
+
+    expect(obs?.providerExchange).toEqual({
+      format: 'openai_chat_completions',
+      request: {
+        body: { model: 'gpt-5.1', max_tokens: 128 },
+        redactedFields: [],
+      },
+      response: { statusCode: 400, body: 'plain provider failure' },
+    });
+  });
+
+  it('returns null when the provider-native body is too large to ship', () => {
+    expect(
+      toObservation({
+        ...baseInput,
+        providerWire: {
+          format: 'google_generate_content',
+          body: { contents: [{ text: 'x'.repeat(MAX_BODY_BYTES) }] },
+        },
+      }),
+    ).toBeNull();
   });
 
   it('carries the response time when measured', () => {
@@ -142,6 +222,23 @@ describe('toObservation', () => {
 
   it('returns null for a non-request-side failure', () => {
     expect(toObservation({ ...baseInput, status: 429 })).toBeNull();
+  });
+
+  it('does not report Anthropic subscription extra-usage exhaustion', () => {
+    expect(
+      toObservation({
+        ...baseInput,
+        provider: 'anthropic',
+        status: 400,
+        errorBody: JSON.stringify({
+          type: 'error',
+          error: {
+            type: 'invalid_request_error',
+            message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+          },
+        }),
+      }),
+    ).toBeNull();
   });
 
   it('returns null when the body is too large to ship', () => {

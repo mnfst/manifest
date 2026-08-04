@@ -1,5 +1,4 @@
 import { ProxyMessageRecorder } from '../proxy-message-recorder';
-import { ProxyMessageDedup } from '../proxy-message-dedup';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
@@ -31,7 +30,6 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
     const pricingCache = {
       getByModel: jest.fn().mockReturnValue(undefined),
     } as unknown as ModelPricingCacheService;
-    const dedup = {} as ProxyMessageDedup;
     const eventBus = { emit: jest.fn() } as unknown as IngestEventBusService;
     const customProviders = {
       canonicalizeAgentMessageKeys: jest
@@ -50,7 +48,6 @@ describe('ProxyMessageRecorder.recordFailedFallbacks — per-failure auth_type',
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
-      dedup,
       eventBus,
       customProviders,
       opencodeGoCatalog,

@@ -28,14 +28,9 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Dropped CONCURRENTLY (so `transaction = false`) to avoid the ACCESS EXCLUSIVE
  * lock against live writes during a deploy.
  *
- * `npm run migration:revert` CANNOT run the `down()` below, and this is true of
- * every CONCURRENTLY migration here (1795100000000 included). TypeORM honours a
- * migration's `transaction = false` in `executePendingMigrations`, but
- * `undoLastMigration` consults only the DataSource-level setting, so it opens a
- * transaction and Postgres rejects `CREATE/DROP INDEX CONCURRENTLY` with
- * `PreventInTransactionBlock`. To roll back, run the `down()` statements
- * directly against the database, then delete this migration's row from
- * `migrations`.
+ * `npm run migration:revert` explicitly uses TypeORM's `--transaction none`.
+ * TypeORM's undo path otherwise ignores this migration's `transaction = false`
+ * and opens a transaction, which Postgres rejects for concurrent index work.
  */
 export class DropUnusedAgentMessageIndexes1800300000000 implements MigrationInterface {
   name = 'DropUnusedAgentMessageIndexes1800300000000';

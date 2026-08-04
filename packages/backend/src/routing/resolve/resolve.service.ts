@@ -20,7 +20,7 @@ import { scoreRequest, ScorerInput, MomentumInput, scanMessages } from '../../sc
 import { ResolveResponse } from '../dto/resolve-response';
 import { inferProviderFromModelName } from '../../common/utils/provider-aliases';
 import { Agent } from '../../entities/agent.entity';
-import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY } from 'manifest-shared';
+import { DEFAULT_RESPONSE_MODE, DEFAULT_OUTPUT_MODALITY, DEFAULT_TIER_SLOT } from 'manifest-shared';
 import type {
   AuthType,
   ModelRoute,
@@ -87,6 +87,26 @@ export class ResolveService {
     recentCategories?: readonly SpecificityCategory[],
     headers?: IncomingHttpHeaders,
   ): Promise<ResolveResponse> {
+    return this.resolveLazy(
+      agentId,
+      tenantId,
+      async () => ({ messages, tools, tool_choice: toolChoice, max_tokens: maxTokens }),
+      recentTiers,
+      specificityOverride,
+      recentCategories,
+      headers,
+    );
+  }
+
+  async resolveLazy(
+    agentId: string,
+    tenantId: string,
+    resolveInput: () => Promise<ScorerInput>,
+    recentTiers?: MomentumInput['recentTiers'],
+    specificityOverride?: string,
+    recentCategories?: readonly SpecificityCategory[],
+    headers?: IncomingHttpHeaders,
+  ): Promise<ResolveResponse> {
     if (headers) {
       const headerTierResult = await this.resolveHeaderTier(agentId, tenantId, headers);
       if (headerTierResult) return headerTierResult;
@@ -97,6 +117,12 @@ export class ResolveService {
       return this.resolveForTier(agentId, tenantId, 'default', 'default');
     }
 
+    const {
+      messages,
+      tools,
+      tool_choice: toolChoice,
+      max_tokens: maxTokens,
+    } = await resolveInput();
     const specificityResult = await this.resolveSpecificity(
       agentId,
       tenantId,
@@ -391,10 +417,13 @@ export class ResolveService {
   }
 
   /**
-   * Build the resolved route chain for a tier assignment. Validates the
-   * override still points to an available model; when an override is orphaned,
-   * walk configured fallbacks before trying the auto-assigned route. Enriches
-   * routes with the default key label when no explicit pin is present.
+   * Build the resolved route chain for a tier assignment. Explicit overrides
+   * retain the full model-aware availability check. Automatic and fallback
+   * candidates use the provider-key cache instead: the proxy needs the same
+   * key before forwarding, so this prevents stale disconnected providers from
+   * becoming primary without adding a separate model-discovery query to the
+   * gateway path. When nothing has usable credentials, the proxy gets a null
+   * route and returns the neutral M101 instead of M100 (#2494).
    */
   private async buildResolvedRouteChain(
     agentId: string,
@@ -407,32 +436,76 @@ export class ResolveService {
     // honored when override is empty" semantics stay in lockstep with
     // TierService.hasRoutableTier / effectiveRoute (see route-helpers.ts).
     const autoAssigned = readAutoAssignedRoute(assignment);
+
+    if (override && (await this.providerKeyService.isRouteAvailable(tenantId, override, agentId))) {
+      return {
+        primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
+        fallbackRoutes,
+      };
+    }
     if (override) {
-      if (await this.providerKeyService.isRouteAvailable(tenantId, override, agentId)) {
-        return {
-          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
-          fallbackRoutes,
-        };
-      }
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — ` +
           `falling back to configured routes`,
       );
-      const candidates = [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])];
-      const [primaryRoute, ...remainingFallbacks] = candidates;
-      return {
-        primaryRoute: primaryRoute
-          ? await this.enrichRouteKeyLabel(agentId, tenantId, primaryRoute)
-          : null,
-        fallbackRoutes: remainingFallbacks.length > 0 ? remainingFallbacks : null,
-      };
     }
-    return {
-      primaryRoute: autoAssigned
-        ? await this.enrichRouteKeyLabel(agentId, tenantId, autoAssigned)
-        : null,
-      fallbackRoutes,
-    };
+
+    // An orphaned override walks its fallbacks before the legacy auto-assigned
+    // route; a tier with no override starts from the auto-assigned route.
+    const candidates = override
+      ? [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])]
+      : [...(autoAssigned ? [autoAssigned] : []), ...(fallbackRoutes ?? [])];
+    for (let i = 0; i < candidates.length; i++) {
+      if (await this.providerKeyService.hasRouteCredentials(tenantId, candidates[i], agentId)) {
+        const rest = candidates.slice(i + 1);
+        return {
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, candidates[i]),
+          fallbackRoutes: rest.length > 0 ? rest : null,
+        };
+      }
+    }
+    return { primaryRoute: null, fallbackRoutes: null };
+  }
+
+  /**
+   * Public so the proxy can pin an explicit-model route the same way the
+   * automatic path pins a tier route.
+   *
+   * A request that names a concrete model bypasses tier resolution entirely,
+   * so it never sees the connection the operator pinned on the default tier.
+   * With two connections for one provider that means the *first* key wins and
+   * the pin is silently ignored. Adopt the default tier's `override_route`
+   * label when that override addresses the same (provider, authType) as the
+   * resolved route, then fall back to the default-connection label.
+   */
+  async pinRouteKeyLabel(
+    agentId: string,
+    tenantId: string,
+    route: ModelRoute,
+  ): Promise<ModelRoute> {
+    if (route.keyLabel) return route;
+    const pinned = await this.defaultTierKeyLabel(agentId, route);
+    if (pinned) return { ...route, keyLabel: pinned };
+    return this.enrichRouteKeyLabel(agentId, tenantId, route);
+  }
+
+  /**
+   * The default tier's pinned connection label when its override addresses the
+   * same connection family as `route`. A pin only carries over when both the
+   * provider and the auth mode match — the same label on a different auth
+   * mode is a different `tenant_providers` row.
+   */
+  private async defaultTierKeyLabel(
+    agentId: string,
+    route: ModelRoute,
+  ): Promise<string | undefined> {
+    const tiers = await this.tierService.getTiers(agentId);
+    const assignment = tiers.find((t) => t.tier === DEFAULT_TIER_SLOT);
+    const override = assignment ? readOverrideRoute(assignment) : null;
+    if (!override?.keyLabel) return undefined;
+    if (override.provider.toLowerCase() !== route.provider.toLowerCase()) return undefined;
+    if (override.authType !== route.authType) return undefined;
+    return override.keyLabel;
   }
 
   /**

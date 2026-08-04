@@ -20,14 +20,15 @@ import { ProxyFallbackService } from './proxy-fallback.service';
 import { ProviderClient } from './provider-client';
 import { ProxyRateLimiter } from './proxy-rate-limiter';
 import { ProxyMessageRecorder } from './proxy-message-recorder';
-import { ProxyMessageDedup } from './proxy-message-dedup';
 import { SessionMomentumService } from './session-momentum.service';
 import { CopilotTokenService } from './copilot-token.service';
 import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { ProxyExceptionFilter } from './proxy-exception.filter';
+import { AttemptRecordingService } from './attempt-recording.service';
 
 @Module({
   imports: [
@@ -51,14 +52,15 @@ import { ProxyExceptionFilter } from './proxy-exception.filter';
     ProviderClient,
     ProxyRateLimiter,
     ProxyMessageRecorder,
-    ProxyMessageDedup,
     SessionMomentumService,
     CopilotTokenService,
     ThoughtSignatureCache,
     ThinkingBlockCache,
     ReasoningContentCache,
+    ModelsDevReasoningCatalog,
     CodexSessionAffinity,
     ProxyExceptionFilter,
+    AttemptRecordingService,
   ],
   exports: [ProviderClient],
 })

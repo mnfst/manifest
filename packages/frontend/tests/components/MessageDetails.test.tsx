@@ -241,6 +241,50 @@ describe('MessageDetails', () => {
     expect(container.textContent).toContain('Server error');
   });
 
+  it('renders the fallback-recovery panel for a normalized failed + superseded attempt', async () => {
+    // After status normalization the superseded primary stores the canonical
+    // `failed` and carries the recovery signal on the `superseded` boolean, not
+    // the legacy `fallback_error` status. The next-action card must still show.
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'failed',
+        error_message: 'Overloaded',
+        error_origin: 'provider',
+        error_class: 'server_error',
+        superseded: true,
+        autofix_applied: false,
+        autofix_role: null,
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Overloaded');
+      expect(container.textContent).toContain('A fallback was triggered after this error.');
+    });
+  });
+
+  it('does not treat a normalized superseded Auto-fix original as a fallback error', async () => {
+    // A superseded row that is the Auto-fix original must route to its own
+    // next-action panel, never the fallback one — the `!isAutofixOriginal`
+    // guard on the new superseded branch.
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        status: 'failed',
+        error_message: 'Bad request',
+        superseded: true,
+        autofix_applied: true,
+        autofix_role: 'original',
+      },
+    });
+    const { container } = render(() => <MessageDetails messageId="msg-1" />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Bad request');
+    });
+    expect(container.textContent).not.toContain('A fallback was triggered after this error.');
+  });
+
   it('shows message summary', async () => {
     const summaryResponse = {
       message: { ...detailsResponse.message, error_message: null },
@@ -248,10 +292,42 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(summaryResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
       expect(container.textContent).toContain('Provider');
       expect(container.textContent).toContain('OpenAI');
     });
+  });
+
+  it('lists every provider attempt with its status and cost', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...detailsResponse.message,
+        attempts: [
+          {
+            id: 'attempt-1',
+            provider: null,
+            model: null,
+            status: 'error',
+            cost_usd: null,
+          },
+          {
+            id: 'attempt-2',
+            provider: 'openai',
+            model: 'gpt-4o',
+            status: 'success',
+            cost_usd: '0.0123456',
+          },
+        ],
+      },
+    });
+
+    const { container } = render(() => <MessageDetails messageId="request-1" />);
+
+    await screen.findByRole('table', { name: 'Provider attempts' });
+    const rows = container.querySelectorAll('table[aria-label="Provider attempts"] tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain('1Unknown—error—');
+    expect(rows[1]?.textContent).toContain('2openaiGPT-4osuccess$0.012346');
   });
 
   it('shows error state on API failure', async () => {
@@ -397,7 +473,7 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(detailsResponse);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
     });
     const labels = Array.from(container.querySelectorAll('.msg-detail__meta-label')).map(
       (n) => n.textContent,
@@ -542,7 +618,7 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(noHeaders);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
     });
     expect(container.textContent).not.toContain('Request Headers');
   });
@@ -555,7 +631,7 @@ describe('MessageDetails', () => {
     mockGetMessageDetails.mockResolvedValue(empty);
     const { container } = render(() => <MessageDetails messageId="msg-1" />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
     });
     expect(container.textContent).not.toContain('Request Headers');
   });
@@ -570,7 +646,7 @@ describe('MessageDetails', () => {
     await vi.waitFor(() => {
       // With model=null, inferProviderName isn't called and `Provider` MetaField
       // renders nothing (value is null).
-      expect(container.textContent).toContain('Message');
+      expect(container.textContent).toContain('Request');
       expect(container.textContent).not.toContain('Provider');
       expect(container.textContent).not.toContain('Model ID');
     });
@@ -720,7 +796,7 @@ describe('MessageDetails', () => {
       mockGetMessageDetails.mockResolvedValue(detailsResponse);
       const { container } = render(() => <MessageDetails messageId="msg-1" />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Message');
+        expect(container.textContent).toContain('Request');
       });
       expect(container.textContent).not.toContain('Model Parameters');
     });
@@ -733,7 +809,7 @@ describe('MessageDetails', () => {
       mockGetMessageDetails.mockResolvedValue(nullParams);
       const { container } = render(() => <MessageDetails messageId="msg-1" />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Message');
+        expect(container.textContent).toContain('Request');
       });
       expect(container.textContent).not.toContain('Model Parameters');
     });
@@ -746,7 +822,7 @@ describe('MessageDetails', () => {
       mockGetMessageDetails.mockResolvedValue(emptyParams);
       const { container } = render(() => <MessageDetails messageId="msg-1" />);
       await vi.waitFor(() => {
-        expect(container.textContent).toContain('Message');
+        expect(container.textContent).toContain('Request');
       });
       expect(container.textContent).not.toContain('Model Parameters');
     });

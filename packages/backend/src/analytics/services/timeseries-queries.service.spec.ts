@@ -6,6 +6,7 @@ import { Agent } from '../../entities/agent.entity';
 import {
   MESSAGE_ROW_SELECT_ALIASES,
   EXCLUDE_PLAYGROUND_AGENTS_PREDICATE,
+  EXCLUDE_DIRECT_ATTEMPTS_PREDICATE,
   CUSTOM_PROVIDER_JOIN_CONDITION,
   PROVIDER_SERIES_KEY_EXPR,
 } from './query-helpers';
@@ -339,6 +340,87 @@ describe('TimeseriesQueriesService', () => {
       const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
       expect(clauses).not.toContain(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
     });
+
+    it('excludes client-pinned (direct) requests when excludeDirect=true', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, 'bot-1', true, true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it('keeps direct requests by default', async () => {
+      mockGetRawMany.mockResolvedValue([]);
+      await service.getRecentActivity('24h', 'tenant-1', 5, 'bot-1', true);
+      const clauses = mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+      expect(clauses).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+  });
+
+  describe('direct-request exclusion', () => {
+    const clauses = () => mockTurnQb.andWhere.mock.calls.map((c) => c[0] as string);
+
+    it.each([
+      [
+        'getTimeseries',
+        () =>
+          service.getTimeseries(
+            '24h',
+            't1',
+            true,
+            'bot-1',
+            undefined,
+            undefined,
+            true,
+            undefined,
+            undefined,
+            true,
+          ),
+      ],
+      ['getActiveSkills', () => service.getActiveSkills('24h', 't1', 'bot-1', true, true)],
+      ['getCostByModel', () => service.getCostByModel('24h', 't1', 'bot-1', true, true)],
+    ])('%s applies the predicate when excludeDirect=true', async (_name, call) => {
+      await call();
+      expect(clauses()).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    it.each([
+      [
+        'getTimeseries',
+        () => service.getTimeseries('24h', 't1', true, 'bot-1', undefined, undefined, true),
+      ],
+      ['getActiveSkills', () => service.getActiveSkills('24h', 't1', 'bot-1', true)],
+      ['getCostByModel', () => service.getCostByModel('24h', 't1', 'bot-1', true)],
+    ])('%s keeps direct requests by default', async (_name, call) => {
+      await call();
+      expect(clauses()).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
+
+    // The per-provider charts render on the SAME harness Overview page as the
+    // KPI cards (they feed the card sparklines), so they follow the page's rule
+    // implicitly: agent-scoped => this harness's routing only. Their only caller
+    // is OverviewController, which passes agentName exactly when the request is
+    // for one harness.
+    it.each([
+      [
+        'getPerProviderTimeseries',
+        (agent?: string) => service.getPerProviderTimeseries('24h', 't1', true, agent),
+      ],
+      [
+        'getPerProviderMessageTimeseries',
+        (agent?: string) => service.getPerProviderMessageTimeseries('24h', 't1', true, agent),
+      ],
+      [
+        'getPerProviderCostTimeseries',
+        (agent?: string) => service.getPerProviderCostTimeseries('24h', 't1', true, agent),
+      ],
+    ])('%s excludes direct when agent-scoped and keeps it globally', async (_name, call) => {
+      await call('bot-1');
+      expect(clauses()).toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+
+      mockTurnQb.andWhere.mockClear();
+      await call(undefined);
+      expect(clauses()).not.toContain(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+    });
   });
 
   describe('getTimeseries', () => {
@@ -411,6 +493,172 @@ describe('TimeseriesQueriesService', () => {
       const result = await service.getTimeseries('24h', 'tenant-123', true, 'bot-1');
       expect(result.tokenUsage).toEqual([]);
     });
+
+    it('uses parent requests plus unlinked attempts for request buckets', async () => {
+      const makeQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const attemptQb = makeQb([
+        {
+          hour: '2026-07-14T10:00:00Z',
+          input_tokens: '10',
+          output_tokens: '5',
+          cost: '0.2',
+          count: '1',
+        },
+      ]);
+      const requestQb = makeQb([{ hour: '2026-07-14T10:00:00Z', count: '2' }]);
+      const unlinkedQb = makeQb([{ hour: '2026-07-14T10:00:00Z', count: '1' }]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getTimeseries(
+        '24h',
+        'tenant-1',
+        true,
+        'agent-1',
+        undefined,
+        undefined,
+        true,
+      );
+
+      expect(result.tokenUsage).toEqual([
+        {
+          hour: '2026-07-14T10:00:00Z',
+          input_tokens: 10,
+          output_tokens: 5,
+        },
+      ]);
+      expect(result.messageUsage).toEqual([{ hour: '2026-07-14T10:00:00Z', count: 3 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('deleted_at IS NULL'),
+        expect.objectContaining({ requestAgentName: 'agent-1' }),
+      );
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.is_playground = true'),
+      );
+    });
+
+    it('pins request and unlinked buckets to one repeatable-read transaction', async () => {
+      const makeQb = () => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        setQueryRunner: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      const attemptQb = makeQb();
+      const requestQb = makeQb();
+      const unlinkedQb = makeQb();
+      const runner = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        startTransaction: jest.fn().mockResolvedValue(undefined),
+        commitTransaction: jest.fn().mockResolvedValue(undefined),
+        rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+        release: jest.fn().mockResolvedValue(undefined),
+        query: jest.fn().mockResolvedValue(undefined),
+      };
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+        undefined,
+        { createQueryRunner: jest.fn(() => runner) } as never,
+      );
+
+      await requestAware.getTimeseries('7d', 'tenant-1', false);
+
+      expect(runner.startTransaction).toHaveBeenCalledWith('REPEATABLE READ');
+      expect(runner.query).toHaveBeenCalledWith('SET TRANSACTION READ ONLY');
+      expect(attemptQb.setQueryRunner).not.toHaveBeenCalled();
+      expect(requestQb.setQueryRunner).toHaveBeenCalledWith(runner);
+      expect(unlinkedQb.setQueryRunner).toHaveBeenCalledWith(runner);
+      expect(runner.commitTransaction).toHaveBeenCalledTimes(1);
+      expect(runner.rollbackTransaction).not.toHaveBeenCalled();
+      expect(runner.release).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses daily request buckets and tolerates missing aggregate values', async () => {
+      const makeQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const attemptQb = makeQb([
+        { date: '2026-07-14', input_tokens: null, output_tokens: null, cost: null, count: null },
+      ]);
+      const requestQb = makeQb([{ date: '2026-07-14', count: null }]);
+      const unlinkedQb = makeQb([{ date: '2026-07-14', count: '2' }]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getTimeseries('7d', 'tenant-1', false);
+
+      expect(result.messageUsage).toEqual([{ date: '2026-07-14', count: 2 }]);
+    });
+
+    it('returns no request buckets when tenant scope is absent', async () => {
+      const makeQb = () => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      const attemptQb = makeQb();
+      const unlinkedQb = makeQb();
+      const requestQb = makeQb();
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      await requestAware.getTimeseries('7d', null, false);
+
+      expect(requestQb.andWhere).toHaveBeenCalledWith('1 = 0');
+    });
   });
 
   describe('getAgentList', () => {
@@ -462,6 +710,67 @@ describe('TimeseriesQueriesService', () => {
       expect(result[0].total_cost).toBe(5.0);
       expect(result[0].total_tokens).toBe(1000);
       expect(result[0].message_count).toBe(10);
+    });
+
+    it('uses request parents plus unlinked legacy attempts for agent message counts', async () => {
+      const makeQb = (rawRows: unknown[] = [], entities: unknown[] = []) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        addGroupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        setParameter: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rawRows),
+        getMany: jest.fn().mockResolvedValue(entities),
+      });
+      const agentQb = makeQb(
+        [],
+        [{ id: 'agent-1', name: 'bot-1', display_name: 'Bot One', created_at: oldIso }],
+      );
+      const attemptQb = makeQb([
+        {
+          agent_id: 'agent-1',
+          date: '2026-02-16',
+          message_count: 1,
+          cost: 2,
+          tokens: 300,
+          spark_tokens: 300,
+          last_active: recentIso,
+        },
+      ]);
+      const requestLastActive = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const unlinkedLastActive = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      const requestQb = makeQb([
+        { agent_id: 'agent-1', message_count: null, last_active: requestLastActive },
+      ]);
+      const unlinkedQb = makeQb([
+        { agent_id: 'agent-1', message_count: '3', last_active: unlinkedLastActive },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        {
+          createQueryBuilder: jest
+            .fn()
+            .mockReturnValueOnce(attemptQb)
+            .mockReturnValueOnce(unlinkedQb),
+        } as never,
+        { createQueryBuilder: jest.fn(() => agentQb) } as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const result = await requestAware.getAgentList('u1');
+
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          message_count: 3,
+          total_cost: 2,
+          total_tokens: 300,
+          last_active: unlinkedLastActive.toISOString(),
+        }),
+      );
+      expect(unlinkedQb.where).toHaveBeenCalledWith('at.request_id IS NULL');
     });
 
     it('falls back to agent_name when display_name is null', async () => {
@@ -604,6 +913,68 @@ describe('TimeseriesQueriesService', () => {
       mockGetRawMany.mockResolvedValue(rows);
       const out = await service.getPerAgentMessageTimeseries('24h', 'u1', true);
       expect(out.timeseries[0]).toEqual({ hour: '01', alpha: 1, bravo: 2 });
+    });
+
+    it('counts parent requests plus unlinked synthetic rows per agent', async () => {
+      const makeRequestQb = (rows: unknown[]) => {
+        const qb = {
+          select: jest.fn().mockReturnThis(),
+          addSelect: jest.fn().mockReturnThis(),
+          where: jest.fn().mockReturnThis(),
+          andWhere: jest.fn().mockReturnThis(),
+          groupBy: jest.fn().mockReturnThis(),
+          addGroupBy: jest.fn().mockReturnThis(),
+          orderBy: jest.fn().mockReturnThis(),
+          getRawMany: jest.fn().mockResolvedValue(rows),
+        };
+        return qb;
+      };
+      const requestQb = makeRequestQb([{ hour: '01', agent_name: 'alpha', messages: '1' }]);
+      const unlinkedQb = makeRequestQb([
+        { hour: '01', agent_name: 'alpha', messages: '2' },
+        { hour: '01', agent_name: 'bravo', messages: '1' },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        { createQueryBuilder: jest.fn(() => unlinkedQb) } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const out = await requestAware.getPerAgentMessageTimeseries('24h', 'tenant-1', true);
+
+      expect(out.timeseries).toEqual([{ hour: '01', alpha: 3, bravo: 1 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith(
+        expect.stringContaining('playag.name = r.agent_name'),
+      );
+    });
+
+    it('uses daily request buckets without a tenant and defaults missing counts to zero', async () => {
+      const makeRequestQb = (rows: unknown[]) => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        addGroupBy: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue(rows),
+      });
+      const requestQb = makeRequestQb([
+        { date: '2026-07-14', agent_name: 'alpha', messages: null },
+      ]);
+      const unlinkedQb = makeRequestQb([
+        { date: '2026-07-14', agent_name: 'alpha', messages: '2' },
+      ]);
+      const requestAware = new TimeseriesQueriesService(
+        { createQueryBuilder: jest.fn(() => unlinkedQb) } as never,
+        {} as never,
+        { createQueryBuilder: jest.fn(() => requestQb) } as never,
+      );
+
+      const out = await requestAware.getPerAgentMessageTimeseries('7d', null, false);
+
+      expect(out.timeseries).toEqual([{ date: '2026-07-14', alpha: 2 }]);
+      expect(requestQb.andWhere).toHaveBeenCalledWith('1 = 0');
     });
 
     it('getPerAgentCostTimeseries pivots cost (non-hourly date bucket)', async () => {

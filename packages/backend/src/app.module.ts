@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -32,6 +33,7 @@ import { FreeModelsModule } from './free-models/free-models.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { BillingModule } from './billing/billing.module';
+import { DebugSentryController } from './sentry/debug-sentry.controller';
 
 const frontendPath = resolveFrontendDir();
 const ONE_YEAR_S = 365 * 24 * 60 * 60;
@@ -55,8 +57,17 @@ const serveStaticImports = frontendPath
     ]
   : [];
 
+const sentryEnabled = Boolean(process.env['SENTRY_DSN']?.trim());
+const sentryImports = sentryEnabled ? [SentryModule.forRoot()] : [];
+const sentryProviders = sentryEnabled
+  ? [{ provide: APP_FILTER, useClass: SentryGlobalFilter }]
+  : [];
+const sentryDebugControllers =
+  sentryEnabled && process.env['NODE_ENV'] !== 'production' ? [DebugSentryController] : [];
+
 @Module({
   imports: [
+    ...sentryImports,
     ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
     CacheModule.register({
       isGlobal: true,
@@ -93,9 +104,11 @@ const serveStaticImports = frontendPath
     BillingModule,
   ],
   providers: [
+    ...sentryProviders,
     { provide: APP_GUARD, useClass: SessionGuard },
     { provide: APP_GUARD, useClass: ApiKeyGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
+  controllers: [...sentryDebugControllers],
 })
 export class AppModule {}

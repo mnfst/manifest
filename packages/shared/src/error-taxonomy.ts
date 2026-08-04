@@ -1,3 +1,5 @@
+import { isAnthropicExtraUsageError } from './provider-error-semantics';
+
 /**
  * Error taxonomy for `agent_messages`.
  *
@@ -14,9 +16,10 @@
  *  - `superseded`   — whether this row is a retried / fell-back-away-from attempt
  *    rather than the request's terminal outcome (the old `fallback_error`).
  *
- * `classifyMessageError` is the single source of truth: the proxy ingestion path
- * calls it for every recorded row, and the backfill migration's SQL `CASE`
- * mirrors it exactly. Keep the two in lock-step when editing.
+ * `classifyMessageError` is the single source of truth for live ingestion. The
+ * original backfill migration mirrors its status-derived rules; provider-body
+ * semantic overrides added later apply to newly recorded rows unless a dedicated
+ * follow-up migration explicitly reclassifies history.
  */
 
 /**
@@ -38,6 +41,71 @@ export const SUPERSEDED_STATUS = 'fallback_error';
 export const AUTOFIX_ORIGINAL_STATUS = 'auto_fixed';
 /** Every status whose row is a recovered (superseded) attempt, not a terminal failure. */
 export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFIX_ORIGINAL_STATUS];
+
+/**
+ * Canonical outcome vocabulary for `requests.status` and `agent_messages.status`.
+ *
+ * The legacy `status` column conflated the outcome with the *reason* it failed
+ * (`rate_limited`, `fallback_error`, `auto_fixed`). Those reasons now live on the
+ * orthogonal axes — `error_class` (rate limit), `superseded` (recovered attempt),
+ * and the `autofix_*` columns — so `status` carries only the terminal outcome:
+ *
+ *  - `pending` — accepted, no terminal outcome yet.
+ *  - `cancelled` — the caller disconnected before a terminal provider outcome.
+ *  - `success` — completed successfully (legacy `ok`).
+ *  - `failed`  — completed without succeeding (legacy `error` / `rate_limited` /
+ *    `fallback_error` / `auto_fixed`).
+ *
+ * Rolling-deploy note: during a deploy, old replicas still write the legacy
+ * values while new replicas write these. Every reader must therefore compare
+ * through `normalizeStatus` / `isSuccessStatus` / `isFailedStatus`, which accept
+ * both vocabularies, until the backfill rewrites history and the compat window
+ * closes. `classifyMessageError` is deliberately left legacy-aware so it can
+ * still classify unnormalized historical rows.
+ */
+export const PENDING_STATUS = 'pending';
+export const CANCELLED_STATUS = 'cancelled';
+export const SUCCESS_STATUS = 'success';
+export const FAILED_STATUS = 'failed';
+
+export const REQUEST_STATUSES = [
+  PENDING_STATUS,
+  CANCELLED_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+] as const;
+export type RequestStatus = (typeof REQUEST_STATUSES)[number];
+
+export const ATTEMPT_STATUSES = [
+  PENDING_STATUS,
+  CANCELLED_STATUS,
+  SUCCESS_STATUS,
+  FAILED_STATUS,
+] as const;
+export type AttemptStatus = (typeof ATTEMPT_STATUSES)[number];
+
+/**
+ * Collapse any status value — legacy (`ok`/`error`/`rate_limited`/
+ * `fallback_error`/`auto_fixed`) or canonical — onto the canonical vocabulary.
+ * A nullish value is treated as `success`, matching the legacy writer convention
+ * where an absent status meant `ok`. Unknown non-null values fail closed.
+ */
+export function normalizeStatus(status: string | null | undefined): RequestStatus {
+  if (status === PENDING_STATUS) return PENDING_STATUS;
+  if (status === CANCELLED_STATUS) return CANCELLED_STATUS;
+  if (status == null || status === OK_STATUS || status === SUCCESS_STATUS) return SUCCESS_STATUS;
+  return FAILED_STATUS;
+}
+
+/** True for a terminal success, whether stored as legacy `ok` or canonical `success`. */
+export function isSuccessStatus(status: string | null | undefined): boolean {
+  return normalizeStatus(status) === SUCCESS_STATUS;
+}
+
+/** True for a terminal failure, whether stored as a legacy error value or canonical `failed`. */
+export function isFailedStatus(status: string | null | undefined): boolean {
+  return normalizeStatus(status) === FAILED_STATUS;
+}
 
 export const ERROR_ORIGINS = [
   'provider',
@@ -79,6 +147,8 @@ export const ERROR_CLASSES = [
   // manifest (config / policy / internal / request)
   'no_provider',
   'no_provider_key',
+  'subscription_credentials_unusable',
+  'local_provider_unavailable',
   'limit_exceeded',
   'plan_request_limit_exceeded',
   'internal',
@@ -101,6 +171,14 @@ const MANIFEST_REASON_TO_CLASSIFICATION: Record<
 > = {
   no_provider: { origin: 'config', errorClass: 'no_provider' },
   no_provider_key: { origin: 'config', errorClass: 'no_provider_key' },
+  subscription_credentials_unusable: {
+    origin: 'config',
+    errorClass: 'subscription_credentials_unusable',
+  },
+  local_provider_unavailable: {
+    origin: 'config',
+    errorClass: 'local_provider_unavailable',
+  },
   key_expired: { origin: 'config', errorClass: 'auth' },
   limit_exceeded: { origin: 'policy', errorClass: 'limit_exceeded' },
   plan_request_limit_exceeded: {
@@ -142,6 +220,10 @@ export interface MessageErrorSignals {
   errorHttpStatus?: number | null;
   /** `agent_messages.routing_reason` — carries the canned Manifest reason for stubs. */
   routingReason?: string | null;
+  /** Canonical provider id, used for narrow provider-specific semantic overrides. */
+  provider?: string | null;
+  /** Raw or persisted provider error envelope. */
+  errorMessage?: string | null;
 }
 
 export interface MessageErrorClassification {
@@ -160,7 +242,14 @@ export interface MessageErrorClassification {
  * response (the fetch failed before the provider replied ⇒ transport/network).
  */
 export function classifyMessageError(signals: MessageErrorSignals): MessageErrorClassification {
-  if (signals.status === OK_STATUS) {
+  if (signals.status === PENDING_STATUS || signals.status === CANCELLED_STATUS) {
+    return { error_origin: null, error_class: null, superseded: false };
+  }
+  // Accepts both the legacy `ok` and the canonical `success`, so re-classifying
+  // an already-normalized row (buildRequestRow reads a collapsed attempt status)
+  // still short-circuits as a success rather than falling through to the error
+  // branches.
+  if (isSuccessStatus(signals.status)) {
     return { error_origin: null, error_class: null, superseded: false };
   }
 
@@ -188,6 +277,15 @@ export function classifyMessageError(signals: MessageErrorSignals): MessageError
   }
 
   const http = signals.errorHttpStatus ?? null;
+  if (
+    isAnthropicExtraUsageError({
+      provider: signals.provider,
+      httpStatus: http,
+      errorBody: signals.errorMessage,
+    })
+  ) {
+    return { error_origin: 'provider', error_class: 'billing', superseded };
+  }
   if (http === TRANSPORT_TIMEOUT_HTTP_STATUS) {
     return { error_origin: 'transport', error_class: 'timeout', superseded };
   }

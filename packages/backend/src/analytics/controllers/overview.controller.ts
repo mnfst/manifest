@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Optional, Query, UseInterceptors } from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { RangeQueryDto } from '../../common/dto/range-query.dto';
 import { isHourlyRange } from '../../common/utils/range.util';
@@ -12,6 +12,8 @@ import { ResolveAgentService } from '../../routing/routing-core/resolve-agent.se
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.entity';
+import { computeTrend } from '../services/query-helpers';
+import { MessagesQueryService } from '../services/messages-query.service';
 
 /** Sum the timeseries buckets into current-window totals for the summary cards. */
 function sumTimeseries(tsData: {
@@ -41,6 +43,8 @@ export class OverviewController {
     private readonly resolveAgent: ResolveAgentService,
     @InjectRepository(AgentEnabledProvider)
     private readonly enabledProviderRepo: Repository<AgentEnabledProvider>,
+    @Optional()
+    private readonly messagesQuery?: MessagesQueryService,
   ) {}
 
   @Get('overview')
@@ -49,39 +53,77 @@ export class OverviewController {
     const agentName = query.agent_name;
     const hourly = isHourlyRange(range);
     const tenantId = ctx.tenantId;
+    // Scoped to one harness => show only what that harness's routing did. A
+    // `direct` row is a model the caller pinned in the request body, which
+    // bypassed routing entirely, so it is not this harness's traffic. The
+    // unscoped (global) Overview and the Messages log stay complete — that is
+    // where direct requests are accounted for and where spend reconciles.
+    const excludeDirect = !!agentName;
 
-    const [prevMetrics, tsData, costByModel, recentActivity, activeSkills, hasData, hasProviders] =
-      await Promise.all([
-        // The overview excludes the reserved Playground (is_playground) agent's
-        // traffic EVERYWHERE: the per-agent/per-provider charts on the same page
-        // always drop it, so the summary cards, the aggregate timeseries and the
-        // breakdown widgets must agree or the page contradicts itself. Every call
-        // below passes excludePlayground=true so has_data and the visible widgets
-        // never disagree (a Playground-only tenant reads as empty, not a populated
-        // state painted over blank charts).
-        //
-        // The current-window summary is derived from the timeseries buckets
-        // below (which scan the same Playground-excluded rows), so we only query
-        // the previous window here for the trend arrows instead of repeating the
-        // full current+previous double-scan.
-        this.aggregation.getPreviousWindowMetrics(range, tenantId, agentName, true),
-        this.timeseries.getTimeseries(
-          range,
-          tenantId,
-          hourly,
-          agentName,
-          undefined,
-          undefined,
-          true,
-        ),
-        this.timeseries.getCostByModel(range, tenantId, agentName, true),
-        this.timeseries.getRecentActivity(range, tenantId, 5, agentName, true),
-        this.timeseries.getActiveSkills(range, tenantId, agentName, true),
-        this.aggregation.hasAnyData(tenantId, agentName, true),
-        this.hasActiveProviders(tenantId, agentName),
-      ]);
+    const [
+      prevMetrics,
+      requestReliability,
+      tsData,
+      costByModel,
+      recentActivity,
+      activeSkills,
+      hasData,
+      hasProviders,
+    ] = await Promise.all([
+      // The overview excludes the reserved Playground (is_playground) agent's
+      // traffic EVERYWHERE: the per-agent/per-provider charts on the same page
+      // always drop it, so the summary cards, the aggregate timeseries and the
+      // breakdown widgets must agree or the page contradicts itself. Every call
+      // below passes excludePlayground=true so has_data and the visible widgets
+      // never disagree (a Playground-only tenant reads as empty, not a populated
+      // state painted over blank charts).
+      //
+      // `excludeDirect` rides along on exactly the same rule: every widget on
+      // this page has to drop it or none of them can.
+      //
+      // The current-window summary is derived from the timeseries buckets
+      // below (which scan the same Playground-excluded rows), so we only query
+      // the previous window here for the trend arrows instead of repeating the
+      // full current+previous double-scan.
+      this.aggregation.getPreviousWindowMetrics(range, tenantId, agentName, true, excludeDirect),
+      this.aggregation.getRequestReliability(range, tenantId, agentName, true, excludeDirect),
+      this.timeseries.getTimeseries(
+        range,
+        tenantId,
+        hourly,
+        agentName,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        undefined,
+        excludeDirect,
+      ),
+      this.timeseries.getCostByModel(range, tenantId, agentName, true, excludeDirect),
+      this.messagesQuery
+        ? this.messagesQuery
+            .getMessages({
+              range,
+              tenantId,
+              agent_name: agentName,
+              limit: 5,
+              include_total: false,
+              include_filter_options: false,
+              exclude_playground: true,
+              exclude_direct: excludeDirect,
+            })
+            .then((result) => result.items)
+        : this.timeseries.getRecentActivity(range, tenantId, 5, agentName, true, excludeDirect),
+      this.timeseries.getActiveSkills(range, tenantId, agentName, true, excludeDirect),
+      this.aggregation.hasAnyData(tenantId, agentName, true, excludeDirect),
+      this.hasActiveProviders(tenantId, agentName),
+    ]);
 
     const summary = AggregationService.buildSummary(sumTimeseries(tsData), prevMetrics);
+    summary.messages = {
+      value: requestReliability.total,
+      trend_pct: computeTrend(requestReliability.total, requestReliability.previous_total),
+    };
 
     return {
       summary: {
@@ -96,6 +138,7 @@ export class OverviewController {
       cost_by_model: costByModel,
       recent_activity: recentActivity,
       active_skills: activeSkills,
+      request_reliability: requestReliability,
       has_data: hasData,
       has_providers: hasProviders,
     };

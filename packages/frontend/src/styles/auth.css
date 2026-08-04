@@ -173,6 +173,22 @@
   line-height: 1.5;
 }
 
+.auth-form__notice {
+  padding: var(--gap-sm) var(--gap-md);
+  background: hsl(var(--muted) / 0.5);
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.auth-form__notice-link {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .auth-form__link-btn {
   background: none;
   border: none;
@@ -345,7 +361,9 @@
   cursor: pointer;
   text-align: left;
   font-family: var(--font-family);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .plan-picker__card:hover {
@@ -402,8 +420,8 @@
 .plan-picker__badge {
   padding: 3px 5px;
   border-radius: 2px;
-  background: #2632EF;
-  color: #FFFFFF;
+  background: #2632ef;
+  color: #ffffff;
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;

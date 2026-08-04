@@ -41,6 +41,7 @@ describe('First-run setup wizard', () => {
       expect(res.body).toHaveProperty('isSelfHosted');
       expect(res.body).toHaveProperty('localLlmHost');
       expect(res.body).toHaveProperty('ollamaAvailable');
+      expect(res.body).toHaveProperty('emailConfigured');
     });
 
     it('returns needsSetup=false after a user has been inserted', async () => {
