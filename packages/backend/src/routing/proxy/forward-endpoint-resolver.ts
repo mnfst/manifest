@@ -15,6 +15,7 @@ import type { Logger } from '@nestjs/common';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
+  resolveBedrockEndpointKey,
   resolveEndpointKey,
   type ProviderEndpoint,
 } from './provider-endpoints';
@@ -117,7 +118,10 @@ export function resolveForwardEndpoint(
       forwardModel = CustomProviderService.rawModelName(model);
     }
   } else if (resolveEndpointKey(provider) === 'bedrock' && isBedrockRegion(providerRegion)) {
-    customEndpoint = buildEndpointOverride(getBedrockMantleBaseUrl(providerRegion), 'bedrock');
+    customEndpoint = buildEndpointOverride(
+      getBedrockMantleBaseUrl(providerRegion),
+      resolveBedrockEndpointKey(model),
+    );
   } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedEndpoint(providerRegion)) {
     customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
   } else if (authType === 'subscription' && lower === 'minimax') {

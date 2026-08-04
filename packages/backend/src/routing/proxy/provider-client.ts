@@ -2,7 +2,12 @@ import { createHash } from 'crypto';
 import { HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
-import { PROVIDER_ENDPOINTS, ProviderEndpoint, resolveEndpointKey } from './provider-endpoints';
+import {
+  PROVIDER_ENDPOINTS,
+  ProviderEndpoint,
+  resolveBedrockEndpointKey,
+  resolveEndpointKey,
+} from './provider-endpoints';
 import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
@@ -409,6 +414,9 @@ export class ProviderClient {
       const override = resolveSubscriptionEndpointKey(resolved);
       if (override) resolved = override;
     }
+    if (resolved === 'bedrock') {
+      resolved = resolveBedrockEndpointKey(model);
+    }
     if (resolved === 'qwen-subscription') {
       const bareQwenModel = stripVendorPrefix(model);
       if (apiMode === 'responses' || QWEN_TOKEN_PLAN_RESPONSES_RE.test(bareQwenModel)) {
@@ -638,7 +646,9 @@ export class ProviderClient {
             })
           : toResponsesRequest(requestSource, bareModel, {
               stream:
-                endpointKey === 'openai-responses' || endpointKey === 'xai-responses'
+                endpointKey === 'openai-responses' ||
+                endpointKey === 'xai-responses' ||
+                endpoint.forwardResponsesStream
                   ? ctx.stream
                   : undefined,
               // The ChatGPT subscription backend rejects max_output_tokens with
@@ -646,7 +656,8 @@ export class ProviderClient {
               mapMaxOutputTokens:
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'copilot-responses' ||
-                endpointKey === 'xai-responses',
+                endpointKey === 'xai-responses' ||
+                endpoint.acceptsMaxOutputTokens,
               // OpenAI and xAI /responses endpoints accept prompt_cache_key.
               // Other Responses-shaped backends may 400 on unknown params.
               forwardPromptCacheKey:

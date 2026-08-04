@@ -3,6 +3,7 @@ import {
   MANAGED_FREE_PROVIDER_CONFIGS,
 } from '../../common/constants/managed-free-providers';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../../common/constants/ollama';
+import { stripVendorPrefix } from '../../common/constants/openai-models';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -59,6 +60,10 @@ export interface ProviderEndpoint {
    * endpoints that only reuse the Anthropic protocol shape.
    */
   skipSubscriptionIdentity?: boolean;
+  /** Forward the caller's streaming choice to a Responses-shaped endpoint. */
+  forwardResponsesStream?: boolean;
+  /** Map Chat Completions token caps to `max_output_tokens`. */
+  acceptsMaxOutputTokens?: boolean;
 }
 
 const openaiStreamUsage = { streamUsageReporting: 'openai_stream_options' as const };
@@ -74,6 +79,17 @@ const pioneerHeaders = (apiKey: string) => ({
 });
 
 const openaiPath = () => '/v1/chat/completions';
+const BEDROCK_OPENAI_MODEL_RE = /(?:^|\.)openai\./i;
+const BEDROCK_ANTHROPIC_MODEL_RE = /(?:^|\.)anthropic\./i;
+
+export function resolveBedrockEndpointKey(
+  model: string,
+): 'bedrock' | 'bedrock-responses' | 'bedrock-anthropic' {
+  const bareModel = stripVendorPrefix(model);
+  if (BEDROCK_OPENAI_MODEL_RE.test(bareModel)) return 'bedrock-responses';
+  if (BEDROCK_ANTHROPIC_MODEL_RE.test(bareModel)) return 'bedrock-anthropic';
+  return 'bedrock';
+}
 
 const anthropicHeaders = (apiKey: string, authType?: string): Record<string, string> => {
   if (authType === 'subscription') {
@@ -181,6 +197,21 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: openaiPath,
     format: 'openai',
     ...openaiStreamUsage,
+  },
+  'bedrock-responses': {
+    baseUrl: getBedrockMantleBaseUrl(),
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
+    forwardResponsesStream: true,
+    acceptsMaxOutputTokens: true,
+  },
+  'bedrock-anthropic': {
+    baseUrl: getBedrockMantleBaseUrl(),
+    buildHeaders: anthropicApiKeyHeaders,
+    buildPath: () => '/anthropic/v1/messages',
+    format: 'anthropic',
+    skipSubscriptionIdentity: true,
   },
   deepseek: {
     baseUrl: 'https://api.deepseek.com',

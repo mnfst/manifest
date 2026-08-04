@@ -1,6 +1,6 @@
 import { ProviderClient } from '../provider-client';
 import { ManifestError } from '../../../common/errors/manifest-error';
-import { buildCustomEndpoint } from '../provider-endpoints';
+import { buildCustomEndpoint, buildEndpointOverride } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
@@ -435,6 +435,95 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBe(false);
       expect(result.isAnthropic).toBe(false);
       expect(result.isGoogle).toBe(false);
+    });
+
+    it('routes Bedrock OpenAI models through the Responses API', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'openai.gpt-5.6-luna',
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/v1/responses',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer bedrock-api-key-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('openai.gpt-5.6-luna');
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.max_output_tokens).toBe(1024);
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.stream).toBe(false);
+      expect(result.isChatGpt).toBe(true);
+      expect(result.wireApiMode).toBe('responses');
+    });
+
+    it('preserves Bedrock Responses conversion for a selected region', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'openai.gpt-5.6-luna',
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+        customEndpoint: buildEndpointOverride(
+          'https://bedrock-mantle.eu-west-1.api.aws',
+          'bedrock-responses',
+        ),
+      });
+
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        'https://bedrock-mantle.eu-west-1.api.aws/v1/responses',
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_output_tokens).toBe(1024);
+      expect(sentBody.stream).toBe(false);
+    });
+
+    it('routes Bedrock Anthropic models through the Messages API', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'anthropic.claude-sonnet-5',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/anthropic/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'bedrock-api-key-test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic.claude-sonnet-5');
+      expect(sentBody.messages).toEqual([
+        { role: 'user', content: [{ type: 'text', text: 'Hello' }] },
+      ]);
+      expect(result.isAnthropic).toBe(true);
+      expect(result.wireApiMode).toBe('messages');
     });
 
     it('builds correct URL for moonshot', async () => {
