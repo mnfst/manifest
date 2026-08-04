@@ -11,7 +11,12 @@ export const DEFAULT_HOSTED_AUTOFIX_URL = 'https://autofix.manifest.build';
 function isUsableHealerUrl(value: string): boolean {
   try {
     const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    // A path segment would double-prefix downstream (`/api/heal` built onto a
+    // base already carrying a path), so only an origin is a valid healer URL.
+    return (
+      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
+      (parsed.pathname === '' || parsed.pathname === '/')
+    );
   } catch {
     return false;
   }

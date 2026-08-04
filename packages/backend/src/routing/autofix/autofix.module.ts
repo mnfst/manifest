@@ -41,11 +41,14 @@ const DEFAULT_TIMEOUT_MS = 10_000;
         const selfHosted = isSelfHosted();
         const { url, invalid } = resolveHealingUrl(rawUrl, nodeEnv, selfHosted);
         if (invalid) {
-          // Loud once at boot: an unusable URL silently disables Auto-fix, and
-          // "Auto-fix never runs" is otherwise indistinguishable from it being
-          // switched off on purpose.
+          // Loud once at boot: an unusable URL is otherwise indistinguishable
+          // from Auto-fix being switched off on purpose. The fallback depends
+          // on the environment — inert Noop in production, in-process Mock in
+          // dev/test — so the message names that rather than overclaiming.
           new Logger('AutofixModule').error(
-            `AUTOFIX_HEALING_URL is not an absolute http(s) URL; Auto-fix is inert. Got: ${rawUrl}`,
+            `AUTOFIX_HEALING_URL is not an absolute http(s) origin URL; Auto-fix falls back to the ${
+              nodeEnv === 'production' ? 'inert client' : 'dev mock'
+            }. Got: ${rawUrl}`,
           );
         }
         // Digits-only: `Number.parseInt` stops at the first non-digit, so a typo'd

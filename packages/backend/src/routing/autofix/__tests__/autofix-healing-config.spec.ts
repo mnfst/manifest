@@ -27,6 +27,7 @@ describe('resolveHealingUrl', () => {
     ['a scheme typo', 'htp://phoenix.example'],
     ['a non-http scheme', 'postgres://user:pw@host:5432/db'],
     ['a path fragment', '/api/heal'],
+    ['a path-bearing URL', 'https://phoenix.example/api'],
     ['punctuation only', ':::'],
   ])('rejects %s and reports it as invalid', (_label, value) => {
     // Falls back to inert rather than handing a bad value to fetch(), which

@@ -1,4 +1,5 @@
 import { createResource, createSignal, createEffect, Show, type Component } from 'solid-js';
+import { useFocusTrap } from '../services/use-focus-trap.js';
 import { useSearchParams } from '@solidjs/router';
 import { Portal } from 'solid-js/web';
 import { getAutofix, updateAutofix } from '../services/api.js';
@@ -49,52 +50,20 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
     }
   };
 
-  // Focus management for the consent dialog. `aria-modal` is a promise to
-  // assistive tech, not an implementation: without this, Tab walks straight out
-  // of the dialog and back onto the settings page behind it.
   let dialogRef: HTMLDivElement | undefined;
-  let opener: HTMLElement | null = null;
 
-  const focusableIn = (root: HTMLElement): HTMLElement[] =>
-    Array.from(root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')).filter(
-      (el) => el.offsetParent !== null,
-    );
+  // Focus management: the existing useFocusTrap hook traps Tab inside the
+  // dialog while it's open and restores focus on close.
+  useFocusTrap(confirmingEnable, () => dialogRef);
 
   const closeConsent = () => {
     setConfirmingEnable(false);
     setApplyToAll(true);
-    // Return focus where the user left it, not to the top of the document.
-    opener?.focus();
-    opener = null;
-  };
-
-  createEffect(() => {
-    if (!confirmingEnable()) return;
-    const root = dialogRef;
-    if (!root) return;
-    queueMicrotask(() => focusableIn(root).at(-1)?.focus());
-  });
-
-  const trapTab = (event: KeyboardEvent) => {
-    if (event.key !== 'Tab' || !dialogRef) return;
-    const items = focusableIn(dialogRef);
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (!first || !last) return;
-    const active = document.activeElement as HTMLElement | null;
-    if (event.shiftKey && (active === first || !dialogRef.contains(active))) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
-    }
   };
 
   const toggle = () => {
     if (busy()) return;
     if (!enabled() && selfHosted() && !consented()) {
-      opener = document.activeElement as HTMLElement | null;
       setConfirmingEnable(true);
       return;
     }
@@ -149,7 +118,6 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
             }}
             onKeyDown={(event) => {
               if (event.key === 'Escape') closeConsent();
-              else trapTab(event);
             }}
           >
             <div
