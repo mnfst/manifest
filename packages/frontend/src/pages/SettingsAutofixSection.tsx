@@ -115,7 +115,15 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
               </h2>
               <p class="modal-card__desc" id="autofix-consent-description">
                 Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
-                authorization credentials are not sent.
+                authorization credentials are not sent.{' '}
+                <a
+                  href="https://manifest.build/docs/autofix/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  How Auto-fix works
+                </a>
+                .
               </p>
               <p class="autofix-consent__legal">
                 By enabling Auto-fix, you agree to Manifest&apos;s{' '}
