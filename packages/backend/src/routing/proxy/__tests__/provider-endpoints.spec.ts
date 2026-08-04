@@ -2,6 +2,7 @@ import { PROVIDER_REGISTRY } from '../../../common/constants/providers';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
+  resolveBedrockEndpointKey,
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
@@ -225,6 +226,26 @@ describe('resolveEndpointKey', () => {
         expect(resolveEndpointKey(alias)).not.toBeNull();
       }
     }
+  });
+});
+
+describe('resolveBedrockEndpointKey', () => {
+  it.each(['openai.gpt-5.6-luna', 'us.openai.gpt-5.6-luna', 'bedrock/openai.gpt-5.6-luna'])(
+    'routes %s through Responses',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-responses');
+    },
+  );
+
+  it.each(['anthropic.claude-sonnet-5', 'us.anthropic.claude-sonnet-5'])(
+    'routes %s through Messages',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-anthropic');
+    },
+  );
+
+  it('keeps other Bedrock model families on Chat Completions', () => {
+    expect(resolveBedrockEndpointKey('mistral.ministral-3-8b-instruct')).toBe('bedrock');
   });
 });
 
