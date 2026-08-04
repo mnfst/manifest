@@ -23,7 +23,7 @@ import {
   sanitizeOpenAiBody,
   collectChatGptSseResponse as chatGptSseCollector,
   convertChatGptResponse as chatGptResponseConverter,
-  convertChatGptStreamChunk as chatGptStreamChunkConverter,
+  createChatGptStreamTransformer as chatGptStreamTransformerFactory,
   convertGoogleResponse as googleResponseConverter,
   convertGoogleStreamChunk as googleStreamChunkConverter,
   convertAnthropicResponse as anthropicResponseConverter,
@@ -664,6 +664,10 @@ export class ProviderClient {
                 endpointKey === 'openai-subscription' ||
                 endpointKey === 'openai-responses' ||
                 endpointKey === 'xai-responses',
+              // Only OpenAI infrastructure is known to accept
+              // reasoning.summary; other Responses backends may 400 on it.
+              mapReasoningEffort:
+                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
             });
       if (endpointKey === 'xai-responses') {
         applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
@@ -798,7 +802,7 @@ export class ProviderClient {
    * wrapper frame, while remaining mockable via DI in tests.
    */
   readonly convertChatGptResponse = chatGptResponseConverter;
-  readonly convertChatGptStreamChunk = chatGptStreamChunkConverter;
+  readonly createChatGptStreamTransformer = chatGptStreamTransformerFactory;
   readonly convertGoogleResponse = googleResponseConverter;
   readonly convertGoogleStreamChunk = googleStreamChunkConverter;
   readonly convertAnthropicResponse = anthropicResponseConverter;

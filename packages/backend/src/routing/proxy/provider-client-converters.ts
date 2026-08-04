@@ -17,7 +17,6 @@ import {
 import {
   toResponsesRequest,
   fromResponsesResponse,
-  transformResponsesStreamChunk,
   collectChatGptSseResponse,
 } from './chatgpt-adapter';
 import {
@@ -35,10 +34,12 @@ export function convertChatGptResponse(
   return fromResponsesResponse(body, model);
 }
 
-/** Convert a ChatGPT Responses API SSE chunk to OpenAI format. */
-export function convertChatGptStreamChunk(chunk: string, model: string): string | null {
-  return transformResponsesStreamChunk(chunk, model);
-}
+/**
+ * Stateful ChatGPT Responses→OpenAI SSE transformer. Created once per stream
+ * so the terminal event can backfill reasoning summaries that never streamed
+ * as recognizable deltas.
+ */
+export { createChatGptStreamTransformer } from './chatgpt-adapter';
 
 /** Convert a Google non-streaming response to OpenAI format. */
 export function convertGoogleResponse(

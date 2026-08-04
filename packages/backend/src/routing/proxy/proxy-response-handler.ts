@@ -632,11 +632,13 @@ export async function handleStreamResponse(
     );
   }
   if (forward.isChatGpt) {
+    // Stateful: must be created once per stream and fed events in order.
+    const chatGptTransformer = providerClient.createChatGptStreamTransformer(meta.model);
     return pipeStream(
       forward.response.body!,
       res,
       (chunk) => {
-        const out = providerClient.convertChatGptStreamChunk(chunk, meta.model);
+        const out = chatGptTransformer(chunk);
         if (!messagesTransformer) return out;
         return out ? toClientChunk(out) : null;
       },

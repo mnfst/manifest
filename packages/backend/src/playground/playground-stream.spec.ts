@@ -24,7 +24,7 @@ function providerClientStub(over: Partial<ProviderClient> = {}): ProviderClient 
   return {
     convertGoogleStreamChunk: jest.fn(),
     createAnthropicStreamTransformer: jest.fn(),
-    convertChatGptStreamChunk: jest.fn(),
+    createChatGptStreamTransformer: jest.fn(),
     ...over,
   } as unknown as ProviderClient;
 }
@@ -176,12 +176,13 @@ describe('consumeProviderStream', () => {
     expect(result.content).toBe('A');
   });
 
-  it('uses the ChatGPT chunk converter for Responses-format streams', async () => {
-    const convertChatGptStreamChunk = jest.fn(
+  it('uses a per-stream ChatGPT transformer for Responses-format streams', async () => {
+    const transformer = jest.fn(
       (): string | null => 'data: {"choices":[{"delta":{"content":"C"}}]}\n\n',
     );
+    const createChatGptStreamTransformer = jest.fn(() => transformer);
     const pc = providerClientStub({
-      convertChatGptStreamChunk: convertChatGptStreamChunk as never,
+      createChatGptStreamTransformer: createChatGptStreamTransformer as never,
     });
     const result = await consumeProviderStream(
       sseStream(['data: {"type":"response.output_text.delta"}\n\n']),
@@ -191,13 +192,14 @@ describe('consumeProviderStream', () => {
       () => undefined,
       Date.now(),
     );
-    expect(convertChatGptStreamChunk).toHaveBeenCalled();
+    expect(createChatGptStreamTransformer).toHaveBeenCalledWith('openai/gpt-5');
+    expect(transformer).toHaveBeenCalled();
     expect(result.content).toBe('C');
   });
 
   it('skips ChatGPT chunks that convert to null', async () => {
     const pc = providerClientStub({
-      convertChatGptStreamChunk: jest.fn(() => null) as never,
+      createChatGptStreamTransformer: jest.fn(() => jest.fn(() => null)) as never,
     });
     const result = await consumeProviderStream(
       sseStream(['data: {"type":"response.created"}\n\n']),

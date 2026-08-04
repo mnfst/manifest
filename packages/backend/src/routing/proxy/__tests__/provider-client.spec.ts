@@ -1615,6 +1615,22 @@ describe('ProviderClient', () => {
       expect(sentBody.instructions).toBe('You are a helpful assistant.');
     });
 
+    it('maps reasoning_effort onto the Responses reasoning object with summary auto', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'token',
+        model: 'gpt-5.6-sol',
+        body: { messages: [{ role: 'user', content: 'Hello' }], reasoning_effort: 'xhigh' },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
+    });
+
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2844,17 +2860,19 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('convertChatGptStreamChunk', () => {
+  describe('createChatGptStreamTransformer', () => {
     it('converts output_text delta to chat completion chunk', () => {
       const chunk = 'event: response.output_text.delta\ndata: {"delta":"Hi"}';
-      const result = client.convertChatGptStreamChunk(chunk, 'gpt-5');
+      const result = client.createChatGptStreamTransformer('gpt-5')(chunk);
 
       expect(result).toContain('data: ');
       expect(result).toContain('"chat.completion.chunk"');
     });
 
     it('returns null for irrelevant events', () => {
-      const result = client.convertChatGptStreamChunk('event: response.created\ndata: {}', 'gpt-5');
+      const result = client.createChatGptStreamTransformer('gpt-5')(
+        'event: response.created\ndata: {}',
+      );
       expect(result).toBeNull();
     });
   });
