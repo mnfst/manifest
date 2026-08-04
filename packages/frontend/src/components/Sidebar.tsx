@@ -249,64 +249,65 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       <div class="sidebar__spacer" />
 
-      <Show
-        when={showUpgrade()}
-        fallback={
-          <div class="sidebar-autofix">
-            <div class="sidebar-autofix__header">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
-                <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
-              </svg>
-              <span class="sidebar-autofix__title">
-                {autofixStatus()?.any_enabled || autofixStatus()?.consented
-                  ? 'Auto-fix'
-                  : 'Discover Auto-fix'}
-              </span>
-            </div>
-            <p class="sidebar-autofix__desc">
-              {autofixStatus()?.any_enabled
-                ? 'Auto-fix is repairing eligible failing requests before they reach the model.'
-                : 'Auto-fix can repair eligible failing requests before they reach the model.'}
-            </p>
-            <Show
-              when={!autofixStatus.loading && !autofixStatus()?.any_enabled}
-              fallback={
-                <a
-                  class="sidebar-autofix__btn"
-                  href="https://manifest.build/docs/autofix/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Learn more
-                </a>
-              }
+      {/* Self-hosted: Auto-fix CTA always owns the bottom-left slot.
+          Cloud free plan: usage meter. Cloud paid: empty. */}
+      <Show when={selfHosted()}>
+        <div class="sidebar-autofix">
+          <div class="sidebar-autofix__header">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
             >
-              <button
-                type="button"
-                class="sidebar-autofix__btn"
-                disabled={enablingAutofix()}
-                onClick={() => {
-                  if (selfHosted() && !autofixStatus()?.consented) {
-                    setConfirmingAutofix(true);
-                    return;
-                  }
-                  void runEnableAll();
-                }}
-              >
-                {enablingAutofix() ? 'Enabling…' : 'Enable for all agents'}
-              </button>
-            </Show>
+              <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
+              <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
+            </svg>
+            <span class="sidebar-autofix__title">
+              {autofixStatus()?.any_enabled || autofixStatus()?.consented
+                ? 'Auto-fix'
+                : 'Discover Auto-fix'}
+            </span>
           </div>
-        }
-      >
+          <p class="sidebar-autofix__desc">
+            {autofixStatus()?.any_enabled
+              ? 'Auto-fix is repairing eligible failing requests before they reach the model.'
+              : 'Auto-fix can repair eligible failing requests before they reach the model.'}
+          </p>
+          <Show
+            when={!autofixStatus.loading && !autofixStatus()?.any_enabled}
+            fallback={
+              <a
+                class="sidebar-autofix__btn"
+                href="https://manifest.build/docs/autofix/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Learn more
+              </a>
+            }
+          >
+            <button
+              type="button"
+              class="sidebar-autofix__btn"
+              disabled={enablingAutofix()}
+              onClick={() => {
+                if (!autofixStatus()?.consented) {
+                  setConfirmingAutofix(true);
+                  return;
+                }
+                void runEnableAll();
+              }}
+            >
+              {enablingAutofix() ? 'Enabling…' : 'Enable for all agents'}
+            </button>
+          </Show>
+        </div>
+      </Show>
+
+      <Show when={!selfHosted() && showUpgrade()}>
         <div class="sidebar-usage">
           <span class="sidebar-usage__title">
             {new Date().toLocaleDateString('en-US', { month: 'long' })} usage
