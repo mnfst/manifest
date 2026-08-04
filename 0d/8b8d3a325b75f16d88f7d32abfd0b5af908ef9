@@ -1,0 +1,70 @@
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_4560f40e5f017e::t_8667e78c1f8c38 25-27,29-30,35,42,65,96
+  s_4560f40e5f017e::t_e20fa99dbae2b6 179-201
+  s_4560f40e5f017e::t_b20a06628e0bfa 28
+  s_4560f40e5f017e::t_318f0dabde796d 221-223,225
+packages/backend/src/routing/dto/routing.dto.ts
+  s_4560f40e5f017e::t_6b4f06ff661b34 237-245
+packages/backend/src/routing/tier.controller.spec.ts
+  s_4560f40e5f017e::t_db997c348f04cd 31
+  s_4560f40e5f017e::t_d1007e4731251b 36-39
+  s_4560f40e5f017e::t_65c6d45144722e 61,173-174,182,188,192-194,199,210,215-280
+  s_4560f40e5f017e::t_879bc6f74f5f8e 7,66-75,80
+  s_4560f40e5f017e::t_5aff198ce9f6b4 54
+  s_4560f40e5f017e::t_b20a06628e0bfa 23-27
+  s_4560f40e5f017e::t_ff6dc9d4d24d62 281-282
+CLAUDE.md
+  s_4560f40e5f017e::t_b20a06628e0bfa 644-646
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_4560f40e5f017e::t_373c8bec2b8ffb 268
+  s_4560f40e5f017e::t_11768b1eb04e86 98,143
+  s_4560f40e5f017e::t_5bd971319b56f5 183
+  s_4560f40e5f017e::t_08c3627810f8b9 107,116,125-129,133-142,144-161,164
+packages/backend/src/routing/tier.controller.ts
+  s_4560f40e5f017e::t_6431564af1de8e 27,41-42,223-225
+  s_4560f40e5f017e::t_b20a06628e0bfa 230-234
+  s_4560f40e5f017e::t_037ebb845f7ed9 196
+  s_4560f40e5f017e::t_79b591731dba82 29-30,170,172-173,191-195,197-205,211,215-222,226-229,235-237
+  s_4560f40e5f017e::t_7fc3b63e0fa0dd 171
+  s_4560f40e5f017e::t_3363b2c308efe2 238
+packages/backend/src/telemetry/install-id.service.spec.ts
+  s_4560f40e5f017e::t_9b001bcc5225db 19
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_1be746e06245a5 189-211
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_4560f40e5f017e::t_98f1011f804214 176-183
+packages/backend/src/entities/install-metadata.entity.ts
+  s_4560f40e5f017e::t_6237ecc1d571bb 26-29
+packages/backend/src/routing/routing.module.ts
+  s_4560f40e5f017e::t_6f7d399b903f76 33,46
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_4560f40e5f017e::t_be1cac697437c8 64-70,75-83
+packages/backend/src/database/migrations/1801900000000-AddAutofixConsentToInstallMetadata.ts
+  s_4560f40e5f017e::t_b20a06628e0bfa 11
+  s_4560f40e5f017e::t_12397bc77ed094 1-10,12-31
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_4560f40e5f017e::t_b20a06628e0bfa 245
+  s_4560f40e5f017e::t_fc477da8a2f4cf 243-244,246-251
+packages/frontend/src/services/api/routing.ts
+  s_4560f40e5f017e::t_cf4c5fba56d9f2 180-181,188
+packages/backend/src/database/data-source-definitions.ts
+  s_4560f40e5f017e::t_6237ecc1d571bb 42,320
+packages/backend/src/routing/routing-core/resolve-agent.service.ts
+  s_4560f40e5f017e::t_98f1011f804214 74-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "0d8b8d3a325b75f16d88f7d32abfd0b5af908ef9",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
