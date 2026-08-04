@@ -140,6 +140,50 @@ describe('SettingsAutofixSection', () => {
   });
 
 
+  it('closes the consent modal on overlay click and Escape without saving', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockGetAutofix.mockResolvedValue({ enabled: false, consented: false });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+    const btn = await waitForLoaded(container);
+
+    fireEvent.click(btn);
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy());
+    fireEvent.click(document.querySelector('.modal-overlay')!);
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+    fireEvent.click(btn);
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy());
+    fireEvent.keyDown(document.querySelector('.modal-overlay')!, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
+  it('drops a consent confirm that lands while the config is refetching', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    const [name, setName] = createSignal('a');
+    let resolveSecond: (v: { enabled: boolean; consented: boolean }) => void = () => {};
+    mockGetAutofix
+      .mockResolvedValueOnce({ enabled: false, consented: false })
+      .mockReturnValueOnce(
+        new Promise<{ enabled: boolean; consented: boolean }>((r) => {
+          resolveSecond = r;
+        }),
+      );
+    const { container } = render(() => <SettingsAutofixSection agentName={name} />);
+    const btn = await waitForLoaded(container);
+
+    fireEvent.click(btn);
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy());
+
+    // Switch harness while the modal is open; the config resource is now
+    // loading, so a confirm must hit the busy guard and write nothing.
+    setName('b');
+    fireEvent.click(screen.getByText('Agree & enable Auto-fix'));
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+    resolveSecond({ enabled: false, consented: false });
+  });
+
   it('does not enable self-hosted Auto-fix when the confirmation is cancelled', async () => {
     mockCheckIsSelfHosted.mockResolvedValue(true);
     mockGetAutofix.mockResolvedValue({ enabled: false, consented: false });

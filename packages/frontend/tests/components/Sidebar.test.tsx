@@ -523,6 +523,30 @@ describe("Sidebar — Auto-fix card", () => {
     expect(btn?.textContent).toBe("Enable");
   });
 
+  it("dismisses the consent modal via Cancel, overlay, and Escape without enabling", async () => {
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Discover Auto-fix");
+    const open = () => fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+
+    open();
+    await screen.findByText("Enable hosted Auto-fix?");
+    fireEvent.click(screen.getByText("Cancel"));
+    expect(screen.queryByText("Enable hosted Auto-fix?")).toBeNull();
+
+    open();
+    await screen.findByText("Enable hosted Auto-fix?");
+    const overlay = document.querySelector(".modal-overlay")!;
+    fireEvent.click(overlay);
+    expect(screen.queryByText("Enable hosted Auto-fix?")).toBeNull();
+
+    open();
+    await screen.findByText("Enable hosted Auto-fix?");
+    fireEvent.keyDown(document.querySelector(".modal-overlay")!, { key: "Escape" });
+    expect(screen.queryByText("Enable hosted Auto-fix?")).toBeNull();
+
+    expect(mockEnableAllAutofix).not.toHaveBeenCalled();
+  });
+
   it("opens the consent modal before enabling on a non-consented install", async () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Discover Auto-fix");
