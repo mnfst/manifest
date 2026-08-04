@@ -5,6 +5,7 @@ import { Agent } from '../../../entities/agent.entity';
 import { AgentMessage } from '../../../entities/agent-message.entity';
 import { ManifestRequest } from '../../../entities/request.entity';
 import { InstallMetadata } from '../../../entities/install-metadata.entity';
+import { InstallIdService } from '../../../telemetry/install-id.service';
 import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
@@ -169,5 +170,81 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
 
     expect(client).toBeInstanceOf(HttpHealingClient);
     expect((client as unknown as { timeoutMs: number }).timeoutMs).toBe(10_000);
+  });
+
+  it('falls back to the inert client when AUTOFIX_HEALING_URL is not an absolute http(s) URL', async () => {
+    // A bad scheme must not be handed to fetch(); it would fail per-request on
+    // the heal path instead of surfacing once. Inert client + a boot log line.
+    const client = await resolveHealingClient({
+      NODE_ENV: 'production',
+      AUTOFIX_HEALING_URL: 'htp://phoenix.local',
+    });
+
+    expect(client).toBeInstanceOf(NoopHealingClient);
+  });
+
+  it('resolves the install id once per process instead of per request', async () => {
+    const previousMode = process.env.MANIFEST_MODE;
+    process.env.MANIFEST_MODE = 'selfhosted';
+    const getOrCreate = jest.fn().mockResolvedValue({ install_id: 'install-1' });
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'no_patch', issueId: 'issue-1' }),
+    });
+    const realFetch = global.fetch;
+    global.fetch = fetchMock as unknown as typeof fetch;
+    try {
+      const moduleRef = await Test.createTestingModule({
+        imports: [
+          ConfigModule.forRoot({
+            isGlobal: true,
+            ignoreEnvFile: true,
+            load: [() => ({ NODE_ENV: 'production', AUTOFIX_HEALING_URL: 'http://phoenix.local' })],
+          }),
+          AutofixModule,
+        ],
+      })
+        .overrideProvider(getRepositoryToken(Agent))
+        .useValue({})
+        .overrideProvider(getRepositoryToken(AgentMessage))
+        .useValue({})
+        .overrideProvider(getRepositoryToken(ManifestRequest))
+        .useValue({})
+        .overrideProvider(getRepositoryToken(InstallMetadata))
+        .useValue({})
+        .overrideProvider(InstallIdService)
+        .useValue({ getOrCreate })
+        .compile();
+
+      const client = moduleRef.get(HEALING_CLIENT) as {
+        heal: (input: unknown, context: { harness: string }) => Promise<unknown>;
+      };
+      const heal = () =>
+        client.heal(
+          {
+            traceId: 't',
+            tenantId: 'tenant-1',
+            provider: 'openai',
+            authType: 'api_key',
+            api: 'chat_completions',
+            request: { max_tokens: 1 },
+            response: { statusCode: 400, error: { message: 'bad' } },
+          },
+          { harness: 'claude-code' },
+        );
+
+      await heal();
+      await heal();
+
+      // The factory memoizes the resolved id, so the DB is read once even
+      // though the client calls the provider on every request.
+      expect(getOrCreate).toHaveBeenCalledTimes(1);
+      await moduleRef.close();
+    } finally {
+      global.fetch = realFetch;
+      if (previousMode === undefined) delete process.env.MANIFEST_MODE;
+      else process.env.MANIFEST_MODE = previousMode;
+    }
   });
 });
