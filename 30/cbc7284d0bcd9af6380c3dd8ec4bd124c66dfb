@@ -1,0 +1,50 @@
+packages/frontend/src/services/api/agents.ts
+  s_4560f40e5f017e::t_1c824346dbba8a 64-70
+packages/backend/src/otlp/services/api-key.service.spec.ts
+  s_4560f40e5f017e::t_afa5c318589905 160-195
+packages/backend/src/otlp/services/api-key.service.ts
+  s_4560f40e5f017e::t_8e06eb4b8ffa14 42-49,85-86
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_51c65acbfd6534 910-940
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_4560f40e5f017e::t_dc8585a7b5e53d 459-471
+  s_4560f40e5f017e::t_72ffbe2d6fd0c2 83-84
+  s_4560f40e5f017e::t_6e4b9ffe848b29 32-41
+  s_4560f40e5f017e::t_8e1d602947c199 2,374-458,472-483
+  s_4560f40e5f017e::t_ea681e9193501d 484
+.changeset/create-modal-agent-defaults.md
+  s_4560f40e5f017e::t_0d76932048ceda 1-5
+packages/backend/src/common/dto/create-agent.dto.ts
+  s_4560f40e5f017e::t_811eb92a81cf03 9,32-46
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_4560f40e5f017e::t_8e06eb4b8ffa14 97-98
+CLAUDE.md
+  s_4560f40e5f017e::t_0d76932048ceda 646-647
+packages/frontend/src/components/AddAgentModal.tsx
+  s_4560f40e5f017e::t_6b1d5591a1c86c 213-223,225-285,297-305
+  s_4560f40e5f017e::t_4cafcf9bb9e43e 1,4,6-7,32-43,54-60,62-67,101-104,155-158
+  s_4560f40e5f017e::t_030ac4835031af 44-53,61
+  s_4560f40e5f017e::t_d55691db177d00 224
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_4560f40e5f017e::t_a9b00d10ea9ff4 374-379
+  s_4560f40e5f017e::t_d61061dfa38dc4 319-320,328-329,336-373,380-383
+  s_4560f40e5f017e::t_5e8db003a3bd60 384-385
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_4560f40e5f017e::t_dc8585a7b5e53d 9-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "30cbc7284d0bcd9af6380c3dd8ec4bd124c66dfb",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
