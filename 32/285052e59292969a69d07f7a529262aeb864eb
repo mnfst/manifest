@@ -1,0 +1,19 @@
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_4560f40e5f017e::t_2cff36039e1472 118-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "32285052e59292969a69d07f7a529262aeb864eb",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
