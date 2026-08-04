@@ -1,6 +1,8 @@
 import { NoopHealingClient } from '../noop-healing-client';
 import type { HealRequest } from '../phoenix.types';
 
+const context = { harness: 'claude-code' } as const;
+
 describe('NoopHealingClient', () => {
   const client = new NoopHealingClient();
 
@@ -15,7 +17,7 @@ describe('NoopHealingClient', () => {
   };
 
   it('heal() always returns no_patch and never hands out a patch', async () => {
-    const res = await client.heal(sampleRequest);
+    const res = await client.heal(sampleRequest, context);
 
     expect(res.status).toBe('no_patch');
     expect(res.issueId).toBe('autofix-noop');
@@ -26,10 +28,12 @@ describe('NoopHealingClient', () => {
   });
 
   it('reportOutcome() is a no-op that resolves null', async () => {
-    await expect(client.reportOutcome('heal-1', { retryStatusCode: 200 })).resolves.toBeNull();
+    await expect(
+      client.reportOutcome('heal-1', { retryStatusCode: 200 }, context),
+    ).resolves.toBeNull();
   });
 
   it('observe() discards the batch without reaching a healer', async () => {
-    await expect(client.observe([sampleRequest])).resolves.toBeUndefined();
+    await expect(client.observe([sampleRequest], context)).resolves.toBeUndefined();
   });
 });

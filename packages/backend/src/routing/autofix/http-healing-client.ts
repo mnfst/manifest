@@ -33,7 +33,7 @@ export class HttpHealingClient implements HealingClient {
     this.baseUrl = baseUrl.trim().replace(/\/+$/, '');
   }
 
-  async heal(input: HealRequest, context?: HealingRequestContext): Promise<HealResponse> {
+  async heal(input: HealRequest, context: HealingRequestContext): Promise<HealResponse> {
     const res = await this.authenticatedFetch(
       '/api/heal',
       {
@@ -52,7 +52,7 @@ export class HttpHealingClient implements HealingClient {
     return (await res.json()) as HealResponse;
   }
 
-  async observe(observations: HealRequest[], context?: HealingRequestContext): Promise<void> {
+  async observe(observations: HealRequest[], context: HealingRequestContext): Promise<void> {
     if (observations.length === 0) return;
     try {
       const res = await this.authenticatedFetch(
@@ -75,7 +75,7 @@ export class HttpHealingClient implements HealingClient {
   async reportOutcome(
     healAttemptId: string,
     outcome: HealOutcome,
-    context?: HealingRequestContext,
+    context: HealingRequestContext,
   ): Promise<ConfirmResponse | null> {
     try {
       const path = `/api/heal-attempts/${encodeURIComponent(healAttemptId)}`;
@@ -112,6 +112,9 @@ export class HttpHealingClient implements HealingClient {
     if (!this.instanceId) {
       return this.request(path, init, { 'content-type': 'application/json' });
     }
+    // Typed callers always supply this; the guard only catches an untyped JS
+    // caller, since a missing harness would otherwise reach Phoenix as
+    // `undefined` and fail the header allowlist with a confusing 400.
     if (!context) {
       throw new Error('Autofix harness is required for instance-identified requests');
     }

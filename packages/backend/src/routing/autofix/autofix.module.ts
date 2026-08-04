@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
@@ -9,7 +9,7 @@ import { readManifestVersion } from '../../telemetry/telemetry.config';
 import { TelemetryModule } from '../../telemetry/telemetry.module';
 import { AutofixService } from './autofix.service';
 import { AutofixHealthProbe } from './autofix-health-probe';
-import { resolveHttpHealingUrl } from './autofix-healing-config';
+import { resolveHealingUrl } from './autofix-healing-config';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
 import { HttpHealingClient } from './http-healing-client';
 import { InstallIdService } from '../../telemetry/install-id.service';
@@ -28,10 +28,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  * - dev/test remains on the deterministic in-process mock when unset.
  */
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]),
-    TelemetryModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]), TelemetryModule],
   providers: [
     AutofixService,
     AutofixHealthProbe,
@@ -42,7 +39,15 @@ const DEFAULT_TIMEOUT_MS = 10_000;
         const rawUrl = config.get<string>('AUTOFIX_HEALING_URL');
         const nodeEnv = config.get<string>('NODE_ENV');
         const selfHosted = isSelfHosted();
-        const url = resolveHttpHealingUrl(rawUrl, nodeEnv, selfHosted);
+        const { url, invalid } = resolveHealingUrl(rawUrl, nodeEnv, selfHosted);
+        if (invalid) {
+          // Loud once at boot: an unusable URL silently disables Auto-fix, and
+          // "Auto-fix never runs" is otherwise indistinguishable from it being
+          // switched off on purpose.
+          new Logger('AutofixModule').error(
+            `AUTOFIX_HEALING_URL is not an absolute http(s) URL; Auto-fix is inert. Got: ${rawUrl}`,
+          );
+        }
         // Digits-only: `Number.parseInt` stops at the first non-digit, so a typo'd
         // `AUTOFIX_TIMEOUT_MS` like `'5abc'` would silently override the timeout with
         // `5`. Require a clean positive integer or fall back to the default.

@@ -14,7 +14,7 @@ export interface HealingRequestContext {
  */
 export interface HealingClient {
   /** Submit a failed request + provider error; get a heal decision back. */
-  heal(input: HealRequest, context?: HealingRequestContext): Promise<HealResponse>;
+  heal(input: HealRequest, context: HealingRequestContext): Promise<HealResponse>;
   /**
    * Report the post-retry outcome of an applied patch (Phoenix's learning loop).
    * Phoenix decides succeeded/failed from the retry status + error. Best-effort:
@@ -24,7 +24,7 @@ export interface HealingClient {
   reportOutcome(
     healAttemptId: string,
     outcome: HealOutcome,
-    context?: HealingRequestContext,
+    context: HealingRequestContext,
   ): Promise<ConfirmResponse | null>;
   /**
    * Bulk-report failed requests as evidence, without asking for a fix. Phoenix
@@ -32,7 +32,7 @@ export interface HealingClient {
    * and no heal attempt is created. Best-effort like {@link reportOutcome}: never
    * throws, so a healer outage costs evidence rather than a request.
    */
-  observe(observations: HealRequest[], context?: HealingRequestContext): Promise<void>;
+  observe(observations: HealRequest[], context: HealingRequestContext): Promise<void>;
 }
 
 /** DI token for the active HealingClient implementation. */

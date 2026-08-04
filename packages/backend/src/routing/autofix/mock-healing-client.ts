@@ -19,7 +19,7 @@ export const MOCK_RENAME_CATALOG: Record<string, string> = {
 export class MockHealingClient implements HealingClient {
   private readonly logger = new Logger(MockHealingClient.name);
 
-  heal(input: HealRequest, _context?: HealingRequestContext): Promise<HealResponse> {
+  heal(input: HealRequest, _context: HealingRequestContext): Promise<HealResponse> {
     const issueId = uuid();
     const { code, param } = input.response.error;
     // `param` comes from an untrusted provider error. Use own-property checks so a
@@ -48,7 +48,7 @@ export class MockHealingClient implements HealingClient {
     return Promise.resolve({ status: 'no_patch', issueId });
   }
 
-  observe(observations: HealRequest[], _context?: HealingRequestContext): Promise<void> {
+  observe(observations: HealRequest[], _context: HealingRequestContext): Promise<void> {
     this.logger.log(`mock observe: ${observations.length} observation(s) discarded`);
     return Promise.resolve();
   }
@@ -56,7 +56,7 @@ export class MockHealingClient implements HealingClient {
   reportOutcome(
     healAttemptId: string,
     outcome: HealOutcome,
-    _context?: HealingRequestContext,
+    _context: HealingRequestContext,
   ): Promise<ConfirmResponse | null> {
     // Phoenix decides from the retry outcome: a cleared target (2xx or a
     // different error) succeeds; the same error recurring fails. The mock has no

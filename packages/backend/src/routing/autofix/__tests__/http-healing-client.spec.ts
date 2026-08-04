@@ -47,7 +47,7 @@ describe('HttpHealingClient', () => {
       const client = new HttpHealingClient('http://x', 1000);
       const input = makeHealRequest();
 
-      const res = await client.heal(input);
+      const res = await client.heal(input, context);
 
       expect(res).toEqual(healResponse);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
@@ -62,7 +62,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(false, 500, {}));
       const client = new HttpHealingClient('http://x', 1000);
 
-      const err = await client.heal(makeHealRequest()).catch((e: unknown) => e);
+      const err = await client.heal(makeHealRequest(), context).catch((e: unknown) => e);
       expect(err).toBeInstanceOf(Error);
       expect(err).not.toBeInstanceOf(HealContractError);
       expect((err as Error).message).toBe('Phoenix /api/heal responded 500');
@@ -74,7 +74,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(false, 401, {}));
       const client = new HttpHealingClient('http://x', 1000, 'secret');
 
-      const err = await client.heal(makeHealRequest()).catch((e: unknown) => e);
+      const err = await client.heal(makeHealRequest(), context).catch((e: unknown) => e);
       expect(err).toBeInstanceOf(HealContractError);
       expect((err as HealContractError).status).toBe(401);
     });
@@ -83,7 +83,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
       const client = new HttpHealingClient('http://x', 1000, 'secret-key');
 
-      await client.heal(makeHealRequest());
+      await client.heal(makeHealRequest(), context);
 
       const [, init] = fetchSpy.mock.calls[0];
       expect(init.headers).toEqual({
@@ -93,7 +93,9 @@ describe('HttpHealingClient', () => {
     });
 
     it('announces the install id on the first call, with no registration round-trip', async () => {
-      fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }));
+      fetchSpy.mockResolvedValue(
+        fakeResponse(true, 200, { status: 'no_patch', issueId: 'issue-1' }),
+      );
       const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
       await client.heal(makeHealRequest(), context);
@@ -155,7 +157,11 @@ describe('HttpHealingClient', () => {
     it('requires a bounded harness on the instance-identified path', async () => {
       const client = new HttpHealingClient('http://x', 1000, undefined, makeInstanceId(), '6.15.1');
 
-      await expect(client.heal(makeHealRequest())).rejects.toThrow('Autofix harness is required');
+      // The type makes this unreachable for typed callers; the cast reproduces
+      // an untyped JS caller, which the runtime guard still has to reject.
+      await expect(client.heal(makeHealRequest(), undefined as never)).rejects.toThrow(
+        'Autofix harness is required',
+      );
       expect(fetchSpy).not.toHaveBeenCalled();
     });
 
@@ -177,7 +183,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
       const client = new HttpHealingClient('http://x/', 1000);
 
-      await client.heal(makeHealRequest());
+      await client.heal(makeHealRequest(), context);
 
       expect(fetchSpy.mock.calls[0][0]).toBe('http://x/api/heal');
     });
@@ -195,7 +201,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, confirmResponse));
       const client = new HttpHealingClient('http://x', 1000);
 
-      const res = await client.reportOutcome('heal/1', outcome);
+      const res = await client.reportOutcome('heal/1', outcome, context);
 
       expect(res).toEqual(confirmResponse);
       const [url, init] = fetchSpy.mock.calls[0];
@@ -216,7 +222,7 @@ describe('HttpHealingClient', () => {
       );
       const client = new HttpHealingClient('http://x', 1000, 'secret-key');
 
-      await client.reportOutcome('h', outcome);
+      await client.reportOutcome('h', outcome, context);
 
       const [, init] = fetchSpy.mock.calls[0];
       expect(init.headers).toEqual({
@@ -252,7 +258,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(fakeResponse(false, 404, {}));
       const client = new HttpHealingClient('http://x', 1000);
 
-      const res = await client.reportOutcome('heal-1', outcome);
+      const res = await client.reportOutcome('heal-1', outcome, context);
 
       expect(res).toBeNull();
     });
@@ -261,7 +267,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockRejectedValue(new Error('network down'));
       const client = new HttpHealingClient('http://x', 1000);
 
-      await expect(client.reportOutcome('heal-1', outcome)).resolves.toBeNull();
+      await expect(client.reportOutcome('heal-1', outcome, context)).resolves.toBeNull();
     });
   });
 
@@ -280,7 +286,7 @@ describe('HttpHealingClient', () => {
       const client = new HttpHealingClient('http://x', 1000, 'secret-key');
       const batch = [makeHealRequest()];
 
-      await client.observe(batch);
+      await client.observe(batch, context);
 
       const [url, init] = fetchSpy.mock.calls[0];
       expect(url).toBe('http://x/api/heal/observe');
@@ -315,7 +321,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(response);
       const client = new HttpHealingClient('http://x', 1000);
 
-      await client.observe([makeHealRequest()]);
+      await client.observe([makeHealRequest()], context);
 
       expect(cancel).toHaveBeenCalledTimes(1);
     });
@@ -323,7 +329,7 @@ describe('HttpHealingClient', () => {
     it('does not call fetch for an empty batch', async () => {
       const client = new HttpHealingClient('http://x', 1000);
 
-      await client.observe([]);
+      await client.observe([], context);
 
       expect(fetchSpy).not.toHaveBeenCalled();
     });
@@ -333,7 +339,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockResolvedValue(response);
       const client = new HttpHealingClient('http://x', 1000);
 
-      await expect(client.observe([makeHealRequest()])).resolves.toBeUndefined();
+      await expect(client.observe([makeHealRequest()], context)).resolves.toBeUndefined();
       expect(cancel).toHaveBeenCalledTimes(1);
     });
 
@@ -341,7 +347,7 @@ describe('HttpHealingClient', () => {
       fetchSpy.mockRejectedValue(new Error('network down'));
       const client = new HttpHealingClient('http://x', 1000);
 
-      await expect(client.observe([makeHealRequest()])).resolves.toBeUndefined();
+      await expect(client.observe([makeHealRequest()], context)).resolves.toBeUndefined();
     });
   });
 });

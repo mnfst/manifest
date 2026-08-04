@@ -10,19 +10,19 @@ import type { ConfirmResponse, HealOutcome, HealRequest, HealResponse } from './
  * feature that does nothing, not one that silently patches live traffic.
  */
 export class NoopHealingClient implements HealingClient {
-  heal(_input: HealRequest, _context?: HealingRequestContext): Promise<HealResponse> {
+  heal(_input: HealRequest, _context: HealingRequestContext): Promise<HealResponse> {
     return Promise.resolve({ status: 'no_patch', issueId: 'autofix-noop' });
   }
 
   reportOutcome(
     _healAttemptId: string,
     _outcome: HealOutcome,
-    _context?: HealingRequestContext,
+    _context: HealingRequestContext,
   ): Promise<ConfirmResponse | null> {
     return Promise.resolve(null);
   }
 
-  observe(_observations: HealRequest[], _context?: HealingRequestContext): Promise<void> {
+  observe(_observations: HealRequest[], _context: HealingRequestContext): Promise<void> {
     return Promise.resolve();
   }
 }
