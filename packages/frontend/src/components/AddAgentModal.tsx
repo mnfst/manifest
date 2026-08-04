@@ -173,8 +173,13 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           </div>
 
           <div class="add-agent-toggles">
-            <div class="add-agent-toggles__row">
-              <span class="add-agent-toggles__label">Auto-fix</span>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Auto-fix</span>
+                <span class="settings-card__label-desc">
+                  Repair eligible failing requests before falling back.
+                </span>
+              </div>
               <button
                 type="button"
                 role="switch"
@@ -190,8 +195,13 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 </span>
               </button>
             </div>
-            <div class="add-agent-toggles__row">
-              <span class="add-agent-toggles__label">Record messages</span>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Record messages</span>
+                <span class="settings-card__label-desc">
+                  Store request and response bodies for this harness.
+                </span>
+              </div>
               <button
                 type="button"
                 role="switch"
