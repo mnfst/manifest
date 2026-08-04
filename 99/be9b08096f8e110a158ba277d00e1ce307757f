@@ -1,0 +1,19 @@
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_630a0355e0de68 920-921,927
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "99be9b08096f8e110a158ba277d00e1ce307757f",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
