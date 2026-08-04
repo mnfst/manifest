@@ -365,9 +365,7 @@ describe('AutofixStatsService', () => {
   describe('enableAll', () => {
     it('updates only live non-playground agents and records consent', async () => {
       agentRepo.update.mockResolvedValue({ affected: 2 });
-      agentRepo.find.mockResolvedValue([
-        { name: 'a', autofix_enabled: true },
-      ]);
+      agentRepo.find.mockResolvedValue([{ name: 'a', autofix_enabled: true }]);
       await expect(service.enableAll('tenant')).resolves.toMatchObject({
         any_enabled: true,
         enabled_agents: ['a'],
@@ -376,12 +374,10 @@ describe('AutofixStatsService', () => {
         expect.objectContaining({
           tenant_id: 'tenant',
           is_playground: false,
-          // deleted_at: IsNull() — presence is what matters
+          deleted_at: expect.objectContaining({ _type: 'isNull' }),
         }),
         { autofix_enabled: true },
       );
-      const where = agentRepo.update.mock.calls[0][0];
-      expect(where).toHaveProperty('deleted_at');
     });
   });
 });
