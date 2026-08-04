@@ -64,9 +64,20 @@ const DEFAULT_TIMEOUT_MS = 10_000;
           // Self-hosted with no static key announces the install's anonymous id.
           // It is created on first use, so an install that never enables
           // Auto-fix (or never reports telemetry) never mints one.
+          // Self-hosted with no static key announces the install's anonymous id.
+          // It is created on first use (an install that never enables Auto-fix
+          // never mints one) and memoized for the process lifetime, because
+          // InstallIdService reads the row from the database on every call —
+          // without this, each heal request would do its own lookup.
           const instanceId =
             !apiKey && selfHosted
-              ? async () => (await installIds.getOrCreate()).install_id
+              ? (() => {
+                  let cached: Promise<string> | null = null;
+                  return async () => {
+                    cached ??= installIds.getOrCreate().then((i) => i.install_id);
+                    return cached;
+                  };
+                })()
               : undefined;
           return new HttpHealingClient(url, timeoutMs, apiKey, instanceId, readManifestVersion());
         }

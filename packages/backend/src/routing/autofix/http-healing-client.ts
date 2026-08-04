@@ -43,6 +43,10 @@ export class HttpHealingClient implements HealingClient {
       context,
     );
     if (!res.ok) {
+      // Release the connection: an unconsumed error body keeps the socket
+      // reserved in undici, which under a burst of 4xx/5xx replies would leak
+      // connections instead of letting them return to the pool.
+      await res.body?.cancel();
       const message = `Phoenix /api/heal responded ${res.status}`;
       if (res.status >= 400 && res.status < 500) {
         throw new HealContractError(res.status, message);
@@ -88,6 +92,7 @@ export class HttpHealingClient implements HealingClient {
         context,
       );
       if (!res.ok) {
+        await res.body?.cancel();
         this.logger.warn(`Phoenix heal-attempt ${healAttemptId} responded ${res.status}`);
         return null;
       }
