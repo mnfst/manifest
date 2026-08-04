@@ -14,18 +14,25 @@ export class AddAutofixConsentToInstallMetadata1801900000000 implements Migratio
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Catalog-only, but takes ACCESS EXCLUSIVE — bound the wait so a deploy
     // queues behind a long read instead of blocking the table indefinitely.
+    // Plain `timestamp` matches the rest of install_metadata (timestampType()).
     await queryRunner.query(`SET lock_timeout = '5s'`);
-    await queryRunner.query(
-      `ALTER TABLE "install_metadata" ADD COLUMN IF NOT EXISTS "autofix_consented_at" TIMESTAMP WITH TIME ZONE`,
-    );
-    await queryRunner.query(`RESET lock_timeout`);
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "install_metadata" ADD COLUMN IF NOT EXISTS "autofix_consented_at" timestamp DEFAULT NULL`,
+      );
+    } finally {
+      await queryRunner.query(`RESET lock_timeout`);
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`SET lock_timeout = '5s'`);
-    await queryRunner.query(
-      `ALTER TABLE "install_metadata" DROP COLUMN IF EXISTS "autofix_consented_at"`,
-    );
-    await queryRunner.query(`RESET lock_timeout`);
+    try {
+      await queryRunner.query(
+        `ALTER TABLE "install_metadata" DROP COLUMN IF EXISTS "autofix_consented_at"`,
+      );
+    } finally {
+      await queryRunner.query(`RESET lock_timeout`);
+    }
   }
 }

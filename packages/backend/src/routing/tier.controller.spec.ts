@@ -9,7 +9,14 @@ import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
 
+const ORIGINAL_MANIFEST_MODE = process.env.MANIFEST_MODE;
+
 describe('TierController', () => {
+  afterAll(() => {
+    if (ORIGINAL_MANIFEST_MODE === undefined) delete process.env.MANIFEST_MODE;
+    else process.env.MANIFEST_MODE = ORIGINAL_MANIFEST_MODE;
+  });
+
   const ctx: TenantContext = { tenantId: 'tenant-1', userId: 'user-1' };
   const agent = {
     id: 'agent-1',
@@ -39,6 +46,9 @@ describe('TierController', () => {
   };
 
   beforeEach(() => {
+    // Pin cloud mode: a dev shell exporting MANIFEST_MODE=selfhosted must not
+    // flip the consent gate under the cloud-behavior tests below.
+    process.env.MANIFEST_MODE = 'cloud';
     tierService = {
       getTiers: jest.fn().mockResolvedValue([]),
       setOverride: jest.fn(),
