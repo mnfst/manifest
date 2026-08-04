@@ -1,0 +1,40 @@
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_4560f40e5f017e::t_c65262d84980e3 112-115,118,125,131-134
+  s_4560f40e5f017e::t_5eea7363e42b21 135-140
+  s_4560f40e5f017e::t_88256e7a637119 141-142
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_4560f40e5f017e::t_99248a6f75dbc7 9,15,32-33,41,59-66,70
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_4560f40e5f017e::t_21292b9ec29340 7,38-40
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_4560f40e5f017e::t_9ca7742b0ed29c 7-10,14-20,30,112,116,118,134,139
+CLAUDE.md
+  s_4560f40e5f017e::t_be28400a8f753d 429,630-632
+  s_4560f40e5f017e::t_18bc1a93bfeef0 633
+.changeset/quiet-horses-heal.md
+  s_4560f40e5f017e::t_dc186568b5ab9c 5
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_4560f40e5f017e::t_8c9a31c96f6579 26-27,95-97,101-104,107,113-115,119,122-124,127,130,133-136,138-143,146-148,150-152,155-156,162,164-165,169
+  s_4560f40e5f017e::t_20e3bc05152490 240,302
+  s_4560f40e5f017e::t_10494678f43af8 247-248,309-310
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_4560f40e5f017e::t_81d15957ccd8e0 24,60,96,306-311
+packages/backend/src/telemetry/telemetry.module.ts
+  s_4560f40e5f017e::t_0e001f0116e41a 13-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "1ed8267952a2bf6d7ef062828abb44b00c126395",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
