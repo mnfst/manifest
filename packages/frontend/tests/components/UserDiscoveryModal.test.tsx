@@ -27,14 +27,14 @@ describe('UserDiscoveryModal', () => {
 
     const heading = screen.getByRole('heading', { level: 2 });
     expect(heading.textContent?.replace(/\s+/g, ' ').trim()).toContain(
-      'Talk to us and get $10 credit for',
+      'Talk to us and get $25 credit for',
     );
-    expect(screen.getByText('$10')).toBeDefined();
+    expect(screen.getByText('$25')).toBeDefined();
     expect(screen.getByAltText('Gemini')).toBeDefined();
     expect(screen.getByText(/around agent reliability/)).toBeDefined();
-    expect(screen.getByText('30 minutes through a video call.')).toBeDefined();
+    expect(screen.getByText('15 minutes through a video call.')).toBeDefined();
     expect(
-      screen.getByText('Quick access to $10 of Gemini tokens through Manifest.'),
+      screen.getByText('Quick access to $25 of Gemini tokens through Manifest.'),
     ).toBeDefined();
     expect(
       screen.getByText(
@@ -75,7 +75,7 @@ describe('UserDiscoveryModal', () => {
 
     render(() => <UserDiscoveryModal open onClose={onClose} />);
 
-    fireEvent.click(screen.getByText('Book my slot to get $10'));
+    fireEvent.click(screen.getByText('Book my slot to get $25'));
 
     expect(openSpy).toHaveBeenCalledWith(
       USER_DISCOVERY_BOOKING_URL,

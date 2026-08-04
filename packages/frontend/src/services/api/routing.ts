@@ -33,10 +33,7 @@ export interface RoutingProvider {
 /* -- Routing: Status -- */
 
 export type RoutingStatusReason =
-  | 'no_provider'
-  | 'no_routable_models'
-  | 'pricing_cache_empty'
-  | null;
+  'no_provider' | 'no_routable_models' | 'pricing_cache_empty' | null;
 
 export interface RoutingStatus {
   enabled: boolean;
@@ -180,10 +177,6 @@ export function toggleComplexity(agentName: string) {
 
 export interface AutofixConfig {
   enabled: boolean;
-  /** Whether this tenant has Auto-fix early access (waitlist / GA). The toggle
-   *  is only shown when true; the rest of the time the "Get early access" card
-   *  in the sidebar is the entry point. */
-  available: boolean;
 }
 
 export function getAutofix(agentName: string) {
@@ -192,6 +185,24 @@ export function getAutofix(agentName: string) {
 
 export function updateAutofix(agentName: string, body: { enabled?: boolean }) {
   return fetchMutate<AutofixConfig>(routingPath(agentName, 'autofix'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+/* -- Routing: Message recording -- */
+
+export interface RecordingConfig {
+  enabled: boolean;
+}
+
+export function getRecording(agentName: string) {
+  return fetchJson<RecordingConfig>(routingPath(agentName, 'recording'));
+}
+
+export function updateRecording(agentName: string, body: { enabled?: boolean }) {
+  return fetchMutate<RecordingConfig>(routingPath(agentName, 'recording'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

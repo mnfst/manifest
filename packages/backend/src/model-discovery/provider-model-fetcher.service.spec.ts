@@ -45,6 +45,7 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
+      'gemini-free',
       'ollama',
       'ollama-cloud',
       'copilot',
@@ -53,6 +54,37 @@ describe('ProviderModelFetcherService', () => {
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
     }
+  });
+
+  it('discovers only Gemini models from the Gemini Free LiteLLM catalog', async () => {
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test';
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'gpt-5' },
+          { id: 'gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-pro' },
+          { id: 'gemini/*' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('gemini-free', 'sk-virtual');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://credits.test/v1/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer sk-virtual',
+        }),
+      }),
+    );
+    expect(result.map((model) => model.id)).toEqual([
+      'gemini/gemini-2.5-flash',
+      'gemini/gemini-2.5-pro',
+    ]);
   });
 
   describe('huggingface provider', () => {
@@ -1997,6 +2029,54 @@ describe('ProviderModelFetcherService', () => {
           outputPricePerToken: 0.00006,
         }),
       );
+    });
+
+    it('should normalize OpenRouter input and output modalities', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'deepseek/deepseek-v4-flash',
+              architecture: {
+                input_modalities: ['text'],
+                output_modalities: ['text'],
+              },
+            },
+            {
+              id: 'google/gemini-2.5-flash',
+              architecture: {
+                input_modalities: ['file', 'image', 'text', 'audio', 'video'],
+                output_modalities: ['text'],
+              },
+            },
+            {
+              id: 'file-only',
+              architecture: {
+                input_modalities: ['file'],
+                output_modalities: ['text'],
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          inputModalities: ['text'],
+          outputModalities: ['text'],
+        }),
+        expect.objectContaining({
+          inputModalities: ['text', 'image', 'audio', 'video'],
+          outputModalities: ['text'],
+        }),
+        expect.objectContaining({
+          outputModalities: ['text'],
+        }),
+      ]);
+      expect(result[2]).not.toHaveProperty('inputModalities');
     });
 
     it('should filter out non-text output modality models', async () => {

@@ -26,8 +26,8 @@ interface UserDiscoveryModalProps {
 }
 
 const benefits = [
-  '30 minutes through a video call.',
-  'Quick access to $10 of Gemini tokens through Manifest.',
+  '15 minutes through a video call.',
+  'Quick access to $25 of Gemini tokens through Manifest.',
   'You talk and we listen. Just questions and nothing to sell.',
 ];
 
@@ -84,8 +84,12 @@ const UserDiscoveryModal: Component<UserDiscoveryModalProps> = (props) => {
               </button>
             </div>
             <div class="user-discovery-modal__body">
-              <h2 id="user-discovery-modal-title" class="user-discovery-modal__title">
-                Talk to us and get <mark class="user-discovery-modal__highlight">$10</mark> credit
+              <h2
+                id="user-discovery-modal-title"
+                class="user-discovery-modal__title"
+              >
+                Talk to us and get{' '}
+                <mark class="user-discovery-modal__highlight">$25</mark> credit
                 for{' '}
                 <img
                   class="user-discovery-modal__title-logo"
@@ -119,7 +123,7 @@ const UserDiscoveryModal: Component<UserDiscoveryModalProps> = (props) => {
                 class="btn btn--primary user-discovery-modal__cta"
                 onClick={book}
               >
-                Book my slot to get $10
+                Book my slot to get $25
               </button>
               <button
                 type="button"

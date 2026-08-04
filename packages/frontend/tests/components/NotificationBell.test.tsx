@@ -1,8 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@solidjs/testing-library';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-let cohortEligible = false;
-const mockGetCohort = vi.fn();
 const mockGetStatus = vi.fn();
 const mockGetAgents = vi.fn();
 
@@ -12,10 +10,6 @@ vi.mock('@solidjs/router', () => ({
       {props.children}
     </a>
   ),
-}));
-
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: (...args: unknown[]) => mockGetCohort(...args),
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
@@ -58,10 +52,7 @@ describe('NotificationBell', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     localStorage.clear();
-    cohortEligible = false;
-    mockGetCohort.mockImplementation(() => Promise.resolve({ eligible: cohortEligible }));
     mockGetStatus.mockResolvedValue({
-      available: true,
       any_enabled: false,
       enabled_agents: [],
     });
@@ -74,15 +65,7 @@ describe('NotificationBell', () => {
     vi.useRealTimers();
   });
 
-  it('does not load workspace Auto-fix status outside the cohort', async () => {
-    render(() => <NotificationBell />);
-    await waitFor(() => expect(mockGetAgents).toHaveBeenCalled());
-    expect(screen.queryByLabelText('Notifications')).toBeNull();
-    expect(mockGetStatus).not.toHaveBeenCalled();
-  });
-
-  it('shows disabled cohort agents, marks them read, and closes outside', async () => {
-    cohortEligible = true;
+  it('shows disabled agents, marks them read, and closes outside', async () => {
     render(() => <NotificationBell />);
 
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
@@ -100,12 +83,11 @@ describe('NotificationBell', () => {
   });
 
   it('clears read state after an agent is enabled and accepts array agent responses', async () => {
-    cohortEligible = true;
     localStorage.setItem('manifest_notif_read', JSON.stringify(['demo']));
     mockGetAgents.mockResolvedValue([{ agent_name: 'demo', display_name: '' }]);
     mockGetStatus
-      .mockResolvedValueOnce({ available: true, any_enabled: false, enabled_agents: [] })
-      .mockResolvedValue({ available: true, any_enabled: true, enabled_agents: ['demo'] });
+      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [] })
+      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'] });
     render(() => <NotificationBell />);
 
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
@@ -115,35 +97,14 @@ describe('NotificationBell', () => {
   });
 
   it('hides itself when loading agents fails', async () => {
-    cohortEligible = true;
     mockGetAgents.mockRejectedValue(new Error('offline'));
     render(() => <NotificationBell />);
     await waitFor(() => expect(mockGetAgents).toHaveBeenCalled());
     expect(screen.queryByLabelText('Notifications')).toBeNull();
   });
 
-  it('hides itself when loading cohort eligibility fails', async () => {
-    mockGetCohort.mockRejectedValue(new Error('offline'));
-    render(() => <NotificationBell />);
-    await waitFor(() => expect(mockGetCohort).toHaveBeenCalled());
-    expect(screen.queryByLabelText('Notifications')).toBeNull();
-  });
-
   it('hides itself when loading workspace Auto-fix status fails', async () => {
-    cohortEligible = true;
     mockGetStatus.mockRejectedValue(new Error('offline'));
-    render(() => <NotificationBell />);
-    await waitFor(() => expect(mockGetStatus).toHaveBeenCalled());
-    expect(screen.queryByLabelText('Notifications')).toBeNull();
-  });
-
-  it('hides itself when status reports unavailable despite a stale eligible response', async () => {
-    cohortEligible = true;
-    mockGetStatus.mockResolvedValue({
-      available: false,
-      any_enabled: false,
-      enabled_agents: [],
-    });
     render(() => <NotificationBell />);
     await waitFor(() => expect(mockGetStatus).toHaveBeenCalled());
     expect(screen.queryByLabelText('Notifications')).toBeNull();
@@ -160,7 +121,6 @@ describe('NotificationBell', () => {
   });
 
   it('keeps working when marking a notification read cannot persist', async () => {
-    cohortEligible = true;
     render(() => <NotificationBell />);
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
     fireEvent.click(screen.getByLabelText('Notifications'));
@@ -173,11 +133,10 @@ describe('NotificationBell', () => {
   });
 
   it('keeps working when clearing enabled-agent read state cannot persist', async () => {
-    cohortEligible = true;
     localStorage.setItem('manifest_notif_read', JSON.stringify(['demo']));
     mockGetStatus
-      .mockResolvedValueOnce({ available: true, any_enabled: false, enabled_agents: [] })
-      .mockResolvedValue({ available: true, any_enabled: true, enabled_agents: ['demo'] });
+      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [] })
+      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'] });
     render(() => <NotificationBell />);
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
     const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

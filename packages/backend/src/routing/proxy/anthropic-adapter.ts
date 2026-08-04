@@ -100,6 +100,17 @@ function countCacheControlBlocks(value: unknown): number {
   return count;
 }
 
+function hasOneHourCacheControl(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+
+  if (!Array.isArray(value)) {
+    const cacheControl = (value as Record<string, unknown>).cache_control;
+    if (isObjectRecord(cacheControl) && cacheControl.ttl === '1h') return true;
+  }
+  const children = Array.isArray(value) ? value : Object.values(value);
+  return children.some(hasOneHourCacheControl);
+}
+
 function tryAddCacheControl(
   block: { cache_control?: unknown } | undefined,
   budget: { remaining: number },
@@ -112,6 +123,10 @@ function tryAddCacheControl(
 export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown>): void {
   if (body.cache_control !== undefined) return;
   if (countCacheControlBlocks(body) >= MAX_CACHE_CONTROL_BLOCKS) return;
+  // Anthropic rejects a default five-minute automatic breakpoint when the
+  // final explicit breakpoint uses a one-hour TTL. Preserve the caller's
+  // explicit cache plan instead of risking a provider-side 400.
+  if (hasOneHourCacheControl(body)) return;
   body.cache_control = CACHE;
 }
 
@@ -294,8 +309,7 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   const out: AnthropicTool[] = [];
   for (const t of tools) {
     const fn = t.function as
-      | { name: string; description?: string; parameters?: unknown }
-      | undefined;
+      { name: string; description?: string; parameters?: unknown } | undefined;
     if (fn) out.push({ name: fn.name, description: fn.description, input_schema: fn.parameters });
   }
   return out.length > 0 ? out : undefined;

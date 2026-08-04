@@ -21,11 +21,6 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
       'claude-opus-5',
       'claude-sonnet-5',
     ]),
-    // `claude-*-fast` ids exist in the OpenRouter pricing cache but 404 at
-    // api.anthropic.com — fast mode is an `anthropic-beta` header on the base
-    // Opus model, not a distinct model id. Keep them out of the catalog.
-    // `*-20250514` snapshots were retired on 2026-06-15.
-    knownModelsExclude: Object.freeze(['-fast', '-20250514']),
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({

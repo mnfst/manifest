@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate } from './core.js';
+import { fetchJson, fetchMutate, type FetchJsonOptions } from './core.js';
 import type { AutofixStatus } from 'manifest-shared';
 
 /** A deterministic edit Phoenix applied to heal a request. */
@@ -19,6 +19,16 @@ export interface AutofixDecision {
     operations: Array<{ type: string; detail: string }>;
     source: string;
   } | null;
+}
+
+export interface AttemptRecording {
+  request_body: Record<string, unknown>;
+  response_body: {
+    type: 'json' | 'stream';
+    body?: unknown;
+    raw_sse?: string;
+  } | null;
+  wire_format: string;
 }
 
 export interface MessageDetailResponse {
@@ -111,34 +121,52 @@ export interface MessageDetailResponse {
       autofix_role: string | null;
       autofix_operations: AutofixOperation[] | null;
       autofix_decision: AutofixDecision | null;
+      /** Exact provider-facing payload for this Provider Attempt. */
+      recording: AttemptRecording | null;
     }>;
   };
 }
 
-export function getMessages(
-  params: {
-    range?: string;
-    provider?: string;
-    /** Comma-separated tenant_providers ids (connection filter). */
-    connections?: string;
-    /** Comma-separated attempt-status facets: has_failed, has_succeeded. */
-    attempts?: string;
-    service_type?: string;
-    cursor?: string;
-    limit?: string;
-    agent_name?: string;
-    cost_min?: string;
-    cost_max?: string;
-    status?: string;
-    trigger?: string;
-    routing_tier?: string;
-    specificity_category?: string;
-    header_tier_id?: string;
-    include_total?: string;
-    include_filter_options?: string;
-  } = {},
+export interface MessageListParams extends Record<string, string | undefined> {
+  range?: string;
+  provider?: string;
+  /** Comma-separated tenant_providers ids (connection filter). */
+  connections?: string;
+  /** Comma-separated attempt-status facets: has_failed, has_succeeded. */
+  attempts?: string;
+  service_type?: string;
+  cursor?: string;
+  limit?: string;
+  agent_name?: string;
+  cost_min?: string;
+  cost_max?: string;
+  status?: string;
+  trigger?: string;
+  routing_tier?: string;
+  specificity_category?: string;
+  header_tier_id?: string;
+  include_total?: string;
+  cache_total?: string;
+  include_filter_options?: string;
+}
+
+export function getMessages(params: MessageListParams = {}, options?: FetchJsonOptions) {
+  return fetchJson('/messages', params, options);
+}
+
+export function getMessageCount(
+  params: Omit<
+    MessageListParams,
+    'cursor' | 'limit' | 'include_total' | 'cache_total' | 'include_filter_options'
+  > = {},
 ) {
-  return fetchJson('/messages', params);
+  return fetchJson('/messages', {
+    ...params,
+    limit: '1',
+    include_total: 'true',
+    cache_total: 'true',
+    include_filter_options: 'false',
+  });
 }
 
 export function getMessageFilterOptions(

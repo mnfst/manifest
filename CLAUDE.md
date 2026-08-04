@@ -129,7 +129,7 @@ packages/
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
 │   │   ├── billing/                         # Stripe billing status + plan limits
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
-│   │   ├── waitlist/                        # Early-access waitlist signup (e.g. Auto-fix)
+│   │   ├── waitlist/                        # Legacy Auto-fix claim compatibility route
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
 │   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
@@ -336,55 +336,55 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 
 ## API Endpoints
 
-| Method | Route | Auth | Purpose |
-|--------|-------|------|---------|
-| GET | `/api/v1/health` | Public | Health check |
-| ALL | `/api/auth/*` | Public | Better Auth (login, register, OAuth, sessions) |
-| GET | `/api/v1/overview` | Session/API Key | Dashboard summary |
-| GET | `/api/v1/tokens` | Session/API Key | Token usage analytics |
-| GET | `/api/v1/costs` | Session/API Key | Cost analytics |
-| GET | `/api/v1/agents` | Session/API Key | Agent list with sparklines |
-| POST | `/api/v1/agents` | Session/API Key | Create agent + API key |
-| GET | `/api/v1/agents/:agentName` | Session/API Key | Single agent detail |
-| GET/POST | `/api/v1/agents/:agentName/duplicate*` | Session/API Key | Duplicate agent (preview + confirm) |
-| DELETE | `/api/v1/agents/:agentName` | Session/API Key | Delete agent |
-| GET | `/api/v1/agents/:agentName/key` | Session/API Key | Get agent API key |
-| POST | `/api/v1/agents/:agentName/rotate-key` | Session/API Key | Rotate API key |
-| PATCH | `/api/v1/agents/:agentName` | Session/API Key | Rename agent |
-| GET | `/api/v1/messages` | Session/API Key | Paginated Requests log (legacy route name) |
-| GET/PATCH/DELETE | `/api/v1/messages/:id/*` | Session/API Key | Request details, feedback, miscategorized flag (legacy route name) |
-| GET | `/api/v1/security` | Session/API Key | Security score + events |
-| GET | `/api/v1/model-prices` | Session/API Key | Model pricing list |
-| GET | `/api/v1/free-models` | Session/API Key | Free LLM model catalog |
-| GET | `/api/v1/agent/usage` | Bearer (mnfst_*) | Token usage for the calling agent |
-| GET | `/api/v1/agent/costs` | Bearer (mnfst_*) | Cost data for the calling agent |
-| GET | `/api/v1/overview/*` | Session/API Key | Overview timeseries/breakdown sub-endpoints |
-| GET | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key | Connected provider list + usage |
-| GET | `/api/v1/provider-analytics/*` | Session/API Key | Per-provider analytics |
-| GET | `/api/v1/errors/breakdown` | Session/API Key | Error breakdown analytics |
-| GET/PATCH | `/api/v1/billing/*` | Session/API Key | Billing status + email preferences (Stripe) |
-| GET/POST | `/api/v1/waitlist/autofix*` | Session/API Key (GET/POST), Public (`/claim`) | Auto-fix early-access waitlist |
-| GET/POST/DELETE | `/api/v1/internal/error-pages*` | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API) |
-| GET/PUT/DELETE | `/api/v1/agents/:agentName/enabled-providers*` | Session/API Key | Per-agent provider enable/disable + impact preview |
-| GET/POST/PATCH/DELETE | `/api/v1/notifications/*` | Session/API Key | Notification rules CRUD + email provider config |
-| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*` | Session/API Key | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
-| POST | `/api/v1/routing/ollama/sync` | Session/API Key | Sync Ollama models |
-| GET | `/api/v1/routing/pricing-health` | Session/API Key | OpenRouter pricing sync health |
-| POST | `/api/v1/routing/pricing/refresh` | Session/API Key | Force pricing cache refresh |
-| GET/POST/DELETE | `/api/v1/oauth/:provider/*` | Session/API Key | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax) |
-| POST | `/api/v1/routing/resolve` | Bearer (mnfst_*) | Model resolution |
-| POST | `/api/v1/routing/subscription-providers` | Bearer (mnfst_*) | Subscription provider config |
-| GET | `/api/v1/setup/status` | Public | First-run setup status |
-| POST | `/api/v1/setup/admin` | Public | Create initial admin user |
-| GET | `/api/v1/public/*` | Public (opt-in) | Aggregate public stats (controlled by `MANIFEST_PUBLIC_STATS`) |
-| GET | `/v1/models` | Bearer (mnfst_*) | Available model list (proxy) |
-| POST | `/v1/chat/completions` | Bearer (mnfst_*) | LLM proxy (OpenAI-compatible) |
-| POST | `/v1/responses` | Bearer (mnfst_*) | LLM proxy (OpenAI Responses API) |
-| POST | `/v1/messages` | Bearer (mnfst_*) | LLM proxy (Anthropic Messages API) |
-| POST | `/chat/completions` | Bearer (mnfst_*) | Legacy root-level OTLP-compatible proxy alias |
-| GET/POST/PATCH | `/api/v1/playground/*` | Session/API Key | Playground runs (run, list, star, mark best) |
-| GET | `/api/v1/events` | Session | SSE real-time events |
-| GET | `/api/v1/github/stars` | Public | GitHub star count |
+| Method                    | Route                                           | Auth                                | Purpose                                                                                                     |
+| ------------------------- | ----------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| GET                       | `/api/v1/health`                                | Public                              | Health check                                                                                                |
+| ALL                       | `/api/auth/*`                                   | Public                              | Better Auth (login, register, OAuth, sessions)                                                              |
+| GET                       | `/api/v1/overview`                              | Session/API Key                     | Dashboard summary                                                                                           |
+| GET                       | `/api/v1/tokens`                                | Session/API Key                     | Token usage analytics                                                                                       |
+| GET                       | `/api/v1/costs`                                 | Session/API Key                     | Cost analytics                                                                                              |
+| GET                       | `/api/v1/agents`                                | Session/API Key                     | Agent list with sparklines                                                                                  |
+| POST                      | `/api/v1/agents`                                | Session/API Key                     | Create agent + API key                                                                                      |
+| GET                       | `/api/v1/agents/:agentName`                     | Session/API Key                     | Single agent detail                                                                                         |
+| GET/POST                  | `/api/v1/agents/:agentName/duplicate*`          | Session/API Key                     | Duplicate agent (preview + confirm)                                                                         |
+| DELETE                    | `/api/v1/agents/:agentName`                     | Session/API Key                     | Delete agent                                                                                                |
+| GET                       | `/api/v1/agents/:agentName/key`                 | Session/API Key                     | Get agent API key                                                                                           |
+| POST                      | `/api/v1/agents/:agentName/rotate-key`          | Session/API Key                     | Rotate API key                                                                                              |
+| PATCH                     | `/api/v1/agents/:agentName`                     | Session/API Key                     | Rename agent                                                                                                |
+| GET                       | `/api/v1/messages`                              | Session/API Key                     | Paginated Requests log (legacy route name)                                                                  |
+| GET/PATCH/DELETE          | `/api/v1/messages/:id/*`                        | Session/API Key                     | Request details, feedback, miscategorized flag (legacy route name)                                          |
+| GET                       | `/api/v1/security`                              | Session/API Key                     | Security score + events                                                                                     |
+| GET                       | `/api/v1/model-prices`                          | Session/API Key                     | Model pricing list                                                                                          |
+| GET                       | `/api/v1/free-models`                           | Session/API Key                     | Free LLM model catalog                                                                                      |
+| GET                       | `/api/v1/agent/usage`                           | Bearer (mnfst\_\*)                  | Token usage for the calling agent                                                                           |
+| GET                       | `/api/v1/agent/costs`                           | Bearer (mnfst\_\*)                  | Cost data for the calling agent                                                                             |
+| GET                       | `/api/v1/overview/*`                            | Session/API Key                     | Overview timeseries/breakdown sub-endpoints                                                                 |
+| GET                       | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key                     | Connected provider list + usage                                                                             |
+| GET                       | `/api/v1/provider-analytics/*`                  | Session/API Key                     | Per-provider analytics                                                                                      |
+| GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
+| GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status + email preferences (Stripe)                                                                 |
+| POST                      | `/api/v1/waitlist/autofix/claim`                | Public                              | Deprecated no-op compatibility route for older self-hosted versions                                         |
+| GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
+| GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
+| GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
+| POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
+| GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
+| POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
+| GET/POST/DELETE           | `/api/v1/oauth/:provider/*`                     | Session/API Key                     | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax)                                                 |
+| POST                      | `/api/v1/routing/resolve`                       | Bearer (mnfst\_\*)                  | Model resolution                                                                                            |
+| POST                      | `/api/v1/routing/subscription-providers`        | Bearer (mnfst\_\*)                  | Subscription provider config                                                                                |
+| GET                       | `/api/v1/setup/status`                          | Public                              | First-run setup status                                                                                      |
+| POST                      | `/api/v1/setup/admin`                           | Public                              | Create initial admin user                                                                                   |
+| GET                       | `/api/v1/public/*`                              | Public (opt-in)                     | Aggregate public stats (controlled by `MANIFEST_PUBLIC_STATS`)                                              |
+| GET                       | `/v1/models`                                    | Bearer (mnfst\_\*)                  | Available model list (proxy)                                                                                |
+| POST                      | `/v1/chat/completions`                          | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI-compatible)                                                                               |
+| POST                      | `/v1/responses`                                 | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI Responses API)                                                                            |
+| POST                      | `/v1/messages`                                  | Bearer (mnfst\_\*)                  | LLM proxy (Anthropic Messages API)                                                                          |
+| POST                      | `/chat/completions`                             | Bearer (mnfst\_\*)                  | Legacy root-level OTLP-compatible proxy alias                                                               |
+| GET/POST/PATCH            | `/api/v1/playground/*`                          | Session/API Key                     | Playground runs (run, list, star, mark best)                                                                |
+| GET                       | `/api/v1/events`                                | Session                             | SSE real-time events                                                                                        |
+| GET                       | `/api/v1/github/stars`                          | Public                              | GitHub star count                                                                                           |
 
 ## Environment Variables
 
@@ -428,8 +428,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_HEALING_URL` — Base URL of the Phoenix healing service for Auto-fix. Unset → inert Noop client in production (never mutates traffic), in-process mock in dev/test. See [Auto-fix](#auto-fix-self-healing-via-phoenix).
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Phoenix guards `/api/heal*` and fails closed in production, so this is required when `AUTOFIX_HEALING_URL` points at a production Phoenix; omit it for a keyless dev/test Phoenix.
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Auto-fix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
-- `AUTOFIX_ROLLOUT` — Three-phase early-access gate: `selected` (default — only tenants we hand-picked via `tenants.autofix_access_granted_at`), `waitlist` (+ anyone who joined `tenants.autofix_waitlist_at`), or `everyone` (GA). See [Auto-fix](#auto-fix-self-healing-via-phoenix).
-- `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream an agent's request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Serves no fix and creates no heal attempt; it only lets Phoenix see the body that failed. Wider than the heal path in scope (not limited to `AUTOFIX_REPAIRABLE_STATUSES`, and it catches fallback-model failures the heal path never reports) but **gated to agents with Auto-fix on** — `AutofixService.isActiveFor()`, the same tenant early-access + per-agent flag that healing clears. Turning Auto-fix on is what consents to sending failing requests to the healing service; the gate fails closed. Off by default: a second, deployment-level switch on top. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Auto-fix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
+- `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream an agent's request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Serves no fix and creates no heal attempt; it only lets Phoenix see the body that failed. Wider than the heal path in scope (not limited to `AUTOFIX_REPAIRABLE_STATUSES`, and it catches fallback-model failures the heal path never reports) but **gated to agents with Auto-fix on** — `AutofixService.isActiveFor()`, the same per-agent flag that healing checks. Turning Auto-fix on is what consents to sending failing requests to the healing service; the check fails closed. Off by default: a second, deployment-level switch on top. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Auto-fix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRO_PRICE_ID` — Billing (cloud only). See `packages/backend/src/billing/`.
 - `PLAN_LIMIT_FREE_REQUESTS` / `PLAN_LIMIT_PRO_REQUESTS` / `PLAN_REQUEST_QUOTA_RESET_AT` — Per-plan request quotas enforced by `plan.service.ts`.
 
@@ -459,11 +458,11 @@ This rule exists because the Overview and Messages pages previously drifted and 
 
 Every failure Manifest itself produces — as opposed to one a provider returned — carries a documented code from `MANIFEST_ERRORS` in `packages/backend/src/common/errors/error-codes.ts`, published at `https://manifest.build/docs/errors/<code>`.
 
-**Raise them with `ManifestError`** (`common/errors/manifest-error.ts`), never a bare `HttpException`. The type is what lets `proxy.controller.ts` tell "Manifest refused this request" from "the provider returned a 4xx". Before it existed, a malformed body (M300) and a Manifest bug (M500) were both recorded as *provider* errors and counted against `provider_error_rate`.
+**Raise them with `ManifestError`** (`common/errors/manifest-error.ts`), never a bare `HttpException`. The type is what lets `proxy.controller.ts` tell "Manifest refused this request" from "the provider returned a 4xx". Before it existed, a malformed body (M300) and a Manifest bug (M500) were both recorded as _provider_ errors and counted against `provider_error_rate`.
 
-**Every code is recorded on a Manifest Request**, with four exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, *does* resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
+**Every code is recorded on a Manifest Request**, with four exceptions. `M001`, `M002`, `M003`, and `M005` are raised by `AgentKeyAuthGuard` before a key resolves to a tenant, so there is no agent to attribute a row to — they're listed in `UNRECORDABLE_MANIFEST_CODES` and write nothing. (`M004`, an expired key, _does_ resolve an agent, so the guard stashes it on `request.manifestErrorContext` and `ProxyExceptionFilter` records it.) `__tests__/manifest-error.spec.ts` fails if a new code is neither mapped in `MANIFEST_CODE_TO_REASON` nor declared unrecordable.
 
-**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest-authored rejected requests.** It creates one `requests` row, stamps `requests.error_code` plus the *rendered* message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and creates zero `agent_messages` rows because no provider was contacted. Do not route these through `recordSuccessMessage` or manufacture a `provider='manifest'` attempt.
+**`ProxyMessageRecorder.recordManifestBlockedRequest()` is the only writer of Manifest-authored rejected requests.** It creates one `requests` row, stamps `requests.error_code` plus the _rendered_ message (the `[🦚 Manifest M100] No anthropic API key yet. Add one here: …` text the caller saw — not a generic stand-in), and creates zero `agent_messages` rows because no provider was contacted. Do not route these through `recordSuccessMessage` or manufacture a `provider='manifest'` attempt.
 
 `M500` is the deliberate exception to "store what the caller saw": the caller gets the friendly "Something broke on our end", while the row stores the raw internal error message. The dashboard is where you go to find out what actually broke, so don't "fix" it to match.
 
@@ -482,10 +481,12 @@ Helmet enforces a strict CSP in `main.ts`. The policy only allows `'self'` origi
 **Rule: Never load external resources from CDNs.** All assets (fonts, icons, stylesheets) must be self-hosted under `packages/frontend/public/`. This keeps the CSP strict and avoids third-party dependencies at runtime.
 
 Current self-hosted assets:
+
 - **Boxicons Duotone** — `public/fonts/boxicons/` (CSS + `.woff2` font file)
 - **DM Sans**, **Bricolage Grotesque**, **JetBrains Mono** — individual `.woff2` files in `public/fonts/`
 
 To add a new font or icon library:
+
 1. Download the CSS and font files into `packages/frontend/public/`
 2. Rewrite any CDN URLs inside the CSS to use relative paths (`./filename.woff`)
 3. Reference the local CSS in `index.html` (e.g. `<link href="/fonts/..." />`)
@@ -574,7 +575,7 @@ configuration simply leaves it unset by default.
   - **Complexity tiers** (_being retired_ — see [Routing deprecation](#routing-deprecation-legacy-vs-clean-cohorts)): 4 tiers (simple/standard/complex/reasoning) based on request content scoring with 31 weighted keyword dimensions. Per-agent, gated by `complexity_routing_enabled`; agents with it off route everything to the `default` tier.
   - **Specificity routing** (opt-in; _being retired_): 9 task-type categories (coding, web_browsing, data_analysis, image_generation, video_generation, social_media, email_management, calendar_management, trading). When enabled, overrides complexity tiers. Detection uses keyword analysis on the last user message + tool name heuristics. Categories defined in `shared/src/specificity.ts`, keywords in `scoring/keywords.ts`, detection in `scoring/specificity-detector.ts`.
   - **Resolution order**: header tier (if a rule matches) → explicit `model` from the request body → specificity check (if any category active) → complexity scoring → tier assignment → provider/model resolution → proxy forward.
-  - **Explicit `model` in the body** (OpenAI-compatible surfaces only — the Anthropic Messages API takes a provider-native model, never a route override): `auto` means "route me". Any other value resolves against the agent's discovered models — first the provider-qualified id `/v1/models` publishes (`openai/gpt-5.4-nano`), then the bare provider-native name (`gpt-5.4-nano`) when exactly one connection carries it. A name matching nothing, or one that two connections share, **falls through to configured routing** instead of failing. It must never hard-fail on its own: doing so turned every SDK sending an unrecognized name into an M101 "no providers configured" on agents whose providers *were* connected. A matching **header tier outranks it** — that rule is an override the operator configured on purpose, and the `model` field is mandatory in every OpenAI SDK, so most agents send a name they cannot change.
+  - **Explicit `model` in the body** (OpenAI-compatible surfaces only — the Anthropic Messages API takes a provider-native model, never a route override): `auto` means "route me". Any other value first resolves against the agent's discovered models. If the model is not catalogued, a provider-qualified ID (`openai/gpt-new`) may still route through that provider when its credentials are enabled on the harness; a bare ID may do the same only when its provider and auth route are unambiguous. The provider then decides whether the model exists, and real provider errors can reach Auto-fix. Otherwise the request returns M302. A matching **header tier outranks it** — that rule is an override the operator configured on purpose, and the `model` field is mandatory in every OpenAI SDK, so most agents send a name they cannot change.
   - **Kept long-term**: **default routing** (one model + up to 5 fallbacks) and **custom routing** (header-triggered tiers).
 
 ### Routing deprecation: legacy vs clean cohorts
@@ -589,13 +590,13 @@ Complexity routing (simple/standard/complex/reasoning) and task-specific / speci
 
 Otherwise the agent is **clean** and gets the simplified view. The signals live in `packages/frontend/src/pages/Routing.tsx` (`legacyComplexityVisible` / `legacySpecificityVisible` / `isCleanAgent`) and are **sticky per agent** within a session — once a surface is revealed for an agent we keep it (so toggling complexity off mid-session doesn't yank the control away), but the stickiness compares the remembered agent against the current one, so switching agents re-evaluates from the new agent's own config and never carries a legacy reveal onto a clean agent.
 
-| | Clean agent | Legacy agent |
-|---|---|---|
-| Routing page | One unified view, **no tabs** | Tabbed view (Default / Task-specific / Custom) |
-| "Route by complexity" toggle | Hidden | Shown |
-| Task-specific tab | Hidden | Shown |
-| Custom (header) routing | Shown (cards + "Create custom tier") | Shown |
-| Deprecation banners | None | Shown on each retiring surface (`RoutingDeprecationNotice`) |
+|                              | Clean agent                          | Legacy agent                                                |
+| ---------------------------- | ------------------------------------ | ----------------------------------------------------------- |
+| Routing page                 | One unified view, **no tabs**        | Tabbed view (Default / Task-specific / Custom)              |
+| "Route by complexity" toggle | Hidden                               | Shown                                                       |
+| Task-specific tab            | Hidden                               | Shown                                                       |
+| Custom (header) routing      | Shown (cards + "Create custom tier") | Shown                                                       |
+| Deprecation banners          | None                                 | Shown on each retiring surface (`RoutingDeprecationNotice`) |
 
 **This is by _agent_, not by user.** "Old users keep routing, new users don't see it" is the right intuition but imprecise — the real axis is each agent's own config:
 
@@ -609,30 +610,25 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 ## Auto-fix (self-healing via Phoenix)
 
-**Auto-fix** repairs a failing request before the fallback chain runs. When an agent request fails with a **repairable request-side 4xx** (default allow-list `400,404,422` — never 401/403/429/5xx), Manifest hands the failed request + normalized provider error to an external healing service (**Phoenix**), gets back a patched request, and resends it **once**. It runs **before** `shouldTriggerFallback`, so the fallback chain is the safety net if healing doesn't clear the error. Toggled **per agent** (`agents.autofix_enabled`) and gated to **early-access tenants** (the waitlist gate below) — not tied to the routing cohort.
+**Auto-fix** repairs a failing request before the fallback chain runs. When an agent request fails with a **repairable request-side 4xx** (default allow-list `400,404,422` — never 401/403/429/5xx), Manifest hands the failed request + normalized provider error to an external healing service (**Phoenix**), gets back a patched request, and resends it **once**. It runs **before** `shouldTriggerFallback`, so the fallback chain is the safety net if healing doesn't clear the error. It is available to every tenant and toggled **per agent** (`agents.autofix_enabled`).
 
-**Per-agent default is deployment-mode-dependent.** `agents.autofix_enabled` is **nullable**: `NULL` means "no explicit choice — inherit the mode default", which is **ON in cloud, OFF in self-hosted** (resolved by `AutofixService.resolveEnabled()` via `isSelfHosted()`, computed once at boot). An explicit `true`/`false` (the user flipping the Settings toggle) always wins. The `GET/PATCH …/autofix` endpoints return the *resolved* effective value, so the UI shows the right default state without persisting one. Migration `1799000300000` drops the old blanket `false` default and resets pre-feature `false` rows to `NULL` so they inherit the mode default.
-
-**Three-phase early-access gate.** A per-**tenant** gate sits ABOVE the per-agent default, driven by `AUTOFIX_ROLLOUT` (`selected` → `waitlist` → `everyone`):
-- **`selected`** (default, most restrictive) — only tenants **we hand-picked**: `tenants.autofix_access_granted_at != null` (set it manually, e.g. `UPDATE tenants SET autofix_access_granted_at = now() WHERE id = (SELECT t.id FROM tenants t JOIN "user" u ON u.id = t.owner_user_id WHERE u.email = '…')`).
-- **`waitlist`** — granted tenants **plus** anyone who joined the waitlist (`tenants.autofix_waitlist_at`, set via `POST /api/v1/waitlist/autofix` — the "Get early access" card).
-- **`everyone`** — general availability, no gate.
-
-`AutofixService.hasAccess(tenantId)` (cached 30s; invalidated on waitlist join) computes `granted || (rollout==='waitlist' && joined)`, short-circuiting to `true` under `everyone`. `maybeHeal` requires it, so a non-access tenant **never heals even when the cloud default would enable it**; `GET/PATCH …/autofix` return `available` so the Settings toggle shows only to access tenants (everyone else keeps the "Get early access" card). Advance the rollout by bumping `AUTOFIX_ROLLOUT`; at `everyone`, retire the gate.
+**Per-agent default is deployment-mode-dependent.** `agents.autofix_enabled` is **nullable**: `NULL` means "no explicit choice — inherit the mode default", which is **ON in cloud, OFF in self-hosted** (resolved by `AutofixService.resolveEnabled()` via `isSelfHosted()`, computed once at boot). An explicit `true`/`false` (the user flipping the Settings toggle) always wins. The `GET/PATCH …/autofix` endpoints return the _resolved_ effective value, so the UI shows the right default state without persisting one. Migration `1799000300000` drops the old blanket `false` default and resets pre-feature `false` rows to `NULL` so they inherit the mode default.
 
 **Scope:** non-streaming responses + streaming that fails before the first byte (a repairable 4xx makes `providerResponse.ok=false` before any client bytes are sent). **One attempt only — there is no retry budget.** If the single patched retry still fails, Manifest reports the outcome to Phoenix and hands off to fallback.
 
-**Manifest-blocked M302s are healable too.** An explicit `model` that resolves to no connected model never reaches a provider — historically it returned the friendly M302 without Phoenix ever seeing it. Now `healOrRejectUnavailableModel` (`proxy.service.ts`) synthesizes the 404 a provider would return (`code: model_not_found`, `param: model`, fingerprint provider inferred from the model prefix, `manifest` for bare names) and runs it through the same `maybeHeal` gates; a patch that renames the model re-resolves routing from scratch and serves the repaired request. Recording keeps one caller Request with the original requested model and the Auto-fix outcome, plus the real healed provider retry as its sole Provider Attempt — no attempt is fabricated for the Manifest-blocked original. Agents without Auto-fix (or a failed heal) get the friendly M302 exactly as before; an uncleared block remains a failed M302 Request with zero Provider Attempts.
+**Explicit models use provider passthrough.** A concrete model that is missing from Manifest's discovered catalog still routes when its provider can be identified and the matching credential is enabled on the harness. The provider—not the cached catalog—is authoritative on whether the model exists. A real provider `model_not_found` response follows the standard `maybeHeal` path, so Phoenix receives the actual provider/auth/protocol/error and any renamed model is re-resolved through the same passthrough logic. M302 remains for requests with no unambiguous connected provider route (for example, an unknown bare ID or a bare ID spanning multiple auth connections); those requests never contacted a provider and are not synthesized into Auto-fix failures.
 
 **Code:** `packages/backend/src/routing/autofix/`
+
 - `autofix.service.ts` — `maybeHeal()` gates on (globally enabled + repairable status + circuit breaker closed + agent opted in), then `runHealOnce()` does one heal + one reforward. Any throw degrades to the original provider error (never a Manifest 500). Per-agent config is cached 30s; `invalidateConfig()` is called on toggle. **Circuit breaker:** after 3 consecutive heal-call transport failures the breaker opens for 30s and `maybeHeal()` skips healing (returns null → straight to fallback), so a slow/down Phoenix stops adding latency to every repairable 4xx; any successful round-trip clears the streak.
 - `healing-client.ts` — the `HealingClient` port + `HEALING_CLIENT` DI token. Chosen at boot in `autofix.module.ts`: `HttpHealingClient` when `AUTOFIX_HEALING_URL` is set; otherwise **`NoopHealingClient` in production** (inert — never mutates traffic) and the in-process **`MockHealingClient` only in dev/test** (so the flow can be exercised without an external Phoenix). This keeps the dev mock's hardcoded catalog off real traffic when a healer isn't wired.
 - `phoenix.types.ts` — the wire contract. `provider-error-normalizer.ts` — turns a raw 4xx body into `{message,type,param,code}`. `autofix.types.ts` — internal `AutofixRecord` / `AutofixChainEntry`.
 - `autofix-health-probe.ts` — on boot (`OnApplicationBootstrap`), if `AUTOFIX_HEALING_URL` is set, pings Phoenix `GET /api/health` once (fire-and-forget, never blocks/fails boot) and warns if unreachable — so a wrong URL / missing key / down Phoenix surfaces at deploy, not on the first repairable 4xx.
 - **Contract guardrail (anti-drift):** `phoenix.types.ts` is kept in lockstep with Phoenix's OpenAPI, vendored at `contract/phoenix-openapi.yaml`. `__tests__/phoenix-contract.spec.ts` (ajv) fails CI if the status enums or required fields drift — the status unions live as `as const` arrays (`HEAL_STATUSES`/`ISSUE_STATUSES`/`OUTCOME_STATUSES`) so they're compared to the spec at runtime. Refresh with `npm run contract:refresh --workspace=packages/backend` (uses `gh`; needs read access to the private `mnfst/phoenix`). `.github/workflows/phoenix-contract-drift.yml` flags weekly when the vendored copy falls behind Phoenix `main` (needs a `PHOENIX_CONTRACT_TOKEN` secret).
-- **Hook:** `proxy.service.ts`, after the primary forward and *before* `shouldTriggerFallback`. `ProxyResult.autofix` threads the record to the recorder.
+- **Hook:** `proxy.service.ts`, after the primary forward and _before_ `shouldTriggerFallback`. `ProxyResult.autofix` threads the record to the recorder.
 
 **Phoenix = [`mnfst/phoenix`](https://github.com/mnfst/phoenix)** (separate repo). Contract (v2):
+
 - `POST /api/heal` — body `{traceId, provider, api, url?, request, response:{statusCode, error:{message,type?,param?,code?}}}`. **`traceId` is required** (Phoenix rejects a body without it) and **the provider error is nested under `response`** (a flat `providerError` is rejected), and `api` is the proxy `apiMode` verbatim (`chat_completions` | `responses` | `messages`). The response is discriminated on `status`: `patched` / `unverified` (both carry `healedBody` + `healAttemptId` → apply the patch and resend; `patched` = verified issue, `unverified` = fresh patch) | `resolving` (Phoenix is still authoring a fix — nothing to resend) | `no_patch`. Also returns `issueId`, `patchId?`, `operations?`.
 - `PATCH /api/heal-attempts/{healAttemptId}` — report the retry outcome `{retryStatusCode, error?}` (`error` required when ≥400). Fire-and-forget; Phoenix decides succeeded/failed. Only possible when a patch handed out a `healAttemptId` — `no_patch`/`resolving` carry none, so those outcomes are **not** reported.
 - `traceId` is stable across the logical request (Manifest reuses the internal `groupId`).
@@ -643,7 +639,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 
 **Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
 
-**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_ROLLOUT` (`selected` [default] / `waitlist` / `everyone` — the early-access phase), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
+**Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
 ## Providers & Models
 
@@ -652,6 +648,7 @@ Still to come (not in this phase): a migration assistant (task-specific → head
 All provider definitions live in `packages/shared/src/` (`SHARED_PROVIDERS`); `common/constants/providers.ts` (`PROVIDER_REGISTRY`) re-exports it for backend use. This is the **only** place to define provider IDs, display names, aliases, and OpenRouter prefix mappings. Never hardcode provider names elsewhere — always import from the registry.
 
 The registry exports derived maps used throughout the codebase:
+
 - `PROVIDER_BY_ID` — lookup by canonical ID (e.g. `anthropic`, `gemini`)
 - `PROVIDER_BY_ID_OR_ALIAS` — lookup by ID or alias (e.g. `google` → gemini entry)
 - `OPENROUTER_PREFIX_TO_PROVIDER` — OpenRouter vendor prefix → display name (e.g. `openai` → `OpenAI`)
@@ -712,12 +709,12 @@ All pricing comes from a single source:
 
 ### Where Models Appear
 
-| Page | Source | What's shown |
-|------|--------|-------------|
-| **Model Prices** | `ModelPricingCacheService.getAll()` | All models from OpenRouter cache, attributed to real providers |
-| **Routing (available models)** | `ModelDiscoveryService.getModelsForAgent()` | Only models from user's connected providers (discovered via native API) |
-| **Routing (tier assignments)** | `TierService` (`routing-core/route-helpers.ts` `effectiveRoute`/`unambiguousRoute`) | Auto-assigned from discovered models based on quality/price scoring |
-| **Requests / Overview attempt details** | Stored in `agent_messages.model` column | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
+| Page                                    | Source                                                                              | What's shown                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Model Prices**                        | `ModelPricingCacheService.getAll()`                                                 | All models from OpenRouter cache, attributed to real providers                    |
+| **Routing (available models)**          | `ModelDiscoveryService.getModelsForAgent()`                                         | Only models from user's connected providers (discovered via native API)           |
+| **Routing (tier assignments)**          | `TierService` (`routing-core/route-helpers.ts` `effectiveRoute`/`unambiguousRoute`) | Auto-assigned from discovered models based on quality/price scoring               |
+| **Requests / Overview attempt details** | Stored in `agent_messages.model` column                                             | Raw model name from telemetry, display name resolved via `model-display.ts` cache |
 
 ## Releases
 
@@ -754,12 +751,12 @@ Merging the `chore: version packages` PR to `main` automatically publishes a new
 
 ### Summary of what CI does on each trigger
 
-| Trigger | What happens |
-|---------|--------------|
-| PR opened/updated (runtime files) | `ci.yml` runs tests, lint, typecheck, coverage. `docker.yml` validates the Docker build (no push). `changeset-check` warns softly if no changeset is present. |
-| Merge to `main` | `release.yml` runs `changesets/action` to open or update the `chore: version packages` PR. No publish — the version on `main` hasn't changed yet. |
-| Merge of `chore: version packages` PR | `release.yml` runs again, detects the version bump in `packages/manifest/package.json`, and calls `docker.yml` as a reusable workflow. This pushes a new image tag to Docker Hub automatically. |
-| Manual `workflow_dispatch` on `Docker` workflow | Reads `packages/manifest/package.json` (or the `version` input override) and pushes a new image tag to Docker Hub. Used for hotfixes and retags. |
+| Trigger                                         | What happens                                                                                                                                                                                    |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PR opened/updated (runtime files)               | `ci.yml` runs tests, lint, typecheck, coverage. `docker.yml` validates the Docker build (no push). `changeset-check` warns softly if no changeset is present.                                   |
+| Merge to `main`                                 | `release.yml` runs `changesets/action` to open or update the `chore: version packages` PR. No publish — the version on `main` hasn't changed yet.                                               |
+| Merge of `chore: version packages` PR           | `release.yml` runs again, detects the version bump in `packages/manifest/package.json`, and calls `docker.yml` as a reusable workflow. This pushes a new image tag to Docker Hub automatically. |
+| Manual `workflow_dispatch` on `Docker` workflow | Reads `packages/manifest/package.json` (or the `version` input override) and pushes a new image tag to Docker Hub. Used for hotfixes and retags.                                                |
 
 ## Code Coverage (Codecov)
 
@@ -790,11 +787,11 @@ This applies to:
 
 ### Coverage Flags
 
-| Flag | Paths | CI Job |
-|------|-------|--------|
-| `backend` | `packages/backend/src/` | Backend (PostgreSQL) |
-| `frontend` | `packages/frontend/src/` | frontend |
-| `shared` | `packages/shared/src/` | shared |
+| Flag       | Paths                    | CI Job               |
+| ---------- | ------------------------ | -------------------- |
+| `backend`  | `packages/backend/src/`  | Backend (PostgreSQL) |
+| `frontend` | `packages/frontend/src/` | frontend             |
+| `shared`   | `packages/shared/src/`   | shared               |
 
 ### E2E Test Entities
 

@@ -97,6 +97,46 @@ describe('appConfig', () => {
     expect(config.runMigrationsOnBoot).toBe(false);
   });
 
+  it('leaves request recording retention unset by default', async () => {
+    delete process.env['REQUEST_RECORDING_RETENTION_DAYS'];
+    const config = await loadConfig();
+    expect(config.requestRecordingRetentionDays).toBeNull();
+  });
+
+  it('reads a positive request recording retention override', async () => {
+    process.env['REQUEST_RECORDING_RETENTION_DAYS'] = '90';
+    const config = await loadConfig();
+    expect(config.requestRecordingRetentionDays).toBe(90);
+  });
+
+  it.each(['0', '-1', '1.5', 'invalid', '9007199254740992'])(
+    'ignores invalid request recording retention %s',
+    async (value) => {
+      process.env['REQUEST_RECORDING_RETENTION_DAYS'] = value;
+      const config = await loadConfig();
+      expect(config.requestRecordingRetentionDays).toBeNull();
+    },
+  );
+
+  it('defaults request recording storage selection to auto', async () => {
+    delete process.env['REQUEST_RECORDING_STORAGE'];
+    const config = await loadConfig();
+    expect(config.requestRecordingStorage).toBe('auto');
+  });
+
+  it('reads request recording storage settings', async () => {
+    process.env['REQUEST_RECORDING_STORAGE'] = 's3';
+    process.env['REQUEST_RECORDING_S3_BUCKET'] = 'recordings';
+    process.env['REQUEST_RECORDING_S3_REGION'] = 'auto';
+    process.env['REQUEST_RECORDING_S3_FORCE_PATH_STYLE'] = 'true';
+    const config = await loadConfig();
+
+    expect(config.requestRecordingStorage).toBe('s3');
+    expect(config.requestRecordingS3Bucket).toBe('recordings');
+    expect(config.requestRecordingS3Region).toBe('auto');
+    expect(config.requestRecordingS3ForcePathStyle).toBe(true);
+  });
+
   it('defaults shutdownDrainMs to 10000 when SHUTDOWN_DRAIN_MS is unset', async () => {
     delete process.env['SHUTDOWN_DRAIN_MS'];
     const config = await loadConfig();

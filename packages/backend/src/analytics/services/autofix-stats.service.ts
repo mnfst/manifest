@@ -21,8 +21,6 @@ import {
 import { RequestVolumeService } from './request-volume.service';
 
 export interface AutofixStatusResponse {
-  /** The tenant passes the same rollout gate used by request healing. */
-  available: boolean;
   /** At least one agent is effectively enabled after deployment-mode defaults. */
   any_enabled: boolean;
   /** Names of agents effectively enabled after deployment-mode defaults. */
@@ -94,11 +92,7 @@ export class AutofixStatsService {
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
     if (!tenantId) {
-      return { available: false, any_enabled: false, enabled_agents: [] };
-    }
-
-    if (!(await this.autofix.hasAccess(tenantId))) {
-      return { available: false, any_enabled: false, enabled_agents: [] };
+      return { any_enabled: false, enabled_agents: [] };
     }
 
     const agents = await this.agentRepo.find({
@@ -110,7 +104,6 @@ export class AutofixStatsService {
       .map((agent) => agent.name);
 
     return {
-      available: true,
       any_enabled: enabledAgents.length > 0,
       enabled_agents: enabledAgents,
     };

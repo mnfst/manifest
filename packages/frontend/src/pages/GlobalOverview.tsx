@@ -29,7 +29,7 @@ import {
   getOverviewAgentUsage,
   getOverviewProviderUsage,
 } from '../services/api/analytics.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { usePlanRangeLock } from '../services/plan-range-lock.js';
 import { formatNumber, formatCost } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { preloadModelDisplayNames } from '../services/model-display.js';
@@ -56,7 +56,7 @@ import {
   type MessageColumnKey,
   type MessageRow,
 } from '../components/message-table-types.js';
-import { agentPing, messagePing, routingPing } from '../services/sse.js';
+import { agentPing, analyticsPing, routingPing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/analytics-overview.css';
@@ -77,7 +77,6 @@ import {
   HARNESS_SUCCESS_RATE_TOOLTIP,
   HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
-import { getAutofixCohort } from '../services/api/autofix.js';
 
 interface ProviderGroup {
   provider: string;
@@ -180,20 +179,13 @@ const GlobalOverview: Component = () => {
 
   preloadModelDisplayNames();
 
-  const [billing] = createResource(async () => {
-    try {
-      return await getBillingStatus();
-    } catch {
-      return null;
-    }
-  });
-  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
-  const shouldLockProRanges = () => billing.loading || isFreePlan();
-  const isProRangeLocked = (range: string) =>
-    shouldLockProRanges() && PRO_DASHBOARD_RANGES.has(range);
-
   // ── Range state (persisted in localStorage) ──────────────────────────
   const [chartRange, setChartRangeRaw] = createSignal(loadRange());
+  const {
+    isFreePlan,
+    isProRangeLocked,
+    effectiveRange: effectiveChartRange,
+  } = usePlanRangeLock(chartRange, PRO_DASHBOARD_RANGES, '7d');
   const setChartRange = (v: string) => {
     if (isFreePlan() && PRO_DASHBOARD_RANGES.has(v)) return;
     setChartRangeRaw(v);
@@ -229,11 +221,6 @@ const GlobalOverview: Component = () => {
     'requests',
   );
 
-  // Local providers only exist on self-hosted installs; cloud hides the
-  // Local stat card and drops the stats grid to three columns.
-  const effectiveChartRange = createMemo(() =>
-    isProRangeLocked(chartRange()) ? '7d' : chartRange(),
-  );
   const proBadge = () => (
     <span class="pro-range-badge" aria-label="Pro plan required">
       PRO
@@ -251,7 +238,7 @@ const GlobalOverview: Component = () => {
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
   const [overview] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getOverview(p.range) as Promise<OverviewResponse>,
   );
 
@@ -265,7 +252,7 @@ const GlobalOverview: Component = () => {
   const rangeChanging = () => overview.loading && loadedRange() !== effectiveChartRange();
 
   const [agents] = createResource(
-    () => ({ _agentPing: agentPing(), _messagePing: messagePing() }),
+    () => ({ _agentPing: agentPing(), _analyticsPing: analyticsPing() }),
     async () => {
       try {
         const data = (await getAgents()) as { agents?: AgentRow[] } | AgentRow[] | null;
@@ -293,10 +280,10 @@ const GlobalOverview: Component = () => {
   );
 
   // USAGE resource — the expensive 30d aggregation, fetched independently. Its
-  // source carries the SSE ping signals (a new ingested message → messagePing,
+  // source carries the SSE ping signals (new message activity → analyticsPing,
   // a provider connect/disconnect/rename → routingPing) so stats refresh live.
   const [providerUsage] = createResource(
-    () => ({ m: messagePing(), r: routingPing() }),
+    () => ({ m: analyticsPing(), r: routingPing() }),
     async () => {
       try {
         return (await getGlobalProviderUsage()).providers;
@@ -306,21 +293,16 @@ const GlobalOverview: Component = () => {
     },
   );
 
-  // ── Auto-fix resources (conditional on tenant access) ────────────────
-  const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+  // ── Auto-fix resources ─────────────────────────────────
   const [autofixStats] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: messagePing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getAutofixStats(p.range),
   );
 
   // Disposition timeseries: feeds the "By request status" chart view AND the
   // Self-healed requests tab (recovered subset: healed + fallback series).
   const [requestStatusTs] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getAutofixTimeseries(p.range, 'disposition'),
   );
   const selfHealedTs = () => {
@@ -342,7 +324,7 @@ const GlobalOverview: Component = () => {
   // Harness table usage, driven by the page range selector (the workspace
   // agents endpoint is a fixed window; this table must follow the filter).
   const [harnessUsage] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getOverviewAgentUsage(p.range) as Promise<UsageTSResult>,
   );
   const harnessUsageFor = (agentName: string) => {
@@ -359,17 +341,17 @@ const GlobalOverview: Component = () => {
   };
 
   const [agentReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerAgentReliability(p.range),
   );
 
   const [providerReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerProviderReliability(p.range),
   );
 
   const [modelReliability] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getPerModelReliability(p.range),
   );
 
@@ -393,7 +375,7 @@ const GlobalOverview: Component = () => {
   };
 
   const [usageTimeseries] = createResource(
-    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: messagePing() }),
+    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: analyticsPing() }),
     (p) => usageFetcher(p.range, p.group),
   );
 
@@ -708,10 +690,8 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── Auto-fix KPI cards (autofix-gated) ── */}
-        <Show when={autofixEligible()}>
-          <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
-        </Show>
+        {/* ── Auto-fix KPI cards ── */}
+        <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
@@ -739,7 +719,7 @@ const GlobalOverview: Component = () => {
                 if (prev === 0) return 0;
                 return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
               })()}
-              selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+              selfHealedTimeseries={selfHealedTs()}
               costValue={o().summary.cost_today.value}
               costTrendPct={o().summary.cost_today.trend_pct}
               costInfoTooltip="Actual API key costs only. Subscription usage is not included."
@@ -864,7 +844,7 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Est. cost</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    <InfoTooltip text={totalAttemptsTooltip(true)} />
                   </th>
                   <th class="rel-col">
                     Success rate
@@ -987,7 +967,7 @@ const GlobalOverview: Component = () => {
                   <th>Status</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    <InfoTooltip text={totalAttemptsTooltip(true)} />
                   </th>
                   <th class="rel-col">
                     Failed attempts
@@ -1178,9 +1158,7 @@ const GlobalOverview: Component = () => {
                     Total requests
                     <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
                   </th>
-                  <Show when={autofixEligible()}>
-                    <th class="rel-col">Recovered requests</th>
-                  </Show>
+                  <th class="rel-col">Recovered requests</th>
                   <th class="rel-col">
                     Success rate
                     <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
@@ -1258,31 +1236,29 @@ const GlobalOverview: Component = () => {
                             agentReliability()?.find((r) => r.agent_name === agent.agent_name);
                           return (
                             <>
-                              <Show when={autofixEligible()}>
-                                <td class="rel-col">
-                                  <Show when={rel()} fallback="—">
-                                    {(() => {
-                                      // Recovered = successful requests holding a
-                                      // recovery attempt (auto-fix or fallback).
-                                      const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
-                                      return (
-                                        <a
-                                          class="count-link"
-                                          href={link}
-                                          title="View this harness's recovered requests"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            navigate(link);
-                                          }}
-                                        >
-                                          {formatNumber(selfHealedCount(rel()!))}
-                                        </a>
-                                      );
-                                    })()}
-                                  </Show>
-                                </td>
-                              </Show>
+                              <td class="rel-col">
+                                <Show when={rel()} fallback="—">
+                                  {(() => {
+                                    // Recovered = successful requests holding a
+                                    // recovery attempt (auto-fix or fallback).
+                                    const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
+                                    return (
+                                      <a
+                                        class="count-link"
+                                        href={link}
+                                        title="View this harness's recovered requests"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          navigate(link);
+                                        }}
+                                      >
+                                        {formatNumber(selfHealedCount(rel()!))}
+                                      </a>
+                                    );
+                                  })()}
+                                </Show>
+                              </td>
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
@@ -1299,7 +1275,7 @@ const GlobalOverview: Component = () => {
                 <Show when={agentList().length === 0}>
                   <tr>
                     <td
-                      colspan="4"
+                      colspan="5"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
                       No harnesses yet

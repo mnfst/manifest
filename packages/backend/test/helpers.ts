@@ -146,13 +146,18 @@ const OPENROUTER_MODELS_FIXTURE = {
   ],
 } as const;
 
-function buildTypeOrmConfig(): TypeOrmModuleOptions {
+export interface CreateTestAppOptions {
+  dropSchema?: boolean;
+  seed?: boolean;
+}
+
+function buildTypeOrmConfig(options: CreateTestAppOptions): TypeOrmModuleOptions {
   return {
     type: 'postgres' as const,
     url: process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
     entities,
     synchronize: true,
-    dropSchema: true,
+    dropSchema: options.dropSchema ?? true,
     logging: false,
   };
 }
@@ -208,7 +213,7 @@ class MockSessionGuard implements CanActivate {
   }
 }
 
-export async function createTestApp(): Promise<INestApplication> {
+export async function createTestApp(options: CreateTestAppOptions = {}): Promise<INestApplication> {
   process.env['API_KEY'] = TEST_API_KEY;
   process.env['NODE_ENV'] = 'test';
   process.env['BETTER_AUTH_SECRET'] =
@@ -221,7 +226,7 @@ export async function createTestApp(): Promise<INestApplication> {
         ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
         CacheModule.register({ isGlobal: true, ttl: 5000 }),
         ThrottlerModule.forRoot([{ ttl: 60000, limit: 1000 }]),
-        TypeOrmModule.forRoot(buildTypeOrmConfig()),
+        TypeOrmModule.forRoot(buildTypeOrmConfig(options)),
         TypeOrmModule.forFeature(entities),
         CommonModule,
         HealthModule,
@@ -253,40 +258,42 @@ export async function createTestApp(): Promise<INestApplication> {
     const ds = app.get(DataSource);
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    // Seed test tenant (owner_user_id is the ONLY user→tenant link), agent,
-    // API key and OTLP key (hashed)
-    await ds.query(
-      `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
-      [TEST_TENANT_ID, TEST_USER_ID, TEST_USER_ID, 'Test Org', now, now],
-    );
-    await ds.query(
-      `INSERT INTO api_keys (id, key, key_hash, key_prefix, tenant_id, created_by_user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7)`,
-      [
-        'test-key-id',
-        hashKey(TEST_API_KEY),
-        keyPrefix(TEST_API_KEY),
-        TEST_TENANT_ID,
-        TEST_USER_ID,
-        'Test Key',
-        now,
-      ],
-    );
-    await ds.query(
-      `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,
-      [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
-    );
-    await ds.query(
-      `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
-      [
-        'test-otlp-key-id',
-        hashKey(TEST_OTLP_KEY),
-        keyPrefix(TEST_OTLP_KEY),
-        'Test OTLP Key',
-        TEST_TENANT_ID,
-        TEST_AGENT_ID,
-        now,
-      ],
-    );
+    if (options.seed !== false) {
+      // Seed test tenant (owner_user_id is the ONLY user→tenant link), agent,
+      // API key and OTLP key (hashed)
+      await ds.query(
+        `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
+        [TEST_TENANT_ID, TEST_USER_ID, TEST_USER_ID, 'Test Org', now, now],
+      );
+      await ds.query(
+        `INSERT INTO api_keys (id, key, key_hash, key_prefix, tenant_id, created_by_user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7)`,
+        [
+          'test-key-id',
+          hashKey(TEST_API_KEY),
+          keyPrefix(TEST_API_KEY),
+          TEST_TENANT_ID,
+          TEST_USER_ID,
+          'Test Key',
+          now,
+        ],
+      );
+      await ds.query(
+        `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,
+        [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
+      );
+      await ds.query(
+        `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
+        [
+          'test-otlp-key-id',
+          hashKey(TEST_OTLP_KEY),
+          keyPrefix(TEST_OTLP_KEY),
+          'Test OTLP Key',
+          TEST_TENANT_ID,
+          TEST_AGENT_ID,
+          now,
+        ],
+      );
+    }
 
     // Reload pricing cache from deterministic fixture data to keep e2e startup fast.
     const pricingCache = app.get(ModelPricingCacheService);

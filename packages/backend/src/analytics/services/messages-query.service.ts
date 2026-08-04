@@ -99,6 +99,8 @@ interface MessageQueryParams extends MessageFilterParams {
   specificity_category?: string;
   header_tier_id?: string;
   include_total?: boolean;
+  /** Allow a recent exact total to be reused instead of forcing a fresh first-page count. */
+  cache_total?: boolean;
   include_filter_options?: boolean;
   exclude_playground?: boolean;
   /**
@@ -200,7 +202,9 @@ export class MessagesQueryService {
     // always runs a fresh count so the total stays current for clients that poll
     // it (a stale first-page total would lag newly recorded messages by the TTL).
     const cachedCount =
-      includeTotal && params.cursor ? this.countCache.get(countCacheKey) : undefined;
+      includeTotal && (params.cursor || params.cache_total)
+        ? this.countCache.get(countCacheKey)
+        : undefined;
     const countHit = cachedCount !== undefined;
     const [countResult, rows, filterOptions] = await Promise.all([
       includeTotal ? (countHit ? null : countQb.getRawOne()) : null,
@@ -240,11 +244,7 @@ export class MessagesQueryService {
 
   /** Request-first log. Attempts are aggregated into their parent row. */
   private async getRequests(params: MessageQueryParams) {
-    const qb = this.requestRepo!.createQueryBuilder('r').leftJoin(
-      AgentMessage,
-      'at',
-      'at.request_id = r.id',
-    );
+    const qb = this.requestRepo!.createQueryBuilder('r');
     const cutoff = params.range ? computeCutoff(rangeToInterval(params.range)) : undefined;
     if (cutoff) qb.where('r.timestamp >= :requestCutoff', { requestCutoff: cutoff });
     if (params.tenantId)
@@ -396,6 +396,28 @@ export class MessagesQueryService {
     if (attemptPredicates.length > 0) {
       qb.andWhere(matchingAttempt(attemptPredicates), attemptParameters);
     }
+    const includeTotal = params.include_total !== false;
+    const countCacheKey = this.buildCountCacheKey(params);
+    const cachedCount =
+      includeTotal && (params.cursor || params.cache_total)
+        ? this.countCache.get(countCacheKey)
+        : undefined;
+    const needsCount = includeTotal && cachedCount === undefined;
+    const canPageFirst = params.cost_min === undefined && params.cost_max === undefined;
+    let requestCountQuery: { sql: string; parameters: unknown[] } | null = null;
+
+    // Without cost HAVING, the exact total is a direct count of eligible parent
+    // requests. Do not clone the display query: joining every Provider Attempt
+    // before COUNT made the common unfiltered first page scan the full history.
+    if (needsCount && canPageFirst) {
+      const countSource = qb.clone().select('COUNT(*)', 'total').orderBy();
+      const [countSql, countParameters] = countSource.getQueryAndParameters();
+      requestCountQuery = {
+        sql: countSql,
+        parameters: countParameters,
+      };
+    }
+
     if (params.cursor) {
       const sep = params.cursor.indexOf('|');
       if (sep !== -1) {
@@ -417,7 +439,20 @@ export class MessagesQueryService {
       }
     }
 
-    const includeTotal = params.include_total !== false;
+    if (canPageFirst) {
+      // Select the 51 parent ids first, then aggregate attempts only for that
+      // small page. The outer WHERE intentionally replaces the duplicated
+      // filters: they remain inside the bounded keyset subquery.
+      const pageSource = qb
+        .clone()
+        .select('r.id', 'id')
+        .orderBy('r.timestamp', 'DESC')
+        .addOrderBy('r.id', 'DESC')
+        .limit(params.limit + 1);
+      qb.where(`r.id IN (${pageSource.getQuery()})`, pageSource.getParameters());
+    }
+
+    qb.leftJoin(AgentMessage, 'at', 'at.request_id = r.id');
     const rank = `CASE WHEN ${sqlIsSuccessStatus('at.status')} THEN 3 WHEN NOT COALESCE(at.superseded, false) AND at.status NOT IN ('fallback_error', 'auto_fixed') THEN 2 ELSE 1 END`;
     const picked = (column: string): string =>
       `(ARRAY_AGG(${column} ORDER BY at.attempt_number DESC NULLS LAST, ${rank} DESC, at.timestamp DESC, at.id DESC) FILTER (WHERE at.id IS NOT NULL))[1]`;
@@ -434,6 +469,7 @@ export class MessagesQueryService {
       .addSelect('COALESCE(SUM(at.input_tokens + at.output_tokens), 0)', 'total_tokens')
       .addSelect(`COALESCE(SUM(${safeCost}), 0)`, 'cost')
       .addSelect('r.status', 'status')
+      .addSelect('r.api_mode', 'api_mode')
       .addSelect('r.error_message', 'error_message')
       .addSelect('r.error_code', 'error_code')
       .addSelect('r.error_origin', 'error_origin')
@@ -477,8 +513,7 @@ export class MessagesQueryService {
     // Count the grouped request rows after cost HAVING has been applied. A
     // window count on the page query would disappear on an empty page, making
     // an exact non-zero total look like zero after the last cursor.
-    let requestCountQuery: { sql: string; parameters: unknown[] } | null = null;
-    if (includeTotal) {
+    if (needsCount && !canPageFirst) {
       const countSource = qb.clone().select('r.id', 'id').orderBy();
       const [countSql, countParameters] = countSource.getQueryAndParameters();
       requestCountQuery = {
@@ -516,6 +551,7 @@ export class MessagesQueryService {
       .addSelect('at.cache_read_tokens', 'cache_read_tokens')
       .addSelect('at.cache_creation_tokens', 'cache_creation_tokens')
       .addSelect('at.duration_ms', 'duration_ms')
+      .addSelect('NULL', 'api_mode')
       .addSelect('1', 'attempt_count');
     this.applyCursor(legacyDataQb, params.cursor);
 
@@ -537,7 +573,7 @@ export class MessagesQueryService {
       // issuing concurrent client.query calls (deprecated in pg); all four
       // statements still share this transaction snapshot.
       const requestCountRows = await requestCountPromise;
-      const legacyCount = includeTotal ? await legacyCountQb.getRawOne() : null;
+      const legacyCount = needsCount ? await legacyCountQb.getRawOne() : null;
       const requestRows = await qb
         .orderBy('r.timestamp', 'DESC')
         .addOrderBy('r.id', 'DESC')
@@ -568,7 +604,11 @@ export class MessagesQueryService {
       items,
       next_cursor: hasMore && last ? this.encodeCursor(last) : null,
       total_count: includeTotal
-        ? Number(requestCountRows[0]?.total ?? 0) + Number(legacyCount?.total ?? 0)
+        ? (cachedCount ??
+          this.cacheAndReturnCount(
+            countCacheKey,
+            Number(requestCountRows[0]?.total ?? 0) + Number(legacyCount?.total ?? 0),
+          ))
         : items.length + (hasMore ? 1 : 0),
       total_count_exact: includeTotal,
       providers: filterOptions.providers,
@@ -948,6 +988,8 @@ export class MessagesQueryService {
     tenantId: string | null;
     range?: string;
     provider?: string;
+    connections?: string[];
+    attemptStatus?: ('has_failed' | 'has_succeeded')[];
     service_type?: string;
     agent_name?: string;
     cost_min?: number;
@@ -959,11 +1001,15 @@ export class MessagesQueryService {
     routing_tier?: string;
     specificity_category?: string;
     header_tier_id?: string;
+    exclude_playground?: boolean;
+    exclude_direct?: boolean;
   }): string {
     return [
       params.tenantId ?? 'no-tenant',
       params.range ?? '',
       params.provider ?? '',
+      params.connections?.join(',') ?? '',
+      params.attemptStatus?.join(',') ?? '',
       params.service_type ?? '',
       params.agent_name ?? '',
       params.cost_min ?? '',
@@ -975,6 +1021,8 @@ export class MessagesQueryService {
       params.routing_tier ?? '',
       params.specificity_category ?? '',
       params.header_tier_id ?? '',
+      params.exclude_playground ? 'exclude-playground' : '',
+      params.exclude_direct ? 'exclude-direct' : '',
     ].join(':');
   }
 }

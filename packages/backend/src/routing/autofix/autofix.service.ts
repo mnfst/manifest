@@ -5,11 +5,11 @@ import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import {
   coerceAgentPlatform,
+  isAnthropicExtraUsageError,
   type AgentPlatform,
   type AuthType,
 } from 'manifest-shared';
 import { Agent } from '../../entities/agent.entity';
-import { Tenant } from '../../entities/tenant.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
@@ -24,6 +24,7 @@ import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { scrubProviderUrl } from './observation-payload';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
 import type { HealOutcome, HealResponse } from './phoenix.types';
+import { recordingResponseFromText } from '../proxy/attempt-recording-capture';
 
 export interface MaybeHealParams {
   forward: ForwardResult;
@@ -63,6 +64,13 @@ const CONFIG_CACHE_MAX = 5_000;
 // repairable 4xx BEFORE the fallback chain (the next safety net) gets to run.
 const HEAL_FAILURE_THRESHOLD = 3;
 const BREAKER_COOLDOWN_MS = 30_000;
+/**
+ * Delays between outcome-report resends. A lost report leaves the heal attempt
+ * dangling `pending` on Phoenix until a sweeper expires it an hour later — the
+ * adjudication evidence is gone for good — so a transient failure gets spaced
+ * resends before we give up.
+ */
+const OUTCOME_RESEND_DELAYS_MS = [1_000, 5_000];
 
 function parseStatuses(raw: string | undefined): Set<number> {
   const source = raw && raw.trim().length > 0 ? raw : DEFAULT_REPAIRABLE_STATUSES;
@@ -75,20 +83,6 @@ function parseStatuses(raw: string | undefined): Set<number> {
     .map((s) => Number.parseInt(s, 10))
     .filter((n) => n >= 400 && n < 500);
   return new Set(parsed.length > 0 ? parsed : DEFAULT_REPAIRABLE_STATUSES.split(',').map(Number));
-}
-
-/** The three Auto-fix rollout phases, most→least restrictive. */
-type AutofixRollout = 'selected' | 'waitlist' | 'everyone';
-
-/**
- * Parse `AUTOFIX_ROLLOUT`:
- * - `selected` (default) — only tenants WE hand-picked (`autofix_access_granted_at`).
- * - `waitlist` — granted tenants **plus** anyone who joined the waitlist.
- * - `everyone` — general availability, no gate.
- */
-function parseRollout(raw: string | undefined): AutofixRollout {
-  const v = raw?.trim().toLowerCase();
-  return v === 'waitlist' || v === 'everyone' ? v : 'selected';
 }
 
 function headersToObject(headers: Headers): Record<string, string> {
@@ -127,22 +121,14 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
 export class AutofixService {
   private readonly logger = new Logger(AutofixService.name);
   private readonly globalEnabled: boolean;
-  // Which rollout phase this deployment is in (AUTOFIX_ROLLOUT). Governs how
-  // `hasAccess` decides: `selected` (hand-picked only) → `waitlist` (+ opt-ins)
-  // → `everyone` (GA). Default `selected` — the most restrictive.
-  private readonly rollout: AutofixRollout;
   // Effective default when an agent has no explicit choice (autofix_enabled NULL):
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
-  private readonly selfHosted: boolean;
   private readonly repairableStatuses: Set<number>;
   private readonly configCache = new Map<
     string,
     { value: AgentAutofixConfig; expiresAt: number }
   >();
-  // Per-tenant early-access decision, cached like the config so a 4xx storm from
-  // a non-access tenant never does a DB read per failed request.
-  private readonly accessCache = new Map<string, { value: boolean; expiresAt: number }>();
   // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
   // deadline; while it is in the future, heal calls are skipped.
   private healFailureStreak = 0;
@@ -151,66 +137,21 @@ export class AutofixService {
   constructor(
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
-    @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     config: ConfigService,
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
-    this.rollout = parseRollout(config.get<string>('AUTOFIX_ROLLOUT'));
-    this.selfHosted = isSelfHosted();
-    this.defaultAgentEnabled = !this.selfHosted;
+    this.defaultAgentEnabled = !isSelfHosted();
     this.repairableStatuses = parseStatuses(config.get<string>('AUTOFIX_REPAIRABLE_STATUSES'));
-    // Boot-time snapshot of the resolved gates. Logged once so an operator can
+    // Boot-time snapshot of the resolved configuration. Logged once so an operator can
     // confirm what the process actually loaded — e.g. whether the global kill
     // switch is off, or self-hosted detection flipped the per-agent default off
     // — straight from the deploy logs, without shell access. This is the first
     // thing to check when "Auto-fix never runs".
     this.logger.log(
-      `config: globalEnabled=${this.globalEnabled} rollout=${this.rollout} ` +
+      `config: globalEnabled=${this.globalEnabled} ` +
         `defaultAgentEnabled=${this.defaultAgentEnabled} ` +
         `repairableStatuses=[${[...this.repairableStatuses].join(',')}]`,
     );
-  }
-
-  /**
-   * Whether a tenant may use Auto-fix at all, per the current rollout phase
-   * (`AUTOFIX_ROLLOUT`):
-   * - `selected` (default) → only tenants WE granted (`autofix_access_granted_at`).
-   * - `waitlist` → granted tenants **plus** anyone who joined (`autofix_waitlist_at`).
-   * - `everyone` → all tenants.
-   *
-   * This gate sits ABOVE the per-agent default (`resolveEnabled`): a non-access
-   * tenant never heals, even when the cloud mode default would turn Auto-fix on.
-   * Cached to avoid a per-4xx DB read.
-   */
-  async hasAccess(tenantId: string | null): Promise<boolean> {
-    // No tenant context → no agent, so nothing to heal; deny in every phase.
-    if (!tenantId) return false;
-    // The early-access grant is a cloud product concern. Self-hosted installs
-    // opt in per agent and are controlled by Phoenix's instance limits.
-    if (this.selfHosted) return true;
-    // Phase 3 — general availability: everyone, no DB read.
-    if (this.rollout === 'everyone') return true;
-    const now = Date.now();
-    const cached = this.accessCache.get(tenantId);
-    if (cached && cached.expiresAt > now) return cached.value;
-
-    const tenant = await this.tenantRepo.findOne({
-      where: { id: tenantId },
-      select: ['autofix_access_granted_at', 'autofix_waitlist_at'],
-    });
-    // Phase 1 (`selected`): only hand-picked (granted) tenants.
-    // Phase 2 (`waitlist`): granted OR opted in via the waitlist.
-    const granted = tenant?.autofix_access_granted_at != null;
-    const joined = tenant?.autofix_waitlist_at != null;
-    const value = granted || (this.rollout === 'waitlist' && joined);
-    if (this.accessCache.size >= CONFIG_CACHE_MAX) this.accessCache.clear();
-    this.accessCache.set(tenantId, { value, expiresAt: now + CONFIG_CACHE_TTL_MS });
-    return value;
-  }
-
-  /** Drop a tenant's cached access so a fresh waitlist join takes effect now. */
-  invalidateAccess(tenantId: string): void {
-    this.accessCache.delete(tenantId);
   }
 
   /**
@@ -233,12 +174,12 @@ export class AutofixService {
   }
 
   /**
-   * Is Auto-fix active for this agent — deployment-wide, for the tenant, and for
-   * the agent itself? These are exactly the gates {@link maybeHeal} clears before
+   * Is Auto-fix active for this agent — deployment-wide and for the agent itself?
+   * These are exactly the gates {@link maybeHeal} clears before
    * it hands a request to Phoenix (it checks them inline so it can log *which*
    * one short-circuited; keep the two in lockstep).
    *
-   * Excludes the two gates that aren't about the agent's opt-in: the repairable
+   * Excludes the two checks that aren't about the agent's opt-in: the repairable
    * status set (scope) and the circuit breaker (availability).
    *
    * This is the **consent boundary** for anything that ships a caller's request to
@@ -256,7 +197,6 @@ export class AutofixService {
     agentId: string,
   ): Promise<HealingRequestContext | null> {
     if (!this.globalEnabled) return null;
-    if (!(await this.hasAccess(tenantId))) return null;
     const cfg = await this.loadAgentConfig(agentId, tenantId);
     return cfg.enabled ? { harness: cfg.harness } : null;
   }
@@ -290,8 +230,8 @@ export class AutofixService {
 
     // Everything below runs ONLY for failed forwards, so these diagnostics stay
     // low-volume. They make "why didn't Auto-fix run?" answerable from logs
-    // alone: one line per failed request stamped with the resolved gate values,
-    // then a single reason whenever a gate short-circuits the heal.
+    // alone: one line per failed request stamped with the resolved configuration,
+    // then a single reason whenever a check short-circuits the heal.
     const status = forward.response.status;
     this.logger.log(
       `maybeHeal: failed forward status=${status} agent=${params.agentId} ` +
@@ -307,6 +247,27 @@ export class AutofixService {
       );
       return null;
     }
+    if (status === 400 && params.provider.trim().toLowerCase() === 'anthropic') {
+      try {
+        const errorBody = await forward.response.clone().text();
+        if (
+          isAnthropicExtraUsageError({
+            provider: params.provider,
+            httpStatus: status,
+            errorBody,
+          })
+        ) {
+          this.logger.log(`skip status=${status}: Anthropic subscription billing exhaustion`);
+          return null;
+        }
+      } catch (err) {
+        // Classification is best-effort. If the cloned body cannot be read, keep
+        // the existing status-based behavior and leave the original response intact.
+        this.logger.warn(
+          `could not inspect Anthropic 400 for billing semantics: ${(err as Error).message}`,
+        );
+      }
+    }
 
     // Circuit breaker: while the healing service is tripped, skip healing
     // entirely and hand the forward back untouched, so a slow/unreachable
@@ -318,20 +279,11 @@ export class AutofixService {
 
     let cfg: AgentAutofixConfig;
     try {
-      // Limited-rollout gate: only early-access (waitlist) tenants heal for now.
-      // Sits above the per-agent default so a cloud tenant that hasn't joined
-      // never heals, even though the mode default would enable it.
-      if (!(await this.hasAccess(params.tenantId))) {
-        this.logger.log(
-          `skip status=${status}: tenant ${params.tenantId} lacks early-access (rollout=${this.rollout})`,
-        );
-        return null;
-      }
       cfg = await this.loadAgentConfig(params.agentId, params.tenantId);
     } catch (err) {
-      // A gate-load failure (DB hiccup) must never turn a recoverable provider
+      // A config-load failure (DB hiccup) must never turn a recoverable provider
       // error into a crash — skip healing; the forward is still intact.
-      this.logger.warn(`autofix gate load failed, skipping: ${(err as Error).message}`);
+      this.logger.warn(`autofix config load failed, skipping: ${(err as Error).message}`);
       return null;
     }
     if (!cfg.enabled) {
@@ -353,6 +305,7 @@ export class AutofixService {
     // Read the original error once, then rebuild it so it stays readable
     // downstream (fallback / recorder) whether or not we heal.
     const originalText = await forward.response.text();
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(originalText));
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {
@@ -479,13 +432,28 @@ export class AutofixService {
     try {
       next = await params.reforward(healedBody);
     } catch (err) {
-      // The patched resend threw (a provider transport error, NOT a Phoenix
-      // failure — so it must not trip the heal breaker). Preserve the audit chain
-      // (the original error plus the Phoenix issue/patch ids already stamped on
-      // `entry`) instead of dropping it, and degrade to the original provider
-      // error; the fallback chain is the next safety net.
+      // The patched resend threw (a provider transport error or the caller
+      // aborting mid-retry, NOT a Phoenix failure — so it must not trip the
+      // heal breaker). Preserve the audit chain (the original error plus the
+      // Phoenix issue/patch ids already stamped on `entry`) instead of dropping
+      // it, and degrade to the original provider error; the fallback chain is
+      // the next safety net. Still close the evidence loop: without a report
+      // the served attempt dangles `pending` until Phoenix's sweeper expires
+      // it, so the death is reported as a synthetic 499 (retry never completed
+      // — no provider status exists to send).
       this.logger.warn(`autofix reforward failed, using original error: ${(err as Error).message}`);
       entry.patch_worked = false;
+      this.reportOutcome(
+        healAttemptId,
+        {
+          retryStatusCode: 499,
+          error: {
+            message: `patched retry never completed: ${(err as Error).message}`,
+            type: 'retry_not_completed',
+          },
+        },
+        config.harness,
+      );
       return {
         forward: originalForward,
         record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
@@ -567,8 +535,33 @@ export class AutofixService {
 
   /** Fire-and-forget the learning signal so it never delays the client. */
   private reportOutcome(healAttemptId: string, outcome: HealOutcome, harness: AgentPlatform): void {
-    void this.client.reportOutcome(healAttemptId, outcome, { harness }).catch((err: unknown) => {
-      this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
-    });
+    void this.deliverOutcome(healAttemptId, outcome, harness);
+  }
+
+  /**
+   * Deliver the outcome report, resending when it didn't land. The client
+   * resolves `null` for a report that never reached Phoenix (transport failure
+   * or a non-2xx), and an unreported attempt costs the adjudication evidence —
+   * Phoenix can only expire it. Spaced resends ride out a blip; only a process
+   * death still loses a report.
+   */
+  private async deliverOutcome(
+    healAttemptId: string,
+    outcome: HealOutcome,
+    harness: AgentPlatform,
+  ): Promise<void> {
+    for (let send = 0; ; send++) {
+      try {
+        if ((await this.client.reportOutcome(healAttemptId, outcome, { harness })) !== null) return;
+      } catch (err) {
+        this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
+      }
+      const delay = OUTCOME_RESEND_DELAYS_MS[send];
+      if (delay === undefined) {
+        this.logger.warn(`reportOutcome ${healAttemptId}: giving up after ${send + 1} sends`);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
   }
 }

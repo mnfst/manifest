@@ -2,7 +2,8 @@ import { Show, createSignal, type Component } from 'solid-js';
 
 export const USER_DISCOVERY_BANNER_DISMISSED_KEY = 'manifest:user-discovery-banner-dismissed:v1';
 
-export const USER_DISCOVERY_BOOKING_URL = 'https://calendly.com/sebastien-manifest/30min';
+export const USER_DISCOVERY_BOOKING_URL =
+  'https://calendly.com/sebastien-manifest/15min';
 
 function readDismissed(): boolean {
   try {
@@ -33,7 +34,7 @@ const UserDiscoveryBanner: Component = () => {
       <aside class="overview-discovery-banner" aria-label="Manifest user research">
         <div class="overview-discovery-banner__inner">
           <span class="overview-discovery-banner__text">
-            🎁 Talk to us and get $10 of Gemini credit{' '}
+            🎁 Talk to us and get $25 of Gemini credit{' '}
             <a
               href={USER_DISCOVERY_BOOKING_URL}
               target="_blank"

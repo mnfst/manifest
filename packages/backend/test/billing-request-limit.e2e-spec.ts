@@ -5,12 +5,10 @@ import { createTestApp, TEST_OTLP_KEY, TEST_USER_ID } from './helpers';
 import { PlanService } from '../src/billing/plan.service';
 import { REQUEST_USAGE_CUTOVER_STATE } from '../src/billing/request-quota-window';
 
-// Enforces the monthly routed-request cap on the /v1/* proxy. Billing env must
-// be set BEFORE the app is created so isBillingEnabled() resolves true. We drive
-// the block with PLAN_LIMIT_FREE_REQUESTS=0 so the gate trips on the first
-// request — no need to seed thousands of request rows or stub a provider
-// (the gate runs before any upstream call). Env is restored in afterAll so it
-// can't leak into sibling e2e files sharing the --runInBand worker.
+// Enforces the monthly routed-request cap on the /v1/* proxy. The schema-only
+// harness enables billing after app init because it does not install the Cloud
+// quota trigger. We drive the block with PLAN_LIMIT_FREE_REQUESTS=0 so the gate
+// trips before any upstream call. Env is restored in afterAll.
 let app: INestApplication;
 let ds: DataSource;
 
@@ -46,13 +44,16 @@ async function waitForManifestBlockCount(tenantId: string, minimum: number): Pro
 beforeAll(async () => {
   for (const key of BILLING_ENV_VARS) envSnapshots[key] = process.env[key];
   process.env['MANIFEST_MODE'] = 'cloud';
-  process.env['STRIPE_SECRET_KEY'] = 'sk_test_dummy';
-  process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_dummy';
-  process.env['STRIPE_PRO_PRICE_ID'] = 'price_dummy';
   process.env['PLAN_LIMIT_FREE_REQUESTS'] = '0';
+  delete process.env['STRIPE_SECRET_KEY'];
+  delete process.env['STRIPE_WEBHOOK_SECRET'];
+  delete process.env['STRIPE_PRO_PRICE_ID'];
 
   app = await createTestApp();
   ds = app.get(DataSource);
+  process.env['STRIPE_SECRET_KEY'] = 'sk_test_dummy';
+  process.env['STRIPE_WEBHOOK_SECRET'] = 'whsec_dummy';
+  process.env['STRIPE_PRO_PRICE_ID'] = 'price_dummy';
   // better-auth's runMigrations doesn't run in the e2e harness, so create the
   // Stripe plugin's subscription table shape ourselves (PlanService.getPlan
   // queries it). camelCase quoted columns match the real schema.
@@ -88,6 +89,19 @@ afterAll(async () => {
 
 describe('request limit gate (/v1 proxy)', () => {
   it('blocks a free tenant over the monthly request cap with a real 402 for tool callers', async () => {
+    const tenantRows = await ds.query(`SELECT id FROM tenants WHERE owner_user_id = $1 LIMIT 1`, [
+      TEST_USER_ID,
+    ]);
+    const tenantId = tenantRows[0].id;
+    const blocksBefore = await ds.query(
+      `SELECT COUNT(*)::int AS n
+         FROM requests
+        WHERE tenant_id = $1
+          AND error_origin = 'policy'
+          AND error_class = 'plan_request_limit_exceeded'
+          AND error_http_status = 402`,
+      [tenantId],
+    );
     const res = await request(app.getHttpServer())
       .post('/v1/chat/completions')
       .set('Authorization', `Bearer ${TEST_OTLP_KEY}`)
@@ -98,6 +112,9 @@ describe('request limit gate (/v1 proxy)', () => {
     expect(res.body.error.type).toBe('insufficient_quota');
     expect(res.body.error.message).toContain('Upgrade to Pro');
     expect(res.body.limit).toBe(0);
+    expect(await waitForManifestBlockCount(tenantId, blocksBefore[0].n + 1)).toBe(
+      blocksBefore[0].n + 1,
+    );
   });
 
   it('records the blocked request as a visible Manifest failure without counting it toward quota', async () => {

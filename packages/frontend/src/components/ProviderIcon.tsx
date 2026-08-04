@@ -118,6 +118,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
       );
 
     /* ── Gemini ───────────────────────────────────── */
+    case 'gemini-free':
     case 'gemini':
       return (
         <svg

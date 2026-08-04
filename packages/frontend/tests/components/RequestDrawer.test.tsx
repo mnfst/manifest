@@ -216,6 +216,69 @@ describe('RequestDrawer', () => {
     );
     expect(container.querySelector('.attempt-item')).toBeNull();
     expect(container.querySelector('.drawer__sidebar')).toBeNull();
+    expect(screen.queryByText('Messages')).toBeNull();
+  });
+
+  it('shows Messages inside each attempt and scopes the payload to the selected attempt', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...fullMessage,
+        attempts: fullMessage.attempts.map((attempt, index) =>
+          index === 0
+            ? {
+                ...attempt,
+                recording: {
+                  request_body: {
+                    messages: [{ role: 'user', content: 'Recorded user turn' }],
+                  },
+                  response_body: {
+                    type: 'json',
+                    body: {
+                      choices: [
+                        {
+                          message: {
+                            role: 'assistant',
+                            content: 'Recorded assistant turn',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                  api_format: 'chat_completions',
+                },
+              }
+            : { ...attempt, recording: null },
+        ),
+      },
+    });
+    const { container } = render(() => (
+      <RequestDrawer messageId="recorded-request" onClose={vi.fn()} />
+    ));
+
+    await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
+    expect(screen.getByText('Tools')).toBeDefined();
+    fireEvent.click(screen.getByText('Messages'));
+
+    expect(
+      screen.getByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByText('Recorded assistant turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
+
+    // Switch to attempt 1 — no recording, so Messages/Tools/Raw tabs do not appear.
+    fireEvent.click(container.querySelectorAll('.attempt-item')[1]!);
+    expect(screen.queryByText('Messages')).toBeNull();
+    expect(screen.queryByText('Tools')).toBeNull();
+    expect(
+      screen.queryByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeNull();
   });
 
   it.each([

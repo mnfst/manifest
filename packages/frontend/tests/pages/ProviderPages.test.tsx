@@ -118,14 +118,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerProviderReliability: () => Promise.resolve([]),
 }));
 
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => Promise.resolve({ eligible: false }),
-}));
-
 // SSE ping signals drive the usage resource's source; stub them to no-op
 // accessors so the page mounts without a live EventSource under jsdom.
 vi.mock('../../src/services/sse.js', () => ({
   messagePing: () => 0,
+  analyticsPing: () => 0,
   routingPing: () => 0,
 }));
 

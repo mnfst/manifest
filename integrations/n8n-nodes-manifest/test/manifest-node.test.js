@@ -10,8 +10,9 @@ const {
 	withoutRouteManagedStream,
 } = require('../dist/nodes/Manifest/Manifest.node.js');
 
-test('keeps codex metadata valid in package and repository files', () => {
-	const expectedNode = `${require('../package.json').name}.${new Manifest().description.name}`;
+test('keeps node metadata valid in package and repository files', () => {
+	const packageName = require('../package.json').name;
+	const manifestDescription = new Manifest().description;
 	const allowedFields = new Set([
 		'alias',
 		'categories',
@@ -21,12 +22,17 @@ test('keeps codex metadata valid in package and repository files', () => {
 		'resources',
 	]);
 	const codexFiles = [
-		'../nodes/Manifest/Manifest.node.json',
-		'../dist/nodes/Manifest/Manifest.node.json',
-		'../../../nodes/Manifest/Manifest.node.json',
+		['../nodes/Manifest/Manifest.node.json', `${packageName}.${manifestDescription.name}`],
+		['../dist/nodes/Manifest/Manifest.node.json', `${packageName}.${manifestDescription.name}`],
+		['../../../nodes/Manifest/Manifest.node.json', `${packageName}.${manifestDescription.name}`],
+		['../nodes/LmChatManifest/LmChatManifest.node.json', `${packageName}.lmChatManifest`],
+		['../dist/nodes/LmChatManifest/LmChatManifest.node.json', `${packageName}.lmChatManifest`],
+		['../../../nodes/LmChatManifest/LmChatManifest.node.json', `${packageName}.lmChatManifest`],
 	];
 
-	for (const relativePath of codexFiles) {
+	assert.equal(manifestDescription.usableAsTool, true);
+
+	for (const [relativePath, expectedNode] of codexFiles) {
 		const codex = JSON.parse(fs.readFileSync(path.join(__dirname, relativePath), 'utf8'));
 
 		assert.equal(codex.node, expectedNode);

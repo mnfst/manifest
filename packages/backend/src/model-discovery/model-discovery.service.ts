@@ -239,13 +239,16 @@ export class ModelDiscoveryService {
     // subscription discovery is also static so connecting Claude Code does
     // not spend live /models or /messages calls before the first real request.
     if (useCuratedSubscriptionModels) {
-      raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+      raw = buildSubscriptionFallbackModels(provider.provider);
       if (raw.length > 0) {
         this.logger.log(
           `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
         );
       }
-    } else if (prefersModelsDevCatalog(provider.provider)) {
+    } else if (
+      provider.auth_type !== 'subscription' &&
+      prefersModelsDevCatalog(provider.provider)
+    ) {
       raw = buildModelsDevModels();
       if (raw.length > 0) {
         this.logger.log(`Using ${raw.length} models from models.dev for ${provider.provider}`);
@@ -265,7 +268,7 @@ export class ModelDiscoveryService {
       // actually grants must use the curated `knownModels` list — otherwise
       // the routing UI offers models that 404 at chat time.
       if (raw.length === 0 && provider.auth_type === 'subscription') {
-        raw = buildSubscriptionFallbackModels(this.pricingSync, provider.provider);
+        raw = buildSubscriptionFallbackModels(provider.provider);
         if (raw.length > 0) {
           this.logger.log(
             `Subscription provider ${provider.provider} — using ${raw.length} curated models`,
@@ -273,8 +276,9 @@ export class ModelDiscoveryService {
         }
       }
 
-      // If native API returned no models, try models.dev first, then OpenRouter.
-      if (raw.length === 0) {
+      // External catalogs may enrich provider-discovered models, but they must
+      // never determine which models a subscription can access.
+      if (raw.length === 0 && provider.auth_type !== 'subscription') {
         raw = buildModelsDevModels();
         if (raw.length > 0) {
           this.logger.log(
@@ -284,7 +288,11 @@ export class ModelDiscoveryService {
       }
       // If models.dev also had nothing, fall back to OpenRouter filtered by confirmed models.
       // Qwen is excluded because OpenRouter/pricing ids can diverge from DashScope ids.
-      if (raw.length === 0 && !isQwenProvider(provider.provider)) {
+      if (
+        raw.length === 0 &&
+        provider.auth_type !== 'subscription' &&
+        !isQwenProvider(provider.provider)
+      ) {
         const confirmed = this.modelRegistry?.getConfirmedModels(provider.provider) ?? null;
         raw = buildFallbackModels(this.pricingSync, provider.provider, confirmed);
         if (raw.length > 0) {
@@ -295,8 +303,8 @@ export class ModelDiscoveryService {
       }
     }
 
-    // For subscription providers, supplement with knownModels so users can
-    // always select them, even if the live API or OpenRouter didn't return them.
+    // For subscription providers, supplement live discovery with the explicit
+    // curated list so users can always select known supported models.
     if (provider.auth_type === 'subscription') {
       raw = supplementWithKnownModels(raw, provider.provider);
     }

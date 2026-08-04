@@ -26,9 +26,10 @@ interface ForwardProviderOptions {
   apiKey: string;
   model: string;
   body: Record<string, unknown>;
-  chatBody?: Record<string, unknown>;
+  resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
+  providerCacheKey?: string;
   signal?: AbortSignal;
   authType?: string;
   rawApiKey?: string;
@@ -40,7 +41,6 @@ interface ForwardProviderOptions {
   apiMode?: ProxyApiMode;
   signatureLookup?: SignatureLookup;
   thinkingLookup?: ThinkingBlockLookup;
-  reasoningContentLookup?: ReasoningContentLookup;
   paramMergeContext?: ParamMergeContext;
   tenantProviderId?: string | null;
   startProviderAttempt?: StartProviderAttempt;
@@ -73,7 +73,7 @@ import {
 import type {
   SignatureLookup,
   ThinkingBlockLookup,
-  ReasoningContentLookup,
+  ResolveChatBody,
   ProviderAttemptRef,
   StartProviderAttempt,
 } from './proxy-types';
@@ -85,6 +85,7 @@ import {
   resolveRouteCredentials,
   type RouteCredentialDeps,
 } from './route-credentials';
+import { recordingResponseFromText } from './attempt-recording-capture';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -116,6 +117,9 @@ export interface FailedFallback {
   // The tenant_providers row that served this failed attempt, so the recorded
   // error row is scoped to the right connection. NULL for local/Ollama.
   tenantProviderId?: string | null;
+  // Label of that same connection, so a failed hop records the key it used
+  // instead of inheriting the primary's label.
+  keyLabel?: string;
   attempt?: ProviderAttemptRef;
   /** False when the route was rejected locally (for example by a cooldown). */
   providerCallStarted?: boolean;
@@ -141,7 +145,7 @@ export class ProxyFallbackService {
     private readonly pricingCache: ModelPricingCacheService,
     private readonly modelParamsService: AgentModelParamsService,
     private readonly providerParamSpecs: ProviderParamSpecService,
-    private readonly reasoningCache?: ReasoningContentCache,
+    private readonly reasoningCache: ReasoningContentCache,
   ) {}
 
   /**
@@ -187,13 +191,13 @@ export class ProxyFallbackService {
     signatureLookup?: SignatureLookup,
     thinkingLookup?: ThinkingBlockLookup,
     apiMode?: ProxyApiMode,
-    chatBody?: Record<string, unknown>,
+    resolveChatBody?: ResolveChatBody,
     fallbackRoutes?: ModelRoute[] | null,
     paramMergeContext?: ParamMergeContext,
-    reasoningContentLookup?: ReasoningContentLookup,
     startProviderAttempt?: StartProviderAttempt,
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
+    providerCacheKey?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -281,6 +285,7 @@ export class ProxyFallbackService {
             fallbackIndex: i,
             authType,
             tenantProviderId: credentials.tenantProviderId,
+            keyLabel: providerKeyLabel,
             presentation: presentCredentialFailure(
               credentials.reason,
               provider,
@@ -291,7 +296,9 @@ export class ProxyFallbackService {
         );
         continue;
       }
-      providerKeyLabel = credentials.keyLabel ?? providerKeyLabel;
+      // resolveRouteCredentials always reports the row it selected, which may
+      // differ from the pin when the pin matched nothing.
+      providerKeyLabel = credentials.keyLabel;
       const tenantProviderId = credentials.tenantProviderId;
 
       this.logger.log(
@@ -303,9 +310,10 @@ export class ProxyFallbackService {
         apiKey: credentials.apiKey,
         model,
         body,
-        chatBody,
+        resolveChatBody,
         stream,
         sessionKey,
+        providerCacheKey,
         signal,
         agentId,
         tenantId,
@@ -317,7 +325,6 @@ export class ProxyFallbackService {
         providerRegion: credentials.providerRegion,
         signatureLookup,
         thinkingLookup,
-        reasoningContentLookup,
         paramMergeContext,
         tenantProviderId,
         startProviderAttempt,
@@ -333,10 +340,7 @@ export class ProxyFallbackService {
             authType,
             // Label of the connection row that served the attempt — stamped
             // alongside its tenant_provider_id so the pair always matches.
-            // Synthetic rows (Ollama) keep the pinned label, if any.
-            keyLabel: tenantProviderId
-              ? (credentials.keyLabel ?? providerKeyLabel)
-              : providerKeyLabel,
+            keyLabel: providerKeyLabel,
             tenantProviderId,
           },
           failures,
@@ -344,6 +348,7 @@ export class ProxyFallbackService {
       }
 
       const errorBody = await forward.response.text();
+      await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
       failures.push({
         model,
         provider,
@@ -352,6 +357,9 @@ export class ProxyFallbackService {
         errorBody,
         authType,
         tenantProviderId,
+        // Selected-row label (credentials.keyLabel already folded in above),
+        // so this row's label and tenant_provider_id name the same connection.
+        keyLabel: providerKeyLabel,
         attempt: forward.attempt,
         providerCallStarted: forward.providerCallStarted,
       });
@@ -418,7 +426,13 @@ export class ProxyFallbackService {
     healedBody: Record<string, unknown>,
     opts?: Pick<
       ForwardProviderOptions,
-      'provider' | 'model' | 'authType' | 'tenantProviderId' | 'startProviderAttempt' | 'signal'
+      | 'provider'
+      | 'model'
+      | 'authType'
+      | 'tenantProviderId'
+      | 'providerKeyLabel'
+      | 'startProviderAttempt'
+      | 'signal'
     >,
   ): Promise<ForwardResult> {
     if (!forward.retryWireBody) {
@@ -430,9 +444,10 @@ export class ProxyFallbackService {
       model: opts.model,
       authType: opts.authType,
       tenantProviderId: opts.tenantProviderId,
+      keyLabel: opts.providerKeyLabel,
     });
     try {
-      const retried = await forward.retryWireBody(healedBody);
+      const retried = await forward.retryWireBody(healedBody, attempt);
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...retried, attempt, providerCallStarted: true };
     } catch (error) {
@@ -590,6 +605,7 @@ export class ProxyFallbackService {
       .clone()
       .text()
       .catch(() => 'OAuth token rejected');
+    await forward.attempt?.finishRecording?.(recordingResponseFromText(rejectedBody));
     await forward.attempt?.completeFailure?.({
       status: forward.response.status,
       errorBody: rejectedBody,
@@ -625,7 +641,6 @@ export class ProxyFallbackService {
       providerRegion,
       signatureLookup,
       thinkingLookup,
-      reasoningContentLookup,
     } = opts;
     // Per-attempt merge: ask the model-params service for this iteration's
     // (provider, auth_type, model) config. Storage is model-scoped on the
@@ -639,17 +654,7 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    let chatBody = opts.chatBody
-      ? await this.applyParamMerge(
-          opts.chatBody,
-          opts.paramMergeContext,
-          provider,
-          authType,
-          opts.model,
-        )
-      : undefined;
-
-    const extraHeaders = buildProviderExtraHeaders(provider, opts.sessionKey);
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -687,22 +692,35 @@ export class ProxyFallbackService {
         : customEndpoint
           ? 'custom'
           : resolveEndpointKey(provider);
-    if (this.reasoningCache) {
-      body = await this.reasoningCache.reinjectMissingReasoningContent(
-        body,
-        opts.sessionKey,
-        reasoningEndpointKey,
-        forwardModel,
-      );
-      if (chatBody) {
-        chatBody = await this.reasoningCache.reinjectMissingReasoningContent(
-          chatBody,
-          opts.sessionKey,
-          reasoningEndpointKey,
-          forwardModel,
-        );
-      }
-    }
+    let resolvedChatBody: Promise<Record<string, unknown>> | undefined;
+    const resolveChatBody = opts.resolveChatBody
+      ? () => {
+          resolvedChatBody ??= (async () => {
+            let resolved = await opts.resolveChatBody!();
+            resolved = await this.applyParamMerge(
+              resolved,
+              opts.paramMergeContext,
+              provider,
+              authType,
+              opts.model,
+            );
+            resolved = await this.reasoningCache.prepareRequest(
+              resolved,
+              opts.sessionKey,
+              reasoningEndpointKey,
+              forwardModel,
+            );
+            return resolved;
+          })();
+          return resolvedChatBody;
+        }
+      : undefined;
+    body = await this.reasoningCache.prepareRequest(
+      body,
+      opts.sessionKey,
+      reasoningEndpointKey,
+      forwardModel,
+    );
 
     // For Gemini OAuth, the OAuth blob's `u` field is the
     // CodeAssist project id (not a URL). It must be forwarded so the
@@ -715,6 +733,7 @@ export class ProxyFallbackService {
       model: opts.model,
       authType,
       tenantProviderId: opts.tenantProviderId,
+      keyLabel: opts.providerKeyLabel,
     });
     try {
       const forward = await this.providerClient.forward({
@@ -722,7 +741,7 @@ export class ProxyFallbackService {
         apiKey: effectiveKey,
         model: forwardModel,
         body,
-        chatBody,
+        resolveChatBody,
         stream,
         signal,
         extraHeaders,
@@ -730,6 +749,7 @@ export class ProxyFallbackService {
         authType,
         apiMode: opts.apiMode,
         sessionKey: opts.sessionKey,
+        providerCacheKey: opts.providerCacheKey,
         signatureLookup,
         thinkingLookup,
         ...(thinkingLookup
@@ -741,8 +761,8 @@ export class ProxyFallbackService {
               },
             }
           : {}),
-        reasoningContentLookup,
         providerResource,
+        attempt,
       });
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...forward, attempt, providerCallStarted: true };

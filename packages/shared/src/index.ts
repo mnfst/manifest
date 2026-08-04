@@ -58,6 +58,8 @@ export type {
   RequestStatus,
   AttemptStatus,
 } from './error-taxonomy';
+export { isAnthropicExtraUsageError } from './provider-error-semantics';
+export type { ProviderErrorSignals } from './provider-error-semantics';
 export { MANIFEST_ERRORS_DOCS_BASE, manifestErrorDocsUrl } from './manifest-error-docs';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
 export type { ResponseMode } from './response-mode';
@@ -146,7 +148,6 @@ export {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
-  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
@@ -166,6 +167,7 @@ export {
 } from './plan-limits';
 export type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,
@@ -173,3 +175,13 @@ export type {
 } from './plan-limits';
 export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
 export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';
+export {
+  coerceContentToText,
+  extractRecordedConversationMessages,
+  extractRequestMessages,
+  extractRequestTools,
+  extractResponseMessages,
+  extractResponseToolCalls,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RecordedResponseBody, Role, ToolCall } from './chat-message';

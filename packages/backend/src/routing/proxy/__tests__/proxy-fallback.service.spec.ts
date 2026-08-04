@@ -51,7 +51,7 @@ describe('ProxyFallbackService', () => {
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
-  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'prepareRequest'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -161,7 +161,7 @@ describe('ProxyFallbackService', () => {
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
-      reinjectMissingReasoningContent: jest.fn(
+      prepareRequest: jest.fn(
         async (
           requestBody: Record<string, unknown>,
           _sessionKey: string,
@@ -589,6 +589,42 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('merges params into a lazy cross-protocol body once per attempt', async () => {
+      const convertedBody = { messages: [{ role: 'user', content: 'hi' }] };
+      const resolveChatBody = jest.fn().mockResolvedValue(convertedBody);
+      modelParamsService.get.mockResolvedValue({ thinking: { type: 'disabled' } });
+      providerClient.forward.mockImplementation(async (options) => {
+        const first = await options.resolveChatBody!();
+        const second = await options.resolveChatBody!();
+        expect(second).toBe(first);
+        expect(first).toEqual({
+          ...convertedBody,
+          thinking: { type: 'disabled' },
+        });
+        return {
+          response: new Response('{}', { status: 200 }),
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        };
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-v4-flash',
+        body: { input: 'hi' },
+        resolveChatBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        authType: 'api_key',
+        apiMode: 'responses',
+        paramMergeContext: { agentId: 'agent-1', scopeKey: 'tier:default' },
+      });
+
+      expect(resolveChatBody).toHaveBeenCalledTimes(1);
+    });
+
     it('per-attempt lookup leaves other providers untouched (no cross-provider leak)', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
@@ -688,7 +724,7 @@ describe('ProxyFallbackService', () => {
           },
         ],
       };
-      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+      reasoningCache.prepareRequest.mockResolvedValueOnce(enrichedBody);
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -700,7 +736,7 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
       });
 
-      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+      expect(reasoningCache.prepareRequest).toHaveBeenCalledWith(
         requestBody,
         'sess-1',
         'deepseek',
@@ -761,6 +797,7 @@ describe('ProxyFallbackService', () => {
         body,
         stream: false,
         sessionKey: 'my-session',
+        providerCacheKey: 'v1:scoped-session',
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith(
@@ -770,8 +807,36 @@ describe('ProxyFallbackService', () => {
           model: 'grok-2',
           body,
           stream: false,
-          extraHeaders: { 'x-grok-conv-id': 'my-session' },
+          extraHeaders: {
+            'x-grok-conv-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+          },
           sessionKey: 'my-session',
+          providerCacheKey: 'v1:scoped-session',
+        }),
+      );
+    });
+
+    it('omits provider cache headers without an explicit scoped key', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'xai',
+        apiKey: 'sk-xai',
+        model: 'grok-2',
+        body,
+        stream: false,
+        sessionKey: 'default',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          extraHeaders: undefined,
+          providerCacheKey: undefined,
         }),
       );
     });
@@ -1235,14 +1300,18 @@ describe('ProxyFallbackService', () => {
         model: 'gpt-4o',
         authType: 'api_key',
         tenantProviderId: 'connection-1',
+        providerKeyLabel: 'Work',
         startProviderAttempt,
       });
 
+      // The retry rides the same connection as the original call, so the
+      // pending attempt row it opens must name that connection's label too.
       expect(startProviderAttempt).toHaveBeenCalledWith({
         provider: 'openai',
         model: 'gpt-4o',
         authType: 'api_key',
         tenantProviderId: 'connection-1',
+        keyLabel: 'Work',
       });
       expect(result.attempt).toBe(attempt);
       expect(result.providerCallStarted).toBe(true);

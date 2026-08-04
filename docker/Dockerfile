@@ -36,6 +36,7 @@ RUN npx turbo build --filter=manifest-backend --filter=manifest-frontend --filte
 # and CVE scanners then flag the embedded Go stdlib.
 FROM node:24-slim@sha256:24dc26ef1e3c3690f27ebc4136c9c186c3133b25563ae4d7f0692e4d1fe5db0e AS prod-deps
 WORKDIR /app
+RUN mkdir -p /app/request-recordings
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/frontend/package.json packages/frontend/
@@ -43,6 +44,7 @@ COPY packages/backend/package.json packages/backend/
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev --omit=optional --ignore-scripts \
            --prefer-offline --no-audit --no-fund --loglevel=error && \
+    mkdir -p packages/backend/node_modules && \
     rm -rf node_modules/typescript node_modules/@types \
            node_modules/ts-node node_modules/acorn \
            node_modules/create-require node_modules/v8-compile-cache-lib && \
@@ -79,6 +81,8 @@ ENV BIND_ADDRESS=0.0.0.0
 ENV PATH=/nodejs/bin:$PATH
 
 COPY --from=prod-deps --chown=nonroot:nonroot /app/node_modules node_modules
+COPY --from=prod-deps --chown=nonroot:nonroot /app/packages/backend/node_modules packages/backend/node_modules
+COPY --from=prod-deps --chown=nonroot:nonroot /app/request-recordings /data/request-recordings
 COPY --from=prod-deps --chown=nonroot:nonroot /app/package.json package.json
 COPY --from=build --chown=nonroot:nonroot /app/packages/shared/dist packages/shared/dist
 COPY --from=build --chown=nonroot:nonroot /app/packages/backend/dist packages/backend/dist

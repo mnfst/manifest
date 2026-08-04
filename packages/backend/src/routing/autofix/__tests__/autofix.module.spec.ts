@@ -4,7 +4,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Agent } from '../../../entities/agent.entity';
 import { AgentMessage } from '../../../entities/agent-message.entity';
 import { InstanceCredential } from '../../../entities/instance-credential.entity';
-import { Tenant } from '../../../entities/tenant.entity';
 import { ManifestRequest } from '../../../entities/request.entity';
 import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
@@ -35,8 +34,6 @@ async function resolveHealingClient(configValues: Record<string, string>) {
       .overrideProvider(getRepositoryToken(AgentMessage))
       .useValue({})
       .overrideProvider(getRepositoryToken(ManifestRequest))
-      .useValue({})
-      .overrideProvider(getRepositoryToken(Tenant))
       .useValue({})
       .overrideProvider(getRepositoryToken(InstanceCredential))
       .useValue({})

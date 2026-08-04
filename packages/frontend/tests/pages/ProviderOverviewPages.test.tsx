@@ -30,7 +30,6 @@ const apiMocks = vi.hoisted(() => ({
   getConnectionAttemptHttpStatusTimeseries: vi.fn(),
   getConnectionAttemptBreakdown: vi.fn(),
   getConnectionAttemptsByAgentTimeseries: vi.fn(),
-  getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
 
@@ -115,8 +114,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () =>
-    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -124,10 +122,6 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerModelReliability: () => Promise.resolve([]),
   getPerAgentReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
-}));
-
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => apiMocks.getAutofixCohort(),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -210,6 +204,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
     tokensValue: number;
     tokensTrendPct?: number;
     requestsValue: number;
+    requestsInfoTooltip?: string;
     requestsTrendPct?: number;
     failedValue?: number;
     failedTrendPct?: number;
@@ -244,6 +239,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
       <span>{props.costTrendPct ?? 0}</span>
       <span>{props.costInfoTooltip ?? ''}</span>
       <span>{props.range}</span>
+      <span data-testid="requests-info-tooltip">{props.requestsInfoTooltip ?? ''}</span>
       <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
@@ -345,6 +341,7 @@ vi.mock('../../src/components/AuthBadge.jsx', () => ({
 vi.mock('../../src/services/sse.js', () => ({
   agentPing: () => 0,
   messagePing: () => 0,
+  analyticsPing: () => 0,
   routingPing: () => 0,
 }));
 
@@ -388,6 +385,7 @@ vi.mock('../../src/services/setup-status.js', () => ({
 
 import GlobalOverview from '../../src/pages/GlobalOverview';
 import ConnectionDetail from '../../src/pages/providers/ConnectionDetail';
+import { resetPlanStore } from '../../src/services/plan-store';
 
 const overviewResponse = {
   summary: {
@@ -725,6 +723,7 @@ function ensureStorageLike(kind: 'localStorage' | 'sessionStorage') {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetPlanStore();
   ensureStorageLike('localStorage').clear();
   ensureStorageLike('sessionStorage').clear();
   localStorage.setItem('manifest_global_group', 'provider');
@@ -756,7 +755,6 @@ beforeEach(() => {
     cancelAtPeriodEnd: false,
     subscriptionPeriodEnd: null,
   });
-  apiMocks.getAutofixCohort.mockResolvedValue({ eligible: false });
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -856,19 +854,7 @@ describe('GlobalOverview (analytics)', () => {
 
   it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
     localStorage.setItem('manifest_global_range', '365d');
-    apiMocks.getBillingStatus.mockResolvedValue({
-      enabled: true,
-      plan: 'free',
-      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-      emailPreferences: { usageAlerts: true },
-      requests: {
-        used: 120,
-        limit: FREE_PLAN_REQUESTS_PER_MONTH,
-        periodEnd: '2026-08-01T00:00:00.000Z',
-      },
-      cancelAtPeriodEnd: false,
-      subscriptionPeriodEnd: null,
-    });
+    resetPlanStore({ enabled: true, plan: 'free' });
 
     render(() => <GlobalOverview />);
 
@@ -995,6 +981,9 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
+      'auto-fixed attempts',
+    );
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
@@ -1106,15 +1095,6 @@ describe('ConnectionDetail (analytics)', () => {
       expect(fb).toContain('10');
       expect(fb).toContain('8 succeeded');
     });
-    // No Doctor version in this fixture: no auto-fixed card, no recovered cards.
-    expect(screen.queryByText('Auto-fixed attempts')).toBeNull();
-    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
-  });
-
-  it('shows the auto-fixed attempts card with the Doctor version', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
-    const { container } = render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     await waitFor(() => {
       const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
         c.textContent?.includes('Auto-fixed attempts'),
@@ -1145,8 +1125,7 @@ describe('ConnectionDetail (analytics)', () => {
     );
   });
 
-  it('links the Auto-fixed attempts card when the Doctor version is available', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+  it('links the Auto-fixed attempts card', async () => {
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     const card = await waitFor(() => {

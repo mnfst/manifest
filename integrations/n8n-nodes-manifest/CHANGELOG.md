@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1
+
+- Mark the Manifest action node as usable by AI agents, as required by the n8n community-node linter.
+- Use the supported `Development` codex category for the Manifest Chat Model and remove unsupported subcategory metadata.
+- Remove dependency overrides that are no longer allowed in n8n community node packages.
+
 ## 0.2.0
 
 - Add the **Manifest Chat Model** sub-node (`lmChatManifest`), built on `@n8n/ai-node-sdk`. It plugs into the AI Agent and Basic LLM Chain nodes as a language model, so Manifest can be used as a drop-in replacement for any chat model provider.

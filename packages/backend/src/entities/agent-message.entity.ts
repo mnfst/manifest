@@ -39,6 +39,10 @@ export class AgentMessage {
   @Column('integer', { nullable: true })
   attempt_number!: number | null;
 
+  /** External S3/filesystem object for this Provider Attempt's exact payload. */
+  @Column('varchar', { nullable: true })
+  recording_key!: string | null;
+
   @Column('varchar', { nullable: true })
   tenant_id!: string | null;
 

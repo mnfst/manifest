@@ -8,7 +8,6 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import AddAgentModal from './AddAgentModal.jsx';
-import AutofixModal from './AutofixModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -39,7 +38,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
-  const [autofixModalOpen, setAutofixModalOpen] = createSignal(false);
   // Local providers only exist on self-hosted installs — a cloud backend
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
@@ -318,7 +316,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       {/* Create-harness modal, opened by the HARNESSES section + button */}
       <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
-      <AutofixModal open={autofixModalOpen()} onClose={() => setAutofixModalOpen(false)} />
     </nav>
   );
 };

@@ -1,5 +1,11 @@
 # manifest
 
+## 6.17.1
+
+### Patch Changes
+
+- ba9db64: In Cloud, replace repeated monthly request COUNT scans with an exact counter, lazy baseline, and fail-fast deploy cutover.
+
 ## 6.17.0
 
 ### Minor Changes

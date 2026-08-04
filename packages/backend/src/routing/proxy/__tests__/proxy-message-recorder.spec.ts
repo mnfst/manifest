@@ -101,6 +101,7 @@ describe('ProxyMessageRecorder', () => {
           model: 'gpt-4o',
           authType: 'api_key',
           tenantProviderId: 'connection-1',
+          keyLabel: 'Work',
         }),
       ).resolves.toBe(true);
       await recorder.completePendingProviderFailure(attempt, 429, 'rate limited', true);
@@ -113,6 +114,7 @@ describe('ProxyMessageRecorder', () => {
           status: 'pending',
           auth_type: 'api_key',
           tenant_provider_id: 'connection-1',
+          provider_key_label: 'Work',
         }),
       );
       expect(updateMock).toHaveBeenCalledWith(
@@ -201,6 +203,7 @@ describe('ProxyMessageRecorder', () => {
           provider: 'openai',
           model: 'gpt-5',
           authType: 'subscription',
+          keyLabel: 'Work',
         },
         requestDurationMs: 150,
         traceId: 'trace-cancelled',
@@ -215,6 +218,9 @@ describe('ProxyMessageRecorder', () => {
           provider: 'openai',
           model: 'gpt-5',
           auth_type: 'subscription',
+          // A cancelled row has no terminal writer to fill this in, so it has
+          // to come from the attempt start.
+          provider_key_label: 'Work',
           duration_ms: 125,
         }),
       );
@@ -572,6 +578,29 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'failed',
         error_http_status: 400,
+      });
+    });
+
+    it('keeps Anthropic extra-usage errors as HTTP 400 but classifies them as billing', async () => {
+      const errorBody = JSON.stringify({
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+        },
+      });
+
+      await recorder.recordProviderError(ctx, 400, errorBody, {
+        provider: 'anthropic',
+        model: 'claude-sonnet-4',
+        authType: 'subscription',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'failed',
+        error_http_status: 400,
+        error_class: 'billing',
+        error_origin: 'provider',
       });
     });
 
@@ -946,6 +975,53 @@ describe('ProxyMessageRecorder', () => {
       );
     });
 
+    // Connection attribution on failure rows: the label must follow the key
+    // each hop actually used, and only fall back to the primary's for legacy
+    // rows that carry none.
+    it('stamps each failed fallback with its own connection label', async () => {
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 0,
+          keyLabel: 'Personal',
+        },
+        {
+          model: 'gemini-2.5-flash',
+          provider: 'gemini',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 1,
+        },
+      ];
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        providerKeyLabel: 'Work',
+      });
+
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows[0]).toMatchObject({ provider: 'anthropic', provider_key_label: 'Personal' });
+      expect(rows[1]).toMatchObject({ provider: 'gemini', provider_key_label: 'Work' });
+    });
+
+    it('leaves provider_key_label null when neither the hop nor the primary has one', async () => {
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 0,
+        },
+      ];
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+
+      expect(insertMock.mock.calls[0][0][0]).toMatchObject({ provider_key_label: null });
+    });
+
     it('stamps error_code on mid-chain Manifest credential failures', async () => {
       const failures = [
         {
@@ -1262,6 +1338,36 @@ describe('ProxyMessageRecorder', () => {
         provider: 'openai',
       });
       expect(insertMock.mock.calls[0][0].error_message).toContain('M102');
+    });
+
+    it('stamps the connection label on the failed primary row', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'default',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+        'api_key',
+        { provider: 'openai', tenantProviderId: 'up-work', providerKeyLabel: 'Work' },
+      );
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'failed',
+        tenant_provider_id: 'up-work',
+        provider_key_label: 'Work',
+      });
+    });
+
+    it('leaves provider_key_label null when the primary failure carries no label', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'default',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+      );
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ provider_key_label: null });
     });
 
     it('persists the provider column when passed a provider', async () => {

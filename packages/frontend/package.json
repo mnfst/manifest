@@ -20,6 +20,7 @@
     "highlight.js": "^11.11.1",
     "manifest-shared": "*",
     "marked": "^18.0.7",
+    "motion": "^12.42.2",
     "solid-js": "^1.9.14",
     "uplot": "^1.6.31"
   },

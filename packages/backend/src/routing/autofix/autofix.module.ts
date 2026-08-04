@@ -4,12 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { InstanceCredential } from '../../entities/instance-credential.entity';
-import { Tenant } from '../../entities/tenant.entity';
 import { ManifestRequest } from '../../entities/request.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { readManifestVersion } from '../../telemetry/telemetry.config';
 import { AutofixService } from './autofix.service';
-import { AutofixCohortController } from './autofix-cohort.controller';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { resolveHttpHealingUrl } from './autofix-healing-config';
 import { HEALING_CLIENT, type HealingClient } from './healing-client';
@@ -18,7 +16,6 @@ import { InstanceCredentialService } from './instance-credential.service';
 import { MockHealingClient } from './mock-healing-client';
 import { NoopHealingClient } from './noop-healing-client';
 import { ObservationReporter } from './observation-reporter';
-import { DevAutofixSeederService } from './dev-autofix-seeder.service';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
@@ -32,20 +29,12 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Agent,
-      AgentMessage,
-      InstanceCredential,
-      ManifestRequest,
-      Tenant,
-    ]),
+    TypeOrmModule.forFeature([Agent, AgentMessage, InstanceCredential, ManifestRequest]),
   ],
-  controllers: [AutofixCohortController],
   providers: [
     AutofixService,
     AutofixHealthProbe,
     ObservationReporter,
-    DevAutofixSeederService,
     InstanceCredentialService,
     {
       provide: HEALING_CLIENT,

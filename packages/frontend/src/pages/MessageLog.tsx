@@ -26,19 +26,20 @@ import { agentPlatform, agentCategory } from '../services/agent-platform-store.j
 import {
   getAgents,
   getSpecificityAssignments,
+  getMessageCount,
   getMessages,
   getMessageFilterOptions,
   getRoutingStatus,
   listHeaderTiers,
 } from '../services/api.js';
 import { createCursorPagination } from '../services/cursor-pagination.js';
-import { getBillingStatus } from '../services/api/billing.js';
+import { usePlanRangeLock } from '../services/plan-range-lock.js';
 import { preloadModelDisplayNames } from '../services/model-display.js';
 import { PROVIDERS, SPECIFICITY_STAGES } from '../services/providers.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import { platformIcon } from 'manifest-shared';
 import { ALL_TIERS, TIER_LABELS_ALL } from 'manifest-shared';
-import { messagePing } from '../services/sse.js';
+import { analyticsPing, messagePing } from '../services/sse.js';
 import '../styles/overview.css';
 import '../styles/routing.css';
 // The filtered-empty state here reuses .model-filter__empty classes, so this
@@ -156,8 +157,7 @@ const MessageLog: Component = () => {
       // includePlayground=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        | { agents?: AgentFilterOption[] }
-        | AgentFilterOption[];
+        { agents?: AgentFilterOption[] } | AgentFilterOption[];
       return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
@@ -263,19 +263,8 @@ const MessageLog: Component = () => {
   const [rangeFilter, setRangeFilterValue] = createSignal<MessageRangeFilterValue>(
     normalizeRangeFilter(searchParams.range),
   );
-  const [billing] = createResource(async () => {
-    try {
-      return await getBillingStatus();
-    } catch {
-      return null;
-    }
-  });
-  const isFreePlan = () => billing()?.enabled && billing()?.plan === 'free';
-  const shouldLockProRanges = () => billing.loading || isFreePlan();
-  const isProRangeLocked = (value: string) => shouldLockProRanges() && PRO_RANGES.has(value);
-  const effectiveRange = createMemo<MessageRangeFilterValue>(() =>
-    isProRangeLocked(rangeFilter()) ? '7d' : rangeFilter(),
-  );
+  const { isFreePlan, isProRangeLocked, effectiveRange } =
+    usePlanRangeLock<MessageRangeFilterValue>(rangeFilter, PRO_RANGES, '7d');
   const [tierFilter, setTierFilter] = createSignal('');
   const [originFilter, setOriginFilter] = createSignal('');
   const [statusFilterValue, setStatusFilterValue] = createSignal<MessageStatusFilterValue>(
@@ -383,53 +372,66 @@ const MessageLog: Component = () => {
     ),
   );
 
+  const messageFilters = () => {
+    const q: Record<string, string> = {};
+    const connections = connectionsFilter();
+    if (connections.length) q.connections = connections.join(',');
+    const triggerParam = triggerChoiceToParam(triggerFilter());
+    if (triggerParam) q.trigger = triggerParam;
+    const attempts = attemptStatusFilter();
+    if (attempts) q.attempts = attempts;
+    const tier = tierFilter();
+    if (tier) {
+      if (tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
+        q.specificity_category = tier.slice(SPECIFICITY_FILTER_PREFIX.length);
+      } else if (tier.startsWith(HEADER_TIER_FILTER_PREFIX)) {
+        q.header_tier_id = tier.slice(HEADER_TIER_FILTER_PREFIX.length);
+      } else {
+        q.routing_tier = tier;
+      }
+    }
+    const status = statusFilterValue();
+    if (status) q.status = status;
+    const range = effectiveRange();
+    if (range) q.range = range;
+    const origin = originFilter();
+    if (origin) q.origin = origin;
+    const minCost = costMin();
+    if (minCost) q.cost_min = minCost;
+    const maxCost = costMax();
+    if (maxCost) q.cost_max = maxCost;
+    const agentName = agentFilter() || params.agentName;
+    if (agentName) q.agent_name = agentName;
+    return q;
+  };
+
   const [data, { refetch }] = createResource(
     () => ({
-      connections: connectionsFilter(),
-      trigger: triggerFilter(),
-      attempts: attemptStatusFilter(),
-      tier: tierFilter(),
-      origin: originFilter(),
-      status: statusFilterValue(),
-      range: effectiveRange(),
-      costMin: costMin(),
-      costMax: costMax(),
-      agentName: agentFilter() || params.agentName,
+      filters: messageFilters(),
       _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
     }),
     (p) => {
-      const q: Record<string, string> = {};
-      if (p.connections.length) q.connections = p.connections.join(',');
-      {
-        const triggerParam = triggerChoiceToParam(p.trigger);
-        if (triggerParam) q.trigger = triggerParam;
-      }
-      if (p.attempts) q.attempts = p.attempts;
-      if (p.tier) {
-        if (p.tier.startsWith(SPECIFICITY_FILTER_PREFIX)) {
-          q.specificity_category = p.tier.slice(SPECIFICITY_FILTER_PREFIX.length);
-        } else if (p.tier.startsWith(HEADER_TIER_FILTER_PREFIX)) {
-          q.header_tier_id = p.tier.slice(HEADER_TIER_FILTER_PREFIX.length);
-        } else {
-          q.routing_tier = p.tier;
-        }
-      }
-      if (p.status) q.status = p.status;
-      if (p.range) q.range = p.range;
-      if (p.origin) q.origin = p.origin;
-      if (p.costMin) q.cost_min = p.costMin;
-      if (p.costMax) q.cost_max = p.costMax;
-      if (p.agentName) q.agent_name = p.agentName;
+      const q = { ...p.filters };
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
-      // The dashboard cards deep-link here promising "the N you counted";
-      // an exact total is what makes that promise checkable at a glance.
-      q.include_total = 'true';
+      // Live message events refresh only the bounded page. Exact totals have
+      // their own slower resource below, so ingest cannot put COUNT(*) back on
+      // the 500ms feed path.
+      q.include_total = 'false';
       q.include_filter_options = 'false';
       return getMessages(q) as Promise<MessagesData>;
     },
+  );
+
+  const countQueryKey = () => JSON.stringify(messageFilters());
+  const [messageCount] = createResource(
+    () => ({ key: countQueryKey(), _ping: analyticsPing() }),
+    async (source) => ({
+      key: source.key,
+      data: (await getMessageCount(JSON.parse(source.key))) as MessagesData,
+    }),
   );
 
   // The resource retains its previous value during refetches. Show the table
@@ -437,16 +439,7 @@ const MessageLog: Component = () => {
   // visible for the frequent background SSE `_ping` refetches.
   const messageQueryKey = () =>
     JSON.stringify({
-      connections: connectionsFilter(),
-      trigger: triggerFilter(),
-      attempts: attemptStatusFilter(),
-      tier: tierFilter(),
-      origin: originFilter(),
-      status: statusFilterValue(),
-      range: effectiveRange(),
-      costMin: costMin(),
-      costMax: costMax(),
-      agentName: agentFilter() || params.agentName,
+      filters: messageFilters(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
     });
@@ -454,14 +447,13 @@ const MessageLog: Component = () => {
   createEffect(() => {
     if (!data.loading && data() !== undefined) setLoadedMessageQueryKey(messageQueryKey());
   });
-  const messageQueryChanging = () =>
-    data.loading && loadedMessageQueryKey() !== messageQueryKey();
+  const messageQueryChanging = () => data.loading && loadedMessageQueryKey() !== messageQueryKey();
 
   const [messageFilterOptions] = createResource(
     () => ({
       agentName: agentFilter() || params.agentName,
       range: effectiveRange(),
-      _ping: messagePing(),
+      _ping: analyticsPing(),
     }),
     (p) => {
       const q: Record<string, string> = {};
@@ -496,12 +488,19 @@ const MessageLog: Component = () => {
     costMin() !== '' ||
     costMax() !== '';
 
+  const exactTotal = () => {
+    const count = messageCount();
+    return count?.key === countQueryKey() ? count.data?.total_count : undefined;
+  };
+
   const hasNoData = () => {
     const d = data();
-    return d && d.total_count === 0;
+    return d && (exactTotal() ?? d.total_count) === 0;
   };
 
   const totalForPager = () => {
+    const count = exactTotal();
+    if (count !== undefined) return count;
     const d = data();
     if (!d) return 0;
     if (d.total_count_exact !== false) return d.total_count;

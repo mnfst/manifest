@@ -468,6 +468,58 @@ describe('ProviderDetailView', () => {
       });
     });
 
+    it('updates the model count immediately after a successful refresh', async () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      const [providers, setProviders] = createSignal(connectedAnthropicSub);
+      props.onUpdate.mockImplementation(() => {
+        setProviders([
+          {
+            ...connectedAnthropicSub[0]!,
+            cached_model_count: 3,
+            models_fetched_at: '2026-04-12T10:00:00Z',
+          },
+        ]);
+      });
+      render(() => <ProviderDetailView {...props} providers={providers()} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(screen.getByText(/3 models - last refreshed: 5m ago/)).toBeDefined();
+      });
+    });
+
+    it('keeps refreshing until the parent model catalog has reloaded', async () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      let finishUpdate!: () => void;
+      props.onUpdate.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishUpdate = resolve;
+          }),
+      );
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Refreshing…')).toBeDefined();
+      });
+      finishUpdate();
+
+      await waitFor(() => {
+        expect(screen.getByText('Refresh models')).toBeDefined();
+      });
+    });
+
     it('shows a singular model count in the success toast', async () => {
       mockRefreshProviderModels.mockResolvedValueOnce({
         ok: true,

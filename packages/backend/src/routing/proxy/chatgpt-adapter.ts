@@ -52,6 +52,14 @@ export interface ToResponsesRequestOptions {
    * ChatGPT-subscription behavior, which expects SSE collection.
    */
   stream?: boolean;
+  /**
+   * Map the standard Chat Completions `reasoning_effort` param onto the
+   * Responses `reasoning` object, requesting `summary: 'auto'` alongside so
+   * the effort yields visible `reasoning_content` (issue #2531 — GPT-5.6
+   * doesn't reason at all without it). Opt-in per endpoint: only backends
+   * known to accept `reasoning.summary` (OpenAI infrastructure).
+   */
+  mapReasoningEffort?: boolean;
 }
 
 export function toResponsesRequest(
@@ -118,6 +126,8 @@ export function toResponsesRequest(
 
   if (isObjectRecord(body.reasoning)) {
     request.reasoning = body.reasoning;
+  } else if (options.mapReasoningEffort && typeof body.reasoning_effort === 'string') {
+    request.reasoning = { effort: body.reasoning_effort, summary: 'auto' };
   }
 
   if (isObjectRecord(body.text)) {
@@ -165,15 +175,45 @@ function reasoningContentFromOutput(output: Record<string, unknown>[]): string {
     .join('\n\n');
 }
 
+/**
+ * Prefix-matched so new model generations that rename the summary delta event
+ * (issue #2531) keep streaming without a per-model allowlist. Raw
+ * chain-of-thought events (`response.reasoning_text*`) never match — Manifest
+ * only exposes summaries.
+ */
 function isReasoningDeltaEvent(eventType: string): boolean {
-  return (
-    eventType === 'response.reasoning_summary.delta' ||
-    eventType === 'response.reasoning_summary_text.delta'
-  );
+  return eventType.startsWith('response.reasoning_summary') && eventType.endsWith('.delta');
 }
 
 function reasoningDeltaText(data: Record<string, unknown>): string {
-  return typeof data.delta === 'string' ? data.delta : '';
+  if (typeof data.delta === 'string') return data.delta;
+  // Tolerate payloads that nest the text ({"delta":{"text":"..."}}).
+  if (isObjectRecord(data.delta) && typeof data.delta.text === 'string') return data.delta.text;
+  return '';
+}
+
+/** Tracks whether reasoning summary text was already streamed to the client. */
+interface ReasoningStreamState {
+  streamed: boolean;
+}
+
+/**
+ * The terminal `response.completed` / `response.incomplete` events always
+ * carry the full reasoning output, whatever the upstream named its delta
+ * events. When nothing was streamed incrementally, backfill the summary as a
+ * single `reasoning_content` frame ahead of the finish chunk so unrecognized
+ * delta shapes degrade to a lump-sum summary instead of losing it.
+ */
+function reasoningBackfillFrame(
+  response: Record<string, unknown> | undefined,
+  state: ReasoningStreamState | undefined,
+  model: string,
+): string {
+  if (!state || state.streamed) return '';
+  const reasoning = reasoningContentFromOutput(responseOutputItems(response));
+  if (!reasoning) return '';
+  state.streamed = true;
+  return formatSSE({ delta: { reasoning_content: reasoning }, finish_reason: null }, model);
 }
 
 /* ── Non-streaming response conversion ── */
@@ -247,7 +287,8 @@ export function fromResponsesResponse(
       completion_tokens: (usage.output_tokens as number) ?? 0,
       total_tokens: (usage.total_tokens as number) ?? 0,
       cache_read_tokens: inputDetails?.cached_tokens ?? 0,
-      cache_creation_tokens: 0,
+      cache_creation_tokens:
+        inputDetails?.cache_write_tokens ?? inputDetails?.cache_creation_input_tokens ?? 0,
     },
   };
 }
@@ -255,10 +296,24 @@ export function fromResponsesResponse(
 /* ── Streaming SSE conversion ── */
 
 /**
+ * Create a stateful per-stream transformer (must be created once per stream
+ * and fed events in order) so the terminal event can backfill reasoning
+ * summaries that never streamed as recognizable deltas.
+ */
+export function createChatGptStreamTransformer(model: string): (chunk: string) => string | null {
+  const state: ReasoningStreamState = { streamed: false };
+  return (chunk) => transformResponsesStreamChunk(chunk, model, state);
+}
+
+/**
  * Transform a single Responses API SSE chunk into an OpenAI
  * Chat Completions SSE chunk. Returns null for irrelevant events.
  */
-export function transformResponsesStreamChunk(chunk: string, model: string): string | null {
+export function transformResponsesStreamChunk(
+  chunk: string,
+  model: string,
+  state?: ReasoningStreamState,
+): string | null {
   const lines = chunk.split('\n');
   let eventType = '';
   let dataStr = '';
@@ -285,10 +340,9 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
   if (isReasoningDeltaEvent(eventType)) {
     const data = safeParse(dataStr);
     if (!data) return null;
-    return formatSSE(
-      { delta: { reasoning_content: reasoningDeltaText(data) }, finish_reason: null },
-      model,
-    );
+    const text = reasoningDeltaText(data);
+    if (text && state) state.streamed = true;
+    return formatSSE({ delta: { reasoning_content: text }, finish_reason: null }, model);
   }
 
   if (eventType === 'response.function_call_arguments.delta') {
@@ -335,11 +389,11 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
   }
 
   if (eventType === 'response.completed') {
-    return handleCompletedEvent(dataStr, model);
+    return handleCompletedEvent(dataStr, model, state);
   }
 
   if (eventType === 'response.incomplete') {
-    return handleIncompleteEvent(dataStr, model);
+    return handleIncompleteEvent(dataStr, model, state);
   }
 
   if (eventType === 'error' || eventType === 'response.failed') {
@@ -349,7 +403,11 @@ export function transformResponsesStreamChunk(chunk: string, model: string): str
   return null;
 }
 
-function handleCompletedEvent(dataStr: string, model: string): string {
+function handleCompletedEvent(
+  dataStr: string,
+  model: string,
+  state?: ReasoningStreamState,
+): string {
   const data = safeParse(dataStr);
   const response = isObjectRecord(data?.response) ? data.response : undefined;
   const responseOutput = responseOutputItems(response);
@@ -359,7 +417,7 @@ function handleCompletedEvent(dataStr: string, model: string): string {
     model,
     extractResponseUsage(response),
   );
-  return `${finish}\ndata: [DONE]\n\n`;
+  return `${reasoningBackfillFrame(response, state, model)}${finish}\ndata: [DONE]\n\n`;
 }
 
 /**
@@ -369,7 +427,11 @@ function handleCompletedEvent(dataStr: string, model: string): string {
  * stream ends with no finish chunk and clients report an interrupted stream
  * (issue #2212's symptom).
  */
-function handleIncompleteEvent(dataStr: string, model: string): string {
+function handleIncompleteEvent(
+  dataStr: string,
+  model: string,
+  state?: ReasoningStreamState,
+): string {
   const data = safeParse(dataStr);
   const response = isObjectRecord(data?.response) ? data.response : undefined;
   const finish = formatSSE(
@@ -377,7 +439,7 @@ function handleIncompleteEvent(dataStr: string, model: string): string {
     model,
     extractResponseUsage(response),
   );
-  return `${finish}\ndata: [DONE]\n\n`;
+  return `${reasoningBackfillFrame(response, state, model)}${finish}\ndata: [DONE]\n\n`;
 }
 
 function incompleteFinishReason(response: Record<string, unknown> | undefined): string {
@@ -398,7 +460,8 @@ function extractResponseUsage(
     completion_tokens: (responseUsage.output_tokens as number) ?? 0,
     total_tokens: (responseUsage.total_tokens as number) ?? 0,
     cache_read_tokens: inputDetails?.cached_tokens ?? 0,
-    cache_creation_tokens: 0,
+    cache_creation_tokens:
+      inputDetails?.cache_write_tokens ?? inputDetails?.cache_creation_input_tokens ?? 0,
   };
 }
 

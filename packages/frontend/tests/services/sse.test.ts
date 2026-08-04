@@ -59,72 +59,83 @@ describe("sse", { timeout: 20000 }, () => {
     expect(messagePing()).toBe(beforeMessage + 1);
   });
 
-  it("bumps pingCount immediately but debounces messagePing on 'message'", async () => {
+  it("refreshes messages after 500ms and analytics after 5s", async () => {
     vi.useFakeTimers();
-    const { connectSse, pingCount, messagePing } = await import(
-      "../../src/services/sse"
-    );
+    const { connectSse, pingCount, messagePing, analyticsPing } =
+      await import("../../src/services/sse");
     connectSse();
     const handler = getHandler("message");
     expect(handler).toBeDefined();
     const beforePing = pingCount();
     const beforeMessage = messagePing();
+    const beforeAnalytics = analyticsPing();
     handler();
     expect(pingCount()).toBe(beforePing + 1);
     expect(messagePing()).toBe(beforeMessage);
+    expect(analyticsPing()).toBe(beforeAnalytics);
     vi.advanceTimersByTime(500);
     expect(messagePing()).toBe(beforeMessage + 1);
+    expect(analyticsPing()).toBe(beforeAnalytics);
+    vi.advanceTimersByTime(4_500);
+    expect(analyticsPing()).toBe(beforeAnalytics + 1);
   });
 
-  it("coalesces a burst of 'message' events into a single bump per window", async () => {
+  it("coalesces message and analytics bursts at their separate cadences", async () => {
     vi.useFakeTimers();
-    const { connectSse, messagePing } = await import("../../src/services/sse");
+    const { connectSse, messagePing, analyticsPing } = await import("../../src/services/sse");
     connectSse();
     const handler = getHandler("message");
-    const before = messagePing();
+    const beforeMessage = messagePing();
+    const beforeAnalytics = analyticsPing();
     // Five events inside 100ms collapse into one scheduled bump.
     for (let i = 0; i < 5; i++) handler();
     vi.advanceTimersByTime(100);
-    expect(messagePing()).toBe(before);
+    expect(messagePing()).toBe(beforeMessage);
     vi.advanceTimersByTime(400);
-    expect(messagePing()).toBe(before + 1);
+    expect(messagePing()).toBe(beforeMessage + 1);
     // A later event opens a fresh window.
     handler();
     vi.advanceTimersByTime(500);
-    expect(messagePing()).toBe(before + 2);
+    expect(messagePing()).toBe(beforeMessage + 2);
+    expect(analyticsPing()).toBe(beforeAnalytics);
+    vi.advanceTimersByTime(4_000);
+    expect(analyticsPing()).toBe(beforeAnalytics + 1);
   });
 
-  it("clears the pending message bump timer on cleanup", async () => {
+  it("clears pending message and analytics bump timers on cleanup", async () => {
     vi.useFakeTimers();
-    const { connectSse, messagePing } = await import("../../src/services/sse");
+    const { connectSse, messagePing, analyticsPing } = await import("../../src/services/sse");
     const cleanup = connectSse();
     const handler = getHandler("message");
-    const before = messagePing();
+    const beforeMessage = messagePing();
+    const beforeAnalytics = analyticsPing();
     handler();
     cleanup();
-    vi.advanceTimersByTime(1000);
-    // The scheduled bump must not fire after cleanup.
-    expect(messagePing()).toBe(before);
+    vi.advanceTimersByTime(5_000);
+    // Neither scheduled bump may fire after cleanup.
+    expect(messagePing()).toBe(beforeMessage);
+    expect(analyticsPing()).toBe(beforeAnalytics);
     expect(mockEventSource.close).toHaveBeenCalled();
   });
 
-  it("increments agentPing AND pingCount on 'agent' event without touching messagePing", async () => {
+  it("increments agentPing AND pingCount without scheduling message analytics", async () => {
     vi.useFakeTimers();
-    const { connectSse, pingCount, agentPing, messagePing } = await import(
-      "../../src/services/sse"
-    );
+    const { connectSse, pingCount, agentPing, messagePing, analyticsPing } =
+      await import("../../src/services/sse");
     connectSse();
     const handler = getHandler("agent");
     expect(handler).toBeDefined();
     const beforePing = pingCount();
     const beforeAgent = agentPing();
     const beforeMessage = messagePing();
+    const beforeAnalytics = analyticsPing();
     handler();
     expect(agentPing()).toBe(beforeAgent + 1);
     expect(pingCount()).toBe(beforePing + 1);
-    // 'agent' must NOT schedule a messagePing bump.
-    vi.advanceTimersByTime(500);
+    // 'agent' must NOT schedule either message-derived bump.
+    vi.advanceTimersByTime(5_000);
     expect(messagePing()).toBe(beforeMessage);
+    expect(analyticsPing()).toBe(beforeAnalytics);
   });
 
   it("increments routingPing AND pingCount on 'routing' event", async () => {
@@ -197,6 +208,22 @@ describe("sse cache invalidation", () => {
     expect(order[0]).toBe("invalidate:message");
   });
 
+  it("invalidates the 'analytics' group BEFORE the slower analyticsPing", async () => {
+    vi.useFakeTimers();
+    const { connectSse, analyticsPing } = await import("../../src/services/sse");
+    connectSse();
+    const handler = getHandler("message");
+    const before = analyticsPing();
+    handler();
+    vi.advanceTimersByTime(4_999);
+    expect(analyticsPing()).toBe(before);
+    expect(invalidateGroup).not.toHaveBeenCalledWith("analytics");
+    vi.advanceTimersByTime(1);
+    expect(analyticsPing()).toBe(before + 1);
+    expect(invalidateGroup).toHaveBeenCalledWith("analytics");
+    expect(order.at(-1)).toBe("invalidate:analytics");
+  });
+
   it("invalidates the 'agent' group BEFORE bumping agentPing", async () => {
     const { connectSse, agentPing } = await import("../../src/services/sse");
     connectSse();
@@ -234,17 +261,19 @@ describe("sse cache invalidation", () => {
     ]);
   });
 
-  it("clears the pending message-bump timer on cleanup without invalidating", async () => {
+  it("clears pending message and analytics timers on cleanup without invalidating", async () => {
     vi.useFakeTimers();
-    const { connectSse, messagePing } = await import("../../src/services/sse");
+    const { connectSse, messagePing, analyticsPing } = await import("../../src/services/sse");
     const cleanup = connectSse();
     const handler = getHandler("message");
     const before = messagePing();
+    const beforeAnalytics = analyticsPing();
     handler();
     cleanup();
-    vi.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(5_000);
     // Neither the bump nor its invalidation fire after cleanup.
     expect(messagePing()).toBe(before);
+    expect(analyticsPing()).toBe(beforeAnalytics);
     expect(invalidateGroup).not.toHaveBeenCalled();
   });
 });

@@ -171,6 +171,13 @@ async function settle(expected: number, timeoutMs = 15000): Promise<void> {
 }
 
 async function truncate(): Promise<void> {
+  // Recording-enabled responses can finish before the terminal Request upsert.
+  // Wait for that writer before deleting rows so it cannot recreate a prior
+  // test's Request after cleanup.
+  await settle(0);
+  if ((await pendingRequestCount()) !== 0) {
+    throw new Error('Timed out waiting for pending Requests before cleanup');
+  }
   await ds.query(`DELETE FROM agent_messages WHERE tenant_id = $1`, [TEST_TENANT_ID]);
   await ds.query(`DELETE FROM requests WHERE tenant_id = $1`, [TEST_TENANT_ID]);
 }

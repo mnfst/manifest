@@ -8,7 +8,6 @@ import {
 } from '../../src/services/providers';
 import { validateApiKey, validateSubscriptionKey } from '../../src/services/provider-utils';
 import {
-  ROUTING_PROVIDER_API_KEY_URLS,
   EMAIL_PROVIDER_API_KEY_URLS,
   SUBSCRIPTION_PROVIDER_KEY_URLS,
   getRoutingProviderApiKeyUrl,
@@ -467,6 +466,16 @@ describe('PROVIDERS', () => {
     expect(ollama.localOnly).toBe(true);
     expect(ollama.models).toEqual([]);
     expect(ollama.minKeyLength).toBe(0);
+  });
+
+  it('exposes Gemini Free as a managed free provider', () => {
+    const provider = PROVIDERS.find((entry) => entry.id === 'gemini-free')!;
+    expect(provider.name).toBe('Gemini Free');
+    expect(provider.subtitle).toBe('Free Gemini models via Manifest');
+    expect(provider.keyPlaceholder).toBe('sk-...');
+    expect(getRoutingProviderApiKeyUrl('gemini-free')).toBe(
+      'https://calendly.com/sebastien-manifest/30min',
+    );
   });
 
   it('each provider has required fields', () => {
@@ -1003,7 +1012,7 @@ describe('PROVIDERS', () => {
         !provider.noKeyRequired &&
         !provider.deviceLogin &&
         !provider.subscriptionOnly &&
-        !ROUTING_PROVIDER_API_KEY_URLS[provider.id],
+        !getRoutingProviderApiKeyUrl(provider.id),
     ).map((provider) => provider.id);
     expect(missingProviderIds).toEqual([]);
   });

@@ -224,6 +224,23 @@ describe('toObservation', () => {
     expect(toObservation({ ...baseInput, status: 429 })).toBeNull();
   });
 
+  it('does not report Anthropic subscription extra-usage exhaustion', () => {
+    expect(
+      toObservation({
+        ...baseInput,
+        provider: 'anthropic',
+        status: 400,
+        errorBody: JSON.stringify({
+          type: 'error',
+          error: {
+            type: 'invalid_request_error',
+            message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+          },
+        }),
+      }),
+    ).toBeNull();
+  });
+
   it('returns null when the body is too large to ship', () => {
     const requestBody = { messages: [{ content: 'x'.repeat(MAX_BODY_BYTES) }] };
     expect(toObservation({ ...baseInput, requestBody })).toBeNull();

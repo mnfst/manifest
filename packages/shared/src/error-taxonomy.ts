@@ -1,3 +1,5 @@
+import { isAnthropicExtraUsageError } from './provider-error-semantics';
+
 /**
  * Error taxonomy for `agent_messages`.
  *
@@ -14,9 +16,10 @@
  *  - `superseded`   — whether this row is a retried / fell-back-away-from attempt
  *    rather than the request's terminal outcome (the old `fallback_error`).
  *
- * `classifyMessageError` is the single source of truth: the proxy ingestion path
- * calls it for every recorded row, and the backfill migration's SQL `CASE`
- * mirrors it exactly. Keep the two in lock-step when editing.
+ * `classifyMessageError` is the single source of truth for live ingestion. The
+ * original backfill migration mirrors its status-derived rules; provider-body
+ * semantic overrides added later apply to newly recorded rows unless a dedicated
+ * follow-up migration explicitly reclassifies history.
  */
 
 /**
@@ -217,6 +220,10 @@ export interface MessageErrorSignals {
   errorHttpStatus?: number | null;
   /** `agent_messages.routing_reason` — carries the canned Manifest reason for stubs. */
   routingReason?: string | null;
+  /** Canonical provider id, used for narrow provider-specific semantic overrides. */
+  provider?: string | null;
+  /** Raw or persisted provider error envelope. */
+  errorMessage?: string | null;
 }
 
 export interface MessageErrorClassification {
@@ -270,6 +277,15 @@ export function classifyMessageError(signals: MessageErrorSignals): MessageError
   }
 
   const http = signals.errorHttpStatus ?? null;
+  if (
+    isAnthropicExtraUsageError({
+      provider: signals.provider,
+      httpStatus: http,
+      errorBody: signals.errorMessage,
+    })
+  ) {
+    return { error_origin: 'provider', error_class: 'billing', superseded };
+  }
   if (http === TRANSPORT_TIMEOUT_HTTP_STATUS) {
     return { error_origin: 'transport', error_class: 'timeout', superseded };
   }
