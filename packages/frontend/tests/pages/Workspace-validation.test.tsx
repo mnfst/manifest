@@ -209,7 +209,9 @@ describe('Workspace AddAgentModal - name validation', () => {
         name: 'spaced-out',
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      });
+      autofix_enabled: true,
+      record_messages: true,
+    });
     });
   });
 
@@ -225,7 +227,9 @@ describe('Workspace AddAgentModal - name validation', () => {
         name: longName,
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      });
+      autofix_enabled: true,
+      record_messages: true,
+    });
     });
   });
 });
@@ -248,11 +252,19 @@ describe('Workspace AddAgentModal - exact createAgent payload', () => {
         name: 'Demo Agent',
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      });
+      autofix_enabled: true,
+      record_messages: true,
+    });
     });
     // Strict: nothing else was sneaked in (e.g. recordMessages, displayName).
     const call = mockCreateAgent.mock.calls[0][0] as Record<string, unknown>;
-    expect(Object.keys(call).sort()).toEqual(['agent_category', 'agent_platform', 'name']);
+    expect(Object.keys(call).sort()).toEqual([
+      'agent_category',
+      'agent_platform',
+      'autofix_enabled',
+      'name',
+      'record_messages',
+    ]);
   });
 
   it('includes the user-selected category and platform in the payload', async () => {
@@ -266,7 +278,9 @@ describe('Workspace AddAgentModal - exact createAgent payload', () => {
         name: 'my-langchain-agent',
         agent_category: 'app',
         agent_platform: 'langchain',
-      });
+      autofix_enabled: true,
+      record_messages: true,
+    });
     });
   });
 

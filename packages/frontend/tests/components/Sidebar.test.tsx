@@ -39,6 +39,14 @@ vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
+// Workspace Auto-fix status drives the bottom-left card (CTA vs Learn more).
+const mockGetAutofixStatus = vi.fn();
+const mockEnableAllAutofix = vi.fn();
+vi.mock("../../src/services/api/analytics.js", () => ({
+  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetAutofixStatus(...args),
+  enableAutofixForAllAgents: (...args: unknown[]) => mockEnableAllAutofix(...args),
+}));
+
 // Local providers only exist on self-hosted installs; the Sidebar hides the
 // Local nav entry in cloud. Default to self-hosted so the legacy link
 // assertions keep applying; cloud tests flip the flag.
@@ -87,6 +95,11 @@ const SAMPLE_AGENTS = [
 ];
 
 beforeEach(() => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      consented: false,
+    });
   vi.clearAllMocks();
   mockPathname = "/overview";
   mockIsSelfHosted = true;
@@ -501,22 +514,70 @@ describe("Sidebar — structure and interaction", () => {
 });
 
 describe("Sidebar — Auto-fix card", () => {
-  it("describes Auto-fix without claiming it is already enabled", () => {
+  it("offers the fleet Enable CTA when Auto-fix is off everywhere", async () => {
     const { container } = render(() => <Sidebar />);
+    await screen.findByText("Discover Auto-fix");
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
-    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
     expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
-    expect(container.textContent).not.toContain("Failing requests are automatically fixed");
-    const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
-    expect(link?.textContent).toBe("Learn more");
-    expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");
-    expect(link?.getAttribute("target")).toBe("_blank");
-    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+    const btn = container.querySelector("button.sidebar-autofix__btn") as HTMLButtonElement;
+    expect(btn?.textContent).toBe("Enable");
+  });
+
+  it("opens the consent modal before enabling on a non-consented install", async () => {
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Discover Auto-fix");
+    fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+    await screen.findByText("Enable hosted Auto-fix?");
+    expect(mockEnableAllAutofix).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByText("Agree & enable Auto-fix"));
+    await vi.waitFor(() => expect(mockEnableAllAutofix).toHaveBeenCalled());
+  });
+
+  it("enables directly once the install already consented", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      consented: true,
+    });
+    mockEnableAllAutofix.mockResolvedValue({
+      any_enabled: true,
+      enabled_agents: ["demo"],
+      consented: true,
+    });
+    const { container } = render(() => <Sidebar />);
+    // Consented installs drop the "Discover" framing even before enabling.
+    await screen.findByText("Enable");
+    fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+    await vi.waitFor(() => expect(mockEnableAllAutofix).toHaveBeenCalled());
+    // Card flips to the enabled state with a docs link.
+    await screen.findByText("Learn more");
+  });
+
+  it("shows Learn more instead of the CTA when Auto-fix is already on", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: true,
+      enabled_agents: ["demo"],
+      consented: true,
+    });
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Learn more");
+    const link = container.querySelector("a.sidebar-autofix__btn") as HTMLAnchorElement;
+    expect(link?.getAttribute("href")).toBe("https://manifest.build/docs/autofix/");
+    expect(container.querySelector("button.sidebar-autofix__btn")).toBeNull();
   });
 });
 
 describe("Sidebar — usage card", () => {
+  beforeEach(() => {
+    // The usage meter only occupies the bottom-left slot in cloud; self-hosted
+    // always shows the Auto-fix card there.
+    mockIsSelfHosted = false;
+  });
+  afterEach(() => {
+    mockIsSelfHosted = true;
+  });
+
   it("renders free-plan usage and the near-limit warning state", async () => {
     mockGetBillingStatus.mockResolvedValue({
       enabled: true,
