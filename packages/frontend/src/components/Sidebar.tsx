@@ -301,7 +301,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 void runEnableAll();
               }}
             >
-              {enablingAutofix() ? 'Enabling…' : 'Enable for all agents'}
+              {enablingAutofix() ? 'Enabling…' : 'Enable'}
             </button>
           </Show>
         </div>

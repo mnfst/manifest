@@ -187,6 +187,31 @@ describe('AddAgentModal', () => {
         name: 'typed',
         agent_category: 'app',
         agent_platform: 'langchain',
+        autofix_enabled: true,
+        record_messages: true,
+      });
+    });
+  });
+
+  it('sends toggled-off Auto-fix and recording when the user flips them', async () => {
+    const { input, createBtn } = renderOpen();
+    // Both switches default on; flip each off before creating.
+    const switches = Array.from(
+      document.querySelectorAll('.settings-switch'),
+    ) as HTMLButtonElement[];
+    // Order in the modal: Auto-fix, then Record messages.
+    expect(switches.length).toBeGreaterThanOrEqual(2);
+    fireEvent.click(switches[0]!);
+    fireEvent.click(switches[1]!);
+    fireEvent.input(input, { target: { value: 'typed' } });
+    fireEvent.click(createBtn);
+    await vi.waitFor(() => {
+      expect(mockCreateAgent).toHaveBeenCalledWith({
+        name: 'typed',
+        agent_category: 'personal',
+        agent_platform: expect.any(String),
+        autofix_enabled: false,
+        record_messages: false,
       });
     });
   });

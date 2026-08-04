@@ -25,6 +25,11 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
   );
   const [creating, setCreating] = createSignal(false);
+  // Both default ON — explicit so create always sends a choice rather than
+  // relying on the server-side inherit path (which is OFF for Auto-fix on
+  // self-hosted).
+  const [autofixEnabled, setAutofixEnabled] = createSignal(true);
+  const [recordingEnabled, setRecordingEnabled] = createSignal(true);
 
   // Tracks whether the user dismissed the modal (overlay click / Escape) while a
   // create request was still in flight. A dismissed create must NOT run its
@@ -59,6 +64,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         name: agentName,
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
+        autofix_enabled: autofixEnabled(),
+        record_messages: recordingEnabled(),
       });
       // Local creates do not wait for the asynchronous server-sent event. This
       // immediately reruns the sidebar's harness-list resource with fresh data.
@@ -109,6 +116,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setName('');
     setCategory('personal');
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
+    setAutofixEnabled(true);
+    setRecordingEnabled(true);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -160,6 +169,57 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}
               />
+            </div>
+          </div>
+
+          <div class="add-agent-toggles">
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Auto-fix</span>
+                <span class="settings-card__label-desc">
+                  Repair eligible failing requests before falling back.
+                </span>
+              </div>
+              <div class="settings-card__control settings-card__control--end">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={autofixEnabled()}
+                  aria-label="Auto-fix"
+                  class="settings-switch"
+                  classList={{ 'settings-switch--on': autofixEnabled() }}
+                  disabled={creating()}
+                  onClick={() => setAutofixEnabled(!autofixEnabled())}
+                >
+                  <span class="settings-switch__track">
+                    <span class="settings-switch__thumb" />
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div class="settings-card__row">
+              <div class="settings-card__label">
+                <span class="settings-card__label-title">Record messages</span>
+                <span class="settings-card__label-desc">
+                  Store request and response bodies for this harness.
+                </span>
+              </div>
+              <div class="settings-card__control settings-card__control--end">
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={recordingEnabled()}
+                  aria-label="Record messages"
+                  class="settings-switch"
+                  classList={{ 'settings-switch--on': recordingEnabled() }}
+                  disabled={creating()}
+                  onClick={() => setRecordingEnabled(!recordingEnabled())}
+                >
+                  <span class="settings-switch__track">
+                    <span class="settings-switch__thumb" />
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 

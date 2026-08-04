@@ -94,6 +94,8 @@ export class AgentsController {
         displayName,
         agentCategory: body.agent_category,
         agentPlatform: body.agent_platform,
+        autofixEnabled: body.autofix_enabled,
+        recordMessages: body.record_messages,
       });
     } catch (error) {
       if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {

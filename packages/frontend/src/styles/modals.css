@@ -912,3 +912,13 @@
 .user-discovery-modal__later:focus-visible {
   color: hsl(var(--foreground));
 }
+
+/* Create-harness modal: Auto-fix + recording toggles */
+.add-agent-toggles {
+  margin-top: var(--gap-md);
+  padding-top: var(--gap-sm);
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-xs);
+}

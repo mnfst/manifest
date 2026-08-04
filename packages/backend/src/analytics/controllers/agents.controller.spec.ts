@@ -316,6 +316,8 @@ describe('AgentsController', () => {
         name: 'My Agent',
         agent_category: 'personal',
         agent_platform: 'openclaw',
+        autofix_enabled: false,
+        record_messages: true,
       } as never,
     );
 
@@ -323,6 +325,8 @@ describe('AgentsController', () => {
       expect.objectContaining({
         agentCategory: 'personal',
         agentPlatform: 'openclaw',
+        autofixEnabled: false,
+        recordMessages: true,
       }),
     );
     expect(result.agent.agent_category).toBe('personal');
