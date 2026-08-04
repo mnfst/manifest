@@ -36,6 +36,15 @@ One request from Manifest to an AI provider while serving a Manifest Request.
 
 Every provider call counts as an Attempt, including failed calls, fallback attempts, and Auto-fix retries.
 
+### Manifest step
+
+A local routing failure that Manifest handled without contacting an AI provider, such as skipping a route while it is cooling down after an upstream 429.
+
+- Direction: internal to Manifest
+- Database field: `requests.manifest_steps`
+- A Manifest step can appear beside Provider Attempts in the Request drawer timeline, but it is not a Provider Attempt and never contributes to provider, Connection, model, token, or cost analytics.
+- A Request rejected before any provider call records its caller-visible failure on `requests.error_*` and may retain the same explanation as a Manifest step for the timeline.
+
 ### Status
 
 Requests and newly written Provider Attempts use the same canonical status values:
@@ -119,6 +128,7 @@ An Attempt identifies the Connection it used through `agent_messages.tenant_prov
 | Provider, model, and Connection | `agent_messages.provider`, `agent_messages.model`, `agent_messages.tenant_provider_id` |
 | Attempt usage                   | Token and cost columns on `agent_messages`                                             |
 | Routing and recovery context    | `agent_messages.routing_*`, `fallback_*`, `superseded`, and `autofix_*`                |
+| Local routing failures          | `requests.manifest_steps`                                                              |
 
 ## Metric definitions and perimeter
 

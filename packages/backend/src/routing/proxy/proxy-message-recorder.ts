@@ -12,7 +12,7 @@ import {
   type RequestParamDefaults,
 } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
-import { ManifestRequest } from '../../entities/request.entity';
+import { ManifestRequest, type ManifestRequestStep } from '../../entities/request.entity';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
@@ -381,6 +381,7 @@ function buildRequestRow(
     caller_attribution: attempt.caller_attribution ?? null,
     request_headers: attempt.request_headers ?? null,
     request_params: attempt.request_params ?? null,
+    manifest_steps: [],
     feedback_rating: attempt.feedback_rating ?? null,
     feedback_tags: attempt.feedback_tags ?? null,
     feedback_details: attempt.feedback_details ?? null,
@@ -516,6 +517,40 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const payload = { ...terminalRow };
     delete payload.id;
     await this.messageRepo.update({ id: attempt.id }, payload);
+  }
+
+  /** Append a local Manifest failure without inflating Provider Attempt counts. */
+  private async persistManifestStep(
+    ctx: IngestionContext,
+    requestId: string,
+    row: Partial<AgentMessage>,
+    routeIndex: number,
+    reason: string,
+  ): Promise<void> {
+    const query = this.messageRepo.manager?.query?.bind(this.messageRepo.manager);
+    if (!query) return;
+    const step: ManifestRequestStep = {
+      id: uuid(),
+      route_index: routeIndex,
+      timestamp: row.timestamp ?? new Date().toISOString(),
+      status: FAILED_STATUS,
+      source: 'manifest',
+      provider: row.provider ?? null,
+      model: row.model ?? null,
+      auth_type: row.auth_type ?? null,
+      error_message: row.error_message ?? FAILED_WITHOUT_MESSAGE,
+      error_code: row.error_code ?? null,
+      error_http_status: row.error_http_status ?? null,
+      error_origin: reason === 'provider_cooldown' ? 'policy' : (row.error_origin ?? null),
+      error_class: row.error_class ?? null,
+      reason,
+    };
+    await query(
+      `UPDATE "requests"
+       SET "manifest_steps" = COALESCE("manifest_steps", '[]'::jsonb) || $1::jsonb
+       WHERE "id" = $2 AND "tenant_id" = $3`,
+      [JSON.stringify([step]), requestId, ctx.tenantId],
+    );
   }
 
   private shouldSkipRateLimitRecord(ctx: IngestionContext, scope?: string): boolean {
@@ -718,7 +753,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_color: headerTierColor ?? null,
     });
     await this.persistRequest(ctx, requestId, row, true, autofix, apiMode);
-    if (!skipAttempt) await this.persistAttempt(row, attempt);
+    if (skipAttempt) {
+      await this.persistManifestStep(ctx, requestId, row, 0, 'provider_cooldown');
+    } else {
+      await this.persistAttempt(row, attempt);
+    }
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 
@@ -800,6 +839,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         superseded: false,
       });
     }
+    await this.persistManifestStep(ctx, requestId, row, 0, reason);
     // Legacy unit-test doubles have no request repository. Keep their observed
     // write shape without affecting the production zero-attempt model.
     if (!wroteRequest) await this.messageRepo.insert(row);
@@ -847,6 +887,35 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierName,
       headerTierColor,
     } = opts ?? {};
+    const localFailures = failures.filter((failure) => failure.providerCallStarted === false);
+    await Promise.all(
+      localFailures.map(async (failure) => {
+        const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+          ctx.tenantId,
+          failure.provider,
+          failure.model,
+        );
+        const errorMessage = scrubSecrets(
+          normalizeProviderErrorForStorage(failure.status, failure.errorBody),
+        ).slice(0, 2000);
+        const row = buildMessageRow(ctx, {
+          timestamp: new Date().toISOString(),
+          status: failure.status === 429 ? 'rate_limited' : 'error',
+          error_message: errorMessage,
+          error_http_status: failure.status,
+          model: canonical.model,
+          provider: canonical.provider,
+          auth_type: failure.authType ?? authType ?? null,
+        });
+        await this.persistManifestStep(
+          ctx,
+          requestId,
+          row,
+          failure.fallbackIndex + 1,
+          'provider_cooldown',
+        );
+      }),
+    );
     failures = failures.filter((failure) => failure.providerCallStarted !== false);
     if (failures.length === 0) return;
     // primaryModel is loop-invariant — canonicalize once.
@@ -1025,7 +1094,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       opts?.autofix,
       opts?.apiMode,
     );
-    if (!opts?.skipAttempt) await this.persistAttempt(row, opts?.attempt);
+    if (opts?.skipAttempt) {
+      await this.persistManifestStep(ctx, requestId, row, 0, 'provider_cooldown');
+    } else {
+      await this.persistAttempt(row, opts?.attempt);
+    }
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
 

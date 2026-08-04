@@ -5,7 +5,7 @@ import { AgentMessage } from '../../entities/agent-message.entity';
 import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
 import { isSuccessStatus, type AutofixStatus, type RequestParamDefaults } from 'manifest-shared';
-import { ManifestRequest } from '../../entities/request.entity';
+import { ManifestRequest, type ManifestRequestStep } from '../../entities/request.entity';
 import type { RecordingResponseBody } from '../../routing/proxy/attempt-recording.types';
 import { RequestRecordingStorageService } from '../../common/services/request-recording-storage.service';
 import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
@@ -65,6 +65,7 @@ export interface MessageDetailResponse {
     } | null;
     /** The paired row (failed original ↔ successful retry), for the visual link. */
     autofix_sibling: { id: string; role: string | null; status: string } | null;
+    manifest_steps?: ManifestRequestStep[];
     attempts?: Array<{
       id: string;
       model: string | null;
@@ -240,6 +241,7 @@ export class MessageDetailsService {
             explanation?: PhoenixExplanation | null;
           } | null) ?? null,
         autofix_sibling,
+        ...(request ? { manifest_steps: request.manifest_steps ?? [] } : {}),
         ...(request
           ? {
               // The drawer renders each attempt's full story (details, error

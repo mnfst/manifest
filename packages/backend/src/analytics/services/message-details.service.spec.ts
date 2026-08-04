@@ -511,6 +511,24 @@ describe('MessageDetailsService', () => {
           request_headers: null,
           request_params: null,
           caller_attribution: null,
+          manifest_steps: [
+            {
+              id: 'manifest-step-1',
+              route_index: 0,
+              timestamp: '2026-07-14T10:00:00Z',
+              status: 'failed',
+              source: 'manifest',
+              provider: null,
+              model: 'gpt-4o',
+              auth_type: null,
+              error_message: 'No provider',
+              error_code: 'M100',
+              error_http_status: 400,
+              error_origin: 'config',
+              error_class: 'no_provider',
+              reason: 'no_provider_key',
+            },
+          ],
         }),
       } as never,
     );
@@ -528,6 +546,7 @@ describe('MessageDetailsService', () => {
         cost_usd: 0,
         duration_ms: 15,
         attempts: [],
+        manifest_steps: [expect.objectContaining({ id: 'manifest-step-1' })],
       }),
     );
   });
