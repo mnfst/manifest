@@ -162,6 +162,7 @@ const tiers: TierAssignment[] = [
 describe('ModelPickerModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
     mockRefreshModels.mockResolvedValue({ ok: true });
     mockRefreshProviderModels.mockResolvedValue({
       ok: true,
@@ -172,14 +173,14 @@ describe('ModelPickerModal', () => {
   });
 
   describe('automatic daily refresh', () => {
-    it('refreshes all provider models when the popup first opens with stale models', async () => {
+    it('refreshes stale models only once per agent and browser session each day', async () => {
       const onProviderRefreshed = vi.fn();
       const staleProviders = apiKeyOnly.map((provider) => ({
         ...provider,
         models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
       }));
 
-      render(() => (
+      const first = render(() => (
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
@@ -197,21 +198,35 @@ describe('ModelPickerModal', () => {
         expect(mockRefreshModels).toHaveBeenCalledWith('demo-agent');
         expect(onProviderRefreshed).toHaveBeenCalledOnce();
       });
-    });
 
-    it('does not refresh again when provider models were already fetched today', async () => {
-      const currentProviders = apiKeyOnly.map((provider) => ({
-        ...provider,
-        models_fetched_at: new Date().toISOString(),
-      }));
-
+      first.unmount();
       render(() => (
         <ModelPickerModal
           tierId="default"
           agentName="demo-agent"
           models={baseModels}
           tiers={[]}
-          connectedProviders={currentProviders}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+          onProviderRefreshed={onProviderRefreshed}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).toHaveBeenCalledOnce();
+      expect(onProviderRefreshed).toHaveBeenCalledOnce();
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+
+    it('does not refresh when provider models were already fetched today', async () => {
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
           onSelect={vi.fn()}
           onClose={vi.fn()}
         />
@@ -219,6 +234,43 @@ describe('ModelPickerModal', () => {
 
       await Promise.resolve();
       expect(mockRefreshModels).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a failed refresh when the picker reopens that day', async () => {
+      mockRefreshModels.mockRejectedValueOnce(new Error('refresh failed'));
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      const first = render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      await waitFor(() => expect(mockRefreshModels).toHaveBeenCalledOnce());
+
+      first.unmount();
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).toHaveBeenCalledOnce();
     });
 
     it('stays open while refreshed model data is loading after the user scrolls', async () => {
