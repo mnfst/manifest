@@ -1,0 +1,25 @@
+packages/frontend/src/components/AddAgentModal.tsx
+  s_ea056afe99f19b::t_9adf49ed8d094d 160
+  s_ea056afe99f19b::t_2bfe9d6af5b616 3,6,10,36-38,63,121-137,144,257-332
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_ea056afe99f19b::t_5d94e1191f19cf 16-20,78,92-99,101-105,108-117
+  s_ea056afe99f19b::t_0e3f15a310c3e3 100
+  s_ea056afe99f19b::t_9adf49ed8d094d 120-133
+  s_ea056afe99f19b::t_54eb4acaf490fb 118-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "24664fc69c08256ca1c3634ffb25be0cdf47dd45",
+  "prompts": {},
+  "sessions": {
+    "s_ea056afe99f19b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd4d-29f8-7581-a404-8361f72a45dd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
