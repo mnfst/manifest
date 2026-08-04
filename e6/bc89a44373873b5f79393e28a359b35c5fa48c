@@ -1,0 +1,36 @@
+packages/frontend/src/components/Sidebar.tsx
+  s_4560f40e5f017e::t_181a7290d56d46 48-50,52-58
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_4560f40e5f017e::t_119902224ddeea 50
+  s_4560f40e5f017e::t_db2b86bdf2b151 33-34,36-45
+  s_4560f40e5f017e::t_f01f067693cfbc 364-366,369-382,384-386
+  s_4560f40e5f017e::t_6676de7701dab8 46,367-368,383
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_4560f40e5f017e::t_db2b86bdf2b151 1-11,35-38,51-56
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_4560f40e5f017e::t_181a7290d56d46 129-131,133
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_4560f40e5f017e::t_f01f067693cfbc 12-13,66,78
+packages/backend/src/database/migrations/1801900000000-AddAutofixConsentToInstallMetadata.ts
+  s_4560f40e5f017e::t_db2b86bdf2b151 18-24,28-31
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_4560f40e5f017e::t_db2b86bdf2b151 124
+packages/backend/src/common/dto/create-agent.dto.spec.ts
+  s_4560f40e5f017e::t_f01f067693cfbc 98-135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "e6bc89a44373873b5f79393e28a359b35c5fa48c",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "grok-4.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
