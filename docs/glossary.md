@@ -20,21 +20,19 @@ One logical request from an agent to Manifest.
 - Database table: `requests`
 - Primary key: `requests.id`
 - Status: `requests.status`
-- A Request ultimately has one caller-visible outcome and may have zero, one, or many Provider Attempts.
-
-A zero-attempt Request is valid when Manifest rejects it before contacting an AI provider.
+- A Request ultimately has one caller-visible outcome and may have one or many Provider Attempts.
 
 ### Provider Attempt
 
-One request from Manifest to an AI provider while serving a Manifest Request.
+One route evaluation while serving a Manifest Request. Most Attempts call an AI provider; Manifest-local failures are also retained as failed Attempts so the full routing chain is visible.
 
-- Direction: Manifest → AI provider
+- Direction: Manifest → AI provider, or internal when Manifest rejects the route locally
 - Database table: `agent_messages` (the physical legacy name is retained for safe rolling deploys)
 - Parent Request: `agent_messages.request_id → requests.id`
 - Order within the Request: `agent_messages.attempt_number`
 - Status: `agent_messages.status`
 
-Every provider call counts as an Attempt, including failed calls, fallback attempts, and Auto-fix retries.
+Every provider call counts as an Attempt, including failed calls, fallback attempts, and Auto-fix retries. Manifest-local failures such as a route skipped during provider cooldown also count as failed Attempts, but their Manifest error origin keeps them out of provider-reliability metrics.
 
 ### Status
 

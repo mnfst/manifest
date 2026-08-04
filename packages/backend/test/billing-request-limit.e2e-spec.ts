@@ -172,7 +172,7 @@ describe('request limit gate (/v1 proxy)', () => {
     const billableAfter = await planService.countRequestsSince(tenantId, monthStartMs);
 
     expect(after[0].n).toBe(before[0].n + 1);
-    expect(attemptsAfter[0].n).toBe(attemptsBefore[0].n);
+    expect(attemptsAfter[0].n).toBe(attemptsBefore[0].n + 1);
     expect(manifestBlocksAfter).toBe(manifestBlocksBefore[0].n + 1);
     expect(latestBlock[0]).toEqual(
       expect.objectContaining({

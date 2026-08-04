@@ -100,7 +100,7 @@ describe('ProxyMessageRecorder request parents', () => {
     recorder.onModuleDestroy();
   });
 
-  it('finishes a locally rejected Request without inserting a Provider Attempt', async () => {
+  it('records a locally rejected route as a failed attempt', async () => {
     const { recorder, insert, requestValues, execute } = setup();
     await recorder.recordProviderError(ctx, 429, 'route cooling down', {
       requestId: 'request-local-rejection',
@@ -113,7 +113,16 @@ describe('ProxyMessageRecorder request parents', () => {
     expect(requestValues).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'request-local-rejection', status: 'failed' }),
     );
-    expect(insert).not.toHaveBeenCalled();
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-local-rejection',
+        provider: 'openai',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+      }),
+    );
     recorder.onModuleDestroy();
   });
 
@@ -312,7 +321,7 @@ describe('ProxyMessageRecorder request parents', () => {
     recorder.onModuleDestroy();
   });
 
-  it('records a Manifest rejection with zero provider attempts', async () => {
+  it('records a Manifest rejection as a failed attempt', async () => {
     const { recorder, insert, requestValues } = setup();
     await recorder.recordManifestBlockedRequest(ctx, {
       requestId: 'request-2',
@@ -330,7 +339,81 @@ describe('ProxyMessageRecorder request parents', () => {
         duration_ms: 42,
       }),
     );
-    expect(insert).not.toHaveBeenCalled();
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-2',
+        status: 'failed',
+        error_origin: 'config',
+        error_class: 'no_provider_key',
+        routing_reason: 'no_provider_key',
+      }),
+    );
+    recorder.onModuleDestroy();
+  });
+
+  it('records a cooled-down fallback as a failed attempt', async () => {
+    const { recorder, insert } = setup();
+
+    await recorder.recordFailedFallbacks(
+      ctx,
+      'default',
+      'claude-fable-5',
+      [
+        {
+          model: 'deepseek-v4-flash',
+          provider: 'deepseek',
+          fallbackIndex: 0,
+          status: 429,
+          errorBody: 'Provider route temporarily cooling down after an upstream 429',
+          providerCallStarted: false,
+        },
+      ],
+      { requestId: 'request-cooldown-fallback' },
+    );
+
+    expect(insert).toHaveBeenCalledWith([
+      expect.objectContaining({
+        request_id: 'request-cooldown-fallback',
+        provider: 'deepseek',
+        model: 'deepseek-v4-flash',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+        fallback_index: 0,
+      }),
+    ]);
+    recorder.onModuleDestroy();
+  });
+
+  it('records a cooled-down primary route as a failed attempt', async () => {
+    const { recorder, insert } = setup();
+
+    await recorder.recordPrimaryFailure(
+      ctx,
+      'default',
+      'claude-fable-5',
+      'Provider route temporarily cooling down after an upstream 429',
+      '2026-08-04T16:17:55.000Z',
+      'subscription',
+      {
+        requestId: 'request-cooldown-primary',
+        provider: 'anthropic',
+        skipAttempt: true,
+      },
+    );
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: 'request-cooldown-primary',
+        provider: 'anthropic',
+        model: 'claude-fable-5',
+        status: 'failed',
+        error_origin: 'policy',
+        error_class: 'rate_limit',
+        routing_reason: 'provider_cooldown',
+      }),
+    );
     recorder.onModuleDestroy();
   });
 
