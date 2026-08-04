@@ -24,7 +24,10 @@ import {
   UpdateAutofixDto,
   UpdateRecordingDto,
 } from './dto/routing.dto';
+import { v4 as uuid } from 'uuid';
 import { Agent } from '../entities/agent.entity';
+import { InstallMetadata } from '../entities/install-metadata.entity';
+import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { AutofixService } from './autofix/autofix.service';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
 
@@ -35,6 +38,8 @@ export class TierController {
     private readonly resolveAgentService: ResolveAgentService,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
+    @InjectRepository(InstallMetadata)
+    private readonly installMetadataRepo: Repository<InstallMetadata>,
     private readonly autofixService: AutofixService,
     private readonly recordingCache: AgentRecordingCacheService,
   ) {}
@@ -162,7 +167,10 @@ export class TierController {
   @Get(':agentName/autofix')
   async getAutofix(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: this.autofixService.resolveEnabled(agent.autofix_enabled) };
+    return {
+      enabled: this.autofixService.resolveEnabled(agent.autofix_enabled),
+      consented: await this.hasAutofixConsent(),
+    };
   }
 
   @Patch(':agentName/autofix')
@@ -180,12 +188,52 @@ export class TierController {
       await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
       this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
+
+      if (body.enabled) {
+        // Any self-hosted enable is the consent flow's confirm (the frontend
+        // gates on `consented` before showing the modal), so record the
+        // once-consent here, idempotently.
+        if (!(await this.hasAutofixConsent())) await this.recordAutofixConsent();
+
+        // The modal's "enable for all existing agents" slider. Literal: every
+        // agent gets Auto-fix, including any previously turned off.
+        if (body.applyToAll && ctx.tenantId) {
+          await this.agentRepo.update({ tenant_id: ctx.tenantId }, { autofix_enabled: true });
+          this.resolveAgentService.invalidateTenant(ctx.tenantId);
+          this.autofixService.invalidateTenantConfig(ctx.tenantId);
+        }
+      }
     }
     return {
       enabled: applied
         ? (body.enabled as boolean)
         : this.autofixService.resolveEnabled(agent.autofix_enabled),
+      consented: await this.hasAutofixConsent(),
     };
+  }
+
+  /** Consent-once: the modal never shows again once the install consented. */
+  private async hasAutofixConsent(): Promise<boolean> {
+    if (!isSelfHosted()) return true;
+    const row = await this.installMetadataRepo.findOne({ where: { id: 'singleton' } });
+    return row?.autofix_consented_at != null;
+  }
+
+  private async recordAutofixConsent(): Promise<void> {
+    // The singleton row may not exist yet (telemetry disabled, Auto-fix enabled
+    // directly). install_id is NOT NULL, so mint one alongside the consent; the
+    // healing client's lazy getOrCreate() then reuses it.
+    await this.installMetadataRepo
+      .createQueryBuilder()
+      .insert()
+      .into(InstallMetadata)
+      .values({
+        id: 'singleton',
+        install_id: uuid(),
+        autofix_consented_at: new Date().toISOString(),
+      })
+      .orUpdate(['autofix_consented_at'], ['id'])
+      .execute();
   }
 
   @Get(':agentName/recording')

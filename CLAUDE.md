@@ -641,7 +641,9 @@ The id is minted lazily by `InstallIdService.getOrCreate()` (exported from `Tele
 
 **Frontend:** `pages/SettingsAutofixSection.tsx` — a single on/off toggle in the per-agent **Settings** page (shown for every agent; `services/api/routing.ts` `getAutofix`/`updateAutofix`; `.settings-switch` styling). `components/MessageDetails.tsx` renders the Auto-fix panel + sibling link.
 
-**Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled }`.
+**Self-hosted consent is once, and enabling can backfill the fleet.** On self-hosted, the first time Auto-fix is switched on the consent modal appears (remembered via `install_metadata.autofix_consented_at` — a single nullable column on the existing telemetry singleton). The modal carries an "Auto-fix for all existing agents" switch (`.settings-switch`, default ON): confirming with it on runs `UPDATE agents SET autofix_enabled = true` for **every** agent in the workspace (including any previously turned off), with per-tenant cache invalidation. `GET …/autofix` returns `{ enabled, consented }`; `PATCH` accepts `{ enabled, applyToAll }`. Cloud never consults or writes the consent.
+
+**Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled, consented }`.
 
 **Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 

@@ -177,13 +177,15 @@ export function toggleComplexity(agentName: string) {
 
 export interface AutofixConfig {
   enabled: boolean;
+  /** True once the self-hosted install consented (modal hidden thereafter). */
+  consented?: boolean;
 }
 
 export function getAutofix(agentName: string) {
   return fetchJson<AutofixConfig>(routingPath(agentName, 'autofix'));
 }
 
-export function updateAutofix(agentName: string, body: { enabled?: boolean }) {
+export function updateAutofix(agentName: string, body: { enabled?: boolean; applyToAll?: boolean }) {
   return fetchMutate<AutofixConfig>(routingPath(agentName, 'autofix'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

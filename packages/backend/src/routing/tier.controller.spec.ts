@@ -4,6 +4,7 @@ import { TierController } from './tier.controller';
 import { TierService } from './routing-core/tier.service';
 import { ResolveAgentService } from './routing-core/resolve-agent.service';
 import { Agent } from '../entities/agent.entity';
+import { InstallMetadata } from '../entities/install-metadata.entity';
 import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
@@ -19,14 +20,23 @@ describe('TierController', () => {
     record_messages: false,
   };
   let tierService: jest.Mocked<Partial<TierService>>;
-  let resolveAgentService: { resolve: jest.Mock; invalidate: jest.Mock };
+  let resolveAgentService: {
+    resolve: jest.Mock;
+    invalidate: jest.Mock;
+    invalidateTenant: jest.Mock;
+  };
   let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
   let autofixService: {
     invalidateConfig: jest.Mock;
+    invalidateTenantConfig: jest.Mock;
     resolveEnabled: jest.Mock;
   };
   let controller: TierController;
   let recordingCache: { invalidate: jest.Mock };
+  let installMetadataRepo: {
+    findOne: jest.Mock;
+    createQueryBuilder: jest.Mock;
+  };
 
   beforeEach(() => {
     tierService = {
@@ -41,20 +51,33 @@ describe('TierController', () => {
     resolveAgentService = {
       resolve: jest.fn().mockResolvedValue(agent),
       invalidate: jest.fn(),
+      invalidateTenant: jest.fn(),
     };
     agentRepo = {
       update: jest.fn().mockResolvedValue(undefined),
     };
     autofixService = {
       invalidateConfig: jest.fn(),
+      invalidateTenantConfig: jest.fn(),
       // Mirror the real resolver: explicit flag wins, NULL inherits a default.
       resolveEnabled: jest.fn((stored: boolean | null) => stored ?? false),
     };
     recordingCache = { invalidate: jest.fn() };
+    installMetadataRepo = {
+      findOne: jest.fn().mockResolvedValue(null),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        insert: jest.fn().mockReturnThis(),
+        into: jest.fn().mockReturnThis(),
+        values: jest.fn().mockReturnThis(),
+        orUpdate: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue(undefined),
+      }),
+    };
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
       agentRepo as unknown as Repository<Agent>,
+      installMetadataRepo as unknown as Repository<InstallMetadata>,
       autofixService as unknown as AutofixService,
       recordingCache as unknown as AgentRecordingCacheService,
     );
@@ -147,7 +170,8 @@ describe('TierController', () => {
   });
 
   it('GET autofix returns the enabled flag', async () => {
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false });
+    // Cloud mode: no consent gate, so `consented` is always true.
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: false, consented: true });
   });
 
   it('GET autofix resolves the mode default via the service when the flag is unset (null)', async () => {
@@ -155,21 +179,24 @@ describe('TierController', () => {
     // deployment-mode default (here stubbed to ON).
     resolveAgentService.resolve.mockResolvedValueOnce({ ...agent, autofix_enabled: null });
     autofixService.resolveEnabled.mockReturnValueOnce(true);
-    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: true });
+    expect(await controller.getAutofix(ctx, 'demo')).toEqual({ enabled: true, consented: true });
     expect(autofixService.resolveEnabled).toHaveBeenCalledWith(null);
   });
 
   it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
-    expect(out).toEqual({ enabled: true });
+    expect(out).toEqual({ enabled: true, consented: true });
     expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
     expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
+    // Cloud: no consent to record, and no backfill requested.
+    expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
+    expect(resolveAgentService.invalidateTenant).not.toHaveBeenCalled();
   });
 
   it('PATCH autofix with an empty body is a no-op and echoes the current value', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', {});
-    expect(out).toEqual({ enabled: false });
+    expect(out).toEqual({ enabled: false, consented: true });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
   });
@@ -180,9 +207,77 @@ describe('TierController', () => {
     const out = await controller.updateAutofix(ctx, 'demo', {
       enabled: null as unknown as boolean,
     });
-    expect(out).toEqual({ enabled: false });
+    expect(out).toEqual({ enabled: false, consented: true });
     expect(agentRepo.update).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidate).not.toHaveBeenCalled();
+  });
+
+  describe('self-hosted consent + backfill', () => {
+    let savedMode: string | undefined;
+    beforeEach(() => {
+      savedMode = process.env.MANIFEST_MODE;
+      process.env.MANIFEST_MODE = 'selfhosted';
+      installMetadataRepo.findOne.mockReset();
+    });
+    afterEach(() => {
+      if (savedMode === undefined) delete process.env.MANIFEST_MODE;
+      else process.env.MANIFEST_MODE = savedMode;
+    });
+
+    it('reports consented=false until the install consents', async () => {
+      installMetadataRepo.findOne.mockResolvedValue(null);
+      expect(await controller.getAutofix(ctx, 'demo')).toEqual({
+        enabled: false,
+        consented: false,
+      });
+    });
+
+    it('reports consented=true once the install consented', async () => {
+      installMetadataRepo.findOne.mockResolvedValue({
+        id: 'singleton',
+        autofix_consented_at: new Date().toISOString(),
+      });
+      expect(await controller.getAutofix(ctx, 'demo')).toEqual({
+        enabled: false,
+        consented: true,
+      });
+    });
+
+    it('records the once-consent when enabling', async () => {
+      installMetadataRepo.findOne.mockResolvedValue(null);
+      await controller.updateAutofix(ctx, 'demo', { enabled: true });
+      expect(installMetadataRepo.createQueryBuilder).toHaveBeenCalled();
+    });
+
+    it('does not record consent again once it exists', async () => {
+      installMetadataRepo.findOne.mockResolvedValue({
+        id: 'singleton',
+        autofix_consented_at: new Date().toISOString(),
+      });
+      await controller.updateAutofix(ctx, 'demo', { enabled: true });
+      expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('applyToAll backfills every agent in the tenant', async () => {
+      installMetadataRepo.findOne.mockResolvedValue({
+        id: 'singleton',
+        autofix_consented_at: new Date().toISOString(),
+      });
+      await controller.updateAutofix(ctx, 'demo', { enabled: true, applyToAll: true });
+      expect(agentRepo.update).toHaveBeenCalledWith(
+        { tenant_id: 'tenant-1' },
+        { autofix_enabled: true },
+      );
+      expect(resolveAgentService.invalidateTenant).toHaveBeenCalledWith('tenant-1');
+      expect(autofixService.invalidateTenantConfig).toHaveBeenCalledWith('tenant-1');
+    });
+
+    it('applyToAll is ignored when not enabling', async () => {
+      installMetadataRepo.findOne.mockResolvedValue(null);
+      await controller.updateAutofix(ctx, 'demo', { enabled: false, applyToAll: true });
+      expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: false });
+      expect(resolveAgentService.invalidateTenant).not.toHaveBeenCalled();
+    });
   });
 
   it('GET recording returns the per-agent opt-in flag', async () => {

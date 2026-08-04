@@ -240,6 +240,15 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
       // The factory memoizes the resolved id, so the DB is read once even
       // though the client calls the provider on every request.
       expect(getOrCreate).toHaveBeenCalledTimes(1);
+
+      // And the id actually reaches Phoenix, not just the memoizer.
+      const healCalls = fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/api/heal'));
+      expect(healCalls).toHaveLength(2);
+      for (const [, init] of healCalls) {
+        expect((init as RequestInit).headers).toMatchObject({
+          'X-Manifest-Instance': 'install-1',
+        });
+      }
       await moduleRef.close();
     } finally {
       global.fetch = realFetch;

@@ -173,6 +173,14 @@ export class AutofixService {
     this.configCache.delete(`${tenantId}:${agentId}`);
   }
 
+  /** Drop every cached config for a tenant (used after a workspace-wide backfill). */
+  invalidateTenantConfig(tenantId: string): void {
+    const prefix = `${tenantId}:`;
+    for (const key of this.configCache.keys()) {
+      if (key.startsWith(prefix)) this.configCache.delete(key);
+    }
+  }
+
   /**
    * Is Auto-fix active for this agent — deployment-wide and for the agent itself?
    * These are exactly the gates {@link maybeHeal} clears before

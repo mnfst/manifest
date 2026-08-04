@@ -61,21 +61,26 @@ const DEFAULT_TIMEOUT_MS = 10_000;
           // Phoenix guards /api/heal* and fails closed in production; send the key
           // when configured (omit it for a keyless dev/test Phoenix).
           const apiKey = config.get<string>('AUTOFIX_HEALING_API_KEY')?.trim() || undefined;
-          // Self-hosted with no static key announces the install's anonymous id.
-          // It is created on first use, so an install that never enables
-          // Auto-fix (or never reports telemetry) never mints one.
-          // Self-hosted with no static key announces the install's anonymous id.
-          // It is created on first use (an install that never enables Auto-fix
-          // never mints one) and memoized for the process lifetime, because
-          // InstallIdService reads the row from the database on every call —
-          // without this, each heal request would do its own lookup.
+          // Self-hosted with no static key announces the install's anonymous id,
+          // minted lazily (an install that never enables Auto-fix or reports
+          // telemetry never creates one) and memoized for the process lifetime —
+          // InstallIdService reads the row on every call, so without this each
+          // heal request would do its own lookup. Only successful resolutions
+          // are cached: a transient DB failure must not disable Auto-fix for
+          // the rest of the process.
           const instanceId =
             !apiKey && selfHosted
               ? (() => {
                   let cached: Promise<string> | null = null;
-                  return async () => {
-                    cached ??= installIds.getOrCreate().then((i) => i.install_id);
-                    return cached;
+                  return async (): Promise<string> => {
+                    if (cached) return cached;
+                    cached = installIds.getOrCreate().then((i) => i.install_id);
+                    try {
+                      return await cached;
+                    } catch (err) {
+                      cached = null;
+                      throw err;
+                    }
                   };
                 })()
               : undefined;
