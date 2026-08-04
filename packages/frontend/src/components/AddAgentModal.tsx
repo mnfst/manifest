@@ -173,53 +173,39 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           </div>
 
           <div class="add-agent-toggles">
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Auto-fix</span>
-                <span class="settings-card__label-desc">
-                  Repair eligible failing requests before falling back.
+            <div class="add-agent-toggles__row">
+              <span class="add-agent-toggles__label">Auto-fix</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={autofixEnabled()}
+                aria-label="Auto-fix"
+                class="settings-switch"
+                classList={{ 'settings-switch--on': autofixEnabled() }}
+                disabled={creating()}
+                onClick={() => setAutofixEnabled(!autofixEnabled())}
+              >
+                <span class="settings-switch__track">
+                  <span class="settings-switch__thumb" />
                 </span>
-              </div>
-              <div class="settings-card__control settings-card__control--end">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={autofixEnabled()}
-                  aria-label="Auto-fix"
-                  class="settings-switch"
-                  classList={{ 'settings-switch--on': autofixEnabled() }}
-                  disabled={creating()}
-                  onClick={() => setAutofixEnabled(!autofixEnabled())}
-                >
-                  <span class="settings-switch__track">
-                    <span class="settings-switch__thumb" />
-                  </span>
-                </button>
-              </div>
+              </button>
             </div>
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Record messages</span>
-                <span class="settings-card__label-desc">
-                  Store request and response bodies for this harness.
+            <div class="add-agent-toggles__row">
+              <span class="add-agent-toggles__label">Record messages</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={recordingEnabled()}
+                aria-label="Record messages"
+                class="settings-switch"
+                classList={{ 'settings-switch--on': recordingEnabled() }}
+                disabled={creating()}
+                onClick={() => setRecordingEnabled(!recordingEnabled())}
+              >
+                <span class="settings-switch__track">
+                  <span class="settings-switch__thumb" />
                 </span>
-              </div>
-              <div class="settings-card__control settings-card__control--end">
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={recordingEnabled()}
-                  aria-label="Record messages"
-                  class="settings-switch"
-                  classList={{ 'settings-switch--on': recordingEnabled() }}
-                  disabled={creating()}
-                  onClick={() => setRecordingEnabled(!recordingEnabled())}
-                >
-                  <span class="settings-switch__track">
-                    <span class="settings-switch__thumb" />
-                  </span>
-                </button>
-              </div>
+              </button>
             </div>
           </div>
 
