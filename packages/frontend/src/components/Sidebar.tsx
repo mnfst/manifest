@@ -1,12 +1,19 @@
 import { A, useLocation } from '@solidjs/router';
 import { Show, For, createSignal, createResource, type Component } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
+import {
+  enableAutofixForAllAgents,
+  getWorkspaceAutofixStatus,
+} from '../services/api/analytics.js';
 import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
+import { useFocusTrap } from '../services/use-focus-trap.js';
+import { toast } from '../services/toast-store.js';
 import AddAgentModal from './AddAgentModal.jsx';
 
 interface SidebarProps {
@@ -38,6 +45,25 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
+  const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(
+    getWorkspaceAutofixStatus,
+  );
+  const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
+  const [enablingAutofix, setEnablingAutofix] = createSignal(false);
+  let autofixDialogRef: HTMLDivElement | undefined;
+  useFocusTrap(confirmingAutofix, () => autofixDialogRef);
+
+  const runEnableAll = async () => {
+    setEnablingAutofix(true);
+    try {
+      mutateAutofixStatus(await enableAutofixForAllAgents());
+      toast.success('Auto-fix enabled for all agents');
+    } catch {
+      // fetchMutate already toasts
+    } finally {
+      setEnablingAutofix(false);
+    }
+  };
   // Local providers only exist on self-hosted installs — a cloud backend
   // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
@@ -239,19 +265,45 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
                 <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
               </svg>
-              <span class="sidebar-autofix__title">Discover Auto-fix</span>
+              <span class="sidebar-autofix__title">
+                {autofixStatus()?.any_enabled || autofixStatus()?.consented
+                  ? 'Auto-fix'
+                  : 'Discover Auto-fix'}
+              </span>
             </div>
             <p class="sidebar-autofix__desc">
-              Auto-fix can repair eligible failing requests before they reach the model.
+              {autofixStatus()?.any_enabled
+                ? 'Auto-fix is repairing eligible failing requests before they reach the model.'
+                : 'Auto-fix can repair eligible failing requests before they reach the model.'}
             </p>
-            <a
-              class="sidebar-autofix__btn"
-              href="https://manifest.build/autofix/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Show
+              when={!autofixStatus.loading && !autofixStatus()?.any_enabled}
+              fallback={
+                <a
+                  class="sidebar-autofix__btn"
+                  href="https://manifest.build/docs/autofix/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Learn more
+                </a>
+              }
             >
-              Learn more
-            </a>
+              <button
+                type="button"
+                class="sidebar-autofix__btn"
+                disabled={enablingAutofix()}
+                onClick={() => {
+                  if (selfHosted() && !autofixStatus()?.consented) {
+                    setConfirmingAutofix(true);
+                    return;
+                  }
+                  void runEnableAll();
+                }}
+              >
+                {enablingAutofix() ? 'Enabling…' : 'Enable for all agents'}
+              </button>
+            </Show>
           </div>
         }
       >
@@ -316,6 +368,78 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       {/* Create-harness modal, opened by the HARNESSES section + button */}
       <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
+
+      <Portal>
+        <Show when={confirmingAutofix()}>
+          <div
+            class="modal-overlay"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) setConfirmingAutofix(false);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setConfirmingAutofix(false);
+            }}
+          >
+            <div
+              ref={autofixDialogRef}
+              class="modal-card"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="sidebar-autofix-consent-title"
+              aria-describedby="sidebar-autofix-consent-description"
+              style="max-width: 560px;"
+            >
+              <h2 class="modal-card__title" id="sidebar-autofix-consent-title">
+                Enable hosted Auto-fix?
+              </h2>
+              <p class="modal-card__desc" id="sidebar-autofix-consent-description">
+                Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
+                authorization credentials are not sent. This enables Auto-fix for every agent in your
+                workspace.{' '}
+                <a
+                  href="https://manifest.build/docs/autofix/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  How Auto-fix works
+                </a>
+                .
+              </p>
+              <p class="autofix-consent__legal">
+                By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+                <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                  Terms
+                </a>{' '}
+                and{' '}
+                <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                </a>
+                .
+              </p>
+              <div class="modal-card__footer">
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--sm"
+                  onClick={() => setConfirmingAutofix(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--primary btn--sm"
+                  disabled={enablingAutofix()}
+                  onClick={() => {
+                    setConfirmingAutofix(false);
+                    void runEnableAll();
+                  }}
+                >
+                  Agree &amp; enable Auto-fix
+                </button>
+              </div>
+            </div>
+          </div>
+        </Show>
+      </Portal>
     </nav>
   );
 };

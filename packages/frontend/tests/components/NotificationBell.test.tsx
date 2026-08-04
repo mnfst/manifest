@@ -86,8 +86,8 @@ describe('NotificationBell', () => {
     localStorage.setItem('manifest_notif_read', JSON.stringify(['demo']));
     mockGetAgents.mockResolvedValue([{ agent_name: 'demo', display_name: '' }]);
     mockGetStatus
-      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [] })
-      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'] });
+      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [], consented: true })
+      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'], consented: true });
     render(() => <NotificationBell />);
 
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
@@ -135,8 +135,8 @@ describe('NotificationBell', () => {
   it('keeps working when clearing enabled-agent read state cannot persist', async () => {
     localStorage.setItem('manifest_notif_read', JSON.stringify(['demo']));
     mockGetStatus
-      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [] })
-      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'] });
+      .mockResolvedValueOnce({ any_enabled: false, enabled_agents: [], consented: true })
+      .mockResolvedValue({ any_enabled: true, enabled_agents: ['demo'], consented: true });
     render(() => <NotificationBell />);
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
     const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

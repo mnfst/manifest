@@ -27,20 +27,18 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   // consented. Falls back to true on a failed read so a network blip can never
   // dead-end the toggle behind a modal it can't dismiss.
   const consented = () => (!config.loading && !config.error ? (config()?.consented ?? true) : true);
-  // The modal's "enable for all existing agents" slider. Defaults on.
-  const [applyToAll, setApplyToAll] = createSignal(true);
   // Also disabled after a failed read: without a known current state a click
   // would blindly write a value the user never saw.
   const busy = () => saving() || config.loading || selfHosted.loading || Boolean(config.error);
 
-  const saveEnabled = async (nextEnabled: boolean, applyToAll = false) => {
+  const saveEnabled = async (nextEnabled: boolean) => {
     if (busy()) return;
     // Pin the agent this click targets. If the user switches harnesses before
     // the save resolves, don't mutate the (now different) agent's resource.
     const agentName = props.agentName();
     setSaving(true);
     try {
-      const next = await updateAutofix(agentName, { enabled: nextEnabled, applyToAll });
+      const next = await updateAutofix(agentName, { enabled: nextEnabled });
       if (props.agentName() === agentName) mutate(next);
     } catch {
       // `updateAutofix` (via `fetchMutate`) already surfaces the backend error as a
@@ -58,7 +56,6 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
 
   const closeConsent = () => {
     setConfirmingEnable(false);
-    setApplyToAll(true);
   };
 
   const toggle = () => {
@@ -127,7 +124,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
               aria-modal="true"
               aria-labelledby="autofix-consent-title"
               aria-describedby="autofix-consent-description"
-              style="max-width: 500px;"
+              style="max-width: 560px;"
             >
               <h2 class="modal-card__title" id="autofix-consent-title">
                 Enable hosted Auto-fix?
@@ -144,29 +141,6 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
                 </a>
                 .
               </p>
-              <div class="autofix-consent__all-row">
-                <div class="autofix-consent__all-label">
-                  <span>Auto-fix for all existing agents</span>
-                  <span class="autofix-consent__all-desc">
-                    Every existing agent gets Auto-fix, including any you previously turned off.
-                  </span>
-                </div>
-                <div class="settings-card__control settings-card__control--end">
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={applyToAll()}
-                    aria-label="Auto-fix for all existing agents"
-                    class="settings-switch"
-                    classList={{ 'settings-switch--on': applyToAll() }}
-                    onClick={() => setApplyToAll(!applyToAll())}
-                  >
-                    <span class="settings-switch__track">
-                      <span class="settings-switch__thumb" />
-                    </span>
-                  </button>
-                </div>
-              </div>
               <p class="autofix-consent__legal">
                 By enabling Auto-fix, you agree to Manifest&apos;s{' '}
                 <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
@@ -186,11 +160,8 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
                   type="button"
                   class="btn btn--primary btn--sm"
                   onClick={() => {
-                    // Capture before closeConsent() resets the slider to its
-                    // default for next time.
-                    const all = applyToAll();
                     closeConsent();
-                    void saveEnabled(true, all);
+                    void saveEnabled(true);
                   }}
                 >
                   Agree &amp; enable Auto-fix

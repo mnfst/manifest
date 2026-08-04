@@ -190,18 +190,9 @@ export class TierController {
       this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
 
       if (body.enabled) {
-        // Any self-hosted enable is the consent flow's confirm (the frontend
-        // gates on `consented` before showing the modal), so record the
-        // once-consent here, idempotently.
+        // Per-agent enable also records consent-once so the sidebar CTA doesn't
+        // keep prompting after a single agent was turned on deliberately.
         if (!(await this.hasAutofixConsent())) await this.recordAutofixConsent();
-
-        // The modal's "enable for all existing agents" slider. Literal: every
-        // agent gets Auto-fix, including any previously turned off.
-        if (body.applyToAll && ctx.tenantId) {
-          await this.agentRepo.update({ tenant_id: ctx.tenantId }, { autofix_enabled: true });
-          this.resolveAgentService.invalidateTenant(ctx.tenantId);
-          this.autofixService.invalidateTenantConfig(ctx.tenantId);
-        }
       }
     }
     return {

@@ -258,26 +258,7 @@ describe('TierController', () => {
       expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
-    it('applyToAll backfills every agent in the tenant', async () => {
-      installMetadataRepo.findOne.mockResolvedValue({
-        id: 'singleton',
-        autofix_consented_at: new Date().toISOString(),
-      });
-      await controller.updateAutofix(ctx, 'demo', { enabled: true, applyToAll: true });
-      expect(agentRepo.update).toHaveBeenCalledWith(
-        { tenant_id: 'tenant-1' },
-        { autofix_enabled: true },
-      );
-      expect(resolveAgentService.invalidateTenant).toHaveBeenCalledWith('tenant-1');
-      expect(autofixService.invalidateTenantConfig).toHaveBeenCalledWith('tenant-1');
-    });
 
-    it('applyToAll is ignored when not enabling', async () => {
-      installMetadataRepo.findOne.mockResolvedValue(null);
-      await controller.updateAutofix(ctx, 'demo', { enabled: false, applyToAll: true });
-      expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: false });
-      expect(resolveAgentService.invalidateTenant).not.toHaveBeenCalled();
-    });
   });
 
   it('GET recording returns the per-agent opt-in flag', async () => {

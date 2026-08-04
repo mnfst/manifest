@@ -235,14 +235,6 @@ export class UpdateAutofixDto {
   @IsBoolean()
   enabled?: boolean;
 
-  /**
-   * When true and `enabled: true`, set Auto-fix on for every agent in the
-   * workspace (the modal's "enable for all existing agents" slider). Only
-   * meaningful for the self-hosted consent flow.
-   */
-  @IsOptional()
-  @IsBoolean()
-  applyToAll?: boolean;
 }
 
 export class UpdateRecordingDto {

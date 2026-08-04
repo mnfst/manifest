@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Query, UseInterceptors } from '@nestjs/common';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { IsIn, IsOptional, IsString } from 'class-validator';
 import { RangeQueryDto } from '../../common/dto/range-query.dto';
@@ -28,6 +28,15 @@ export class AutofixAnalyticsController {
   @Get('autofix/status')
   async getStatus(@TenantCtx() ctx: TenantContext) {
     return this.autofixStats.getWorkspaceStatus(ctx.tenantId);
+  }
+
+  /** Enable Auto-fix for every agent in the workspace and record consent. */
+  @Post('autofix/enable-all')
+  async enableAll(@TenantCtx() ctx: TenantContext) {
+    if (!ctx.tenantId) {
+      throw new BadRequestException('No workspace resolved');
+    }
+    return this.autofixStats.enableAll(ctx.tenantId);
   }
 
   @Get('overview/autofix-stats')

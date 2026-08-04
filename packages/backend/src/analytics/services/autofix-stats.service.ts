@@ -5,6 +5,9 @@ import { Agent } from '../../entities/agent.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ManifestRequest } from '../../entities/request.entity';
 import { AutofixService } from '../../routing/autofix/autofix.service';
+import { InstallMetadata } from '../../entities/install-metadata.entity';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
+import { v4 as uuid } from 'uuid';
 import {
   rangeToInterval,
   rangeToPreviousInterval,
@@ -25,6 +28,11 @@ export interface AutofixStatusResponse {
   any_enabled: boolean;
   /** Names of agents effectively enabled after deployment-mode defaults. */
   enabled_agents: string[];
+  /**
+   * Self-hosted consent-once. Cloud always reports true (no gate). False only
+   * when the install has never confirmed the enable modal.
+   */
+  consented: boolean;
 }
 
 export interface AutofixStatsResponse {
@@ -86,13 +94,15 @@ export class AutofixStatsService {
     private readonly agentRepo: Repository<Agent>,
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
+    @InjectRepository(InstallMetadata)
+    private readonly installMetadataRepo: Repository<InstallMetadata>,
     private readonly autofix: AutofixService,
     private readonly requestVolume: RequestVolumeService,
   ) {}
 
   async getWorkspaceStatus(tenantId: string | null): Promise<AutofixStatusResponse> {
     if (!tenantId) {
-      return { any_enabled: false, enabled_agents: [] };
+      return { any_enabled: false, enabled_agents: [], consented: await this.hasConsent() };
     }
 
     const agents = await this.agentRepo.find({
@@ -106,7 +116,41 @@ export class AutofixStatsService {
     return {
       any_enabled: enabledAgents.length > 0,
       enabled_agents: enabledAgents,
+      consented: await this.hasConsent(),
     };
+  }
+
+  /**
+   * Enable Auto-fix for every non-playground agent in the tenant and record
+   * the install's once-consent. Used by the sidebar fleet CTA — not by the
+   * per-agent toggle, which only ever touches one agent.
+   */
+  async enableAll(tenantId: string): Promise<AutofixStatusResponse> {
+    await this.agentRepo.update(
+      { tenant_id: tenantId, is_playground: false },
+      { autofix_enabled: true },
+    );
+    this.autofix.invalidateTenantConfig(tenantId);
+    await this.recordConsent();
+    return this.getWorkspaceStatus(tenantId);
+  }
+
+  private async hasConsent(): Promise<boolean> {
+    if (!isSelfHosted()) return true;
+    const row = await this.installMetadataRepo.findOne({ where: { id: 'singleton' } });
+    return row?.autofix_consented_at != null;
+  }
+
+  private async recordConsent(): Promise<void> {
+    if (!isSelfHosted()) return;
+    if (await this.hasConsent()) return;
+    await this.installMetadataRepo
+      .createQueryBuilder()
+      .insert()
+      .into(InstallMetadata)
+      .values({ id: 'singleton', install_id: uuid(), autofix_consented_at: new Date().toISOString() })
+      .orUpdate(['autofix_consented_at'], ['id'])
+      .execute();
   }
 
   async getStats(params: {

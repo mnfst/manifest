@@ -95,7 +95,7 @@ describe('SettingsAutofixSection', () => {
     const btn = await waitForLoaded(container);
     fireEvent.click(btn);
 
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true, applyToAll: false });
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
     // After the update resolves, the mutated config flips the switch on.
     await waitFor(() => {
       expect(btn.classList.contains('settings-switch--on')).toBe(true);
@@ -113,7 +113,6 @@ describe('SettingsAutofixSection', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Enable hosted Auto-fix?' });
     expect(dialog.textContent).toContain('Provider authorization credentials are not sent.');
-    expect(dialog.textContent).toContain('Auto-fix for all existing agents');
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
 
     const terms = screen.getByRole('link', { name: 'Terms' });
@@ -123,10 +122,7 @@ describe('SettingsAutofixSection', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Agree & enable Auto-fix' }));
     // The slider defaults on, so confirming also enables every existing agent.
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', {
-      enabled: true,
-      applyToAll: true,
-    });
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
     await waitFor(() => expect(btn.getAttribute('aria-checked')).toBe('true'));
   });
 
@@ -140,24 +136,9 @@ describe('SettingsAutofixSection', () => {
     fireEvent.click(btn);
 
     expect(screen.queryByRole('dialog')).toBeNull();
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true, applyToAll: false });
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
   });
 
-  it('confirms without the backfill when the slider is turned off', async () => {
-    mockCheckIsSelfHosted.mockResolvedValue(true);
-    mockGetAutofix.mockResolvedValue({ enabled: false, consented: false });
-    mockUpdateAutofix.mockResolvedValue({ enabled: true });
-    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
-
-    fireEvent.click(await waitForLoaded(container));
-    const slider = screen.getByRole('switch', { name: 'Auto-fix for all existing agents' });
-    expect(slider.getAttribute('aria-checked')).toBe('true');
-    fireEvent.click(slider);
-    expect(slider.getAttribute('aria-checked')).toBe('false');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Agree & enable Auto-fix' }));
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true, applyToAll: false });
-  });
 
   it('does not enable self-hosted Auto-fix when the confirmation is cancelled', async () => {
     mockCheckIsSelfHosted.mockResolvedValue(true);
@@ -180,7 +161,7 @@ describe('SettingsAutofixSection', () => {
     const btn = await waitForLoaded(container);
     fireEvent.click(btn);
 
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: false, applyToAll: false });
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: false });
     expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() => {
       expect(btn.classList.contains('settings-switch--on')).toBe(false);
@@ -265,7 +246,7 @@ describe('SettingsAutofixSection', () => {
 
     const btn = await waitForLoaded(container);
     fireEvent.click(btn); // targets 'a'
-    expect(mockUpdateAutofix).toHaveBeenCalledWith('a', { enabled: true, applyToAll: false });
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('a', { enabled: true });
 
     // Switch harness before the save resolves; the resource refetches for 'b'.
     setName('b');

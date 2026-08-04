@@ -63,6 +63,7 @@ describe('AutofixStatsService', () => {
     service = new AutofixStatsService(
       agentRepo as never,
       messageRepo as never,
+      { findOne: jest.fn().mockResolvedValue(null) } as never,
       autofix as never,
       requestVolume as never,
     );
@@ -71,6 +72,7 @@ describe('AutofixStatsService', () => {
   it('returns an empty status without a tenant', async () => {
     await expect(service.getWorkspaceStatus(null)).resolves.toEqual({
       any_enabled: false,
+      consented: true,
       enabled_agents: [],
     });
     expect(agentRepo.find).not.toHaveBeenCalled();
@@ -85,6 +87,7 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['inherited', 'enabled'],
+      consented: true,
     });
     expect(agentRepo.find).toHaveBeenCalledWith({
       where: { tenant_id: 'tenant', deleted_at: expect.anything(), is_playground: false },
@@ -102,6 +105,7 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['enabled'],
+      consented: true,
     });
   });
 
