@@ -1,0 +1,19 @@
+packages/frontend/src/styles/request-drawer.css
+  s_48445e076e4659::t_fce3a2e80c3d37 795-797,800-802,808-809,838-839
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ad2abada56953cfc949abb0478957c5cd29f48a5",
+  "prompts": {},
+  "sessions": {
+    "s_48445e076e4659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd24-e23b-7670-ab00-e1ba48cafb18",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
