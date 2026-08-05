@@ -1,0 +1,24 @@
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_201f9a60a9c91a::t_2d14168c753fc6 184
+  s_201f9a60a9c91a::t_fc645e9165ef28 35-42
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_201f9a60a9c91a::t_a5f74d9436ddcc 221-223,239-241,265-267,291-293
+  s_201f9a60a9c91a::t_8f302d5e579d7f 39-46
+  s_201f9a60a9c91a::t_eee7a45d109b09 134,253
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5ae4ed9ff53542f854c2d8a1b9e1a510eba34d7a",
+  "prompts": {},
+  "sessions": {
+    "s_201f9a60a9c91a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "70970168-586c-4512-86b1-cfa9ad95e49f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

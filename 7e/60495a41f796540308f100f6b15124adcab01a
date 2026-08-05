@@ -1,0 +1,26 @@
+packages/frontend/src/components/AddAgentModal.tsx
+  s_201f9a60a9c91a::t_0eb3f426cf3afd 62-66
+  s_201f9a60a9c91a::t_8410eee251e595 67-69
+  s_201f9a60a9c91a::t_bc20f5529dc0b8 1
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_201f9a60a9c91a::t_d68a6e8f3dc752 3
+  s_201f9a60a9c91a::t_48d83a94e4246e 212-237
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_201f9a60a9c91a::t_66a663b79087ce 165-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "7e60495a41f796540308f100f6b15124adcab01a",
+  "prompts": {},
+  "sessions": {
+    "s_201f9a60a9c91a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "70970168-586c-4512-86b1-cfa9ad95e49f",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
