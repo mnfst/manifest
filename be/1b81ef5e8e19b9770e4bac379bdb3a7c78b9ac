@@ -1,0 +1,52 @@
+packages/backend/src/routing/autofix/healing-client.ts
+  s_201f9a60a9c91a::t_c0a6bfaee1a19a 12
+packages/backend/src/routing/autofix/autofix-healing-config.ts
+  s_201f9a60a9c91a::t_95bb2c66660000 2-7,12-17,19-20,22
+  s_201f9a60a9c91a::t_7d8ed303ca3c6f 9,23
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_201f9a60a9c91a::t_370c08b5a0ea0c 12
+  s_201f9a60a9c91a::t_b503802f25b96f 174
+  s_201f9a60a9c91a::t_7b46766b9694be 55,68-70,72,76,79,86,89-92,94-95,99,102,104,109-111,117,122,128,138,149
+packages/backend/src/routing/autofix/__tests__/autofix-healing-config.spec.ts
+  s_201f9a60a9c91a::t_9471003897c8bd 1,4-7,10-15,18-22
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_201f9a60a9c91a::t_3519ac8f2e90d7 1
+  s_201f9a60a9c91a::t_8384f3175e78e3 43
+  s_201f9a60a9c91a::t_3beee882bdf4bf 22-30
+  s_201f9a60a9c91a::t_a82a1e1d6a3f8b 51-52
+  s_201f9a60a9c91a::t_849da6dc9b04a5 79
+packages/backend/src/routing/autofix/autofix-health-probe.ts
+  s_201f9a60a9c91a::t_332e8147ad7f63 25-30
+  s_201f9a60a9c91a::t_f30f866db1c023 31-32
+  s_201f9a60a9c91a::t_f7cd89836e4f69 3,8-11
+  s_201f9a60a9c91a::t_7a358d0e0eadbe 53
+CLAUDE.md
+  s_201f9a60a9c91a::t_dd2bd66d07377a 624
+  s_201f9a60a9c91a::t_6902dc821b7823 626
+  s_201f9a60a9c91a::t_6d4ad141d3a3b1 428
+  s_201f9a60a9c91a::t_1f117be0d1d10b 652
+docker/DOCKER_README.md
+  s_201f9a60a9c91a::t_3b196831dcd2c9 410
+  s_201f9a60a9c91a::t_23ad0b18bc9e53 459-465
+packages/backend/src/routing/autofix/mock-healing-client.ts
+  s_201f9a60a9c91a::t_6963654803991e 7-9
+packages/backend/src/routing/autofix/__tests__/autofix-health-probe.spec.ts
+  s_201f9a60a9c91a::t_67081556ba4e7c 48-50,53,55
+  s_201f9a60a9c91a::t_9c8332ba352274 4-6,36,41-44,58,60-61,63,65-66,69,74,76,85,94,103,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "be1b81ef5e8e19b9770e4bac379bdb3a7c78b9ac",
+  "prompts": {},
+  "sessions": {
+    "s_201f9a60a9c91a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "70970168-586c-4512-86b1-cfa9ad95e49f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
