@@ -1,4 +1,4 @@
-import { fetchJson, fetchMutate } from './core.js';
+import { fetchJson } from './core.js';
 
 export type PivotedTimeseries = Promise<{
   agents: string[];
@@ -269,6 +269,8 @@ export interface AttemptTimeseries {
 export interface AutofixStatus {
   any_enabled: boolean;
   enabled_agents: string[];
+  /** Agents effectively running without Auto-fix after deployment-mode defaults. */
+  disabled_agents: string[];
   /** True only when legacy/unconfigured agents need the fleet enable action. */
   needs_enable_all: boolean;
   /** Self-hosted consent-once; cloud always true. */
@@ -322,11 +324,6 @@ export function getAttemptTimeseries(range = '7d', agentName?: string): Promise<
 
 export function getWorkspaceAutofixStatus(): Promise<AutofixStatus> {
   return fetchJson('/autofix/status') as Promise<AutofixStatus>;
-}
-
-/** Enable Auto-fix for every agent in the workspace and record consent. */
-export function enableAutofixForAllAgents(): Promise<AutofixStatus> {
-  return fetchMutate('/autofix/enable-all', { method: 'POST' }) as Promise<AutofixStatus>;
 }
 
 export function getAutofixStats(range = '7d', agentName?: string): Promise<AutofixStats> {

@@ -1,22 +1,24 @@
 import { A, useLocation } from '@solidjs/router';
-import { Show, For, createSignal, createResource, type Component } from 'solid-js';
+import { Show, For, createSignal, createResource, onCleanup, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
-import { enableAutofixForAllAgents, getWorkspaceAutofixStatus } from '../services/api/analytics.js';
+import { getWorkspaceAutofixStatus, type AutofixStatus } from '../services/api/analytics.js';
+import { updateAutofix } from '../services/api/routing.js';
 import { FREE_REQUEST_LIMIT_LABEL } from '../services/billing-display.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
-import { agentPing } from '../services/sse.js';
+import { agentPing, routingPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import { useFocusTrap } from '../services/use-focus-trap.js';
-import { toast } from '../services/toast-store.js';
 import AddAgentModal from './AddAgentModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
   onNavigate?: () => void;
 }
+
+const AUTOFIX_CARD_DISMISSED_KEY = 'autofix-card-dismissed';
 
 interface HarnessItem {
   agent_name: string;
@@ -42,34 +44,108 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const getAgentName = useAgentName();
   const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
   const [addModalOpen, setAddModalOpen] = createSignal(false);
+  // Poll every 15s to catch autofix toggle changes (no SSE for this mutation).
+  const [autofixTick, setAutofixTick] = createSignal(0);
+  const autofixInterval = setInterval(() => setAutofixTick((n) => n + 1), 15_000);
+  onCleanup(() => clearInterval(autofixInterval));
   // Fail soft: a status-fetch blip must not take down the whole authenticated
-  // shell or surface a fleet action without knowing legacy agents need it.
-  const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(async () => {
-    try {
-      return await getWorkspaceAutofixStatus();
-    } catch {
-      return {
-        any_enabled: false,
-        enabled_agents: [],
-        needs_enable_all: false,
-        consented: false,
-      };
-    }
-  });
+  // shell or surface the Auto-fix card without knowing which agents need it.
+  // On a failed poll tick, keep the last known status instead of blanking it —
+  // the empty fallback only applies to the very first load.
+  const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(
+    () => ({ _a: agentPing(), _r: routingPing(), _t: autofixTick() }),
+    async (_src, { value }): Promise<AutofixStatus> => {
+      try {
+        return await getWorkspaceAutofixStatus();
+      } catch {
+        return (
+          value ?? {
+            any_enabled: false,
+            enabled_agents: [],
+            disabled_agents: [],
+            needs_enable_all: false,
+            consented: false,
+          }
+        );
+      }
+    },
+  );
   const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
-  const [enablingAutofix, setEnablingAutofix] = createSignal(false);
+  // Dismissal only lasts the browser session: as long as some agents run
+  // without Auto-fix the card comes back next session.
+  const [autofixCardDismissed, setAutofixCardDismissed] = createSignal(
+    sessionStorage.getItem(AUTOFIX_CARD_DISMISSED_KEY) === '1',
+  );
+  const dismissAutofixCard = () => {
+    sessionStorage.setItem(AUTOFIX_CARD_DISMISSED_KEY, '1');
+    setAutofixCardDismissed(true);
+  };
+  const showAutofixCard = () =>
+    !autofixCardDismissed() && (autofixStatus()?.disabled_agents.length ?? 0) > 0;
   let autofixDialogRef: HTMLDivElement | undefined;
   useFocusTrap(confirmingAutofix, () => autofixDialogRef);
 
-  const runEnableAll = async () => {
-    setEnablingAutofix(true);
+  // The modal lists the agents captured when it opens (a snapshot: rows never
+  // jump away mid-interaction) with one independent toggle per agent.
+  const [modalAgents, setModalAgents] = createSignal<
+    { name: string; display: string; icon?: string }[]
+  >([]);
+  const [agentToggles, setAgentToggles] = createSignal<
+    Record<string, { on: boolean; saving: boolean }>
+  >({});
+  const openAutofixModal = () => {
+    const known = new Map((agents() ?? []).map((agent) => [agent.agent_name, agent]));
+    const snapshot = (autofixStatus()?.disabled_agents ?? []).map((name) => {
+      const agent = known.get(name);
+      return {
+        name,
+        display: agent?.display_name || name,
+        icon: agent ? platformIcon(agent.agent_platform, agent.agent_category) : undefined,
+      };
+    });
+    setModalAgents(snapshot);
+    setAgentToggles(
+      Object.fromEntries(snapshot.map((agent) => [agent.name, { on: false, saving: false }])),
+    );
+    setConfirmingAutofix(true);
+  };
+
+  // Keep the card's own condition in sync after each saved toggle so it
+  // disappears the moment the last agent gets covered.
+  const applyStatusChange = (name: string, enabled: boolean) => {
+    const status = autofixStatus();
+    if (!status) return;
+    const enabledSet = new Set(status.enabled_agents);
+    const disabledSet = new Set(status.disabled_agents);
+    if (enabled) {
+      enabledSet.add(name);
+      disabledSet.delete(name);
+    } else {
+      enabledSet.delete(name);
+      disabledSet.add(name);
+    }
+    mutateAutofixStatus({
+      ...status,
+      any_enabled: enabledSet.size > 0,
+      enabled_agents: [...enabledSet],
+      disabled_agents: [...disabledSet],
+    });
+  };
+
+  // Optimistic per-agent save. Each row saves independently, so the user can
+  // flip several toggles without waiting; a failed save reverts its own row
+  // (fetchMutate already surfaced the error as a toast).
+  const toggleModalAgent = async (name: string) => {
+    const current = agentToggles()[name];
+    if (!current || current.saving) return;
+    const next = !current.on;
+    setAgentToggles((all) => ({ ...all, [name]: { on: next, saving: true } }));
     try {
-      mutateAutofixStatus(await enableAutofixForAllAgents());
-      toast.success('Auto-fix enabled for all agents');
+      await updateAutofix(name, { enabled: next });
+      setAgentToggles((all) => ({ ...all, [name]: { on: next, saving: false } }));
+      applyStatusChange(name, next);
     } catch {
-      // fetchMutate already toasts
-    } finally {
-      setEnablingAutofix(false);
+      setAgentToggles((all) => ({ ...all, [name]: { on: !next, saving: false } }));
     }
   };
   // Local providers only exist on self-hosted installs — a cloud backend
@@ -257,9 +333,9 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       <div class="sidebar__spacer" />
 
-      {/* Self-hosted: Auto-fix CTA always owns the bottom-left slot.
-          Cloud free plan: usage meter. Cloud paid: empty. */}
-      <Show when={selfHosted()}>
+      {/* The Auto-fix card shows in every deployment mode while at least one
+          agent runs without Auto-fix, unless dismissed for this session. */}
+      <Show when={showAutofixCard()}>
         <div class="sidebar-autofix">
           <div class="sidebar-autofix__header">
             <svg
@@ -274,46 +350,35 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
             </svg>
             <span class="sidebar-autofix__title">
-              {autofixStatus()?.any_enabled ||
-              autofixStatus()?.consented ||
-              !autofixStatus()?.needs_enable_all
-                ? 'Auto-fix'
-                : 'Discover Auto-fix'}
+              {autofixStatus()?.any_enabled ? 'Auto-fix' : 'Discover Auto-fix'}
             </span>
+            <button
+              type="button"
+              class="sidebar-autofix__dismiss"
+              title="Hide for this session"
+              aria-label="Hide the Auto-fix card for this session"
+              onClick={dismissAutofixCard}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z" />
+              </svg>
+            </button>
           </div>
           <p class="sidebar-autofix__desc">
             {autofixStatus()?.any_enabled
-              ? 'Auto-fix is repairing eligible failing requests before they reach the model.'
+              ? 'Some of your agents are not covered by Auto-fix yet. Enable it to make your agentic workflows more reliable.'
               : 'Auto-fix can repair eligible failing requests before they reach the model.'}
           </p>
-          <Show
-            when={!autofixStatus.loading && autofixStatus()?.needs_enable_all}
-            fallback={
-              <a
-                class="sidebar-autofix__btn"
-                href="https://manifest.build/docs/autofix/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Learn more
-              </a>
-            }
-          >
-            <button
-              type="button"
-              class="sidebar-autofix__btn"
-              disabled={enablingAutofix()}
-              onClick={() => {
-                if (!autofixStatus()?.consented) {
-                  setConfirmingAutofix(true);
-                  return;
-                }
-                void runEnableAll();
-              }}
-            >
-              {enablingAutofix() ? 'Enabling…' : 'Enable'}
-            </button>
-          </Show>
+          <button type="button" class="sidebar-autofix__btn" onClick={openAutofixModal}>
+            Enable
+          </button>
         </div>
       </Show>
 
@@ -401,12 +466,12 @@ const Sidebar: Component<SidebarProps> = (props) => {
               style="max-width: 560px;"
             >
               <h2 class="modal-card__title" id="sidebar-autofix-consent-title">
-                Enable hosted Auto-fix?
+                Enable Auto-fix?
               </h2>
               <p class="modal-card__desc" id="sidebar-autofix-consent-description">
                 Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
-                authorization credentials are not sent. This enables Auto-fix for every agent in
-                your workspace.{' '}
+                authorization credentials are not sent. Auto-fix works per agent, so turn it on for
+                each agent below.{' '}
                 <a
                   href="https://manifest.build/docs/autofix/"
                   target="_blank"
@@ -416,6 +481,37 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 </a>
                 .
               </p>
+              <div class="autofix-consent__agents">
+                <For each={modalAgents()}>
+                  {(agent) => (
+                    <div class="autofix-consent__agent-row">
+                      <Show when={agent.icon}>
+                        <img src={agent.icon} alt="" class="autofix-consent__agent-icon" />
+                      </Show>
+                      <span class="autofix-consent__agent-name">{agent.display}</span>
+                      {/* aria-disabled, not disabled: disabling the focused
+                          switch would drop focus to <body> and escape the
+                          modal's focus trap; toggleModalAgent guards re-entry. */}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={agentToggles()[agent.name]?.on === true}
+                        aria-label={`Auto-fix for ${agent.display}`}
+                        class="settings-switch"
+                        classList={{
+                          'settings-switch--on': agentToggles()[agent.name]?.on === true,
+                        }}
+                        aria-disabled={agentToggles()[agent.name]?.saving === true}
+                        onClick={() => void toggleModalAgent(agent.name)}
+                      >
+                        <span class="settings-switch__track">
+                          <span class="settings-switch__thumb" />
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </For>
+              </div>
               <p class="autofix-consent__legal">
                 By enabling Auto-fix, you agree to Manifest&apos;s{' '}
                 <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
@@ -430,21 +526,10 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <div class="modal-card__footer">
                 <button
                   type="button"
-                  class="btn btn--ghost btn--sm"
+                  class="btn btn--primary btn--sm"
                   onClick={() => setConfirmingAutofix(false)}
                 >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  class="btn btn--primary btn--sm"
-                  disabled={enablingAutofix()}
-                  onClick={() => {
-                    setConfirmingAutofix(false);
-                    void runEnableAll();
-                  }}
-                >
-                  Agree &amp; enable Auto-fix
+                  Done
                 </button>
               </div>
             </div>

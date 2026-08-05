@@ -28,6 +28,8 @@ export interface AutofixStatusResponse {
   any_enabled: boolean;
   /** Names of agents effectively enabled after deployment-mode defaults. */
   enabled_agents: string[];
+  /** Names of agents effectively disabled after deployment-mode defaults. */
+  disabled_agents: string[];
   /** Legacy agents need the one-time fleet enable action. */
   needs_enable_all: boolean;
   /**
@@ -107,6 +109,7 @@ export class AutofixStatsService {
       return {
         any_enabled: false,
         enabled_agents: [],
+        disabled_agents: [],
         needs_enable_all: false,
         consented: await this.hasConsent(),
       };
@@ -116,14 +119,19 @@ export class AutofixStatsService {
       where: { tenant_id: tenantId, deleted_at: IsNull(), is_playground: false },
       select: ['name', 'autofix_enabled'],
     });
-    const enabledAgents = agents
-      .filter((agent) => this.autofix.resolveEnabled(agent.autofix_enabled))
-      .map((agent) => agent.name);
+    const enabledAgents: string[] = [];
+    const disabledAgents: string[] = [];
+    for (const agent of agents) {
+      (this.autofix.resolveEnabled(agent.autofix_enabled) ? enabledAgents : disabledAgents).push(
+        agent.name,
+      );
+    }
 
     const consented = await this.hasConsent();
     return {
       any_enabled: enabledAgents.length > 0,
       enabled_agents: enabledAgents,
+      disabled_agents: disabledAgents,
       // The fleet CTA is a one-time onboarding nudge, so it takes all three
       // terms: nothing is enabled, the install has never consented, and some
       // agent never made an explicit choice.

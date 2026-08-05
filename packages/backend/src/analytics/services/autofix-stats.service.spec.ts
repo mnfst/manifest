@@ -87,6 +87,7 @@ describe('AutofixStatsService', () => {
       any_enabled: false,
       consented: true,
       enabled_agents: [],
+      disabled_agents: [],
       needs_enable_all: false,
     });
     expect(agentRepo.find).not.toHaveBeenCalled();
@@ -101,6 +102,7 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['inherited', 'enabled'],
+      disabled_agents: ['disabled'],
       needs_enable_all: false,
       consented: true,
     });
@@ -120,6 +122,7 @@ describe('AutofixStatsService', () => {
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
       any_enabled: true,
       enabled_agents: ['enabled'],
+      disabled_agents: ['inherited'],
       needs_enable_all: false,
       consented: true,
     });

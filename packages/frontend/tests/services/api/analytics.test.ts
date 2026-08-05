@@ -80,11 +80,6 @@ describe('analytics API client', () => {
     expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/autofix/status');
 
     fetchMock = setupFetch({});
-    await analytics.enableAutofixForAllAgents();
-    expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/autofix/enable-all');
-    expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('POST');
-
-    fetchMock = setupFetch({});
     await analytics.getAutofixStats('30d', 'demo');
     expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/overview/autofix-stats');
     expect(fetchMock.mock.calls[0][0]).toContain('agent_name=demo');

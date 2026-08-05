@@ -281,6 +281,18 @@ describe('TierController', () => {
       await controller.updateAutofix(ctx, 'demo', { enabled: true });
       expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
+
+    it('does not record consent on a disable, but still busts the status cache', async () => {
+      // Consent means "I agree to turn Auto-fix on" — switching an agent off
+      // must never mint it. The write still changes `any_enabled`, so the
+      // cached workspace status has to be dropped like on an enable.
+      installMetadataRepo.findOne.mockResolvedValue(null);
+      const out = await controller.updateAutofix(ctx, 'demo', { enabled: false });
+      expect(out).toEqual({ enabled: false, consented: false });
+      expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: false });
+      expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
+      expect(cacheDel).toHaveBeenCalledWith('tenant-1:/api/v1/autofix/status');
+    });
   });
 
   it('GET recording returns the per-agent opt-in flag', async () => {
