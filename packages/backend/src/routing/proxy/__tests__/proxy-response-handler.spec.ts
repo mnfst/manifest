@@ -498,6 +498,86 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('attributes a code-less structured fallback error to the provider', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({
+          error: {
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: 'fallback_exhausted',
+            source: 'provider',
+          }),
+        }),
+      );
+    });
+
+    it('uses an Anthropic error envelope when Messages fallbacks are exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({ error: { message: 'Invalid request', type: 'invalid_request_error' } }),
+        failedFallbacks,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          error: expect.objectContaining({ source: 'provider' }),
+        }),
+      );
+    });
+
     it('should record simple error when failedFallbacks present but meta has fallbackFromModel', async () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();

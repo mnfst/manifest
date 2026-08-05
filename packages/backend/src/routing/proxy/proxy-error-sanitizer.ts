@@ -43,7 +43,10 @@ const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
 ];
 
 function sanitizeSensitivePatterns(msg: string): string {
-  return scrubSecrets(msg).replace(/(\b(?:api[_-]?)?key)=[^&\s"']+/gi, '$1=[REDACTED]');
+  return scrubSecrets(msg).replace(
+    /(["']?)(api[_-]?key|key)\1(\s*[:=]\s*)(["']?)[^"',}&\s]+\4/gi,
+    '$1$2$1$3$4[REDACTED]$4',
+  );
 }
 
 function normalizeErrorMessage(message: string): string {

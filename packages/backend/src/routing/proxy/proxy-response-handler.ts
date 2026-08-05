@@ -390,14 +390,15 @@ function handleFallbackExhausted(
   logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
   const classified = classifyProviderError(errorStatus, errorBody);
   const structured = parseStructuredProviderError(errorStatus, errorBody);
-  const structuredCode = structured?.code;
+  const providerCode = classified?.code ?? structured?.code;
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
   const responseBody = {
+    ...(apiMode === 'messages' ? { type: 'error' } : {}),
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
-      source: classified?.source ?? (structuredCode ? 'provider' : 'manifest'),
-      code: classified?.code ?? structuredCode ?? 'fallback_exhausted',
+      source: classified?.source ?? (structured ? 'provider' : 'manifest'),
+      code: providerCode ?? 'fallback_exhausted',
       provider: meta.provider,
       model: meta.model,
       extra: {
