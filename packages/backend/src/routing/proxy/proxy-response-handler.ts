@@ -194,6 +194,7 @@ export function buildOpenAiCompatibleError(
     code?: string | null;
     provider?: string;
     model?: string;
+    apiMode?: ProxyApiMode;
     extra?: Record<string, unknown>;
   } = {},
 ): Record<string, unknown> {
@@ -204,7 +205,12 @@ export function buildOpenAiCompatibleError(
       classified?.message ??
       structured?.message ??
       sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
-    type: classified?.type ?? structured?.type ?? openAiErrorTypeForStatus(status),
+    type:
+      classified?.type ??
+      structured?.type ??
+      (opts.apiMode === 'messages' && status >= 500
+        ? 'api_error'
+        : openAiErrorTypeForStatus(status)),
     param: structured?.param ?? null,
     code: opts.code !== undefined ? opts.code : (classified?.code ?? structured?.code ?? null),
     status,
@@ -305,6 +311,7 @@ export async function handleProviderError(
       source: 'provider',
       provider: meta.provider,
       model: meta.model,
+      apiMode,
     }),
   };
   res.json(responseBody);
@@ -401,6 +408,7 @@ function handleFallbackExhausted(
       code: providerCode ?? 'fallback_exhausted',
       provider: meta.provider,
       model: meta.model,
+      apiMode,
       extra: {
         primary_model: meta.model,
         primary_provider: meta.provider,

@@ -345,7 +345,7 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'server_error',
+            type: 'api_error',
             code: 'fallback_exhausted',
             source: 'manifest',
             primary_model: 'gpt-4o',
@@ -815,6 +815,39 @@ describe('proxy-response-handler', () => {
           message: 'Invalid API key',
           type: 'invalid_request_error',
           status: 401,
+          source: 'provider',
+        }),
+      });
+    });
+
+    it('uses the Anthropic api_error type for generic Messages server errors', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        500,
+        'Internal Server Error',
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: expect.objectContaining({
+          type: 'api_error',
+          status: 500,
           source: 'provider',
         }),
       });

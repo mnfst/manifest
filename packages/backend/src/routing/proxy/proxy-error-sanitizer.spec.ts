@@ -159,6 +159,27 @@ describe('sanitizeProviderError', () => {
     },
   );
 
+  it('redacts quoted credential values containing whitespace', () => {
+    const credential = 'opaque credential value';
+    const body = JSON.stringify({
+      error: { message: `Invalid credential: "apiKey":"${credential}"` },
+    });
+
+    const result = sanitizeProviderError(401, body, 'production');
+    expect(result).toContain('"apiKey":"[REDACTED]"');
+    expect(result).not.toContain(credential);
+  });
+
+  it('redacts short Bearer credentials containing punctuation', () => {
+    const body = JSON.stringify({ error: { message: 'Invalid Bearer a!b@c:' } });
+    expect(sanitizeProviderError(401, body, 'production')).toBe('Invalid Bearer [REDACTED]');
+  });
+
+  it('does not treat key substrings inside words as credential fields', () => {
+    const body = JSON.stringify({ error: { message: 'Provider says monkey:banana' } });
+    expect(sanitizeProviderError(400, body, 'production')).toBe('Provider says monkey:banana');
+  });
+
   it('defaults to production behavior when nodeEnv is omitted', () => {
     const body = JSON.stringify({ error: { message: 'Should not leak' } });
     expect(sanitizeProviderError(500, body)).toBe('Upstream provider internal error');
