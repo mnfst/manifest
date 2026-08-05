@@ -641,9 +641,13 @@ The id is minted lazily by `InstallIdService.getOrCreate()` (exported from `Tele
 
 **Frontend:** `pages/SettingsAutofixSection.tsx` — a single on/off toggle in the per-agent **Settings** page (shown for every agent; `services/api/routing.ts` `getAutofix`/`updateAutofix`; `.settings-switch` styling). `components/MessageDetails.tsx` renders the Auto-fix panel + sibling link.
 
-**Self-hosted consent is once, and enabling can backfill the fleet.** On self-hosted, the first time Auto-fix is switched on the consent modal appears (remembered via `install_metadata.autofix_consented_at` — a single nullable column on the existing telemetry singleton). The modal carries an "Auto-fix for all existing agents" switch (`.settings-switch`, default ON): confirming with it on runs `UPDATE agents SET autofix_enabled = true` for **every** agent in the workspace (including any previously turned off), with per-tenant cache invalidation. `GET …/autofix` returns `{ enabled, consented }`; `PATCH` accepts `{ enabled, applyToAll }`. Cloud never consults or writes the consent.
+**Self-hosted consent is once, and enabling can backfill the fleet.** On self-hosted, the first time Auto-fix is switched on the consent modal appears (remembered via `install_metadata.autofix_consented_at` — a single nullable column on the existing telemetry singleton). Consent is recorded by **any** enable path: the per-agent `PATCH …/autofix` with `enabled: true`, the fleet CTA, and the Auto-fix switch on first agent creation. The singleton row is upserted, minting an `install_id` if telemetry never did — so consent alone never starts telemetry.
 
-**Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled, consented }`.
+Backfilling the fleet is a **separate endpoint**, not a flag on the per-agent PATCH: `POST /api/v1/autofix/enable-all` runs `UPDATE agents SET autofix_enabled = true` for every live, non-playground agent in the tenant (**including any previously turned off**), invalidates the per-tenant config cache, records consent, and returns the refreshed workspace status. Soft-deleted agents are left alone so resurrecting one doesn't silently arrive with Auto-fix on.
+
+`GET /api/v1/autofix/status` → `{ any_enabled, enabled_agents, needs_enable_all, consented }`. `needs_enable_all` is what gates the sidebar CTA: true only when no agent is enabled *and* at least one still has `autofix_enabled = NULL` (never made an explicit choice), so an operator who deliberately turned everything off is not nagged. Cloud never consults or writes the consent — `consented` is always true there.
+
+**Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled, consented }`; `GET /api/v1/autofix/status`; `POST /api/v1/autofix/enable-all`.
 
 **Env:** `AUTOFIX_HEALING_URL` (unset → inert Noop in production, in-process mock in dev/test), `AUTOFIX_HEALING_API_KEY` (sent as `x-api-key`; required for a production Phoenix, which fails closed without it), `AUTOFIX_GLOBAL_ENABLED` (`false` disables Auto-fix everywhere; default on), `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 
