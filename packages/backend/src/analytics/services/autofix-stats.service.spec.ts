@@ -125,17 +125,57 @@ describe('AutofixStatsService', () => {
     });
   });
 
-  it('offers fleet enable only for legacy unconfigured agents', async () => {
-    autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
-    agentRepo.find.mockResolvedValue([
-      { name: 'legacy', autofix_enabled: null },
-      { name: 'explicitly-disabled', autofix_enabled: false },
-    ]);
+  describe('fleet-enable CTA (self-hosted)', () => {
+    // The CTA only exists on self-hosted: cloud is always "consented" and NULL
+    // resolves to enabled there, so the condition can never hold. Build the
+    // service against a real self-hosted consent lookup rather than mixing a
+    // self-hosted resolveEnabled with cloud's implicit consent.
+    const selfHostedService = (consentedAt: string | null) => {
+      process.env.MANIFEST_MODE = 'selfhosted';
+      autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
+      return new AutofixStatsService(
+        agentRepo as never,
+        messageRepo as never,
+        {
+          findOne: jest
+            .fn()
+            .mockResolvedValue(consentedAt ? { autofix_consented_at: consentedAt } : null),
+        } as never,
+        autofix as never,
+        requestVolume as never,
+      );
+    };
+    afterEach(() => {
+      process.env.MANIFEST_MODE = 'cloud';
+    });
 
-    await expect(service.getWorkspaceStatus('tenant')).resolves.toMatchObject({
-      any_enabled: false,
-      enabled_agents: [],
-      needs_enable_all: true,
+    it('offers fleet enable for an unconsented install with unconfigured agents', async () => {
+      agentRepo.find.mockResolvedValue([
+        { name: 'legacy', autofix_enabled: null },
+        { name: 'explicitly-disabled', autofix_enabled: false },
+      ]);
+
+      await expect(selfHostedService(null).getWorkspaceStatus('tenant')).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: true,
+      });
+    });
+
+    it('stops offering it once the install has consented', async () => {
+      // NULL is the "inherit the mode default" state, not a legacy marker — an
+      // OTLP-onboarded agent stores it too. Keying the one-time CTA on NULL
+      // alone re-prompted installs that had already decided.
+      agentRepo.find.mockResolvedValue([{ name: 'inherited', autofix_enabled: null }]);
+
+      await expect(
+        selfHostedService('2026-08-05T00:00:00.000Z').getWorkspaceStatus('tenant'),
+      ).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: true,
+      });
     });
   });
 

@@ -140,10 +140,16 @@ export class AgentsController {
           cleanupError instanceof Error ? cleanupError.stack : String(cleanupError),
         );
       }
-      // The agent was committed (briefly visible) then rolled back, so drop any
-      // agent-list cache entry that captured it — deleteAgent only clears the
-      // resolve + routing caches, not the analytics agent list.
-      await this.invalidateAgentListCache(result.tenantId);
+      // The agent was committed (briefly visible) then rolled back, so drop the
+      // cache entries that captured it — deleteAgent only clears the resolve +
+      // routing caches. The Auto-fix status key matters as much as the agent
+      // list: without it, /autofix/status keeps reporting the rolled-back agent
+      // as enabled for the dashboard TTL, so the sidebar disagrees with the
+      // workspace about an agent that no longer exists.
+      await Promise.all([
+        this.invalidateAgentListCache(result.tenantId),
+        this.invalidateAutofixStatusCache(result.tenantId),
+      ]);
       throw error;
     }
     await Promise.all([

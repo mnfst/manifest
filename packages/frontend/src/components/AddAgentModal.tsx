@@ -34,6 +34,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
   const [recordingEnabled, setRecordingEnabled] = createSignal(true);
   const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
+  // The Auto-fix consent lookup is a second async hop, in front of the create.
+  // Tracked separately from `creating()` so the form can be locked for its
+  // duration without claiming a create is already under way.
+  const [checkingConsent, setCheckingConsent] = createSignal(false);
   let autofixDialogRef: HTMLDivElement | undefined;
   useFocusTrap(confirmingAutofix, () => autofixDialogRef);
 
@@ -41,8 +45,20 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   // create request was still in flight. A dismissed create must NOT run its
   // post-success side effects (toast, markAgentCreated) or navigate afterwards —
   // otherwise closing the modal mid-request still yanks the user to Routing once
-  // the request resolves. Reset at the start of every create attempt.
+  // the request resolves.
   let cancelled = false;
+  // Monotonic id of the current create attempt. `cancelled` alone cannot carry
+  // this: the consent lookup awaits *before* createAgentNow(), so a dismissal
+  // during the lookup was silently undone by the flag reset at the top of the
+  // create and the harness was created and navigated to anyway. Each async hop
+  // now re-checks the token it started with, so a dismissed or superseded
+  // attempt drops its result instead of acting on it.
+  let attemptToken = 0;
+  const beginAttempt = (): number => {
+    cancelled = false;
+    return ++attemptToken;
+  };
+  const isStale = (token: number): boolean => cancelled || token !== attemptToken;
   // If the component unmounts mid-request, treat it like a dismissal so we never
   // navigate from a disposed modal.
   onCleanup(() => {
@@ -60,17 +76,22 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setPlatform(PLATFORMS_BY_CATEGORY[c][0] ?? null);
   };
 
-  const createAgentNow = async () => {
+  /**
+   * @param token attempt id from {@link beginAttempt}, re-checked after every await.
+   * @param autofixChoice the Auto-fix setting the consent decision was made
+   *   against — passed in rather than re-read, so the agent that gets created is
+   *   the one the user was actually asked about.
+   */
+  const createAgentNow = async (token: number, autofixChoice: boolean) => {
     const agentName = name().trim();
     if (!agentName) return;
-    cancelled = false;
     setCreating(true);
     try {
       const result = await createAgent({
         name: agentName,
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
-        autofix_enabled: autofixEnabled(),
+        autofix_enabled: autofixChoice,
         record_messages: recordingEnabled(),
       });
       // Local creates do not wait for the asynchronous server-sent event. This
@@ -78,7 +99,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       refreshAgents();
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
-      if (cancelled) return;
+      if (isStale(token)) return;
       toast.success(`Harness "${agentName}" connected`);
       props.onClose();
       resetForm();
@@ -102,7 +123,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       }
 
       // A dismissal during the providers lookup must also skip the redirect.
-      if (cancelled) return;
+      if (isStale(token)) return;
 
       // Land on Routing either way; the new agent's API key is surfaced there.
       navigate(`/harnesses/${encodeURIComponent(slug)}/routing`, {
@@ -120,19 +141,35 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   const handleCreate = async () => {
     if (!name().trim()) return;
-    if (autofixEnabled()) {
+    // A second submit while the consent lookup or the create is already running
+    // would issue a duplicate agent-creation request.
+    if (creating() || checkingConsent()) return;
+    const token = beginAttempt();
+    // Freeze the choice the consent decision is made against. The toggles are
+    // locked for the duration too, but pinning the value here is what
+    // guarantees the dialog cannot promise to enable Auto-fix and then create a
+    // harness with it off.
+    const autofixChoice = autofixEnabled();
+    if (autofixChoice) {
       let consented = false;
+      setCheckingConsent(true);
       try {
         consented = (await getWorkspaceAutofixStatus()).consented;
       } catch {
         // Fail closed: if consent cannot be verified, ask before enabling.
+      } finally {
+        setCheckingConsent(false);
       }
+      // Dismissed or superseded mid-lookup: drop the result rather than creating
+      // a harness the user backed out of, or queueing the consent dialog to
+      // appear the next time the modal opens.
+      if (isStale(token)) return;
       if (!consented) {
         setConfirmingAutofix(true);
         return;
       }
     }
-    await createAgentNow();
+    await createAgentNow(token, autofixChoice);
   };
 
   const resetForm = () => {
@@ -177,7 +214,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 platform={platform()}
                 onCategoryChange={handleCategoryChange}
                 onPlatformChange={setPlatform}
-                disabled={creating()}
+                disabled={creating() || checkingConsent()}
               />
             </div>
             <div style="flex: 1;">
@@ -192,7 +229,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 placeholder="e.g. My Cool Harness"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
-                disabled={creating()}
+                disabled={creating() || checkingConsent()}
               />
             </div>
           </div>
@@ -212,7 +249,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 aria-label="Auto-fix"
                 class="settings-switch"
                 classList={{ 'settings-switch--on': autofixEnabled() }}
-                disabled={creating()}
+                disabled={creating() || checkingConsent()}
                 onClick={() => setAutofixEnabled(!autofixEnabled())}
               >
                 <span class="settings-switch__track">
@@ -234,7 +271,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 aria-label="Record messages"
                 class="settings-switch"
                 classList={{ 'settings-switch--on': recordingEnabled() }}
-                disabled={creating()}
+                disabled={creating() || checkingConsent()}
                 onClick={() => setRecordingEnabled(!recordingEnabled())}
               >
                 <span class="settings-switch__track">
@@ -248,9 +285,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             <button
               class="btn btn--primary btn--sm"
               onClick={handleCreate}
-              disabled={!name().trim() || creating()}
+              disabled={!name().trim() || creating() || checkingConsent()}
             >
-              {creating() ? <span class="spinner" /> : 'Create'}
+              {creating() || checkingConsent() ? <span class="spinner" /> : 'Create'}
             </button>
           </div>
         </div>
@@ -317,10 +354,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                   <button
                     type="button"
                     class="btn btn--primary btn--sm"
-                    disabled={creating()}
+                    disabled={creating() || checkingConsent()}
                     onClick={() => {
                       setConfirmingAutofix(false);
-                      void createAgentNow();
+                      // Confirming consent starts a fresh attempt. Auto-fix is
+                      // necessarily on — this dialog only appears for that case.
+                      void createAgentNow(beginAttempt(), true);
                     }}
                   >
                     Agree &amp; create

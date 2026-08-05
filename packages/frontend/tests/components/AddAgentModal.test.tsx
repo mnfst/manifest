@@ -133,6 +133,101 @@ describe('AddAgentModal', () => {
     expect(mockCreateAgent).not.toHaveBeenCalled();
   });
 
+  describe('consent-lookup races', () => {
+    /** Consent lookup the test resolves by hand, to hold the async gap open. */
+    const pendingConsent = () => {
+      let resolve!: (v: { consented: boolean }) => void;
+      mockGetWorkspaceAutofixStatus.mockReturnValue(
+        new Promise<{ consented: boolean }>((r) => (resolve = r)),
+      );
+      return { resolve };
+    };
+
+    it('does not create or navigate when the modal is dismissed mid-lookup', async () => {
+      // The parent keeps <AddAgentModal> mounted and toggles `open`, so state
+      // survives a dismissal. Reopening and typing a new name is what makes the
+      // abandoned lookup dangerous: `createAgentNow` reset the dismissal flag,
+      // so the stale resolution created a harness from whatever was in the box
+      // and navigated away. (Dismissing alone was masked by resetForm clearing
+      // the name into createAgentNow's empty-name guard — not a real defence.)
+      const { resolve } = pendingConsent();
+      const { container, input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'abandoned-agent' } });
+      fireEvent.click(createBtn);
+
+      fireEvent.click(container.querySelector('.modal-overlay')!);
+      // User reopens and starts over while the first lookup is still pending.
+      fireEvent.input(input, { target: { value: 'second-thoughts' } });
+      resolve({ consented: true });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockCreateAgent).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not queue the consent dialog for the next open after a mid-lookup dismissal', async () => {
+      const { resolve } = pendingConsent();
+      const { container, input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'abandoned-agent' } });
+      fireEvent.click(createBtn);
+
+      fireEvent.click(container.querySelector('.modal-overlay')!);
+      resolve({ consented: false });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
+    });
+
+    it('issues one create for rapid double submits', async () => {
+      const { resolve } = pendingConsent();
+      const { input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'double-clicked' } });
+      fireEvent.click(createBtn);
+      fireEvent.click(createBtn);
+      fireEvent.click(createBtn);
+
+      resolve({ consented: true });
+      await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+
+      expect(mockCreateAgent).toHaveBeenCalledTimes(1);
+      expect(mockGetWorkspaceAutofixStatus).toHaveBeenCalledTimes(1);
+    });
+
+    it('locks the form while the consent lookup is in flight', () => {
+      pendingConsent();
+      const { container, input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'locked' } });
+      fireEvent.click(createBtn);
+
+      expect((createBtn as HTMLButtonElement).disabled).toBe(true);
+      expect(input.disabled).toBe(true);
+      for (const sw of container.querySelectorAll<HTMLButtonElement>('.settings-switch')) {
+        expect(sw.disabled).toBe(true);
+      }
+    });
+
+    it('creates with the Auto-fix choice the consent dialog was shown for', async () => {
+      // The user cannot flip the toggle mid-lookup (it is disabled), but the
+      // choice is pinned at submit regardless, so the created harness always
+      // matches what the dialog promised.
+      const { resolve } = pendingConsent();
+      const { input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'consented-agent' } });
+      fireEvent.click(createBtn);
+      resolve({ consented: false });
+
+      await screen.findByText('Enable hosted Auto-fix?');
+      fireEvent.click(screen.getByText('Agree & create'));
+
+      await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+      expect(mockCreateAgent).toHaveBeenCalledWith(
+        expect.objectContaining({ autofix_enabled: true }),
+      );
+    });
+  });
+
   it('keeps Create disabled until a non-blank name is entered', () => {
     const { input, createBtn } = renderOpen();
     expect((createBtn as HTMLButtonElement).disabled).toBe(true);

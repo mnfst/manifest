@@ -4,11 +4,14 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
   Put,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TIER_SLOTS } from 'manifest-shared';
@@ -42,6 +45,7 @@ export class TierController {
     private readonly installMetadataRepo: Repository<InstallMetadata>,
     private readonly autofixService: AutofixService,
     private readonly recordingCache: AgentRecordingCacheService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   @Get(':agentName/tiers')
@@ -193,6 +197,13 @@ export class TierController {
         // Per-agent enable also records consent-once so the sidebar CTA doesn't
         // keep prompting after a single agent was turned on deliberately.
         if (!(await this.hasAutofixConsent())) await this.recordAutofixConsent();
+      }
+      // Both `any_enabled` and `consented` just changed. `UserCacheInterceptor`
+      // keys the workspace status as `${tenantId}:/api/v1/autofix/status`, so
+      // without this the sidebar keeps prompting for consent already given —
+      // or keeps offering the fleet CTA — until the dashboard TTL expires.
+      if (agent.tenant_id) {
+        await this.cacheManager.del(`${agent.tenant_id}:/api/v1/autofix/status`);
       }
     }
     return {

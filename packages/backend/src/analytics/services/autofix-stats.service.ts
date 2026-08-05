@@ -120,15 +120,27 @@ export class AutofixStatsService {
       .filter((agent) => this.autofix.resolveEnabled(agent.autofix_enabled))
       .map((agent) => agent.name);
 
+    const consented = await this.hasConsent();
     return {
       any_enabled: enabledAgents.length > 0,
       enabled_agents: enabledAgents,
-      // Existing agents upgraded from before the explicit creation toggle have
-      // NULL here. New agents always send true or false, so no release-date
-      // cutoff is needed and an explicit opt-out never triggers the fleet CTA.
+      // The fleet CTA is a one-time onboarding nudge, so it takes all three
+      // terms: nothing is enabled, the install has never consented, and some
+      // agent never made an explicit choice.
+      //
+      // `autofix_enabled IS NULL` on its own is NOT a "row predates the
+      // feature" marker — NULL is the deliberate "inherit the deployment-mode
+      // default" state (see AutofixService.resolveEnabled, and migration
+      // 1799000300000 which reset pre-feature rows *to* NULL for exactly that
+      // reason). Only the create dialog sends an explicit choice; agents
+      // onboarded over OTLP, or by API clients that omit the field, still
+      // store NULL. Without the consent term those installs get re-prompted
+      // after they have already decided.
       needs_enable_all:
-        enabledAgents.length === 0 && agents.some((agent) => agent.autofix_enabled == null),
-      consented: await this.hasConsent(),
+        enabledAgents.length === 0 &&
+        !consented &&
+        agents.some((agent) => agent.autofix_enabled == null),
+      consented,
     };
   }
 

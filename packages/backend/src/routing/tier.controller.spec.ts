@@ -8,6 +8,7 @@ import { InstallMetadata } from '../entities/install-metadata.entity';
 import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
 import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
+import type { Cache } from 'cache-manager';
 
 const ORIGINAL_MANIFEST_MODE = process.env.MANIFEST_MODE;
 
@@ -39,6 +40,7 @@ describe('TierController', () => {
     resolveEnabled: jest.Mock;
   };
   let controller: TierController;
+  let cacheDel: jest.Mock;
   let recordingCache: { invalidate: jest.Mock };
   let installMetadataRepo: {
     findOne: jest.Mock;
@@ -83,6 +85,8 @@ describe('TierController', () => {
         execute: jest.fn().mockResolvedValue(undefined),
       }),
     };
+    const cacheManager = { del: jest.fn().mockResolvedValue(undefined) };
+    cacheDel = cacheManager.del;
     controller = new TierController(
       tierService as unknown as TierService,
       resolveAgentService as unknown as ResolveAgentService,
@@ -90,6 +94,7 @@ describe('TierController', () => {
       installMetadataRepo as unknown as Repository<InstallMetadata>,
       autofixService as unknown as AutofixService,
       recordingCache as unknown as AgentRecordingCacheService,
+      cacheManager as unknown as Cache,
     );
   });
 
@@ -202,6 +207,15 @@ describe('TierController', () => {
     // Cloud: no consent to record, and no backfill requested.
     expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidateTenant).not.toHaveBeenCalled();
+    // The workspace status the sidebar reads is cached per tenant; both
+    // `any_enabled` and `consented` just changed, so it has to be dropped or
+    // the CTA keeps prompting for the dashboard TTL.
+    expect(cacheDel).toHaveBeenCalledWith('tenant-1:/api/v1/autofix/status');
+  });
+
+  it('PATCH autofix leaves the workspace status cache alone on a no-op', async () => {
+    await controller.updateAutofix(ctx, 'demo', {});
+    expect(cacheDel).not.toHaveBeenCalled();
   });
 
   it('PATCH autofix with an empty body is a no-op and echoes the current value', async () => {
@@ -267,8 +281,6 @@ describe('TierController', () => {
       await controller.updateAutofix(ctx, 'demo', { enabled: true });
       expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
-
-
   });
 
   it('GET recording returns the per-agent opt-in flag', async () => {
