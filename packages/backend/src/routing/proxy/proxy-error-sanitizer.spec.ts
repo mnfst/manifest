@@ -194,6 +194,23 @@ describe('sanitizeProviderError', () => {
     expect(result).not.toContain(credential);
   });
 
+  it.each([
+    ['JSON', (value: string) => JSON.stringify({ apiKey: value })],
+    [
+      'escaped serialized JSON',
+      (value: string) => JSON.stringify({ apiKey: value }).replace(/"/g, '\\"'),
+    ],
+  ])('fully redacts credential values containing escaped quotes in %s', (_format, diagnostic) => {
+    const credential = 'opaque"secret tail';
+    const body = JSON.stringify({
+      error: { message: `Serialized request: ${diagnostic(credential)}` },
+    });
+
+    const result = sanitizeProviderError(401, body, 'production');
+    expect(result).toContain('[REDACTED]');
+    expect(result).not.toContain('secret tail');
+  });
+
   it('preserves generic key-value prose', () => {
     const message = 'Provider expected key: value for routing';
     const body = JSON.stringify({ error: { message } });

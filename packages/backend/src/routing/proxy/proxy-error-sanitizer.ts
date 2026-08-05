@@ -43,18 +43,20 @@ const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
 ];
 
 function sanitizeSensitivePatterns(msg: string): string {
-  return scrubSecrets(msg.replace(/Bearer\s+(?:"[^"]*"|'[^']*'|[^\s"']+)/gi, 'Bearer [REDACTED]'))
+  return scrubSecrets(
+    msg.replace(/Bearer\s+(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s"']+)/gi, 'Bearer [REDACTED]'),
+  )
     .replace(
-      /\\"(api[_-]?key|key)\\"(\s*:\s*)\\"(?:[^"\\]|\\(?!"))*\\"/gi,
+      /\\"(api[_-]?key|key)\\"(\s*:\s*)\\"(?:\\\\"|[^"\\]|\\(?!"))*\\"/gi,
       '\\"$1\\"$2\\"[REDACTED]\\"',
     )
-    .replace(/"(api[_-]?key|key)"(\s*:\s*)"[^"]*"/gi, '"$1"$2"[REDACTED]"')
-    .replace(/'(api[_-]?key|key)'(\s*:\s*)'[^']*'/gi, "'$1'$2'[REDACTED]'")
-    .replace(/\b(api[_-]?key)\b(\s*[:=]\s*)"[^"]*"/gi, '$1$2"[REDACTED]"')
-    .replace(/\b(api[_-]?key)\b(\s*[:=]\s*)'[^']*'/gi, "$1$2'[REDACTED]'")
+    .replace(/"(api[_-]?key|key)"(\s*:\s*)"(?:\\.|[^"\\])*"/gi, '"$1"$2"[REDACTED]"')
+    .replace(/'(api[_-]?key|key)'(\s*:\s*)'(?:\\.|[^'\\])*'/gi, "'$1'$2'[REDACTED]'")
+    .replace(/\b(api[_-]?key)\b(\s*[:=]\s*)"(?:\\.|[^"\\])*"/gi, '$1$2"[REDACTED]"')
+    .replace(/\b(api[_-]?key)\b(\s*[:=]\s*)'(?:\\.|[^'\\])*'/gi, "$1$2'[REDACTED]'")
     .replace(/\b(api[_-]?key)\b(\s*[:=]\s*)[^\s"',}&]+/gi, '$1$2[REDACTED]')
-    .replace(/\b(key)\b(\s*=\s*)"[^"]*"/gi, '$1$2"[REDACTED]"')
-    .replace(/\b(key)\b(\s*=\s*)'[^']*'/gi, "$1$2'[REDACTED]'")
+    .replace(/\b(key)\b(\s*=\s*)"(?:\\.|[^"\\])*"/gi, '$1$2"[REDACTED]"')
+    .replace(/\b(key)\b(\s*=\s*)'(?:\\.|[^'\\])*'/gi, "$1$2'[REDACTED]'")
     .replace(/\b(key)\b(\s*=\s*)[^\s"',}&]+/gi, '$1$2[REDACTED]');
 }
 
