@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 
 const mockNavigate = vi.fn();
 vi.mock('@solidjs/router', () => ({
@@ -206,6 +207,32 @@ describe('AddAgentModal', () => {
       for (const sw of container.querySelectorAll<HTMLButtonElement>('.settings-switch')) {
         expect(sw.disabled).toBe(true);
       }
+    });
+
+    it('does not navigate to the created harness if the modal is reopened mid-provider-lookup', async () => {
+      // Models the real parent: <AddAgentModal open={signal()} onClose={...}>,
+      // where closing does not unmount. The success path closes the modal and
+      // *then* awaits getGlobalProviders, so a user who reopens to add a second
+      // harness used to get redirected to the first one when that lookup landed.
+      let resolveProviders!: (v: { providers: unknown[] }) => void;
+      mockGetGlobalProviders.mockReturnValue(
+        new Promise<{ providers: unknown[] }>((r) => (resolveProviders = r)),
+      );
+      const [open, setOpen] = createSignal(true);
+      const { container } = render(() => (
+        <AddAgentModal open={open()} onClose={() => setOpen(false)} />
+      ));
+      const input = container.querySelector('.modal-card__input') as HTMLInputElement;
+      fireEvent.input(input, { target: { value: 'first-harness' } });
+      fireEvent.click(screen.getByText('Create'));
+
+      await vi.waitFor(() => expect(open()).toBe(false));
+      setOpen(true); // user reopens to add another harness
+      resolveProviders({ providers: [] });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('creates with the Auto-fix choice the consent dialog was shown for', async () => {

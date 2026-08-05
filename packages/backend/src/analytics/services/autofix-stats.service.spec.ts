@@ -162,6 +162,24 @@ describe('AutofixStatsService', () => {
       });
     });
 
+    it('does not offer it when every agent already made an explicit choice', async () => {
+      // Pins the NULL term specifically: this install is self-hosted AND
+      // unconsented, so it clears both other gates. Only "no agent is
+      // unconfigured" keeps the CTA away from someone who deliberately turned
+      // Auto-fix off everywhere.
+      agentRepo.find.mockResolvedValue([
+        { name: 'chose-off', autofix_enabled: false },
+        { name: 'also-chose-off', autofix_enabled: false },
+      ]);
+
+      await expect(selfHostedService(null).getWorkspaceStatus('tenant')).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: false,
+      });
+    });
+
     it('stops offering it once the install has consented', async () => {
       // NULL is the "inherit the mode default" state, not a legacy marker — an
       // OTLP-onboarded agent stores it too. Keying the one-time CTA on NULL

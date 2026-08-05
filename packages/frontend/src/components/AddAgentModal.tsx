@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import { Portal } from 'solid-js/web';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
@@ -59,6 +59,14 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     return ++attemptToken;
   };
   const isStale = (token: number): boolean => cancelled || token !== attemptToken;
+  // Reopening invalidates whatever the previous session left in flight. The
+  // success path closes the modal *before* awaiting the providers lookup, and
+  // closing is not a dismissal — so a user who immediately reopens to add a
+  // second harness would otherwise be yanked to the first one the moment that
+  // lookup lands, mid-typing.
+  createEffect(() => {
+    if (props.open) attemptToken++;
+  });
   // If the component unmounts mid-request, treat it like a dismissal so we never
   // navigate from a disposed modal.
   onCleanup(() => {
