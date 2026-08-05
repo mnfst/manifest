@@ -1,5 +1,53 @@
 # manifest
 
+## 6.18.0
+
+### Minor Changes
+
+- f9eb3d8: Enable hosted Auto-fix for self-hosted installs: one-time consent with an option to turn it on for every existing agent, identified by the anonymous install id.
+- 1e4cac8: Add opt-in Provider Attempt message recording with tenant-scoped durable filesystem or S3-compatible storage.
+
+### Patch Changes
+
+- 1b633b6: Fix horizontal overflow in request drawer: error, autofix and fallback context cards now span full width, long error messages wrap instead of scrolling horizontally, and the tabs bar uses a muted background.
+- 59f0e37: Enable automatic prompt caching for Anthropic API keys and OpenRouter Claude models.
+- 205e25c: Auto-fix retries a healed model on the original provider transport when routing cannot resolve it (stale tenant model cache), instead of synthesizing a 502
+- 31eaa75: Auto-fix always closes the evidence loop with Phoenix: a retry that dies mid-flight is reported as a synthetic 499 instead of leaving the heal attempt pending, and a dropped outcome report is resent before giving up
+- f299e4b: Route Bedrock OpenAI and Anthropic models through their compatible Responses and Messages API surfaces.
+- d040011: Stop blocking `/billing/status` and free-tier admission on the historical request-usage baseline scan; return the live counter immediately and finish the baseline in the background. Dashboards no longer wait on billing at all: the plan is resolved once at login via the new light `GET /api/v1/billing/plan` and read synchronously, so Overview, Global Overview, and the Requests log fetch each chart exactly once at the right range.
+- 42a750b: Open routing model pickers from cached provider models and refresh stale catalogs only once per browser session each day.
+- 95c17cf: Cache provider usage aggregates and coalesce live dashboard refreshes.
+- f8cbfd8: Classify Anthropic subscription extra-usage errors as billing without sending them to Auto-fix.
+- 89de9cd: Keep the routing page mounted while refreshed model data loads.
+- 060b42b: Preserve GPT-5.6 reasoning summaries on inbound Chat Completions: map the standard `reasoning_effort` param onto the Responses `reasoning` object (with `summary: auto`) for OpenAI endpoints so the model actually reasons, prefix-match Responses reasoning-summary delta events instead of an exact-name allowlist, and backfill `reasoning_content` from the terminal `response.completed`/`response.incomplete` output when no summary deltas streamed.
+- fb8beb2: Prepare DeepSeek reasoning tool turns once before each provider attempt.
+- 6ac0908: Keep subscription model availability scoped to provider discovery and curated model lists.
+- 3ed45a4: Enable message recording by default for newly created harnesses without changing existing harness settings.
+- e56afee: Forward explicit uncatalogued models to connected providers so real model errors can reach Auto-fix.
+- b4f85dd: Load paginated requests before aggregating attempts and refresh exact totals separately.
+- 01a6966: Keep provider-cooldown skips and successful fallbacks as separate ordered Attempts in Request timelines.
+- 934416d: Reject billing-enabled Cloud startup when request quota and process timezones differ.
+- b6b5db5: Add a Gemini Free provider with Gemini-scoped keys and a reusable managed free-provider
+  configuration. Use the existing managed gateway by default.
+- ca18aad: Prevent headerless Codex subscription requests from sharing token-wide cache affinity.
+- fa15665: Preserve native Responses and Anthropic Messages requests until cross-protocol conversion is required.
+- 6d49e02: Record provider cache-write usage consistently across response formats.
+- 06b0715: Make Auto-fix available to every tenant and retire the early-access waitlist.
+- cdb9028: Preserve OpenRouter input and output modalities during model discovery.
+- ecc29b6: Preserve redacted structured provider error details in proxy responses.
+- 04710be: Simplify model parameter requests with a prefilled GitHub issue.
+- 538d021: Improve request message drawer: markdown rendering, JSON syntax highlighting, gear icon for tool calls, wider drawer, Tools tab shows called and available tools separately.
+- e4b6e6c: Remove the legacy Auto-fix tenant rollout columns after general availability.
+- bd4b560: Honor requested model routes on the Anthropic Messages endpoint.
+- d1d2ea7: Scope proxy replay caches and routing momentum to their owning tenant and agent.
+- 4c42c24: Scope provider prompt cache affinity to explicit tenant and agent sessions.
+- eaa4026: Show actual Provider Attempt tool calls instead of available tool definitions in recorded message details.
+- 3f7f7cf: Show complete Gemini request messages, including system instructions.
+- 1ee0634: Show recorded Gemini streaming responses in Provider Attempt message details.
+- a0834db: Record Manifest-authored routing failures, including provider cooldown skips, as failed Attempts so the Request drawer shows the full routing chain.
+- df19e6e: Keep the routing model picker open while refreshed model data loads.
+- 064e462: Keep `reasoning_content` on OpenCode Zen requests. The reasoning dialect is now decided by the models.dev reasoning capability instead of a model-family regex, so Zen's DeepSeek and codename reasoning models replay their thinking while Claude/GPT/Gemini/Grok slugs keep stripping it.
+
 ## 6.17.1
 
 ### Patch Changes
