@@ -192,6 +192,13 @@
   line-height: 1.5;
 }
 
+.autofix-consent__agents-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
 .autofix-consent__agents {
   display: flex;
   flex-direction: column;

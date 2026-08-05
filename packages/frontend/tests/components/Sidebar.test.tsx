@@ -523,7 +523,7 @@ describe("Sidebar — structure and interaction", () => {
 describe("Sidebar — Auto-fix card", () => {
   it("shows the card with the Enable button while some agents lack Auto-fix", async () => {
     const { container } = render(() => <Sidebar />);
-    await screen.findByText("Discover Auto-fix");
+    await screen.findByText("Keep your agents reliable");
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
     expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
     const btn = container.querySelector("button.sidebar-autofix__btn") as HTMLButtonElement;
@@ -533,7 +533,7 @@ describe("Sidebar — Auto-fix card", () => {
   it("shows the card in cloud too", async () => {
     mockIsSelfHosted = false;
     const { container } = render(() => <Sidebar />);
-    await screen.findByText("Discover Auto-fix");
+    await screen.findByText("Keep your agents reliable");
     expect(container.querySelector("button.sidebar-autofix__btn")).not.toBeNull();
   });
 
@@ -567,14 +567,14 @@ describe("Sidebar — Auto-fix card", () => {
       consented: true,
     });
     const { container } = render(() => <Sidebar />);
-    await screen.findByText("Auto-fix");
-    expect(container.textContent).toContain("Some of your agents are not covered by Auto-fix yet.");
+    await screen.findByText("Keep your agents reliable");
+    expect(container.textContent).toContain("At least one of your agents runs without Auto-fix.");
     expect(container.querySelector("button.sidebar-autofix__btn")).not.toBeNull();
   });
 
   it("dismisses the card for the session via the close button", async () => {
     const { container, unmount } = render(() => <Sidebar />);
-    await screen.findByText("Discover Auto-fix");
+    await screen.findByText("Keep your agents reliable");
 
     fireEvent.click(container.querySelector("button.sidebar-autofix__dismiss")!);
     expect(container.querySelector(".sidebar-autofix")).toBeNull();
@@ -597,24 +597,24 @@ describe("Sidebar — Auto-fix card", () => {
 
   it("closes the modal via Done, overlay, and Escape without saving anything", async () => {
     const { container } = render(() => <Sidebar />);
-    await screen.findByText("Discover Auto-fix");
+    await screen.findByText("Keep your agents reliable");
     const open = () => fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
 
     open();
-    await screen.findByText("Enable Auto-fix?");
+    await screen.findByText("Enable Auto-fix");
     fireEvent.click(screen.getByText("Done"));
-    expect(screen.queryByText("Enable Auto-fix?")).toBeNull();
+    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
 
     open();
-    await screen.findByText("Enable Auto-fix?");
+    await screen.findByText("Enable Auto-fix");
     const overlay = document.querySelector(".modal-overlay")!;
     fireEvent.click(overlay);
-    expect(screen.queryByText("Enable Auto-fix?")).toBeNull();
+    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
 
     open();
-    await screen.findByText("Enable Auto-fix?");
+    await screen.findByText("Enable Auto-fix");
     fireEvent.keyDown(document.querySelector(".modal-overlay")!, { key: "Escape" });
-    expect(screen.queryByText("Enable Auto-fix?")).toBeNull();
+    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
 
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
   });
@@ -630,7 +630,7 @@ describe("Sidebar — Auto-fix card", () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Enable");
     fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
-    await screen.findByText("Enable Auto-fix?");
+    await screen.findByText("Enable Auto-fix");
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
   });
 
@@ -655,7 +655,7 @@ describe("Sidebar — Auto-fix card", () => {
           consented: true,
         });
       const { container } = render(() => <Sidebar />);
-      await screen.findByText("Discover Auto-fix");
+      await screen.findByText("Keep your agents reliable");
       await vi.advanceTimersByTimeAsync(15_000);
       await waitFor(() => expect(container.querySelector(".sidebar-autofix")).toBeNull());
     } finally {
@@ -678,7 +678,7 @@ describe("Sidebar — Auto-fix card", () => {
         })
         .mockRejectedValue(new Error("blip"));
       const { container } = render(() => <Sidebar />);
-      await screen.findByText("Discover Auto-fix");
+      await screen.findByText("Keep your agents reliable");
       await vi.advanceTimersByTimeAsync(15_000);
       await waitFor(() => expect(mockGetAutofixStatus.mock.calls.length).toBeGreaterThan(1));
       expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
@@ -690,9 +690,9 @@ describe("Sidebar — Auto-fix card", () => {
 
 describe("Sidebar — Auto-fix per-agent modal", () => {
   const openModal = async (container: HTMLElement) => {
-    await screen.findByText("Discover Auto-fix");
+    await screen.findByText("Keep your agents reliable");
     fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
-    await screen.findByText("Enable Auto-fix?");
+    await screen.findByText("Enable Auto-fix");
   };
   const switches = () =>
     Array.from(document.querySelectorAll(".autofix-consent__agent-row .settings-switch"));
@@ -815,9 +815,9 @@ describe("Sidebar — Auto-fix per-agent modal", () => {
     fireEvent.click(switches()[1]);
     await waitFor(() => expect(container.querySelector(".sidebar-autofix")).toBeNull());
     // The modal itself stays open until Done.
-    expect(screen.queryByText("Enable Auto-fix?")).not.toBeNull();
+    expect(screen.queryByText("Enable Auto-fix")).not.toBeNull();
     fireEvent.click(screen.getByText("Done"));
-    expect(screen.queryByText("Enable Auto-fix?")).toBeNull();
+    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
   });
 
   it("falls back to the raw agent name when the harness list has not resolved", async () => {

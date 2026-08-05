@@ -349,9 +349,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8" />
               <path d="M12.28 8.82 12 9.1l-.28-.28c-1.09-1.1-2.81-1.1-3.91 0a2.794 2.794 0 0 0 0 3.95L11.99 17l4.18-4.23a2.794 2.794 0 0 0 0-3.95 2.73 2.73 0 0 0-3.91 0Z" />
             </svg>
-            <span class="sidebar-autofix__title">
-              {autofixStatus()?.any_enabled ? 'Auto-fix' : 'Discover Auto-fix'}
-            </span>
+            <span class="sidebar-autofix__title">Keep your agents reliable</span>
             <button
               type="button"
               class="sidebar-autofix__dismiss"
@@ -372,9 +370,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
             </button>
           </div>
           <p class="sidebar-autofix__desc">
-            {autofixStatus()?.any_enabled
-              ? 'Some of your agents are not covered by Auto-fix yet. Enable it to make your agentic workflows more reliable.'
-              : 'Auto-fix can repair eligible failing requests before they reach the model.'}
+            At least one of your agents runs without Auto-fix. Auto-fix can repair eligible failing
+            requests before they reach the model.
           </p>
           <button type="button" class="sidebar-autofix__btn" onClick={openAutofixModal}>
             Enable
@@ -466,7 +463,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               style="max-width: 560px;"
             >
               <h2 class="modal-card__title" id="sidebar-autofix-consent-title">
-                Enable Auto-fix?
+                Enable Auto-fix
               </h2>
               <p class="modal-card__desc" id="sidebar-autofix-consent-description">
                 Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
@@ -481,6 +478,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 </a>
                 .
               </p>
+              <div class="autofix-consent__agents-label">Agents to activate</div>
               <div class="autofix-consent__agents">
                 <For each={modalAgents()}>
                   {(agent) => (
