@@ -664,6 +664,38 @@ describe('proxy-response-handler', () => {
         }
       }
     });
+
+    it('preserves a structured provider type for authentication errors', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        401,
+        JSON.stringify({
+          error: {
+            message: 'Invalid API key',
+            type: 'invalid_request_error',
+          },
+        }),
+        undefined,
+        recorder as any,
+      );
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: expect.objectContaining({
+          message: 'Invalid API key',
+          type: 'invalid_request_error',
+          status: 401,
+          source: 'provider',
+        }),
+      });
+    });
   });
 
   /* ── recordFallbackFailures ── */
