@@ -1,0 +1,40 @@
+packages/backend/src/routing/tier.controller.spec.ts
+  s_201f9a60a9c91a::t_ce2925f923d079 43
+  s_201f9a60a9c91a::t_f1448ddbd21cf3 210-218
+  s_201f9a60a9c91a::t_cb6e216f114128 97
+  s_201f9a60a9c91a::t_0298a15da42e5e 11
+  s_201f9a60a9c91a::t_70181be6e2dd4a 88-89
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_201f9a60a9c91a::t_63b6e616763343 128-150,152-178
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_201f9a60a9c91a::t_0e4e319a057263 548-551
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_201f9a60a9c91a::t_18ac97c9a6fba1 136-146,153-158,161-230
+  s_201f9a60a9c91a::t_24e2a5c9670abe 147-152,159-160
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_201f9a60a9c91a::t_9aefec00933ea7 143-152
+packages/backend/src/routing/tier.controller.ts
+  s_201f9a60a9c91a::t_614df6af2e32b2 7,13-14
+  s_201f9a60a9c91a::t_923bfb56252ea1 48
+  s_201f9a60a9c91a::t_0411f91cde86c1 201-207
+packages/frontend/src/components/AddAgentModal.tsx
+  s_201f9a60a9c91a::t_efdde3478305bf 37-40,48,50-61,79-85,94,102,126,144-153,155,160-161,163-166,172,217,232,252,274,288,290,357,360-362
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_201f9a60a9c91a::t_c3993cd868ba38 123,127-138,140-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "767af87aadea404aadc39737842efdcbd248c7c9",
+  "prompts": {},
+  "sessions": {
+    "s_201f9a60a9c91a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "70970168-586c-4512-86b1-cfa9ad95e49f",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
