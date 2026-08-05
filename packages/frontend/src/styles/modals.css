@@ -186,6 +186,84 @@
   font-weight: 600;
 }
 
+.autofix-consent__legal {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.autofix-consent__agents-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin-bottom: 6px;
+}
+
+.autofix-consent__agents {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--gap-lg);
+  max-height: min(280px, 40vh);
+  overflow-y: auto;
+}
+
+/* Flat list rows split by hairlines (the model-picker idiom), not one card
+   per agent — the list must stay compact with 10-20 agents. */
+.autofix-consent__agent-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-sm) 4px;
+  border-top: 1px solid hsl(var(--border) / 0.5);
+}
+
+.autofix-consent__agent-row:first-child {
+  border-top: none;
+}
+
+/* aria-disabled replaces disabled on the saving switch (focus-trap safety);
+   mirror the .settings-switch:disabled look. */
+.autofix-consent__agent-row .settings-switch[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.autofix-consent__agent-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.dark .autofix-consent__agent-icon[src*='openai'],
+.dark .autofix-consent__agent-icon[src*='anthropic'],
+.dark .autofix-consent__agent-icon[src*='vercel'],
+.dark .autofix-consent__agent-icon[src*='opencode'],
+.dark .autofix-consent__agent-icon[src*='other'] {
+  filter: invert(1);
+}
+
+.autofix-consent__agent-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
+.autofix-consent__legal a,
+.modal-card__desc a {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.modal-card__desc a:hover {
+  color: hsl(var(--primary));
+}
+
 .modal-card__note {
   font-size: var(--font-size-xs);
   color: hsl(var(--muted-foreground));
@@ -518,11 +596,19 @@
   background: hsl(0 0% 11%);
 }
 
+/* Top-aligned so the icon and the dismiss button track the FIRST line of a
+   wrapping title; the margins below re-center each against that line box
+   (title: 14px x 1.6 line-height ≈ 22px). */
 .sidebar-autofix__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin-bottom: 6px;
+}
+
+.sidebar-autofix__header > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
 }
 
 .sidebar-autofix__new-badge {
@@ -542,6 +628,30 @@
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--foreground));
+}
+
+.sidebar-autofix__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-top: -3px;
+  width: 28px;
+  height: 28px;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sidebar-autofix__dismiss:hover,
+.sidebar-autofix__dismiss:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
 }
 
 .sidebar-autofix__desc {
@@ -893,4 +1003,32 @@
 .user-discovery-modal__later:hover,
 .user-discovery-modal__later:focus-visible {
   color: hsl(var(--foreground));
+}
+
+/* Create-harness toggles (Connect Harness modal + Welcome first-harness form):
+   they reuse the Model-parameters group-card design (.model-params__* from
+   routing.css); this wrapper only spaces the group from the fields above. */
+.add-agent-toggles {
+  margin-top: var(--gap-md);
+}
+
+/* The wrapper already spaces the group; the field-label's own top margin
+   would double it. */
+.add-agent-toggles__header {
+  margin-top: 0;
+}
+
+.add-agent-legal {
+  margin-top: var(--gap-sm);
+}
+
+/* Legal line under a Settings card (Auto-fix section). The card drops its
+   own bottom margin so the mention reads as attached to it. */
+.settings-card--flush {
+  margin-bottom: 0;
+}
+
+.settings-card__legal {
+  margin-top: var(--gap-sm);
+  margin-bottom: var(--gap-lg);
 }

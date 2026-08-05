@@ -406,8 +406,8 @@ const RequestMessages: Component<{ recording: Recording | null; view?: Recording
           <div class="request-messages__empty-icon" aria-hidden="true">
             ◌
           </div>
-          <strong>No messages recorded</strong>
-          <span>Message recording was not enabled when this attempt ran.</span>
+          <strong>No logs for this attempt</strong>
+          <span>Logs were off when this attempt ran. Enable logs in Settings to inspect future requests.</span>
         </div>
       }
     >

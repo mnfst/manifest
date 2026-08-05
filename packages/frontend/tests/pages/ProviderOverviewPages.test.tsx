@@ -114,7 +114,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),

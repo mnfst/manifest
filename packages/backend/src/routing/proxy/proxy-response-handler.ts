@@ -19,6 +19,7 @@ import { createSsePayloadParser } from './sse-parser';
 import {
   classifyProviderError,
   openAiErrorTypeForStatus,
+  parseStructuredProviderError,
   sanitizeProviderError,
 } from './proxy-error-sanitizer';
 import {
@@ -193,15 +194,27 @@ export function buildOpenAiCompatibleError(
     code?: string | null;
     provider?: string;
     model?: string;
+    apiMode?: ProxyApiMode;
     extra?: Record<string, unknown>;
   } = {},
 ): Record<string, unknown> {
   const classified = classifyProviderError(status, errorBody);
+  const structured = parseStructuredProviderError(status, errorBody);
   return {
-    message: classified?.message ?? sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
-    type: classified?.type ?? openAiErrorTypeForStatus(status),
-    param: null,
-    code: opts.code !== undefined ? opts.code : (classified?.code ?? null),
+    message:
+      classified?.message ??
+      structured?.message ??
+      sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
+    type:
+      classified?.type ??
+      structured?.type ??
+      (opts.apiMode === 'messages' && status >= 500
+        ? status === 529
+          ? 'overloaded_error'
+          : 'api_error'
+        : openAiErrorTypeForStatus(status)),
+    param: structured?.param ?? null,
+    code: opts.code !== undefined ? opts.code : (classified?.code ?? structured?.code ?? null),
     status,
     source: opts.source ?? classified?.source ?? 'provider',
     ...(opts.provider ? { provider: opts.provider } : {}),
@@ -295,10 +308,12 @@ export async function handleProviderError(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   const responseBody = {
+    ...(apiMode === 'messages' ? { type: 'error' } : {}),
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: 'provider',
       provider: meta.provider,
       model: meta.model,
+      apiMode,
     }),
   };
   res.json(responseBody);
@@ -383,15 +398,19 @@ function handleFallbackExhausted(
 
   logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
   const classified = classifyProviderError(errorStatus, errorBody);
+  const structured = parseStructuredProviderError(errorStatus, errorBody);
+  const providerCode = classified?.code ?? structured?.code;
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   res.setHeader('X-Manifest-Fallback-Exhausted', 'true');
   const responseBody = {
+    ...(apiMode === 'messages' ? { type: 'error' } : {}),
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
-      source: classified?.source ?? 'manifest',
-      code: classified?.code ?? 'fallback_exhausted',
+      source: classified?.source ?? (structured ? 'provider' : 'manifest'),
+      code: providerCode ?? 'fallback_exhausted',
       provider: meta.provider,
       model: meta.model,
+      apiMode,
       extra: {
         primary_model: meta.model,
         primary_provider: meta.provider,

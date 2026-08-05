@@ -31,6 +31,7 @@ import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constan
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { ProviderService } from '../../routing/routing-core/provider.service';
+import { AutofixStatsService } from '../services/autofix-stats.service';
 
 @Controller('api/v1')
 export class AgentsController {
@@ -43,6 +44,7 @@ export class AgentsController {
     private readonly apiKeyGenerator: ApiKeyGeneratorService,
     private readonly eventBus: IngestEventBusService,
     private readonly providerService: ProviderService,
+    private readonly autofixStats: AutofixStatsService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -56,6 +58,11 @@ export class AgentsController {
       this.cacheManager.del(agentListCacheKey(tenantId, false)),
       this.cacheManager.del(agentListCacheKey(tenantId, true)),
     ]);
+  }
+
+  private async invalidateAutofixStatusCache(tenantId: string | null): Promise<void> {
+    if (!tenantId) return;
+    await this.cacheManager.del(`${tenantId}:/api/v1/autofix/status`);
   }
 
   private emitAgentEvent(tenantId: string | null, userId: string | null): void {
@@ -87,6 +94,13 @@ export class AgentsController {
     const displayName = body.name.trim();
     let result: Awaited<ReturnType<ApiKeyGeneratorService['onboardAgent']>>;
     try {
+      // The create dialog presents the hosted Auto-fix disclosure and legal
+      // links whenever this explicit opt-in is on. Persist that install-level
+      // consent before creating an enabled agent so failures stay fail-closed.
+      if (body.autofix_enabled === true) {
+        await this.autofixStats.recordAutofixConsent();
+        await this.invalidateAutofixStatusCache(ctx.tenantId);
+      }
       result = await this.apiKeyGenerator.onboardAgent({
         tenantId: ctx.tenantId,
         ownerUserId: ctx.userId,
@@ -94,6 +108,8 @@ export class AgentsController {
         displayName,
         agentCategory: body.agent_category,
         agentPlatform: body.agent_platform,
+        autofixEnabled: body.autofix_enabled,
+        recordMessages: body.record_messages,
       });
     } catch (error) {
       if (error instanceof QueryFailedError && /unique|duplicate/i.test(error.message)) {
@@ -124,13 +140,22 @@ export class AgentsController {
           cleanupError instanceof Error ? cleanupError.stack : String(cleanupError),
         );
       }
-      // The agent was committed (briefly visible) then rolled back, so drop any
-      // agent-list cache entry that captured it — deleteAgent only clears the
-      // resolve + routing caches, not the analytics agent list.
-      await this.invalidateAgentListCache(result.tenantId);
+      // The agent was committed (briefly visible) then rolled back, so drop the
+      // cache entries that captured it — deleteAgent only clears the resolve +
+      // routing caches. The Auto-fix status key matters as much as the agent
+      // list: without it, /autofix/status keeps reporting the rolled-back agent
+      // as enabled for the dashboard TTL, so the sidebar disagrees with the
+      // workspace about an agent that no longer exists.
+      await Promise.all([
+        this.invalidateAgentListCache(result.tenantId),
+        this.invalidateAutofixStatusCache(result.tenantId),
+      ]);
       throw error;
     }
-    await this.invalidateAgentListCache(result.tenantId);
+    await Promise.all([
+      this.invalidateAgentListCache(result.tenantId),
+      this.invalidateAutofixStatusCache(result.tenantId),
+    ]);
     this.emitAgentEvent(result.tenantId, ctx.userId);
     return {
       agent: {

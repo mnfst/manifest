@@ -345,7 +345,7 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            type: 'server_error',
+            type: 'api_error',
             code: 'fallback_exhausted',
             source: 'manifest',
             primary_model: 'gpt-4o',
@@ -451,6 +451,129 @@ describe('proxy-response-handler', () => {
               { model: 'claude-sonnet-4-6', provider: 'anthropic', status: 400 },
             ],
           }),
+        }),
+      );
+    });
+
+    it('preserves a structured provider code when fallback chain is exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({
+          error: {
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+            code: 'deprecated_parameter',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+            code: 'deprecated_parameter',
+            source: 'provider',
+          }),
+        }),
+      );
+    });
+
+    it('attributes a code-less structured fallback error to the provider', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({
+          error: {
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            code: 'fallback_exhausted',
+            source: 'provider',
+          }),
+        }),
+      );
+    });
+
+    it('uses an Anthropic error envelope when Messages fallbacks are exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({ error: { message: 'Invalid request', type: 'invalid_request_error' } }),
+        failedFallbacks,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'error',
+          error: expect.objectContaining({ source: 'provider' }),
         }),
       );
     });
@@ -608,6 +731,129 @@ describe('proxy-response-handler', () => {
           process.env.NODE_ENV = originalEnv;
         }
       }
+    });
+
+    it('preserves structured provider 4xx fields in production', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          400,
+          JSON.stringify({
+            type: 'error',
+            error: {
+              type: 'request_validation_error',
+              message: '`temperature` is deprecated for this model.',
+              param: 'temperature',
+              code: 'deprecated_parameter',
+            },
+          }),
+          undefined,
+          recorder as any,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          type: 'error',
+          error: expect.objectContaining({
+            message: '`temperature` is deprecated for this model.',
+            type: 'request_validation_error',
+            param: 'temperature',
+            code: 'deprecated_parameter',
+            status: 400,
+            source: 'provider',
+          }),
+        });
+      } finally {
+        if (originalEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalEnv;
+        }
+      }
+    });
+
+    it('preserves a structured provider type for authentication errors', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta();
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        401,
+        JSON.stringify({
+          error: {
+            message: 'Invalid API key',
+            type: 'invalid_request_error',
+          },
+        }),
+        undefined,
+        recorder as any,
+      );
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: expect.objectContaining({
+          message: 'Invalid API key',
+          type: 'invalid_request_error',
+          status: 401,
+          source: 'provider',
+        }),
+      });
+    });
+
+    it.each([
+      [500, 'api_error'],
+      [529, 'overloaded_error'],
+    ])('maps a Messages %i response to Anthropic %s', async (status, type) => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        status,
+        'Internal Server Error',
+        undefined,
+        recorder as any,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'messages',
+      );
+
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: expect.objectContaining({
+          type,
+          status,
+          source: 'provider',
+        }),
+      });
     });
   });
 

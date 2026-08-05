@@ -1142,6 +1142,65 @@ describe('ProxyController', () => {
     expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
   });
 
+  it('preserves an Anthropic 400 diagnostic on /v1/messages in production', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const providerError = {
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: '`temperature` is deprecated for this model.',
+        },
+      };
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(JSON.stringify(providerError), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'complex',
+          model: 'claude-opus-4-1',
+          provider: 'Anthropic',
+          confidence: 1,
+          reason: 'explicit-model',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'claude-opus-4-1',
+        max_tokens: 64,
+        temperature: 0.1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      const { res } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: expect.objectContaining({
+          type: 'invalid_request_error',
+          message: '`temperature` is deprecated for this model.',
+          status: 400,
+          source: 'provider',
+        }),
+      });
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = originalEnv;
+      }
+    }
+  });
+
   it('should pass through native Responses JSON bodies', async () => {
     const responseBody = {
       id: 'resp_1',
@@ -1788,7 +1847,7 @@ describe('ProxyController', () => {
       error: expect.objectContaining({
         message: 'Model unavailable',
         type: 'invalid_request_error',
-        code: null,
+        code: 'model_not_found',
         status: 404,
         source: 'provider',
       }),

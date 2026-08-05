@@ -392,21 +392,22 @@ sets this automatically).
 
 ## Environment variables
 
-| Variable             | Required | Default                 | Description                                   |
-| -------------------- | -------- | ----------------------- | --------------------------------------------- |
-| `DATABASE_URL`       | Yes      | --                      | PostgreSQL connection string                  |
-| `BETTER_AUTH_SECRET` | Yes      | --                      | Session signing secret (min 32 chars)         |
-| `MANIFEST_ENCRYPTION_KEY` | Recommended | falls back to `BETTER_AUTH_SECRET` | Separate 32+ char key encrypting stored provider keys and OAuth tokens. The install script generates one; set it before first boot, since introducing it later means re-encrypting what is already stored. |
-| `BETTER_AUTH_URL`    | No       | `http://localhost:${PORT}` | Public URL. Must match the URL in the browser |
-| `PORT`               | No       | `2099`                  | Dashboard port — sets both the published host port and the internal listener |
-| `OLLAMA_HOST`        | No       | `http://host.docker.internal:11434` | Ollama endpoint for the built-in tile. Override to point at a LAN-hosted Ollama. |
-| `MANIFEST_MODE`      | No       | auto (Docker → selfhosted) | `selfhosted` or `cloud`. `local` is a legacy alias. Self-hosted mode allows private/http URLs for custom providers. |
-| `MANIFEST_DISABLE_HSTS` | No    | unset                   | Set `1` to silence the boot warning about serving over plain HTTP on a LAN |
-| `THROTTLE_LIMIT` / `THROTTLE_TTL` | No | `100` / `60000`   | Rate limit: requests per window, window in ms  |
-| `DB_POOL_MAX` / `AUTH_DB_POOL_MAX` | No | `30` / `10`      | PostgreSQL pool sizes (app pool, Better Auth pool) |
-| `SENTRY_DSN`         | No       | unset                   | Opt-in error monitoring. Sentry is not initialised unless set |
-| `MANIFEST_TELEMETRY_DISABLED` | No | `0`               | Set `1` to disable anonymous usage telemetry  |
-| `TELEMETRY_ENDPOINT` | No       | `https://telemetry.manifest.build/v1/report` | Send the usage report to your own collector instead |
+| Variable                           | Required    | Default                                      | Description                                                                                                                                                                                                |
+| ---------------------------------- | ----------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                     | Yes         | --                                           | PostgreSQL connection string                                                                                                                                                                               |
+| `BETTER_AUTH_SECRET`               | Yes         | --                                           | Session signing secret (min 32 chars)                                                                                                                                                                      |
+| `MANIFEST_ENCRYPTION_KEY`          | Recommended | falls back to `BETTER_AUTH_SECRET`           | Separate 32+ char key encrypting stored provider keys and OAuth tokens. The install script generates one; set it before first boot, since introducing it later means re-encrypting what is already stored. |
+| `BETTER_AUTH_URL`                  | No          | `http://localhost:${PORT}`                   | Public URL. Must match the URL in the browser                                                                                                                                                              |
+| `PORT`                             | No          | `2099`                                       | Dashboard port — sets both the published host port and the internal listener                                                                                                                               |
+| `OLLAMA_HOST`                      | No          | `http://host.docker.internal:11434`          | Ollama endpoint for the built-in tile. Override to point at a LAN-hosted Ollama.                                                                                                                           |
+| `MANIFEST_MODE`                    | No          | auto (Docker → selfhosted)                   | `selfhosted` or `cloud`. `local` is a legacy alias. Self-hosted mode allows private/http URLs for custom providers.                                                                                        |
+| `MANIFEST_DISABLE_HSTS`            | No          | unset                                        | Set `1` to silence the boot warning about serving over plain HTTP on a LAN                                                                                                                                 |
+| `THROTTLE_LIMIT` / `THROTTLE_TTL`  | No          | `100` / `60000`                              | Rate limit: requests per window, window in ms                                                                                                                                                              |
+| `DB_POOL_MAX` / `AUTH_DB_POOL_MAX` | No          | `30` / `10`                                  | PostgreSQL pool sizes (app pool, Better Auth pool)                                                                                                                                                         |
+| `SENTRY_DSN`                       | No          | unset                                        | Opt-in error monitoring. Sentry is not initialised unless set                                                                                                                                              |
+| `MANIFEST_TELEMETRY_DISABLED`      | No          | `0`                                          | Set `1` to disable anonymous usage telemetry                                                                                                                                                               |
+| `TELEMETRY_ENDPOINT`               | No          | `https://telemetry.manifest.build/v1/report` | Send the usage report to your own collector instead                                                                                                                                                        |
+| `AUTOFIX_GLOBAL_ENABLED`           | No          | `true`                                       | Deployment-wide Autofix kill switch. Set `false` to make no calls to the Autofix service at all, boot health check included                                                                                 |
 
 `NODE_ENV` and `SEED_DATA` are deliberately fixed by the compose file and are
 not knobs here: the image is a production artifact, and the demo-data seeder
@@ -428,6 +429,53 @@ platform, OS, and arch.
 To disable, set `MANIFEST_TELEMETRY_DISABLED=1` in your `.env` file and
 restart the container. The full field list is published at
 [manifest.build/docs/self-hosted#telemetry](https://manifest.build/docs/self-hosted#telemetry).
+
+## Autofix privacy and instance identity
+
+Autofix is off by default for every agent in self-hosted Manifest. When you turn
+it on for an agent, Autofix calls announce your install's random anonymous ID,
+the Manifest version, and the agent platform from a fixed list; custom platform
+names are sent as `other`. There is no registration step and no credential: the
+ID is announced, not issued, and the healing service records it the first time
+it sees it.
+
+**That ID is the same anonymous install UUID the usage report uses.** One
+identity per install, so Autofix activity and the aggregate telemetry report can
+be linked to the same install by Manifest. Neither carries a user, tenant, or
+email. If you want them unlinked, there is no setting for that today — the
+identifier is shared by design.
+
+Autofix works by sending a failed request to the healing service so it can
+produce a corrected body. The failing request body, provider error, provider,
+and API mode are therefore sent after known secrets are scrubbed. Secret
+scrubbing does not remove arbitrary personal information from prompts. Successful
+traffic is not sent. If `AUTOFIX_REPORT_ALL_4XX=true`, scrubbed bodies for other
+request-side 4xx failures are also sent as diagnostic observations (up to
+256 KiB), under the same per-agent opt-in.
+
+If no agent has Autofix enabled, no healing call is made and **no ID is ever
+created** — it is generated on first use, so an install that never enables
+Autofix and never reports telemetry has no identity at all. Only the public,
+unauthenticated boot-time health check may contact the service, and it never
+creates an identity. Set `AUTOFIX_GLOBAL_ENABLED=false` to disable every Autofix
+service call, boot health check included.
+
+The Autofix endpoint itself is not configurable — it is a constant in the image
+(`https://autofix.manifest.build`). There is no supported way to point an
+install at a different healing service.
+
+`MANIFEST_TELEMETRY_DISABLED=1` stops the aggregate usage report and nothing
+else; it does not disable Autofix, and it does not stop Autofix from creating and
+announcing the shared ID.
+
+After restoring or cloning a database, you can force a fresh identity:
+
+```sql
+DELETE FROM install_metadata;
+```
+
+This resets the shared ID, so the next Autofix call and the next usage report
+both announce a new one. Your install will look like a new install to both.
 
 ## Links
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, waitFor, cleanup } from '@solidjs/testing-library';
+import { render, fireEvent, waitFor, cleanup, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 
 const mockGetAutofix = vi.fn();
@@ -14,8 +14,9 @@ vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: (...args: unknown[]) => mockToastError(...args) },
 }));
 
+let mockSearchParams: Record<string, string> = {};
 vi.mock('@solidjs/router', () => ({
-  useSearchParams: () => [{}],
+  useSearchParams: () => [mockSearchParams],
 }));
 
 import SettingsAutofixSection from '../../src/pages/SettingsAutofixSection';
@@ -34,6 +35,7 @@ async function waitForLoaded(container: HTMLElement): Promise<HTMLButtonElement>
 describe('SettingsAutofixSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = {};
   });
   afterEach(() => {
     cleanup();
@@ -97,6 +99,41 @@ describe('SettingsAutofixSection', () => {
     });
   });
 
+  it('enables directly with the legal line as the consent act (no dialog)', async () => {
+    mockGetAutofix.mockResolvedValue({ enabled: false, consented: false });
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, consented: true });
+    const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+
+    const btn = await waitForLoaded(container);
+    // The Terms/Privacy legal line sits under the card, no dialog anywhere.
+    expect(container.textContent).toContain('you agree to Manifest');
+    const terms = screen.getByRole('link', { name: 'Terms' });
+    const privacy = screen.getByRole('link', { name: 'Privacy Policy' });
+    expect(terms.getAttribute('href')).toBe('https://manifest.build/terms');
+    expect(privacy.getAttribute('href')).toBe('https://manifest.build/privacy');
+
+    fireEvent.click(btn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: true });
+    await waitFor(() => expect(btn.getAttribute('aria-checked')).toBe('true'));
+  });
+
+  it('flashes the card when arriving with ?highlight=autofix, then settles', async () => {
+    mockSearchParams = { highlight: 'autofix' };
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      mockGetAutofix.mockResolvedValue({ enabled: false });
+      const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
+      expect(container.querySelector('.settings-card--highlight')).not.toBeNull();
+      await vi.advanceTimersByTimeAsync(1_500);
+      await waitFor(() =>
+        expect(container.querySelector('.settings-card--highlight')).toBeNull(),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('toggles Auto-fix off when currently enabled', async () => {
     mockGetAutofix.mockResolvedValue({ enabled: true });
     mockUpdateAutofix.mockResolvedValue({ enabled: false });
@@ -106,6 +143,7 @@ describe('SettingsAutofixSection', () => {
     fireEvent.click(btn);
 
     expect(mockUpdateAutofix).toHaveBeenCalledWith('demo', { enabled: false });
+    expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() => {
       expect(btn.classList.contains('settings-switch--on')).toBe(false);
     });

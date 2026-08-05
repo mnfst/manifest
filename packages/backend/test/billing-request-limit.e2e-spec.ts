@@ -21,24 +21,30 @@ const BILLING_ENV_VARS = [
   'PLAN_LIMIT_FREE_REQUESTS',
 ];
 
-async function waitForManifestBlockCount(tenantId: string, minimum: number): Promise<number> {
+/** Poll a COUNT query until it reaches `minimum` (the blocked-request rows are
+ *  written asynchronously, after the 402 has already been sent). Returns the
+ *  last observed count either way so assertions still fail loudly on timeout. */
+async function waitForCount(sql: string, params: unknown[], minimum: number): Promise<number> {
   const deadline = Date.now() + 1000;
   let count = 0;
   do {
-    const rows = await ds.query(
-      `SELECT COUNT(*)::int AS n
-         FROM requests
-        WHERE tenant_id = $1
-          AND error_origin = 'policy'
-          AND error_class = 'plan_request_limit_exceeded'
-          AND error_http_status = 402`,
-      [tenantId],
-    );
+    const rows = await ds.query(sql, params);
     count = rows[0].n;
     if (count >= minimum) return count;
     await new Promise((resolve) => setTimeout(resolve, 25));
   } while (Date.now() < deadline);
   return count;
+}
+
+const MANIFEST_BLOCK_COUNT_SQL = `SELECT COUNT(*)::int AS n
+     FROM requests
+    WHERE tenant_id = $1
+      AND error_origin = 'policy'
+      AND error_class = 'plan_request_limit_exceeded'
+      AND error_http_status = 402`;
+
+async function waitForManifestBlockCount(tenantId: string, minimum: number): Promise<number> {
+  return waitForCount(MANIFEST_BLOCK_COUNT_SQL, [tenantId], minimum);
 }
 
 beforeAll(async () => {
@@ -154,9 +160,13 @@ describe('request limit gate (/v1 proxy)', () => {
     const after = await ds.query(`SELECT COUNT(*)::int AS n FROM requests WHERE tenant_id = $1`, [
       tenantId,
     ]);
-    const attemptsAfter = await ds.query(
+    // The attempt row is a separate asynchronous insert from the requests row
+    // the block-count wait already covered — poll it too, or a slow runner
+    // reads 1 attempt where 2 have been ordered (the CI flake this fixes).
+    const attemptsAfterN = await waitForCount(
       `SELECT COUNT(*)::int AS n FROM agent_messages WHERE tenant_id = $1`,
       [tenantId],
+      attemptsBefore[0].n + 1,
     );
     const latestBlock = await ds.query(
       `SELECT status, error_origin, error_class, error_http_status, error_code
@@ -172,7 +182,7 @@ describe('request limit gate (/v1 proxy)', () => {
     const billableAfter = await planService.countRequestsSince(tenantId, monthStartMs);
 
     expect(after[0].n).toBe(before[0].n + 1);
-    expect(attemptsAfter[0].n).toBe(attemptsBefore[0].n + 1);
+    expect(attemptsAfterN).toBe(attemptsBefore[0].n + 1);
     expect(manifestBlocksAfter).toBe(manifestBlocksBefore[0].n + 1);
     expect(latestBlock[0]).toEqual(
       expect.objectContaining({
