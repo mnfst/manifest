@@ -36,6 +36,14 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
+// AddAgentModal checks workspace Auto-fix consent before creating an agent with
+// Auto-fix on (the default). Unmocked it rejects, which fails closed into the
+// consent dialog and stops the create these tests assert on.
+const mockGetWorkspaceAutofixStatus = vi.fn();
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetWorkspaceAutofixStatus(...args),
+}));
+
 vi.mock('../../src/components/DuplicateAgentModal.jsx', () => ({ default: () => null }));
 
 vi.mock('../../src/services/toast-store.js', () => ({
@@ -123,6 +131,7 @@ describe('Workspace AddAgentModal - name validation', () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: 'stub' }, apiKey: 'k' });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: true });
   });
 
   it('keeps Create disabled while the name is the empty string', () => {
@@ -209,9 +218,9 @@ describe('Workspace AddAgentModal - name validation', () => {
         name: 'spaced-out',
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      autofix_enabled: true,
-      record_messages: true,
-    });
+        autofix_enabled: true,
+        record_messages: true,
+      });
     });
   });
 
@@ -227,9 +236,9 @@ describe('Workspace AddAgentModal - name validation', () => {
         name: longName,
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      autofix_enabled: true,
-      record_messages: true,
-    });
+        autofix_enabled: true,
+        record_messages: true,
+      });
     });
   });
 });
@@ -241,6 +250,7 @@ describe('Workspace AddAgentModal - exact createAgent payload', () => {
     mockGetAgents.mockResolvedValue({ agents: [] });
     mockCreateAgent.mockResolvedValue({ agent: { name: 'demo' }, apiKey: 'k' });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: true });
   });
 
   it('submits the default category and platform when the user only types a name', async () => {
@@ -252,9 +262,9 @@ describe('Workspace AddAgentModal - exact createAgent payload', () => {
         name: 'Demo Agent',
         agent_category: 'personal',
         agent_platform: 'openclaw',
-      autofix_enabled: true,
-      record_messages: true,
-    });
+        autofix_enabled: true,
+        record_messages: true,
+      });
     });
     // Strict: nothing else was sneaked in (e.g. recordMessages, displayName).
     const call = mockCreateAgent.mock.calls[0][0] as Record<string, unknown>;
@@ -278,9 +288,9 @@ describe('Workspace AddAgentModal - exact createAgent payload', () => {
         name: 'my-langchain-agent',
         agent_category: 'app',
         agent_platform: 'langchain',
-      autofix_enabled: true,
-      record_messages: true,
-    });
+        autofix_enabled: true,
+        record_messages: true,
+      });
     });
   });
 
