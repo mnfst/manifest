@@ -134,6 +134,17 @@ describe('sanitizeProviderError', () => {
     expect(result).not.toContain(token);
   });
 
+  it.each(['apiKey', 'api_key'])('redacts opaque %s values from structured diagnostics', (name) => {
+    const credential = 'opaque-credential-value';
+    const body = JSON.stringify({
+      error: { message: `Invalid credential: ${name}=${credential}` },
+    });
+
+    const result = sanitizeProviderError(401, body, 'production');
+    expect(result).toContain(`${name}=[REDACTED]`);
+    expect(result).not.toContain(credential);
+  });
+
   it('defaults to production behavior when nodeEnv is omitted', () => {
     const body = JSON.stringify({ error: { message: 'Should not leak' } });
     expect(sanitizeProviderError(500, body)).toBe('Upstream provider internal error');

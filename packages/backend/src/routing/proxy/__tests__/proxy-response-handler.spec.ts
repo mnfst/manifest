@@ -455,6 +455,49 @@ describe('proxy-response-handler', () => {
       );
     });
 
+    it('preserves a structured provider code when fallback chain is exhausted', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-sonnet-4-6',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 400,
+          errorBody: 'also rejected',
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        400,
+        JSON.stringify({
+          error: {
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+            code: 'deprecated_parameter',
+          },
+        }),
+        failedFallbacks,
+        recorder as any,
+      );
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: expect.objectContaining({
+            message: '`temperature` is deprecated for this model.',
+            type: 'invalid_request_error',
+            code: 'deprecated_parameter',
+            source: 'provider',
+          }),
+        }),
+      );
+    });
+
     it('should record simple error when failedFallbacks present but meta has fallbackFromModel', async () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();
