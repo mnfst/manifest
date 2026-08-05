@@ -1,0 +1,21 @@
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_4560f40e5f017e::t_2171132f264931 220-222
+  s_4560f40e5f017e::t_516229d8db8342 8
+  s_4560f40e5f017e::t_d6d200420eb451 174-219,223-249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "d4ce776a002db4d84ca02f1e077cdc921783ddb2",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

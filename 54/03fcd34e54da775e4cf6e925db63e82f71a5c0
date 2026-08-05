@@ -1,0 +1,59 @@
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 89-90,138-139
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_4560f40e5f017e::t_e57aaf5bcf06de 1,33-39
+  s_4560f40e5f017e::t_0c43c356f8063f 40-41
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_94d428383f142d 195-196,203-204
+  s_4560f40e5f017e::t_3d68e34d0dd67c 205-206
+packages/backend/src/analytics/analytics.module.ts
+  s_4560f40e5f017e::t_e57aaf5bcf06de 6,52
+packages/frontend/src/services/api/analytics.ts
+  s_4560f40e5f017e::t_892bed6dc388c6 1,272-273,325-327
+  s_4560f40e5f017e::t_21b9f504f28ff8 328-329
+packages/frontend/src/components/Sidebar.tsx
+  s_4560f40e5f017e::t_a64dbc891a8927 3,7-10,15-16,48-66,268-272,275-277,279-290,292-306,371-442
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_4560f40e5f017e::t_892bed6dc388c6 34,41,164
+  s_4560f40e5f017e::t_94d428383f142d 127
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_4560f40e5f017e::t_e57aaf5bcf06de 8-10,31-35,97-98,105,119,123-154
+  s_4560f40e5f017e::t_a7b1b45fe15cce 155
+packages/frontend/src/services/api/routing.ts
+  s_4560f40e5f017e::t_892bed6dc388c6 188
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 91
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 117
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 98,139,164,249
+  s_4560f40e5f017e::t_ac991c2ce2638f 125
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 109
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_4560f40e5f017e::t_ac991c2ce2638f 18
+  s_4560f40e5f017e::t_4855ab7defc32e 6,64-84
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_4560f40e5f017e::t_326c18acb75e14 90,108
+  s_4560f40e5f017e::t_ac991c2ce2638f 66,75
+packages/frontend/tests/pages/Overview.test.tsx
+  s_4560f40e5f017e::t_168680c0df1ac1 109
+packages/backend/src/routing/tier.controller.ts
+  s_4560f40e5f017e::t_e57aaf5bcf06de 193-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5403fcd34e54da775e4cf6e925db63e82f71a5c0",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "grok-4.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

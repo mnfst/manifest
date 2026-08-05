@@ -1,0 +1,31 @@
+packages/cli/src/commands/agent.ts
+  s_55e9f8f22551f6::t_d90488b200c14a 7,12-14,16
+packages/shared/__tests__/agent-type-surfaces.spec.ts
+  s_55e9f8f22551f6::t_f6cc79df8de5ab 1-20
+packages/cli/src/commands/routing.ts
+  s_55e9f8f22551f6::t_d90488b200c14a 3,220-222,224,281
+packages/shared/src/index.ts
+  s_55e9f8f22551f6::t_d804451cdd4716 9-10,12
+packages/shared/src/agent-type.ts
+  s_55e9f8f22551f6::t_1a1676c03e3482 26-49
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_d90488b200c14a 521,523-526,528-534
+packages/cli/scripts/generate-provider-catalog.cjs
+  s_55e9f8f22551f6::t_d90488b200c14a 12-19,41,54-60,67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "01d1e18732d63981827d51992954e5c62b096e72",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_ea056afe99f19b::t_55d481f473cfe2 377
+  s_ea056afe99f19b::t_4a9b360cce83bd 368
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "a38b4c46bc6c94a89e817f705f1e3b9df64c9170",
+  "prompts": {},
+  "sessions": {
+    "s_ea056afe99f19b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd4d-29f8-7581-a404-8361f72a45dd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

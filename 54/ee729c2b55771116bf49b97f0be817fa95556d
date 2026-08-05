@@ -1,0 +1,38 @@
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_23bf710eba9536::t_6a5127b83b23a2 18,121-124
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_23bf710eba9536::t_6a5127b83b23a2 171-197
+.changeset/bedrock-model-api-surfaces.md
+  s_23bf710eba9536::t_096afde4b0d6d3 1-5
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_23bf710eba9536::t_6a5127b83b23a2 6,82-92
+  s_23bf710eba9536::t_464ffb2b2310b6 63-66,206-207
+  s_23bf710eba9536::t_096afde4b0d6d3 201-205,208-215
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_23bf710eba9536::t_7616fc7515957a 5,232-248
+  s_23bf710eba9536::t_b2ad63d62db200 249-251
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_23bf710eba9536::t_0021945cda7e88 522-524
+  s_23bf710eba9536::t_fac753fe88a4e3 440-471,495-521,525-528
+  s_23bf710eba9536::t_464ffb2b2310b6 3,472-494
+packages/backend/src/routing/proxy/provider-client.ts
+  s_23bf710eba9536::t_464ffb2b2310b6 651,660
+  s_23bf710eba9536::t_6a5127b83b23a2 5-10,418
+  s_23bf710eba9536::t_096afde4b0d6d3 417,419,649-650,659
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "54ee729c2b55771116bf49b97f0be817fa95556d",
+  "prompts": {},
+  "sessions": {
+    "s_23bf710eba9536": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcbae-8c15-7e72-a244-52912b8c1fd1",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

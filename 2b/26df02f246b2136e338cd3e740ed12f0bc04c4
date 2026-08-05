@@ -1,0 +1,38 @@
+packages/frontend/src/services/api/agents.ts
+  s_4560f40e5f017e::t_880dd0fcbc56ea 64-65
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_880dd0fcbc56ea 915-924
+packages/backend/src/otlp/services/api-key.service.spec.ts
+  s_4560f40e5f017e::t_31e7cb7545f37f 206-232
+packages/frontend/src/components/AddAgentModal.tsx
+  s_4560f40e5f017e::t_880dd0fcbc56ea 28-32,67-68,119-120,175-223
+  s_4560f40e5f017e::t_7df5cc01706981 224-225
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_4560f40e5f017e::t_31e7cb7545f37f 319-320,328-329
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_4560f40e5f017e::t_31e7cb7545f37f 190-214
+packages/frontend/src/components/Sidebar.tsx
+  s_4560f40e5f017e::t_72dac215387925 304
+packages/backend/src/common/dto/create-agent.dto.ts
+  s_4560f40e5f017e::t_880dd0fcbc56ea 9,32-41
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_4560f40e5f017e::t_880dd0fcbc56ea 97-98
+packages/backend/src/otlp/services/api-key.service.ts
+  s_4560f40e5f017e::t_880dd0fcbc56ea 42-45,81-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "2b26df02f246b2136e338cd3e740ed12f0bc04c4",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "grok-4.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

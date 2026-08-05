@@ -1,0 +1,61 @@
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_4a7ee2539d1eb4::t_1d9a529358caab 353-411
+packages/backend/src/routing/proxy/__tests__/reasoning-format.spec.ts
+  s_4a7ee2539d1eb4::t_81b1b1408bf422 1,3-119,139-141
+  s_4a7ee2539d1eb4::t_b51cd57a7e60ed 2,120-138
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_4a7ee2539d1eb4::t_04d357ee5c017e 1299-1340
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_4a7ee2539d1eb4::t_ed365140488cc2 27,214-219,222,340,353
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_4a7ee2539d1eb4::t_c82360d338d630 643-647,775
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_4a7ee2539d1eb4::t_4c7172e46cf4c8 28,60
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_4a7ee2539d1eb4::t_fde49cb43f2290 21
+  s_4a7ee2539d1eb4::t_e909c6a1a723b1 1-20,22-24
+.changeset/zen-reasoning-dialect.md
+  s_4a7ee2539d1eb4::t_4a6f7aa29376ba 1-5
+packages/backend/src/routing/proxy/provider-client.ts
+  s_4a7ee2539d1eb4::t_4662cf8502438a 2
+  s_4a7ee2539d1eb4::t_a781663d5395c8 10
+  s_4a7ee2539d1eb4::t_c4609da78ba9c4 235,237,678-683
+  s_4a7ee2539d1eb4::t_bcee19544e7022 11,236
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_4a7ee2539d1eb4::t_abee486391b070 1464-1489,1494-1496,2204-2218,2222-2241,2247
+  s_4a7ee2539d1eb4::t_fde49cb43f2290 1490-1493,2219-2221,2242-2246
+  s_4a7ee2539d1eb4::t_c46dab12370014 2248
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_4a7ee2539d1eb4::t_60388059670045 4755-4812
+packages/backend/src/routing/proxy/__tests__/reasoning-model-catalog.spec.ts
+  s_4a7ee2539d1eb4::t_6e7285526b8f3f 1-44,48-79,81-89
+  s_4a7ee2539d1eb4::t_fde49cb43f2290 45-47,80
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_4a7ee2539d1eb4::t_7fdf7f90b9cb64 45,50-55,57
+  s_4a7ee2539d1eb4::t_bcee19544e7022 1,6,46
+  s_4a7ee2539d1eb4::t_7c0485afe294ac 5,135
+  s_4a7ee2539d1eb4::t_c82360d338d630 47,56
+  s_4a7ee2539d1eb4::t_5d17d8f5dd981d 58
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_4a7ee2539d1eb4::t_0614f5b4e1c635 67-69,72-77,79-83,98,102-107
+  s_4a7ee2539d1eb4::t_3917acf8255554 35-40,42-59
+  s_4a7ee2539d1eb4::t_fd45c30be7114a 113,118-120
+packages/backend/src/routing/proxy/reasoning-model-catalog.ts
+  s_4a7ee2539d1eb4::t_b671f08c49d185 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "60a7721b068e90363f5f0bb43ca46296da850bff",
+  "prompts": {},
+  "sessions": {
+    "s_4a7ee2539d1eb4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "74a9fe2e-061a-42e2-b786-16ccf69c8317",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/cli/src/oauth-login.spec.ts
+  s_55e9f8f22551f6::t_6e2561275a28e1 180-185,194,197-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "0f5a8ff44347dd11e13b286f0ef3bc356d5a0620",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

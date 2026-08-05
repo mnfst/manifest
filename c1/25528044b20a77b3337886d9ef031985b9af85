@@ -1,0 +1,21 @@
+packages/frontend/src/components/AddAgentModal.tsx
+  s_4560f40e5f017e::t_b569211b0f4f9c 176-182,198-204
+packages/frontend/src/styles/modals.css
+  s_4560f40e5f017e::t_b569211b0f4f9c 916-919,924-926,929-930
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "c125528044b20a77b3337886d9ef031985b9af85",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

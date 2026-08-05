@@ -1,0 +1,665 @@
+packages/backend/src/routing/proxy/attempt-recording.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-45
+packages/frontend/src/components/ProviderIcon.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 121
+packages/backend/src/billing/billing.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 8,17,34-40
+  s_1775f6c9e89812::t_cefcefafcc017e 41-42
+packages/frontend/tests/services/sse.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 62,64-65,71,75,78-80,83,85,88-89,93,95,99-102,105,107,110-111,114-117,121,123-124,131,135-136,138,211-226,264,266,270,273,276
+packages/frontend/package.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 23
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-15
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 52,138-143,228,257,287,297,303-304,322,335,366,378,389,405-406,471-473,497,524,546,635-636,641,650-654,696,725,728,737,765,782,805-822,859,886,913
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 267-269,272-273,275-281,283-306
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-4,6,63-66,82-92,151-165,201-215,476
+packages/backend/src/config/app.config.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 11-16,60-76
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 28,31,60,63
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 99,129
+packages/frontend/src/components/NotificationBell.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 64,89,131
+packages/frontend/src/components/RequestMessages.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-530
+.changeset/explicit-model-provider-passthrough.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+.changeset/scope-proxy-session-caches.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+.changeset/faster-request-pages.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/analytics/services/agent-analytics.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 48-54,64-66,73-79,89-95,103-118
+  s_1775f6c9e89812::t_3efede4dd2c797 119
+packages/backend/src/routing/proxy/reasoning-model-catalog.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-60
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 87-90,95-99,130,132-144,147-149,167,233-235,265-289,536-572,574-581,610,617-630,635-693,695-698,701-702,726,734-735,737-745,1100,1303,1323,1327-1330,1334,1338-1349,1351,1354-1358,1362-1365,1369-1374,1378-1387,1389-1390,1393-1408,1410-1415,1419-1425,1428-1433,1437,1442,1444-1470,1472-1494,1544-1600,1605,1613,1650-1735,1792,1795-1801,1822-1827,1831-1834,1836-1847,1870-1894,2014,2617,2620,2634,2783-2859,2885-2966,3053,3075-3076
+packages/backend/src/routing/proxy/attempt-recording-capture.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-54
+.changeset/bedrock-model-api-surfaces.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 48,59-89,2034-2080
+  s_1775f6c9e89812::t_034356491e8c17 2081
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 227-243
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 120,122,128,130,140-158
+  s_1775f6c9e89812::t_630a3060cd03f9 159-161
+.changeset/1d967d1d.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 54,164,592-627,727,739,800,810-812,814-839,1303,1307-1308,1314
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 152,165,171-263,281,284-286,300,318,353-403
+  s_1775f6c9e89812::t_c45b20908fef7a 404
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 55-62,129-130,178-183,185,189-216,290-291,298-307,312-316,343-345,392,396,406-410,420,430-434,442,463-464
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 20-21,54-139,175
+packages/frontend/src/components/UserDiscoveryBanner.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 5-6,37
+packages/frontend/src/components/UserDiscoveryModal.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 29-30,87-92,126
+packages/frontend/src/pages/Playground.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 12,125-136,169,197-200,203,341,447,469-490,561-563
+packages/frontend/src/pages/Help.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 26,31
+.github/workflows/docker-smoke.yml
+  s_1775f6c9e89812::t_e6e1ecd273b989 12,69-110,151-267,283-287,354-430
+  s_1775f6c9e89812::t_0783dfaf0a9249 431
+packages/frontend/tests/services/plan-range-lock.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-80
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 132-173
+packages/shared/src/plan-limits.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 30-39
+.changeset/chatgpt-reasoning-summary-backfill.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/config/app.config.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 100-139
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-36
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 23,89-108,120-125,470-509
+  s_1775f6c9e89812::t_6d8c8cb40beb94 510
+packages/backend/src/playground/playground.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 174,207
+packages/frontend/src/pages/Workspace.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 12,68
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 219-281
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 171-197
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 403-404,408-411
+packages/frontend/tests/pages/SettingsRecordingSection.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-76
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 22
+packages/frontend/tests/pages/Welcome.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-151
+.changeset/curated-subscription-model-catalogs.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 55,65,72-89,144-265
+  s_1775f6c9e89812::t_8c57955ff586a3 266
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 32,59,184-188,241,255,283,286,296,298,305,327,344,349,354,378,693-694,722,847,970,1161,1239-1261,1278
+packages/frontend/src/pages/Routing.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 510
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-213
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-49
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 29,32,76,88,120-122,148,194,200,288,299-301,313,316,343,351,360-362,429-435,447,450,608,657,695-723,736,744,752,765
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4-5,10-29,111,116-119,194-198,225-246,249-263
+.gitignore
+  s_1775f6c9e89812::t_e6e1ecd273b989 21
+packages/frontend/src/styles/welcome.css
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-1748
+CLAUDE.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 132,339-387,431,461,463,465,484,489,578,593-599,613,615,619,622,628,631,642,651,712-717,754-759,790-794
+packages/backend/src/model-discovery/model-fallback.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 272-273,275-277,280-290,296
+packages/shared/__tests__/providers.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 158-167
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-84
+packages/backend/src/routing/proxy/codex-session-affinity.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 25,43-45,67,75-78,94-95,126-132
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4,160
+packages/backend/test/helpers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 149-154,160,216,229,261-296
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 137-160,1077-1187
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-85
+docker/install.sh
+  s_1775f6c9e89812::t_e6e1ecd273b989 2,16-17,23-24,51-53,59-66,87,101-102,113-121,129-165,176-182,186-187,192-198,221-260,338-340,346-367,372-381,409-412
+  s_1775f6c9e89812::t_a850fd21452fbc 413
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 13-14,19,23-24,34,64,66-67,108-128
+  s_1775f6c9e89812::t_cc0353b2b9c4cc 129
+.changeset/show-gemini-stream-output.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 5
+packages/frontend/src/components/CostByModelTable.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 36-37
+packages/backend/src/routing/routing.module.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 21-22,67,69
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,6-10,14
+packages/frontend/src/pages/Settings.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 10,233-234
+  s_1775f6c9e89812::t_0f448f8f76e440 235
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_1775f6c9e89812::t_e6e1ecd273b989 181
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 13,36,68-73,141-144,234,236-237,247,266,270-280,291-312,345,363-364,387-389,403,407,463,492,496,506,510,514-515,530,548,568,590,609,630,639,676,696,730,747,753-755,761-773,789,794-796,843-848,888,909
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 5,24,28,34-35,52,54-55,63-66,69-71,79,83-112
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 14
+packages/backend/package.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 27
+packages/frontend/tests/pages/Settings.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 24-27,37-38
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4,144,507-544
+packages/frontend/src/components/JsonBlock.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-43
+packages/frontend/src/services/api/routing.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 36,194-205,210
+  s_1775f6c9e89812::t_92843cb33562dc 206-209,211
+packages/backend/src/analytics/services/message-details.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,9-11,90,95-100,103-104,111-112,159-160,270,279-312
+  s_1775f6c9e89812::t_eda0aad4483e3d 313
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_1775f6c9e89812::t_572bd10b7e4dc2 32
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 57
+.changeset/clean-reasoning-replay.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/manifest/package.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 3
+.changeset/retire-autofix-rollout-state.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 822,888-901,903-904,906,926,1152
+.changeset/autofix-healed-transport-fallback.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 43,65-70,73,141-147,181-182,187-188,239-241,250-256,260,266-268,281,283-285,302,343,380,393,396-397,404,424,427,432-434,474-475,484-486,514,517-518,525,554,569-570,576-578,620,623-624,631,650-651,657,667-668,674,684-685,718,726,733-734,736,740-742,748-755,761-768,781,784,789-791,804-833,849-864,872-886,893-894,900-903,918-924,928,931-944,955,961-968,982-991,994-995,1001-1062,1065,1133,1136-1137,1146-1147,1159,1162-1163,1178,1195,1200,1203-1204,1239,1307,1342-1346,1381-1412,1431-1435,1437-1438
+packages/frontend/tests/components/UserDiscoveryModal.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 30,32,35,37,78
+packages/shared/src/chat-message.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-438
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,6-12,27,52-84
+packages/backend/src/routing/proxy/stream-protocol.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 6
+.changeset/calm-owls-bill.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/database/request-recording-retention.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-156
+packages/backend/src/entities/agent.entity.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 40-44
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 208
+.changeset/route-anthropic-message-models.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 17
+packages/backend/src/analytics/controllers/agent-analytics.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 27-29
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 26,37-42,90,219,223,341,354
+.changeset/gemini-free-provider.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-6
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 64,89-94,97,121-122
+.changeset/show-called-tools.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/src/styles/playground.css
+  s_1775f6c9e89812::t_e6e1ecd273b989 8-41
+packages/frontend/src/styles/request-drawer.css
+  s_1775f6c9e89812::t_e6e1ecd273b989 8-10,241-242,249,251-253,256-260,263-268,271-275,280-281,287-905,907-927,930-979,1004-1081
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 104,117,206,221-223,584-606,978-1024,1343-1371
+  s_1775f6c9e89812::t_a52c964790229f 1372
+packages/backend/src/routing/proxy/attempt-recording-capture.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-59
+docker/.env.example
+  s_1775f6c9e89812::t_e6e1ecd273b989 26-32,34,37-39,50-67,81-87
+  s_1775f6c9e89812::t_80973f90fca96a 88
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-25
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 7,1619-1630,1651-1699,2010,2014-2015,2017,2028,2050-2053,2056,2094
+integrations/n8n-nodes-manifest/package.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 3
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 464-481
+packages/shared/src/error-taxonomy.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-2,19-22,223-226,280-288
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-46
+packages/frontend/src/components/RoutingModals.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 71,105-111,167,197,305
+packages/backend/src/routing/proxy/route-credentials.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 52-58,113,130-131,140,165-166,177,186,196,289-291
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 3,79-111,207,215,223,244,267,284,292,311,334,351,359,378,401,440-528,623-626,684-705,749-751,758,778-799,810-813,829,835-841,854,861,864,881-882,894,901,927,982,993,1024,1027,1055,1058,1088,1099,1175-1178,1237,1249,1409,1429,1497-1517,1618-1633,2034-2037,2058-2061,2344-2347,2482-2514,2863,2866,2873-2875,2899,2923,2927-2973,3153,3158-3159,3170,3193,3212,3217-3218,4862-4918
+  s_1775f6c9e89812::t_f665020bd3777b 4919
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1216-1278
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-2,50,52,55-60
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 426,450
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 8-11,48-50,54-56,92-104,115-117
+.changeset/open-autofix-to-everyone.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,5-6,45-51,124,130-132,136-137,139-143,147-153,245-249,256,259
+packages/frontend/src/services/onboarding.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-17
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 35-40,42-59,67-69,72-77,79-83,98-102,106-109,115,120-122
+packages/backend/src/routing/proxy/__tests__/reasoning-model-catalog.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-122
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-275
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 408,414,426,432,448,475,479,490,517,529,1299-1339
+  s_1775f6c9e89812::t_22bcfa918bc14b 1340
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 162-173,209,250
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 103-113,126-129,312
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 24,296-298,300,555,598
+packages/frontend/tests/services/providers.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 471-480,1015
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_1775f6c9e89812::t_52caff41593f1f 107-108,130
+  s_1775f6c9e89812::t_e6e1ecd273b989 28,48,63,72,80,84-87,91-92,142-143,157,169,176-179,183,185,195-196,198,203,205-206,223-224,226,243,252
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 44,56,153,158,330,338,706-708,821-840
+docker/docker-compose.yml
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-4,31,48,50,67,88-98,186-187,231-232
+.changeset/openrouter-model-modalities.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+.github/workflows/publish-n8n-node.yml
+  s_1775f6c9e89812::t_e6e1ecd273b989 3-4,15
+packages/frontend/src/pages/welcome-helpers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-81
+packages/backend/src/database/database.module.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 26,93
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_1775f6c9e89812::t_40d51147b61f27 446-453,455-456
+  s_1775f6c9e89812::t_4386e84f1adfc4 538,548-552,555
+  s_1775f6c9e89812::t_e6e1ecd273b989 27,67-73,143,145,151,177-178,182,233-234,250-270,284,286,308,435-443,454,539-547,553-554,556-565
+  s_1775f6c9e89812::t_317cf084f21b19 8
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-77
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-44
+packages/shared/src/subscription/types.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 17-19
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 110,113,119
+packages/backend/src/entities/agent-message.entity.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 42-45
+.changeset/scoped-provider-cache-affinity.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,123-125,143,183
+packages/backend/src/database/request-recording-retention.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-166
+.changeset/show-gemini-request-messages.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 20,25,48,66-67,85-99,109,115-121,224,227,231,234,365,374,392,416-432,472,480
+packages/frontend/src/pages/Overview.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 37,44,120-127,129-133,165-166,168,247,250,254,258,262,264-268,278,286,399,466-470,493,556
+packages/frontend/src/index.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 15,38,54-62,146-147
+  s_1775f6c9e89812::t_0ee9da1858e6cd 148
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 256
+.github/scripts/mock-openai-provider.py
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-54
+packages/frontend/src/pages/Upgrade.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 14,19-20,59-60,151-158
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 5
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 174-180
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 65,154
+packages/frontend/src/services/plan-store.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-53
+packages/frontend/tests/components/App.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 43
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-29
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 117,207,242,344,388,726,857,984-986,1128
+packages/frontend/tests/services/api/messages.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 64-88
+packages/shared/__tests__/chat-message.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-580
+.changeset/isolate-codex-affinity.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/common/services/agent-recording-cache.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-39
+packages/frontend/tests/services/plan-store.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-52
+packages/backend/src/billing/plan.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 21-28,59-94,129-142,236-264,434,442-447,465,474-477,488-489,497,503-506,521,524-528
+packages/backend/src/common/common.module.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 10-11,22-23,31-32
+integrations/n8n-nodes-manifest/dist/package.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 3
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 63,65-67
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 5,79,172,232-251,253-264,884,890,894-896,901
+.changeset/steady-model-picker.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/tests/pages/Playground.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 69-72,87-90,241,284-287,388-398,476,493-495,511-520,540,547-548,553,558-563,566,569-576,578-579,727-729,771,824-826
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 24,144-145,178-183,194-195,204-205,243-244,269-270,348,380,417-418,460,468,471-493,553-554,581-583,602,606,668,720,755,794,822-823,841,911-913,954-955,972-973,1005,1026,1060,1117,1149,1212
+packages/manifest/CHANGELOG.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 3-8
+packages/backend/src/routing/proxy/__tests__/proxy-session-scope.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-38
+packages/frontend/src/pages/MessageLog.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 29,36,42,160,266-267,375-407,410,416,419-422,428-436,442,450,456,491-495,498,502-503
+packages/frontend/tests/components/UserDiscoveryBanner.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 19
+packages/frontend/tests/pages/Overview.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 41-42,81-82,109,119,122,279,510,516,521,523,526,548-549,551,557,563,930
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 44,46,489-491,493-495
+packages/frontend/src/services/api/billing.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2,6,15-17
+  s_1775f6c9e89812::t_80987ee6e7034d 18-19
+packages/frontend/tests/components/Help.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 53,92
+.changeset/request-drawer-improvements.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/database/data-source-definitions.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 37,39-43,316,318-322
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-454
+packages/frontend/src/pages/SettingsRecordingSection.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-62
+packages/backend/src/playground/playground-stream.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 41-42
+packages/frontend/src/pages/Register.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 97,113,152,329
+packages/backend/src/playground/playground-stream.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 27,179-180,183,185,195-196,202
+packages/backend/src/analytics/services/agent-analytics.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 20-22,53,72,83-85
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-52
+.changeset/calm-routes-stay.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+.changeset/fix-request-quota-timezone.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+.changeset/record-request-payloads.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/src/services/sse.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 10,14,28-29,31,33-42,47,87,89
+packages/backend/src/routing/routing-core/provider-key.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 66-171
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 3-7,35,170-194,403-405,569,573-581,617-618,630-631,747-757,923
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 229-253
+.changeset/normalize-cache-write-usage.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 165-170,188,294,315-321,326-343,759-792,947,1128,1132-1133,1149-1150,1227-1228,1262,1480-1512,2220-2264,2384-2399,2416,2828-2883,2956
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_1775f6c9e89812::t_e6e1ecd273b989 13-15,25-30,33-35
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 90,111,134
+packages/backend/src/routing/dto/routing.dto.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 238-243
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-326
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 64-65,111-120,125,152-157,166,305,322,425,430-432
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 34,63-64,91,101
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 159-160
+  s_1775f6c9e89812::t_e797fee06ec006 156-158
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 61
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4,199,338,356-364,368,394-399,424-448
+  s_1775f6c9e89812::t_b1af1f2a3acb50 449-450
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-94
+packages/backend/src/billing/plan.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-8,14,74-81,83,90-92,99-110,168-176,211-218,234-246,248,250-257,261,365-379,478-481,485
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 199-252
+.changeset/calm-dashboards-rest.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 13,151-152,193-197,231-232,580-807,1887,1894-1896,1927,1934-1936,1991,2003-2027,3431,3452,3455-3457,3467
+packages/backend/src/routing/proxy/provider-client.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2,5-10,15-16,26,48,61-64,106-111,128-129,182,185-187,202-203,240-242,279-283,287-291,306-308,321,329,345,347-352,417-419,555,558-560,599-600,622,649-651,659-660,667-670,673-676,697,707-709,711,714,717,724-729,805
+packages/backend/src/routing/tier.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 25,29,39,165,178,187,191-212
+  s_1775f6c9e89812::t_4d8dcd18818d48 213
+packages/frontend/src/services/plan-range-lock.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-30
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-4,33-39
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 26-47,51,131-152
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-262
+.changeset/anthropic-automatic-caching.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 125
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-36
+.changeset/zen-reasoning-dialect.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/.env.example
+  s_1775f6c9e89812::t_e6e1ecd273b989 27-40,61-68
+  s_1775f6c9e89812::t_a074511e53e195 69
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2,40-44,65-74,89,143-203,342
+.changeset/lazy-native-protocol-conversion.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/common/services/agent-recording-cache.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-33
+packages/backend/src/routing/proxy/proxy-session-scope.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-39
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 20,149-169,237-297
+  s_1775f6c9e89812::t_c19b0f0d169a70 298-299
+packages/shared/src/index.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 61-62,170,178-187
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 3,97-137,282,297,301-317,447-463,468-470,532-601,616-625
+  s_1775f6c9e89812::t_bf641d7550c547 626
+packages/frontend/tests/pages/ProviderUsageLive.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 4-5,13,53,66,102,108-109
+packages/shared/src/provider-error-semantics.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-37
+docker/Dockerfile
+  s_1775f6c9e89812::t_e6e1ecd273b989 39,47,84-85
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-72
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-41
+packages/frontend/src/styles/data.css
+  s_1775f6c9e89812::t_e6e1ecd273b989 1003-1004,1021,1024-1025,1404
+packages/frontend/src/services/api/providers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-3,69-118,120-126
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 42,143-144,147-149,153,161-163,170-174,285-286
+packages/backend/src/routing/tier.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 9,19,29,53,59,149-150,158,164,172,183,188-202,204
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 71,79
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 18,121-124
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 3-8
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-2,4-5,20-21
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-2,5-6,21-27
+  s_1775f6c9e89812::t_39f601b9c3d652 28-29
+packages/backend/src/database/database-seeder.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 17-20,27-113,135,174,275,339-419
+  s_1775f6c9e89812::t_356a65388dddbf 420
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-169
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 171-174
+packages/frontend/tests/pages/Routing.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1411-1446
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-30
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 80
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 102-103,205-207,247,399-420,442-455,472,516,554,576,607-611,991-992,1004-1005,1011-1012,1024-1025
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 242,248-251,271,279-281,291-295,306-307
+packages/backend/src/entities/request.entity.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4,78-84
+  s_1775f6c9e89812::t_7f3ab45810f07e 85
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-49
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2434-2451
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 471-522
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 24-25
+packages/backend/src/routing/proxy/__tests__/codex-session-affinity.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 51,56-57,60-64,85-88,140-149,224-225,227,230,232-244
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 68,89-90,138-139
+docs/autofix-self-healing-poc.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 20-21,35,39,54-55,57-60,68,74-84,133,189,191-199,207,209-210,212-215,257-260,265,284-292,318,324-331,342,344,352,355,360,362,398-400
+packages/frontend/tests/services/api/cache.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 306-308,313,315-316,327-338
+  s_1775f6c9e89812::t_ab024f8c206670 339-340
+.changeset/quick-modelparams-request.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/tests/pages/Register.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 137,196,218,369
+packages/frontend/src/services/api/messages.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,24-33,124-125,130-161,163-169
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1,154-162
+.changeset/billing-status-baseline-nonblocking.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/frontend/src/components/AuthGuard.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 6-7,24-33,35-48,58-62
+packages/frontend/src/services/api/cache.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 199-201,203
+.changeset/autofix-outcome-delivery.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/playground/playground.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 490-492,568-570
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 286-295
+packages/backend/src/routing/proxy/__tests__/route-credentials.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 61,72,83,93-95,196-241
+.changeset/default-new-agent-recording.md
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-5
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2-6,124-151
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 197,199-201
+packages/backend/src/routing/proxy/attempt-recording.types.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-12
+packages/frontend/src/components/RequestDrawer.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 12-15,26,35,69,169,211,245-249,259-265,416-438,459-472,474-482,485-486,489-493,495-500,502-503,505-552,554-555,558-559,562,571-578,580-614,616-632,634,636,638-644,646-651,653-664,666-673,675,677-680,682,684-732,734,736-759,761-803
+  s_1775f6c9e89812::t_fd00658a353b73 11
+nodes/Manifest/Manifest.node.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 256
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 245-247,256,259,262-268,301-317,329-331
+packages/backend/src/billing/billing.controller.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 15-19
+packages/frontend/src/services/providers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 268-272,498
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 3,224-282
+  s_1775f6c9e89812::t_cc45e5f50010eb 283-284
+packages/frontend/tests/services/api/providers.test.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 5,50,55-131
+packages/shared/src/providers.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 36-37,224-235
+  s_1775f6c9e89812::t_0fdc915549bb18 236
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 4-5,7
+nodes/LmChatManifest/LmChatManifest.node.json
+  s_1775f6c9e89812::t_e6e1ecd273b989 5
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-59
+packages/backend/src/routing/proxy/__tests__/reasoning-format.spec.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-151
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_1775f6c9e89812::t_5ba7040bf56427 1140-1147,1149-1150
+  s_1775f6c9e89812::t_e6e1ecd273b989 34-35,316-359,405-428,1020-1025,1031,1035,1046-1092,1137-1139,1148,1271
+  s_1775f6c9e89812::t_75a4a541671249 1039-1040
+packages/frontend/src/pages/Welcome.tsx
+  s_1775f6c9e89812::t_e6e1ecd273b989 1-1598
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 2,4,27-29,36-42,49-54,70-73,96,98,100-101,119-120,139-144
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_1775f6c9e89812::t_e6e1ecd273b989 95
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_1775f6c9e89812::t_8242a94e795880 1
+integrations/n8n-nodes-manifest/package-lock.json
+  s_1775f6c9e89812::t_1618ac82b5d841 3,9,244-277,1026-1040,1595-1609,2777-2798,3361-3371,3682-3709,3724-4024
+package-lock.json
+  s_1775f6c9e89812::t_7f8b5583065dec 327-634,5104-5184,7156-7161,9461-9487,12367-12407,16443,16527,16584
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b9be40f3185bf4252cc9f75a302b90cb2264c961",
+  "prompts": {},
+  "sessions": {
+    "s_1775f6c9e89812": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26eb4864-306e-4d7f-8386-766cd4c121a0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

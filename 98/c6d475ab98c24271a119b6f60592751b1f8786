@@ -1,0 +1,24 @@
+CLAUDE.md
+  s_4560f40e5f017e::t_b9beafa8e4445f 632
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_4560f40e5f017e::t_e2f6446e85497f 67-71,74-80
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_4560f40e5f017e::t_ca26a18e6052f1 46-49
+  s_4560f40e5f017e::t_b9beafa8e4445f 95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "98c6d475ab98c24271a119b6f60592751b1f8786",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

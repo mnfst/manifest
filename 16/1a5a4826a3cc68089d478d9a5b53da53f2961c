@@ -1,0 +1,24 @@
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_5e5cf48e26e863 14,56-57,101-102
+  s_55e9f8f22551f6::t_28975b78e1c0a5 103
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_5e5cf48e26e863 1408-1475
+packages/cli/src/commands/requests.ts
+  s_55e9f8f22551f6::t_5e5cf48e26e863 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "161a5a4826a3cc68089d478d9a5b53da53f2961c",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,31 @@
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_55e9f8f22551f6::t_45682805d056a8 132-133
+  s_55e9f8f22551f6::t_2b6ce6ff0b3bc4 26-35,40-45
+  s_55e9f8f22551f6::t_c5df07f500e6a0 36-39
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_55e9f8f22551f6::t_8fdb303a40278e 745-778
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_55e9f8f22551f6::t_e781aa59a70c1c 299-301,343
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_55e9f8f22551f6::t_6de638fe20d6e7 138-143
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_55e9f8f22551f6::t_b8e8a34ee055b1 432-434,484-486,789-791
+packages/backend/src/routing/routing-core/provider-key.service.spec.ts
+  s_55e9f8f22551f6::t_96fb131b9e3ecd 93-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "8f84fef033d42aa6e055233696aae55038c4415b",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

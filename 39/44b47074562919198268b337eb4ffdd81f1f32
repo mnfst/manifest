@@ -1,0 +1,27 @@
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_4560f40e5f017e::t_10c3624311b321 2,55-57
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_4560f40e5f017e::t_0ffd4ed12f9703 44-47,49-51
+packages/backend/src/routing/autofix/autofix-healing-config.ts
+  s_4560f40e5f017e::t_0ffd4ed12f9703 14-19
+packages/backend/src/routing/autofix/__tests__/autofix-healing-config.spec.ts
+  s_4560f40e5f017e::t_cf315c4902bb38 30
+.changeset/quiet-horses-heal.md
+  s_4560f40e5f017e::t_0ffd4ed12f9703 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "3944b47074562919198268b337eb4ffdd81f1f32",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

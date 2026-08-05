@@ -1,0 +1,29 @@
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_bc52bec4ba36ef::t_bf3670e4866bcf 138-141
+  s_bc52bec4ba36ef::t_c954002382ac1e 621,641
+  s_bc52bec4ba36ef::t_84aefae097990f 142-145
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_bc52bec4ba36ef::t_d794eb587e3179 165,176,183,201-229,235
+  s_bc52bec4ba36ef::t_e5f43c1dd9610c 230-233,239-241,243,246-259,266,273
+  s_bc52bec4ba36ef::t_df814342f24dc6 234
+  s_bc52bec4ba36ef::t_ddfe6ea7eff293 236
+.changeset/cached-routing-model-picker.md
+  s_bc52bec4ba36ef::t_92b45b889dfe31 1-4
+  s_bc52bec4ba36ef::t_570598d179ff22 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "f73771e697495391d9cbea3e3b9f36a8d98ef6d9",
+  "prompts": {},
+  "sessions": {
+    "s_bc52bec4ba36ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd3c-3270-7db2-aaa9-aeac5a25cb12",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

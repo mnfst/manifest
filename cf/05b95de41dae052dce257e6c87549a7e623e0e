@@ -1,0 +1,55 @@
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_4560f40e5f017e::t_cd25b906c494e3 31
+  s_4560f40e5f017e::t_d2a677bb0060be 1,12,42-50
+docker/DOCKER_README.md
+  s_4560f40e5f017e::t_cd25b906c494e3 395-411
+  s_4560f40e5f017e::t_782c828fb836d7 437-447,457-463,465-469,472,475-476
+packages/backend/src/routing/autofix/healing-client.ts
+  s_4560f40e5f017e::t_b34f27624159fc 17,35
+  s_4560f40e5f017e::t_ef2ad1391690cc 27
+packages/backend/src/routing/autofix/__tests__/mock-healing-client.spec.ts
+  s_4560f40e5f017e::t_cd25b906c494e3 136-143
+  s_4560f40e5f017e::t_16dcc8581314fc 20-21,43,66,80,91,102,117,126
+  s_4560f40e5f017e::t_11fff400013fb1 158
+packages/backend/src/routing/autofix/__tests__/noop-healing-client.spec.ts
+  s_4560f40e5f017e::t_cd25b906c494e3 31-33
+  s_4560f40e5f017e::t_11fff400013fb1 4-5,20,37
+packages/backend/src/routing/autofix/autofix-healing-config.ts
+  s_4560f40e5f017e::t_4102bea919b1d0 4-19,23-25,27-45,51
+  s_4560f40e5f017e::t_fbd646bbab9d39 3
+packages/backend/src/routing/autofix/mock-healing-client.ts
+  s_4560f40e5f017e::t_ef2ad1391690cc 22,51,59
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_4560f40e5f017e::t_dd6a93038ae9b4 65,77,86,186,204,225,261,270,324,332,342,350
+  s_4560f40e5f017e::t_cd25b906c494e3 96-98,162-164
+  s_4560f40e5f017e::t_16dcc8581314fc 50,289
+  s_4560f40e5f017e::t_16c39f43b867a6 160-161
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_4560f40e5f017e::t_ef2ad1391690cc 36,55,78
+  s_4560f40e5f017e::t_0cf13e608138dd 115-117
+packages/backend/src/routing/autofix/__tests__/autofix-healing-config.spec.ts
+  s_4560f40e5f017e::t_cd25b906c494e3 38-41
+  s_4560f40e5f017e::t_c9ce27f662ab14 1-37,42-65
+packages/backend/src/routing/autofix/noop-healing-client.ts
+  s_4560f40e5f017e::t_ef2ad1391690cc 13,20,25
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_4560f40e5f017e::t_83fe7cd825dd02 46-52,56-75,77-86,90,141,144-145,149,191
+  s_4560f40e5f017e::t_cd25b906c494e3 53-55,184
+  s_4560f40e5f017e::t_5305d85557b86a 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "cf05b95de41dae052dce257e6c87549a7e623e0e",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

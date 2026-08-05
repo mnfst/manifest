@@ -1,0 +1,89 @@
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_bae9ab387260ee 144-145,149
+  s_55e9f8f22551f6::t_fcdfd3d30cf0f6 85
+  s_55e9f8f22551f6::t_993a9e186639f3 19
+  s_55e9f8f22551f6::t_2edb7ead372f71 203-206
+  s_55e9f8f22551f6::t_20e619d90086c4 78-81
+  s_55e9f8f22551f6::t_d9385a8d56096a 146-148
+packages/cli/src/telemetry.ts
+  s_55e9f8f22551f6::t_7cd430089f4708 7
+  s_55e9f8f22551f6::t_d9ea86457e10fe 72
+  s_55e9f8f22551f6::t_bd5a369dd60831 53-57
+packages/cli/src/commands/doctor.ts
+  s_55e9f8f22551f6::t_92526fc7fe315b 5-6
+  s_55e9f8f22551f6::t_8b07c3fce16e2b 205-218
+packages/cli/src/commands/skill.ts
+  s_55e9f8f22551f6::t_3206d95419fb38 1-5,8-12,21-31,35,40-44,52-56,58-60,63,66-69,71-76,144,152-153
+  s_55e9f8f22551f6::t_b50fcb65a0f7cf 6-7,13-20,32-34,36-39,45-51,57,61-62,64-65,70,77-143,145-151
+  s_55e9f8f22551f6::t_904f031c53b9d1 154-156
+packages/cli/src/agent-runtime.ts
+  s_55e9f8f22551f6::t_b6b04d4927e2c0 1,3-49,51
+  s_55e9f8f22551f6::t_2ca6365895a7b1 50
+  s_55e9f8f22551f6::t_9806b69e36b024 2
+packages/cli/src/telemetry.spec.ts
+  s_55e9f8f22551f6::t_fc6e06c6384e1a 39-58
+  s_55e9f8f22551f6::t_dbff2b7aecda12 59-61
+packages/cli/src/skill-content.spec.ts
+  s_55e9f8f22551f6::t_5f83fbf4e66f2f 1-38
+packages/cli/package.json
+  s_55e9f8f22551f6::t_470ed06ddddb84 15
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_85dae7286b9211 2823
+  s_55e9f8f22551f6::t_48d4f650449ad7 3148-3167,3193,3203-3204,3214
+  s_55e9f8f22551f6::t_edb800c7327281 3199
+  s_55e9f8f22551f6::t_671505bc5852c3 2749
+  s_55e9f8f22551f6::t_ec0f526340b61e 2741-2743
+  s_55e9f8f22551f6::t_e6cc395115c7bd 2901
+  s_55e9f8f22551f6::t_7e7a4ebcabc0ac 2770,2775-2803,3024,3048,3057,3080,3093,3101,3114,3121,3141,3190-3192,3213
+  s_55e9f8f22551f6::t_0d0abd25f3c058 2833,2838-2839
+  s_55e9f8f22551f6::t_9fb0bc489f892e 2804-2805
+  s_55e9f8f22551f6::t_2039fee666f676 3021-3023
+  s_55e9f8f22551f6::t_a6df88caf4adbe 3025-3027,3045-3047
+  s_55e9f8f22551f6::t_089790914569f3 3049-3051,3054-3056
+  s_55e9f8f22551f6::t_c32c79345dccef 3058-3060,3077-3079
+  s_55e9f8f22551f6::t_e6b6229c79bf5c 3081-3083,3090-3092
+  s_55e9f8f22551f6::t_db50d03f1bf162 3094-3096,3098-3100
+  s_55e9f8f22551f6::t_c3a3f1f4eb979a 3102-3104,3111-3113
+  s_55e9f8f22551f6::t_7aa7a863f6ae7a 3115-3120
+  s_55e9f8f22551f6::t_235abee31d807f 3122-3124,3138-3140
+  s_55e9f8f22551f6::t_e651e0d63f5de9 3142-3147
+  s_55e9f8f22551f6::t_6fdfc741f3ebcd 3168-3170,3187-3189
+  s_55e9f8f22551f6::t_2a8f861c2fe9fb 3194-3198
+  s_55e9f8f22551f6::t_edb2e3037e28dc 3200-3202
+  s_55e9f8f22551f6::t_6ccf4feef190bb 3205-3207,3210-3212
+  s_55e9f8f22551f6::t_0155154fe57349 3215-3217
+  s_2ba5e2468df7a5::t_357d310f310f52 10-12,2992-3020,3028-3044,3052-3053,3061-3076,3084-3089,3097,3105-3110,3125-3137,3171-3186,3208-3209
+packages/cli/src/commands/auth.ts
+  s_55e9f8f22551f6::t_1a410b93b610ff 8
+  s_55e9f8f22551f6::t_92d6e3a81842ea 82-84
+packages/cli/scripts/generate-skill-content.cjs
+  s_55e9f8f22551f6::t_5cec45847915d5 1-54
+.github/workflows/ci.yml
+  s_55e9f8f22551f6::t_45738f44847183 138-141
+packages/cli/src/skill-content.gen.ts
+  s_55e9f8f22551f6::t_39591efd32d2a8 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "1bae38029f83aff937fba426716078896c49d755",
+  "prompts": {},
+  "sessions": {
+    "s_2ba5e2468df7a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad33358e9caf3e6eb",
+        "model": "unknown"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

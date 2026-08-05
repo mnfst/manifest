@@ -1,0 +1,87 @@
+packages/cli/src/commands/custom-provider.ts
+  s_55e9f8f22551f6::t_f23c0a1d48a798 57
+packages/cli/src/telemetry.ts
+  s_55e9f8f22551f6::t_0e809ad2284eb1 69-71
+  s_55e9f8f22551f6::t_9914253afb1bce 55
+packages/backend/src/otlp/guards/agent-key-auth.guard.ts
+  s_55e9f8f22551f6::t_b46711b84454c8 110-113
+packages/cli/src/telemetry.spec.ts
+  s_55e9f8f22551f6::t_ced21ec19c1b12 61-78
+packages/cli/src/commands/agent.ts
+  s_55e9f8f22551f6::t_ff0388490cc2fd 98
+  s_55e9f8f22551f6::t_acb0ec616abb19 39-64,69-70
+  s_55e9f8f22551f6::t_f94d2a1c006b5e 205
+  s_55e9f8f22551f6::t_2d26dcdf67366b 226,229
+  s_55e9f8f22551f6::t_76ae82dfb297eb 148
+  s_55e9f8f22551f6::t_11e500fbb41a4d 7
+  s_55e9f8f22551f6::t_23286f6b550c63 162
+  s_55e9f8f22551f6::t_8bea44061c4a41 38,330-334,336,339-342
+  s_55e9f8f22551f6::t_231dc816c4f609 171,179-186
+packages/cli/src/provider-catalog.spec.ts
+  s_55e9f8f22551f6::t_2afac8f076c2d6 23-30
+  s_55e9f8f22551f6::t_736a7c2bd0f68e 1
+  s_55e9f8f22551f6::t_8f34319684c724 3-8,10-11
+packages/cli/src/commands/oauth-connect.spec.ts
+  s_55e9f8f22551f6::t_fcd73c411aefc5 16,21-22,37,50-52,60-90,98-119,121
+  s_55e9f8f22551f6::t_9cd515d4ae89db 53-59,91-97
+packages/cli/src/index.spec.ts
+  s_55e9f8f22551f6::t_2039bbb32bbe77 102-104,114-119
+  s_55e9f8f22551f6::t_5dd140e3d5739f 99-101,105-113,120-125
+packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
+  s_55e9f8f22551f6::t_9cd515d4ae89db 615-617
+  s_55e9f8f22551f6::t_b18cfd8cece13a 613-614,618-633
+.github/workflows/ci.yml
+  s_55e9f8f22551f6::t_3a956eec7138fa 138-141
+packages/cli/README.md
+  s_55e9f8f22551f6::t_9cd515d4ae89db 58-65
+  s_55e9f8f22551f6::t_b5d16d29d14dc4 54-57,66-75
+packages/cli/src/commands/routing.ts
+  s_55e9f8f22551f6::t_6dc0d1bd305d99 304-307
+  s_55e9f8f22551f6::t_f29e7080d7627f 272,276-282
+  s_55e9f8f22551f6::t_fb94b44116764f 273-274,283-284
+.gitignore
+  s_55e9f8f22551f6::t_659ee5ff44437c 37,40
+packages/cli/scripts/generate-provider-catalog.cjs
+  s_55e9f8f22551f6::t_939c34312c317d 100
+  s_55e9f8f22551f6::t_09edded3989f10 83-85
+  s_55e9f8f22551f6::t_a5539f8310cf14 57
+  s_55e9f8f22551f6::t_41e2b2f5d5fbc9 61
+  s_55e9f8f22551f6::t_4876b0415f7820 12-16
+  s_55e9f8f22551f6::t_8cf3c36dffa010 90-96
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_8abc615e799287 102-105
+  s_55e9f8f22551f6::t_848ab0081af933 131-134
+  s_55e9f8f22551f6::t_ac6b35943ced4d 84,89-91
+  s_55e9f8f22551f6::t_d9f4b0a6a0baa7 118-119
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_76ec44cdf39cab 667-687
+  s_55e9f8f22551f6::t_e8019159c57345 717-720
+  s_55e9f8f22551f6::t_0434d2133b0629 775
+  s_55e9f8f22551f6::t_52f3c3deca0161 513-540
+  s_55e9f8f22551f6::t_a87eff3d8b1277 826-833
+  s_55e9f8f22551f6::t_c76760dee7702d 1837-1839,1843,1850-1876
+  s_55e9f8f22551f6::t_e7f9e08daf7695 1877
+packages/cli/src/commands/oauth-connect.ts
+  s_55e9f8f22551f6::t_42aa0a9e6e5bed 26-44
+  s_55e9f8f22551f6::t_b8cb98e0dd0c34 98,101,105-107
+packages/cli/src/provider-catalog.gen.ts
+  s_55e9f8f22551f6::t_9218d732c77b53 257
+  s_55e9f8f22551f6::t_2c8ba244b64b05 256
+  s_55e9f8f22551f6::t_dccca63c7e64ac 258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "3b8725649c9f23c56f53f36e926dfe8fb531452b",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

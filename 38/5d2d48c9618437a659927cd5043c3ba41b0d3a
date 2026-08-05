@@ -1,0 +1,26 @@
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_b76fe0ad20729e 1087
+  s_55e9f8f22551f6::t_06b61a569e5b37 1088-1095
+packages/cli/src/commands/oauth-connect.spec.ts
+  s_55e9f8f22551f6::t_b76fe0ad20729e 18-77,80
+  s_55e9f8f22551f6::t_d69edd3dc9fbc4 78-79,81-82
+packages/cli/src/commands/oauth-connect.ts
+  s_55e9f8f22551f6::t_b76fe0ad20729e 17,22-23,67-102
+  s_55e9f8f22551f6::t_aef11980924d87 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "385d2d48c9618437a659927cd5043c3ba41b0d3a",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

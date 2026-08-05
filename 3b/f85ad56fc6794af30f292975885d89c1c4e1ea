@@ -1,0 +1,21 @@
+CLAUDE.md
+  s_55e9f8f22551f6::t_72647299ad67ce 404
+packages/backend/.env.example
+  s_55e9f8f22551f6::t_cea038d8a62e35 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "3bf85ad56fc6794af30f292975885d89c1c4e1ea",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

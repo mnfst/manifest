@@ -1,0 +1,25 @@
+packages/frontend/tests/services/api/analytics.test.ts
+  s_4560f40e5f017e::t_3c22ed0b908f34 83-86
+  s_4560f40e5f017e::t_9d3a878dd8ee91 82
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_4560f40e5f017e::t_3c22ed0b908f34 526-549
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_4560f40e5f017e::t_73fd888df7bca8 162-186
+  s_4560f40e5f017e::t_3c22ed0b908f34 143-161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "3d55750c24b3db2a758ee3f634c98fda3684a39b",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

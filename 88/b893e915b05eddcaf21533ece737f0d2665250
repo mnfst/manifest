@@ -1,0 +1,39 @@
+packages/cli/scripts/generate-provider-catalog.cjs
+  s_55e9f8f22551f6::t_109ef8c3ed4e01 20-33,56,76-78,85
+packages/shared/__tests__/setup-snippets.spec.ts
+  s_55e9f8f22551f6::t_70566ea566d38b 1-43
+packages/cli/src/commands/commands.spec.ts
+  s_55e9f8f22551f6::t_564aea8c18aed2 734-739,748
+  s_55e9f8f22551f6::t_60cd16a46f6b73 455,659,664-669,715-733,740-747
+  s_55e9f8f22551f6::t_804c1f5e4e9bb5 749
+packages/shared/src/setup-snippets.ts
+  s_55e9f8f22551f6::t_70566ea566d38b 1-80
+packages/cli/src/commands/agent.ts
+  s_55e9f8f22551f6::t_efa265d7f5b4cb 7,38-79,165-171
+  s_55e9f8f22551f6::t_e6ee5c00cca0bf 172-174
+packages/frontend/src/services/framework-snippets.ts
+  s_55e9f8f22551f6::t_933fceb8abd142 1-9
+packages/cli/src/index.ts
+  s_55e9f8f22551f6::t_efa265d7f5b4cb 33,81
+packages/shared/src/index.ts
+  s_55e9f8f22551f6::t_70566ea566d38b 14-18
+  s_55e9f8f22551f6::t_ceaa22c4548a19 13
+packages/cli/src/provider-catalog.gen.ts
+  s_55e9f8f22551f6::t_a494befbd393e9 255-264
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "88b893e915b05eddcaf21533ece737f0d2665250",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

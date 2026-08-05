@@ -1,0 +1,47 @@
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_ea056afe99f19b::t_0f9b52b6d6206c 86-99
+packages/frontend/src/components/Sidebar.tsx
+  s_ea056afe99f19b::t_527300d69edf68 46,290
+  s_ea056afe99f19b::t_db97064b189953 277-279
+  s_ea056afe99f19b::t_0389857e511b1c 7,47-58,408-409
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_ea056afe99f19b::t_0389857e511b1c 279-285,297-303
+  s_ea056afe99f19b::t_7fd3ecd74d947d 528,587
+  s_ea056afe99f19b::t_29674539bf63c8 15,25-29,34-35,51-56,116,142,278,286-296,304-307,351,414,472,627,668,790
+  s_ea056afe99f19b::t_bbf72373b6bf4c 488
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_ea056afe99f19b::t_0389857e511b1c 166-170
+  s_ea056afe99f19b::t_527300d69edf68 31-32,107-112,126-130,149,159
+packages/frontend/src/services/api/analytics.ts
+  s_ea056afe99f19b::t_527300d69edf68 272-273
+packages/frontend/src/components/AddAgentModal.tsx
+  s_ea056afe99f19b::t_527300d69edf68 222-237
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_ea056afe99f19b::t_29674539bf63c8 90,104,123,128-154
+  s_ea056afe99f19b::t_6ee7ee695e1bcd 155
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_ea056afe99f19b::t_527300d69edf68 34,47,97-101,103
+  s_ea056afe99f19b::t_bbf72373b6bf4c 63-67,102,149-152
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_ea056afe99f19b::t_2a3a83388744eb 527,536-538
+  s_ea056afe99f19b::t_0f9b52b6d6206c 528-535,539-540,580,586,602
+  s_ea056afe99f19b::t_6c01df26a654a1 101
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_ea056afe99f19b::t_bbf72373b6bf4c 19-24,75,81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "a8337762aa824c58af202edfae917ca3c770ee82",
+  "prompts": {},
+  "sessions": {
+    "s_ea056afe99f19b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd4d-29f8-7581-a404-8361f72a45dd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

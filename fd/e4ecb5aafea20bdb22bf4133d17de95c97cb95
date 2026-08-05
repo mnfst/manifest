@@ -1,0 +1,21 @@
+packages/backend/src/database/migrations/1801900000000-AddAutofixConsentToInstallMetadata.ts
+  s_4560f40e5f017e::t_09b5cb6bb4965b 17,19-25,30-36
+packages/backend/src/routing/tier.controller.spec.ts
+  s_4560f40e5f017e::t_09b5cb6bb4965b 12-13,15-19,49-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "fde4ecb5aafea20bdb22bf4133d17de95c97cb95",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

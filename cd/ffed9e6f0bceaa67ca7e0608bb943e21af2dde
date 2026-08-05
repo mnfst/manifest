@@ -1,0 +1,38 @@
+routing-eval/safe-router/private-v2/CANDIDATE_LOCK.json
+  s_74f90e5974d6a5::t_4fe8e002c31b36 1-71
+routing-eval/safe-router/private-v2/scripts/research_category.py
+  s_74f90e5974d6a5::t_ee545bcc5c871a 37-38,85-138,292,300,334,353-358,381
+  s_74f90e5974d6a5::t_d3458beb57687e 17-18,26,39-40,139-264,359-369,382-383
+  s_74f90e5974d6a5::t_6e97cd30963fe9 1-16,19-25,27-36,41-84,265-291,293-299,301-333,335-352,370-380,384-387,389-395
+  s_74f90e5974d6a5::t_49b1dc3c6bfbd5 388
+routing-eval/safe-router/private-v2/scripts/research_embeddings.py
+  s_74f90e5974d6a5::t_8fdf3012d08efb 1-28,32-37,44-216,218-283,285-291,293-388,390-424,426-523
+  s_74f90e5974d6a5::t_fbaef351752748 29-31,217,284,292,389,425
+  s_74f90e5974d6a5::t_453434dc1a91f3 38-43
+routing-eval/safe-router/private-v2/scripts/research_fusion.py
+  s_74f90e5974d6a5::t_da03f81ec88b73 1-161
+routing-eval/safe-router/private-v2/scripts/research_hashing.py
+  s_74f90e5974d6a5::t_af757213fc5440 38-39,99-100,115-122,138-147,151-155
+  s_74f90e5974d6a5::t_a864e8ad537dc8 1-37,40-41,44-84,87-98,101-114,123-137,148-150,156-298,317-323,328-338
+  s_74f90e5974d6a5::t_f8b88dfd0cf3dd 42-43,85-86,299-316,324-327
+routing-eval/safe-router/private-v2/requirements-research.txt
+  s_74f90e5974d6a5::t_8fdf3012d08efb 1-6
+routing-eval/safe-router/private-v2/DEVELOPMENT_RESULTS.md
+  s_74f90e5974d6a5::t_4fe8e002c31b36 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "cdffed9e6f0bceaa67ca7e0608bb943e21af2dde",
+  "prompts": {},
+  "sessions": {
+    "s_74f90e5974d6a5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb3cc-b7f4-7d33-82ff-0b984d2eff0c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

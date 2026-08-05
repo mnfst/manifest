@@ -1,0 +1,64 @@
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.spec.ts
+  s_55e9f8f22551f6::t_5b77aabf14ca14 1-58
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.ts
+  s_55e9f8f22551f6::t_5b77aabf14ca14 1-34
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_55e9f8f22551f6::t_d883652087f827 19,23-24,34
+  s_55e9f8f22551f6::t_f7ee23c5f2262a 115,117-128
+  s_55e9f8f22551f6::t_b38b7d875d0632 13-14
+  s_55e9f8f22551f6::t_d1c09690f99ee7 64,66-67
+  s_55e9f8f22551f6::t_60fc5376a0409d 108-114,116,129
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_55e9f8f22551f6::t_ee847774f1366c 266
+  s_55e9f8f22551f6::t_07cf7b756b4ba3 884
+  s_55e9f8f22551f6::t_5cbbd7d263c352 905
+  s_55e9f8f22551f6::t_0d3980b6425200 529
+  s_55e9f8f22551f6::t_271e4d43b88838 673
+  s_55e9f8f22551f6::t_54b777185f6a06 693
+  s_55e9f8f22551f6::t_19b8844f848a12 607
+  s_55e9f8f22551f6::t_1bf4dbffc5cd19 345
+  s_55e9f8f22551f6::t_79ebd370e8c5d5 588
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_55e9f8f22551f6::t_286125002c4b73 580-611
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_55e9f8f22551f6::t_6b7d83da7eb6bd 472
+packages/backend/src/playground/playground.service.ts
+  s_55e9f8f22551f6::t_cd854e9a9713b1 490-492
+  s_55e9f8f22551f6::t_c1e4593810bbd7 568-570
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_55e9f8f22551f6::t_299d8ff4fa164c 124-165,174-214
+  s_55e9f8f22551f6::t_a5b15f20baeebe 166-170,172-173
+  s_55e9f8f22551f6::t_7600be2fd44f5b 171
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_55e9f8f22551f6::t_8cf88024a6e923 788
+  s_55e9f8f22551f6::t_7f53124f190f12 340
+  s_55e9f8f22551f6::t_0b9c6d76812642 192-193
+  s_55e9f8f22551f6::t_26f4c8fbd1c29c 176-181
+  s_55e9f8f22551f6::t_a20710ed29d4ad 548-549
+  s_55e9f8f22551f6::t_a72c7d3aa36c8b 372
+  s_55e9f8f22551f6::t_c37ea84ca177bd 452
+  s_55e9f8f22551f6::t_6c74c18ccbdecf 24
+  s_55e9f8f22551f6::t_6040a65a37b4b9 749
+  s_55e9f8f22551f6::t_1fbd22c08105e8 460,463-465
+packages/backend/src/database/data-source-definitions.ts
+  s_55e9f8f22551f6::t_5b77aabf14ca14 41,318
+packages/backend/src/entities/request.entity.ts
+  s_55e9f8f22551f6::t_b93e56fef181a6 4
+  s_55e9f8f22551f6::t_659f4c3575b92a 78-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b79730f70955adacc0476c7569b1b6bc770c9948",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": null
+    }
+  }
+}

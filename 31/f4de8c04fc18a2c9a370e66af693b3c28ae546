@@ -1,0 +1,23 @@
+packages/backend/src/auth/cli-auth.controller.ts
+  s_55e9f8f22551f6::t_99fd207ee29ee0 3,8-10,12-13,18-21,24-25
+packages/backend/test/cli-auth.e2e-spec.ts
+  s_55e9f8f22551f6::t_41005c017ab124 94-103
+  s_55e9f8f22551f6::t_3e7b4b83074ecd 2,5
+  s_55e9f8f22551f6::t_1ab487750d7bf4 40-41,48-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "31f4de8c04fc18a2c9a370e66af693b3c28ae546",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

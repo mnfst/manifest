@@ -1,0 +1,19 @@
+packages/frontend/src/components/Sidebar.tsx
+  s_4560f40e5f017e::t_c1050ad3773aa0 252-263,265-282,284-286,288-310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "91f1daf733acb9e64a021eaabcfe92d24793474d",
+  "prompts": {},
+  "sessions": {
+    "s_4560f40e5f017e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "55255b28-5dfc-4005-a31f-f2009361bb25",
+        "model": "grok-4.5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

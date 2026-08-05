@@ -1,0 +1,19 @@
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_48445e076e4659::t_9c3b9c9085a694 175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "de2201a881d6ec93a4adc923297929b00c0661be",
+  "prompts": {},
+  "sessions": {
+    "s_48445e076e4659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd24-e23b-7670-ab00-e1ba48cafb18",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

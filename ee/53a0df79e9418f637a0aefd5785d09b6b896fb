@@ -1,0 +1,59 @@
+packages/frontend/src/services/api/messages.ts
+  s_48445e076e4659::t_88f9af3c223b9d 102-107,109-114,116-118
+  s_48445e076e4659::t_0d87639f963604 108,115
+.changeset/show-manifest-request-steps.md
+  s_48445e076e4659::t_d0420b590ae23b 1-5
+docs/glossary.md
+  s_48445e076e4659::t_ea8dbb06c33109 39-47,131
+packages/backend/src/database/migrations/1801730000000-AddManifestRequestSteps.spec.ts
+  s_48445e076e4659::t_d0420b590ae23b 1-27
+packages/backend/src/database/migrations/1801730000000-AddManifestRequestSteps.ts
+  s_48445e076e4659::t_d0420b590ae23b 1-42
+packages/frontend/src/styles/request-drawer.css
+  s_48445e076e4659::t_67833003b16fe7 181-192,819,826,832,867
+  s_48445e076e4659::t_e40c1e91105eb9 807-815,818,820-825,833-837,866,868-871
+packages/frontend/src/components/RequestDrawer.tsx
+  s_48445e076e4659::t_8ddf48d58fb352 592-601
+  s_48445e076e4659::t_67833003b16fe7 40-42,72,128,141,144-145,177-201,213-214,396,399,416-417,521-523,526-528
+packages/backend/src/database/data-source-definitions.ts
+  s_48445e076e4659::t_d0420b590ae23b 42,320
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_48445e076e4659::t_d0cf687800e147 514-519,521-526,528-531,549
+  s_48445e076e4659::t_0d87639f963604 520,527
+packages/backend/src/analytics/services/message-details.service.ts
+  s_48445e076e4659::t_88f9af3c223b9d 68,244
+  s_48445e076e4659::t_03300665effc3c 8
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_48445e076e4659::t_0d87639f963604 132,140
+  s_48445e076e4659::t_d0cf687800e147 108-131,133-139,141-162
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_48445e076e4659::t_041e84428e70f0 28,31,47,105,322,345-367
+  s_48445e076e4659::t_03300665effc3c 118-122,340-344,369-373
+  s_48445e076e4659::t_5d6439d62b27c8 368
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_48445e076e4659::t_03300665effc3c 15
+  s_48445e076e4659::t_e868458c6d5a1c 384,522-536,538-543,545-555,756-760,842,890-918,1097-1101
+  s_48445e076e4659::t_0d87639f963604 537,544
+packages/backend/src/playground/playground.service.ts
+  s_48445e076e4659::t_1a638612c2f32c 496,575
+packages/backend/src/entities/request.entity.ts
+  s_48445e076e4659::t_0d87639f963604 12,19
+  s_48445e076e4659::t_d0420b590ae23b 7-11,13-18,20-23,112-114
+  s_48445e076e4659::t_9234039adb1c55 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ee53a0df79e9418f637a0aefd5785d09b6b896fb",
+  "prompts": {},
+  "sessions": {
+    "s_48445e076e4659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fcd24-e23b-7670-ab00-e1ba48cafb18",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
