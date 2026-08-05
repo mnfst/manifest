@@ -1,57 +1,24 @@
-export const DEFAULT_HOSTED_AUTOFIX_URL = 'https://autofix.manifest.build';
-
 /**
- * A healer URL must be an absolute http(s) origin. Anything else — a bare host,
- * a typo'd scheme, a `postgres://` pasted into the wrong variable — would be
- * handed to `fetch()` and surface later as an opaque per-request failure on the
- * heal path. Rejecting it here means a misconfigured deployment falls back to
- * the inert client instead, which matches Auto-fix's rule that healing never
- * makes a request worse.
+ * The one hosted Phoenix every deployment heals against. This is a constant,
+ * not an operator knob: cloud and self-hosted talk to the same service, and the
+ * only thing that differs is how they authenticate (a static
+ * `AUTOFIX_HEALING_API_KEY` for cloud, the anonymous install id for
+ * self-hosted). Pointing an install at some other healer is not a supported
+ * configuration, so there is no URL to typo, to redirect, or to leak a key to.
  */
-function isUsableHealerUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    // A path segment would double-prefix downstream (`/api/heal` built onto a
-    // base already carrying a path), so only an origin is a valid healer URL.
-    return (
-      (parsed.protocol === 'http:' || parsed.protocol === 'https:') &&
-      (parsed.pathname === '' || parsed.pathname === '/')
-    );
-  } catch {
-    return false;
-  }
-}
+export const AUTOFIX_URL = 'https://autofix.manifest.build';
 
 /**
- * Resolve only real HTTP healers. Dev/test keeps using the in-process mock when
- * the URL is unset; cloud production keeps its inert default.
+ * Resolve the healer URL for the running environment.
  *
- * Returns `{ url, invalid }` so the caller can log the misconfiguration once at
- * boot rather than silently behaving as if nothing were configured.
+ * Production — cloud or self-hosted — always gets hosted Phoenix. Dev and test
+ * get `undefined` so the caller selects the deterministic in-process mock: a
+ * developer running the stack locally must never post real failures at the
+ * production healer, and a test must never depend on the network.
+ *
+ * To switch Auto-fix off entirely, set `AUTOFIX_GLOBAL_ENABLED=false`; that
+ * short-circuits in `AutofixService` before any heal call is made.
  */
-export function resolveHealingUrl(
-  rawUrl: string | undefined,
-  nodeEnv: string | undefined,
-  selfHosted: boolean,
-): { url: string | undefined; invalid: boolean } {
-  const value = rawUrl?.trim();
-  if (value?.toLowerCase() === 'off') return { url: undefined, invalid: false };
-  if (value) {
-    return isUsableHealerUrl(value)
-      ? { url: value, invalid: false }
-      : { url: undefined, invalid: true };
-  }
-  if (nodeEnv === 'production' && selfHosted) {
-    return { url: DEFAULT_HOSTED_AUTOFIX_URL, invalid: false };
-  }
-  return { url: undefined, invalid: false };
-}
-
-/** Back-compat shape for callers that only need the resolved URL. */
-export function resolveHttpHealingUrl(
-  rawUrl: string | undefined,
-  nodeEnv: string | undefined,
-  selfHosted: boolean,
-): string | undefined {
-  return resolveHealingUrl(rawUrl, nodeEnv, selfHosted).url;
+export function resolveHealingUrl(nodeEnv: string | undefined): string | undefined {
+  return nodeEnv === 'production' ? AUTOFIX_URL : undefined;
 }

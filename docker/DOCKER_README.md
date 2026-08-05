@@ -407,8 +407,7 @@ sets this automatically).
 | `SENTRY_DSN`                       | No          | unset                                        | Opt-in error monitoring. Sentry is not initialised unless set                                                                                                                                              |
 | `MANIFEST_TELEMETRY_DISABLED`      | No          | `0`                                          | Set `1` to disable anonymous usage telemetry                                                                                                                                                               |
 | `TELEMETRY_ENDPOINT`               | No          | `https://telemetry.manifest.build/v1/report` | Send the usage report to your own collector instead                                                                                                                                                        |
-| `AUTOFIX_HEALING_URL`              | No          | hosted service                               | Autofix healing endpoint. Set `off` to disable all calls to the Autofix service                                                                                                                            |
-| `AUTOFIX_GLOBAL_ENABLED`           | No          | `true`                                       | Deployment-wide Autofix kill switch                                                                                                                                                                        |
+| `AUTOFIX_GLOBAL_ENABLED`           | No          | `true`                                       | Deployment-wide Autofix kill switch. Set `false` to make no calls to the Autofix service at all, boot health check included                                                                                 |
 
 `NODE_ENV` and `SEED_DATA` are deliberately fixed by the compose file and are
 not knobs here: the image is a production artifact, and the demo-data seeder
@@ -457,10 +456,13 @@ request-side 4xx failures are also sent as diagnostic observations (up to
 If no agent has Autofix enabled, no healing call is made and **no ID is ever
 created** — it is generated on first use, so an install that never enables
 Autofix and never reports telemetry has no identity at all. Only the public,
-unauthenticated boot-time health check may contact the configured service, and it
-never creates an identity. Set `AUTOFIX_HEALING_URL=off` to disable every Autofix
-service call. `AUTOFIX_GLOBAL_ENABLED=false` disables healing but leaves the
-health check intact.
+unauthenticated boot-time health check may contact the service, and it never
+creates an identity. Set `AUTOFIX_GLOBAL_ENABLED=false` to disable every Autofix
+service call, boot health check included.
+
+The Autofix endpoint itself is not configurable — it is a constant in the image
+(`https://autofix.manifest.build`). There is no supported way to point an
+install at a different healing service.
 
 `MANIFEST_TELEMETRY_DISABLED=1` stops the aggregate usage report and nothing
 else; it does not disable Autofix, and it does not stop Autofix from creating and

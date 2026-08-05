@@ -4,8 +4,9 @@ import type { HealingClient, HealingRequestContext } from './healing-client';
 import type { ConfirmResponse, HealOutcome, HealRequest, HealResponse } from './phoenix.types';
 
 /**
- * Deterministic in-process stand-in for Phoenix, used when `AUTOFIX_HEALING_URL`
- * is unset. It implements the MVP #1 case end-to-end — an unknown-parameter 4xx
+ * Deterministic in-process stand-in for Phoenix, used outside production so a
+ * local run never posts real failures at the hosted healer and a test never
+ * depends on the network. It implements the MVP #1 case end-to-end — an unknown-parameter 4xx
  * whose `param` has a known rename (e.g. the Responses API rejecting
  * `max_tokens`) is patched into `max_output_tokens` via a `rename_param`
  * operation. Everything else returns `no_patch`. Lets the whole heal → resend →

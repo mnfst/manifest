@@ -9,7 +9,7 @@ export interface HealingRequestContext {
 /**
  * Port to the Phoenix healing service. The proxy loop depends only on this
  * interface; the concrete client (mock vs HTTP) is chosen at module wiring time
- * by `AUTOFIX_HEALING_URL`. Keeping this seam stable means swapping in the real
+ * by `NODE_ENV`. Keeping this seam stable means swapping in the real
  * service — or a future contract revision — never touches the loop.
  */
 export interface HealingClient {

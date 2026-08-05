@@ -9,8 +9,8 @@ import { InstallIdService } from '../../../telemetry/install-id.service';
 import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
+import { AUTOFIX_URL } from '../autofix-healing-config';
 import { MockHealingClient } from '../mock-healing-client';
-import { NoopHealingClient } from '../noop-healing-client';
 
 /**
  * Compile AutofixModule with a global ConfigModule seeded from `configValues`
@@ -52,7 +52,7 @@ async function resolveHealingClient(configValues: Record<string, string>) {
 }
 
 describe('AutofixModule HEALING_CLIENT factory', () => {
-  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is unset (non-production)', async () => {
+  it('provides a MockHealingClient outside production (NODE_ENV unset)', async () => {
     const client = await resolveHealingClient({});
 
     expect(client).toBeInstanceOf(MockHealingClient);
@@ -65,85 +65,67 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
     expect(client).toBeInstanceOf(MockHealingClient);
   });
 
-  it('provides a MockHealingClient when AUTOFIX_HEALING_URL is blank/whitespace', async () => {
-    // url.trim().length > 0 is false → mock branch.
-    const client = await resolveHealingClient({ AUTOFIX_HEALING_URL: '   ' });
+  it('keeps the mock in a self-hosted DEV run rather than dialling hosted Phoenix', async () => {
+    // A developer running self-hosted mode locally must not post real failures
+    // at the production healer just because the mode matches.
+    const client = await resolveHealingClient({
+      NODE_ENV: 'development',
+      MANIFEST_MODE: 'selfhosted',
+    });
 
     expect(client).toBeInstanceOf(MockHealingClient);
   });
 
-  it('provides an inert NoopHealingClient in production when AUTOFIX_HEALING_URL is unset', async () => {
-    // The dev-only mock must never mutate real traffic: with no healer wired,
-    // production falls to the inert Noop client, not the Mock.
-    const client = await resolveHealingClient({ NODE_ENV: 'production' });
-
-    expect(client).toBeInstanceOf(NoopHealingClient);
-  });
-
-  it('uses the hosted Phoenix default in self-hosted production', async () => {
+  it('dials hosted Phoenix in self-hosted production', async () => {
     const client = await resolveHealingClient({
       NODE_ENV: 'production',
       MANIFEST_MODE: 'selfhosted',
     });
 
     expect(client).toBeInstanceOf(HttpHealingClient);
-    expect((client as unknown as { baseUrl: string }).baseUrl).toBe(
-      'https://autofix.manifest.build',
-    );
+    expect((client as unknown as { baseUrl: string }).baseUrl).toBe(AUTOFIX_URL);
   });
 
-  it('provides an inert NoopHealingClient for the explicit off sentinel', async () => {
+  it('dials the same hosted Phoenix in CLOUD production', async () => {
+    // Regression guard for dropping AUTOFIX_HEALING_URL: cloud used to depend
+    // on that variable and would go inert without it, silently killing
+    // Auto-fix in production for every hosted tenant.
     const client = await resolveHealingClient({
       NODE_ENV: 'production',
-      MANIFEST_MODE: 'selfhosted',
-      AUTOFIX_HEALING_URL: ' off ',
-    });
-
-    expect(client).toBeInstanceOf(NoopHealingClient);
-  });
-
-  it('still provides an HttpHealingClient in production when AUTOFIX_HEALING_URL is set', async () => {
-    // A configured healer takes precedence over the production Noop fallback.
-    const client = await resolveHealingClient({
-      NODE_ENV: 'production',
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      MANIFEST_MODE: 'cloud',
     });
 
     expect(client).toBeInstanceOf(HttpHealingClient);
+    expect((client as unknown as { baseUrl: string }).baseUrl).toBe(AUTOFIX_URL);
   });
 
-  it('provides an HttpHealingClient when AUTOFIX_HEALING_URL is set', async () => {
+  it('forwards AUTOFIX_HEALING_API_KEY and sends no instance id when set (cloud)', async () => {
     const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
-    });
-
-    expect(client).toBeInstanceOf(HttpHealingClient);
-  });
-
-  it('provides an HttpHealingClient and reads AUTOFIX_HEALING_API_KEY when set', async () => {
-    // Exercises the api-key branch of the factory (trimmed, non-empty → forwarded).
-    const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      NODE_ENV: 'production',
       AUTOFIX_HEALING_API_KEY: 'secret',
     });
 
     expect(client).toBeInstanceOf(HttpHealingClient);
+    const inner = client as unknown as { apiKey?: string; instanceId?: unknown };
+    expect(inner.apiKey).toBe('secret');
+    expect(inner.instanceId).toBeUndefined();
   });
 
   it('provides an HttpHealingClient with a valid AUTOFIX_TIMEOUT_MS override', async () => {
     // Exercises the truthy side of the timeout ternary (parsed integer > 0).
     const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      NODE_ENV: 'production',
       AUTOFIX_TIMEOUT_MS: '5000',
     });
 
     expect(client).toBeInstanceOf(HttpHealingClient);
+    expect((client as unknown as { timeoutMs: number }).timeoutMs).toBe(5000);
   });
 
   it('falls back to the default timeout when AUTOFIX_TIMEOUT_MS is invalid', async () => {
     // Number.parseInt('abc', 10) is NaN → Number.isInteger false → default.
     const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      NODE_ENV: 'production',
       AUTOFIX_TIMEOUT_MS: 'abc',
     });
 
@@ -153,7 +135,7 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
   it('falls back to the default timeout when AUTOFIX_TIMEOUT_MS is non-positive', async () => {
     // parsed = 0 → `parsed > 0` false → default branch.
     const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      NODE_ENV: 'production',
       AUTOFIX_TIMEOUT_MS: '0',
     });
 
@@ -164,23 +146,12 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
     // `Number.parseInt('5abc')` would silently yield 5; the digits-only guard
     // rejects it, so the client keeps the 10s default instead of a 5ms timeout.
     const client = await resolveHealingClient({
-      AUTOFIX_HEALING_URL: 'http://phoenix.local',
+      NODE_ENV: 'production',
       AUTOFIX_TIMEOUT_MS: '5abc',
     });
 
     expect(client).toBeInstanceOf(HttpHealingClient);
     expect((client as unknown as { timeoutMs: number }).timeoutMs).toBe(10_000);
-  });
-
-  it('falls back to the inert client when AUTOFIX_HEALING_URL is not an absolute http(s) URL', async () => {
-    // A bad scheme must not be handed to fetch(); it would fail per-request on
-    // the heal path instead of surfacing once. Inert client + a boot log line.
-    const client = await resolveHealingClient({
-      NODE_ENV: 'production',
-      AUTOFIX_HEALING_URL: 'htp://phoenix.local',
-    });
-
-    expect(client).toBeInstanceOf(NoopHealingClient);
   });
 
   it('resolves the install id once per process instead of per request', async () => {
@@ -200,7 +171,7 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
           ConfigModule.forRoot({
             isGlobal: true,
             ignoreEnvFile: true,
-            load: [() => ({ NODE_ENV: 'production', AUTOFIX_HEALING_URL: 'http://phoenix.local' })],
+            load: [() => ({ NODE_ENV: 'production' })],
           }),
           AutofixModule,
         ],
