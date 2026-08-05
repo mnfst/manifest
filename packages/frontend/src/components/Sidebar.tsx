@@ -478,7 +478,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 </a>
                 .
               </p>
-              <div class="autofix-consent__agents-label">Agents to activate</div>
+              <div class="autofix-consent__agents-label">Agents</div>
               <div class="autofix-consent__agents">
                 <For each={modalAgents()}>
                   {(agent) => (
