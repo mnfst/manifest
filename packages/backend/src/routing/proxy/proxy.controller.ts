@@ -288,6 +288,13 @@ export class ProxyController {
         startedAt: new Date(startedAtMs).toISOString(),
         pendingWrite: Promise.resolve(false),
       };
+      currentAttempt = attempt;
+      currentAttemptStart = start;
+      // Cooldown skips still need a unique position in the routing chain, but
+      // must not look like an in-flight provider call or trigger provider-call
+      // accounting before their terminal policy row is written.
+      if (start.providerCallStarted === false) return attempt;
+
       let recordingFinished = false;
       attempt.startRecording = ({ requestBody, wireFormat }) => {
         if (!recordingEnabled || !this.attemptRecording || attempt.recordingCapture) {
@@ -310,8 +317,6 @@ export class ProxyController {
           .save(tenantId, requestId, attempt.id, capture.buildRecording())
           .catch((e) => this.logger.warn(`Failed to finish Provider Attempt recording: ${e}`));
       };
-      currentAttempt = attempt;
-      currentAttemptStart = start;
       attempt.pendingWrite = this.recorder
         .recordPendingProviderAttempt(req.ingestionContext, requestId, attempt, start)
         .catch((e) => {

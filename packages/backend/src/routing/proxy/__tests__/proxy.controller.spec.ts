@@ -673,6 +673,65 @@ describe('ProxyController', () => {
     );
   });
 
+  it('reserves cooldown order without inserting a pending provider-call row', async () => {
+    const pendingAttempt = jest.spyOn(recorder, 'recordPendingProviderAttempt');
+    let cooldownAttemptNumber: number | undefined;
+    let fallbackAttemptNumber: number | undefined;
+    proxyService.proxyRequest.mockImplementation(
+      async (options: { startProviderAttempt: StartProviderAttempt }) => {
+        const cooldown = options.startProviderAttempt({
+          provider: 'anthropic',
+          model: 'claude-opus-5',
+          authType: 'subscription',
+          providerCallStarted: false,
+        });
+        const fallback = options.startProviderAttempt({
+          provider: 'deepseek',
+          model: 'deepseek-v4-flash',
+          authType: 'api_key',
+        });
+        cooldownAttemptNumber = cooldown.attemptNumber;
+        fallbackAttemptNumber = fallback.attemptNumber;
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+            attempt: fallback,
+          },
+          meta: {
+            tier: 'default',
+            model: 'deepseek-v4-flash',
+            provider: 'deepseek',
+            confidence: 0.9,
+            reason: 'scored',
+            attempt: fallback,
+          },
+        };
+      },
+    );
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(
+      mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) as never,
+      res as never,
+    );
+
+    expect(cooldownAttemptNumber).toBe(1);
+    expect(fallbackAttemptNumber).toBe(2);
+    expect(pendingAttempt).toHaveBeenCalledTimes(1);
+    expect(pendingAttempt).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(String),
+      expect.objectContaining({ attemptNumber: 2 }),
+      expect.objectContaining({ provider: 'deepseek' }),
+    );
+  });
+
   it('keeps Auto-fix original and retry payloads on separate Provider Attempts', async () => {
     recordingCache.isRecording.mockResolvedValue(true);
     const originalBody = { model: 'gpt-4o', messages: [], unsupported: true };

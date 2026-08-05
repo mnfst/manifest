@@ -489,6 +489,15 @@ export class ProxyFallbackService {
     opts: ForwardProviderOptions,
     expiresAt: number,
   ): ForwardResult {
+    const attempt = opts.startProviderAttempt?.({
+      provider: opts.provider,
+      model: opts.model,
+      authType: opts.authType,
+      tenantProviderId: opts.tenantProviderId,
+      keyLabel: opts.providerKeyLabel,
+      providerCallStarted: false,
+    });
+    if (attempt) attempt.completedAtMs = Date.now();
     const retryAfterSeconds = Math.max(1, Math.ceil((expiresAt - Date.now()) / 1000));
     const message =
       `Provider route temporarily cooling down after an upstream 429: ` +
@@ -505,6 +514,7 @@ export class ProxyFallbackService {
       isAnthropic: false,
       isChatGpt: false,
       providerCallStarted: false,
+      attempt,
     };
   }
 
