@@ -203,6 +203,33 @@ describe('ApiKeyGeneratorService', () => {
         }),
       );
     });
+    it('writes explicit Auto-fix and recording choices when provided', async () => {
+      mockTenantFindOne.mockResolvedValue(null);
+
+      await service.onboardAgent({
+        ...defaultParams,
+        autofixEnabled: false,
+        recordMessages: false,
+      });
+
+      expect(mockAgentInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          autofix_enabled: false,
+          record_messages: false,
+        }),
+      );
+    });
+
+    it('omits Auto-fix and recording when the caller made no choice', async () => {
+      mockTenantFindOne.mockResolvedValue(null);
+
+      await service.onboardAgent(defaultParams);
+
+      const inserted = mockAgentInsert.mock.calls[0][0];
+      expect(inserted).not.toHaveProperty('autofix_enabled');
+      expect(inserted).not.toHaveProperty('record_messages');
+    });
+
 
     it('should store encrypted key, key_hash and key_prefix', async () => {
       mockTenantFindOne.mockResolvedValue(null);

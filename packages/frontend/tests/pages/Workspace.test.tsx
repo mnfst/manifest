@@ -32,6 +32,14 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
+// AddAgentModal checks workspace Auto-fix consent before creating an agent with
+// Auto-fix on (the default). Unmocked it rejects, which fails closed into the
+// consent dialog and stops the create these tests assert on.
+const mockGetWorkspaceAutofixStatus = vi.fn();
+vi.mock('../../src/services/api/analytics.js', () => ({
+  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetWorkspaceAutofixStatus(...args),
+}));
+
 vi.mock('../../src/components/DuplicateAgentModal.jsx', async () => {
   const { Show } = await import('solid-js');
   return {
@@ -173,6 +181,7 @@ describe('Workspace', () => {
     // Default: tenant already has a provider, so onboarding does not inject the
     // openProviders nudge and navigation carries only newApiKey.
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
+    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: true });
   });
 
   it('renders My Harnesses heading', async () => {

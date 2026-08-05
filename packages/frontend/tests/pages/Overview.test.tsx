@@ -106,7 +106,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 5, previous: 4 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: (...a: unknown[]) => mockGetAutofixStats(...a),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),

@@ -3,13 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
-import { isAnthropicExtraUsageError } from 'manifest-shared';
+import {
+  coerceAgentPlatform,
+  isAnthropicExtraUsageError,
+  type AgentPlatform,
+  type AuthType,
+} from 'manifest-shared';
 import { Agent } from '../../entities/agent.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import type { ForwardResult } from '../proxy/provider-client';
 import type { ProxyApiMode } from '../proxy/proxy-types';
-import type { AuthType } from 'manifest-shared';
-import { HEALING_CLIENT, HealContractError, type HealingClient } from './healing-client';
+import {
+  HEALING_CLIENT,
+  HealContractError,
+  type HealingClient,
+  type HealingRequestContext,
+} from './healing-client';
 import { normalizeProviderError } from './provider-error-normalizer';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { scrubProviderUrl } from './observation-payload';
@@ -42,6 +51,7 @@ export interface AutofixAttempt {
 
 interface AgentAutofixConfig {
   enabled: boolean;
+  harness: AgentPlatform;
 }
 
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
@@ -163,6 +173,14 @@ export class AutofixService {
     this.configCache.delete(`${tenantId}:${agentId}`);
   }
 
+  /** Drop every cached config for a tenant (used after a workspace-wide backfill). */
+  invalidateTenantConfig(tenantId: string): void {
+    const prefix = `${tenantId}:`;
+    for (const key of this.configCache.keys()) {
+      if (key.startsWith(prefix)) this.configCache.delete(key);
+    }
+  }
+
   /**
    * Is Auto-fix active for this agent — deployment-wide and for the agent itself?
    * These are exactly the gates {@link maybeHeal} clears before
@@ -178,9 +196,17 @@ export class AutofixService {
    * resolves false on a DB hiccup, so callers fail closed on purpose.
    */
   async isActiveFor(tenantId: string, agentId: string): Promise<boolean> {
-    if (!this.globalEnabled) return false;
+    return (await this.getHealingContext(tenantId, agentId)) !== null;
+  }
+
+  /** Resolve consent and the bounded per-agent metadata needed by Phoenix. */
+  async getHealingContext(
+    tenantId: string,
+    agentId: string,
+  ): Promise<HealingRequestContext | null> {
+    if (!this.globalEnabled) return null;
     const cfg = await this.loadAgentConfig(agentId, tenantId);
-    return cfg.enabled;
+    return cfg.enabled ? { harness: cfg.harness } : null;
   }
 
   /** A heal call reached the healer (any decision) — clear the failure streak. */
@@ -291,7 +317,7 @@ export class AutofixService {
     const originalForward = rebuildForward(forward, originalText, status);
 
     try {
-      return await this.runHealOnce(params, status, originalText, originalForward);
+      return await this.runHealOnce(params, cfg, status, originalText, originalForward);
     } catch (err) {
       // Defensive backstop: the common reforward failure is handled inside
       // runHealOnce (which preserves the chain), so this only fires on a truly
@@ -313,6 +339,7 @@ export class AutofixService {
    */
   private async runHealOnce(
     params: MaybeHealParams,
+    config: AgentAutofixConfig,
     status: number,
     originalText: string,
     originalForward: ForwardResult,
@@ -331,32 +358,35 @@ export class AutofixService {
 
     let heal: HealResponse;
     try {
-      heal = await this.client.heal({
-        traceId: groupId,
-        tenantId: params.tenantId,
-        provider: params.provider,
-        model: params.model,
-        authType: params.authType,
-        api: params.apiMode,
-        url: params.url,
-        request: params.requestBody,
-        response: { statusCode: status, error: normalized },
-        ...(originalForward.wireFormat
-          ? {
-              providerExchange: {
-                format: originalForward.wireFormat,
-                ...(originalForward.wireRequestUrl
-                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
-                  : {}),
-                request: { body: params.requestBody, redactedFields: [] },
-                response: {
-                  statusCode: status,
-                  body: parseProviderBody(originalText),
+      heal = await this.client.heal(
+        {
+          traceId: groupId,
+          tenantId: params.tenantId,
+          provider: params.provider,
+          model: params.model,
+          authType: params.authType,
+          api: params.apiMode,
+          url: params.url,
+          request: params.requestBody,
+          response: { statusCode: status, error: normalized },
+          ...(originalForward.wireFormat
+            ? {
+                providerExchange: {
+                  format: originalForward.wireFormat,
+                  ...(originalForward.wireRequestUrl
+                    ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                    : {}),
+                  request: { body: params.requestBody, redactedFields: [] },
+                  response: {
+                    statusCode: status,
+                    body: parseProviderBody(originalText),
+                  },
                 },
-              },
-            }
-          : {}),
-      });
+              }
+            : {}),
+        },
+        { harness: config.harness },
+      );
     } catch (err) {
       if (err instanceof HealContractError) {
         // Phoenix is reachable but rejected the request (4xx) — a contract or
@@ -421,13 +451,17 @@ export class AutofixService {
       // — no provider status exists to send).
       this.logger.warn(`autofix reforward failed, using original error: ${(err as Error).message}`);
       entry.patch_worked = false;
-      this.reportOutcome(healAttemptId, {
-        retryStatusCode: 499,
-        error: {
-          message: `patched retry never completed: ${(err as Error).message}`,
-          type: 'retry_not_completed',
+      this.reportOutcome(
+        healAttemptId,
+        {
+          retryStatusCode: 499,
+          error: {
+            message: `patched retry never completed: ${(err as Error).message}`,
+            type: 'retry_not_completed',
+          },
         },
-      });
+        config.harness,
+      );
       return {
         forward: originalForward,
         record: { groupId, outcome: 'unfixable', original_http_status: status, chain },
@@ -438,7 +472,7 @@ export class AutofixService {
 
     if (ok) {
       // Report the cleared retry so Phoenix can promote the patch.
-      this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status });
+      this.reportOutcome(healAttemptId, { retryStatusCode: next.response.status }, config.harness);
       chain.push({
         attempt: 1,
         origin: 'autofix',
@@ -463,10 +497,14 @@ export class AutofixService {
       http_status: next.response.status,
       error: retryError,
     });
-    this.reportOutcome(healAttemptId, {
-      retryStatusCode: next.response.status,
-      error: retryError,
-    });
+    this.reportOutcome(
+      healAttemptId,
+      {
+        retryStatusCode: next.response.status,
+        error: retryError,
+      },
+      config.harness,
+    );
     return {
       forward: rebuildForward(next, retryText, next.response.status),
       record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
@@ -487,12 +525,13 @@ export class AutofixService {
       // default "inherit the mode default" state) look not-found — which then
       // resolves to `enabled: false` below and silently disables Auto-fix for it.
       // The always-present `id` keeps the row materialized so the NULL flag is read.
-      select: ['id', 'autofix_enabled'],
+      select: ['id', 'autofix_enabled', 'agent_platform'],
     });
     // Unknown agent → off. Known agent → its explicit flag, or the mode default
     // when unset (NULL).
     const value: AgentAutofixConfig = {
       enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
+      harness: coerceAgentPlatform(agent?.agent_platform),
     };
 
     // Only the failure path reaches here; caching keeps a 4xx storm from doing a
@@ -503,8 +542,8 @@ export class AutofixService {
   }
 
   /** Fire-and-forget the learning signal so it never delays the client. */
-  private reportOutcome(healAttemptId: string, outcome: HealOutcome): void {
-    void this.deliverOutcome(healAttemptId, outcome);
+  private reportOutcome(healAttemptId: string, outcome: HealOutcome, harness: AgentPlatform): void {
+    void this.deliverOutcome(healAttemptId, outcome, harness);
   }
 
   /**
@@ -514,10 +553,14 @@ export class AutofixService {
    * Phoenix can only expire it. Spaced resends ride out a blip; only a process
    * death still loses a report.
    */
-  private async deliverOutcome(healAttemptId: string, outcome: HealOutcome): Promise<void> {
+  private async deliverOutcome(
+    healAttemptId: string,
+    outcome: HealOutcome,
+    harness: AgentPlatform,
+  ): Promise<void> {
     for (let send = 0; ; send++) {
       try {
-        if ((await this.client.reportOutcome(healAttemptId, outcome)) !== null) return;
+        if ((await this.client.reportOutcome(healAttemptId, outcome, { harness })) !== null) return;
       } catch (err) {
         this.logger.warn(`reportOutcome ${healAttemptId} failed: ${(err as Error).message}`);
       }

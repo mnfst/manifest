@@ -818,6 +818,10 @@
   }
 }
 
+.welcome__legal {
+  margin-top: var(--gap-sm);
+}
+
 .welcome__error {
   margin: 0;
   color: hsl(var(--destructive));
