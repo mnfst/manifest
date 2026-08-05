@@ -14,11 +14,6 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
-const mockGetWorkspaceAutofixStatus = vi.fn();
-vi.mock('../../src/services/api/analytics.js', () => ({
-  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetWorkspaceAutofixStatus(...args),
-}));
-
 vi.mock('../../src/services/toast-store.js', () => ({
   toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
 }));
@@ -33,6 +28,12 @@ vi.mock('../../src/services/recent-agents.js', () => ({
 const mockRefreshAgents = vi.fn();
 vi.mock('../../src/services/sse.js', () => ({
   refreshAgents: (...args: unknown[]) => mockRefreshAgents(...args),
+}));
+
+// Deployment mode drives the logs storage note in the toggle description.
+let mockIsSelfHosted = false;
+vi.mock('../../src/services/setup-status.js', () => ({
+  checkIsSelfHosted: () => Promise.resolve(mockIsSelfHosted),
 }));
 
 vi.mock('../../src/components/AgentTypeSelect.jsx', () => ({
@@ -74,9 +75,9 @@ const renderOpen = () => {
 describe('AddAgentModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsSelfHosted = false;
     mockCreateAgent.mockResolvedValue({ agent: { name: 'new-agent' }, apiKey: 'key-1' });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
-    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: true });
   });
 
   it('renders nothing when closed', () => {
@@ -90,123 +91,47 @@ describe('AddAgentModal', () => {
     expect(container.textContent).toContain('Name your harness to start tracking');
   });
 
-  it('asks for consent before creating the first Auto-fix-enabled agent', async () => {
-    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
+  it('creates directly with the legal line as the consent act (no dialog)', async () => {
     const { input, createBtn } = renderOpen();
-    fireEvent.input(input, { target: { value: 'first-agent' } });
-    fireEvent.click(createBtn);
-
-    await screen.findByText('Enable hosted Auto-fix?');
-    expect(mockCreateAgent).not.toHaveBeenCalled();
-    expect(screen.getByText(/Provider authorization credentials are not sent/)).toBeDefined();
+    // Auto-fix defaults on, so the Terms/Privacy legal line is visible.
+    expect(document.body.textContent).toContain('you agree to Manifest');
     expect(document.querySelector('a[href="https://manifest.build/terms"]')).not.toBeNull();
     expect(document.querySelector('a[href="https://manifest.build/privacy"]')).not.toBeNull();
 
-    fireEvent.click(screen.getByText('Agree & create'));
-    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
-  });
-
-  it('creates without consent when Auto-fix is explicitly disabled', async () => {
-    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
-    const { container, input, createBtn } = renderOpen();
-    fireEvent.click(container.querySelector('.settings-switch')!);
-    fireEvent.input(input, { target: { value: 'disabled-agent' } });
-    fireEvent.click(createBtn);
-
-    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
-    expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
-    expect(mockGetWorkspaceAutofixStatus).not.toHaveBeenCalled();
-  });
-
-  it('returns to the create dialog when first-use consent is cancelled', async () => {
-    mockGetWorkspaceAutofixStatus.mockResolvedValue({ consented: false });
-    const { container, input, createBtn } = renderOpen();
     fireEvent.input(input, { target: { value: 'first-agent' } });
     fireEvent.click(createBtn);
-
-    await screen.findByText('Enable hosted Auto-fix?');
-    expect(container.querySelector('.modal-card')?.getAttribute('aria-hidden')).toBe('true');
-    fireEvent.click(screen.getByText('Cancel'));
-
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
     expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
-    expect(screen.getByText('Connect Harness')).toBeDefined();
-    expect(container.querySelector('.modal-card')?.getAttribute('aria-hidden')).toBeNull();
-    expect(mockCreateAgent).not.toHaveBeenCalled();
   });
 
-  describe('consent-lookup races', () => {
-    /** Consent lookup the test resolves by hand, to hold the async gap open. */
-    const pendingConsent = () => {
-      let resolve!: (v: { consented: boolean }) => void;
-      mockGetWorkspaceAutofixStatus.mockReturnValue(
-        new Promise<{ consented: boolean }>((r) => (resolve = r)),
-      );
-      return { resolve };
-    };
+  it('hides the legal line when Auto-fix is toggled off and still creates', async () => {
+    const { container, input, createBtn } = renderOpen();
+    fireEvent.click(container.querySelector('.settings-switch')!);
+    expect(document.body.textContent).not.toContain('you agree to Manifest');
 
-    it('does not create or navigate when the modal is dismissed mid-lookup', async () => {
-      // The parent keeps <AddAgentModal> mounted and toggles `open`, so state
-      // survives a dismissal. Reopening and typing a new name is what makes the
-      // abandoned lookup dangerous: `createAgentNow` reset the dismissal flag,
-      // so the stale resolution created a harness from whatever was in the box
-      // and navigated away. (Dismissing alone was masked by resetForm clearing
-      // the name into createAgentNow's empty-name guard — not a real defence.)
-      const { resolve } = pendingConsent();
-      const { container, input, createBtn } = renderOpen();
-      fireEvent.input(input, { target: { value: 'abandoned-agent' } });
-      fireEvent.click(createBtn);
+    fireEvent.input(input, { target: { value: 'disabled-agent' } });
+    fireEvent.click(createBtn);
+    await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
+    expect(mockCreateAgent).toHaveBeenCalledWith(
+      expect.objectContaining({ autofix_enabled: false }),
+    );
+  });
 
-      fireEvent.click(container.querySelector('.modal-overlay')!);
-      // User reopens and starts over while the first lookup is still pending.
-      fireEvent.input(input, { target: { value: 'second-thoughts' } });
-      resolve({ consented: true });
-      await Promise.resolve();
-      await Promise.resolve();
-
-      expect(mockCreateAgent).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not queue the consent dialog for the next open after a mid-lookup dismissal', async () => {
-      const { resolve } = pendingConsent();
-      const { container, input, createBtn } = renderOpen();
-      fireEvent.input(input, { target: { value: 'abandoned-agent' } });
-      fireEvent.click(createBtn);
-
-      fireEvent.click(container.querySelector('.modal-overlay')!);
-      resolve({ consented: false });
-      await Promise.resolve();
-      await Promise.resolve();
-
-      expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
-    });
-
+  describe('create races', () => {
     it('issues one create for rapid double submits', async () => {
-      const { resolve } = pendingConsent();
+      let resolveCreate!: (v: { agent: { name: string }; apiKey: string }) => void;
+      mockCreateAgent.mockReturnValue(
+        new Promise<{ agent: { name: string }; apiKey: string }>((r) => (resolveCreate = r)),
+      );
       const { input, createBtn } = renderOpen();
       fireEvent.input(input, { target: { value: 'double-clicked' } });
       fireEvent.click(createBtn);
       fireEvent.click(createBtn);
       fireEvent.click(createBtn);
 
-      resolve({ consented: true });
+      resolveCreate({ agent: { name: 'double-clicked' }, apiKey: 'key-1' });
       await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
-
       expect(mockCreateAgent).toHaveBeenCalledTimes(1);
-      expect(mockGetWorkspaceAutofixStatus).toHaveBeenCalledTimes(1);
-    });
-
-    it('locks the form while the consent lookup is in flight', () => {
-      pendingConsent();
-      const { container, input, createBtn } = renderOpen();
-      fireEvent.input(input, { target: { value: 'locked' } });
-      fireEvent.click(createBtn);
-
-      expect((createBtn as HTMLButtonElement).disabled).toBe(true);
-      expect(input.disabled).toBe(true);
-      for (const sw of container.querySelectorAll<HTMLButtonElement>('.settings-switch')) {
-        expect(sw.disabled).toBe(true);
-      }
     });
 
     it('does not navigate to the created harness if the modal is reopened mid-provider-lookup', async () => {
@@ -235,24 +160,6 @@ describe('AddAgentModal', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('creates with the Auto-fix choice the consent dialog was shown for', async () => {
-      // The user cannot flip the toggle mid-lookup (it is disabled), but the
-      // choice is pinned at submit regardless, so the created harness always
-      // matches what the dialog promised.
-      const { resolve } = pendingConsent();
-      const { input, createBtn } = renderOpen();
-      fireEvent.input(input, { target: { value: 'consented-agent' } });
-      fireEvent.click(createBtn);
-      resolve({ consented: false });
-
-      await screen.findByText('Enable hosted Auto-fix?');
-      fireEvent.click(screen.getByText('Agree & create'));
-
-      await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
-      expect(mockCreateAgent).toHaveBeenCalledWith(
-        expect.objectContaining({ autofix_enabled: true }),
-      );
-    });
   });
 
   it('keeps Create disabled until a non-blank name is entered', () => {
@@ -371,7 +278,7 @@ describe('AddAgentModal', () => {
     const switches = Array.from(
       document.querySelectorAll('.settings-switch'),
     ) as HTMLButtonElement[];
-    // Order in the modal: Auto-fix, then Record messages.
+    // Order in the modal: Auto-fix, then Enable logs.
     expect(switches.length).toBeGreaterThanOrEqual(2);
     fireEvent.click(switches[0]!);
     fireEvent.click(switches[1]!);
@@ -386,6 +293,22 @@ describe('AddAgentModal', () => {
         record_messages: false,
       });
     });
+  });
+
+  it('labels the logs toggle and shows the cloud storage note', async () => {
+    renderOpen();
+    expect(screen.getByText('Enable logs')).toBeTruthy();
+    await vi.waitFor(() =>
+      expect(document.body.textContent).toContain('Logs are stored in your Manifest workspace.'),
+    );
+  });
+
+  it('shows the machine-local storage note on self-hosted', async () => {
+    mockIsSelfHosted = true;
+    renderOpen();
+    await vi.waitFor(() =>
+      expect(document.body.textContent).toContain('Logs stay in your own database.'),
+    );
   });
 
   it('resets the category/platform to defaults when a category changes', () => {

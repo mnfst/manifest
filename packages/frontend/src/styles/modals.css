@@ -192,6 +192,59 @@
   line-height: 1.5;
 }
 
+.autofix-consent__agents {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--gap-lg);
+  max-height: min(280px, 40vh);
+  overflow-y: auto;
+}
+
+/* Flat list rows split by hairlines (the model-picker idiom), not one card
+   per agent — the list must stay compact with 10-20 agents. */
+.autofix-consent__agent-row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: var(--gap-sm) 4px;
+  border-top: 1px solid hsl(var(--border) / 0.5);
+}
+
+.autofix-consent__agent-row:first-child {
+  border-top: none;
+}
+
+/* aria-disabled replaces disabled on the saving switch (focus-trap safety);
+   mirror the .settings-switch:disabled look. */
+.autofix-consent__agent-row .settings-switch[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.autofix-consent__agent-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.dark .autofix-consent__agent-icon[src*='openai'],
+.dark .autofix-consent__agent-icon[src*='anthropic'],
+.dark .autofix-consent__agent-icon[src*='vercel'],
+.dark .autofix-consent__agent-icon[src*='opencode'],
+.dark .autofix-consent__agent-icon[src*='other'] {
+  filter: invert(1);
+}
+
+.autofix-consent__agent-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--foreground));
+}
+
 .autofix-consent__legal a,
 .modal-card__desc a {
   color: hsl(var(--foreground));
@@ -562,6 +615,29 @@
   color: hsl(var(--foreground));
 }
 
+.sidebar-autofix__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 28px;
+  height: 28px;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sidebar-autofix__dismiss:hover,
+.sidebar-autofix__dismiss:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
 .sidebar-autofix__desc {
   font-size: 14px;
   color: hsl(var(--muted-foreground));
@@ -913,19 +989,30 @@
   color: hsl(var(--foreground));
 }
 
-/* Create-harness modal: Settings-style rows, tightened for a modal. The
-   base .settings-card__row reserves a 260px control column and generous
-   padding for the full Settings page — here the switch hugs the right edge
-   and rows stay short so descriptions render on one line. */
+/* Create-harness toggles (Connect Harness modal + Welcome first-harness form):
+   they reuse the Model-parameters group-card design (.model-params__* from
+   routing.css); this wrapper only spaces the group from the fields above. */
 .add-agent-toggles {
   margin-top: var(--gap-md);
 }
 
-.add-agent-toggles .settings-card__row {
-  padding: var(--gap-sm) 0;
-  gap: var(--gap-md);
+/* The wrapper already spaces the group; the field-label's own top margin
+   would double it. */
+.add-agent-toggles__header {
+  margin-top: 0;
 }
 
-.add-agent-toggles .settings-card__row:first-child {
-  border-top: 1px solid hsl(var(--border));
+.add-agent-legal {
+  margin-top: var(--gap-sm);
+}
+
+/* Legal line under a Settings card (Auto-fix section). The card drops its
+   own bottom margin so the mention reads as attached to it. */
+.settings-card--flush {
+  margin-bottom: 0;
+}
+
+.settings-card__legal {
+  margin-top: var(--gap-sm);
+  margin-bottom: var(--gap-lg);
 }

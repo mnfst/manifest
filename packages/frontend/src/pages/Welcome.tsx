@@ -276,6 +276,13 @@ const Welcome: Component = () => {
   );
   const [creating, setCreating] = createSignal(false);
   const [harnessError, setHarnessError] = createSignal('');
+  // Both default ON, mirroring the Connect Harness modal — explicit so create
+  // always sends a choice rather than relying on the server-side inherit path
+  // (which is OFF for Auto-fix on self-hosted). Creating with Auto-fix on is
+  // itself the consent act (the backend records it), so the form shows the
+  // legal line inline instead of a consent dialog mid-onboarding.
+  const [autofixEnabled, setAutofixEnabled] = createSignal(true);
+  const [logsEnabled, setLogsEnabled] = createSignal(true);
   const harnessCreated = () => !!harnessSlug();
 
   const handleCategoryChange = (c: AgentCategory) => {
@@ -299,6 +306,8 @@ const Welcome: Component = () => {
         name,
         ...(category() ? { agent_category: category()! } : {}),
         ...(platform() ? { agent_platform: platform()! } : {}),
+        autofix_enabled: autofixEnabled(),
+        record_messages: logsEnabled(),
       });
       const slug = result?.agent?.name ?? name;
       setHarnessSlug(slug);
@@ -907,6 +916,88 @@ const Welcome: Component = () => {
                       />
                     </div>
                   </div>
+                  <div class="add-agent-toggles">
+                    <div class="model-params__group">
+                      {/* Same label treatment as the Type / Harness name field
+                          labels, not the larger Model-params group header. */}
+                      <div class="modal-card__field-label add-agent-toggles__header">Settings</div>
+                      <div class="model-params__group-card">
+                        <div class="model-params__row">
+                          <div class="model-params__row-text">
+                            <div class="model-params__label-title">
+                              <span>Auto-fix</span>
+                            </div>
+                            <div class="model-params__label-hint">
+                              Repair eligible failing requests before falling back. Failed requests
+                              are sent to Manifest Auto-fix for diagnosis; provider authorization
+                              credentials are never sent.
+                            </div>
+                          </div>
+                          <div class="model-params__row-control">
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={autofixEnabled()}
+                              aria-label="Auto-fix"
+                              class="settings-switch"
+                              classList={{ 'settings-switch--on': autofixEnabled() }}
+                              disabled={creating()}
+                              onClick={() => setAutofixEnabled(!autofixEnabled())}
+                            >
+                              <span class="settings-switch__track">
+                                <span class="settings-switch__thumb" />
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                        <div class="model-params__separator" />
+                        <div class="model-params__row">
+                          <div class="model-params__row-text">
+                            <div class="model-params__label-title">
+                              <span>Enable logs</span>
+                            </div>
+                            <div class="model-params__label-hint">
+                              See exactly what your agent sends on every attempt, and debug it
+                              faster.{' '}
+                              {selfHosted.state === 'ready' &&
+                                (selfHosted()
+                                  ? 'Logs stay in your own database.'
+                                  : 'Logs are stored in your Manifest workspace.')}
+                            </div>
+                          </div>
+                          <div class="model-params__row-control">
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={logsEnabled()}
+                              aria-label="Enable logs"
+                              class="settings-switch"
+                              classList={{ 'settings-switch--on': logsEnabled() }}
+                              disabled={creating()}
+                              onClick={() => setLogsEnabled(!logsEnabled())}
+                            >
+                              <span class="settings-switch__track">
+                                <span class="settings-switch__thumb" />
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Show when={autofixEnabled()}>
+                    <p class="autofix-consent__legal welcome__legal">
+                      By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+                      <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                        Terms
+                      </a>{' '}
+                      and{' '}
+                      <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
+                        Privacy Policy
+                      </a>
+                      .
+                    </p>
+                  </Show>
                   <Show when={harnessError()}>
                     <p
                       id="welcome-harness-error"

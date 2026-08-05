@@ -129,9 +129,12 @@ describe('RequestMessages', () => {
     expect(getText2('No tools were called in this conversation.')).toBeTruthy();
   });
 
-  it('explains when recording was disabled', () => {
+  it('explains when logs were off for the attempt', () => {
     const { getByText } = render(() => <RequestMessages recording={null} />);
-    expect(getByText('No messages recorded')).toBeTruthy();
+    expect(getByText('No logs for this attempt')).toBeTruthy();
+    expect(
+      getByText('Logs were off when this attempt ran. Enable logs in Settings to inspect future requests.'),
+    ).toBeTruthy();
   });
 
   it('shows and hides tooltip on TruncatedId hover', () => {

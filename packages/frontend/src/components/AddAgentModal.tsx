@@ -1,13 +1,11 @@
-import { createEffect, createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createEffect, createResource, createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import { Portal } from 'solid-js/web';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
-import { getWorkspaceAutofixStatus } from '../services/api/analytics.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
+import { checkIsSelfHosted } from '../services/setup-status.js';
 import { refreshAgents } from '../services/sse.js';
-import { useFocusTrap } from '../services/use-focus-trap.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
@@ -33,13 +31,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   // self-hosted).
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
   const [recordingEnabled, setRecordingEnabled] = createSignal(true);
-  const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
-  // The Auto-fix consent lookup is a second async hop, in front of the create.
-  // Tracked separately from `creating()` so the form can be locked for its
-  // duration without claiming a create is already under way.
-  const [checkingConsent, setCheckingConsent] = createSignal(false);
-  let autofixDialogRef: HTMLDivElement | undefined;
-  useFocusTrap(confirmingAutofix, () => autofixDialogRef);
+  // Where the logs live depends on the deployment: self-hosted keeps them in
+  // the operator's own database, cloud in the Manifest workspace.
+  const [selfHosted] = createResource(checkIsSelfHosted);
 
   // Tracks whether the user dismissed the modal (overlay click / Escape) while a
   // create request was still in flight. A dismissed create must NOT run its
@@ -47,12 +41,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   // otherwise closing the modal mid-request still yanks the user to Routing once
   // the request resolves.
   let cancelled = false;
-  // Monotonic id of the current create attempt. `cancelled` alone cannot carry
-  // this: the consent lookup awaits *before* createAgentNow(), so a dismissal
-  // during the lookup was silently undone by the flag reset at the top of the
-  // create and the harness was created and navigated to anyway. Each async hop
-  // now re-checks the token it started with, so a dismissed or superseded
-  // attempt drops its result instead of acting on it.
+  // Monotonic id of the current create attempt. Each async hop re-checks the
+  // token it started with, so a dismissed or superseded attempt drops its
+  // result instead of acting on it.
   let attemptToken = 0;
   const beginAttempt = (): number => {
     cancelled = false;
@@ -86,9 +77,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   /**
    * @param token attempt id from {@link beginAttempt}, re-checked after every await.
-   * @param autofixChoice the Auto-fix setting the consent decision was made
-   *   against — passed in rather than re-read, so the agent that gets created is
-   *   the one the user was actually asked about.
+   * @param autofixChoice the Auto-fix setting pinned when the submit started.
    */
   const createAgentNow = async (token: number, autofixChoice: boolean) => {
     const agentName = name().trim();
@@ -149,35 +138,12 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   const handleCreate = async () => {
     if (!name().trim()) return;
-    // A second submit while the consent lookup or the create is already running
-    // would issue a duplicate agent-creation request.
-    if (creating() || checkingConsent()) return;
-    const token = beginAttempt();
-    // Freeze the choice the consent decision is made against. The toggles are
-    // locked for the duration too, but pinning the value here is what
-    // guarantees the dialog cannot promise to enable Auto-fix and then create a
-    // harness with it off.
-    const autofixChoice = autofixEnabled();
-    if (autofixChoice) {
-      let consented = false;
-      setCheckingConsent(true);
-      try {
-        consented = (await getWorkspaceAutofixStatus()).consented;
-      } catch {
-        // Fail closed: if consent cannot be verified, ask before enabling.
-      } finally {
-        setCheckingConsent(false);
-      }
-      // Dismissed or superseded mid-lookup: drop the result rather than creating
-      // a harness the user backed out of, or queueing the consent dialog to
-      // appear the next time the modal opens.
-      if (isStale(token)) return;
-      if (!consented) {
-        setConfirmingAutofix(true);
-        return;
-      }
-    }
-    await createAgentNow(token, autofixChoice);
+    // A second submit while the create is already running would issue a
+    // duplicate agent-creation request.
+    if (creating()) return;
+    // The legal line under the toggles is the consent act: the backend records
+    // the install-level consent when the create carries autofix_enabled: true.
+    await createAgentNow(beginAttempt(), autofixEnabled());
   };
 
   const resetForm = () => {
@@ -186,7 +152,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
     setAutofixEnabled(true);
     setRecordingEnabled(true);
-    setConfirmingAutofix(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -202,7 +167,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           style="max-width: 540px;"
           role="dialog"
           aria-modal="true"
-          aria-hidden={confirmingAutofix() ? 'true' : undefined}
           aria-labelledby="add-agent-title"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
@@ -222,7 +186,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 platform={platform()}
                 onCategoryChange={handleCategoryChange}
                 onPlatformChange={setPlatform}
-                disabled={creating() || checkingConsent()}
+                disabled={creating()}
               />
             </div>
             <div style="flex: 1;">
@@ -237,146 +201,103 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 placeholder="e.g. My Cool Harness"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
-                disabled={creating() || checkingConsent()}
+                disabled={creating()}
               />
             </div>
           </div>
 
           <div class="add-agent-toggles">
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Auto-fix</span>
-                <span class="settings-card__label-desc">
-                  Repair eligible failing requests before falling back.
-                </span>
+            <div class="model-params__group">
+              {/* Same label treatment as the Type / Harness name field labels,
+                  not the larger Model-params group header. */}
+              <div class="modal-card__field-label add-agent-toggles__header">Settings</div>
+              <div class="model-params__group-card">
+                <div class="model-params__row">
+                  <div class="model-params__row-text">
+                    <div class="model-params__label-title">
+                      <span>Auto-fix</span>
+                    </div>
+                    <div class="model-params__label-hint">
+                      Repair eligible failing requests before falling back.
+                    </div>
+                  </div>
+                  <div class="model-params__row-control">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={autofixEnabled()}
+                      aria-label="Auto-fix"
+                      class="settings-switch"
+                      classList={{ 'settings-switch--on': autofixEnabled() }}
+                      disabled={creating()}
+                      onClick={() => setAutofixEnabled(!autofixEnabled())}
+                    >
+                      <span class="settings-switch__track">
+                        <span class="settings-switch__thumb" />
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div class="model-params__separator" />
+                <div class="model-params__row">
+                  <div class="model-params__row-text">
+                    <div class="model-params__label-title">
+                      <span>Enable logs</span>
+                    </div>
+                    <div class="model-params__label-hint">
+                      See exactly what your agent sends on every attempt, and debug it faster.{' '}
+                      {selfHosted.state === 'ready' &&
+                        (selfHosted()
+                          ? 'Logs stay in your own database.'
+                          : 'Logs are stored in your Manifest workspace.')}
+                    </div>
+                  </div>
+                  <div class="model-params__row-control">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={recordingEnabled()}
+                      aria-label="Enable logs"
+                      class="settings-switch"
+                      classList={{ 'settings-switch--on': recordingEnabled() }}
+                      disabled={creating()}
+                      onClick={() => setRecordingEnabled(!recordingEnabled())}
+                    >
+                      <span class="settings-switch__track">
+                        <span class="settings-switch__thumb" />
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={autofixEnabled()}
-                aria-label="Auto-fix"
-                class="settings-switch"
-                classList={{ 'settings-switch--on': autofixEnabled() }}
-                disabled={creating() || checkingConsent()}
-                onClick={() => setAutofixEnabled(!autofixEnabled())}
-              >
-                <span class="settings-switch__track">
-                  <span class="settings-switch__thumb" />
-                </span>
-              </button>
-            </div>
-            <div class="settings-card__row">
-              <div class="settings-card__label">
-                <span class="settings-card__label-title">Record messages</span>
-                <span class="settings-card__label-desc">
-                  Store request and response bodies for this harness.
-                </span>
-              </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={recordingEnabled()}
-                aria-label="Record messages"
-                class="settings-switch"
-                classList={{ 'settings-switch--on': recordingEnabled() }}
-                disabled={creating() || checkingConsent()}
-                onClick={() => setRecordingEnabled(!recordingEnabled())}
-              >
-                <span class="settings-switch__track">
-                  <span class="settings-switch__thumb" />
-                </span>
-              </button>
             </div>
           </div>
+
+          <Show when={autofixEnabled()}>
+            <p class="autofix-consent__legal add-agent-legal">
+              By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+              <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </Show>
 
           <div class="modal-card__footer">
             <button
               class="btn btn--primary btn--sm"
               onClick={handleCreate}
-              disabled={!name().trim() || creating() || checkingConsent()}
+              disabled={!name().trim() || creating()}
             >
-              {creating() || checkingConsent() ? <span class="spinner" /> : 'Create'}
+              {creating() ? <span class="spinner" /> : 'Create'}
             </button>
           </div>
         </div>
 
-        <Portal>
-          <Show when={confirmingAutofix()}>
-            <div
-              class="modal-overlay"
-              onClick={(event) => {
-                if (event.target === event.currentTarget) setConfirmingAutofix(false);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') setConfirmingAutofix(false);
-              }}
-            >
-              <div
-                ref={autofixDialogRef}
-                class="modal-card"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="create-agent-autofix-consent-title"
-                aria-describedby="create-agent-autofix-consent-description"
-                style="max-width: 560px;"
-              >
-                <h2 class="modal-card__title" id="create-agent-autofix-consent-title">
-                  Enable hosted Auto-fix?
-                </h2>
-                <p class="modal-card__desc" id="create-agent-autofix-consent-description">
-                  Failed requests will be sent to Manifest Auto-fix for diagnosis and repair.
-                  Provider authorization credentials are not sent. This enables Auto-fix for this
-                  harness.{' '}
-                  <a
-                    href="https://manifest.build/docs/autofix/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    How Auto-fix works
-                  </a>
-                  .
-                </p>
-                <p class="autofix-consent__legal">
-                  By enabling Auto-fix, you agree to Manifest&apos;s{' '}
-                  <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
-                    Terms
-                  </a>{' '}
-                  and{' '}
-                  <a
-                    href="https://manifest.build/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Privacy Policy
-                  </a>
-                  .
-                </p>
-                <div class="modal-card__footer">
-                  <button
-                    type="button"
-                    class="btn btn--outline btn--sm"
-                    onClick={() => setConfirmingAutofix(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn--primary btn--sm"
-                    disabled={creating() || checkingConsent()}
-                    onClick={() => {
-                      setConfirmingAutofix(false);
-                      // Confirming consent starts a fresh attempt. Auto-fix is
-                      // necessarily on — this dialog only appears for that case.
-                      void createAgentNow(beginAttempt(), true);
-                    }}
-                  >
-                    Agree &amp; create
-                  </button>
-                </div>
-              </div>
-            </div>
-          </Show>
-        </Portal>
       </div>
     </Show>
   );
