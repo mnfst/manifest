@@ -19,6 +19,7 @@ import { createSsePayloadParser } from './sse-parser';
 import {
   classifyProviderError,
   openAiErrorTypeForStatus,
+  parseStructuredProviderError,
   sanitizeProviderError,
 } from './proxy-error-sanitizer';
 import {
@@ -197,11 +198,15 @@ export function buildOpenAiCompatibleError(
   } = {},
 ): Record<string, unknown> {
   const classified = classifyProviderError(status, errorBody);
+  const structured = parseStructuredProviderError(status, errorBody);
   return {
-    message: classified?.message ?? sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
-    type: classified?.type ?? openAiErrorTypeForStatus(status),
-    param: null,
-    code: opts.code !== undefined ? opts.code : (classified?.code ?? null),
+    message:
+      classified?.message ??
+      structured?.message ??
+      sanitizeProviderError(status, errorBody, process.env.NODE_ENV),
+    type: classified?.type ?? structured?.type ?? openAiErrorTypeForStatus(status),
+    param: structured?.param ?? null,
+    code: opts.code !== undefined ? opts.code : (classified?.code ?? structured?.code ?? null),
     status,
     source: opts.source ?? classified?.source ?? 'provider',
     ...(opts.provider ? { provider: opts.provider } : {}),
@@ -295,6 +300,7 @@ export async function handleProviderError(
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
   const responseBody = {
+    ...(apiMode === 'messages' ? { type: 'error' } : {}),
     error: buildOpenAiCompatibleError(errorStatus, errorBody, {
       source: 'provider',
       provider: meta.provider,

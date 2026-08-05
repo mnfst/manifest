@@ -1,3 +1,5 @@
+import { scrubSecrets } from '../../common/utils/secret-scrub';
+
 const KNOWN_ERROR_MESSAGES: Record<number, string> = {
   400: 'Bad request to upstream provider',
   401: 'Authentication failed with upstream provider',
@@ -26,6 +28,13 @@ export interface ClassifiedProviderError {
   source: 'provider';
 }
 
+export interface StructuredProviderError {
+  message: string;
+  type: string | null;
+  param: string | null;
+  code: string | null;
+}
+
 const KNOWN_CONTEXT_ERROR_CODES = new Set(['context_length_exceeded']);
 
 const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
@@ -34,11 +43,7 @@ const KNOWN_CONTEXT_ERROR_MESSAGE_PATTERNS = [
 ];
 
 function sanitizeSensitivePatterns(msg: string): string {
-  return msg
-    .replace(/sk-ant-[a-zA-Z0-9_-]{20,}/g, 'sk-ant-***')
-    .replace(/sk-[a-zA-Z0-9_-]{20,}/g, 'sk-***')
-    .replace(/key=[^&\s"]+/g, 'key=***')
-    .replace(/Bearer\s+[^\s"]+/gi, 'Bearer ***');
+  return scrubSecrets(msg).replace(/\bkey=[^&\s"]+/g, 'key=[REDACTED]');
 }
 
 function normalizeErrorMessage(message: string): string {
@@ -51,6 +56,45 @@ function extractProviderMessage(rawBody: string): string | null {
     const error = parsed.error as Record<string, unknown> | undefined;
     const message = error?.message ?? parsed.message;
     return typeof message === 'string' && message.length > 0 ? message : null;
+  } catch {
+    return null;
+  }
+}
+
+function errorField(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0) return null;
+  const normalized = normalizeErrorMessage(value);
+  return normalized.length > 0 ? normalized : null;
+}
+
+/**
+ * Extract the allow-listed fields from a structured provider 4xx response.
+ * Server errors and unstructured bodies keep the generic production message.
+ */
+export function parseStructuredProviderError(
+  status: number,
+  rawBody: string,
+): StructuredProviderError | null {
+  if (status < 400 || status >= 500) return null;
+
+  try {
+    const parsed = JSON.parse(rawBody) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+    const root = parsed as Record<string, unknown>;
+    const nested = root.error;
+    const error =
+      nested && typeof nested === 'object' && !Array.isArray(nested)
+        ? (nested as Record<string, unknown>)
+        : root;
+    const message = errorField(error.message ?? root.message);
+    if (!message) return null;
+
+    return {
+      message,
+      type: errorField(error.type),
+      param: errorField(error.param),
+      code: errorField(error.code),
+    };
   } catch {
     return null;
   }
@@ -136,8 +180,10 @@ export function sanitizeProviderError(status: number, rawBody: string, nodeEnv?:
   if (endpointError) return endpointError;
   const classified = classifyProviderError(status, rawBody);
   if (classified) return classified.message;
+  const structured = parseStructuredProviderError(status, rawBody);
+  if (structured) return structured.message;
 
-  // In production, only return generic error messages to avoid leaking provider internals
+  // In production, unstructured and 5xx responses stay generic to avoid leaking internals.
   if ((nodeEnv ?? 'production') === 'production') return generic;
 
   const message = extractProviderMessage(rawBody);

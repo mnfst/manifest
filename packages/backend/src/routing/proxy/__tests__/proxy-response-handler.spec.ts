@@ -609,6 +609,61 @@ describe('proxy-response-handler', () => {
         }
       }
     });
+
+    it('preserves structured provider 4xx fields in production', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        const { res } = mockResponse();
+        const recorder = mockRecorder();
+        const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
+
+        await handleProviderError(
+          res as any,
+          testCtx,
+          meta,
+          buildMetaHeaders(meta),
+          400,
+          JSON.stringify({
+            type: 'error',
+            error: {
+              type: 'request_validation_error',
+              message: '`temperature` is deprecated for this model.',
+              param: 'temperature',
+              code: 'deprecated_parameter',
+            },
+          }),
+          undefined,
+          recorder as any,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          'messages',
+        );
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({
+          type: 'error',
+          error: expect.objectContaining({
+            message: '`temperature` is deprecated for this model.',
+            type: 'request_validation_error',
+            param: 'temperature',
+            code: 'deprecated_parameter',
+            status: 400,
+            source: 'provider',
+          }),
+        });
+      } finally {
+        if (originalEnv === undefined) {
+          delete process.env.NODE_ENV;
+        } else {
+          process.env.NODE_ENV = originalEnv;
+        }
+      }
+    });
   });
 
   /* ── recordFallbackFailures ── */

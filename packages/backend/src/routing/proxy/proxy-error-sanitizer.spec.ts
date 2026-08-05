@@ -106,6 +106,34 @@ describe('sanitizeProviderError', () => {
     expect(sanitizeProviderError(500, body, 'production')).toBe('Upstream provider internal error');
   });
 
+  it('preserves a structured provider 4xx diagnostic in production', () => {
+    const body = JSON.stringify({
+      type: 'error',
+      error: {
+        type: 'invalid_request_error',
+        message: '`temperature` is deprecated for this model.',
+      },
+    });
+
+    expect(sanitizeProviderError(400, body, 'production')).toBe(
+      '`temperature` is deprecated for this model.',
+    );
+  });
+
+  it('redacts credentials from structured provider 4xx diagnostics in production', () => {
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    const body = JSON.stringify({
+      error: {
+        type: 'authentication_error',
+        message: `Invalid Authorization: Bearer ${token}`,
+      },
+    });
+
+    const result = sanitizeProviderError(401, body, 'production');
+    expect(result).toContain('Invalid Authorization');
+    expect(result).not.toContain(token);
+  });
+
   it('defaults to production behavior when nodeEnv is omitted', () => {
     const body = JSON.stringify({ error: { message: 'Should not leak' } });
     expect(sanitizeProviderError(500, body)).toBe('Upstream provider internal error');
@@ -117,7 +145,7 @@ describe('sanitizeProviderError', () => {
       const body = JSON.stringify({ error: { message: `Invalid key: ${key}` } });
       const result = sanitizeProviderError(401, body, 'development');
       expect(result).not.toContain(key);
-      expect(result).toContain('sk-***');
+      expect(result).toContain('[REDACTED]');
     });
 
     it('redacts Anthropic API keys from error messages', () => {
@@ -125,7 +153,7 @@ describe('sanitizeProviderError', () => {
       const body = JSON.stringify({ error: { message: `Auth failed: ${key}` } });
       const result = sanitizeProviderError(401, body, 'development');
       expect(result).not.toContain(key);
-      expect(result).toContain('sk-ant-***');
+      expect(result).toContain('[REDACTED]');
     });
 
     it('redacts key= query parameters from error messages', () => {
@@ -134,7 +162,7 @@ describe('sanitizeProviderError', () => {
       });
       const result = sanitizeProviderError(400, body, 'development');
       expect(result).not.toContain('AIzaSyAbcdef123456789');
-      expect(result).toContain('key=***');
+      expect(result).toContain('key=[REDACTED]');
     });
 
     it('redacts Bearer tokens from error messages', () => {
@@ -143,7 +171,7 @@ describe('sanitizeProviderError', () => {
       });
       const result = sanitizeProviderError(401, body, 'development');
       expect(result).not.toContain('eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp');
-      expect(result).toContain('Bearer ***');
+      expect(result).toContain('Bearer [REDACTED]');
     });
 
     it('redacts lowercase bearer tokens from error messages', () => {
@@ -152,14 +180,14 @@ describe('sanitizeProviderError', () => {
       });
       const result = sanitizeProviderError(401, body, 'development');
       expect(result).not.toContain('eyJhbGciOiJSUzI1NiIsInR5cCI6Ikp');
-      expect(result).toContain('Bearer ***');
+      expect(result).toContain('Bearer [REDACTED]');
     });
 
-    it('does not redact patterns in production mode', () => {
+    it('redacts patterns in structured production 4xx responses', () => {
       const key = 'sk-proj-abcdefghijklmnopqrstuvwxyz';
       const body = JSON.stringify({ error: { message: `Invalid key: ${key}` } });
       const result = sanitizeProviderError(401, body, 'production');
-      expect(result).toBe('Authentication failed with upstream provider');
+      expect(result).toBe('Invalid key: [REDACTED]');
     });
   });
 });
@@ -264,7 +292,7 @@ describe('classifyProviderError', () => {
           },
         }),
       )?.message,
-    ).toBe('Maximum context length exceeded for key=*** and Bearer ***');
+    ).toBe('Maximum context length exceeded for key=[REDACTED] and Bearer [REDACTED]');
   });
 
   it('does not classify generic input length validation errors as context overflow', () => {
