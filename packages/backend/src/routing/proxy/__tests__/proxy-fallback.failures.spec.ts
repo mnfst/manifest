@@ -15,6 +15,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { StartProviderAttempt } from '../proxy-types';
 
 /**
  * Status-code-driven fallback chain behavior for tryFallbacks().
@@ -222,6 +223,70 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(second.response.headers.get('retry-after')).toBe('120');
     expect(await second.response.text()).toContain('temporarily cooling down');
     expect(providerClient.forward).toHaveBeenCalledTimes(1);
+  });
+
+  it('reserves attempt order for a cooldown before trying the real fallback', async () => {
+    providerClient.forward
+      .mockResolvedValueOnce({
+        response: new Response('rate limit', {
+          status: 429,
+          headers: { 'retry-after': '120' },
+        }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      })
+      .mockResolvedValueOnce({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+    const cooledRoute = {
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    };
+    await service.tryForwardToProvider(cooledRoute);
+
+    let attemptNumber = 0;
+    const startProviderAttempt: StartProviderAttempt = jest.fn((start) => ({
+      id: `attempt-${attemptNumber + 1}`,
+      attemptNumber: ++attemptNumber,
+      startedAtMs: Date.now(),
+      startedAt: new Date().toISOString(),
+      pendingWrite: Promise.resolve(start.providerCallStarted !== false),
+    }));
+
+    const cooldown = await service.tryForwardToProvider({
+      ...cooledRoute,
+      startProviderAttempt,
+    });
+    const fallback = await service.tryForwardToProvider({
+      ...cooledRoute,
+      provider: 'openai',
+      model: 'gpt-4o',
+      authType: 'api_key',
+      providerKeyLabel: 'OpenAI',
+      startProviderAttempt,
+    });
+
+    expect(cooldown.providerCallStarted).toBe(false);
+    expect(cooldown.attempt?.attemptNumber).toBe(1);
+    expect(fallback.providerCallStarted).toBe(true);
+    expect(fallback.attempt?.attemptNumber).toBe(2);
+    expect(startProviderAttempt).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ provider: 'anthropic', providerCallStarted: false }),
+    );
+    expect(providerClient.forward).toHaveBeenCalledTimes(2);
   });
 
   it('evicts an active cooldown when the cooldown cache is full', async () => {

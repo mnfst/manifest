@@ -33,8 +33,8 @@ export class AgentMessage {
   request_id!: string | null;
 
   /**
-   * Positive provider-call start order within the parent Request. NULL only for
-   * legacy rows that have not been assigned an unambiguous order.
+   * Positive route-attempt order within the parent Request. NULL only for legacy
+   * rows that have not been assigned an unambiguous order.
    */
   @Column('integer', { nullable: true })
   attempt_number!: number | null;
