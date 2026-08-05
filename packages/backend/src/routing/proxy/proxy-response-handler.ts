@@ -209,7 +209,9 @@ export function buildOpenAiCompatibleError(
       classified?.type ??
       structured?.type ??
       (opts.apiMode === 'messages' && status >= 500
-        ? 'api_error'
+        ? status === 529
+          ? 'overloaded_error'
+          : 'api_error'
         : openAiErrorTypeForStatus(status)),
     param: structured?.param ?? null,
     code: opts.code !== undefined ? opts.code : (classified?.code ?? structured?.code ?? null),

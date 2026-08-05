@@ -820,7 +820,10 @@ describe('proxy-response-handler', () => {
       });
     });
 
-    it('uses the Anthropic api_error type for generic Messages server errors', async () => {
+    it.each([
+      [500, 'api_error'],
+      [529, 'overloaded_error'],
+    ])('maps a Messages %i response to Anthropic %s', async (status, type) => {
       const { res } = mockResponse();
       const recorder = mockRecorder();
       const meta = makeMeta({ provider: 'anthropic', model: 'claude-opus-4-1' });
@@ -830,7 +833,7 @@ describe('proxy-response-handler', () => {
         testCtx,
         meta,
         buildMetaHeaders(meta),
-        500,
+        status,
         'Internal Server Error',
         undefined,
         recorder as any,
@@ -846,8 +849,8 @@ describe('proxy-response-handler', () => {
       expect(res.json).toHaveBeenCalledWith({
         type: 'error',
         error: expect.objectContaining({
-          type: 'api_error',
-          status: 500,
+          type,
+          status,
           source: 'provider',
         }),
       });

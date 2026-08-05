@@ -175,6 +175,36 @@ describe('sanitizeProviderError', () => {
     expect(sanitizeProviderError(401, body, 'production')).toBe('Invalid Bearer [REDACTED]');
   });
 
+  it.each(['"opaque credential value"', "'opaque credential value'"])(
+    'redacts quoted Bearer credentials: %s',
+    (credential) => {
+      const body = JSON.stringify({ error: { message: `Invalid Bearer ${credential}` } });
+      expect(sanitizeProviderError(401, body, 'production')).toBe('Invalid Bearer [REDACTED]');
+    },
+  );
+
+  it('redacts credential fields from escaped serialized JSON', () => {
+    const credential = 'opaque credential value';
+    const body = JSON.stringify({
+      error: { message: `Serialized request: {\\"apiKey\\":\\"${credential}\\"}` },
+    });
+
+    const result = sanitizeProviderError(401, body, 'production');
+    expect(result).toContain('{\\"apiKey\\":\\"[REDACTED]\\"}');
+    expect(result).not.toContain(credential);
+  });
+
+  it('preserves generic key-value prose', () => {
+    const message = 'Provider expected key: value for routing';
+    const body = JSON.stringify({ error: { message } });
+    expect(sanitizeProviderError(400, body, 'production')).toBe(message);
+  });
+
+  it('still redacts unquoted apiKey values after narrowing generic key matching', () => {
+    const body = JSON.stringify({ error: { message: 'Invalid apiKey:opaque-secret' } });
+    expect(sanitizeProviderError(401, body, 'production')).toBe('Invalid apiKey:[REDACTED]');
+  });
+
   it('does not treat key substrings inside words as credential fields', () => {
     const body = JSON.stringify({ error: { message: 'Provider says monkey:banana' } });
     expect(sanitizeProviderError(400, body, 'production')).toBe('Provider says monkey:banana');
