@@ -20,6 +20,7 @@ APP_NAME="${FLY_APP_NAME:-manifest-$(openssl rand -hex 3)}"
 POSTGRES_APP_NAME="${FLY_POSTGRES_APP_NAME:-${APP_NAME}-db}"
 REGION="${FLY_REGION:-cdg}"
 ORG="${FLY_ORG:-personal}"
+RECORDING_BUCKET_NAME="${FLY_RECORDING_BUCKET_NAME:-${APP_NAME}-recordings}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$(mktemp "${TMPDIR:-/tmp}/manifest-fly.XXXXXX.toml")"
 
@@ -34,6 +35,7 @@ secret_exists() {
 }
 
 sed \
+  -e "s/manifest-recordings-bucket/${RECORDING_BUCKET_NAME}/g" \
   -e "s/manifest-example/${APP_NAME}/g" \
   -e "s/primary_region = \"cdg\"/primary_region = \"${REGION}\"/" \
   "$SCRIPT_DIR/fly.toml" > "$CONFIG_FILE"
@@ -43,6 +45,17 @@ if ! fly status --app "$APP_NAME" >/dev/null 2>&1; then
   fly apps create "$APP_NAME" --org "$ORG" -y
 else
   echo "Fly app ${APP_NAME} already exists."
+fi
+
+echo "Creating Tigris recording bucket ${RECORDING_BUCKET_NAME}..."
+if ! fly storage status "$RECORDING_BUCKET_NAME" --app "$APP_NAME" >/dev/null 2>&1; then
+  fly storage create \
+    --name "$RECORDING_BUCKET_NAME" \
+    --org "$ORG" \
+    --app "$APP_NAME" \
+    --yes
+else
+  echo "Tigris bucket ${RECORDING_BUCKET_NAME} already exists."
 fi
 
 echo "Creating Fly Postgres app ${POSTGRES_APP_NAME} in ${REGION}..."
