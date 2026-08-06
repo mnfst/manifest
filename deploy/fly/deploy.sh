@@ -12,7 +12,12 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
-  echo "jq is required to inspect the deployed Fly configuration." >&2
+  echo "jq is required to inspect the Fly API response." >&2
+  exit 1
+fi
+
+if ! command -v curl >/dev/null 2>&1; then
+  echo "curl is required to inspect the attached Tigris bucket." >&2
   exit 1
 fi
 
@@ -43,13 +48,36 @@ bucket_exists() {
   fly storage status "$RECORDING_BUCKET_NAME" >/dev/null 2>&1
 }
 
-bucket_is_attached() {
-  fly storage status --app "$APP_NAME" >/dev/null 2>&1
-}
+attached_bucket_name() {
+  local auth_scheme auth_token payload response
 
-configured_bucket_name() {
-  fly config show --app "$APP_NAME" |
-    jq -er '.env.REQUEST_RECORDING_S3_BUCKET // empty'
+  auth_token="$(fly auth token --json | jq -er '.token')"
+  case "$auth_token" in
+    ,* | fm1r_* | fm2_* | *,fm1r_* | *,fm2_*) auth_scheme="FlyV1" ;;
+    *) auth_scheme="Bearer" ;;
+  esac
+
+  payload="$(jq -nc --arg name "$APP_NAME" '{
+    query: "query AttachedTigris($name: String!, $type: AddOnType!) { app(name: $name) { addOns(type: $type) { nodes { name } } } }",
+    variables: { name: $name, type: "tigris" }
+  }')"
+  response="$(curl --fail-with-body --silent --show-error \
+    --config <(printf 'header = "Authorization: %s %s"\n' "$auth_scheme" "$auth_token") \
+    --header 'Content-Type: application/json' \
+    --data-binary "$payload" \
+    "${FLY_API_BASE_URL:-https://api.fly.io}/graphql")"
+
+  jq -er '
+    if (.errors // [] | length) > 0 then
+      error(.errors[0].message)
+    elif .data.app == null then
+      error("Fly app was not found")
+    elif (.data.app.addOns.nodes | length) > 1 then
+      error("Fly app has multiple Tigris attachments")
+    else
+      .data.app.addOns.nodes[0].name // ""
+    end
+  ' <<< "$response"
 }
 
 sed \
@@ -66,16 +94,14 @@ else
 fi
 
 echo "Creating Tigris recording bucket ${RECORDING_BUCKET_NAME}..."
-if bucket_is_attached; then
-  configured_bucket="$(configured_bucket_name || true)"
-  if [[ -z "$configured_bucket" ]]; then
-    echo "Fly app ${APP_NAME} already has a Tigris bucket, but its deployed Manifest config does not identify it." >&2
-    echo "Inspect 'fly storage status --app ${APP_NAME}', then rerun with the matching FLY_RECORDING_BUCKET_NAME after configuring it manually." >&2
-    exit 1
-  fi
-  if [[ "$configured_bucket" != "$RECORDING_BUCKET_NAME" ]]; then
-    echo "Fly app ${APP_NAME} is already configured for Tigris bucket ${configured_bucket}." >&2
-    echo "Keep FLY_RECORDING_BUCKET_NAME=${configured_bucket}, or migrate the bucket manually." >&2
+if ! attached_bucket="$(attached_bucket_name)"; then
+  echo "Unable to inspect Tigris attachments for Fly app ${APP_NAME}." >&2
+  exit 1
+fi
+if [[ -n "$attached_bucket" ]]; then
+  if [[ "$attached_bucket" != "$RECORDING_BUCKET_NAME" ]]; then
+    echo "Fly app ${APP_NAME} is already attached to Tigris bucket ${attached_bucket}." >&2
+    echo "Keep FLY_RECORDING_BUCKET_NAME=${attached_bucket}, or migrate the bucket manually." >&2
     exit 1
   fi
   echo "Tigris bucket ${RECORDING_BUCKET_NAME} already exists."

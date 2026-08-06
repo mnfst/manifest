@@ -8,7 +8,7 @@ Fly is a CLI-first deployment target, not a browser one-click button. The script
 
 - A Fly.io account with billing enabled.
 - `flyctl` installed and authenticated with `fly auth login`.
-- `jq` installed so the deploy script can inspect the app's JSON configuration on reruns.
+- `curl` and `jq` installed so the deploy script can verify the attached Tigris bucket on reruns.
 - Permission to create Fly apps and Postgres apps.
 
 This stack creates paid resources. Review Fly pricing before leaving test apps running.
