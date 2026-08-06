@@ -11,6 +11,11 @@ if ! command -v openssl >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required to inspect the deployed Fly configuration." >&2
+  exit 1
+fi
+
 if ! fly auth whoami >/dev/null 2>&1; then
   echo "Run 'fly auth login' before deploying." >&2
   exit 1
@@ -35,13 +40,16 @@ secret_exists() {
 }
 
 bucket_exists() {
-  fly storage list --org "$ORG" |
-    awk -v bucket="$RECORDING_BUCKET_NAME" 'NR > 1 && $1 == bucket { found=1 } END { exit !found }'
+  fly storage status "$RECORDING_BUCKET_NAME" >/dev/null 2>&1
 }
 
-attached_bucket_name() {
-  fly storage status --app "$APP_NAME" 2>/dev/null |
-    awk '$1 == "Name" { print $2; exit }'
+bucket_is_attached() {
+  fly storage status --app "$APP_NAME" >/dev/null 2>&1
+}
+
+configured_bucket_name() {
+  fly config show --app "$APP_NAME" |
+    jq -er '.env.REQUEST_RECORDING_S3_BUCKET // empty'
 }
 
 sed \
@@ -58,11 +66,16 @@ else
 fi
 
 echo "Creating Tigris recording bucket ${RECORDING_BUCKET_NAME}..."
-attached_bucket="$(attached_bucket_name || true)"
-if [[ -n "$attached_bucket" ]]; then
-  if [[ "$attached_bucket" != "$RECORDING_BUCKET_NAME" ]]; then
-    echo "Fly app ${APP_NAME} is already attached to Tigris bucket ${attached_bucket}." >&2
-    echo "Keep FLY_RECORDING_BUCKET_NAME=${attached_bucket}, or migrate the bucket manually." >&2
+if bucket_is_attached; then
+  configured_bucket="$(configured_bucket_name || true)"
+  if [[ -z "$configured_bucket" ]]; then
+    echo "Fly app ${APP_NAME} already has a Tigris bucket, but its deployed Manifest config does not identify it." >&2
+    echo "Inspect 'fly storage status --app ${APP_NAME}', then rerun with the matching FLY_RECORDING_BUCKET_NAME after configuring it manually." >&2
+    exit 1
+  fi
+  if [[ "$configured_bucket" != "$RECORDING_BUCKET_NAME" ]]; then
+    echo "Fly app ${APP_NAME} is already configured for Tigris bucket ${configured_bucket}." >&2
+    echo "Keep FLY_RECORDING_BUCKET_NAME=${configured_bucket}, or migrate the bucket manually." >&2
     exit 1
   fi
   echo "Tigris bucket ${RECORDING_BUCKET_NAME} already exists."
