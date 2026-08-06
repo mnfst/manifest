@@ -429,6 +429,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'sk-or-...',
   },
   {
+    id: 'orcarouter',
+    displayName: 'OrcaRouter',
+    aliases: [],
+    openRouterPrefixes: ['orcarouter'],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#0160E6',
+    keyPrefix: 'sk-orca-',
+    minKeyLength: 51,
+    keyPlaceholder: 'sk-orca-...',
+  },
+  {
     id: 'xai',
     displayName: 'xAI',
     aliases: [],

@@ -441,6 +441,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subtitle: 'Auto-route to 300+ models',
     models: [],
   },
+  orcarouter: {
+    initial: 'Or',
+    subtitle: 'Auto-route to 188+ models',
+    models: [],
+  },
   xai: {
     initial: 'X',
     subtitle: 'Grok 4.5, Grok 4.3, Grok Build',
@@ -515,6 +520,7 @@ const PROVIDER_ORDER = [
   'opencode-go',
   'opencode-zen',
   'openrouter',
+  'orcarouter',
   'pioneer',
   'xai',
   'xiaomi',

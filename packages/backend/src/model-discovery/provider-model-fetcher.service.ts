@@ -920,6 +920,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
   },
+  orcarouter: {
+    endpoint: 'https://api.orcarouter.ai/v1/models',
+    buildHeaders: bearerHeaders,
+    parse: parseOpenRouter,
+  },
   ...MANAGED_FREE_FETCHER_CONFIGS,
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
