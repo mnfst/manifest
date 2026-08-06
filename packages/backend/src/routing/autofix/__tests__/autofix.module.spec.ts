@@ -36,7 +36,7 @@ async function resolveHealingClient(configValues: Record<string, string>) {
       .useValue({})
       .overrideProvider(getRepositoryToken(ManifestRequest))
       .useValue({})
-      // Auto-fix pulls the install id from TelemetryModule; stub its repo so the
+      // Autofix pulls the install id from TelemetryModule; stub its repo so the
       // module graph resolves without a database.
       .overrideProvider(getRepositoryToken(InstallMetadata))
       .useValue({})
@@ -89,7 +89,7 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
   it('dials the same hosted Phoenix in CLOUD production', async () => {
     // Regression guard for dropping AUTOFIX_HEALING_URL: cloud used to depend
     // on that variable and would go inert without it, silently killing
-    // Auto-fix in production for every hosted tenant.
+    // Autofix in production for every hosted tenant.
     const client = await resolveHealingClient({
       NODE_ENV: 'production',
       MANIFEST_MODE: 'cloud',

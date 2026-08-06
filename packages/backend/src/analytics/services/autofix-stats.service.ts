@@ -153,14 +153,14 @@ export class AutofixStatsService {
   }
 
   /**
-   * Enable Auto-fix for every non-playground agent in the tenant and record
+   * Enable Autofix for every non-playground agent in the tenant and record
    * the install's once-consent. Used by the sidebar fleet CTA — not by the
    * per-agent toggle, which only ever touches one agent.
    */
   async enableAll(tenantId: string): Promise<AutofixStatusResponse> {
     // Match getWorkspaceStatus: only live, non-playground agents. Soft-deleted
     // rows must keep whatever they had — resurrecting them later shouldn't
-    // surprise the operator with Auto-fix flipped on.
+    // surprise the operator with Autofix flipped on.
     await this.agentRepo.update(
       { tenant_id: tenantId, is_playground: false, deleted_at: IsNull() },
       { autofix_enabled: true },
@@ -470,7 +470,7 @@ export class AutofixStatsService {
   /**
    * KPI window counts, read from the SAME request-level reducer as the
    * By request status chart (one request, one disposition; Recovered by
-   * Auto-fix = requests.autofix_status = 'retry_succeeded'). One definition,
+   * Autofix = requests.autofix_status = 'retry_succeeded'). One definition,
    * every surface.
    */
   private async queryWindow(

@@ -410,11 +410,11 @@ export class ProxyController {
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
         await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
-        // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
+        // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Autofix already hands Phoenix
         // the full body for the requests it heals; every other request-side 4xx
         // reaches Phoenix only via Peacock's hourly scrape, which carries the
         // model-parameter snapshot and not the messages. Report it live instead —
-        // but only for agents that turned Auto-fix on (the reporter's own gate).
+        // but only for agents that turned Autofix on (the reporter's own gate).
         //
         // `traceId` is the `traceparent` id Peacock's scrape reports for the same
         // row, so a scraped duplicate collapses onto this one in Phoenix's ledger.
@@ -422,7 +422,7 @@ export class ProxyController {
         // cannot match — those failures are recorded twice until the scrape is
         // retired for live traffic.
         //
-        // Auto-fix reports the PRIMARY attempt itself. The fallback chain runs
+        // Autofix reports the PRIMARY attempt itself. The fallback chain runs
         // after it, so when the response we're about to return came from a
         // fallback model it is a different provider/model failing and Phoenix has
         // never seen it — skipping on `autofix` alone would hide it.

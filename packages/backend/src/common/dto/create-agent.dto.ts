@@ -30,7 +30,7 @@ export class CreateAgentDto {
   @IsIn([...AGENT_PLATFORMS])
   agent_platform?: string;
 
-  /** Explicit Auto-fix choice at creation. Omit to inherit the mode default. */
+  /** Explicit Autofix choice at creation. Omit to inherit the mode default. */
   @IsOptional()
   @IsBoolean()
   autofix_enabled?: boolean;

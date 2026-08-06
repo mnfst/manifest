@@ -19,7 +19,7 @@ import { ObservationReporter } from './observation-reporter';
 const DEFAULT_TIMEOUT_MS = 10_000;
 
 /**
- * Wires Auto-fix. The active healing client is chosen at boot from the
+ * Wires Autofix. The active healing client is chosen at boot from the
  * environment alone — the healer URL is a constant, not configuration:
  * - production (cloud or self-hosted) talks to hosted Phoenix over HTTP;
  * - dev/test uses the deterministic in-process mock, so local runs and CI
@@ -52,11 +52,11 @@ const DEFAULT_TIMEOUT_MS = 10_000;
           // install id instead.
           const apiKey = config.get<string>('AUTOFIX_HEALING_API_KEY')?.trim() || undefined;
           // Self-hosted with no static key announces the install's anonymous id,
-          // minted lazily (an install that never enables Auto-fix or reports
+          // minted lazily (an install that never enables Autofix or reports
           // telemetry never creates one) and memoized for the process lifetime —
           // InstallIdService reads the row on every call, so without this each
           // heal request would do its own lookup. Only successful resolutions
-          // are cached: a transient DB failure must not disable Auto-fix for
+          // are cached: a transient DB failure must not disable Autofix for
           // the rest of the process.
           const instanceId =
             !apiKey && selfHosted

@@ -39,13 +39,13 @@ vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
-// Workspace Auto-fix status drives the bottom-left card and the modal list.
+// Workspace Autofix status drives the bottom-left card and the modal list.
 const mockGetAutofixStatus = vi.fn();
 vi.mock("../../src/services/api/analytics.js", () => ({
   getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetAutofixStatus(...args),
 }));
 
-// Per-agent Auto-fix saves fired by the modal toggles.
+// Per-agent Autofix saves fired by the modal toggles.
 const mockUpdateAutofix = vi.fn();
 vi.mock("../../src/services/api/routing.js", () => ({
   updateAutofix: (...args: unknown[]) => mockUpdateAutofix(...args),
@@ -520,12 +520,12 @@ describe("Sidebar — structure and interaction", () => {
   });
 });
 
-describe("Sidebar — Auto-fix card", () => {
-  it("shows the card with the Enable button while some agents lack Auto-fix", async () => {
+describe("Sidebar — Autofix card", () => {
+  it("shows the card with the Enable button while some agents lack Autofix", async () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Keep your agents reliable");
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
+    expect(container.textContent).toContain("Autofix can repair eligible failing requests");
     const btn = container.querySelector("button.sidebar-autofix__btn") as HTMLButtonElement;
     expect(btn?.textContent).toBe("Enable");
   });
@@ -544,7 +544,7 @@ describe("Sidebar — Auto-fix card", () => {
     expect(container.querySelector(".sidebar-autofix")).toBeNull();
   });
 
-  it("hides the card entirely once every agent has Auto-fix", async () => {
+  it("hides the card entirely once every agent has Autofix", async () => {
     mockGetAutofixStatus.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ["alpha", "beta"],
@@ -568,7 +568,7 @@ describe("Sidebar — Auto-fix card", () => {
     });
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Keep your agents reliable");
-    expect(container.textContent).toContain("At least one of your agents runs without Auto-fix.");
+    expect(container.textContent).toContain("At least one of your agents runs without Autofix.");
     expect(container.querySelector("button.sidebar-autofix__btn")).not.toBeNull();
   });
 
@@ -601,20 +601,20 @@ describe("Sidebar — Auto-fix card", () => {
     const open = () => fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
 
     open();
-    await screen.findByText("Enable Auto-fix");
+    await screen.findByText("Enable Autofix");
     fireEvent.click(screen.getByText("Done"));
-    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
 
     open();
-    await screen.findByText("Enable Auto-fix");
+    await screen.findByText("Enable Autofix");
     const overlay = document.querySelector(".modal-overlay")!;
     fireEvent.click(overlay);
-    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
 
     open();
-    await screen.findByText("Enable Auto-fix");
+    await screen.findByText("Enable Autofix");
     fireEvent.keyDown(document.querySelector(".modal-overlay")!, { key: "Escape" });
-    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
 
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
   });
@@ -630,12 +630,12 @@ describe("Sidebar — Auto-fix card", () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Enable");
     fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
-    await screen.findByText("Enable Auto-fix");
+    await screen.findByText("Enable Autofix");
     expect(mockUpdateAutofix).not.toHaveBeenCalled();
   });
 
   it("polls the status so a toggle made elsewhere hides the card", async () => {
-    // Auto-fix toggles emit no SSE event, so the card relies on the 15s poll
+    // Autofix toggles emit no SSE event, so the card relies on the 15s poll
     // to notice a change made from the Settings page.
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
@@ -688,11 +688,11 @@ describe("Sidebar — Auto-fix card", () => {
   });
 });
 
-describe("Sidebar — Auto-fix per-agent modal", () => {
+describe("Sidebar — Autofix per-agent modal", () => {
   const openModal = async (container: HTMLElement) => {
     await screen.findByText("Keep your agents reliable");
     fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
-    await screen.findByText("Enable Auto-fix");
+    await screen.findByText("Enable Autofix");
   };
   const switches = () =>
     Array.from(document.querySelectorAll(".autofix-consent__agent-row .settings-switch"));
@@ -714,7 +714,7 @@ describe("Sidebar — Auto-fix per-agent modal", () => {
     for (const sw of switches()) {
       expect(sw.getAttribute("aria-checked")).toBe("false");
     }
-    expect(document.body.textContent).toContain("Auto-fix works per agent");
+    expect(document.body.textContent).toContain("Autofix works per agent");
     expect(document.body.textContent).toContain("you agree to Manifest's");
   });
 
@@ -815,9 +815,9 @@ describe("Sidebar — Auto-fix per-agent modal", () => {
     fireEvent.click(switches()[1]);
     await waitFor(() => expect(container.querySelector(".sidebar-autofix")).toBeNull());
     // The modal itself stays open until Done.
-    expect(screen.queryByText("Enable Auto-fix")).not.toBeNull();
+    expect(screen.queryByText("Enable Autofix")).not.toBeNull();
     fireEvent.click(screen.getByText("Done"));
-    expect(screen.queryByText("Enable Auto-fix")).toBeNull();
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
   });
 
   it("falls back to the raw agent name when the harness list has not resolved", async () => {
@@ -842,7 +842,7 @@ describe("Sidebar — Auto-fix per-agent modal", () => {
 describe("Sidebar — usage card", () => {
   beforeEach(() => {
     // The usage meter only occupies the bottom-left slot in cloud; self-hosted
-    // always shows the Auto-fix card there.
+    // always shows the Autofix card there.
     mockIsSelfHosted = false;
   });
   afterEach(() => {

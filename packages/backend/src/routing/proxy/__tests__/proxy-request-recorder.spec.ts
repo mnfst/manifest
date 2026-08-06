@@ -301,7 +301,7 @@ describe('ProxyMessageRecorder request parents', () => {
     ['retry_succeeded', [{ attempt: 1, origin: 'autofix', request: {}, http_status: 200 }]],
     ['retry_failed', [{ attempt: 1, origin: 'autofix', request: {}, http_status: 422 }]],
     ['service_error', []],
-  ] as const)('records the %s Auto-fix outcome on the request', async (expected, chain) => {
+  ] as const)('records the %s Autofix outcome on the request', async (expected, chain) => {
     const { recorder, requestValues } = setup();
     const autofix: AutofixRecord = {
       groupId: 'autofix-1',

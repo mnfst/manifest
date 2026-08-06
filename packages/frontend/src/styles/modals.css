@@ -582,7 +582,7 @@
   min-width: 24px;
 }
 
-/* ── Auto-fix Sidebar Card ───────────────────────── */
+/* ── Autofix Sidebar Card ───────────────────────── */
 .sidebar-autofix {
   margin: var(--gap-sm);
   padding: 14px;
@@ -1022,7 +1022,7 @@
   margin-top: var(--gap-sm);
 }
 
-/* Legal line under a Settings card (Auto-fix section). The card drops its
+/* Legal line under a Settings card (Autofix section). The card drops its
    own bottom margin so the mention reads as attached to it. */
 .settings-card--flush {
   margin-bottom: 0;

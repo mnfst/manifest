@@ -770,7 +770,7 @@ describe('MessagesQueryService', () => {
     return andWhereSpy;
   }
 
-  it('filters auto-fix trigger rows by retry role', async () => {
+  it('filters autofix trigger rows by retry role', async () => {
     const andWhereSpy = await runWithTrigger('autofix');
     const triggerCall = andWhereSpy.mock.calls.find(
       ([clause]) => clause === 'at.autofix_role = :triggerAutofixRole',
@@ -779,7 +779,7 @@ describe('MessagesQueryService', () => {
     expect(triggerCall?.[1]).toEqual({ triggerAutofixRole: 'retry' });
   });
 
-  it('filters fallback trigger rows while preserving auto-fix precedence', async () => {
+  it('filters fallback trigger rows while preserving autofix precedence', async () => {
     const andWhereSpy = await runWithTrigger('fallback');
     expect(
       andWhereSpy.mock.calls.find(

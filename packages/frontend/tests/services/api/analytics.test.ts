@@ -74,7 +74,7 @@ describe('analytics API client', () => {
     expect(url).toContain('agent_name=demo');
   });
 
-  it('calls the Auto-fix analytics routes with their optional scopes', async () => {
+  it('calls the Autofix analytics routes with their optional scopes', async () => {
     let fetchMock = setupFetch({});
     await analytics.getWorkspaceAutofixStatus();
     expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/autofix/status');
@@ -104,7 +104,7 @@ describe('analytics API client', () => {
     expect(fetchMock.mock.calls[0][0]).toContain('agent_name=demo');
   });
 
-  it('uses Auto-fix analytics defaults without optional filters', async () => {
+  it('uses Autofix analytics defaults without optional filters', async () => {
     const calls = [
       () => analytics.getAutofixStats(),
       () => analytics.getAutofixTimeseries(),

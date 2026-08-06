@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Records the once-per-install Auto-fix consent for self-hosted installs.
+ * Records the once-per-install Autofix consent for self-hosted installs.
  *
  * `install_metadata` is the existing singleton row telemetry already uses, so
  * consent-once is one nullable column on an existing table — no new table, no

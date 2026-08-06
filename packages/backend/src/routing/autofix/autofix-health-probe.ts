@@ -41,15 +41,15 @@ export class AutofixHealthProbe implements OnApplicationBootstrap {
       });
       if (!res.ok) {
         this.logger.warn(
-          `Auto-fix: Phoenix health probe ${target} returned ${res.status} — ` +
-            `Auto-fix will not heal until this is resolved.`,
+          `Autofix: Phoenix health probe ${target} returned ${res.status} — ` +
+            `Autofix will not heal until this is resolved.`,
         );
         return;
       }
-      this.logger.log(`Auto-fix: Phoenix healer reachable at ${url}.`);
+      this.logger.log(`Autofix: Phoenix healer reachable at ${url}.`);
     } catch (err) {
       this.logger.warn(
-        `Auto-fix: Phoenix health probe ${target} failed (${(err as Error).message}) — ` +
+        `Autofix: Phoenix health probe ${target} failed (${(err as Error).message}) — ` +
           `check this host's outbound network access.`,
       );
     }

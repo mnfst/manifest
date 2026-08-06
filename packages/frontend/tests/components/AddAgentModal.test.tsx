@@ -93,7 +93,7 @@ describe('AddAgentModal', () => {
 
   it('creates directly with the legal line as the consent act (no dialog)', async () => {
     const { input, createBtn } = renderOpen();
-    // Auto-fix defaults on, so the Terms/Privacy legal line is visible.
+    // Autofix defaults on, so the Terms/Privacy legal line is visible.
     expect(document.body.textContent).toContain('you agree to Manifest');
     expect(document.querySelector('a[href="https://manifest.build/terms"]')).not.toBeNull();
     expect(document.querySelector('a[href="https://manifest.build/privacy"]')).not.toBeNull();
@@ -101,10 +101,10 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'first-agent' } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => expect(mockCreateAgent).toHaveBeenCalled());
-    expect(screen.queryByText('Enable hosted Auto-fix?')).toBeNull();
+    expect(screen.queryByText('Enable hosted Autofix?')).toBeNull();
   });
 
-  it('hides the legal line when Auto-fix is toggled off and still creates', async () => {
+  it('hides the legal line when Autofix is toggled off and still creates', async () => {
     const { container, input, createBtn } = renderOpen();
     fireEvent.click(container.querySelector('.settings-switch')!);
     expect(document.body.textContent).not.toContain('you agree to Manifest');
@@ -272,13 +272,13 @@ describe('AddAgentModal', () => {
     });
   });
 
-  it('sends toggled-off Auto-fix and recording when the user flips them', async () => {
+  it('sends toggled-off Autofix and recording when the user flips them', async () => {
     const { input, createBtn } = renderOpen();
     // Both switches default on; flip each off before creating.
     const switches = Array.from(
       document.querySelectorAll('.settings-switch'),
     ) as HTMLButtonElement[];
-    // Order in the modal: Auto-fix, then Enable logs.
+    // Order in the modal: Autofix, then Enable logs.
     expect(switches.length).toBeGreaterThanOrEqual(2);
     fireEvent.click(switches[0]!);
     fireEvent.click(switches[1]!);

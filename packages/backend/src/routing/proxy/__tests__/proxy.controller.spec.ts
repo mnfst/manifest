@@ -732,7 +732,7 @@ describe('ProxyController', () => {
     );
   });
 
-  it('keeps Auto-fix original and retry payloads on separate Provider Attempts', async () => {
+  it('keeps Autofix original and retry payloads on separate Provider Attempts', async () => {
     recordingCache.isRecording.mockResolvedValue(true);
     const originalBody = { model: 'gpt-4o', messages: [], unsupported: true };
     const retryBody = { model: 'gpt-4o', messages: [] };

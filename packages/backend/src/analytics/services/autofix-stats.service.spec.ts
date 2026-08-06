@@ -169,7 +169,7 @@ describe('AutofixStatsService', () => {
       // Pins the NULL term specifically: this install is self-hosted AND
       // unconsented, so it clears both other gates. Only "no agent is
       // unconfigured" keeps the CTA away from someone who deliberately turned
-      // Auto-fix off everywhere.
+      // Autofix off everywhere.
       agentRepo.find.mockResolvedValue([
         { name: 'chose-off', autofix_enabled: false },
         { name: 'also-chose-off', autofix_enabled: false },
@@ -214,7 +214,7 @@ describe('AutofixStatsService', () => {
     });
   });
 
-  it('computes Auto-fix-only stats for current and previous windows', async () => {
+  it('computes Autofix-only stats for current and previous windows', async () => {
     const internals = service as unknown as {
       queryWindow: jest.Mock;
       queryNeedsAttention: jest.Mock;
@@ -305,7 +305,7 @@ describe('AutofixStatsService', () => {
     // Canonical success and legacy NULL/ok remain compatible.
     expect(providerSql).toContain("at.status IN ('ok', 'success')");
     expect(providerSql).toContain("at.status NOT IN ('pending', 'cancelled', 'ok', 'success')");
-    // No retry exclusion: an auto-fix retry is a real provider call here.
+    // No retry exclusion: an autofix retry is a real provider call here.
     expect(providerQb.andWhere.mock.calls.flat()).not.toContain(
       "(at.autofix_role IS NULL OR at.autofix_role != 'retry')",
     );
@@ -400,7 +400,7 @@ describe('AutofixStatsService', () => {
     });
     await expect(internals.queryWindow('from', 'to', 'tenant', 'demo')).resolves.toEqual({
       total: 100,
-      successes: 80, // success + recovered by Auto-fix + recovered by fallback
+      successes: 80, // success + recovered by Autofix + recovered by fallback
       saves: 4, // autofix_status = retry_succeeded
       fallback_saves: 6,
       errors: 20,

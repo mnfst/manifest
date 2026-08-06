@@ -8,7 +8,7 @@ function makeConfig(values: Record<string, string> = {}): ConfigService {
   return { get: (key: string) => values[key] } as unknown as ConfigService;
 }
 
-/** Auto-fix consent gate. Active by default; each test overrides what it needs. */
+/** Autofix consent gate. Active by default; each test overrides what it needs. */
 function makeAutofix(
   getHealingContext: jest.Mock = jest.fn().mockResolvedValue({ harness: 'other' }),
 ): AutofixService {
@@ -80,7 +80,7 @@ describe('ObservationReporter', () => {
       expect(autofix.getHealingContext).not.toHaveBeenCalled();
     });
 
-    it('does not ship a body for an agent without Auto-fix on', async () => {
+    it('does not ship a body for an agent without Autofix on', async () => {
       const client = makeClient();
       const reporter = enabledReporter(client, makeAutofix(jest.fn().mockResolvedValue(false)));
 

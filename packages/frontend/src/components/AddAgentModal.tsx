@@ -1,4 +1,11 @@
-import { createEffect, createResource, createSignal, onCleanup, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  onCleanup,
+  Show,
+  type Component,
+} from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
@@ -27,7 +34,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   );
   const [creating, setCreating] = createSignal(false);
   // Both default ON — explicit so create always sends a choice rather than
-  // relying on the server-side inherit path (which is OFF for Auto-fix on
+  // relying on the server-side inherit path (which is OFF for Autofix on
   // self-hosted).
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
   const [recordingEnabled, setRecordingEnabled] = createSignal(true);
@@ -77,7 +84,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
   /**
    * @param token attempt id from {@link beginAttempt}, re-checked after every await.
-   * @param autofixChoice the Auto-fix setting pinned when the submit started.
+   * @param autofixChoice the Autofix setting pinned when the submit started.
    */
   const createAgentNow = async (token: number, autofixChoice: boolean) => {
     const agentName = name().trim();
@@ -215,7 +222,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                 <div class="model-params__row">
                   <div class="model-params__row-text">
                     <div class="model-params__label-title">
-                      <span>Auto-fix</span>
+                      <span>Autofix</span>
                     </div>
                     <div class="model-params__label-hint">
                       Repair eligible failing requests before falling back.
@@ -226,7 +233,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
                       type="button"
                       role="switch"
                       aria-checked={autofixEnabled()}
-                      aria-label="Auto-fix"
+                      aria-label="Autofix"
                       class="settings-switch"
                       classList={{ 'settings-switch--on': autofixEnabled() }}
                       disabled={creating()}
@@ -275,7 +282,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
 
           <Show when={autofixEnabled()}>
             <p class="autofix-consent__legal add-agent-legal">
-              By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+              By enabling Autofix, you agree to Manifest&apos;s{' '}
               <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
                 Terms
               </a>{' '}
@@ -297,7 +304,6 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </button>
           </div>
         </div>
-
       </div>
     </Show>
   );

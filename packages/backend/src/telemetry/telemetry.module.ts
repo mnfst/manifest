@@ -10,7 +10,7 @@ import { TelemetryService } from './telemetry.service';
 @Module({
   imports: [TypeOrmModule.forFeature([InstallMetadata, AgentMessage, Agent])],
   providers: [InstallIdService, PayloadBuilderService, TelemetryService],
-  // Auto-fix announces the same anonymous install id to Phoenix, so the id
+  // Autofix announces the same anonymous install id to Phoenix, so the id
   // service is shared rather than duplicated. Telemetry sending stays gated on
   // its own opt-out: exporting the id does not send anything.
   exports: [InstallIdService],

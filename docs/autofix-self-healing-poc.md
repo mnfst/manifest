@@ -1,4 +1,4 @@
-# Auto-fix (self-healing requests) — POC specification
+# Autofix (self-healing requests) — POC specification
 
 **Status:** Backend + frontend implemented, green, verified live · **Last updated:** 2026-07-01
 
@@ -17,7 +17,7 @@
 >   the mock runs only in dev/test. See §4.
 > - **`agent_messages` also has `autofix_phoenix`** (jsonb — the Phoenix
 >   `{issueId, patchId, healAttemptId}`), in addition to the columns listed in §5.2.
-> - Auto-fix is now generally available. The early-access waitlist and tenant
+> - Autofix is now generally available. The early-access waitlist and tenant
 >   entitlement gate have been retired; only the per-agent toggle remains.
 
 > **Implementation status.** Full stack built against the real **Phoenix**
@@ -28,7 +28,7 @@
 > real Phoenix.
 >
 > **Verified live** (`/serve`, cloud mode): migrations applied, the Routing-page
-> Auto-fix toggle persists to the DB, and the real
+> Autofix toggle persists to the DB, and the real
 > `AutofixService` + mock Phoenix heal the MVP `max_tokens` case end-to-end
 > (400 → `rename_param` → resend `max_output_tokens` → 200 healed, chain recorded).
 >
@@ -40,7 +40,7 @@
 > failed request + full provider response to an external **healing service**, gets a
 > patched request back, and re-sends it **once** — **before**
 > the normal fallback chain runs. The attempt is recorded on the
-> message so you can see the first error, every request Auto-fix sent, what changed,
+> message so you can see the first error, every request Autofix sent, what changed,
 > and the final result.
 
 This is a **proof of concept**. The goal is to stand the loop up end-to-end against
@@ -51,21 +51,21 @@ hardened feature. Decisions favour the smallest contained change over generality
 
 ## 1. What already exists (important)
 
-"Auto-fix" is a named, marketed feature in this repo. The original POC started
+"Autofix" is a named, marketed feature in this repo. The original POC started
 from a waitlist shell; today the engine and settings surface are generally available.
 
 | Surface     | File                                                     | What it is                                       |
 | ----------- | -------------------------------------------------------- | ------------------------------------------------ |
-| Settings    | `packages/frontend/src/pages/SettingsAutofixSection.tsx` | Per-agent Auto-fix toggle, shown to every tenant |
+| Settings    | `packages/frontend/src/pages/SettingsAutofixSection.tsx` | Per-agent Autofix toggle, shown to every tenant |
 | Routing API | `packages/backend/src/routing/tier.controller.ts`        | `GET/PATCH /api/v1/routing/:agentName/autofix`   |
 
 The marketing copy is the product promise we're now building the engine for:
 
-> **"Auto-fix repairs failing requests before they reach the model"**
+> **"Autofix repairs failing requests before they reach the model"**
 > Real-time fix · Zero downtime · Observability · Notifications
 > — <https://manifest.build/autofix/>
 
-**Naming:** display name is **"Auto-fix"**; backend prefix is `autofix_`.
+**Naming:** display name is **"Autofix"**; backend prefix is `autofix_`.
 
 ---
 
@@ -75,11 +75,11 @@ The marketing copy is the product promise we're now building the engine for:
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Streaming**          | Non-streaming **+** streaming requests that fail _before the first byte_                                                 | A repairable 4xx returns a non-200 status inside `proxyRequest()`, before the controller streams anything — healing is transparent. Mid-stream is out of scope.                |
 | **Which errors**       | **Request-side 4xx only** (`400`, `404`, `422` by default)                                                               | Malformed params, wrong format, unknown model. Explicitly **not** `401/403` (auth), `429` (rate limit), `408` (timeout), or `5xx` (provider availability — owned by fallback). |
-| **Order vs. fallback** | **Auto-fix runs FIRST, fallback is the safety net**                                                                      | Healing a fixable 400 beats spraying the same broken body across every fallback provider. Only if healing is exhausted/unfixable does the existing fallback chain run.         |
+| **Order vs. fallback** | **Autofix runs FIRST, fallback is the safety net**                                                                      | Healing a fixable 400 beats spraying the same broken body across every fallback provider. Only if healing is exhausted/unfixable does the existing fallback chain run.         |
 | **Budget**             | **Per-agent**, default **3**, next to the toggle on the Routing page                                                     | One entity (`agents`), one UI location.                                                                                                                                        |
 | **Availability**       | **Open to all** (cloud + self-hosted), no entitlement gate                                                               | Simplest for the POC; revisit gating later.                                                                                                                                    |
 | **Healing contract**   | **Simple, self-authored** (§4): full request + full response in, patched request out                                     | Real repo's OpenAPI isn't available yet; we build to a stable internal port + mock and reconcile the HTTP adapter later.                                                       |
-| **Recording**          | **One row per client request + full `autofix_chain` JSONB** capturing every attempt, each tagged `original` vs `autofix` | "Track all requests, see the full chain, know which Auto-fix sent" — without distorting message-count KPIs.                                                                    |
+| **Recording**          | **One row per client request + full `autofix_chain` JSONB** capturing every attempt, each tagged `original` vs `autofix` | "Track all requests, see the full chain, know which Autofix sent" — without distorting message-count KPIs.                                                                    |
 
 **Why 4xx-only is safe to retry:** a 4xx means the provider _rejected_ the request —
 no tokens generated, no tool calls executed, no side effects. Re-sending a patched
@@ -93,12 +93,12 @@ version is idempotent-safe. (This is why we do **not** heal 200-but-bad response
 agent ──► POST /v1/chat/completions (or /messages, /responses)
             │
             ▼
-   proxyService.proxyRequest(body)          ← Auto-fix lives HERE, not the controller
+   proxyService.proxyRequest(body)          ← Autofix lives HERE, not the controller
             │
    route    = resolve(body)
    forward  = forwardToPrimary(route, body) ──► provider
             │
-   ┌───────────────── AUTO-FIX LOOP (before fallback) ──────────────────┐
+   ┌───────────────── AUTOFIX LOOP (before fallback) ──────────────────┐
    │ while !forward.ok AND autofix_enabled                               │
    │       AND status ∈ repairable(4xx) AND attempt < autofix_max_attempts:
    │   errorBody = await forward.response.text()   // full response      │
@@ -131,7 +131,7 @@ always in the "pre-first-byte" zone — the streaming-safety constraint is autom
 **Re-send mechanism:** each heal attempt re-resolves the route for the patched body
 (so an unknown-model → known-model fix actually changes provider/model) and forwards
 to the **primary** only. The fallback chain is deliberately _not_ run per-attempt —
-it's the single safety net after Auto-fix gives up.
+it's the single safety net after Autofix gives up.
 
 ---
 
@@ -247,7 +247,7 @@ whole budget.
 > `autofix_group_id` (in the DB) and by a clickable link in the UI.
 
 ```ts
-@Column('boolean', { default: false }) autofix_applied!: boolean;       // part of an Auto-fix flow?
+@Column('boolean', { default: false }) autofix_applied!: boolean;       // part of an Autofix flow?
 @Column('varchar', { nullable: true })  autofix_group_id!: string | null; // links original ↔ retry (indexed)
 @Column('varchar', { nullable: true })  autofix_role!: string | null;     // 'original' | 'retry'
 @Column('jsonb',   { nullable: true })  autofix_operations!: object | null; // the Phoenix edits that fixed it
@@ -266,7 +266,7 @@ whole budget.
   the two lines the user asked for.
 - **The link.** `autofix_group_id` is the DB link. The message-detail endpoint
   resolves the paired row (`autofix_sibling { id, role, status }`) so the UI renders
-  "→ View the successful auto-fix retry" / "← View the original failed request",
+  "→ View the successful autofix retry" / "← View the original failed request",
   which scrolls+highlights the sibling (mirrors `scrollToFallbackSuccess`).
 
 Recorder: `recordSuccessMessage` tags the retry row (`autofixColumns(autofix,'retry')`);
@@ -305,15 +305,15 @@ invalidate the agent cache on write (same as `toggleComplexity`).
 
 ## 7. Frontend
 
-- **Routing page** — add an "Auto-fix" control next to "Route by complexity" in
+- **Routing page** — add an "Autofix" control next to "Route by complexity" in
   `RoutingDefaultTierSection.tsx` (same `routing-switch` styling): toggle +, when on, a
   small number input for max attempts. New api fns `getAutofix()` / `updateAutofix()`
   in `services/api/routing.ts`.
 - **Message detail** (`MessageDetails.tsx`) — when `autofix_applied`, render an
-  **"Auto-fix"** section: outcome badge, then the `autofix_chain` as a visible timeline
-  — each attempt showing origin (agent vs Auto-fix), the request that was sent, the
+  **"Autofix"** section: outcome badge, then the `autofix_chain` as a visible timeline
+  — each attempt showing origin (agent vs Autofix), the request that was sent, the
   status/response, and what changed (`patch_summary` / `changed_fields`).
-- **Message list** — small "Auto-fixed" badge on healed rows. If shown in the table,
+- **Message list** — small "Autofixed" badge on healed rows. If shown in the table,
   add the scalar columns to `selectMessageRowColumns()` + `MESSAGE_ROW_SELECT_ALIASES`
   - `MessageRow` (keep the shared projection contract intact — CLAUDE.md).
 
@@ -341,7 +341,7 @@ invalidate the agent cache on write (same as `toggleComplexity`).
 - Hardened scrubbing/PII controls on request/response bodies (basic scrub only — §11).
 - Pre-emptive fixing _before_ the first attempt (the marketing "before they reach the
   model" — POC is reactive).
-- Entitlement or rollout gating (Auto-fix is open to all).
+- Entitlement or rollout gating (Autofix is open to all).
 
 ---
 
@@ -350,7 +350,7 @@ invalidate the agent cache on write (same as `toggleComplexity`).
 1. **Chain modeling — RESOLVED (2026-07-01):** the user chose **one row per attempt**
    (failed original + successful retry as sibling log rows, linked by `autofix_group_id`
    - a UI link), matching the `recordFailedFallbacks` pattern. Implemented in §5.2.
-2. **Fallback body after Auto-fix fails.** When healing is exhausted and the safety-net
+2. **Fallback body after Autofix fails.** When healing is exhausted and the safety-net
    fallback chain runs, forward the **original** body or the **last patched** body?
    _My lean:_ original (fallbacks are a separate axis; patched guesses were for the
    primary). Minor.
@@ -358,18 +358,18 @@ invalidate the agent cache on write (same as `toggleComplexity`).
    the `HttpHealingClient` adapter. Not a blocker for the POC.
 
 _(Resolved from discussion: streaming = non-stream + pre-first-byte · errors = 4xx only
-· Auto-fix before fallback · per-agent budget default 3 · open to all · full req+resp to
-the healer · track the full chain and label Auto-fix requests.)_
+· Autofix before fallback · per-agent budget default 3 · open to all · full req+resp to
+the healer · track the full chain and label Autofix requests.)_
 
 ---
 
 ## 11. Risks & considerations
 
 - **Data footprint / trust boundary.** We now (a) send full request + response bodies
-  to an external service and (b) store them on Auto-fix messages — both new for
+  to an external service and (b) store them on Autofix messages — both new for
   Manifest. Fine against an in-process/same-infra mock; before the real external
   service, this needs the care of the error-cluster CMS boundary (scrub + consent +
-  retention). Scope storage to Auto-fix messages only; scrub + truncate. Flagging, not
+  retention). Scope storage to Autofix messages only; scrub + truncate. Flagging, not
   hardening, for the POC.
 - **Latency.** Worst case ≈ `budget × (heal round-trip + provider re-send)` before
   success/failure. Transparent for non-streaming but slow; bounded by
@@ -377,7 +377,7 @@ the healer · track the full chain and label Auto-fix requests.)_
 - **Loop safety.** Budget is a hard cap; `unfixable` short-circuits; only runs while
   no bytes have been sent. No unbounded retry.
 - **Observability parity.** The message + its `autofix_chain` is the single source of
-  truth for "how it went" — matches the "Observability" pillar the Auto-fix modal
+  truth for "how it went" — matches the "Observability" pillar the Autofix modal
   already advertises.
 
 ---
@@ -390,7 +390,7 @@ the healer · track the full chain and label Auto-fix requests.)_
 3. Hook into `proxy.service.ts` before the fallback trigger; thread `autofix_chain`
    through `proxyRequest` → controller → recorder.
 4. Toggle + budget endpoints + Routing UI control.
-5. Message-detail "Auto-fix" timeline (+ optional list badge).
+5. Message-detail "Autofix" timeline (+ optional list badge).
 6. `HttpHealingClient` once the real schema lands.
 7. Tests (100% line coverage — CLAUDE.md): loop paths (healed / exhausted / unfixable /
    disabled / non-repairable / re-route-on-model-change), before-fallback ordering,

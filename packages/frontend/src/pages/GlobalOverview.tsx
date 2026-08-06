@@ -293,7 +293,7 @@ const GlobalOverview: Component = () => {
     },
   );
 
-  // ── Auto-fix resources ─────────────────────────────────
+  // ── Autofix resources ─────────────────────────────────
   const [autofixStats] = createResource(
     () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getAutofixStats(p.range),
@@ -690,7 +690,7 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── Auto-fix KPI cards ── */}
+        {/* ── Autofix KPI cards ── */}
         <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
@@ -1240,7 +1240,7 @@ const GlobalOverview: Component = () => {
                                 <Show when={rel()} fallback="—">
                                   {(() => {
                                     // Recovered = successful requests holding a
-                                    // recovery attempt (auto-fix or fallback).
+                                    // recovery attempt (autofix or fallback).
                                     const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
                                     return (
                                       <a
