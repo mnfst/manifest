@@ -1,0 +1,88 @@
+deploy/apple-containers/start.sh
+  s_cec5e3bd24894f::t_a4621c9da45b5f 84,202-212,286,310-318,349
+README.md
+  s_cec5e3bd24894f::t_33f26f6493ac74 76
+  s_cec5e3bd24894f::t_5ab59414af5239 70-75
+  s_cec5e3bd24894f::t_94854edf26eed6 68-69
+deploy/gcp/main.tf
+  s_cec5e3bd24894f::t_2429da90b5ed10 26,123-137,160-168,203-212,248-252,288,301-305,308
+deploy/fly/TUTORIAL.md
+  s_cec5e3bd24894f::t_33f26f6493ac74 126,131
+  s_cec5e3bd24894f::t_b9ed02e6debe2e 3,32,34,43,49-54,86,114,122,140
+deploy/gcp/outputs.tf
+  s_cec5e3bd24894f::t_6ebc8cf0d438c3 20-24
+deploy/fly/deploy.sh
+  s_cec5e3bd24894f::t_b3ec118360dd56 23,38,50-58
+  s_cec5e3bd24894f::t_559cf674770faa 59-60
+.github/workflows/docker.yml
+  s_cec5e3bd24894f::t_d74c553b229d79 7
+deploy/aws/TUTORIAL.md
+  s_cec5e3bd24894f::t_0804cc78e71592 3,8,55-59,71
+deploy/easypanel/TUTORIAL.md
+  s_cec5e3bd24894f::t_7c1c0bb08614cb 25,62-63,76
+app.json
+  s_cec5e3bd24894f::t_332a3b1a2aa8bc 35-62
+deploy/coolify/docker-compose.yml
+  s_cec5e3bd24894f::t_d4ee2f325e0923 28
+  s_cec5e3bd24894f::t_0d349f4376063f 16-19,50
+docker/.env.example
+  s_cec5e3bd24894f::t_3cc8d6adc56a51 38
+deploy/digitalocean/TUTORIAL.md
+  s_cec5e3bd24894f::t_faf46332c3100e 3,9,11-13,29-36,54,63-64
+  s_cec5e3bd24894f::t_c1e10a54d1273b 56-57
+  s_cec5e3bd24894f::t_605d275fc7a0d0 55
+deploy/gcp/versions.tf
+  s_cec5e3bd24894f::t_4433589e7a9512 7
+deploy/apple-containers/TUTORIAL.md
+  s_cec5e3bd24894f::t_33f26f6493ac74 268,272
+  s_cec5e3bd24894f::t_151f94ec86f24a 103,131,150,183,187,192,196,198,201
+deploy/aws/manifest.yaml
+  s_cec5e3bd24894f::t_1b4d4d6a23029d 3-4,267-281,344-365,421-426,453,492-494
+deploy/easypanel/template/meta.yaml
+  s_cec5e3bd24894f::t_0bf2a25f1a6f6a 13-14,81-84
+deploy/gcp/TUTORIAL.md
+  s_cec5e3bd24894f::t_57e7571e805aa1 5,15,22-23,34,40
+  s_cec5e3bd24894f::t_33f26f6493ac74 57
+deploy/fly/fly.toml
+  s_cec5e3bd24894f::t_c093e61371a6fc 24-28
+deploy/aws/deploy.sh
+  s_cec5e3bd24894f::t_0b845c8c390df5 51
+deploy/gcp/deploystack.json
+  s_cec5e3bd24894f::t_e43f1560fc3399 3
+deploy/koyeb/TUTORIAL.md
+  s_cec5e3bd24894f::t_c1e10a54d1273b 60,65
+  s_cec5e3bd24894f::t_aedfe83379f451 3,10,34,42,44,67,73
+  s_cec5e3bd24894f::t_da8210c8745a74 66
+deploy/heroku/TUTORIAL.md
+  s_cec5e3bd24894f::t_c1e10a54d1273b 71-72
+  s_cec5e3bd24894f::t_c9db4de9926acf 9,21-23,29-36,45,78,85
+deploy/coolify/TUTORIAL.md
+  s_cec5e3bd24894f::t_43a16649d9763e 42,47
+deploy/easypanel/template/README.md
+  s_cec5e3bd24894f::t_2453c3535c40aa 18
+.do/deploy.template.yaml
+  s_cec5e3bd24894f::t_daba2bb1971461 41-61
+render.yaml
+  s_cec5e3bd24894f::t_3bf79d86b2c9cf 7,11-14,33-36
+docker/DOCKER_README.md
+  s_cec5e3bd24894f::t_bd2851ac7ac321 286-288,303
+  s_cec5e3bd24894f::t_4727c385a7e50a 307,326
+deploy/easypanel/template/index.ts
+  s_cec5e3bd24894f::t_b8a7d992c00d4f 41-42,45-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "0351af898226a45063597cb10d9df9149447819c",
+  "prompts": {},
+  "sessions": {
+    "s_cec5e3bd24894f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd691-0513-7f13-aba8-4f9b5444b2a2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
