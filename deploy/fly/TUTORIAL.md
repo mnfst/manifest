@@ -29,7 +29,7 @@ Environment variables:
 - `FLY_POSTGRES_APP_NAME`: Postgres app name. Defaults to `<app-name>-db`.
 - `FLY_REGION`: Fly region. Defaults to `cdg`.
 - `FLY_ORG`: Fly organization. Defaults to `personal`.
-- `FLY_RECORDING_BUCKET_NAME`: private Tigris bucket name. Defaults to `<app-name>-recordings`.
+- `FLY_RECORDING_BUCKET_NAME`: private Tigris bucket name. Defaults to `<app-name>-recordings`. Keep the same value on reruns; changing an attached bucket requires a manual recording migration.
 
 The script uses [`fly.toml`](fly.toml) as a template and deploys `docker.io/manifestdotbuild/manifest:6`. It creates a private Tigris bucket and lets Fly stage the bucket's `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` secrets on the app; Manifest uses those credentials with the bucket name, Tigris endpoint, and `auto` region from `fly.toml`. Re-running the script keeps that bucket and the existing `BETTER_AUTH_SECRET` and `MANIFEST_ENCRYPTION_KEY` values; rotate those secrets manually only if you intend to invalidate sessions and encrypted provider credentials.
 

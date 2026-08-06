@@ -34,6 +34,16 @@ secret_exists() {
   fly secrets list --app "$APP_NAME" | awk 'NR > 1 { print $1 }' | grep -Fxq "$secret_name"
 }
 
+bucket_exists() {
+  fly storage list --org "$ORG" |
+    awk -v bucket="$RECORDING_BUCKET_NAME" 'NR > 1 && $1 == bucket { found=1 } END { exit !found }'
+}
+
+attached_bucket_name() {
+  fly storage status --app "$APP_NAME" 2>/dev/null |
+    awk '$1 == "Name" { print $2; exit }'
+}
+
 sed \
   -e "s/manifest-recordings-bucket/${RECORDING_BUCKET_NAME}/g" \
   -e "s/manifest-example/${APP_NAME}/g" \
@@ -48,14 +58,24 @@ else
 fi
 
 echo "Creating Tigris recording bucket ${RECORDING_BUCKET_NAME}..."
-if ! fly storage status "$RECORDING_BUCKET_NAME" --app "$APP_NAME" >/dev/null 2>&1; then
+attached_bucket="$(attached_bucket_name || true)"
+if [[ -n "$attached_bucket" ]]; then
+  if [[ "$attached_bucket" != "$RECORDING_BUCKET_NAME" ]]; then
+    echo "Fly app ${APP_NAME} is already attached to Tigris bucket ${attached_bucket}." >&2
+    echo "Keep FLY_RECORDING_BUCKET_NAME=${attached_bucket}, or migrate the bucket manually." >&2
+    exit 1
+  fi
+  echo "Tigris bucket ${RECORDING_BUCKET_NAME} already exists."
+elif bucket_exists; then
+  echo "Tigris bucket ${RECORDING_BUCKET_NAME} exists but is not attached to ${APP_NAME}." >&2
+  echo "Choose a new FLY_RECORDING_BUCKET_NAME or attach matching credentials manually." >&2
+  exit 1
+else
   fly storage create \
     --name "$RECORDING_BUCKET_NAME" \
     --org "$ORG" \
     --app "$APP_NAME" \
     --yes
-else
-  echo "Tigris bucket ${RECORDING_BUCKET_NAME} already exists."
 fi
 
 echo "Creating Fly Postgres app ${POSTGRES_APP_NAME} in ${REGION}..."
