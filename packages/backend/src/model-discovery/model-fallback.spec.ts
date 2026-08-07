@@ -298,14 +298,14 @@ describe('buildSubscriptionFallbackModels', () => {
     const result = buildSubscriptionFallbackModels('moonshot');
 
     expect(result.map((model) => model.id)).toEqual([
+      'k3',
+      'k3-256k',
       'kimi-for-coding',
       'kimi-for-coding-highspeed',
-      'kimi-k3',
-      'kimi-k3-256k',
     ]);
-    expect(result.find((model) => model.id === 'kimi-k3')?.contextWindow).toBe(1048576);
-    // kimi-k3-256k must not inherit the 1M window of its kimi-k3 prefix sibling.
-    expect(result.find((model) => model.id === 'kimi-k3-256k')?.contextWindow).toBe(262144);
+    expect(result.find((model) => model.id === 'k3')?.contextWindow).toBe(1048576);
+    // k3-256k must not inherit the 1M window of its k3 prefix sibling.
+    expect(result.find((model) => model.id === 'k3-256k')?.contextWindow).toBe(262144);
     expect(result.find((model) => model.id === 'kimi-for-coding')?.contextWindow).toBe(262144);
     expect(result.find((model) => model.id === 'kimi-for-coding-highspeed')?.contextWindow).toBe(
       262144,

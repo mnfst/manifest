@@ -51,8 +51,8 @@ describe('PurgeNonCuratedModels1772960000000', () => {
       expect(params).toContain('minimax-m2.7-highspeed');
       expect(params).toContain('kimi-for-coding');
       expect(params).toContain('kimi-for-coding-highspeed');
-      expect(params).toContain('kimi-k3');
-      expect(params).toContain('kimi-k3-256k');
+      expect(params).toContain('k3');
+      expect(params).toContain('k3-256k');
       expect(params.length).toBe(74);
     });
   });
