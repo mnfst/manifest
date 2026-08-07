@@ -61,10 +61,10 @@ describe('appConfig', () => {
     expect(config.nodeEnv).toBe('production');
   });
 
-  it('defaults dbPoolMax to 30', async () => {
+  it('defaults dbPoolMax to 10', async () => {
     delete process.env['DB_POOL_MAX'];
     const config = await loadConfig();
-    expect(config.dbPoolMax).toBe(30);
+    expect(config.dbPoolMax).toBe(10);
   });
 
   it('reads DB_POOL_MAX from env', async () => {
@@ -72,6 +72,15 @@ describe('appConfig', () => {
     const config = await loadConfig();
     expect(config.dbPoolMax).toBe(50);
   });
+
+  it.each(['', '0', '-1', '1.5', 'Infinity', '5abc'])(
+    'uses the default DB_POOL_MAX for invalid value %p',
+    async (value) => {
+      process.env['DB_POOL_MAX'] = value;
+      const config = await loadConfig();
+      expect(config.dbPoolMax).toBe(10);
+    },
+  );
 
   it('defaults dbTuneSession to true when DB_TUNE_SESSION is unset', async () => {
     delete process.env['DB_TUNE_SESSION'];
