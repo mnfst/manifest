@@ -463,6 +463,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     ],
     models: [],
   },
+  edenai: {
+    initial: 'EA',
+    subtitle: 'One key, 700+ models (EU)',
+    models: [],
+  },
 };
 
 /** @internal Exported for testing only */
@@ -519,6 +524,7 @@ const PROVIDER_ORDER = [
   'xai',
   'xiaomi',
   'zai',
+  'edenai',
 ];
 
 export const PROVIDERS: ProviderDef[] = PROVIDER_ORDER.map((id) => {
