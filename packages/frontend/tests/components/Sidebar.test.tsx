@@ -525,7 +525,7 @@ describe("Sidebar — Autofix card", () => {
     const { container } = render(() => <Sidebar />);
     await screen.findByText("Keep your agents reliable");
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.textContent).toContain("Autofix can repair eligible failing requests");
+    expect(container.textContent).toContain("Enable it to repair eligible failing requests");
     const btn = container.querySelector("button.sidebar-autofix__btn") as HTMLButtonElement;
     expect(btn?.textContent).toBe("Enable");
   });

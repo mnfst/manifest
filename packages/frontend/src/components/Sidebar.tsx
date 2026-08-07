@@ -370,7 +370,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
             </button>
           </div>
           <p class="sidebar-autofix__desc">
-            At least one of your agents runs without Autofix. Autofix can repair eligible failing
+            At least one of your agents runs without Autofix. Enable it to repair eligible failing
             requests before they reach the model.
           </p>
           <button type="button" class="sidebar-autofix__btn" onClick={openAutofixModal}>
