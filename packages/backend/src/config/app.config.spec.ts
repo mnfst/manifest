@@ -61,10 +61,10 @@ describe('appConfig', () => {
     expect(config.nodeEnv).toBe('production');
   });
 
-  it('defaults dbPoolMax to 30', async () => {
+  it('defaults dbPoolMax to 10', async () => {
     delete process.env['DB_POOL_MAX'];
     const config = await loadConfig();
-    expect(config.dbPoolMax).toBe(30);
+    expect(config.dbPoolMax).toBe(10);
   });
 
   it('reads DB_POOL_MAX from env', async () => {

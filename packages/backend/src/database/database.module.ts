@@ -58,7 +58,7 @@ import { RequestRecordingRetentionService } from './request-recording-retention.
         toRetry: shouldRetryDbConnection,
         logging: false,
         extra: {
-          // app.config.ts always resolves dbPoolMax (default 20), so there is no
+          // app.config.ts always resolves dbPoolMax (default 10), so there is no
           // undefined case to fall back from — keep that file the single source
           // of truth for the pool size.
           max: config.get<number>('app.dbPoolMax'),

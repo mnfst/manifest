@@ -37,7 +37,10 @@ export const appConfig = registerAs('app', () => ({
   mailgunApiKey: process.env['MAILGUN_API_KEY'] ?? '',
   mailgunDomain: process.env['MAILGUN_DOMAIN'] ?? '',
   notificationFromEmail: process.env['NOTIFICATION_FROM_EMAIL'] ?? 'noreply@manifest.build',
-  dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 30),
+  // Keep the per-process pool conservative by default. Multi-replica installs
+  // multiply this value, and large analytics queries can otherwise saturate a
+  // pooler and execute enough concurrent hash/sort work to exhaust DB memory.
+  dbPoolMax: Number(process.env['DB_POOL_MAX'] ?? 10),
   // Apply PgBouncer-safe planner defaults (jit off, larger work_mem, SSD-tuned
   // random_page_cost) as role-level defaults at boot. Set DB_TUNE_SESSION=false
   // to skip (e.g. a managed Postgres where the role lacks ALTER ROLE on itself).

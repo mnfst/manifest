@@ -408,7 +408,7 @@ describe('auth.instance', () => {
       loadModule();
 
       expect(Pool).toHaveBeenCalledWith(
-        expect.objectContaining({ max: 10, idleTimeoutMillis: 30000 }),
+        expect.objectContaining({ max: 5, idleTimeoutMillis: 30000 }),
       );
     });
 

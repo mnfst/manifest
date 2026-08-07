@@ -29,7 +29,7 @@ function createDatabaseConnection() {
   // connection pools don't jointly exhaust Postgres's max_connections. Auth
   // traffic is light relative to ingest, hence a smaller default than the app
   // pool. Idle connections are reaped after 30s to free server-side slots.
-  const max = Number(process.env['AUTH_DB_POOL_MAX'] ?? 10);
+  const max = Number(process.env['AUTH_DB_POOL_MAX'] ?? 5);
   return new Pool({ connectionString: databaseUrl, max, idleTimeoutMillis: 30000 });
 }
 

@@ -403,7 +403,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
-- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `30`
+- `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `10`
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
@@ -423,7 +423,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
 - `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).
 - `WINGMAN_PORT` — Dev-only. Port a locally-running Wingman build listens on, allowed through CSP `frame-src` and CORS alongside the hosted Wingman origin. Default: backend `PORT` + 1.
-- `AUTH_DB_POOL_MAX` — Connection pool size for Better Auth's own `pg.Pool`, separate from `DB_POOL_MAX`. Default: `10`.
+- `AUTH_DB_POOL_MAX` — Connection pool size for Better Auth's own `pg.Pool`, separate from `DB_POOL_MAX`. Default: `5`.
 - `OLLAMA_HOST` — Ollama endpoint for the built-in tile. Defaults to `http://localhost:11434` outside Docker and `http://host.docker.internal:11434` inside the bundled `docker/docker-compose.yml`.
 - The Phoenix healer URL is **not** configurable. It is the `AUTOFIX_URL` constant in `routing/autofix/autofix-healing-config.ts`; production (cloud and self-hosted alike) always heals against it, dev/test always uses the in-process mock. To switch Autofix off, use `AUTOFIX_GLOBAL_ENABLED=false`. See [Autofix](#autofix-self-healing-via-phoenix).
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Required for a cloud/production Phoenix that enforces a static key; omit it for a keyless dev/test Phoenix. **Self-hosted installs need no key**: with no key set, Manifest announces its anonymous install id instead (see [Autofix](#autofix-self-healing-via-phoenix)).

@@ -123,8 +123,8 @@ services:
       - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
       # Database tuning. DB_POOL_MAX sizes the app pool, AUTH_DB_POOL_MAX the
       # separate pool Better Auth opens for itself.
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-10}
+      - DB_POOL_MAX=${DB_POOL_MAX:-10}
+      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-5}
       - DB_TUNE_SESSION=${DB_TUNE_SESSION:-}
       # Set false for multi-replica deploys where only one instance should run
       # migrations. A single-container compose install wants the default.
