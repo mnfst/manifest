@@ -53,7 +53,7 @@ attached_bucket_name() {
 
   auth_token="$(fly auth token --json | jq -er '.token')"
   case "$auth_token" in
-    ,* | fm1r_* | fm2_* | *,fm1r_* | *,fm2_*) auth_scheme="FlyV1" ;;
+    ,* | fm1r_* | fm1a_* | fm2_* | *,fm1r_* | *,fm1a_* | *,fm2_*) auth_scheme="FlyV1" ;;
     *) auth_scheme="Bearer" ;;
   esac
 
