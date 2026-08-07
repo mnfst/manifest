@@ -37,7 +37,7 @@ const TERMINAL_RANK = `CASE WHEN ${sqlIsSuccessStatus('pa.status')} THEN 3
 const REQUEST_SUCCEEDED = sqlIsSuccessStatus('t.request_status');
 
 /**
- * How the request CONCLUDED. Auto-fix comes from the request outcome; fallback
+ * How the request CONCLUDED. Autofix comes from the request outcome; fallback
  * comes from the terminal attempt. These mark the method that produced the
  * conclusion, never mere attempts along the way.
  */
@@ -77,7 +77,7 @@ export interface DimensionVolumeRow {
   requests: number;
   failed: number;
   succeeded: number;
-  /** Requests recovered by Auto-fix (autofix_status = retry_succeeded). */
+  /** Requests recovered by Autofix (autofix_status = retry_succeeded). */
   healed: number;
   /** Requests recovered by fallback (terminal ok attempt with a fallback origin). */
   fallback: number;

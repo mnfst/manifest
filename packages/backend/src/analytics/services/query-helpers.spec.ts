@@ -518,7 +518,7 @@ describe('selectMessageRowColumns', () => {
     expect(nameCall).toEqual(['cp.name', 'custom_provider_name']);
   });
 
-  it('projects autofix_applied and autofix_role for Auto-fix rendering', () => {
+  it('projects autofix_applied and autofix_role for Autofix rendering', () => {
     const { qb, addSelectCalls } = makeMockQb();
     selectMessageRowColumns(qb, 'cost');
 

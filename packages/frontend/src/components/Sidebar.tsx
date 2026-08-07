@@ -49,7 +49,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const autofixInterval = setInterval(() => setAutofixTick((n) => n + 1), 15_000);
   onCleanup(() => clearInterval(autofixInterval));
   // Fail soft: a status-fetch blip must not take down the whole authenticated
-  // shell or surface the Auto-fix card without knowing which agents need it.
+  // shell or surface the Autofix card without knowing which agents need it.
   // On a failed poll tick, keep the last known status instead of blanking it —
   // the empty fallback only applies to the very first load.
   const [autofixStatus, { mutate: mutateAutofixStatus }] = createResource(
@@ -72,7 +72,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
   );
   const [confirmingAutofix, setConfirmingAutofix] = createSignal(false);
   // Dismissal only lasts the browser session: as long as some agents run
-  // without Auto-fix the card comes back next session.
+  // without Autofix the card comes back next session.
   const [autofixCardDismissed, setAutofixCardDismissed] = createSignal(
     sessionStorage.getItem(AUTOFIX_CARD_DISMISSED_KEY) === '1',
   );
@@ -333,8 +333,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
 
       <div class="sidebar__spacer" />
 
-      {/* The Auto-fix card shows in every deployment mode while at least one
-          agent runs without Auto-fix, unless dismissed for this session. */}
+      {/* The Autofix card shows in every deployment mode while at least one
+          agent runs without Autofix, unless dismissed for this session. */}
       <Show when={showAutofixCard()}>
         <div class="sidebar-autofix">
           <div class="sidebar-autofix__header">
@@ -354,7 +354,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
               type="button"
               class="sidebar-autofix__dismiss"
               title="Hide for this session"
-              aria-label="Hide the Auto-fix card for this session"
+              aria-label="Hide the Autofix card for this session"
               onClick={dismissAutofixCard}
             >
               <svg
@@ -370,7 +370,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
             </button>
           </div>
           <p class="sidebar-autofix__desc">
-            At least one of your agents runs without Auto-fix. Auto-fix can repair eligible failing
+            At least one of your agents runs without Autofix. Enable it to repair eligible failing
             requests before they reach the model.
           </p>
           <button type="button" class="sidebar-autofix__btn" onClick={openAutofixModal}>
@@ -463,18 +463,18 @@ const Sidebar: Component<SidebarProps> = (props) => {
               style="max-width: 560px;"
             >
               <h2 class="modal-card__title" id="sidebar-autofix-consent-title">
-                Enable Auto-fix
+                Enable Autofix
               </h2>
               <p class="modal-card__desc" id="sidebar-autofix-consent-description">
-                Failed requests will be sent to Manifest Auto-fix for diagnosis and repair. Provider
-                authorization credentials are not sent. Auto-fix works per agent, so turn it on for
+                Failed requests will be sent to Manifest Autofix for diagnosis and repair. Provider
+                authorization credentials are not sent. Autofix works per agent, so turn it on for
                 each agent below.{' '}
                 <a
                   href="https://manifest.build/docs/autofix/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  How Auto-fix works
+                  How Autofix works
                 </a>
                 .
               </p>
@@ -494,7 +494,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                         type="button"
                         role="switch"
                         aria-checked={agentToggles()[agent.name]?.on === true}
-                        aria-label={`Auto-fix for ${agent.display}`}
+                        aria-label={`Autofix for ${agent.display}`}
                         class="settings-switch"
                         classList={{
                           'settings-switch--on': agentToggles()[agent.name]?.on === true,
@@ -511,7 +511,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                 </For>
               </div>
               <p class="autofix-consent__legal">
-                By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+                By enabling Autofix, you agree to Manifest&apos;s{' '}
                 <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
                   Terms
                 </a>{' '}

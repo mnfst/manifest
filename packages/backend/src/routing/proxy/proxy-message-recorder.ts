@@ -65,7 +65,7 @@ function buildAutofixDecision(entry: AutofixChainEntry | undefined): object | nu
 }
 
 /**
- * Auto-fix audit for every Phoenix decision, plus linked-flow columns only when
+ * Autofix audit for every Phoenix decision, plus linked-flow columns only when
  * Manifest actually sent a patched retry.
  */
 function autofixColumns(
@@ -139,7 +139,7 @@ export interface ProviderErrorOpts extends HeaderTierRef {
    * provider request. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
-  /** Auto-fix audit when this error was the terminal outcome after healing. */
+  /** Autofix audit when this error was the terminal outcome after healing. */
   autofix?: AutofixRecord;
   /** API surface to retain when this terminal write creates the Request. */
   apiMode?: ProxyApiMode;
@@ -149,7 +149,7 @@ export type { ManifestBlockedRequestReason };
 
 export interface ManifestBlockedRequestOpts {
   requestId?: string;
-  /** Real provider retry to finalize when Auto-fix did not clear a Manifest block. */
+  /** Real provider retry to finalize when Autofix did not clear a Manifest block. */
   attempt?: ProviderAttemptRef;
   /**
    * The status the caller saw, when there was one. Omitted for the HTTP-200
@@ -167,7 +167,7 @@ export interface ManifestBlockedRequestOpts {
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   /**
-   * Auto-fix audit when this Manifest-blocked failure was handed to the healing
+   * Autofix audit when this Manifest-blocked failure was handed to the healing
    * service (e.g. an M302 unknown model). This path is used only when the block
    * remains caller-visible; a healed request finishes through the success path
    * and records only the provider retry Attempt.
@@ -238,7 +238,7 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
    * known params apply. Persisted to `agent_messages.request_params`.
    */
   requestParams?: RequestParamDefaults | null;
-  /** Request-level Auto-fix outcome when a failed retry later fell back. */
+  /** Request-level Autofix outcome when a failed retry later fell back. */
   autofix?: AutofixRecord;
   /** API surface to retain when this terminal write creates the Request. */
   apiMode?: ProxyApiMode;
@@ -264,7 +264,7 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   callerAttribution?: CallerAttribution | null;
   requestHeaders?: Record<string, string> | null;
   requestParams?: RequestParamDefaults | null;
-  /** Auto-fix audit when a healed request succeeded. */
+  /** Autofix audit when a healed request succeeded. */
   autofix?: AutofixRecord;
   /** API surface to retain when this terminal write creates the Request. */
   apiMode?: ProxyApiMode;
@@ -667,7 +667,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       autofix,
       apiMode,
     } = opts ?? {};
-    // A real Auto-fix retry must never disappear behind the generic 429
+    // A real Autofix retry must never disappear behind the generic 429
     // deduplication window; it is required to complete the linked attempt story.
     if (
       httpStatus === 429 &&
@@ -956,10 +956,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierId?: string | null;
       headerTierName?: string | null;
       headerTierColor?: string | null;
-      /** Provider status for the superseded primary or failed Auto-fix retry. */
+      /** Provider status for the superseded primary or failed Autofix retry. */
       httpStatus?: number | null;
       /**
-       * Auto-fix audit when this superseded primary was also an Auto-fix
+       * Autofix audit when this superseded primary was also an Autofix
        * attempt. Stamped onto THIS row (not a separate `auto_fixed` row) so a
        * heal-then-fallback flow records the primary failure exactly once.
        */
@@ -1212,7 +1212,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   }
 
   /**
-   * Record the failed original request of an Auto-fix flow as its own row,
+   * Record the failed original request of an Autofix flow as its own row,
    * linked to the successful or failed retry via `autofix.groupId`.
    */
   async recordAutofixOriginal(

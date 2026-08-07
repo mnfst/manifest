@@ -816,7 +816,7 @@ const ConnectionDetail: Component = () => {
 
               {/* Attempt world cards: the connection's own numbers on the
                   filtered period. Fallback retries exist for everyone;
-                  auto-fixed attempts only exist with the Doctor version. */}
+                  autofixed attempts only exist with the Doctor version. */}
               <div
                 class="overview-stats"
                 style="grid-template-columns: repeat(5, 1fr); margin-bottom: 16px;"
@@ -888,10 +888,10 @@ const ConnectionDetail: Component = () => {
                 <div
                   class="overview-stat-card"
                   style="cursor: pointer;"
-                  title="View the requests where this connection ran an auto-fixed attempt"
+                  title="View the requests where this connection ran an autofixed attempt"
                   onClick={() => navigate(requestsLink('&trigger=autofix'))}
                 >
-                  <span class="overview-stat-card__label">Auto-fixed attempts</span>
+                  <span class="overview-stat-card__label">Autofixed attempts</span>
                   <div class="overview-stat-card__value-row">
                     <span class="overview-stat-card__value">
                       {formatNumber(breakdown()?.autofix_attempts ?? 0)}

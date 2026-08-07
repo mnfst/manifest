@@ -42,7 +42,7 @@ export class AutofixAnalyticsController {
     return this.autofixStats.getWorkspaceStatus(ctx.tenantId);
   }
 
-  /** Enable Auto-fix for every agent in the workspace and record consent. */
+  /** Enable Autofix for every agent in the workspace and record consent. */
   @Post('autofix/enable-all')
   async enableAll(@TenantCtx() ctx: TenantContext) {
     if (!ctx.tenantId) {

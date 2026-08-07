@@ -119,7 +119,7 @@ export interface ObservationInput {
   traceId: string;
   tenantId: string;
   /**
-   * The agent the request routed through. Used ONLY to resolve the Auto-fix
+   * The agent the request routed through. Used ONLY to resolve the Autofix
    * consent gate (`isActiveFor`) — never part of the observation, since Phoenix
    * attributes failures to a tenant, not to an agent.
    */

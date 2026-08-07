@@ -32,7 +32,7 @@ export function computeTrend(current: number, previous: number): number {
  * "what is an error" — consumed both by the Messages-log error filter and by
  * every "messages" KPI count below, so the two notions can never drift.
  */
-// `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
+// `auto_fixed` is the failed-original row of a healed Autofix pair; its paired
 // `ok` retry row is the real success, so the original is excluded here to avoid
 // double-counting one logical request.
 //

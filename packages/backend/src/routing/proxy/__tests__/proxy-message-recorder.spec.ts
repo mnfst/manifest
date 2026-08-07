@@ -1756,7 +1756,7 @@ describe('ProxyMessageRecorder', () => {
       expect(row.autofix_operations).toEqual(operations);
     });
 
-    it('recordProviderError keeps a no-patch Phoenix audit without claiming Auto-fix', async () => {
+    it('recordProviderError keeps a no-patch Phoenix audit without claiming Autofix', async () => {
       const noPatch: AutofixRecord = {
         groupId: 'grp-no-patch',
         outcome: 'unfixable',
@@ -1884,7 +1884,7 @@ describe('ProxyMessageRecorder', () => {
 
     it('recordAutofixOriginal carries the Phoenix explanation onto autofix_decision', async () => {
       // Phoenix's human-readable "why" is persisted alongside the ids so the
-      // dashboard Auto-fix card can render it (not re-derive it locally).
+      // dashboard Autofix card can render it (not re-derive it locally).
       const explanation = {
         summary: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
         operations: [

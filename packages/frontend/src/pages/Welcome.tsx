@@ -278,7 +278,7 @@ const Welcome: Component = () => {
   const [harnessError, setHarnessError] = createSignal('');
   // Both default ON, mirroring the Connect Harness modal — explicit so create
   // always sends a choice rather than relying on the server-side inherit path
-  // (which is OFF for Auto-fix on self-hosted). Creating with Auto-fix on is
+  // (which is OFF for Autofix on self-hosted). Creating with Autofix on is
   // itself the consent act (the backend records it), so the form shows the
   // legal line inline instead of a consent dialog mid-onboarding.
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
@@ -925,11 +925,11 @@ const Welcome: Component = () => {
                         <div class="model-params__row">
                           <div class="model-params__row-text">
                             <div class="model-params__label-title">
-                              <span>Auto-fix</span>
+                              <span>Autofix</span>
                             </div>
                             <div class="model-params__label-hint">
                               Repair eligible failing requests before falling back. Failed requests
-                              are sent to Manifest Auto-fix for diagnosis; provider authorization
+                              are sent to Manifest Autofix for diagnosis; provider authorization
                               credentials are never sent.
                             </div>
                           </div>
@@ -938,7 +938,7 @@ const Welcome: Component = () => {
                               type="button"
                               role="switch"
                               aria-checked={autofixEnabled()}
-                              aria-label="Auto-fix"
+                              aria-label="Autofix"
                               class="settings-switch"
                               classList={{ 'settings-switch--on': autofixEnabled() }}
                               disabled={creating()}
@@ -987,12 +987,20 @@ const Welcome: Component = () => {
                   </div>
                   <Show when={autofixEnabled()}>
                     <p class="autofix-consent__legal welcome__legal">
-                      By enabling Auto-fix, you agree to Manifest&apos;s{' '}
-                      <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
+                      By enabling Autofix, you agree to Manifest&apos;s{' '}
+                      <a
+                        href="https://manifest.build/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Terms
                       </a>{' '}
                       and{' '}
-                      <a href="https://manifest.build/privacy" target="_blank" rel="noopener noreferrer">
+                      <a
+                        href="https://manifest.build/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         Privacy Policy
                       </a>
                       .

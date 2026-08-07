@@ -110,7 +110,7 @@ function rebuildForward(base: ForwardResult, body: string, status: number): Forw
 }
 
 /**
- * Auto-fix: heal a repairable request-side 4xx by handing the failed request and
+ * Autofix: heal a repairable request-side 4xx by handing the failed request and
  * its provider error to Phoenix and resending the patched body ONCE — all BEFORE
  * the fallback chain runs. A no-op unless the forward already failed with a
  * repairable status AND the agent opted in, so successful traffic is never
@@ -146,7 +146,7 @@ export class AutofixService {
     // confirm what the process actually loaded — e.g. whether the global kill
     // switch is off, or self-hosted detection flipped the per-agent default off
     // — straight from the deploy logs, without shell access. This is the first
-    // thing to check when "Auto-fix never runs".
+    // thing to check when "Autofix never runs".
     this.logger.log(
       `config: globalEnabled=${this.globalEnabled} ` +
         `defaultAgentEnabled=${this.defaultAgentEnabled} ` +
@@ -155,7 +155,7 @@ export class AutofixService {
   }
 
   /**
-   * Resolve an agent's stored Auto-fix flag to an effective on/off value. A
+   * Resolve an agent's stored Autofix flag to an effective on/off value. A
    * NULL/undefined flag means "no explicit choice" and inherits the
    * deployment-mode default: ON in cloud, OFF in self-hosted.
    */
@@ -163,7 +163,7 @@ export class AutofixService {
     return stored ?? this.defaultAgentEnabled;
   }
 
-  /** Whether a status is one Auto-fix will try to heal. */
+  /** Whether a status is one Autofix will try to heal. */
   isRepairable(status: number): boolean {
     return this.repairableStatuses.has(status);
   }
@@ -182,7 +182,7 @@ export class AutofixService {
   }
 
   /**
-   * Is Auto-fix active for this agent — deployment-wide and for the agent itself?
+   * Is Autofix active for this agent — deployment-wide and for the agent itself?
    * These are exactly the gates {@link maybeHeal} clears before
    * it hands a request to Phoenix (it checks them inline so it can log *which*
    * one short-circuited; keep the two in lockstep).
@@ -191,7 +191,7 @@ export class AutofixService {
    * status set (scope) and the circuit breaker (availability).
    *
    * This is the **consent boundary** for anything that ships a caller's request to
-   * the healing service. Turning Auto-fix on is what agrees to that; the evidence
+   * the healing service. Turning Autofix on is what agrees to that; the evidence
    * reporter must not send a body for an agent that never did. Rejects rather than
    * resolves false on a DB hiccup, so callers fail closed on purpose.
    */
@@ -237,7 +237,7 @@ export class AutofixService {
     if (forward.response.ok) return null;
 
     // Everything below runs ONLY for failed forwards, so these diagnostics stay
-    // low-volume. They make "why didn't Auto-fix run?" answerable from logs
+    // low-volume. They make "why didn't Autofix run?" answerable from logs
     // alone: one line per failed request stamped with the resolved configuration,
     // then a single reason whenever a check short-circuits the heal.
     const status = forward.response.status;
@@ -523,7 +523,7 @@ export class AutofixService {
       // row whose only selected column is NULL as "no entity" and returns null,
       // so `select: ['autofix_enabled']` alone makes every NULL-flag agent (the
       // default "inherit the mode default" state) look not-found — which then
-      // resolves to `enabled: false` below and silently disables Auto-fix for it.
+      // resolves to `enabled: false` below and silently disables Autofix for it.
       // The always-present `id` keeps the row materialized so the NULL flag is read.
       select: ['id', 'autofix_enabled', 'agent_platform'],
     });

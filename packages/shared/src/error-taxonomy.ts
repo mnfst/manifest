@@ -37,7 +37,7 @@ export const OK_STATUS = 'ok';
 export const RATE_LIMITED_STATUS = 'rate_limited';
 /** A row that failed but was recovered by a later attempt (retry / fallback). */
 export const SUPERSEDED_STATUS = 'fallback_error';
-/** The failed original of a healed Auto-fix flow — recovered by the retry row. */
+/** The failed original of a healed Autofix flow — recovered by the retry row. */
 export const AUTOFIX_ORIGINAL_STATUS = 'auto_fixed';
 /** Every status whose row is a recovered (superseded) attempt, not a terminal failure. */
 export const SUPERSEDED_STATUSES: readonly string[] = [SUPERSEDED_STATUS, AUTOFIX_ORIGINAL_STATUS];

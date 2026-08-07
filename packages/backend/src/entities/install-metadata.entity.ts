@@ -24,7 +24,7 @@ export class InstallMetadata {
   @Column(timestampType(), { nullable: true })
   last_sent_at!: string | null;
 
-  /** When the self-hosted install consented to Auto-fix (null = never). */
+  /** When the self-hosted install consented to Autofix (null = never). */
   @Column(timestampType(), { nullable: true })
   autofix_consented_at!: string | null;
 }

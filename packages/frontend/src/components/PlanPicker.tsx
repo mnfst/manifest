@@ -9,7 +9,7 @@ const freeFeatures = [
   'All providers, no restrictions',
   'Subscription providers (Claude, ChatGPT, Gemini...)',
   '7-day dashboard retention',
-  'Auto-fix',
+  'Autofix',
   'Budget alerts and notifications',
   'Community support via Discord',
 ];

@@ -21,10 +21,10 @@ export interface ErrorBreakdownResponse {
   /** Manifest's OWN config/policy/internal rejections — NOT a provider failure. */
   manifest_errors: number;
   /**
-   * Requests healed by Auto-fix in the window — one per healed request. NOT additive with
+   * Requests healed by Autofix in the window — one per healed request. NOT additive with
    * `total_errors`: the healed original is a superseded attempt that is already
    * included in `total_errors`/`by_origin`, so treat this as "of those errors,
-   * this many were auto-fixed", never as a separate error bucket to sum.
+   * this many were autofixed", never as a separate error bucket to sum.
    */
   auto_fixed: number;
   by_origin: Record<string, number>;
@@ -106,7 +106,7 @@ export class ErrorBreakdownService {
     return Number(row?.count ?? 0);
   }
 
-  /** Count each request whose Auto-fix retry actually succeeded. */
+  /** Count each request whose Autofix retry actually succeeded. */
   private async queryAutoFixed(
     cutoff: string,
     tenantId: string | null,

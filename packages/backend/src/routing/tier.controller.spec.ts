@@ -283,7 +283,7 @@ describe('TierController', () => {
     });
 
     it('does not record consent on a disable, but still busts the status cache', async () => {
-      // Consent means "I agree to turn Auto-fix on" — switching an agent off
+      // Consent means "I agree to turn Autofix on" — switching an agent off
       // must never mint it. The write still changes `any_enabled`, so the
       // cached workspace status has to be dropped like on an enable.
       installMetadataRepo.findOne.mockResolvedValue(null);

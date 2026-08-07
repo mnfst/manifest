@@ -39,7 +39,7 @@ export class ApiKeyGeneratorService {
     displayName?: string;
     agentCategory?: string;
     agentPlatform?: string;
-    /** Explicit Auto-fix choice. Undefined → column default / mode inherit (NULL). */
+    /** Explicit Autofix choice. Undefined → column default / mode inherit (NULL). */
     autofixEnabled?: boolean;
     /** Explicit recording choice. Undefined → column default (true for new agents). */
     recordMessages?: boolean;
@@ -79,14 +79,10 @@ export class ApiKeyGeneratorService {
       agent_category: params.agentCategory ?? null,
       agent_platform: params.agentPlatform ?? null,
       // Only set when the caller made an explicit choice. Leaving them out lets
-      // the column default / NULL-inherit path apply (Auto-fix mode default,
+      // the column default / NULL-inherit path apply (Autofix mode default,
       // recording ON for new agents).
-      ...(params.autofixEnabled !== undefined
-        ? { autofix_enabled: params.autofixEnabled }
-        : {}),
-      ...(params.recordMessages !== undefined
-        ? { record_messages: params.recordMessages }
-        : {}),
+      ...(params.autofixEnabled !== undefined ? { autofix_enabled: params.autofixEnabled } : {}),
+      ...(params.recordMessages !== undefined ? { record_messages: params.recordMessages } : {}),
       is_active: true,
       tenant_id: tenantId,
     });

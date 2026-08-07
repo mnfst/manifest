@@ -241,7 +241,7 @@ describe('AttemptStatsService', () => {
       autofix_attempts_succeeded: 10,
     });
     const selects = qb.addSelect.mock.calls.flat().join(' ');
-    // A fallback is a retry; an auto-fix produces an attempt (autofix_role).
+    // A fallback is a retry; an autofix produces an attempt (autofix_role).
     expect(selects).toContain('at.fallback_from_model IS NOT NULL');
     expect(selects).toContain("at.autofix_role = 'retry'");
   });

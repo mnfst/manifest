@@ -402,7 +402,7 @@ describe('AutofixService', () => {
   // maybeHeal — happy heal on the single attempt
   // -------------------------------------------------------------------------
   describe('maybeHeal happy path', () => {
-    it('finishes the original Provider Attempt before Auto-fix consumes its response', async () => {
+    it('finishes the original Provider Attempt before Autofix consumes its response', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-recording' });
       const finishRecording = jest.fn().mockResolvedValue(undefined);
@@ -801,7 +801,7 @@ describe('AutofixService', () => {
     it('preserves a failed patched retry as the terminal exhausted attempt', async () => {
       const client = makeHealingClient();
       client.heal.mockResolvedValue(patchedHeal());
-      // The patched retry still fails with a repairable 400 — Auto-fix does NOT
+      // The patched retry still fails with a repairable 400 — Autofix does NOT
       // re-heal; it reports and returns the retry as the terminal attempt.
       const reforward = reforwardMock('{"error":{"message":"still-broken","code":"dup"}}', 400);
       const { repo } = makeAgentRepo(() => ({ autofix_enabled: true }));
@@ -1299,7 +1299,7 @@ describe('isActiveFor (the consent gate)', () => {
     });
   });
 
-  it('inherits the self-hosted default, where Auto-fix is opt-in', async () => {
+  it('inherits the self-hosted default, where Autofix is opt-in', async () => {
     await withMode('selfhosted', async () => {
       const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: null })).repo });
 
@@ -1307,13 +1307,13 @@ describe('isActiveFor (the consent gate)', () => {
     });
   });
 
-  it('is inactive when the deployment killed Auto-fix globally', async () => {
+  it('is inactive when the deployment killed Autofix globally', async () => {
     const service = makeService({ config: makeConfig({ AUTOFIX_GLOBAL_ENABLED: 'false' }) });
 
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
   });
 
-  it('is inactive when the agent turned Auto-fix off', async () => {
+  it('is inactive when the agent turned Autofix off', async () => {
     const service = makeService({ repo: makeAgentRepo(() => ({ autofix_enabled: false })).repo });
 
     await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);

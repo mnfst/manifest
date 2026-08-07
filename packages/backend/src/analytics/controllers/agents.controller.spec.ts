@@ -545,7 +545,7 @@ describe('AgentsController', () => {
     // not linger in a cached list (both tenant-keyed entries).
     expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
     expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
-    // ...along with the Auto-fix status entry, which would otherwise keep
+    // ...along with the Autofix status entry, which would otherwise keep
     // reporting the rolled-back agent as enabled until the dashboard TTL, so
     // the sidebar contradicts a workspace the agent no longer appears in.
     expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/autofix/status');

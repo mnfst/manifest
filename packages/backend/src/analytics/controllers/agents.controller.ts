@@ -94,7 +94,7 @@ export class AgentsController {
     const displayName = body.name.trim();
     let result: Awaited<ReturnType<ApiKeyGeneratorService['onboardAgent']>>;
     try {
-      // The create dialog presents the hosted Auto-fix disclosure and legal
+      // The create dialog presents the hosted Autofix disclosure and legal
       // links whenever this explicit opt-in is on. Persist that install-level
       // consent before creating an enabled agent so failures stay fail-closed.
       if (body.autofix_enabled === true) {
@@ -142,7 +142,7 @@ export class AgentsController {
       }
       // The agent was committed (briefly visible) then rolled back, so drop the
       // cache entries that captured it — deleteAgent only clears the resolve +
-      // routing caches. The Auto-fix status key matters as much as the agent
+      // routing caches. The Autofix status key matters as much as the agent
       // list: without it, /autofix/status keeps reporting the rolled-back agent
       // as enabled for the dashboard TTL, so the sidebar disagrees with the
       // workspace about an agent that no longer exists.
