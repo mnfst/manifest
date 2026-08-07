@@ -1,0 +1,25 @@
+packages/shared/__tests__/subscription.spec.ts
+  s_1c3009c939ccc0::t_bdb2db73075b52 273-274,431-432
+.changeset/trim-codeassist-models.md
+  s_1c3009c939ccc0::t_bdb2db73075b52 1-5
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_1c3009c939ccc0::t_bdb2db73075b52 374-375
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_1c3009c939ccc0::t_bdb2db73075b52 2262,2267,2300,2365-2366
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "fe8435916cadf8b5a57a075534393dea02a73ee2",
+  "prompts": {},
+  "sessions": {
+    "s_1c3009c939ccc0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fdb3e-617e-7150-beee-fafff9cfa4c2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
