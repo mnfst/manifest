@@ -73,6 +73,15 @@ describe('appConfig', () => {
     expect(config.dbPoolMax).toBe(50);
   });
 
+  it.each(['', '0', '-1', '1.5', 'Infinity', '5abc'])(
+    'uses the default DB_POOL_MAX for invalid value %p',
+    async (value) => {
+      process.env['DB_POOL_MAX'] = value;
+      const config = await loadConfig();
+      expect(config.dbPoolMax).toBe(10);
+    },
+  );
+
   it('defaults dbTuneSession to true when DB_TUNE_SESSION is unset', async () => {
     delete process.env['DB_TUNE_SESSION'];
     const config = await loadConfig();

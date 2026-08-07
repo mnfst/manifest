@@ -421,6 +421,19 @@ describe('auth.instance', () => {
 
       expect(Pool).toHaveBeenCalledWith(expect.objectContaining({ max: 25 }));
     });
+
+    it.each(['', '0', '-1', '1.5', 'Infinity', '5abc'])(
+      'uses the default AUTH_DB_POOL_MAX for invalid value %p',
+      (value) => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { Pool } = require('pg') as { Pool: jest.Mock };
+        process.env['AUTH_DB_POOL_MAX'] = value;
+
+        loadModule();
+
+        expect(Pool).toHaveBeenCalledWith(expect.objectContaining({ max: 5 }));
+      },
+    );
   });
 
   describe('baseURL configuration', () => {
