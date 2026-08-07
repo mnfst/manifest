@@ -1,0 +1,38 @@
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_ab63d745d4f31c::t_6e0a7b2834e581 303
+  s_ab63d745d4f31c::t_4396e79d18f64a 22,201,203-208
+  s_ab63d745d4f31c::t_d319a2f0f85dcc 209
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_ab63d745d4f31c::t_280fc0686ad3ca 46
+  s_ab63d745d4f31c::t_4396e79d18f64a 1-2,31-36,64-102,183-184,186
+  s_ab63d745d4f31c::t_af0dcbb70dd496 37
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_ab63d745d4f31c::t_1294cac3e940e3 1145-1186,1188-1203
+  s_ab63d745d4f31c::t_17e749a6d34bbe 1187
+  s_ab63d745d4f31c::t_280fc0686ad3ca 1850
+.changeset/preserve-provider-error-details.md
+  s_ab63d745d4f31c::t_57e318856dd6f7 1-5
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_ab63d745d4f31c::t_4396e79d18f64a 148,156,165,174
+  s_ab63d745d4f31c::t_1294cac3e940e3 109-136
+  s_ab63d745d4f31c::t_280fc0686ad3ca 183,186,190,295
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_ab63d745d4f31c::t_26008f4c69a7ad 648-650
+  s_ab63d745d4f31c::t_1294cac3e940e3 612-647,651-666
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "6f0193647d6c5a22c624fa65b41aae1f34aff7da",
+  "prompts": {},
+  "sessions": {
+    "s_ab63d745d4f31c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd15d-629a-79a0-920b-c5d19bb44734",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

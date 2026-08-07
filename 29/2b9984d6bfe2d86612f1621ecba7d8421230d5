@@ -1,0 +1,27 @@
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_ab63d745d4f31c::t_eaf073e772379a 178-207
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_ab63d745d4f31c::t_a8aba427910592 46-50
+  s_ab63d745d4f31c::t_a531f95dffa39a 51-58
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_ab63d745d4f31c::t_a531f95dffa39a 212-214
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_ab63d745d4f31c::t_0071d17e42f160 826
+  s_ab63d745d4f31c::t_eaf073e772379a 823-825,836,852-853
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "292b9984d6bfe2d86612f1621ecba7d8421230d5",
+  "prompts": {},
+  "sessions": {
+    "s_ab63d745d4f31c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd15d-629a-79a0-920b-c5d19bb44734",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

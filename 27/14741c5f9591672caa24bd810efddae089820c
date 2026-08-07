@@ -1,0 +1,21 @@
+deploy/fly/deploy.sh
+  s_cec5e3bd24894f::t_fedd9488cf337d 14-18,43,46-52,69-78
+deploy/fly/TUTORIAL.md
+  s_cec5e3bd24894f::t_fedd9488cf337d 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "2714741c5f9591672caa24bd810efddae089820c",
+  "prompts": {},
+  "sessions": {
+    "s_cec5e3bd24894f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd691-0513-7f13-aba8-4f9b5444b2a2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
