@@ -1,0 +1,19 @@
+deploy/fly/deploy.sh
+  s_1cca4682ede69d::t_34cf7b150885ce 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c5e1eaf2a4cb9396ab85d7ef93d065f232ec473e",
+  "prompts": {},
+  "sessions": {
+    "s_1cca4682ede69d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fdb2c-ac5d-78b1-9596-5b4c3a8e857c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
