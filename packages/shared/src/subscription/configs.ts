@@ -152,12 +152,20 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Kimi Coding Plan',
     subscriptionAuthMode: 'token' as const,
     subscriptionKeyPlaceholder: 'Paste your Kimi Code API key',
-    knownModels: Object.freeze(['kimi-for-coding', 'kimi-k3']),
+    knownModels: Object.freeze([
+      'kimi-for-coding',
+      'kimi-for-coding-highspeed',
+      'kimi-k3',
+      'kimi-k3-256k',
+    ]),
     knownModelsMatch: 'exact' as const,
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 262144,
       modelContextWindows: Object.freeze({
         'kimi-k3': 1048576,
+        // Explicit entry: context-window resolution prefix-matches, so without
+        // this kimi-k3-256k would inherit the 1M window of its kimi-k3 sibling.
+        'kimi-k3-256k': 262144,
       }),
       supportsPromptCaching: true,
       supportsBatching: false,

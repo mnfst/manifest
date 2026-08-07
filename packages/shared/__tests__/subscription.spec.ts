@@ -397,7 +397,12 @@ describe('getSubscriptionKnownModels', () => {
   });
 
   it('returns the fixed model ids for moonshot Kimi Coding Plan', () => {
-    expect(getSubscriptionKnownModels('moonshot')).toEqual(['kimi-for-coding', 'kimi-k3']);
+    expect(getSubscriptionKnownModels('moonshot')).toEqual([
+      'kimi-for-coding',
+      'kimi-for-coding-highspeed',
+      'kimi-k3',
+      'kimi-k3-256k',
+    ]);
   });
 
   it('returns known models for cline-pass including Kimi K3', () => {
@@ -575,6 +580,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsBatching: false,
     });
     expect(caps?.modelContextWindows?.['kimi-k3']).toBe(1048576);
+    expect(caps?.modelContextWindows?.['kimi-k3-256k']).toBe(262144);
   });
 
   it('returns capabilities for Qwen Token Plan', () => {

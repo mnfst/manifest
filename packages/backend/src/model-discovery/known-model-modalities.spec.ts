@@ -26,6 +26,21 @@ describe('lookupKnownModalities', () => {
     }
   });
 
+  it('identifies Kimi Coding Plan models as accepting image (and video) input', () => {
+    for (const modelId of ['kimi-k3', 'kimi-for-coding', 'kimi-for-coding-highspeed']) {
+      expect(lookupKnownModalities('moonshot', modelId)).toEqual({
+        input: ['text', 'image', 'video'],
+        output: ['text'],
+        capabilities: ['text', 'image', 'video', 'tools', 'stream'],
+      });
+    }
+    expect(lookupKnownModalities('moonshot', 'kimi-k3-256k')).toEqual({
+      input: ['text', 'image'],
+      output: ['text'],
+      capabilities: ['text', 'image', 'tools', 'stream'],
+    });
+  });
+
   it('returns undefined for models without a curated entry', () => {
     expect(lookupKnownModalities('openai', 'unlisted-model')).toBeUndefined();
     expect(lookupKnownModalities('anthropic', 'gpt-5.3-codex-spark')).toBeUndefined();
