@@ -371,6 +371,8 @@ describe('supplementWithKnownModels', () => {
 
     expect(ids).toContain('gemini-3.1-flash-lite');
     expect(ids).toContain('gemini-3.1-flash-lite-preview');
+    expect(ids).not.toContain('gemini-3.1-pro-preview');
+    expect(ids).not.toContain('gemini-3-flash-preview');
   });
 });
 
