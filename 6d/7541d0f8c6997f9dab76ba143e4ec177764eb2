@@ -1,0 +1,20 @@
+packages/backend/test/helpers.ts
+  s_1cca4682ede69d::t_71759fa3283458 56,243,246-248
+  s_1cca4682ede69d::t_52c3a74772fdbc 244-245
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "6d7541d0f8c6997f9dab76ba143e4ec177764eb2",
+  "prompts": {},
+  "sessions": {
+    "s_1cca4682ede69d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fdb2c-ac5d-78b1-9596-5b4c3a8e857c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
