@@ -283,9 +283,9 @@ If the dashboard loads as a **blank page on a LAN IP on an older image**, pull t
 
 Every release is published with the following tags:
 
-- `{major}.{minor}.{patch}` - fully pinned (e.g. `5.46.0`)
-- `{major}.{minor}` - latest patch within a minor (e.g. `5.46`)
-- `{major}` - latest minor+patch within a major (e.g. `5`)
+- `{major}.{minor}.{patch}` - fully pinned (e.g. `6.18.0`)
+- `{major}.{minor}` - latest patch within a minor (e.g. `6.18`)
+- `{major}` - latest minor+patch within a major (e.g. `6`)
 - `latest` - latest stable release
 - `sha-<short>` - exact commit for rollback
 
@@ -300,11 +300,11 @@ docker compose pull
 docker compose up -d
 ```
 
-Database migrations run automatically on boot, no manual steps. Your data in the `pgdata` volume is preserved across upgrades. Pin to a specific major version (e.g. `manifestdotbuild/manifest:5`) in `docker-compose.yml` if you want control over when major upgrades happen.
+Database migrations run automatically on boot, no manual steps. Your data in the `pgdata` volume is preserved across upgrades. Pin to a specific major version (e.g. `manifestdotbuild/manifest:6`) in `docker-compose.yml` if you want control over when major upgrades happen.
 
 ## Backup & persistence
 
-All state lives in the `pgdata` named volume mounted at `/var/lib/postgresql/data` in the `postgres` service. Nothing else in the Manifest container is stateful.
+PostgreSQL state lives in the `mnfst_pgdata` named volume mounted at `/var/lib/postgresql/data` in the `postgres` service. The Compose install also stores local request recordings in the `mnfst_recordings` volume mounted at `/data/request-recordings`; those recordings are not included in a PostgreSQL dump. For ephemeral hosts or multiple instances, configure durable S3-compatible storage instead.
 
 **Back up** (from the host, with the stack running):
 
@@ -323,7 +323,7 @@ docker compose up -d
 To list / remove the volume manually:
 
 ```bash
-docker volume ls | grep pgdata
+docker volume ls | grep -E 'mnfst_(pgdata|recordings)'
 docker compose down -v    # ⚠  destroys all data
 ```
 
