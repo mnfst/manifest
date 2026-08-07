@@ -1,0 +1,27 @@
+packages/backend/src/config/env.util.ts
+  s_c578c56d15b2ef::t_5a55a997be387f 1-5
+packages/backend/src/config/app.config.ts
+  s_c578c56d15b2ef::t_5a55a997be387f 2,38
+packages/backend/src/auth/auth.instance.ts
+  s_c578c56d15b2ef::t_5a55a997be387f 9,33
+packages/backend/src/config/app.config.spec.ts
+  s_c578c56d15b2ef::t_5a55a997be387f 76-84
+packages/backend/src/auth/auth.instance.spec.ts
+  s_c578c56d15b2ef::t_5a55a997be387f 424-436
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "21473af1cd2fd0c4ea78739c2eabe5b580d41a2f",
+  "prompts": {},
+  "sessions": {
+    "s_c578c56d15b2ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fdb3c-62fd-79c3-a1a3-6bf45e18c667",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
