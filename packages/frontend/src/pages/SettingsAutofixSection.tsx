@@ -3,7 +3,7 @@ import { useSearchParams } from '@solidjs/router';
 import { getAutofix, updateAutofix } from '../services/api.js';
 
 /**
- * Per-agent Auto-fix toggle on the Settings page. Fetches its own status and
+ * Per-agent Autofix toggle on the Settings page. Fetches its own status and
  * persists the on/off choice. The effective value shown here already reflects
  * the deployment-mode default resolved by the backend (ON in cloud, OFF in
  * self-hosted) when the agent has made no explicit choice. The legal line under
@@ -55,14 +55,14 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
 
   return (
     <>
-      <h2 class="settings-section__title">Auto-fix</h2>
+      <h2 class="settings-section__title">Autofix</h2>
       <div
         class="settings-card settings-card--flush"
         classList={{ 'settings-card--highlight': highlighted() }}
       >
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Auto-fix failing requests</span>
+            <span class="settings-card__label-title">Autofix failing requests</span>
             <span class="settings-card__label-desc">
               When a request fails with a fixable error, Manifest repairs it and retries once before
               falling back, so a bad request gets fixed instead of just failing over.
@@ -73,7 +73,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
               type="button"
               role="switch"
               aria-checked={enabled()}
-              aria-label="Auto-fix"
+              aria-label="Autofix"
               class="settings-switch"
               classList={{ 'settings-switch--on': enabled() }}
               disabled={busy()}
@@ -87,7 +87,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
         </div>
       </div>
       <p class="autofix-consent__legal settings-card__legal">
-        By enabling Auto-fix, you agree to Manifest&apos;s{' '}
+        By enabling Autofix, you agree to Manifest&apos;s{' '}
         <a href="https://manifest.build/terms" target="_blank" rel="noopener noreferrer">
           Terms
         </a>{' '}

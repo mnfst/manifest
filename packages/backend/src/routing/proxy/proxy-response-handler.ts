@@ -54,7 +54,7 @@ import type { AttemptRecordingCapture } from './attempt-recording-capture';
 
 const logger = new Logger('ProxyResponseHandler');
 
-/** The current primary is attempt 2 only when Auto-fix actually sent a retry. */
+/** The current primary is attempt 2 only when Autofix actually sent a retry. */
 export function currentPrimaryAttemptNumber(autofix: AutofixRecord | undefined): number {
   return getAutofixRetry(autofix) ? 2 : 1;
 }
@@ -936,7 +936,7 @@ export function recordSuccess(
   }
 
   // Fallback-success flows recorded the original and failed retry above in
-  // recordFallbackFailures. A direct Auto-fix success records its original here.
+  // recordFallbackFailures. A direct Autofix success records its original here.
   if (!meta.fallbackFromModel) {
     recordAutofixOriginalIfRetried(
       ctx,

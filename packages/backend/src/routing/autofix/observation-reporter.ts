@@ -34,7 +34,7 @@ interface QueuedObservation {
  * Streams an agent's request-side 4xx to Phoenix as observations, carrying the
  * full request body.
  *
- * Auto-fix itself only reports the requests it actually heals: the narrow
+ * Autofix itself only reports the requests it actually heals: the narrow
  * `AUTOFIX_REPAIRABLE_STATUSES` set, the primary attempt only, and only when the
  * heal call gets through. Everything else reached Phoenix solely through
  * Peacock's hourly scrape of `agent_messages`, which stores the model-parameter
@@ -43,8 +43,8 @@ interface QueuedObservation {
  * Manifest: the body is scrubbed, batched, and POSTed to Phoenix, which is where
  * request evidence already lives.
  *
- * **Only for agents with Auto-fix on** ({@link AutofixService.isActiveFor}).
- * Turning Auto-fix on is what agrees to send failing requests to the healing
+ * **Only for agents with Autofix on** ({@link AutofixService.isActiveFor}).
+ * Turning Autofix on is what agrees to send failing requests to the healing
  * service; an agent that never did must not have its callers' prompt content
  * shipped there. The gate is checked per report and fails closed.
  *
@@ -75,7 +75,7 @@ export class ObservationReporter implements OnModuleDestroy {
   }
 
   /**
-   * Queue a failed forward for reporting, if the agent has Auto-fix on.
+   * Queue a failed forward for reporting, if the agent has Autofix on.
    * Synchronous and non-throwing by contract — the caller is on the request path
    * and must never wait on, or fail because of, evidence collection. The consent
    * gate is async (cached, an occasional DB read), so it runs detached.

@@ -222,7 +222,7 @@ export class TierController {
   }
 
   private async recordAutofixConsent(): Promise<void> {
-    // The singleton row may not exist yet (telemetry disabled, Auto-fix enabled
+    // The singleton row may not exist yet (telemetry disabled, Autofix enabled
     // directly). install_id is NOT NULL, so mint one alongside the consent; the
     // healing client's lazy getOrCreate() then reuses it.
     await this.installMetadataRepo

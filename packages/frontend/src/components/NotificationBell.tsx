@@ -152,7 +152,7 @@ const NotificationBell: Component = () => {
 
         <Show when={open()}>
           <div class="notif-dropdown">
-            <div class="notif-dropdown__header">Auto-fix notifications</div>
+            <div class="notif-dropdown__header">Autofix notifications</div>
             <div class="notif-dropdown__list">
               <For each={disabledAgents()}>
                 {(agent) => {
@@ -170,7 +170,7 @@ const NotificationBell: Component = () => {
                         </Show>
                       </div>
                       <span style="font-size: 14px;">
-                        Auto-fix is inactive on <strong>{agent.display}</strong>. Enable it to get
+                        Autofix is inactive on <strong>{agent.display}</strong>. Enable it to get
                         the full dashboard experience.
                       </span>
                     </A>

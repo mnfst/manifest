@@ -889,7 +889,7 @@
   background: hsl(var(--muted) / 0.28);
 }
 
-/* ── Auto-fix step ──────────────────────────────── */
+/* ── Autofix step ──────────────────────────────── */
 
 /* ── Route & test step ──────────────────────────── */
 
@@ -1082,7 +1082,7 @@
   border-radius: 4px;
 }
 
-/* ── Auto-fix step: concrete repair examples ────── */
+/* ── Autofix step: concrete repair examples ────── */
 
 .welcome__autofix-details {
   margin-top: 18px;

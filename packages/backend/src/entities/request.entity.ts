@@ -52,7 +52,7 @@ export class ManifestRequest {
   @Column('varchar')
   status!: string;
 
-  /** How Auto-fix ended for this request. NULL means it was not recorded. */
+  /** How Autofix ended for this request. NULL means it was not recorded. */
   @Column('varchar', { nullable: true })
   autofix_status!: AutofixStatus | null;
 

@@ -164,9 +164,9 @@ export interface RoutingMeta {
   primaryAttempt?: ProviderAttemptRef;
   /** Whether the primary/retry actually crossed the provider transport boundary. */
   primaryProviderCallStarted?: boolean;
-  /** Internal identity of the original failure before an Auto-fix retry. */
+  /** Internal identity of the original failure before an Autofix retry. */
   autofixOriginalAttempt?: ProviderAttemptRef;
-  /** Whether the pre-Auto-fix original actually invoked provider transport. */
+  /** Whether the pre-Autofix original actually invoked provider transport. */
   autofixOriginalProviderCallStarted?: boolean;
 }
 
@@ -174,11 +174,11 @@ export interface ProxyResult {
   forward: ForwardResult;
   meta: RoutingMeta;
   failedFallbacks?: FailedFallback[];
-  /** Auto-fix audit when a repairable failure was sent to the healing service. */
+  /** Autofix audit when a repairable failure was sent to the healing service. */
   autofix?: AutofixRecord;
 }
 
-/** Everything Auto-fix's reforward needs to re-send a healed body to a provider. */
+/** Everything Autofix's reforward needs to re-send a healed body to a provider. */
 interface HealedReforwardContext {
   agentId: string;
   tenantId: string;
@@ -445,7 +445,7 @@ export class ProxyService {
     const autofixOriginalAttempt = forward.attempt;
     const autofixOriginalProviderCallStarted = forward.providerCallStarted;
 
-    // Auto-fix runs BEFORE the fallback chain: heal a repairable 4xx and retry
+    // Autofix runs BEFORE the fallback chain: heal a repairable 4xx and retry
     // the patched request, so a fixable request isn't sprayed across every
     // fallback provider. A no-op unless the agent opted in and the forward
     // failed with a repairable status, so successful traffic is untouched.
@@ -703,7 +703,7 @@ export class ProxyService {
   }
 
   /**
-   * Re-send an Auto-fix-healed wire body. Same model → use the exact resolved
+   * Re-send an Autofix-healed wire body. Same model → use the exact resolved
    * transport without re-merging or translating. Model changed (e.g. an
    * unknown-model fix) → re-resolve so it reaches the right provider/key (M5).
    */
@@ -834,7 +834,7 @@ export class ProxyService {
   /** Synthetic failed forward so a heal that can't be re-routed surfaces the original error. */
   private autofixReforwardError(reason: string): ForwardResult {
     return {
-      response: new Response(JSON.stringify({ error: { message: `Auto-fix: ${reason}` } }), {
+      response: new Response(JSON.stringify({ error: { message: `Autofix: ${reason}` } }), {
         status: 502,
         headers: { 'content-type': 'application/json' },
       }),

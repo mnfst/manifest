@@ -115,7 +115,7 @@ describe('routing API client (additional coverage)', () => {
     await expect(routing.copilotPollToken('demo', 'dc-1')).rejects.toThrow(/Poll failed/);
   });
 
-  describe('auto-fix config', () => {
+  describe('autofix config', () => {
     it('getAutofix GETs the autofix endpoint', async () => {
       const fetchMock = setupFetch({ enabled: true });
       const out = await routing.getAutofix('demo');

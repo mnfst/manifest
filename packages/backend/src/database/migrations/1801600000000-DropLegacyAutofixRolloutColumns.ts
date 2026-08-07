@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Auto-fix is generally available, so tenant rollout timestamps no longer
+ * Autofix is generally available, so tenant rollout timestamps no longer
  * affect access. Historical waitlist claims are intentionally retained until
  * their separate compatibility and data-retention window closes.
  */

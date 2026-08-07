@@ -32,8 +32,8 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
-// AddAgentModal checks workspace Auto-fix consent before creating an agent with
-// Auto-fix on (the default). Unmocked it rejects, which fails closed into the
+// AddAgentModal checks workspace Autofix consent before creating an agent with
+// Autofix on (the default). Unmocked it rejects, which fails closed into the
 // consent dialog and stops the create these tests assert on.
 const mockGetWorkspaceAutofixStatus = vi.fn();
 vi.mock('../../src/services/api/analytics.js', () => ({

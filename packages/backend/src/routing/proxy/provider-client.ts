@@ -354,7 +354,7 @@ export class ProviderClient {
 
       // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
       // subscription resource URLs). Re-check every actual forward, including
-      // an immediate Auto-fix retry, because DNS may have rebound in between.
+      // an immediate Autofix retry, because DNS may have rebound in between.
       if (endpoint.requiresSsrfRevalidation) {
         try {
           await validatePublicUrl(url, { allowPrivate: isSelfHosted() });

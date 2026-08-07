@@ -173,7 +173,7 @@ export function toggleComplexity(agentName: string) {
   });
 }
 
-/* -- Routing: Auto-fix -- */
+/* -- Routing: Autofix -- */
 
 export interface AutofixConfig {
   enabled: boolean;

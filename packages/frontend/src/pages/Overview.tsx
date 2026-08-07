@@ -259,7 +259,7 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
-  // ── Auto-fix resources ─────────────────────────────────
+  // ── Autofix resources ─────────────────────────────────
   const [autofixStats] = createResource(
     () => ({
       range: effectiveRange(),

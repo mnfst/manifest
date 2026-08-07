@@ -685,7 +685,7 @@
   padding: var(--gap-md) var(--gap-lg);
 }
 
-/* ── Settings toggle switch (e.g. Auto-fix) ─────────── */
+/* ── Settings toggle switch (e.g. Autofix) ─────────── */
 .settings-switch {
   display: inline-flex;
   align-items: center;

@@ -15,7 +15,7 @@ describe('AutofixAnalyticsController', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('delegates every Auto-fix analytics route with tenant scope', async () => {
+  it('delegates every Autofix analytics route with tenant scope', async () => {
     service.getWorkspaceStatus.mockResolvedValue({
       any_enabled: true,
       enabled_agents: ['demo'],

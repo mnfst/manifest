@@ -77,12 +77,12 @@ const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a)
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockGetAutofixStats = vi.fn();
 vi.mock('../../src/services/api/analytics.js', () => ({
-  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Autofix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP:
     'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
-      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      ? 'Every provider call counts here, including fallback retries and autofixed attempts. One request can produce several attempts.'
       : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
   MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
   PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
@@ -533,7 +533,7 @@ describe('Overview', () => {
     expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
     // Tab + KPI cards share the label; both surfaces are present.
     expect(screen.getAllByText('Recovered requests').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
+    expect(screen.getByText('Recovered by Autofix')).toBeDefined();
     expect(screen.getByText('Recovered by Fallback')).toBeDefined();
   });
 

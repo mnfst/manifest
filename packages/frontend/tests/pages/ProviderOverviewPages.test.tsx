@@ -77,12 +77,12 @@ vi.mock('../../src/services/api/routing.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
-  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Autofix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP:
     'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
-      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      ? 'Every provider call counts here, including fallback retries and autofixed attempts. One request can produce several attempts.'
       : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
   MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
   PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
@@ -982,7 +982,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
     expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
-      'auto-fixed attempts',
+      'autofixed attempts',
     );
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
@@ -1097,7 +1097,7 @@ describe('ConnectionDetail (analytics)', () => {
     });
     await waitFor(() => {
       const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Auto-fixed attempts'),
+        c.textContent?.includes('Autofixed attempts'),
       );
       expect(card?.textContent).toContain('5');
       expect(card?.textContent).toContain('4 succeeded');
@@ -1125,12 +1125,12 @@ describe('ConnectionDetail (analytics)', () => {
     );
   });
 
-  it('links the Auto-fixed attempts card', async () => {
+  it('links the Autofixed attempts card', async () => {
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     const card = await waitFor(() => {
       const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Auto-fixed attempts'),
+        c.textContent?.includes('Autofixed attempts'),
       );
       expect(found).toBeDefined();
       return found!;

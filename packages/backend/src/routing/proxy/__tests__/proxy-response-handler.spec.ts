@@ -896,7 +896,7 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordFailedFallbacks).toHaveBeenCalled();
     });
 
-    it('numbers an Auto-fix retry before its fallback attempts', () => {
+    it('numbers an Autofix retry before its fallback attempts', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'gpt-4o' });
       const failedFallbacks: FailedFallback[] = [
@@ -964,7 +964,7 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
-    it('records the original and failed Auto-fix retry before a successful fallback', () => {
+    it('records the original and failed Autofix retry before a successful fallback', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({
         fallbackFromModel: 'gpt-4o',
@@ -1002,7 +1002,7 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('attributes the Auto-fix original row to the primary connection label', () => {
+    it('attributes the Autofix original row to the primary connection label', () => {
       // The retry that failed ran on the PRIMARY connection; meta.provider_key_label
       // already names the fallback that recovered the request, so the
       // autofix_role='original' row must read primaryKeyLabel instead —
@@ -1036,7 +1036,7 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    it('does not attribute the Auto-fix original to the fallback provider', () => {
+    it('does not attribute the Autofix original to the fallback provider', () => {
       const recorder = mockRecorder();
       const meta = makeMeta({
         fallbackFromModel: 'gpt-4o',
@@ -2784,7 +2784,7 @@ describe('proxy-response-handler', () => {
       );
     });
 
-    // A healed Auto-fix chain: the failed original attempt is recorded as its
+    // A healed Autofix chain: the failed original attempt is recorded as its
     // own auto_fixed row, linked to the successful-retry success row above.
     const healedAutofix: AutofixRecord = {
       groupId: 'grp-1',
@@ -2802,7 +2802,7 @@ describe('proxy-response-handler', () => {
       ],
     };
 
-    it('records the failed Auto-fix original(s) when the chain has a failed entry (healed)', () => {
+    it('records the failed Autofix original(s) when the chain has a failed entry (healed)', () => {
       const recorder = mockRecorder();
       const meta = makeMeta();
       const usage: StreamUsage = { prompt_tokens: 100, completion_tokens: 50 };
@@ -2859,10 +2859,10 @@ describe('proxy-response-handler', () => {
 
     it('does NOT record a separate auto_fixed original when healing EXHAUSTED but a fallback then succeeded', () => {
       // Fallback-success path: meta.fallbackFromModel is set (so the
-      // recordFallbackSuccess branch runs) and the Auto-fix chain carries a
+      // recordFallbackSuccess branch runs) and the Autofix chain carries a
       // failed attempt — but healing did NOT heal. The failed primary is
       // already recorded exactly once as the `fallback_error` row (stamped with
-      // the Auto-fix audit by recordFallbackFailures), so emitting an
+      // the Autofix audit by recordFallbackFailures), so emitting an
       // `auto_fixed` row here too would double-count it under the fallback model.
       const recorder = mockRecorder();
       const meta = makeMeta({ fallbackFromModel: 'claude-opus', fallbackIndex: 0 });
@@ -2902,8 +2902,8 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
-    it('does not record Auto-fix originals when healing did not heal (outcome !== healed)', () => {
-      // An Auto-fix record that did not heal must not trigger
+    it('does not record Autofix originals when healing did not heal (outcome !== healed)', () => {
+      // An Autofix record that did not heal must not trigger
       // recordAutofixOriginal — the guard is the presence of a real retry.
       const recorder = mockRecorder();
       const meta = makeMeta();
@@ -2931,7 +2931,7 @@ describe('proxy-response-handler', () => {
       expect(recorder.recordAutofixOriginal).not.toHaveBeenCalled();
     });
 
-    it('does not record Auto-fix originals when autofix is absent', () => {
+    it('does not record Autofix originals when autofix is absent', () => {
       // Guards the `autofix && …` short-circuit: no autofix record at all.
       const recorder = mockRecorder();
       const meta = makeMeta();
