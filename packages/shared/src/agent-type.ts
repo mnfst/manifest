@@ -8,6 +8,7 @@ export const AGENT_PLATFORMS = [
   'craft',
   'claude-code',
   'opencode',
+  'codex',
   'openai-sdk',
   'anthropic-sdk',
   'vercel-ai-sdk',
@@ -37,6 +38,7 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
   craft: 'Craft Agent',
   'claude-code': 'Claude Code',
   opencode: 'OpenCode',
+  codex: 'Codex',
   'openai-sdk': 'OpenAI SDK',
   'anthropic-sdk': 'Anthropic SDK',
   'vercel-ai-sdk': 'Vercel AI SDK',
@@ -48,7 +50,7 @@ export const PLATFORM_LABELS: Readonly<Record<AgentPlatform, string>> = {
 export const PLATFORMS_BY_CATEGORY: Readonly<Record<AgentCategory, readonly AgentPlatform[]>> = {
   personal: ['openclaw', 'hermes', 'nanobot', 'craft', 'other'],
   app: ['openai-sdk', 'anthropic-sdk', 'vercel-ai-sdk', 'langchain', 'other'],
-  coding: ['claude-code', 'opencode', 'other'],
+  coding: ['claude-code', 'opencode', 'codex', 'other'],
 };
 
 export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = {
@@ -58,6 +60,7 @@ export const PLATFORM_ICONS: Readonly<Partial<Record<AgentPlatform, string>>> = 
   craft: '/icons/craft.png',
   'claude-code': '/icons/providers/claude-code.svg',
   opencode: '/icons/providers/opencode.svg',
+  codex: '/icons/providers/codex.svg',
   'openai-sdk': '/icons/providers/openai.svg',
   'anthropic-sdk': '/icons/providers/anthropic.svg',
   'vercel-ai-sdk': '/icons/vercel.svg',
