@@ -1,0 +1,29 @@
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_bbc09c1ba5f8c9::t_f3567285ac3a28 179,182,184
+.changeset/bedrock-openai-responses-path.md
+  s_bbc09c1ba5f8c9::t_a57aaf4906ba65 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_bbc09c1ba5f8c9::t_f3567285ac3a28 440-446,452,458,469,490,496
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_bbc09c1ba5f8c9::t_509ba8acbea416 87
+  s_bbc09c1ba5f8c9::t_1bdda98f0dadfd 83,86,88-90,210
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_bbc09c1ba5f8c9::t_f3567285ac3a28 253-259,261,263-270
+  s_bbc09c1ba5f8c9::t_509ba8acbea416 260,262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "b363a62337679bde6fc1e3d2e1a135b0d48f08d0",
+  "prompts": {},
+  "sessions": {
+    "s_bbc09c1ba5f8c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe173-686d-7111-b41d-cef2e024c069",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
