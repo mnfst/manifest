@@ -250,6 +250,24 @@ describe('resolveBedrockEndpointKey', () => {
 });
 
 describe('PROVIDER_ENDPOINTS', () => {
+  it.each([
+    'openai.gpt-5.4',
+    'openai.gpt-5.4-2026-03-05',
+    'openai.gpt-5.5',
+    'openai.gpt-5.6-sol',
+    'openai.gpt-5.6-terra',
+    'openai.gpt-5.6-luna',
+    'bedrock/openai.gpt-5.6-luna',
+  ])('uses the namespaced Bedrock Responses path for %s', (model) => {
+    expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath(model)).toBe('/openai/v1/responses');
+  });
+
+  it('keeps Bedrock GPT OSS models on the generic Responses path', () => {
+    expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath('openai.gpt-oss-120b')).toBe(
+      '/v1/responses',
+    );
+  });
+
   it('routes Gemini Free through the configured LiteLLM gateway', () => {
     process.env['CREDITS_BASE_URL'] = 'https://credits.test/';
     const endpoint = PROVIDER_ENDPOINTS['gemini-free'];

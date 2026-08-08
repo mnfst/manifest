@@ -437,19 +437,25 @@ describe('ProviderClient', () => {
       expect(result.isGoogle).toBe(false);
     });
 
-    it('routes Bedrock OpenAI models through the Responses API', async () => {
+    it.each([
+      'openai.gpt-5.4',
+      'openai.gpt-5.5',
+      'openai.gpt-5.6-sol',
+      'openai.gpt-5.6-terra',
+      'openai.gpt-5.6-luna',
+    ])('routes Bedrock %s through the namespaced Responses API', async (model) => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const result = await client.forward({
         provider: 'bedrock',
         apiKey: 'bedrock-api-key-test',
-        model: 'openai.gpt-5.6-luna',
+        model,
         body: { ...body, max_tokens: 1024 },
         stream: false,
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://bedrock-mantle.us-east-1.api.aws/v1/responses',
+        'https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses',
         expect.objectContaining({
           method: 'POST',
           headers: {
@@ -460,7 +466,7 @@ describe('ProviderClient', () => {
       );
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.model).toBe('openai.gpt-5.6-luna');
+      expect(sentBody.model).toBe(model);
       expect(sentBody.input).toEqual([
         { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
       ]);
@@ -481,13 +487,13 @@ describe('ProviderClient', () => {
         body: { ...body, max_tokens: 1024 },
         stream: false,
         customEndpoint: buildEndpointOverride(
-          'https://bedrock-mantle.eu-west-1.api.aws',
+          'https://bedrock-mantle.us-west-2.api.aws',
           'bedrock-responses',
         ),
       });
 
       expect(mockFetch.mock.calls[0][0]).toBe(
-        'https://bedrock-mantle.eu-west-1.api.aws/v1/responses',
+        'https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses',
       );
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.max_output_tokens).toBe(1024);
