@@ -80,7 +80,11 @@ const pioneerHeaders = (apiKey: string) => ({
 
 const openaiPath = () => '/v1/chat/completions';
 const BEDROCK_OPENAI_MODEL_RE = /(?:^|\.)openai\./i;
+const BEDROCK_GPT_5_MODEL_RE = /(?:^|\.)openai\.gpt-5(?:[.-]|$)/i;
 const BEDROCK_ANTHROPIC_MODEL_RE = /(?:^|\.)anthropic\./i;
+
+const bedrockResponsesPath = (model: string) =>
+  BEDROCK_GPT_5_MODEL_RE.test(stripVendorPrefix(model)) ? '/openai/v1/responses' : '/v1/responses';
 
 export function resolveBedrockEndpointKey(
   model: string,
@@ -201,7 +205,7 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
   'bedrock-responses': {
     baseUrl: getBedrockMantleBaseUrl(),
     buildHeaders: openaiHeaders,
-    buildPath: () => '/v1/responses',
+    buildPath: bedrockResponsesPath,
     format: 'chatgpt',
     forwardResponsesStream: true,
     acceptsMaxOutputTokens: true,
