@@ -119,6 +119,26 @@ describe('ProviderParamSpecService', () => {
     );
   });
 
+  it.each([
+    ['k3', ['max_completion_tokens', 'thinking.type', 'response_format.type']],
+    ['k3-256k', ['max_completion_tokens', 'thinking.type', 'response_format.type']],
+    ['kimi-for-coding', ['max_completion_tokens', 'response_format.type']],
+    ['kimi-for-coding-highspeed', ['max_completion_tokens', 'response_format.type']],
+  ])('resolves Moonshot wire id %s through its metadata model', async (model, paths) => {
+    const service = new ProviderParamSpecService();
+
+    const specs = await service.getSpecs('moonshot', 'subscription', model);
+
+    expect(specs.map((spec) => spec.path)).toEqual(paths);
+    expect(specs[0]).toEqual(
+      expect.objectContaining({
+        provider: 'moonshot',
+        authType: 'subscription',
+        model,
+      }),
+    );
+  });
+
   it('strips dated Bedrock model ids for providerless params while preserving the route identity', async () => {
     const service = new ProviderParamSpecService();
 
@@ -154,6 +174,7 @@ describe('ProviderParamSpecService', () => {
 
     await expect(service.getSpecs('openai', 'local', 'gpt-4o')).resolves.toEqual([]);
     await expect(service.getSpecs('openai', 'api_key', 'missing-model')).resolves.toEqual([]);
+    await expect(service.getSpecs('moonshot', 'api_key', 'missing-model')).resolves.toEqual([]);
     await expect(service.getCapabilities('openai', 'api_key', 'missing-model')).resolves.toBeNull();
   });
 });
