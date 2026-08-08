@@ -80,13 +80,11 @@ const pioneerHeaders = (apiKey: string) => ({
 
 const openaiPath = () => '/v1/chat/completions';
 const BEDROCK_OPENAI_MODEL_RE = /(?:^|\.)openai\./i;
-const BEDROCK_NAMESPACED_RESPONSES_MODEL_RE = /(?:^|\.)openai\.gpt-5\.(?:4|5|6)(?:[.-]|$)/i;
+const BEDROCK_GPT_5_MODEL_RE = /(?:^|\.)openai\.gpt-5(?:[.-]|$)/i;
 const BEDROCK_ANTHROPIC_MODEL_RE = /(?:^|\.)anthropic\./i;
 
 const bedrockResponsesPath = (model: string) =>
-  BEDROCK_NAMESPACED_RESPONSES_MODEL_RE.test(stripVendorPrefix(model))
-    ? '/openai/v1/responses'
-    : '/v1/responses';
+  BEDROCK_GPT_5_MODEL_RE.test(stripVendorPrefix(model)) ? '/openai/v1/responses' : '/v1/responses';
 
 export function resolveBedrockEndpointKey(
   model: string,
