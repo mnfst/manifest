@@ -1,5 +1,14 @@
 # manifest
 
+## 6.18.1
+
+### Patch Changes
+
+- 87475e2: Route Bedrock GPT-5.4, GPT-5.5, and GPT-5.6 models through the namespaced OpenAI Responses API path.
+- e821268: Bound dashboard query concurrency and reduce default PostgreSQL pool sizes.
+- ecb3c8d: Spell Autofix without a hyphen across the dashboard, notifications, and emails.
+- 549bece: Stop advertising Gemini 3.1 Pro Preview and Gemini 3 Flash Preview for Google Code Assist subscriptions because the Code Assist API returns model-not-found responses for both routes.
+
 ## 6.18.0
 
 ### Minor Changes
