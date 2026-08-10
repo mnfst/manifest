@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-08-10
 
 ## What Manifest Is
 
@@ -84,7 +84,7 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (24 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -112,7 +112,7 @@ packages/
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
 │   │   │   ├── header-tiers/               # Header-based tier overrides
-│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax, Copilot)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
@@ -360,6 +360,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/agent/costs`                           | Bearer (mnfst\_\*)                  | Cost data for the calling agent                                                                             |
 | GET                       | `/api/v1/overview/*`                            | Session/API Key                     | Overview timeseries/breakdown sub-endpoints                                                                 |
 | GET                       | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key                     | Connected provider list + usage                                                                             |
+| POST                      | `/api/v1/providers/:providerId/ensure`          | Session/API Key                     | Provision a managed free-provider virtual key (e.g. Gemini Free)                                            |
 | GET                       | `/api/v1/provider-analytics/*`                  | Session/API Key                     | Per-provider analytics                                                                                      |
 | GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
 | GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status + email preferences (Stripe)                                                                 |
@@ -368,6 +369,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
+| GET/POST                  | `/api/v1/autofix/*`                             | Session/API Key                     | Fleet-level Autofix status + enable-all (see [Autofix](#autofix-self-healing-via-phoenix))                  |
 | POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
 | GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
 | POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
@@ -398,16 +400,26 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `NODE_ENV` — `development` or `production`. Dev allows broad CORS (local dashboard + Wingman); production allows the hosted Wingman origin plus any `WINGMAN_CORS_ORIGINS` entries.
 - `CORS_ORIGIN` — Allowed CORS origin (dev). Default: `http://localhost:3000`
 - `WINGMAN_CORS_ORIGINS` — Production only. Extra browser origins allowed to call the gateway (comma-separated). The hosted Wingman (`https://wingman.manifest.build`) is always allowed.
+- `FRAME_ANCESTORS` — Extra origins allowed to embed the dashboard in an iframe, added to the CSP `frame-ancestors` directive. Comma-separated; malformed entries are rejected rather than silently dropped. Empty by default.
 - `BETTER_AUTH_URL` — Base URL for Better Auth. Default: `http://localhost:{PORT}`
 - `FRONTEND_PORT` — Extra trusted origin port for Better Auth.
 - `API_KEY` — Secret for programmatic API access (X-API-Key header).
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
 - `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `10`
+- `DB_TUNE_SESSION` — Set `false` to skip the PgBouncer-safe planner defaults (JIT off, larger `work_mem`, SSD-tuned `random_page_cost`) Manifest applies as role-level defaults at boot — needed on a managed Postgres where the role can't `ALTER ROLE` itself. Default: `true`
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
+- `MIGRATION_DATABASE_URL` / `BACKFILL_DATABASE_URL` — Cloud-only direct (non-pooled) database URLs for migrations and the request-backfill CLIs. Never point these at PgBouncer.
+- `SHUTDOWN_DRAIN_MS` — Graceful-shutdown drain window (ms). On `SIGTERM` in production the server keeps accepting traffic (while the health probe reports 503) for this long, so the platform edge deregisters the replica before its socket closes. Must be shorter than the platform's own draining window. Default: `10000`; `0` disables it.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
+- `STREAM_IDLE_TIMEOUT_MS` — Max silence (ms) between upstream streaming events before failing the request with `504`. Default: `180000`
 - `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS` — Timeout (ms) to wait for deliverable ChatGPT Codex text or tool output. Default: `60000`
+- `REQUEST_RECORDING_RETENTION_DAYS` / `REQUEST_RECORDING_STORAGE` / `REQUEST_RECORDING_FILESYSTEM_PATH` / `REQUEST_RECORDING_S3_*` — Full request/response body recording. Retention defaults to the Cloud plan (Free 7d / Pro 365d) or 365d self-hosted. Storage (`auto` | `s3` | `filesystem` | `disabled`) defaults to `auto`: complete S3 credentials win, otherwise self-hosted installs use the mounted filesystem path; Cloud never falls back to ephemeral local storage.
+- `CREDITS_BASE_URL` / `CREDITS_MASTER_KEY` / `CREDITS_AUTO_PROVISION_ALLOWLIST` / `CREDITS_GEMINI_FREE_MAX_BUDGET` — Managed gateway for free-tier providers (e.g. Gemini Free). A master key auto-provisions virtual keys; without one, users paste a virtual key from the provider's own "Get API key" flow.
+- `ERROR_PAGE_PUSH_SECRET` — Shared secret the internal error-page push endpoint (`/api/v1/internal/error-pages`) requires in the `x-internal-secret` header. Empty by default — the endpoint rejects all writes until it's set.
+- `MANIFEST_FRONTEND_DIR` — Custom path to the built frontend `dist/` directory.
+- `MANIFEST_EMBEDDED` — Set to skip auto-start, for embedding the server in another process.
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
 - `EMAIL_API_KEY` — API key for the configured `EMAIL_PROVIDER`.
 - `EMAIL_DOMAIN` — Sending domain (required for Mailgun).
