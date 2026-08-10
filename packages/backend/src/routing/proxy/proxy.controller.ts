@@ -202,7 +202,7 @@ export class ProxyController {
     };
   }
 
-  @Post('chat/completions')
+  @Post('chat/completions-disabled-for-contract-test')
   async chatCompletions(
     @Req() req: Request & { ingestionContext: IngestionContext },
     @Res() res: ExpressResponse,

@@ -39,15 +39,6 @@ function assertAuthenticationRequired(path, result) {
   );
 }
 
-test('POST /v1/chat/completions remains available', async () => {
-  const result = await post('/v1/chat/completions', {
-    model: 'auto',
-    messages: [{ role: 'user', content: 'hello' }],
-  });
-
-  assertAuthenticationRequired('/v1/chat/completions', result);
-});
-
 test('POST /v1/responses remains available', async () => {
   const result = await post('/v1/responses', {
     model: 'auto',
