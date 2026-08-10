@@ -1,0 +1,19 @@
+contracts/gateway/tests/routes.test.mjs
+  s_e41a6c349bce9b::t_6c3988be019bd8 10,12-18,44-52,55-60,62-67,74-79,84-96
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3113d242822d29aac72157a34ba609c8d9b46af3",
+  "prompts": {},
+  "sessions": {
+    "s_e41a6c349bce9b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fea97-8bb5-7962-856d-0eaa853953c9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
