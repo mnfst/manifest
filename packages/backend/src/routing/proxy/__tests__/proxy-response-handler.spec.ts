@@ -2059,11 +2059,12 @@ describe('proxy-response-handler', () => {
       expect(forward.response.text).toHaveBeenCalled();
     });
 
-    it('should convert a JSON Responses object for non-streaming ChatGPT-format upstreams (Bedrock GPT-5.x)', async () => {
+    it('should convert a JSON Responses object via providerClient for non-streaming ChatGPT-format upstreams (Bedrock GPT-5.x)', async () => {
       // Regression for the Bedrock non-streaming bug: bedrock-mantle
       // /openai/v1/responses returns a plain JSON Responses object (not SSE)
-      // when stream:false. The handler must parse it with fromResponsesResponse
-      // instead of the SSE collector, otherwise content comes back null.
+      // when stream:false. The handler must route it through the DI-mockable
+      // providerClient.convertChatGptResponse, not the SSE collector — otherwise
+      // the SSE collector finds no events and content comes back null.
       const { res } = mockResponse();
       const client = mockProviderClient();
       const responsesJson = {
@@ -2080,52 +2081,12 @@ describe('proxy-response-handler', () => {
       const forward = mockForward(responsesJson, { isChatGpt: true });
       const meta = makeMeta();
 
-      const usage = await handleNonStreamResponse(
-        res as any,
-        forward as any,
-        meta,
-        {},
-        client as any,
-      );
-
-      // The SSE collector must NOT be used for a JSON body.
-      expect(client.collectChatGptSseResponse).not.toHaveBeenCalled();
-      const sentBody = res.json.mock.calls[0][0];
-      expect(sentBody.object).toBe('chat.completion');
-      expect(sentBody.choices[0].message.content).toBe('ok');
-      expect(sentBody.usage.prompt_tokens).toBe(11);
-      expect(sentBody.usage.completion_tokens).toBe(5);
-      expect(sentBody.usage.total_tokens).toBe(16);
-      expect(usage).toMatchObject({ prompt_tokens: 11, completion_tokens: 5 });
-    });
-
-    it('should preserve reasoning and tool calls from a JSON Responses object', async () => {
-      const { res } = mockResponse();
-      const client = mockProviderClient();
-      const responsesJson = {
-        object: 'response',
-        output: [
-          { type: 'reasoning', summary: [{ text: 'thinking' }] },
-          {
-            type: 'function_call',
-            call_id: 'call_1',
-            name: 'get_weather',
-            arguments: '{"q":"sp"}',
-          },
-        ],
-        usage: { input_tokens: 3, output_tokens: 7, total_tokens: 10 },
-      };
-      const forward = mockForward(responsesJson, { isChatGpt: true });
-      const meta = makeMeta();
-
       await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
 
+      // The JSON body goes through the converter, NOT the SSE collector.
       expect(client.collectChatGptSseResponse).not.toHaveBeenCalled();
-      const sentBody = res.json.mock.calls[0][0];
-      expect(sentBody.choices[0].message.reasoning_content).toBe('thinking');
-      expect(sentBody.choices[0].message.tool_calls).toHaveLength(1);
-      expect(sentBody.choices[0].message.tool_calls[0].function.name).toBe('get_weather');
-      expect(sentBody.choices[0].finish_reason).toBe('tool_calls');
+      expect(client.convertChatGptResponse).toHaveBeenCalledWith(responsesJson, meta.model);
+      expect(res.json).toHaveBeenCalledWith({ id: 'chatgpt-converted' });
     });
 
     it('should still collect SSE when a ChatGPT-format upstream streams with text/event-stream content-type', async () => {

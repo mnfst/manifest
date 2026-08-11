@@ -27,7 +27,6 @@ import {
   createResponsesStreamTransformer,
   fromChatCompletionResponse,
 } from './responses-adapter';
-import { fromResponsesResponse } from './chatgpt-adapter';
 import {
   chatCompletionsResponseToMessages,
   createMessagesStreamTransformer,
@@ -810,7 +809,10 @@ export async function handleNonStreamResponse(
     ) {
       responseBody = providerClient.collectChatGptSseResponse(text, meta.model);
     } else {
-      responseBody = fromResponsesResponse(JSON.parse(text) as Record<string, unknown>, meta.model);
+      responseBody = providerClient.convertChatGptResponse(
+        JSON.parse(text) as Record<string, unknown>,
+        meta.model,
+      );
     }
   } else {
     responseBody = await forward.response.json();
