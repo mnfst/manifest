@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_ff68793a93bcf0::t_650fd53c12595e 1608-1623
+.changeset/bright-bats-stream.md
+  s_ff68793a93bcf0::t_f2d7a1b6c49a87 1-5
+packages/backend/src/routing/proxy/provider-client.ts
+  s_ff68793a93bcf0::t_63b1a2bc14763d 648-649
+  s_ff68793a93bcf0::t_650fd53c12595e 651-657
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dc74ab22a53c1f6599c7441b6ce698f7892feb53",
+  "prompts": {},
+  "sessions": {
+    "s_ff68793a93bcf0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff5ee-6169-72b2-8545-c309d4e1d730",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
