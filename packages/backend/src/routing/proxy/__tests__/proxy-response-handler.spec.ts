@@ -2051,6 +2051,7 @@ describe('proxy-response-handler', () => {
       const client = mockProviderClient();
       const sseText = 'event: response.output_text.delta\ndata: {"delta":"Hi"}\n\n';
       const forward = mockForward(sseText, { isChatGpt: true });
+      forward.response.headers.get.mockReturnValue(null);
       const meta = makeMeta();
 
       await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
