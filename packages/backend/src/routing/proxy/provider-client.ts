@@ -645,12 +645,16 @@ export class ProviderClient {
               stripCodexUnsupported: endpointKey === 'openai-subscription',
             })
           : toResponsesRequest(requestSource, bareModel, {
+              // The subscription backend only serves SSE. Manifest buffers it
+              // for non-streaming callers in handleNonStreamResponse.
               stream:
-                endpointKey === 'openai-responses' ||
-                endpointKey === 'xai-responses' ||
-                endpoint.forwardResponsesStream
-                  ? ctx.stream
-                  : undefined,
+                endpointKey === 'openai-subscription'
+                  ? true
+                  : endpointKey === 'openai-responses' ||
+                      endpointKey === 'xai-responses' ||
+                      endpoint.forwardResponsesStream
+                    ? ctx.stream
+                    : undefined,
               // The ChatGPT subscription backend rejects max_output_tokens with
               // unsupported_parameter; only opt in for the API-key paths.
               mapMaxOutputTokens:

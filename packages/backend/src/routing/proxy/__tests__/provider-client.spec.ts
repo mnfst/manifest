@@ -1605,6 +1605,22 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBe(false);
     });
 
+    it('forces upstream streaming when the caller sends stream:false (#2706)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.6-sol',
+        body: { ...body, stream: false },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+    });
+
     it('sends default instructions when no system or developer prompt is present', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
