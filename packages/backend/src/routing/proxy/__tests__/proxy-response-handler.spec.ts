@@ -2051,12 +2051,59 @@ describe('proxy-response-handler', () => {
       const client = mockProviderClient();
       const sseText = 'event: response.output_text.delta\ndata: {"delta":"Hi"}\n\n';
       const forward = mockForward(sseText, { isChatGpt: true });
+      forward.response.headers.get.mockReturnValue(null);
       const meta = makeMeta();
 
       await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
 
       expect(client.collectChatGptSseResponse).toHaveBeenCalledWith(sseText, meta.model);
       expect(forward.response.text).toHaveBeenCalled();
+    });
+
+    it('should convert a JSON Responses object via providerClient for non-streaming ChatGPT-format upstreams (Bedrock GPT-5.x)', async () => {
+      // Regression for the Bedrock non-streaming bug: bedrock-mantle
+      // /openai/v1/responses returns a plain JSON Responses object (not SSE)
+      // when stream:false. The handler must route it through the DI-mockable
+      // providerClient.convertChatGptResponse, not the SSE collector — otherwise
+      // the SSE collector finds no events and content comes back null.
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const responsesJson = {
+        object: 'response',
+        output: [
+          {
+            type: 'message',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'ok' }],
+          },
+        ],
+        usage: { input_tokens: 11, output_tokens: 5, total_tokens: 16 },
+      };
+      const forward = mockForward(responsesJson, { isChatGpt: true });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      // The JSON body goes through the converter, NOT the SSE collector.
+      expect(client.collectChatGptSseResponse).not.toHaveBeenCalled();
+      expect(client.convertChatGptResponse).toHaveBeenCalledWith(responsesJson, meta.model);
+      expect(res.json).toHaveBeenCalledWith({ id: 'chatgpt-converted' });
+    });
+
+    it('should still collect SSE when a ChatGPT-format upstream streams with text/event-stream content-type', async () => {
+      // Regression guard: the Codex subscription backend always returns SSE.
+      const { res } = mockResponse();
+      const client = mockProviderClient();
+      const sseText = 'event: response.output_text.delta\ndata: {"delta":"Hi"}\n\n';
+      const forward = mockForward(sseText, {
+        isChatGpt: true,
+        contentType: 'text/event-stream',
+      });
+      const meta = makeMeta();
+
+      await handleNonStreamResponse(res as any, forward as any, meta, {}, client as any);
+
+      expect(client.collectChatGptSseResponse).toHaveBeenCalledWith(sseText, meta.model);
     });
 
     it('should pass through standard OpenAI response', async () => {
