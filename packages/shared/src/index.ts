@@ -137,9 +137,12 @@ export {
   SHARED_PROVIDER_BY_ID_OR_ALIAS,
   CANONICAL_LOCAL_IDS,
   LOCAL_SERVER_HINTS,
+  META_MODEL_API_CONTEXT_WINDOW,
+  META_MODEL_API_MODELS,
+  META_MODEL_API_MODEL_BY_ID,
   normalizeProviderName,
 } from './providers';
-export type { SharedProviderEntry, LocalServerHint } from './providers';
+export type { SharedProviderEntry, LocalServerHint, MetaModelApiModel } from './providers';
 export type { ResolveResponse } from './resolve-response';
 export {
   SUBSCRIPTION_PROVIDER_CONFIGS,
