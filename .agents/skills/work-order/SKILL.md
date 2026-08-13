@@ -40,7 +40,7 @@ Per issue, you need:
 - **Visual verification** (UI-affecting changes) — which pages/routes to inspect, which states (loading, empty, error, hover), which viewports (desktop/mobile). Default: desktop + mobile for every touched route.
 - **Scope** — what is in, what is explicitly out.
 - **Reproduction** — steps and environment, for bugs only.
-- **Metadata** — type label, domain label(s), milestone (if any).
+- **Metadata** — type label, area label(s), milestone (if any).
 - **Priority and Size** — via repo project fields, never in the body.
 
 Rules:
@@ -140,15 +140,16 @@ Read `AGENTS.md` for repo guidance and `docs/glossary.md` for domain terminology
 
 ### Labels
 
-- Type (exactly one): `bug`, `enhancement`, `refactor`, `documentation`.
-- Domain (one or more): `backend`, `frontend`, `healer`, `provider`, `infra`.
-- Create any missing labels with `gh label create` before the first issue uses them.
+- Type (exactly one): `bug`, `enhancement`, `refactor`, `docs` — upstream uses `docs`, not `documentation`.
+- Area (one or more, existing upstream labels): `UX`, `Website`, `Cloud`, `Self-hosted`, `DX`.
+- Use only existing upstream labels — this set already exists on `mnfst/manifest`. Create new labels only if genuinely needed (with user approval).
 
-### Size and Priority (project fields, not body)
+### Size and Priority
 
-- `Size`: `S` (≤ ~3 files, one flow/module, localized) · `M` (4-8 files, up to 2 related flows) · `L` (9-15 files, up to 3 related flows). Exceeds `L` → split into cohesive sub-issues.
-- `Priority`: `Urgent & Important` · `Not Urgent & Important` · `Urgent & Not Important` · `Not Urgent & Not Important`.
-- If the repo has no GitHub Project to hold these fields, ask the user how they track priority/size, or confirm to skip them.
+- Manifest upstream has no Priority/Size project fields — use its existing labels instead:
+  - `Priority: High` · `Priority: Medium` · `Priority: Low`
+  - `size: XS` (< 10 lines) · `size: S` (10-50) · `size: M` (50-200) · `size: L` (200-500) · `size: XL` (500+)
+  - `severity: critical` · `severity: medium` · `Severity: low` (note casing) — for bugs.
 
 ### Verification commands (for acceptance criteria)
 
@@ -161,4 +162,4 @@ Read `AGENTS.md` for repo guidance and `docs/glossary.md` for domain terminology
 
 ## Target Repository
 
-Confirm the target repo before creating: default is the current repository, but for the Hub automation loop issues should live where the trigger is wired (ask the user). Create with `gh issue create -R <owner/repo> --body-file`.
+Issues and labels live on the **upstream** repo (the project tracker), never on the fork. Default target: the upstream remote — `mnfst/manifest` — confirmed with the user before creating. Create with `gh issue create -R <owner/repo> --body-file`.
