@@ -7,6 +7,8 @@ import {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
+  META_MODEL_API_CONTEXT_WINDOW,
+  META_MODEL_API_MODEL_BY_ID,
   type SubscriptionCapabilities,
 } from 'manifest-shared';
 import { normalizeAnthropicShortModelId } from '../common/utils/anthropic-model-id';
@@ -61,6 +63,8 @@ const OPENROUTER_NAME_ALIASES: ReadonlyMap<string, string> = new Map([
   ['open-mistral-nemo', 'mistral-nemo'], // Mistral renamed open-mistral-nemo → mistral-nemo
   ['mistral-tiny', 'open-mistral-7b'], // mistral-tiny was internal codename for Mistral 7B
 ]);
+
+const META_FALLBACK_MODEL_IDS = new Set(META_MODEL_API_MODEL_BY_ID.keys());
 
 /**
  * Look up pricing with name normalization variants.
@@ -243,6 +247,7 @@ export function buildFallbackModels(
 
   const orPrefix = findOpenRouterPrefix(providerId);
   if (!orPrefix) return [];
+  const isMeta = providerId.toLowerCase() === 'meta';
 
   for (const [fullId, entry] of pricingSync.getAll()) {
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
@@ -250,17 +255,26 @@ export function buildFallbackModels(
     if (seen.has(modelId)) continue;
 
     if (hasConfirmed && !confirmedModels!.has(modelId.toLowerCase())) continue;
+    if (isMeta && !META_FALLBACK_MODEL_IDS.has(modelId)) continue;
 
     seen.add(modelId);
+    const metaModel = isMeta ? META_MODEL_API_MODEL_BY_ID.get(modelId) : undefined;
     models.push({
       id: modelId,
-      displayName: entry.displayName || modelId,
+      displayName: metaModel?.displayName ?? entry.displayName ?? modelId,
       provider: providerId,
-      contextWindow: entry.contextWindow ?? DEFAULT_CONTEXT_WINDOW,
+      contextWindow:
+        entry.contextWindow ?? (metaModel ? META_MODEL_API_CONTEXT_WINDOW : DEFAULT_CONTEXT_WINDOW),
       inputPricePerToken: entry.input,
       outputPricePerToken: entry.output,
-      capabilityReasoning: false,
-      capabilityCode: false,
+      capabilityReasoning: !!metaModel,
+      capabilityCode: !!metaModel,
+      ...(metaModel
+        ? {
+            inputModalities: ['text', 'image', 'audio', 'video'] as const,
+            outputModalities: ['text'] as const,
+          }
+        : {}),
       qualityScore: 3,
     });
   }
