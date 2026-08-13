@@ -3,14 +3,20 @@
     "status": {
       "command": "./scripts/switch-manifest.sh status"
     },
-    "prod": {
+    "preset-prod": {
       "command": "./scripts/switch-manifest.sh prod"
     },
-    "dev": {
+    "preset-dev": {
       "command": "./scripts/switch-manifest.sh dev"
     },
     "snapshot": {
       "command": "./scripts/switch-manifest.sh snapshot"
+    },
+    "start": {
+      "command": "./scripts/services.sh start"
+    },
+    "restart": {
+      "command": "./scripts/services.sh restart"
     }
   }
 }
