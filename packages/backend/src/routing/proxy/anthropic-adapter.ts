@@ -379,7 +379,7 @@ export function toAnthropicRequest(
     .filter(Boolean);
   const result: Record<string, unknown> = {
     messages: converted,
-    max_tokens: (body.max_tokens as number) || 4096,
+    max_tokens: resolveAnthropicMaxTokens(body),
   };
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
@@ -471,6 +471,8 @@ export function applyAnthropicMessagesMutations(
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
+  result.max_tokens = resolveAnthropicMaxTokens(body);
+  delete result.max_completion_tokens;
   if (body.thinking !== undefined) {
     result.thinking = normalizeAnthropicThinking(body.thinking);
   }
@@ -512,7 +514,6 @@ export function applyAnthropicMessagesMutations(
     result.tools = tools;
   }
 
-  if (result.max_tokens === undefined) result.max_tokens = 4096;
   if (result.output_config !== undefined) {
     result.output_config = normalizeOutputConfigForModel(
       result.output_config,
@@ -573,6 +574,11 @@ export function applyAnthropicMessagesMutations(
   }
 
   return result;
+}
+
+function resolveAnthropicMaxTokens(body: Record<string, unknown>): number {
+  const value = body.max_tokens ?? body.max_completion_tokens;
+  return (value as number) || 4096;
 }
 
 /* ── Response conversion ── */

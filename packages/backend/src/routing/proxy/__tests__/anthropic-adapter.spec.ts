@@ -109,6 +109,27 @@ describe('Anthropic Adapter', () => {
       expect(result.max_tokens).toBe(1000);
     });
 
+    it('maps max_completion_tokens to max_tokens', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_completion_tokens: 123,
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      expect(result.max_tokens).toBe(123);
+      expect(result.max_completion_tokens).toBeUndefined();
+    });
+
+    it('prefers max_tokens when both max-token fields are present', () => {
+      const body = {
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 256,
+        max_completion_tokens: 123,
+      };
+      const result = toAnthropicRequest(body, 'claude-sonnet-4-20250514');
+      expect(result.max_tokens).toBe(256);
+      expect(result.max_completion_tokens).toBeUndefined();
+    });
+
     it('maps temperature and top_p', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
@@ -2486,6 +2507,15 @@ describe('Anthropic Adapter', () => {
         max_tokens: 256,
       });
       expect(result.max_tokens).toBe(256);
+    });
+
+    it('normalizes max_completion_tokens for an Anthropic Messages body', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        max_completion_tokens: 123,
+      });
+      expect(result.max_tokens).toBe(123);
+      expect(result.max_completion_tokens).toBeUndefined();
     });
 
     it('replays cached thinking blocks ahead of tool_use in assistant turns', () => {
