@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "status": {
+      "command": "./scripts/switch-manifest.sh status"
+    },
+    "prod": {
+      "command": "./scripts/switch-manifest.sh prod"
+    },
+    "dev": {
+      "command": "./scripts/switch-manifest.sh dev"
+    },
+    "snapshot": {
+      "command": "./scripts/switch-manifest.sh snapshot"
+    }
+  }
+}
