@@ -2286,6 +2286,24 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(true);
     });
 
+    it('maps max_completion_tokens to the Kimi Code Anthropic wire field', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'kimi-code-key',
+        model: 'k3',
+        body: { ...body, max_completion_tokens: 123 },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('k3');
+      expect(sentBody.max_tokens).toBe(123);
+      expect(sentBody.max_completion_tokens).toBeUndefined();
+    });
+
     it('keeps standard Moonshot API-key auth on the Moonshot OpenAI endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

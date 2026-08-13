@@ -49,6 +49,13 @@ const MODEL_PARAM_GROUPS: readonly ModelParamGroup[] = [
   'provider_metadata',
 ];
 const API_LEVEL_PARAM_PATHS = new Set(['stream']);
+/** Kimi Code wire ids mapped to their equivalent modelparams catalog entries. */
+const MOONSHOT_PARAM_MODEL_ALIASES: Readonly<Record<string, string>> = {
+  k3: 'kimi-k3',
+  'k3-256k': 'kimi-k3',
+  'kimi-for-coding': 'kimi-k2.7-code',
+  'kimi-for-coding-highspeed': 'kimi-k2.7-code-highspeed',
+};
 
 interface ModelParametersApiResponse {
   models?: unknown;
@@ -126,7 +133,7 @@ export class ProviderParamSpecService {
     if (!providerId || !authType || !model || authType === 'local') return [];
 
     const provider = normalizeProviderParamProviderId(providerId);
-    const metadata = resolveProviderMetadataIdentity(provider, model);
+    const metadata = resolveParamMetadataIdentity(provider, model);
     const lookupProvider = metadata.provider
       ? normalizeProviderParamProviderId(metadata.provider)
       : provider;
@@ -164,7 +171,18 @@ function providerMetadataIdentity(
   model: string | undefined,
 ): { provider: string | undefined; model: string } | null {
   if (!model) return null;
+  return resolveParamMetadataIdentity(providerId, model);
+}
+
+function resolveParamMetadataIdentity(
+  providerId: string | undefined,
+  model: string,
+): { provider: string | undefined; model: string } {
   const normalizedProvider = providerId ? normalizeProviderParamProviderId(providerId) : providerId;
+  if (normalizedProvider === 'moonshot') {
+    const catalogModel = MOONSHOT_PARAM_MODEL_ALIASES[model.toLowerCase()];
+    if (catalogModel) return { provider: normalizedProvider, model: catalogModel };
+  }
   return resolveProviderMetadataIdentity(normalizedProvider, model);
 }
 

@@ -554,6 +554,68 @@ describe('HeaderTierService', () => {
         NotFoundException,
       );
     });
+
+    // Regression: see tier.service.spec — surviving entries are matched to the
+    // persisted row by identity so a stale entry never blocks a removal.
+    it('removes an entry when a surviving route no longer resolves (routes sent)', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('qwen', 'subscription', 'qwen3.8-max-preview'),
+      ];
+      repo.findOne.mockResolvedValue({
+        id: 'h1',
+        agent_id: 'agent-1',
+        fallback_routes: existing,
+      } as HeaderTier);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+      ]);
+
+      const result = await svc.setFallbacks(
+        'agent-1',
+        'tenant-1',
+        'h1',
+        ['qwen3.8-max-preview'],
+        [existing[1]],
+      );
+      expect(result).toEqual([existing[1]]);
+      expect(repo.save).toHaveBeenCalled();
+    });
+
+    it('reuses the stored route for a surviving bare-name entry that no longer resolves', async () => {
+      const existing = [
+        route('openai', 'api_key', 'gpt-4o'),
+        route('qwen', 'subscription', 'qwen3.8-max-preview'),
+      ];
+      repo.findOne.mockResolvedValue({
+        id: 'h1',
+        agent_id: 'agent-1',
+        fallback_routes: existing,
+      } as HeaderTier);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+      ]);
+
+      const result = await svc.setFallbacks('agent-1', 'tenant-1', 'h1', ['qwen3.8-max-preview']);
+      expect(result).toEqual([existing[1]]);
+      expect(repo.save).toHaveBeenCalled();
+    });
+
+    it('still throws when adding a new model that cannot be resolved', async () => {
+      repo.findOne.mockResolvedValue({
+        id: 'h1',
+        agent_id: 'agent-1',
+        fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
+      } as HeaderTier);
+      discoveryService.getModelsForAgent.mockResolvedValue([
+        discovered('gpt-4o', 'openai', 'api_key'),
+      ]);
+
+      await expect(
+        svc.setFallbacks('agent-1', 'tenant-1', 'h1', ['gpt-4o', 'minmax-27']),
+      ).rejects.toThrow(/Cannot resolve fallback model "minmax-27"/);
+      expect(repo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('clearFallbacks', () => {

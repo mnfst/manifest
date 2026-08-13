@@ -294,6 +294,24 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result.find((model) => model.id === 'claude-sonnet-5')?.contextWindow).toBe(1000000);
   });
 
+  it('applies moonshot per-model context windows without prefix bleed', () => {
+    const result = buildSubscriptionFallbackModels('moonshot');
+
+    expect(result.map((model) => model.id)).toEqual([
+      'k3',
+      'k3-256k',
+      'kimi-for-coding',
+      'kimi-for-coding-highspeed',
+    ]);
+    expect(result.find((model) => model.id === 'k3')?.contextWindow).toBe(1048576);
+    // k3-256k must not inherit the 1M window of its k3 prefix sibling.
+    expect(result.find((model) => model.id === 'k3-256k')?.contextWindow).toBe(262144);
+    expect(result.find((model) => model.id === 'kimi-for-coding')?.contextWindow).toBe(262144);
+    expect(result.find((model) => model.id === 'kimi-for-coding-highspeed')?.contextWindow).toBe(
+      262144,
+    );
+  });
+
   it('preserves curated model casing', () => {
     expect(buildSubscriptionFallbackModels('minimax').map((model) => model.id)).toEqual([
       'MiniMax-M3',
