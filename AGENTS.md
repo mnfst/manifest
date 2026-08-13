@@ -8,3 +8,7 @@ Manifest terminology is directional:
 - A **Provider Attempt** is one request from Manifest to an AI provider and lives in `agent_messages`.
 
 [`docs/glossary.md`](docs/glossary.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
+
+## Issue Creation
+
+Turning brief problem notes into work-order-grade GitHub issues (interrogation, drafting, verification criteria, creation): load the `work-order` skill at `.agents/skills/work-order/SKILL.md`.

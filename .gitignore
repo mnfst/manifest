@@ -22,9 +22,10 @@ coverage/
 *.tsbuildinfo
 .specify/memory/
 .agent/
-.agents/
+.agents/*
 .claude/*
 !.claude/skills/
+!.agents/skills/
 .continue/
 .cursor/
 .goose/
