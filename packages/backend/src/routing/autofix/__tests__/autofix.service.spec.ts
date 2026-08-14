@@ -1411,6 +1411,9 @@ describe('AutofixService', () => {
       expect.objectContaining({
         reasoningContentCache: { call_123: 'original reasoning text' },
       }),
+      // heal(payload, { harness }): the merged wire contract carries the
+      // agent's platform as the second argument.
+      expect.objectContaining({ harness: expect.any(String) }),
     );
   });
 });
