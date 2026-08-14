@@ -48,6 +48,15 @@ describe('providerIcon', () => {
     expect(img?.getAttribute('alt')).toBe('Manifest');
   });
 
+  it('returns the Meta logo image for "meta"', () => {
+    const { container } = render(() => <div>{providerIcon('meta', 24)}</div>);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img?.getAttribute('src')).toBe('/icons/providers/meta.svg');
+    expect(img?.getAttribute('width')).toBe('24');
+    expect(img?.getAttribute('height')).toBe('24');
+  });
+
   it('returns an SVG for "llamacpp"', () => {
     const { container } = render(() => <div>{providerIcon('llamacpp')}</div>);
     const svg = container.querySelector('svg');
