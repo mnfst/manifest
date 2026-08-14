@@ -3,24 +3,6 @@
     "status": {
       "command": "./scripts/switch-manifest.sh status"
     },
-    "preset-prod": {
-      "command": "./scripts/switch-manifest.sh prod"
-    },
-    "preset-dev": {
-      "command": "./scripts/switch-manifest.sh dev"
-    },
-    "snapshot": {
-      "command": "./scripts/switch-manifest.sh snapshot"
-    },
-    "start": {
-      "command": "./scripts/services.sh start"
-    },
-    "restart": {
-      "command": "./scripts/services.sh restart"
-    },
-    "rebuild": {
-      "command": "./scripts/switch-manifest.sh rebuild"
-    },
     "worktree-up": {
       "command": "./scripts/worktree-stack.sh up"
     },
@@ -29,12 +11,6 @@
     },
     "worktree-status": {
       "command": "./scripts/worktree-stack.sh status"
-    },
-    "worktree-rebuild": {
-      "command": "./scripts/worktree-stack.sh rebuild"
-    },
-    "worktree-logs": {
-      "command": "./scripts/worktree-stack.sh logs"
     }
   }
 }
