@@ -198,6 +198,14 @@ describe('AutofixModule HEALING_CLIENT factory', () => {
         .useValue({})
         .overrideProvider(InstallIdService)
         .useValue({ getOrCreate })
+        // AutofixModule imports RoutingCoreModule for rotate_key heal ops;
+        // stub it so the graph resolves without TypeORM repositories.
+        .overrideModule(RoutingCoreModule)
+        .useModule({
+          module: class StubRoutingCoreModule {},
+          providers: [{ provide: KeyRotationRuleService, useValue: { getRule: jest.fn() } }],
+          exports: [KeyRotationRuleService],
+        })
         .compile();
 
       const client = moduleRef.get(HEALING_CLIENT) as {

@@ -3480,9 +3480,13 @@ describe('ProxyService — orchestration', () => {
       // Autofix runs, produces a non-rotate_key patch (e.g. reasoning_content_missing),
       // the patched retry also fails with 400.
       const healedForward = { ...forward(400), wireRequestBody: { model: 'gpt-4o' } };
+      // 'resolving': Phoenix is still investigating, so there is no patch to
+      // apply and the request was NOT recovered by Auto-fix — yet because no
+      // rotate_key operation came back (and the outcome is neither unfixable
+      // nor exhausted), key rotation must not jump in.
       const autofixRecord = {
         groupId: 'g1',
-        outcome: 'exhausted' as const,
+        outcome: 'resolving' as const,
         original_http_status: 400,
         chain: [
           {

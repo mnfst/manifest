@@ -345,6 +345,9 @@ export class ProxyFallbackService {
               fallbackIndex: i,
               authType,
               tenantProviderId: credentials.tenantProviderId,
+              // Selected-row label, so this row's label and tenant_provider_id
+              // name the same connection even when the hop never sent a request.
+              keyLabel: providerKeyLabel,
               presentation: presentCredentialFailure(
                 credentials.reason,
                 provider,
@@ -427,6 +430,9 @@ export class ProxyFallbackService {
           errorBody,
           authType,
           tenantProviderId,
+          // Selected-row label (credentials.keyLabel already folded in above),
+          // so this row's label and tenant_provider_id name the same connection.
+          keyLabel: providerKeyLabel,
           attempt: forward.attempt,
           providerCallStarted: forward.providerCallStarted,
         });

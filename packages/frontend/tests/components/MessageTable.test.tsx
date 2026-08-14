@@ -567,10 +567,10 @@ describe('MessageTable', () => {
           agentName="agent-1"
         />
       ));
-      const badges = container.querySelectorAll('[title="Auto-fix"], [title="Recovered by key rotation"], [title="Fallback"]');
+      const badges = container.querySelectorAll('[title="Autofix"], [title="Recovered by key rotation"], [title="Fallback"]');
       expect(badges.length).toBe(3);
       // Category order: Auto-fix, key rotation, fallback.
-      expect(badges[0]!.textContent).toContain('auto-fix');
+      expect(badges[0]!.textContent).toContain('autofix');
       expect(badges[1]!.textContent).toContain('key rotation');
       expect(badges[2]!.textContent).toContain('fallback');
     });
@@ -586,7 +586,7 @@ describe('MessageTable', () => {
       const badge = container.querySelector('[title="Recovered by key rotation"]') as HTMLElement;
       expect(badge).not.toBeNull();
       expect(badge.textContent).toContain('key rotation');
-      expect(container.querySelector('[title="Auto-fix"]')).toBeNull();
+      expect(container.querySelector('[title="Autofix"]')).toBeNull();
       expect(container.querySelector('[title="Fallback"]')).toBeNull();
     });
 
