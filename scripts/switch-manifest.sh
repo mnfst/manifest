@@ -88,9 +88,11 @@ EOF
 cmd_status() {
   echo "═══ Production (2099) ═══"
   prod_compose ps 2>/dev/null || echo "(not running)"
+  check_stale_image prod
   echo ""
   echo "═══ Dev (2100) ═══"
   dev_compose ps 2>/dev/null || echo "(not running)"
+  check_stale_image dev
   echo ""
   echo "═══ OpenCode preset ═══"
   local preset
@@ -149,6 +151,31 @@ cmd_snapshot() {
   else
     echo "  ⚠ Dev returned HTTP $code — check logs: docker logs mnfst-dev-manifest-1"
   fi
+}
+
+# check_stale_image <prod|dev> — warn when the running manifest container's
+# image differs from what the compose config currently resolves to, i.e. a
+# restart/rebuild would silently swap in a different image.
+check_stale_image() {
+  local tier="$1" ctr compose_file env_file
+  if [[ "$tier" == "prod" ]]; then
+    ctr="mnfst-manifest-1"; compose_file="$PROD_COMPOSE"; env_file="$PROD_ENV"
+  else
+    ctr="mnfst-dev-manifest-1"; compose_file="$DEV_COMPOSE"; env_file="$DEV_ENV"
+  fi
+  docker inspect "$ctr" >/dev/null 2>&1 || return 0
+  [[ -f "$env_file" ]] || return 0
+  local running declared
+  running="$(docker inspect "$ctr" --format '{{.Config.Image}}' 2>/dev/null || true)"
+  declared="$(docker compose -f "$compose_file" --project-directory "$DOCKER_DIR" --env-file "$env_file" config 2>/dev/null | grep 'image: manifestdotbuild/manifest' | awk '{print $2}' | head -n1 || true)"
+  [[ -n "$running" && -n "$declared" && "$running" != "$declared" ]] || return 0
+  echo ""
+  echo "⚠️  STALE IMAGE WARNING — ${tier} (${ctr})"
+  echo "    Running image:  ${running}"
+  echo "    Declared image: ${declared}  (${env_file})"
+  echo "    'services.sh restart' or 'switch-manifest.sh rebuild' would silently replace it."
+  echo "    Recommend recording MANIFEST_VERSION=${running#*:} explicitly in ${env_file}."
+  echo ""
 }
 
 cmd_rebuild() {

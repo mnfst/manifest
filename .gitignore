@@ -42,3 +42,7 @@ docs/plans/
 # Ops artifacts
 backup_db.sh
 db_backup/
+
+# Worktree stacks (generated per-stack files; docker/.env.wt-* already covered by .env*)
+docker/docker-compose.wt-*.yml
+docker/.worktree-stacks.json
