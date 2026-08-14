@@ -197,8 +197,8 @@ describe('Empty response fallback (#2709)', () => {
         expect(res.headers['x-manifest-fallback-index']).toBe('0');
         expect(calls.map((c) => c.status)).toEqual([200, 200]);
 
-        // recordFallbackSuccess fires off the response — wait for it to flush.
-        await new Promise((r) => setTimeout(r, 200));
+        // Wait for recordFallbackSuccess to flush asynchronously instead of fixed timeout.
+        await waitForRowsOrTimeout(ds, TEST_AGENT_ID, PRIMARY_MODEL, FALLBACK_MODEL, 5000);
 
         const rows = await ds.query(
             `SELECT model, status, error_http_status, error_message, superseded
@@ -227,3 +227,41 @@ describe('Empty response fallback (#2709)', () => {
         expect(success).toBeDefined();
     });
 });
+
+/**
+ * Waits for agent_messages rows to appear or timeout occurs.
+ * Polls every 100ms until the expected rows exist or timeout is reached.
+ */
+async function waitForRowsOrTimeout(
+    ds: DataSource,
+    agentId: string,
+    primaryModel: string,
+    fallbackModel: string,
+    timeoutMs: number,
+): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        const rows = await ds.query(
+            `SELECT model, status, error_http_status, error_message, superseded
+       FROM agent_messages
+       WHERE agent_id = $1
+       ORDER BY timestamp DESC`,
+            [agentId],
+        );
+
+        const primaryFailure = rows.find(
+            (r: { model: string; superseded: boolean }) =>
+                r.model === primaryModel && r.superseded === true,
+        );
+        const success = rows.find(
+            (r: { model: string; status: string }) =>
+                r.model === fallbackModel && r.status === 'success',
+        );
+
+        if (primaryFailure && success) {
+            return;
+        }
+        await new Promise((r) => setTimeout(r, 100));
+    }
+    throw new Error('Timed out waiting for agent_messages rows to appear');
+}

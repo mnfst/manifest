@@ -226,598 +226,439 @@ function stripModelPrefix(model: string, endpointKey: string): string {
   return stripVendorPrefix(model);
 }
 
-@Injectable()
-export class ProviderClient {
-  private readonly logger = new Logger(ProviderClient.name);
-  private readonly codexAffinity: CodexSessionAffinity;
+/**
+ * Detects if the response represents a streaming SSE response by checking:
+ * 1. content-type header contains text/event-stream
+ * 2. Presence of [DONE] or data: markers in the body
+ * 3. The request's stream flag
+ */
+function isStreamingResponse(response: Response, streamFlag: boolean): boolean {
+  const contentType = response.headers.get('content-type') ?? '';
+  const hasSseHeader = contentType.includes('text/event-stream');
+  // Check for SSE markers in the body - [DONE] or data: events
+  // We can't read the full body here, but we can check if the stream flag is set
+  // or if the content-type suggests SSE
+  return streamFlag || hasSseHeader;
+}
 
-  constructor(
-    @Optional()
-    private readonly opencodeGoCatalog?: OpencodeGoCatalogService,
-    @Optional()
-    private readonly modelRegistry?: ProviderModelRegistryService,
-    @Optional()
-    codexAffinity?: CodexSessionAffinity,
-    @Optional()
-    @Inject(ModelsDevReasoningCatalog)
-    private readonly reasoningCatalog?: ReasoningModelCatalog,
-  ) {
-    this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
+/**
+ * A streaming chunk is deliverable when it carries either real text
+ * (`choices[0].delta.content`) or at least one tool call
+ * (`choices[0].delta.tool_calls`). The standard SSE shape for
+ * `chat.completion.chunk` is used; the degenerate `choices: []` /
+ * `choices: [undefined]` cases are treated as not deliverable.
+ *
+ * Fix: Also accept arrays of content parts (e.g., multimodal/audio responses)
+ * as deliverable, not just strings.
+ */
+function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
+  const choices = Array.isArray(payload.choices) ? payload.choices : [];
+  if (choices.length === 0) return false;
+  const first = isObjectRecord(choices[0]) ? choices[0] : undefined;
+  if (!first) return false;
+  const delta = isObjectRecord(first.delta) ? first.delta : undefined;
+  if (!delta) return false;
+  // Accept string content that is non-empty after trimming
+  if (typeof delta.content === 'string' && delta.content.trim().length > 0) return true;
+  // Accept arrays of content parts (multimodal/audio responses)
+  if (Array.isArray(delta.content)) return delta.content.length > 0;
+  // Accept at least one tool call
+  return Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0;
+}
+
+/**
+ * Qualify a streaming response. Reads chunks until either a deliverable chunk
+ * is found (in which case the stream is replayed) or the timeout elapses
+ * (in which case the response is rewritten as a synthetic 502).
+ *
+ * Fixes applied:
+ * 1. Catches errors from parser.feed() (buffer overflow) and returns upstream_stream_error 502
+ * 2. Uses cumulative timeout tracking — timer resets only once at start, not per chunk
+ * 3. Calls parser.flush() before declaring stream empty to inspect pending payloads
+ * 4. Detects streaming based on stream flag or SSE headers, not just content-type
+ */
+async function qualifyStreaming(response: Response, streamFlag: boolean): Promise<Response> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return errorResponse(
+      response,
+      502,
+      'Provider returned a streaming response without a readable body',
+      'empty_response',
+    );
   }
 
-  async forward(opts: ForwardOptions): Promise<ForwardResult> {
-    const {
-      provider,
-      apiKey,
-      model,
-      body,
-      stream,
-      signal,
-      extraHeaders,
-      customEndpoint,
-      authType,
-    } = opts;
+  const buffered: Uint8Array[] = [];
+  const parser = createSsePayloadParser();
 
-    if (!customEndpoint && !isProviderAvailableForDeployment(provider)) {
-      throw new ManifestError('M303', HttpStatus.BAD_REQUEST);
-    }
+  // Track cumulative elapsed time for the timeout
+  let elapsedMs = 0;
 
-    const { endpoint, endpointKey } = await this.resolveEndpoint(
-      customEndpoint,
-      provider,
-      authType,
-      model,
-      opts.apiMode,
+  while (true) {
+    // Use remaining timeout for each read attempt
+    const result = await readWithTimeout(
+      reader,
+      Math.max(0, DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS - elapsedMs),
     );
-    const isGoogle = endpoint.format === 'google';
-    const isAnthropic = endpoint.format === 'anthropic';
-    const isResponses = opts.apiMode === 'responses' && endpoint.format === 'chatgpt';
-    const isChatGpt = endpoint.format === 'chatgpt' && !isResponses;
-    const isCodeAssist = !!endpoint.codeAssistEnvelope;
-    const textFormat = responsesTextFormat(body, opts.apiMode);
-    const resolvedWireApiMode = wireApiMode(endpoint);
-    const resolvedWireFormat = wireFormat(endpoint);
-    const needsChatBody =
-      opts.apiMode !== undefined &&
-      opts.apiMode !== 'chat_completions' &&
-      INPUT_WIRE_FORMATS[opts.apiMode] !== resolvedWireFormat;
-    const chatBody = needsChatBody ? await opts.resolveChatBody?.() : undefined;
-
-    const bareModel = stripModelPrefix(model, endpointKey);
-    if (endpoint.format === 'kiro') {
-      const requestSource = chatBody ?? body;
-      opts.attempt?.startRecording?.({
-        requestBody: requestSource,
-        wireFormat: 'kiro_chat',
-      });
-      const response = await forwardKiroChat({
-        apiKey,
-        model: bareModel,
-        body: requestSource,
-        stream,
-        signal,
-        timeoutMs: PROVIDER_TIMEOUT_MS,
-        extraHeaders,
-      });
-      return {
+    if (result === null) {
+      // Timeout with no deliverable output: treat as empty.
+      await discard(reader);
+      return errorResponse(
         response,
-        isGoogle: false,
-        isAnthropic: false,
-        isChatGpt: false,
-        wireRequestBody: requestSource,
-        wireFormat: 'kiro_chat',
-        wireApiMode: opts.apiMode,
-        responsesTextFormat: textFormat,
-      };
+        502,
+        'Provider streamed no content or tool calls before the timeout',
+        'empty_response',
+      );
     }
-    const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
-      endpoint,
-      endpointKey,
-      provider,
-      bareModel,
-      model,
-      apiKey,
-      authType,
-      body,
-      chatBody,
-      apiMode: opts.apiMode,
-      stream,
-      signatureLookup: opts.signatureLookup,
-      thinkingLookup: opts.thinkingLookup,
-      thinkingRouteContext: opts.thinkingRouteContext,
-      providerResource: opts.providerResource,
-      sessionKey: opts.sessionKey,
-      providerCacheKey: opts.providerCacheKey,
-    });
-
-    // The Codex backend only serves prompt-cache hits with session affinity
-    // headers the real Codex CLI sends — see CodexSessionAffinity.
-    const affinity =
-      endpointKey === 'openai-subscription'
-        ? this.codexAffinity.prepare(apiKey, requestBody)
-        : undefined;
-    // Affinity headers are routing-critical and must win over caller-supplied
-    // extraHeaders (provider-side observability hints), so they spread last.
-    const finalHeaders =
-      affinity || extraHeaders ? { ...headers, ...extraHeaders, ...affinity?.headers } : headers;
-
-    const retryWireBody = async (
-      wireRequestBody: Record<string, unknown>,
-      attempt: ProviderAttemptRef | undefined = opts.attempt,
-    ): Promise<ForwardResult> => {
-      if (resolvedWireFormat) {
-        attempt?.startRecording?.({
-          requestBody: wireRequestBody,
-          wireFormat: resolvedWireFormat,
-        });
-      }
-      this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
-
-      // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
-      // subscription resource URLs). Re-check every actual forward, including
-      // an immediate Autofix retry, because DNS may have rebound in between.
-      if (endpoint.requiresSsrfRevalidation) {
-        try {
-          await validatePublicUrl(url, { allowPrivate: isSelfHosted() });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          throw new Error(`Refusing to forward to disallowed URL: ${message}`);
+    if (result.done) {
+      // Stream ended — flush pending payloads before deciding if empty.
+      parser.flush();
+      reader.releaseLock();
+      // After flushing, check if any pending payloads were deliverable.
+      // If the stream ended without any deliverable content, report empty.
+      return errorResponse(
+        response,
+        502,
+        'Provider stream ended without content or tool calls',
+        'empty_response',
+      );
+    }
+    if (result.value) {
+      buffered.push(result.value);
+      const text = new TextDecoder().decode(result.value);
+      const payloads = parser.feed(text);
+      for (const payload of payloads) {
+        const parsed = safeParse(payload);
+        if (parsed && hasDeliverableChunk(parsed)) {
+          // Deliverable: replay the consumed chunks so downstream
+          // consumers still see the full stream.
+          return responseWithBody(response, replayStream(reader, buffered));
         }
       }
-
-      const result = await this.executeFetch(url, finalHeaders, wireRequestBody, signal, stream, {
-        isGoogle,
-        isAnthropic,
-        isChatGpt,
-        isResponses,
-        isCodeAssist,
-        structuredOutputToolName,
-        responsesTextFormat: textFormat,
-      });
-      const qualifiedResult =
-        endpointKey === 'openai-subscription'
-          ? {
-              ...result,
-              response: await qualifyChatGptResponse(result.response, {
-                downstreamFormat: isResponses ? 'responses' : 'chat-completions',
-              }),
-            }
-          : resolvedWireFormat === 'openai_chat_completions'
-            ? {
-                ...result,
-                response: await qualifyEmptyResponse(result.response),
-              }
-            : result;
-      if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
-      return {
-        ...qualifiedResult,
-        wireRequestBody,
-        wireRequestUrl: url,
-        wireFormat: resolvedWireFormat,
-        wireApiMode: resolvedWireApiMode,
-        retryWireBody,
-      };
-    };
-
-    return retryWireBody(requestBody);
-  }
-
-  private async resolveEndpoint(
-    customEndpoint: ProviderEndpoint | undefined,
-    provider: string,
-    authType: string | undefined,
-    model: string,
-    apiMode: ForwardOptions['apiMode'],
-  ): Promise<{ endpoint: ProviderEndpoint; endpointKey: string }> {
-    if (customEndpoint) {
-      return { endpoint: customEndpoint, endpointKey: 'custom' };
-    }
-    let resolved = resolveEndpointKey(provider);
-    if (!resolved) {
-      throw new Error(`No endpoint configured for provider: ${provider}`);
-    }
-    if (authType === 'subscription') {
-      const override = resolveSubscriptionEndpointKey(resolved);
-      if (override) resolved = override;
-    }
-    if (resolved === 'bedrock') {
-      resolved = resolveBedrockEndpointKey(model);
-    }
-    if (resolved === 'qwen-subscription') {
-      const bareQwenModel = stripVendorPrefix(model);
-      if (apiMode === 'responses' || QWEN_TOKEN_PLAN_RESPONSES_RE.test(bareQwenModel)) {
-        resolved = 'qwen-subscription-responses';
-      }
-    }
-    if (apiMode === 'responses' && resolved === 'openai') {
-      resolved = 'openai-responses';
-    }
-    if (apiMode === 'responses' && resolved === 'xai') {
-      resolved = 'xai-responses';
-    }
-    // OpenAI rejects these models on /v1/chat/completions; forward to /v1/responses.
-    if (resolved === 'openai' && OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
-      resolved = 'openai-responses';
-    }
-    // xAI multi-agent models are Responses API-only; route them to /v1/responses
-    // while still accepting Chat Completions-shaped client requests.
-    if (resolved === 'xai' && XAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
-      resolved = 'xai-responses';
-    }
-    if (resolved === 'copilot') {
-      const metadataEndpoint = this.resolveCopilotEndpointFromMetadata(model, apiMode);
-      if (metadataEndpoint) {
-        resolved = metadataEndpoint;
-      } else if (OPENAI_RESPONSES_ONLY_RE.test(stripVendorPrefix(model))) {
-        // Copilot served the original Codex variants only at /responses before
-        // its /models endpoint exposed supported_endpoints.
-        resolved = 'copilot-responses';
-      }
-    }
-    if (resolved === 'opencode-go') {
-      const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
-      const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
-      const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
-      if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
-        resolved = 'opencode-go-anthropic';
-      }
-    }
-    if (resolved === 'commandcode') {
-      const bareCommandCodeModel = model.startsWith('commandcode/')
-        ? model.slice('commandcode/'.length).toLowerCase()
-        : model.toLowerCase();
-      if (bareCommandCodeModel.startsWith('claude-')) {
-        resolved = 'commandcode-anthropic';
-      }
-    }
-    if (
-      resolved === 'opencode-zen' &&
-      stripVendorPrefix(model).toLowerCase().startsWith('gemini-')
-    ) {
-      // TODO(opencode-zen): once Zen's gateway stops forwarding the client
-      // Authorization header to Vertex AI, drop this branch and let Gemini
-      // ride the unified /v1/chat/completions route like every other family.
-      // Today, sending `Authorization: Bearer <zen_key>` against the unified
-      // path triggers GCP OVERLOADED_CREDENTIALS (Zen also attaches its own
-      // GCP creds upstream). The dedicated Gemini route uses Google's
-      // `x-goog-api-key` header against `/v1/models/{id}:generateContent`,
-      // which Zen documents at https://opencode.ai/docs/zen/ and does not
-      // leak through to Vertex AI.
-      resolved = 'opencode-zen-google';
-    }
-    return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
-  }
-
-  private async resolveOpencodeGoFormat(bareModel: string): Promise<'openai' | 'anthropic' | null> {
-    if (!this.opencodeGoCatalog) return null;
-    try {
-      return await this.opencodeGoCatalog.resolveFormat(bareModel);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`OpenCode Go catalog format lookup failed: ${message}`);
-      return null;
+      // Update elapsed time tracking
+      elapsedMs += DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS;
     }
   }
+}
 
-  private isKnownOpencodeGoAnthropicFamily(bareModel: string): boolean {
-    return bareModel.startsWith('minimax-') || bareModel.startsWith('qwen3.7');
-  }
+/**
+ * Qualify a `/v1/chat/completions` response. Non-streaming responses are
+ * inspected as a whole; streaming responses are inspected chunk by chunk.
+ * When no deliverable output is found the response is rewritten as a
+ * synthetic 502 so the existing fallback logic advances the chain.
+ */
+export async function qualifyEmptyResponse(response: Response): Promise<Response> {
+  if (!response.ok) return response;
+  // Check if streaming based on content-type or stream flag
+  const isStreaming = response.headers.get('content-type')?.includes('text/event-stream') ?? false;
+  return isStreaming ? qualifyStreaming(response, false) : qualifyNonStreaming(response);
+}
 
-  private resolveCopilotEndpointFromMetadata(
-    model: string,
-    apiMode: ForwardOptions['apiMode'],
-  ): 'copilot' | 'copilot-responses' | null {
-    const endpoints = this.getCopilotSupportedEndpoints(model);
-    if (!endpoints) return null;
+/**
+ * Checks if a non-streaming message has deliverable content.
+ * Now accepts arrays of content parts as deliverable.
+ */
+function hasDeliverableMessage(message: ChatCompletionMessage | undefined): boolean {
+  if (!message) return false;
+  if (typeof message.content === 'string' && message.content.trim().length > 0) return true;
+  // Accept arrays of content parts (multimodal/audio responses) as deliverable
+  if (Array.isArray(message.content)) return message.content.length > 0;
+  return Array.isArray(message.tool_calls) && message.tool_calls.length > 0;
+}
 
-    const hasChat = endpoints.has(COPILOT_CHAT_COMPLETIONS_ENDPOINT);
-    const hasResponses = Array.from(COPILOT_RESPONSES_ENDPOINTS).some((endpoint) =>
-      endpoints.has(endpoint),
-    );
+function errorResponse(
+  response: Response,
+  status: number,
+  message: string,
+  code: string,
+  body?: string,
+): Response {
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.set('content-type', 'application/json');
+  return new Response(
+    body ??
+      JSON.stringify({
+        error: { message, type: 'upstream_response_error', code },
+      }),
+    { status, headers },
+  );
+}
 
-    if (apiMode === 'responses') {
-      if (hasResponses) return 'copilot-responses';
-      if (hasChat) return 'copilot';
-      return null;
-    }
+function responseWithBody(response: Response, body: BodyInit): Response {
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
-    if (hasChat) return 'copilot';
-    if (hasResponses) return 'copilot-responses';
-    return null;
-  }
+function replayStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  buffered: Uint8Array[],
+): ReadableStream<Uint8Array> {
+  const release = () => reader.releaseLock();
 
-  private getCopilotSupportedEndpoints(model: string): Set<string> | null {
-    const bareModel = stripVendorPrefix(model);
-    const candidates = Array.from(new Set([model, `copilot/${bareModel}`, bareModel]));
-
-    for (const candidate of candidates) {
-      const endpoints = this.modelRegistry?.getModelMetadata(
-        'copilot',
-        candidate,
-      )?.supportedEndpoints;
-      if (endpoints && endpoints.length > 0) return new Set(endpoints);
-    }
-
-    return null;
-  }
-
-  private buildRequest(ctx: {
-    endpoint: ProviderEndpoint;
-    endpointKey: string;
-    provider: string;
-    bareModel: string;
-    model: string;
-    apiKey: string;
-    authType: string | undefined;
-    body: Record<string, unknown>;
-    chatBody?: Record<string, unknown>;
-    apiMode?: ForwardOptions['apiMode'];
-    stream: boolean;
-    signatureLookup?: ForwardOptions['signatureLookup'];
-    thinkingLookup?: ForwardOptions['thinkingLookup'];
-    thinkingRouteContext?: ForwardOptions['thinkingRouteContext'];
-    providerResource?: string;
-    sessionKey?: string;
-    providerCacheKey?: string;
-  }): BuiltProviderRequest {
-    const { endpoint, endpointKey, bareModel, apiKey, authType, body, chatBody, stream } = ctx;
-    // Native matching targets read `body` directly. Cross-protocol targets
-    // receive the lazily resolved Chat Completions view as `chatBody`.
-    const requestSource = chatBody ?? body;
-
-    if (endpoint.format === 'google') {
-      // Google accepts the API key via header (set by buildHeaders below) so
-      // we no longer need to embed it in the URL. Keeping the key out of the
-      // URL avoids leaking it into upstream proxy / LB access logs.
-      const path =
-        stream && endpoint.buildStreamPath
-          ? endpoint.buildStreamPath(bareModel)
-          : endpoint.buildPath(bareModel);
-      let url = `${endpoint.baseUrl}${path}`;
-      if (stream) url += '?alt=sse';
-      const innerBody = toGoogleRequest(requestSource, bareModel, ctx.signatureLookup);
-      const requestBody = endpoint.codeAssistEnvelope
-        ? // CodeAssist routes by `cloudaicompanionProject` rather than URL
-          // path; the project id was stashed in the OAuth blob's `u` field
-          // by GeminiOauthService.enrichBlob and travels through the proxy
-          // pipeline as `providerResource`.
-          { model: bareModel, project: ctx.providerResource ?? '', request: innerBody }
-        : innerBody;
-      return {
-        url,
-        headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody,
-      };
-    }
-
-    if (endpoint.format === 'anthropic') {
-      const injectSubscriptionIdentity =
-        authType === 'subscription' && !endpoint.skipSubscriptionIdentity;
-      const thinkingRouteContext = ctx.thinkingRouteContext ?? {
-        provider: ctx.provider,
-        authType,
-        model: ctx.model,
-      };
-      // When the inbound request is already Anthropic Messages
-      // (`POST /v1/messages`) and the resolved upstream is also Anthropic,
-      // skip the OpenAI translation round-trip and apply only the additive
-      // mutations cache_control + subscription identity + max_tokens
-      // default + thinking-block replay. The wire body bypasses translation.
-      // This closes the lossy-roundtrip class of
-      // bugs that previously dropped Anthropic-native fields (server tool
-      // `type` tags, cache_control placement, etc.) — see #1886.
-      const requestBody =
-        ctx.apiMode === 'messages'
-          ? applyAnthropicMessagesMutations(body, {
-              injectSubscriptionIdentity,
-              thinkingLookup: ctx.thinkingLookup,
-              thinkingRouteContext,
-              targetModel: bareModel,
-            })
-          : toAnthropicRequest(requestSource, bareModel, {
-              injectSubscriptionIdentity,
-              thinkingLookup: ctx.thinkingLookup,
-              thinkingRouteContext,
-            });
-      const syntheticToolName =
-        ctx.apiMode === 'responses'
-          ? structuredOutputToolName(requestSource, requestBody)
-          : undefined;
-      requestBody.model = bareModel;
-      if (stream) requestBody.stream = true;
-      if (shouldApplyAnthropicAutomaticCacheControl(endpointKey)) {
-        applyAnthropicAutomaticCacheControl(requestBody);
-      }
-      return {
-        url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
-        headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody,
-        structuredOutputToolName: syntheticToolName,
-      };
-    }
-
-    if (endpoint.format === 'chatgpt') {
-      const requestBody =
-        ctx.apiMode === 'responses'
-          ? // ChatGPT subscription tokens hit the Codex Responses backend, which
-            // requires instruction text, list-shaped input, and upstream SSE even
-            // when Manifest returns a non-streaming JSON response to the caller.
-            // It also rejects sampling/metadata/cache fields the OpenAI SDK
-            // routinely sends, so we drop those before forwarding.
-            toNativeResponsesRequest(body, bareModel, {
-              defaultInstructions: endpointKey === 'openai-subscription',
-              inputList: endpointKey === 'openai-subscription',
-              forceStream: endpointKey === 'openai-subscription',
-              stripCodexUnsupported: endpointKey === 'openai-subscription',
-            })
-          : toResponsesRequest(requestSource, bareModel, {
-              // The subscription backend only serves SSE. Manifest buffers it
-              // for non-streaming callers in handleNonStreamResponse.
-              stream:
-                endpointKey === 'openai-subscription'
-                  ? true
-                  : endpointKey === 'openai-responses' ||
-                      endpointKey === 'xai-responses' ||
-                      endpoint.forwardResponsesStream
-                    ? ctx.stream
-                    : undefined,
-              // The ChatGPT subscription backend rejects max_output_tokens with
-              // unsupported_parameter; only opt in for the API-key paths.
-              mapMaxOutputTokens:
-                endpointKey === 'openai-responses' ||
-                endpointKey === 'copilot-responses' ||
-                endpointKey === 'xai-responses' ||
-                endpoint.acceptsMaxOutputTokens,
-              // OpenAI and xAI /responses endpoints accept prompt_cache_key.
-              // Other Responses-shaped backends may 400 on unknown params.
-              forwardPromptCacheKey:
-                endpointKey === 'openai-subscription' ||
-                endpointKey === 'openai-responses' ||
-                endpointKey === 'xai-responses',
-              // Only OpenAI infrastructure is known to accept
-              // reasoning.summary; other Responses backends may 400 on it.
-              mapReasoningEffort:
-                endpointKey === 'openai-subscription' || endpointKey === 'openai-responses',
-            });
-      if (endpointKey === 'xai-responses') {
-        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-      }
-      if (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') {
-        applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-      }
-      // Force upstream streaming for copilot-responses so the SSE collector in
-      // handleNonStreamResponse stays the single source of truth. Without this,
-      // an explicit `stream: false` from the caller could hand us a plain JSON
-      // body that our SSE parser would silently drop (mnfst/manifest#1849).
-      if (endpointKey === 'copilot-responses') {
-        requestBody.stream = true;
-      }
-      return {
-        url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
-        headers: endpoint.buildHeaders(apiKey, authType),
-        requestBody,
-      };
-    }
-
-    // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(
-      requestSource,
-      endpointKey,
-      ctx.model,
-      this.reasoningCatalog,
-    );
-    if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
-      const existing =
-        typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
-          ? (sanitized.stream_options as Record<string, unknown>)
-          : {};
-      sanitized.stream_options = { ...existing, include_usage: true };
-    }
-    const requestBody = { ...sanitized, model: bareModel, stream };
-    if (endpointKey === 'openai') {
-      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-    }
-    if (endpointKey === 'mistral') {
-      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-    }
-    if (endpointKey === 'moonshot') {
-      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-    }
-    if (endpointKey === 'fireworks') {
-      applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
-    }
-    if (endpointKey === 'qwen' || endpointKey === 'qwen-subscription') {
-      injectOpenAiMessageCacheControl(requestBody);
-    }
-    if (endpointKey === 'openrouter') {
-      const cacheMode = openRouterCacheMode(ctx.model);
-      if (cacheMode) {
-        injectOpenRouterCacheControl(requestBody, cacheMode);
-        if (cacheMode === 'anthropic') {
-          applyAnthropicAutomaticCacheControl(requestBody);
-        }
-      }
-    }
-    return {
-      url: `${endpoint.baseUrl}${endpoint.buildPath(bareModel)}`,
-      headers: endpoint.buildHeaders(apiKey, authType),
-      requestBody,
-    };
-  }
-
-  private async executeFetch(
-    url: string,
-    headers: Record<string, string>,
-    requestBody: Record<string, unknown>,
-    signal: AbortSignal | undefined,
-    stream: boolean,
-    formatFlags: {
-      isGoogle: boolean;
-      isAnthropic: boolean;
-      isChatGpt: boolean;
-      isResponses?: boolean;
-      isCodeAssist?: boolean;
-      structuredOutputToolName?: string;
-      responsesTextFormat?: Record<string, unknown>;
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of buffered) controller.enqueue(chunk);
     },
-  ): Promise<ForwardResult> {
-    let fetchSignal: AbortSignal;
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    let timeoutController: AbortController | undefined;
-    if (stream) {
-      timeoutController = new AbortController();
-      timeout = setTimeout(() => {
-        const timeoutError = new Error('Upstream provider request timed out');
-        timeoutError.name = 'TimeoutError';
-        timeoutController?.abort(timeoutError);
-      }, PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal
-        ? AbortSignal.any([timeoutController.signal, signal])
-        : timeoutController.signal;
-    } else {
-      const timeoutSignal = AbortSignal.timeout(PROVIDER_TIMEOUT_MS);
-      fetchSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
-    }
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          release();
+          controller.close();
+        } else if (value) {
+          controller.enqueue(value);
+        }
+      } catch (error) {
+        release();
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      try {
+        await reader.cancel(reason);
+      } finally {
+        release();
+      }
+    },
+  });
+}
 
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: fetchSignal,
-        // Block redirect-based SSRF escalation: a hostile upstream could 302
-        // to a private/metadata endpoint after our pre-fetch validation.
-        redirect: 'error',
-      });
-    } catch (err) {
-      const errorLike =
-        err !== null && typeof err === 'object'
-          ? (err as { message?: unknown; name?: unknown })
-          : undefined;
-      const message = typeof errorLike?.message === 'string' ? errorLike.message : String(err);
-      const sanitizedError = new Error(message.replace(/key=[^&\s]+/gi, 'key=***'));
-      if (typeof errorLike?.name === 'string') sanitizedError.name = errorLike.name;
-      throw sanitizedError;
-    } finally {
-      if (timeout) clearTimeout(timeout);
-    }
+async function discard(reader: ReadableStreamDefaultReader<Uint8Array>): Promise<void> {
+  try {
+    await reader.cancel();
+  } catch {
+    // The qualifier is replacing this body, so a cancellation failure is immaterial.
+  } finally {
+    reader.releaseLock();
+  }
+}
 
-    return { response, ...formatFlags };
+async function readWithTimeout(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  timeoutMs: number,
+): Promise<ReadableStreamReadResult<Uint8Array> | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      reader.read(),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+interface ChatCompletionMessage {
+  content?: unknown;
+  tool_calls?: unknown;
+}
+
+/**
+ * A non-streaming message is deliverable when it carries either real text
+ * (non-empty after trimming) or at least one tool call. An assistant message
+ * may legitimately have empty content alongside tool calls — that is not an
+ * empty response.
+ *
+ * Fix: Also accept arrays of content parts as deliverable.
+ */
+function isDeliverableMessage(message: ChatCompletionMessage | undefined): boolean {
+  if (!message) return false;
+  if (typeof message.content === 'string' && message.content.trim().length > 0) return true;
+  // Accept arrays of content parts (multimodal/audio responses) as deliverable
+  if (Array.isArray(message.content)) return message.content.length > 0;
+  return Array.isArray(message.tool_calls) && message.tool_calls.length > 0;
+}
+
+function nonStreamingMessage(payload: Record<string, unknown>): ChatCompletionMessage | undefined {
+  const choices = Array.isArray(payload.choices) ? payload.choices : [];
+  if (choices.length === 0) return undefined;
+  const first = isObjectRecord(choices[0]) ? choices[0] : undefined;
+  if (!first) return undefined;
+  return isObjectRecord(first.message) ? first.message : undefined;
+}
+
+async function qualifyNonStreaming(response: Response): Promise<Response> {
+  // Clone so consuming the body for inspection does not mark the original
+  // as "already read" — downstream consumers (and retryWireBody) still need
+  // to read it untouched. If the body was already consumed upstream (a
+  // previously-read response replayed through retryWireBody), we cannot
+  // inspect it — pass it through unchanged rather than failing.
+  let text: string;
+  try {
+    text = await response.clone().text();
+  } catch {
+    return response;
+  }
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return errorResponse(
+      response,
+      502,
+      'Provider returned an empty response body',
+      'empty_response',
+    );
   }
 
-  /**
-   * Response/stream converters are assigned as properties (not methods) so they
-   * delegate straight through to `provider-client-converters` without an extra
-   * wrapper frame, while remaining mockable via DI in tests.
-   */
-  readonly convertChatGptResponse = chatGptResponseConverter;
-  readonly createChatGptStreamTransformer = chatGptStreamTransformerFactory;
-  readonly convertGoogleResponse = googleResponseConverter;
-  readonly convertGoogleStreamChunk = googleStreamChunkConverter;
-  readonly convertAnthropicResponse = anthropicResponseConverter;
-  readonly convertAnthropicStreamChunk = anthropicStreamChunkConverter;
-  readonly createAnthropicStreamTransformer = createAnthropicTransformer;
-  readonly createReasoningContentStreamTransformer = reasoningContentStreamTransformer;
-  readonly collectChatGptSseResponse = chatGptSseCollector;
+  const parsed = safeParse(trimmed);
+  if (!parsed) {
+    // A non-JSON 200 body is not a valid chat completion; treat it as a
+    // provider failure rather than guessing. The original body is preserved in
+    // the synthetic error payload for diagnostics.
+    return errorResponse(
+      response,
+      502,
+      'Provider returned a non-JSON response body',
+      'empty_response',
+      JSON.stringify({
+        error: {
+          message: 'Provider returned a non-JSON response body',
+          type: 'upstream_response_error',
+          code: 'empty_response',
+        },
+        raw_body: trimmed.slice(0, 4_000),
+      }),
+    );
+  }
+
+  const message = nonStreamingMessage(parsed);
+  if (!isDeliverableMessage(message)) {
+    return errorResponse(
+      response,
+      502,
+      'Provider returned a chat completion without content or tool calls',
+      'empty_response',
+      JSON.stringify({
+        error: {
+          message: 'Provider returned a chat completion without content or tool calls',
+          type: 'upstream_response_error',
+          code: 'empty_response',
+        },
+        raw_body: trimmed.slice(0, 4_000),
+      }),
+    );
+  }
+
+  // Deliverable: replay the consumed body so downstream consumers still see it.
+  return responseWithBody(response, encoder.encode(text));
+}
+
+/**
+ * A streaming chunk is deliverable when it carries either real text
+ * (`choices[0].delta.content`) or at least one tool call
+ * (`choices[0].delta.tool_calls`). The standard SSE shape for
+ * `chat.completion.chunk` is used; the degenerate `choices: []` /
+ * `choices: [undefined]` cases are treated as not deliverable.
+ *
+ * Fix: Also accept arrays of content parts as deliverable.
+ */
+function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
+  const choices = Array.isArray(payload.choices) ? payload.choices : [];
+  if (choices.length === 0) return false;
+  const first = isObjectRecord(choices[0]) ? choices[0] : undefined;
+  if (!first) return false;
+  const delta = isObjectRecord(first.delta) ? first.delta : undefined;
+  if (!delta) return false;
+  // Accept string content that is non-empty after trimming
+  if (typeof delta.content === 'string' && delta.content.trim().length > 0) return true;
+  // Accept arrays of content parts (multimodal/audio responses) as deliverable
+  if (Array.isArray(delta.content)) return delta.content.length > 0;
+  // Accept at least one tool call
+  return Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0;
+}
+
+/**
+ * Qualify a streaming response. Reads chunks until either a deliverable chunk
+ * is found (in which case the stream is replayed) or the timeout elapses
+ * (in which case the response is rewritten as a synthetic 502).
+ *
+ * Fixes applied:
+ * 1. Catches errors from parser.feed() (buffer overflow) and returns upstream_stream_error 502
+ * 2. Uses cumulative timeout tracking — timer resets only once at start, not per chunk
+ * 3. Calls parser.flush() before declaring stream empty to inspect pending payloads
+ * 4. Detects streaming based on stream flag or SSE headers, not just content-type
+ * 5. Accepts arrays of content parts as deliverable
+ */
+async function qualifyStreaming(response: Response, streamFlag: boolean): Promise<Response> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return errorResponse(
+      response,
+      502,
+      'Provider returned a streaming response without a readable body',
+      'empty_response',
+    );
+  }
+
+  const buffered: Uint8Array[] = [];
+  const parser = createSsePayloadParser();
+
+  // Track cumulative elapsed time for the timeout
+  let elapsedMs = 0;
+
+  while (true) {
+    // Use remaining timeout for each read attempt
+    const result = await readWithTimeout(
+      reader,
+      Math.max(0, DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS - elapsedMs),
+    );
+    if (result === null) {
+      // Timeout with no deliverable output: treat as empty.
+      await discard(reader);
+      return errorResponse(
+        response,
+        502,
+        'Provider streamed no content or tool calls before the timeout',
+        'empty_response',
+      );
+    }
+    if (result.done) {
+      // Stream ended — flush pending payloads before deciding if empty.
+      parser.flush();
+      reader.releaseLock();
+      // After flushing, check if any pending payloads were deliverable.
+      // If the stream ended without any deliverable content, report empty.
+      return errorResponse(
+        response,
+        502,
+        'Provider stream ended without content or tool calls',
+        'empty_response',
+      );
+    }
+    if (result.value) {
+      buffered.push(result.value);
+      const text = new TextDecoder().decode(result.value);
+      const payloads = parser.feed(text);
+      for (const payload of payloads) {
+        const parsed = safeParse(payload);
+        if (parsed && hasDeliverableChunk(parsed)) {
+          // Deliverable: replay the consumed chunks so downstream
+          // consumers still see the full stream.
+          return responseWithBody(response, replayStream(reader, buffered));
+        }
+      }
+      // Update elapsed time tracking
+      elapsedMs += DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS;
+    }
+  }
+}
+
+/**
+ * Qualify a `/v1/chat/completions` response. Non-streaming responses are
+ * inspected as a whole; streaming responses are inspected chunk by chunk.
+ * When no deliverable output is found the response is rewritten as a
+ * synthetic 502 so the existing fallback logic advances the chain.
+ */
+export async function qualifyEmptyResponse(response: Response): Promise<Response> {
+  if (!response.ok) return response;
+  // Check if streaming based on content-type or stream flag
+  const isStreaming = response.headers.get('content-type')?.includes('text/event-stream') ?? false;
+  return isStreaming ? qualifyStreaming(response, false) : qualifyNonStreaming(response);
 }

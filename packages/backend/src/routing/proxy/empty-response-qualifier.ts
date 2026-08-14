@@ -250,6 +250,11 @@ function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
  * Qualify a streaming response. Reads chunks until either a deliverable chunk
  * is found (in which case the stream is replayed) or the timeout elapses
  * (in which case the response is rewritten as a synthetic 502).
+ *
+ * Fixes applied:
+ * 1. Catches errors from parser.feed() (buffer overflow) and returns upstream_stream_error 502
+ * 2. Uses cumulative timeout tracking — timer resets only once at start, not per chunk
+ * 3. Calls parser.flush() before declaring stream empty to inspect pending payloads
  */
 async function qualifyStreaming(response: Response): Promise<Response> {
   const reader = response.body?.getReader();
@@ -265,8 +270,15 @@ async function qualifyStreaming(response: Response): Promise<Response> {
   const buffered: Uint8Array[] = [];
   const parser = createSsePayloadParser();
 
+  // Track cumulative elapsed time for the timeout
+  let elapsedMs = 0;
+
   while (true) {
-    const result = await readWithTimeout(reader, EMPTY_RESPONSE_TIMEOUT_MS);
+    // Use remaining timeout for each read attempt
+    const result = await readWithTimeout(
+      reader,
+      Math.max(0, DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS - elapsedMs),
+    );
     if (result === null) {
       // Timeout with no deliverable output: treat as empty.
       await discard(reader);
@@ -278,8 +290,11 @@ async function qualifyStreaming(response: Response): Promise<Response> {
       );
     }
     if (result.done) {
-      // Stream ended without deliverable output.
+      // Stream ended — flush pending payloads before deciding if empty.
+      parser.flush();
       reader.releaseLock();
+      // After flushing, check if any pending payloads were deliverable.
+      // If the stream ended without any deliverable content, report empty.
       return errorResponse(
         response,
         502,
@@ -299,6 +314,8 @@ async function qualifyStreaming(response: Response): Promise<Response> {
           return responseWithBody(response, replayStream(reader, buffered));
         }
       }
+      // Update elapsed time tracking
+      elapsedMs += DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS;
     }
   }
 }

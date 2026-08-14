@@ -209,5 +209,21 @@ describe('qualifyEmptyResponse', () => {
     it('parses a valid value', () => {
       expect(parseEmptyResponseTimeoutMs('30000')).toBe(30_000);
     });
+
+    it('stream timeout declares empty after timeout elapses', async () => {
+      // Override the module-level timeout with a very short value for testing
+      const originalTimeout = process.env.EMPTY_RESPONSE_TIMEOUT_MS;
+      process.env.EMPTY_RESPONSE_TIMEOUT_MS = '50';
+
+      const sse = 'data: :keepalive\n\n'; // SSE comment heartbeat that never counts as deliverable
+      const response = sseResponse(sse);
+
+      const result = await qualifyEmptyResponse(response);
+      // The response should be a 502 indicating empty stream after timeout
+      expect(result.status).toBe(502);
+
+      // Restore original timeout
+      process.env.EMPTY_RESPONSE_TIMEOUT_MS = originalTimeout!;
+    });
   });
 });
