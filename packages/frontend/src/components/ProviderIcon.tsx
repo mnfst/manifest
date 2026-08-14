@@ -15,6 +15,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         <img src="/icons/manifest.svg" alt="Manifest" style={{ ...s, 'border-radius': '3px' }} />
       );
 
+    /* ── Meta ────────────────────────────────────── */
+    case 'meta':
+      return (
+        <img
+          src="/icons/providers/meta.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── OpenAI ───────────────────────────────────── */
     case 'openai':
       return (
