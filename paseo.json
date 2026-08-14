@@ -18,6 +18,9 @@
     "restart": {
       "command": "./scripts/services.sh restart"
     },
+    "rebuild": {
+      "command": "./scripts/switch-manifest.sh rebuild"
+    },
     "worktree-up": {
       "command": "./scripts/worktree-stack.sh up"
     },
@@ -29,6 +32,9 @@
     },
     "worktree-rebuild": {
       "command": "./scripts/worktree-stack.sh rebuild"
+    },
+    "worktree-logs": {
+      "command": "./scripts/worktree-stack.sh logs"
     }
   }
 }
