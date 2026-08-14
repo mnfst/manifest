@@ -17,6 +17,18 @@
     },
     "restart": {
       "command": "./scripts/services.sh restart"
+    },
+    "worktree-up": {
+      "command": "./scripts/worktree-stack.sh up"
+    },
+    "worktree-down": {
+      "command": "./scripts/worktree-stack.sh down"
+    },
+    "worktree-status": {
+      "command": "./scripts/worktree-stack.sh status"
+    },
+    "worktree-rebuild": {
+      "command": "./scripts/worktree-stack.sh rebuild"
     }
   }
 }

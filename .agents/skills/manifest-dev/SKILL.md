@@ -14,6 +14,52 @@ Two Manifest instances run side-by-side on the same host:
 
 **Rule:** All development happens on Dev (2100). Prod (2099) is stable and snapshotted into Dev when ready.
 
+## Worktree Stacks (Isolation by Default)
+
+Three tiers of Manifest stacks coexist on the host:
+
+| Tier | Project | Port | Image | DB Volume | Managed by |
+|------|---------|------|-------|-----------|------------|
+| Prod | `mnfst` | 2099 | `manifestdotbuild/manifest:latest` | `manifest_pgdata` | `switch-manifest.sh` |
+| Dev | `mnfst-dev` | 2100 | `MANIFEST_VERSION` from `docker/.env.dev` | `manifest_dev_pgdata` | `switch-manifest.sh` |
+| Feature worktree | `mnfst-wt-<slug>` | 2100+N | `manifestdotbuild/manifest:<slug>` | `manifest_wt_<slug>_pgdata` | `worktree-stack.sh` |
+
+- **Prod 2099** — released main, untouched by feature work.
+- **Dev 2100** — the always-on safe test bed and daily driver (`switch-manifest.sh dev`).
+- **Feature worktrees** — EVERY feature worktree gets its own disposable, isolated stack by default, so parallel lanes never interfere with each other or with dev. Containers are `mnfst-wt-<slug>-manifest-1`, `mnfst-wt-<slug>-postgres-1`, `mnfst-wt-<slug>-healer-1`.
+
+**Naming scheme:** slug = sanitized worktree-dir basename (`[a-z0-9-]`, `--slug` overrides). Port slot N is the lowest free integer in 2..99 (skipping bound/taken ports); manifest = `2100+N`, healer = `3100+N`. Volumes: `manifest_wt_<slug>_pgdata`, `manifest_wt_<slug>_request_recordings`. Slot allocation is recorded in `docker/.worktree-stacks.json` (gitignored) and guarded with `flock`; `down` frees the slot.
+
+**Bind address:** `HOST_BIND_ADDRESS` is forced to the host's live Tailscale IP (`tailscale ip -4`, fallback `100.69.158.7`) in the generated per-stack env, so every test stack is reachable over the tailnet (e.g. `http://100.69.158.7:2102/v1`) — never just localhost, regardless of what a worktree's own `.env.dev` says.
+
+**Commands** (run from the worktree's repo root):
+
+```bash
+# Start an isolated stack for a worktree (snapshot = DEFAULT: copies prod DB in)
+./scripts/worktree-stack.sh up ../other-worktree --slug mylane            # with prod-DB snapshot
+./scripts/worktree-stack.sh up ../other-worktree --slug mylane --no-snapshot  # fresh empty DB
+./scripts/worktree-stack.sh up . --slug scratchtest --no-snapshot
+
+# Rebuild image from the worktree source + recreate stack (DB volume retained)
+./scripts/worktree-stack.sh rebuild mylane
+
+# Status table (ports, branch, worktree, health; orphans flagged) + prod/dev one-liner
+./scripts/worktree-stack.sh status
+
+# Teardown — stops containers, removes generated files, frees the slot
+./scripts/worktree-stack.sh down mylane
+# ...and delete the stack's volumes too
+./scripts/worktree-stack.sh down mylane --purge-volume
+
+# Follow the stack's manifest logs
+./scripts/worktree-stack.sh logs mylane
+
+# Help
+./scripts/worktree-stack.sh help
+```
+
+**Safety:** worktree stacks never touch prod/dev containers, volumes, or images; only the project names prefixed `mnfst-wt-` are ever created/managed. The gitignored `docker/.env.dev` is read from the worktree (falling back to the repo's main checkout) and copied into `docker/.env.wt-<slug>` with PORT / HEALER_PORT / MANIFEST_VERSION / BETTER_AUTH_URL overridden.
+
 ## File Locations
 
 ```
