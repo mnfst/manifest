@@ -43,6 +43,7 @@ import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
 import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
+import { qualifyEmptyResponse } from './empty-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
 import { MANAGED_FREE_PROVIDER_BY_ID } from '../../common/constants/managed-free-providers';
@@ -381,7 +382,12 @@ export class ProviderClient {
                 downstreamFormat: isResponses ? 'responses' : 'chat-completions',
               }),
             }
-          : result;
+          : resolvedWireFormat === 'openai_chat_completions'
+            ? {
+                ...result,
+                response: await qualifyEmptyResponse(result.response),
+              }
+            : result;
       if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
       return {
         ...qualifiedResult,

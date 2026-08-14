@@ -98,3 +98,7 @@ Sign in to OpenCode Go, copy your API key, and paste it into Manifest. Model dis
 ## Why mix subscriptions and API keys
 
 A common setup is a subscription as the primary route for predictable monthly cost, plus API-key providers as fallbacks for plan limits, provider outages, or models the subscription does not include. Pin subscription models to routing tiers and add API-key models to the fallback list. Manifest handles the switch.
+
+## When fallback triggers
+
+The fallback chain runs when a provider attempt fails. Besides explicit HTTP errors (`status >= 400`), Manifest also treats an HTTP 200 response with no usable output as a provider failure and advances the chain: `content` empty or `null` **and** no `tool_calls` (streaming and non-streaming). This prevents an empty generation from being served as the terminal answer — for example when a provider reports success while returning a blank `chat.completion` during an upstream incident.
