@@ -131,6 +131,24 @@ export function routeKeySelectionForModel(input: {
   return { keys: availableKeys, needsChoice: true, exhausted: false };
 }
 
+/**
+ * Drop slot under `clientY` for a fallback list element: 0 = before the first
+ * card, N = after the last. Shared by the HTML5 drop path and the mobile
+ * touch-drag path so both compute the same position.
+ */
+export function computeFallbackDropSlot(listEl: HTMLElement, clientY: number): number {
+  const cards = listEl.querySelectorAll<HTMLElement>('.fallback-list__card');
+  let slot = cards.length;
+  for (let i = 0; i < cards.length; i++) {
+    const rect = cards[i]!.getBoundingClientRect();
+    if (clientY < rect.top + rect.height / 2) {
+      slot = i;
+      break;
+    }
+  }
+  return slot;
+}
+
 /** Format per-million token price: $0.15 */
 export function pricePerM(perToken: number | null | undefined): string {
   if (perToken == null) return '\u2014';

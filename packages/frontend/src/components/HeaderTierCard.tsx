@@ -23,6 +23,7 @@ import {
   usedKeyLabelsForModelInTier,
   activeRouteKeys,
   routeKeySelectionForModel,
+  computeFallbackDropSlot,
 } from '../services/routing-utils.js';
 import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
@@ -141,6 +142,51 @@ const HeaderTierCard: Component<Props> = (props) => {
     // still produces a click on mouseup in some browsers. Swallow the next
     // click so the model picker never pops up over a drag gesture.
     dragEndedAt = Date.now();
+  };
+
+  // ── Touch drag (mobile) ─────────────────────────────────────────────
+  // HTML5 drag-and-drop does not fire on touch, so the primary → fallback
+  // drag is driven by pointer events on touch/pen devices. The drag engages
+  // only after an 8px vertical threshold so touching the chip does not
+  // hijack page scrolling; `touch-action: none` (CSS) keeps the gesture.
+  let chipTouchDrag: { startY: number; engaged: boolean } | null = null;
+  const [touchDropSlot, setTouchDropSlot] = createSignal<number | null>(null);
+
+  const handleChipPointerDown = (e: PointerEvent) => {
+    if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+    chipTouchDrag = { startY: e.clientY, engaged: false };
+    setPrimaryDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleChipPointerMove = (e: PointerEvent) => {
+    if (!chipTouchDrag) return;
+    if (!chipTouchDrag.engaged) {
+      if (Math.abs(e.clientY - chipTouchDrag.startY) < 8) return;
+      chipTouchDrag.engaged = true;
+    }
+    e.preventDefault();
+    const listEl = (e.currentTarget as HTMLElement)
+      .closest('.routing-card')
+      ?.querySelector<HTMLElement>('.fallback-list__items');
+    setTouchDropSlot(listEl ? computeFallbackDropSlot(listEl, e.clientY) : null);
+  };
+
+  const handleChipPointerUp = () => {
+    if (!chipTouchDrag) return;
+    const engaged = chipTouchDrag.engaged;
+    const slot = touchDropSlot();
+    chipTouchDrag = null;
+    setTouchDropSlot(null);
+    setPrimaryDragging(false);
+    if (engaged && slot !== null) void handlePrimaryDropAtSlot(slot);
+  };
+
+  const handleChipPointerCancel = () => {
+    if (!chipTouchDrag) return;
+    chipTouchDrag = null;
+    setTouchDropSlot(null);
+    setPrimaryDragging(false);
   };
 
   const chipClick = () => {
@@ -576,6 +622,10 @@ const HeaderTierCard: Component<Props> = (props) => {
               onDragOver={handlePrimaryDragOver}
               onDragLeave={handlePrimaryDragLeave}
               onDrop={handlePrimaryDrop}
+              onPointerDown={handleChipPointerDown}
+              onPointerMove={handleChipPointerMove}
+              onPointerUp={handleChipPointerUp}
+              onPointerCancel={handleChipPointerCancel}
             >
               <div class="routing-card__chip-main">
                 <div class="routing-card__override">
@@ -739,6 +789,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             onPrimaryDropAtSlot={handlePrimaryDropAtSlot}
             onFallbackDragStart={(index) => setFallbackDragging(index)}
             onFallbackDragEnd={() => setFallbackDragging(null)}
+            onFallbackDropOnPrimary={(index) => void swapPrimaryWithFallback(index)}
             swappingIndex={swappingFbIndex()}
           />
         </div>

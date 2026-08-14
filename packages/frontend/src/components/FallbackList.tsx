@@ -14,6 +14,7 @@ import { customProviderColor } from '../services/formatters.js';
 import { getModelLabel } from '../services/provider-utils.js';
 import { PROVIDERS } from '../services/providers.js';
 import {
+  computeFallbackDropSlot,
   resolveProviderId,
   stripCustomPrefix,
   type RouteSlots,
@@ -52,6 +53,8 @@ interface FallbackListProps {
   onPrimaryDropAtSlot?: (slot: number) => void;
   onFallbackDragStart?: (index: number) => void;
   onFallbackDragEnd?: () => void;
+  /** Touch-drag: a fallback card was released over the primary model chip. */
+  onFallbackDropOnPrimary?: (index: number) => void;
   persistFallbacks?: (
     agentName: string,
     tier: string,
@@ -356,6 +359,11 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
     if (fromIndex === null || toSlot === null) return;
 
+    await commitFallbackReorder(fromIndex, toSlot);
+  };
+
+  /** Persist a fallback reorder (shared by the HTML5 drop and touch paths). */
+  const commitFallbackReorder = async (fromIndex: number, toSlot: number) => {
     const insertAt = toSlot > fromIndex ? toSlot - 1 : toSlot;
     if (insertAt === fromIndex) return;
 
@@ -377,6 +385,71 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     } catch {
       props.onUpdate(original, originalRoutes);
     }
+  };
+
+  // ── Touch drag (mobile) ─────────────────────────────────────────────
+  // HTML5 drag-and-drop does not fire on touch devices, so fallback reorder
+  // and the fallback→primary swap use pointer events. A drag engages only
+  // after an 8px vertical threshold so normal scrolling from a card is not
+  // hijacked; once engaged, `touch-action: none` (set in CSS) lets us keep
+  // the gesture instead of the browser scrolling.
+  let touchDrag: { index: number; startY: number; engaged: boolean } | null = null;
+
+  const handleCardPointerDown = (index: number, e: PointerEvent) => {
+    if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+    touchDrag = { index, startY: e.clientY, engaged: false };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleCardPointerMove = (e: PointerEvent) => {
+    if (!touchDrag || !listRef) return;
+    if (!touchDrag.engaged) {
+      if (Math.abs(e.clientY - touchDrag.startY) < 8) return;
+      touchDrag.engaged = true;
+      setDragIndex(touchDrag.index);
+      props.onFallbackDragStart?.(touchDrag.index);
+    }
+    e.preventDefault();
+    const from = touchDrag.index;
+    const slot = computeFallbackDropSlot(listRef, e.clientY);
+    // Don't show an indicator at the dragged item's current position.
+    setDropSlot(slot === from || slot === from + 1 ? null : slot);
+  };
+
+  const handleCardPointerUp = (e: PointerEvent) => {
+    if (!touchDrag) return;
+    const { index, engaged } = touchDrag;
+    const toSlot = dropSlot();
+    touchDrag = null;
+    setDragIndex(null);
+    setDropSlot(null);
+    props.onFallbackDragEnd?.();
+    if (!engaged) return;
+
+    // Released over the primary model chip → swap the fallback with the primary.
+    const chip = listRef
+      ?.closest('.routing-card')
+      ?.querySelector<HTMLElement>('.routing-card__model-chip');
+    const r = chip?.getBoundingClientRect();
+    if (
+      r &&
+      e.clientX >= r.left &&
+      e.clientX <= r.right &&
+      e.clientY >= r.top &&
+      e.clientY <= r.bottom
+    ) {
+      props.onFallbackDropOnPrimary?.(index);
+      return;
+    }
+    if (toSlot !== null) void commitFallbackReorder(index, toSlot);
+  };
+
+  const handleCardPointerCancel = () => {
+    if (!touchDrag) return;
+    touchDrag = null;
+    setDragIndex(null);
+    setDropSlot(null);
+    props.onFallbackDragEnd?.();
   };
 
   const handleDragEnd = () => {
@@ -432,6 +505,10 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                     }
                     draggable={true}
                     onDragStart={(e) => handleDragStart(i(), e)}
+                    onPointerDown={(e) => handleCardPointerDown(i(), e)}
+                    onPointerMove={handleCardPointerMove}
+                    onPointerUp={handleCardPointerUp}
+                    onPointerCancel={handleCardPointerCancel}
                     // Bind dragend on the draggable row itself rather than
                     // only on the container. When a fallback row is dropped
                     // onto the primary slot (outside this container), the

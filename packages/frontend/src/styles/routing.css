@@ -691,6 +691,10 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   cursor: grab;
+  /* Pointer-based touch drag: the chip handles pointermove/pointerup, and
+     touch-action: none keeps the browser from hijacking the gesture into a
+     page scroll. Desktop mouse drag-and-drop is unaffected. */
+  touch-action: none;
   /* Draggable chips must never start a text-selection drag instead of the
      element drag: without this, pressing and moving on the model label can
      select text until the drag threshold trips. */
@@ -1579,6 +1583,10 @@
   border-radius: var(--radius);
   background: #f7f5ed;
   cursor: grab;
+  /* Pointer-based touch drag: same rationale as the primary model chip —
+     the row owns pointermove/pointerup, so the browser must not turn the
+     gesture into a page scroll. */
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   transition:
@@ -2037,6 +2045,34 @@
     white-space: normal;
     text-align: left;
     line-height: 1.3;
+  }
+
+  /* Long model names wrap to a second line instead of being cut off
+     (nowrap + ellipsis stays on desktop). */
+  .routing-card__main,
+  .fallback-list__model {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.3;
+  }
+  /* The label wrappers must be allowed to take the width they need so a
+     wrapping name isn't squeezed back to a sliver by the action buttons. */
+  .routing-card__override,
+  .routing-card__chip-main > div:first-child {
+    min-width: 0;
+  }
+
+  /* The model label keeps a readable minimum width (half the row). With
+     min-width: 0 the label collapsed to a 5px sliver while the key chip +
+     params + remove consumed the row; the flex line-breaker only wraps when
+     items don't fit hypothetically, so a zero-minimum label never triggered
+     it. A real floor forces the actions cluster onto its own line. */
+  .fallback-list__model {
+    min-width: 50%;
+  }
+  .fallback-list__card {
+    flex-wrap: wrap;
+    row-gap: 4px;
   }
 
   .routing-footer {
