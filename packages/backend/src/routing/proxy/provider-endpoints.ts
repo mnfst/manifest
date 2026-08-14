@@ -18,6 +18,7 @@ import { getQwenCompatibleBaseUrl } from '../qwen-region';
 import { getXiaomiTokenPlanBaseUrl } from '../xiaomi-region';
 import { getZaiCodingPlanBaseUrl } from '../zai-region';
 import { buildKiroHeaders, KIRO_BASE_URL, KIRO_CHAT_TARGET } from './kiro-adapter';
+import { buildCommandCodeHeaders } from './command-code-adapter';
 
 export interface ProviderEndpoint {
   baseUrl: string;
@@ -31,7 +32,7 @@ export interface ProviderEndpoint {
    * `format: 'google'` streams.
    */
   buildStreamPath?: (model: string) => string;
-  format: 'openai' | 'google' | 'anthropic' | 'chatgpt' | 'kiro';
+  format: 'openai' | 'google' | 'anthropic' | 'chatgpt' | 'kiro' | 'commandcode';
   /**
    * How this endpoint can report exact token usage for streaming responses.
    * `openai_stream_options` means the proxy should request a final usage event
@@ -131,6 +132,8 @@ const anthropicApiKeyHeaders = (apiKey: string): Record<string, string> => ({
 const CHATGPT_SUBSCRIPTION_BASE = 'https://chatgpt.com/backend-api';
 const BYTEPLUS_CODING_BASE = 'https://ark.ap-southeast.bytepluses.com/api/coding';
 const COMMAND_CODE_PROVIDER_BASE = 'https://api.commandcode.ai/provider';
+/** CLI-dialect chat endpoint (custom envelope + AI-SDK-v5 NDJSON stream). */
+const COMMAND_CODE_CHAT_BASE = 'https://api.commandcode.ai';
 const KIMI_CODING_SUBSCRIPTION_BASE = 'https://api.kimi.com/coding';
 const MINIMAX_SUBSCRIPTION_BASE = 'https://api.minimax.io/anthropic/v1';
 const XIAOMI_MIMO_BASE = 'https://api.xiaomimimo.com';
@@ -240,11 +243,10 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     skipSubscriptionIdentity: true,
   },
   commandcode: {
-    baseUrl: COMMAND_CODE_PROVIDER_BASE,
-    buildHeaders: openaiHeaders,
-    buildPath: openaiPath,
-    format: 'openai',
-    ...openaiStreamUsage,
+    baseUrl: COMMAND_CODE_CHAT_BASE,
+    buildHeaders: buildCommandCodeHeaders,
+    buildPath: () => '/alpha/generate',
+    format: 'commandcode',
   },
   cerebras: {
     baseUrl: 'https://api.cerebras.ai',

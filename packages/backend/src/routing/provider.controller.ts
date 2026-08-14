@@ -36,6 +36,7 @@ import {
   CLOUD_LOCAL_PROVIDER_MESSAGE,
   isProviderAvailableForDeployment,
 } from '../common/utils/provider-availability';
+import { CommandCodeAuthService } from './command-code/command-code-auth.service';
 
 @Controller('api/v1/routing')
 export class ProviderController {
@@ -46,6 +47,7 @@ export class ProviderController {
     private readonly resolveAgentService: ResolveAgentService,
     private readonly tierService: TierService,
     private readonly pricingSync: PricingSyncService,
+    private readonly commandCodeAuth: CommandCodeAuthService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -157,6 +159,19 @@ export class ProviderController {
     // Sync Ollama models before connecting so tier assignment has data
     if (body.provider.toLowerCase() === 'ollama') {
       await this.ollamaSync.sync();
+    }
+
+    // Command Code: validate a NEW subscription key against /alpha/whoami
+    // before storing it, so a typo'd or expired `user_...` key surfaces as an
+    // immediate setup error instead of a silently empty model list. Skipped
+    // when no key is supplied (e.g. reordering existing labels) and treated
+    // as non-fatal on transport errors — model discovery stays the source of
+    // truth for the connection's health.
+    if (lowerProvider === 'commandcode' && body.apiKey) {
+      const auth = await this.commandCodeAuth.validateApiKey(body.apiKey);
+      if (!auth.ok) {
+        throw new BadRequestException(auth.message);
+      }
     }
 
     // The service handles enabled-provider rows itself: new rows fan out to

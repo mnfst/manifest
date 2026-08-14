@@ -40,6 +40,7 @@ import {
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { forwardKiroChat } from './kiro-adapter';
+import { forwardCommandCodeChat } from './command-code-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
 import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
@@ -305,6 +306,32 @@ export class ProviderClient {
         isChatGpt: false,
         wireRequestBody: requestSource,
         wireFormat: 'kiro_chat',
+        wireApiMode: opts.apiMode,
+        responsesTextFormat: textFormat,
+      };
+    }
+    if (endpoint.format === 'commandcode') {
+      const requestSource = chatBody ?? body;
+      opts.attempt?.startRecording?.({
+        requestBody: requestSource,
+        wireFormat: 'commandcode_chat',
+      });
+      const response = await forwardCommandCodeChat({
+        apiKey,
+        model: bareModel,
+        body: requestSource,
+        stream,
+        signal,
+        timeoutMs: PROVIDER_TIMEOUT_MS,
+        extraHeaders,
+      });
+      return {
+        response,
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+        wireRequestBody: requestSource,
+        wireFormat: 'commandcode_chat',
         wireApiMode: opts.apiMode,
         responsesTextFormat: textFormat,
       };

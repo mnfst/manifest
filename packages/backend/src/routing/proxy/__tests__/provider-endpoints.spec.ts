@@ -715,15 +715,20 @@ describe('PROVIDER_ENDPOINTS', () => {
     });
   });
 
-  it('commandcode uses the Command Code Provider API chat endpoint', () => {
+  it('commandcode uses the CLI-dialect /alpha/generate chat endpoint', () => {
     const ep = PROVIDER_ENDPOINTS['commandcode'];
-    expect(ep.baseUrl).toBe('https://api.commandcode.ai/provider');
-    expect(ep.format).toBe('openai');
-    expect(ep.buildPath('deepseek/deepseek-v4-flash')).toBe('/v1/chat/completions');
-    expect(ep.buildHeaders('user_test')).toEqual({
+    expect(ep.baseUrl).toBe('https://api.commandcode.ai');
+    expect(ep.format).toBe('commandcode');
+    expect(ep.buildPath('deepseek/deepseek-v4-flash')).toBe('/alpha/generate');
+    const headers = ep.buildHeaders('user_test');
+    expect(headers).toMatchObject({
       Authorization: 'Bearer user_test',
       'Content-Type': 'application/json',
+      'x-command-code-version': '0.25.7',
+      'x-cli-environment': 'cli',
+      Accept: 'text/event-stream',
     });
+    expect(typeof headers['x-session-id']).toBe('string');
   });
 
   it('qwen-subscription uses the Token Plan OpenAI-compatible chat endpoint', () => {
@@ -796,7 +801,6 @@ describe('PROVIDER_ENDPOINTS', () => {
       'openrouter',
       'ollama',
       'ollama-cloud',
-      'commandcode',
       'opencode-go',
       'opencode-zen',
     ];
