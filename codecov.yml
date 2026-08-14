@@ -1,0 +1,29 @@
+codecov:
+  branch: main
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 5%
+flags:
+  backend:
+    paths:
+      - packages/backend/src/
+  frontend:
+    paths:
+      - packages/frontend/src/
+  shared:
+    paths:
+      - packages/shared/src/
+bundle_analysis:
+  warning_threshold: "5%"
+  status: "informational"
+comment:
+  layout: "reach,diff,flags"
+  require_bundle_changes: true
+  bundle_change_threshold: "1Kb"

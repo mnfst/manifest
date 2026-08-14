@@ -1,0 +1,484 @@
+name: Docker Smoke
+
+# Boots the production compose stack with `read_only: true` and verifies the
+# app comes up cleanly and answers /api/v1/health. Catches regressions from
+# code that silently writes outside /tmp at boot, which would crash users on
+# the locked-down default deployment.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/mock-openai-provider.py"
+      - ".github/workflows/docker-smoke.yml"
+      - "contracts/gateway/**"
+      - "docker/Dockerfile"
+      - ".dockerignore"
+      - "docker/docker-compose.yml"
+      - "docker/.env.example"
+      - "docker/install.sh"
+      - "packages/backend/**"
+      - "packages/frontend/**"
+      - "packages/shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - "turbo.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Compose smoke test (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build local image as manifestdotbuild/manifest:latest
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: manifestdotbuild/manifest:latest
+          platforms: linux/amd64
+          cache-from: type=gha,scope=smoke-amd64
+          cache-to: type=gha,mode=max,scope=smoke-amd64
+
+      - name: Prepare .env from .env.example
+        working-directory: docker
+        run: |
+          cp .env.example .env
+          # Generate a real secret so BETTER_AUTH_SECRET=${VAR:?…} succeeds.
+          secret=$(openssl rand -hex 32)
+          # Replace the empty `BETTER_AUTH_SECRET=` line.
+          new=""
+          while IFS= read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" == "BETTER_AUTH_SECRET=" ]]; then
+              new+="BETTER_AUTH_SECRET=${secret}"$'\n'
+            else
+              new+="$line"$'\n'
+            fi
+          done < .env
+          printf '%s' "$new" > .env
+
+      - name: Verify self-host configuration wiring
+        working-directory: docker
+        env:
+          HOST_BIND_ADDRESS: 0.0.0.0
+          HOST_PORT: "28080"
+          MANIFEST_VERSION: "6"
+          REQUEST_RECORDING_RETENTION_DAYS: "42"
+          REQUEST_RECORDING_S3_BUCKET: recordings
+          REQUEST_RECORDING_S3_ENDPOINT: http://minio:9000
+          REQUEST_RECORDING_S3_REGION: auto
+          REQUEST_RECORDING_S3_ACCESS_KEY_ID: access
+          REQUEST_RECORDING_S3_SECRET_ACCESS_KEY: secret
+          REQUEST_RECORDING_S3_FORCE_PATH_STYLE: "true"
+        run: |
+          docker compose config --format json > /tmp/compose.json
+          jq -e '
+            .services.manifest.image == "manifestdotbuild/manifest:6" and
+            .services.manifest.ports[0].host_ip == "0.0.0.0" and
+            .services.manifest.ports[0].published == "28080" and
+            .services.manifest.environment.REQUEST_RECORDING_RETENTION_DAYS == "42" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_BUCKET == "recordings" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_ENDPOINT == "http://minio:9000" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_REGION == "auto" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_ACCESS_KEY_ID == "access" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_SECRET_ACCESS_KEY == "secret" and
+            .services.manifest.environment.REQUEST_RECORDING_S3_FORCE_PATH_STYLE == "true"
+          ' /tmp/compose.json
+
+      - name: Start mock OpenAI provider
+        run: |
+          nohup python3 -u .github/scripts/mock-openai-provider.py 38001 \
+            >/tmp/mock-openai-provider.log 2>&1 &
+          echo "$!" >/tmp/mock-openai-provider.pid
+          for _ in $(seq 1 20); do
+            if curl -sSf http://127.0.0.1:38001/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/mock-openai-provider.log
+          exit 1
+
+      - name: Boot the stack
+        working-directory: docker
+        run: |
+          docker compose up -d
+          docker compose ps
+
+      - name: Wait for /api/v1/health
+        run: |
+          set -e
+          for i in $(seq 1 60); do
+            if curl -sSf http://127.0.0.1:2099/api/v1/health >/dev/null; then
+              echo "healthy after ${i}s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "health never returned 200" >&2
+          (cd docker && docker compose logs manifest)
+          exit 1
+
+      - name: Checkout baseline gateway contracts
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .gateway-contract-baseline
+          sparse-checkout: contracts/gateway
+
+      - name: Run baseline gateway contracts
+        if: github.event_name == 'pull_request'
+        env:
+          MANIFEST_BASE_URL: http://127.0.0.1:2099
+        run: |
+          shopt -s nullglob
+          tests=(.gateway-contract-baseline/contracts/gateway/tests/*.test.mjs)
+          if (( ${#tests[@]} == 0 )); then
+            echo "::notice::No gateway contracts exist in the base commit; running candidate contracts only."
+            exit 0
+          fi
+          node --test "${tests[@]}"
+
+      - name: Run candidate gateway contracts
+        env:
+          MANIFEST_BASE_URL: http://127.0.0.1:2099
+        run: |
+          shopt -s nullglob
+          tests=(contracts/gateway/tests/*.test.mjs)
+          if (( ${#tests[@]} == 0 )); then
+            echo "::error::The candidate contains no gateway contracts."
+            exit 1
+          fi
+          node --test "${tests[@]}"
+
+      - name: Verify health payload shape
+        run: |
+          response=$(curl -sS http://127.0.0.1:2099/api/v1/health)
+          echo "$response"
+          echo "$response" | grep -q '"status":"healthy"'
+
+      - name: Verify SPA index loads
+        run: |
+          curl -sSf http://127.0.0.1:2099/ -o /tmp/index.html
+          test -s /tmp/index.html
+          grep -q '<title>Manifest</title>' /tmp/index.html
+
+      - name: Verify public stats are gated off by default
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:2099/api/v1/public/usage)
+          if [[ "$status" != "404" ]]; then
+            echo "expected 404 for /public/usage when MANIFEST_PUBLIC_STATS is unset, got $status" >&2
+            exit 1
+          fi
+
+      - name: Verify recording survives Manifest container recreation
+        working-directory: docker
+        run: |
+          base_url=http://127.0.0.1:2099
+          auth_origin=http://localhost:2099
+          cookie_jar=/tmp/manifest-recording-smoke.cookies
+          prompt="persist this request through a container recreation"
+          expected_answer="persisted through Docker volume"
+
+          curl -sSf -X POST "$base_url/api/v1/setup/admin" \
+            -H 'Content-Type: application/json' \
+            -H "Origin: $auth_origin" \
+            --data '{"email":"volume-smoke@example.com","name":"Volume Smoke","password":"volume-smoke-password"}' \
+            >/dev/null
+          curl -sSf -c "$cookie_jar" -X POST "$base_url/api/auth/sign-in/email" \
+            -H 'Content-Type: application/json' \
+            -H "Origin: $auth_origin" \
+            --data '{"email":"volume-smoke@example.com","password":"volume-smoke-password"}' \
+            >/dev/null
+          test -s "$cookie_jar"
+
+          agent=$(curl -sSf -b "$cookie_jar" -X POST "$base_url/api/v1/agents" \
+            -H 'Content-Type: application/json' \
+            --data '{"name":"Volume Smoke Agent"}')
+          agent_key=$(jq -er '.apiKey | select(startswith("mnfst_"))' <<<"$agent")
+
+          provider=$(curl -sSf -b "$cookie_jar" -X POST \
+            "$base_url/api/v1/routing/volume-smoke-agent/custom-providers" \
+            -H 'Content-Type: application/json' \
+            --data '{
+              "name":"Volume Smoke Provider",
+              "base_url":"http://host.docker.internal:38001/v1",
+              "apiKey":"volume-smoke-key",
+              "models":[{
+                "model_name":"volume-smoke-model",
+                "input_price_per_million_tokens":0,
+                "output_price_per_million_tokens":0
+              }]
+            }')
+          provider_id=$(jq -er '.id' <<<"$provider")
+          model="custom:${provider_id}/volume-smoke-model"
+          route=$(jq -cn --arg model "$model" '{model:$model}')
+
+          for tier in simple standard complex reasoning default; do
+            curl -sSf -b "$cookie_jar" -X PUT \
+              "$base_url/api/v1/routing/volume-smoke-agent/tiers/$tier" \
+              -H 'Content-Type: application/json' \
+              --data "$route" >/dev/null
+          done
+          curl -sSf -b "$cookie_jar" -X PATCH \
+            "$base_url/api/v1/routing/volume-smoke-agent/recording" \
+            -H 'Content-Type: application/json' \
+            --data '{"enabled":true}' |
+            jq -e '.enabled == true' >/dev/null
+
+          request_body=$(jq -cn --arg model "$model" --arg prompt "$prompt" \
+            '{model:$model,messages:[{role:"user",content:$prompt}],stream:false}')
+          response=$(curl -sSf -X POST "$base_url/v1/chat/completions" \
+            -H "Authorization: Bearer $agent_key" \
+            -H 'Content-Type: application/json' \
+            --data "$request_body")
+          jq -e --arg answer "$expected_answer" \
+            '.choices[0].message.content == $answer' <<<"$response" >/dev/null
+
+          recording_row=""
+          for i in $(seq 1 100); do
+            recording_row=$(docker compose exec -T postgres \
+              psql -U manifest -d manifest -AtF '|' -c \
+              "SELECT request_id, id, recording_key
+               FROM agent_messages
+               WHERE recording_key IS NOT NULL
+               ORDER BY timestamp DESC, id DESC
+               LIMIT 1")
+            if [[ -n "$recording_row" ]]; then
+              break
+            fi
+            sleep 0.1
+          done
+          test -n "$recording_row"
+          IFS='|' read -r request_id attempt_id storage_key <<<"$recording_row"
+
+          docker run --rm --user 65532:65532 \
+            -e RECORDING_KEY="$storage_key" \
+            -v manifest_request_recordings:/recordings:ro \
+            --entrypoint /nodejs/bin/node \
+            manifestdotbuild/manifest:latest \
+            -e "const fs=require('fs');const b=fs.readFileSync('/recordings/'+process.env.RECORDING_KEY);if(b[0]!==0x1f||b[1]!==0x8b)process.exit(1)"
+
+          docker compose up -d --force-recreate --no-deps manifest
+          for i in $(seq 1 60); do
+            if curl -sSf "$base_url/api/v1/health" >/dev/null; then
+              break
+            fi
+            if [[ "$i" -eq 60 ]]; then
+              docker compose logs manifest
+              exit 1
+            fi
+            sleep 2
+          done
+
+          details=$(curl -sSf -b "$cookie_jar" \
+            "$base_url/api/v1/messages/$request_id/details")
+          jq -e \
+            --arg request_id "$request_id" \
+            --arg attempt_id "$attempt_id" \
+            --arg prompt "$prompt" \
+            --arg answer "$expected_answer" \
+            '.message.id == $request_id and
+             (.message.attempts | any(
+               .id == $attempt_id and
+               .recording.wire_format == "openai_chat_completions" and
+               .recording.request_body.messages[0].content == $prompt and
+               .recording.response_body.type == "json" and
+               .recording.response_body.body.choices[0].message.content == $answer
+             ))' \
+            <<<"$details" >/dev/null
+
+      - name: Dump backend logs on success (for diff inspection)
+        if: success()
+        working-directory: docker
+        run: docker compose logs --tail=200 manifest
+
+      - name: Dump backend logs on failure
+        if: failure()
+        working-directory: docker
+        run: |
+          docker compose logs manifest || true
+          docker compose logs postgres || true
+
+      - name: Tear down
+        if: always()
+        working-directory: docker
+        run: |
+          docker compose down -v
+          if [[ -f /tmp/mock-openai-provider.pid ]]; then
+            kill "$(cat /tmp/mock-openai-provider.pid)" || true
+          fi
+
+  install-script:
+    name: install.sh end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Exercises the published one-liner path — docker/install.sh pulled
+    # from HTTP — against the branch-under-test. The default source
+    # (raw.githubusercontent.com/.../main) would always test `main` even
+    # on a PR, so we point the installer at a local HTTP server serving
+    # the PR's docker/ directory via MANIFEST_INSTALLER_SOURCE.
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Build local image as manifestdotbuild/manifest:latest
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          load: true
+          tags: manifestdotbuild/manifest:latest
+          platforms: linux/amd64
+          cache-from: type=gha,scope=smoke-amd64
+          cache-to: type=gha,mode=max,scope=smoke-amd64
+
+      - name: Serve the PR's docker/ files on a local HTTP port
+        run: |
+          cd docker
+          # `python -m http.server` ships with every ubuntu-latest runner
+          # and serves the cwd verbatim. Install.sh will fetch
+          # docker-compose.yml and .env.example from this origin.
+          nohup python3 -m http.server 38000 >/tmp/http.log 2>&1 &
+          sleep 1
+          curl -sSf http://127.0.0.1:38000/docker-compose.yml -o /dev/null
+          curl -sSf http://127.0.0.1:38000/.env.example -o /dev/null
+
+      - name: Run install.sh against the local source
+        env:
+          MANIFEST_INSTALLER_SOURCE: http://127.0.0.1:38000
+        run: |
+          bash docker/install.sh --dir "$RUNNER_TEMP/install-smoke" --yes
+
+      - name: Verify /api/v1/health responds on the default port
+        run: |
+          curl -sSf http://127.0.0.1:2099/api/v1/health | tee /tmp/health.json
+          grep -q '"status":"healthy"' /tmp/health.json
+
+      - name: Verify install wrote the expected files
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          test -f "$install_dir/docker-compose.yml"
+          test -f "$install_dir/.env"
+          # .env must have a real BETTER_AUTH_SECRET written — not the
+          # empty template value.
+          grep -Eq '^BETTER_AUTH_SECRET=[0-9a-f]{64}$' "$install_dir/.env"
+
+      - name: Verify Compose project name is pinned (no dir-basename leak)
+        run: |
+          # `name: mnfst` in docker-compose.yml should win over the
+          # install-directory basename, so we always see `mnfst-*` here.
+          docker ps --format '{{.Names}}' | tee /tmp/containers.txt
+          grep -Eq '^mnfst-manifest-1$' /tmp/containers.txt
+          grep -Eq '^mnfst-postgres-1$' /tmp/containers.txt
+
+      - name: Recreate the installation with the pre-feature Compose file
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          printf '\nUPGRADE_TEST_SENTINEL=preserve-me\n' >> "$install_dir/.env"
+          sha256sum "$install_dir/.env" > /tmp/install-env.sha256
+
+          (cd "$install_dir" && docker compose down)
+          docker volume rm manifest_request_recordings
+
+          git fetch origin "$BASE_SHA" --depth=1
+          git show "$BASE_SHA:docker/docker-compose.yml" > "$install_dir/docker-compose.yml"
+          (cd "$install_dir" && docker compose up -d)
+
+          for i in $(seq 1 60); do
+            if curl -sSf http://127.0.0.1:2099/api/v1/health >/dev/null; then
+              echo "legacy configuration healthy after ${i}s"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "legacy configuration never became healthy" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          (cd "$install_dir" && docker compose exec -T postgres \
+            psql -U manifest -d manifest -v ON_ERROR_STOP=1 \
+              -c "CREATE TABLE upgrade_sentinel (value text PRIMARY KEY);" \
+              -c "INSERT INTO upgrade_sentinel VALUES ('preserved');")
+
+      - name: Upgrade the pre-feature installation
+        if: github.event_name == 'pull_request'
+        env:
+          MANIFEST_INSTALLER_SOURCE: http://127.0.0.1:38000
+          MANIFEST_INSTALLER_SKIP_PULL: "1"
+        run: |
+          bash docker/install.sh --upgrade --dir "$RUNNER_TEMP/install-smoke" --yes
+
+      - name: Verify the upgrade preserves configuration and data
+        if: github.event_name == 'pull_request'
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          sha256sum -c /tmp/install-env.sha256
+          grep -q '^UPGRADE_TEST_SENTINEL=preserve-me$' "$install_dir/.env"
+
+          backup=$(find "$install_dir" -maxdepth 1 \
+            -name 'docker-compose.yml.backup.*' -print -quit)
+          test -n "$backup"
+          ! grep -q 'request-recordings' "$backup"
+          grep -q '^# manifest-compose-version: 1$' "$install_dir/docker-compose.yml"
+
+          (cd "$install_dir" && docker compose config --format json) > /tmp/upgraded-compose.json
+          jq -e '
+            .services.manifest.volumes[] |
+            select(.source == "recordings" and .target == "/data/request-recordings")
+          ' /tmp/upgraded-compose.json
+          jq -e '.volumes.recordings.name == "manifest_request_recordings"' \
+            /tmp/upgraded-compose.json
+          docker volume inspect manifest_request_recordings >/dev/null
+
+          count=$(cd "$install_dir" && docker compose exec -T postgres \
+            psql -U manifest -d manifest -Atc \
+              "SELECT COUNT(*) FROM upgrade_sentinel WHERE value = 'preserved'")
+          test "$count" = "1"
+
+          docker run --rm --user 65532:65532 \
+            -v manifest_request_recordings:/data/request-recordings \
+            --entrypoint /nodejs/bin/node \
+            manifestdotbuild/manifest:latest \
+            -e "const fs=require('fs');const p='/data/request-recordings/.write-test';fs.writeFileSync(p,'ok');fs.unlinkSync(p)"
+
+          curl -sSf http://127.0.0.1:2099/api/v1/health | grep -q '"status":"healthy"'
+          (cd "$install_dir" && docker compose logs manifest) |
+            grep -q 'Request recording storage: filesystem'
+
+      - name: Dump backend logs on failure
+        if: failure()
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          (cd "$install_dir" && docker compose logs manifest || true)
+          (cd "$install_dir" && docker compose logs postgres || true)
+          cat /tmp/http.log || true
+
+      - name: Tear down
+        if: always()
+        run: |
+          install_dir="$RUNNER_TEMP/install-smoke"
+          if [ -d "$install_dir" ]; then
+            (cd "$install_dir" && docker compose down -v) || true
+          fi

@@ -1,0 +1,221 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ALL_TIERS, AUTH_TYPES, TIER_SLOTS } from 'manifest-shared';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
+import { Agent } from '../entities/agent.entity';
+import { AgentMessage } from '../entities/agent-message.entity';
+import type { TelemetryPayloadV1 } from './dto/telemetry-payload';
+import { TELEMETRY_SCHEMA_VERSION } from './telemetry.config';
+
+const TIER_WHITELIST: ReadonlySet<string> = new Set<string>([...TIER_SLOTS, ...ALL_TIERS]);
+const AUTH_TYPE_WHITELIST: ReadonlySet<string> = new Set<string>(AUTH_TYPES);
+
+interface ProviderAggregateRow {
+  provider: string | null;
+  count: string;
+  cost: string | null;
+}
+
+interface BucketRow {
+  bucket: string | null;
+  count: string;
+}
+
+interface TotalsRow {
+  total: string;
+  input_tokens: string | null;
+  output_tokens: string | null;
+  cost: string | null;
+}
+
+/**
+ * Builds the daily telemetry payload by aggregating the last 24h of
+ * `agent_messages` plus the total agent count + runtime metadata. All
+ * SELECTs are parameterised so the window is consistent across queries.
+ */
+@Injectable()
+export class PayloadBuilderService {
+  constructor(
+    @InjectRepository(AgentMessage)
+    private readonly messages: Repository<AgentMessage>,
+    @InjectRepository(Agent)
+    private readonly agents: Repository<Agent>,
+  ) {}
+
+  async build(installId: string, manifestVersion: string): Promise<TelemetryPayloadV1> {
+    const [providerRows, tierRows, authRows, totals, agentsTotal, agentPlatformRows] =
+      await Promise.all([
+        this.messagesByProvider(),
+        this.messagesByBucket('routing_tier'),
+        this.messagesByBucket('auth_type'),
+        this.totals(),
+        this.userAgentsCount(),
+        this.agentsByPlatform(),
+      ]);
+
+    return {
+      schema_version: TELEMETRY_SCHEMA_VERSION,
+      install_id: installId,
+      manifest_version: manifestVersion,
+      messages_total: Number(totals.total),
+      messages_by_provider: this.collapseProviders(providerRows),
+      // Defense in depth: whitelist tier and auth_type values against the
+      // shared enums. If a future write path inserts an unexpected string,
+      // it collapses to `"other"` instead of leaking verbatim to the
+      // telemetry endpoint.
+      messages_by_tier: this.bucketsToRecord(tierRows, 'unknown', TIER_WHITELIST),
+      messages_by_auth_type: this.bucketsToRecord(authRows, 'unknown', AUTH_TYPE_WHITELIST),
+      tokens_input_total: Number(totals.input_tokens ?? 0),
+      tokens_output_total: Number(totals.output_tokens ?? 0),
+      cost_usd_total: roundCents(Number(totals.cost ?? 0)),
+      cost_usd_by_provider: this.collapseProviderCosts(providerRows),
+      agents_total: agentsTotal,
+      agents_by_platform: this.bucketsToRecord(agentPlatformRows, 'unknown'),
+      platform: process.platform,
+      arch: process.arch,
+    };
+  }
+
+  private async messagesByProvider(): Promise<ProviderAggregateRow[]> {
+    return this.messages
+      .createQueryBuilder('m')
+      .select('m.provider', 'provider')
+      .addSelect('COUNT(*)', 'count')
+      .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
+      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .groupBy('m.provider')
+      .getRawMany<ProviderAggregateRow>();
+  }
+
+  /**
+   * Groups the 24h-window messages by any column whose values are already a
+   * short stable set (`routing_tier`, `auth_type`). We trust the set because
+   * the producer — our own proxy — writes known enum strings.
+   */
+  private async messagesByBucket(column: 'routing_tier' | 'auth_type'): Promise<BucketRow[]> {
+    return this.messages
+      .createQueryBuilder('m')
+      .select(`m.${column}`, 'bucket')
+      .addSelect('COUNT(*)', 'count')
+      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .groupBy(`m.${column}`)
+      .getRawMany<BucketRow>();
+  }
+
+  /**
+   * `other` is a sentinel valid in every category (personal/app/coding), so a
+   * bare `agent_platform` bucket loses the category dimension peacock needs to
+   * tell "Other personal agent" from "Other coding tool". For the `other`
+   * platform we emit a composite `<category>:other` key (peacock's
+   * platform-classification.ts already handles this format); known platforms
+   * stay as bare keys so existing self-hosted reports don't change shape.
+   */
+  private async agentsByPlatform(): Promise<BucketRow[]> {
+    interface CategoryPlatformRow {
+      category: string | null;
+      platform: string | null;
+      count: string;
+    }
+    const rows = await this.agents
+      .createQueryBuilder('a')
+      .select('a.agent_category', 'category')
+      .addSelect('a.agent_platform', 'platform')
+      .addSelect('COUNT(*)', 'count')
+      .where('a.is_playground = false')
+      .groupBy('a.agent_category')
+      .addGroupBy('a.agent_platform')
+      .getRawMany<CategoryPlatformRow>();
+    return rows.map((r) => ({
+      bucket: r.platform === 'other' && r.category ? `${r.category}:${r.platform}` : r.platform,
+      count: r.count,
+    }));
+  }
+
+  /** Count only user-created agents; playground agents (e.g. Playground) are excluded. */
+  private async userAgentsCount(): Promise<number> {
+    const result = await this.agents
+      .createQueryBuilder('a')
+      .select('COUNT(*)', 'count')
+      .where('a.is_playground = false')
+      .getRawOne<{ count: string }>();
+    return Number(result?.count ?? 0);
+  }
+
+  private async totals(): Promise<TotalsRow> {
+    const row = await this.messages
+      .createQueryBuilder('m')
+      .select('COUNT(*)', 'total')
+      .addSelect('SUM(m.input_tokens)', 'input_tokens')
+      .addSelect('SUM(m.output_tokens)', 'output_tokens')
+      .addSelect('COALESCE(SUM(m.cost_usd), 0)', 'cost')
+      .where(`m.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .getRawOne<TotalsRow>();
+    return row ?? { total: '0', input_tokens: '0', output_tokens: '0', cost: '0' };
+  }
+
+  /**
+   * Maps each raw `provider` value to either its canonical registry ID or
+   * the bucket `"custom"` (for user-defined providers) / `"unknown"` (for
+   * pre-provider-column rows). Prevents custom provider names — which may
+   * leak URLs or user configuration — from escaping the box.
+   */
+  private collapseProviders(rows: ProviderAggregateRow[]): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      const bucket = this.bucketFor(row.provider);
+      out[bucket] = (out[bucket] ?? 0) + Number(row.count);
+    }
+    return out;
+  }
+
+  /**
+   * Same bucketing as `collapseProviders`, but sums `cost_usd` instead of
+   * row counts. Custom provider names collapse into a single `"custom"`
+   * bucket, so admin-configured BYOK pricing never appears keyed by the
+   * raw provider string. Values are rounded to cents to avoid emitting
+   * micro-precision floats over the wire.
+   */
+  private collapseProviderCosts(rows: ProviderAggregateRow[]): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      const cost = row.cost == null ? 0 : Number(row.cost);
+      if (!Number.isFinite(cost) || cost <= 0) continue;
+      const bucket = this.bucketFor(row.provider);
+      out[bucket] = (out[bucket] ?? 0) + cost;
+    }
+    for (const key of Object.keys(out)) {
+      const rounded = roundCents(out[key]);
+      if (rounded === 0) delete out[key];
+      else out[key] = rounded;
+    }
+    return out;
+  }
+
+  private bucketFor(provider: string | null): string {
+    if (!provider) return 'unknown';
+    const entry = PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase());
+    return entry ? entry.id : 'custom';
+  }
+
+  private bucketsToRecord(
+    rows: BucketRow[],
+    nullLabel: string,
+    whitelist?: ReadonlySet<string>,
+  ): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      let key = row.bucket ?? nullLabel;
+      if (whitelist && row.bucket !== null && !whitelist.has(row.bucket)) {
+        key = 'other';
+      }
+      out[key] = (out[key] ?? 0) + Number(row.count);
+    }
+    return out;
+  }
+}
+
+function roundCents(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.round(value * 100) / 100;
+}

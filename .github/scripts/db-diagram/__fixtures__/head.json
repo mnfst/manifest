@@ -1,0 +1,58 @@
+{
+  "tables": {
+    "tenants": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "name", "type": "varchar", "nullable": false },
+        { "name": "created_at", "type": "timestamp without time zone", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": []
+    },
+    "agents": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "name", "type": "varchar", "nullable": true },
+        { "name": "tenant_id", "type": "varchar", "nullable": false },
+        { "name": "display_name", "type": "varchar(255)", "nullable": true }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "tenant_id", "toTable": "tenants", "toColumn": "id" }
+      ]
+    },
+    "agent_api_keys": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "key", "type": "varchar(64)", "nullable": false }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "agent_id", "toTable": "agents", "toColumn": "id" }
+      ]
+    },
+    "routing_tiers": {
+      "columns": [
+        { "name": "id", "type": "uuid", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "tier", "type": "varchar", "nullable": false },
+        { "name": "model", "type": "varchar", "nullable": false },
+        { "name": "max_cost", "type": "numeric(15,6)", "nullable": true }
+      ],
+      "primaryKeys": ["id"],
+      "foreignKeys": [
+        { "column": "agent_id", "toTable": "agents", "toColumn": "id" }
+      ]
+    },
+    "provider_keys": {
+      "columns": [
+        { "name": "id", "type": "varchar", "nullable": false },
+        { "name": "agent_id", "type": "varchar", "nullable": false },
+        { "name": "region", "type": "varchar", "nullable": false }
+      ],
+      "primaryKeys": ["id", "region"],
+      "foreignKeys": []
+    }
+  }
+}

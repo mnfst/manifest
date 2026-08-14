@@ -1,0 +1,203 @@
+/* ── Setup Modal overlay ─────────────────────────── */
+.setup-modal__overlay {
+  background: rgb(251 249 243 / 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.dark .setup-modal__overlay {
+  background: rgb(0 0 0 / 0.7);
+}
+
+/* ── Setup Modal header ──────────────────────────── */
+.setup-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--gap-sm);
+}
+
+/* ── Setup Modal nav ─────────────────────────────── */
+.setup-modal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: var(--gap-lg);
+}
+
+.setup-modal__nav .modal-card__back-link {
+  justify-content: flex-start;
+  width: auto;
+}
+
+.setup-modal__next-hint {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+}
+
+.setup-modal__next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  padding: 0 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: hsl(var(--foreground));
+  color: hsl(var(--background));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.setup-modal__next:hover {
+  opacity: 0.85;
+}
+
+/* ── Embedded providers step ─────────────────────── */
+.setup-step-providers {
+  margin: 0 -32px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.setup-step-providers .provider-modal__view {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+/* ── Waiting for data state ──────────────────────── */
+.waiting-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  padding: 12px 16px;
+  margin-bottom: var(--gap-lg);
+  background: hsl(var(--chart-1) / 0.08);
+  border: 1px solid hsl(var(--chart-1) / 0.2);
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.waiting-banner i {
+  flex-shrink: 0;
+  color: hsl(var(--chart-1));
+  font-size: 18px;
+}
+
+.waiting-banner p {
+  margin: 0;
+}
+
+.waiting-banner--success {
+  border-color: hsl(var(--success) / 0.3);
+  background: hsl(var(--success) / 0.06);
+}
+
+.waiting-banner--success i {
+  color: hsl(var(--success));
+}
+
+/* ── User discovery banner ────────────────────────── */
+.overview-discovery-banner {
+  display: flex;
+  justify-content: center;
+  margin: var(--gap-md) 0;
+}
+
+.overview-discovery-banner__inner {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+  min-height: 38px;
+  overflow: hidden;
+  padding: 0 38px 0 0;
+  color: hsl(var(--foreground));
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+}
+
+.overview-discovery-banner__dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  min-height: 38px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.overview-discovery-banner__dismiss:hover,
+.overview-discovery-banner__dismiss:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.overview-discovery-banner__text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 14px;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.overview-discovery-banner__cta {
+  margin-left: 0.3em;
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.overview-discovery-banner__cta:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .overview-discovery-banner {
+    margin: var(--gap-sm) var(--gap-sm);
+  }
+}
+
+@media (max-width: 560px) {
+  .overview-discovery-banner__text {
+    padding: 7px 10px;
+    font-size: var(--font-size-xs);
+  }
+
+  .overview-discovery-banner__dismiss {
+    width: 36px;
+  }
+}
+
+/* ── Fallback badge ──────────────────────────────── */
+.tier-badge--fallback {
+  background: hsl(38 92% 50% / 0.15);
+  color: hsl(38 92% 40%);
+}
+
+/* ── Demo dashboard (setup done, no data yet) ────── */
+.demo-dashboard {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}

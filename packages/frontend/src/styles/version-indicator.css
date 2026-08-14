@@ -1,0 +1,14 @@
+/* ── Version Indicator ────────────────── */
+
+.version-indicator {
+  position: fixed;
+  bottom: var(--gap-md);
+  right: var(--gap-md);
+  z-index: 40;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+  cursor: default;
+  user-select: none;
+}

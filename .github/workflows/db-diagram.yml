@@ -1,0 +1,132 @@
+name: DB Diagram
+
+# This job runs untrusted PR code (it executes the PR's migrations against a
+# throwaway Postgres), so it intentionally holds a READ-ONLY token and never
+# comments. It renders the schema-diff markdown and uploads it as an artifact;
+# the companion ".github/workflows/db-diagram-comment.yml" (triggered via
+# workflow_run from the default branch) posts it with a write token. That split
+# is the only way to comment on PRs from forks without handing a write token to
+# fork-controlled code. Do NOT re-add `pull-requests: write` or an inline
+# comment step here — fork PRs get a read-only token on `pull_request`, so the
+# comment step would 403 (the reason it was previously guarded to same-repo
+# PRs, which silently skipped commenting on every fork PR).
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'packages/backend/src/database/migrations/**'
+
+jobs:
+  diagram:
+    name: Schema diff diagram
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: mypassword
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U myuser -d postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      BASE_DB_URL: postgresql://myuser:mypassword@localhost:5432/base_schema
+      HEAD_DB_URL: postgresql://myuser:mypassword@localhost:5432/head_schema
+      PGPASSWORD: mypassword
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      NODE_PATH: ${{ github.workspace }}/node_modules:${{ github.workspace }}/packages/backend/node_modules
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build --workspace=packages/shared
+
+      - name: Create base + head databases
+        run: |
+          psql -h localhost -U myuser -d postgres -c "CREATE DATABASE base_schema;"
+          psql -h localhost -U myuser -d postgres -c "CREATE DATABASE head_schema;"
+
+      - name: Run HEAD migrations
+        env:
+          DATABASE_URL: ${{ env.HEAD_DB_URL }}
+        run: npm run migration:run --workspace=packages/backend
+
+      - name: Extract HEAD schema
+        env:
+          DATABASE_URL: ${{ env.HEAD_DB_URL }}
+        run: node .github/scripts/db-diagram/extract-schema.cjs > /tmp/head-schema.json
+
+      - name: List changed migration files
+        run: |
+          git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
+            -- packages/backend/src/database/migrations/ > /tmp/changed-migrations.txt
+          cat /tmp/changed-migrations.txt
+
+      - name: Run BASE migrations (clean base checkout)
+        env:
+          DATABASE_URL: ${{ env.BASE_DB_URL }}
+        run: |
+          # Build the base schema from a clean checkout of the base commit so the
+          # whole database definition (data-source-definitions.ts + entities +
+          # migrations) stays internally consistent. Swapping only the migrations
+          # directory breaks once migrations are imported explicitly
+          # (data-source-definitions.ts) or when a PR adds/removes entities.
+          # Reuse the already-installed HEAD node_modules: dependency versions do
+          # not change across the few commits in a PR range.
+          git worktree add --detach /tmp/base-tree "$BASE_SHA"
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/base-tree/node_modules
+          ln -s \
+            "$GITHUB_WORKSPACE/packages/backend/node_modules" \
+            /tmp/base-tree/packages/backend/node_modules
+          cd /tmp/base-tree
+          npm run migration:run --workspace=packages/backend
+
+      - name: Extract BASE schema
+        env:
+          DATABASE_URL: ${{ env.BASE_DB_URL }}
+        run: node .github/scripts/db-diagram/extract-schema.cjs > /tmp/base-schema.json
+
+      - name: Render diagram comment
+        env:
+          MIGRATION_FILES_FILE: /tmp/changed-migrations.txt
+        run: |
+          MIGRATION_FILES="$(cat /tmp/changed-migrations.txt)" \
+            node .github/scripts/db-diagram/render-diagram.cjs \
+              /tmp/base-schema.json /tmp/head-schema.json > /tmp/comment.md
+          echo "--- comment preview ---"
+          cat /tmp/comment.md
+
+      # Hand the rendered comment off to the workflow_run companion. We pass the
+      # PR number explicitly because `workflow_run`'s own payload lists no
+      # pull_requests for fork PRs, so the companion can't otherwise recover it.
+      - name: Stage comment artifact
+        run: |
+          mkdir -p /tmp/db-diagram-comment
+          cp /tmp/comment.md /tmp/db-diagram-comment/comment.md
+          echo "${{ github.event.pull_request.number }}" > /tmp/db-diagram-comment/pr-number.txt
+
+      - name: Upload comment artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: db-diagram-comment
+          path: /tmp/db-diagram-comment/
+          retention-days: 1
+          if-no-files-found: error

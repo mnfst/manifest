@@ -1,0 +1,232 @@
+# Managed by Manifest's installer. Keep local settings in `.env` or
+# `docker-compose.override.yml` so upgrades can replace this file safely.
+# manifest-compose-version: 1
+#
+# First boot: `docker compose up -d` starts the stack. Visit
+# http://localhost:2099 and the app walks you through creating the first
+# admin account via the setup wizard at /setup. No hardcoded credentials.
+#
+# Configuration comes from a `.env` file next to this compose file.
+# Copy `.env.example` to `.env` and set at least BETTER_AUTH_SECRET before
+# booting. The install script does this automatically.
+#
+# Connecting local LLM servers (Ollama, LM Studio, or any OpenAI-compatible server):
+# Install your server on the host, bind it to 0.0.0.0, and point Manifest
+# at `http://host.docker.internal:<port>/v1`. Manifest auto-allows private
+# and http URLs in the self-hosted version. See DOCKER_README.md for the
+# full flow — no `--profile` flag is needed. Requires Docker Engine 20.10+.
+#
+# Before exposing this instance beyond localhost:
+#   - Set a real BETTER_AUTH_SECRET in .env (openssl rand -hex 32).
+#   - To harden the database password, set BOTH `POSTGRES_PASSWORD` AND
+#     `DATABASE_URL` in .env. They must agree — the password in the URL
+#     must match POSTGRES_PASSWORD, and any special characters must be
+#     percent-encoded in the URL.
+#   - Confirm your admin password is strong (the setup wizard enforces
+#     at least 8 characters).
+#   - If you enable email verification (set EMAIL_PROVIDER / EMAIL_API_KEY),
+#     set BETTER_AUTH_URL to a reachable public URL so the verification
+#     links resolve.
+#   - The app port binds to 127.0.0.1 by default. To expose on the LAN,
+#     set HOST_BIND_ADDRESS=0.0.0.0 and update BETTER_AUTH_URL in .env to
+#     match the host you reach it on.
+#
+# Staying on the legacy 3001 port (existing installs):
+#   Set `PORT=3001` in `.env`. Everything below reads `${PORT:-2099}`, so
+#   the compose file honours it without further edits.
+
+# Pin the Compose project name so containers, networks, and volumes have
+# stable, predictable names regardless of the install directory's
+# basename. Without this, the project name would be inherited from the
+# directory (commonly `manifest`) and would silently collide with any
+# other Docker project the user happens to have called `manifest` —
+# including older Manifest installs moved to a different path.
+name: mnfst
+
+services:
+  manifest:
+    image: manifestdotbuild/manifest:${MANIFEST_VERSION:-latest}
+    ports:
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-${PORT:-2099}}:${PORT:-2099}"
+    # Lets the container reach LLM servers running on the host (Ollama,
+    # LM Studio, or any other OpenAI-compatible server) at
+    # host.docker.internal:<port>. Requires Docker Engine 20.10+ (Docker
+    # Desktop works out of the box).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Default to 2099 (the current dashboard port). Existing installs can
+      # pin PORT=3001 in .env to stay on the previous port without having
+      # to reconfigure reverse proxies, OAuth callbacks, or bookmarks.
+      - PORT=${PORT:-2099}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://manifest:manifest@postgres:5432/manifest}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set in .env}
+      # Optional dedicated at-rest encryption key for stored provider/OAuth
+      # credentials. When unset, the backend falls back to BETTER_AUTH_SECRET.
+      - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${HOST_PORT:-${PORT:-2099}}}
+      # Defaults to the host-installed Ollama. Override in .env if your
+      # Ollama runs elsewhere (e.g. on another host on your LAN).
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - PROVIDER_TIMEOUT_MS=${PROVIDER_TIMEOUT_MS:-180000}
+      - STREAM_WARMUP_MS=${STREAM_WARMUP_MS:-15000}
+      - CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS=${CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS:-60000}
+      # Both are deliberately hardcoded, not `${VAR:-default}`. The image is a
+      # production artifact: NODE_ENV=production is what makes it one, and the
+      # seeder refuses to run under it anyway (database-seeder.service.ts logs
+      # "SEED_DATA=true is ignored in production"). Exposing either as a knob
+      # would only offer a setting that cannot take effect.
+      - SEED_DATA=false
+      - NODE_ENV=production
+      # Force self-hosted semantics regardless of the container runtime.
+      # The auto-detection inside the app reads /.dockerenv (Docker),
+      # /run/.containerenv (Podman), and KUBERNETES_SERVICE_HOST, but
+      # explicit beats inferred — and a number of rootless / nspawn /
+      # exotic runtimes produce neither marker. Setting this avoids
+      # silently flipping users back to cloud-mode SSRF rules (issue #1780).
+      - MANIFEST_MODE=${MANIFEST_MODE:-selfhosted}
+      # Message recordings use this mounted Docker volume automatically when
+      # S3-compatible bucket credentials are not present.
+      - REQUEST_RECORDING_STORAGE=${REQUEST_RECORDING_STORAGE:-auto}
+      - REQUEST_RECORDING_FILESYSTEM_PATH=/data/request-recordings
+      - REQUEST_RECORDING_RETENTION_DAYS=${REQUEST_RECORDING_RETENTION_DAYS:-}
+      - REQUEST_RECORDING_S3_BUCKET=${REQUEST_RECORDING_S3_BUCKET:-}
+      - REQUEST_RECORDING_S3_ENDPOINT=${REQUEST_RECORDING_S3_ENDPOINT:-}
+      - REQUEST_RECORDING_S3_REGION=${REQUEST_RECORDING_S3_REGION:-}
+      - REQUEST_RECORDING_S3_ACCESS_KEY_ID=${REQUEST_RECORDING_S3_ACCESS_KEY_ID:-}
+      - REQUEST_RECORDING_S3_SECRET_ACCESS_KEY=${REQUEST_RECORDING_S3_SECRET_ACCESS_KEY:-}
+      - REQUEST_RECORDING_S3_FORCE_PATH_STYLE=${REQUEST_RECORDING_S3_FORCE_PATH_STYLE:-false}
+      # Email provider (optional). Covers both login/verification emails
+      # and threshold alert notifications. Set one provider block — see
+      # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.
+      - EMAIL_PROVIDER=${EMAIL_PROVIDER:-}
+      - EMAIL_API_KEY=${EMAIL_API_KEY:-}
+      - EMAIL_DOMAIN=${EMAIL_DOMAIN:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+      # OAuth providers (optional). Activate when both ID and SECRET are set.
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID:-}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET:-}
+      # Provider OAuth client overrides (optional). Only needed if you have
+      # registered your own OAuth app with these providers instead of using
+      # the defaults shipped with Manifest.
+      - OPENAI_OAUTH_CLIENT_ID=${OPENAI_OAUTH_CLIENT_ID:-}
+      - MINIMAX_OAUTH_CLIENT_ID=${MINIMAX_OAUTH_CLIENT_ID:-}
+      # Programmatic API access via the X-API-Key header. Optional — the
+      # dashboard uses cookie sessions and agents use their own mnfst_* keys.
+      - API_KEY=${API_KEY:-}
+      # Rate limiting. Window in ms + max requests per window per client.
+      - THROTTLE_TTL=${THROTTLE_TTL:-60000}
+      - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
+      # Database tuning. DB_POOL_MAX sizes the app pool, AUTH_DB_POOL_MAX the
+      # separate pool Better Auth opens for itself.
+      - DB_POOL_MAX=${DB_POOL_MAX:-10}
+      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-5}
+      - DB_TUNE_SESSION=${DB_TUNE_SESSION:-}
+      # Set false for multi-replica deploys where only one instance should run
+      # migrations. A single-container compose install wants the default.
+      - RUN_MIGRATIONS_ON_BOOT=${RUN_MIGRATIONS_ON_BOOT:-true}
+      # Grace period (ms) to finish in-flight requests on SIGTERM. Spelled with
+      # a real default rather than `:-` because the app reads it as
+      # `Number(env ?? 10000)` — an empty string would coerce to 0, not 10000.
+      - SHUTDOWN_DRAIN_MS=${SHUTDOWN_DRAIN_MS:-10000}
+      # Suppresses the boot warning about HSTS on plain-HTTP deployments. Set
+      # to 1 for HTTP-only LAN installs; prefer a real https:// BETTER_AUTH_URL
+      # anywhere reachable from the internet.
+      - MANIFEST_DISABLE_HSTS=${MANIFEST_DISABLE_HSTS:-}
+      # Extra browser origins allowed to call the gateway (comma-separated).
+      - WINGMAN_CORS_ORIGINS=${WINGMAN_CORS_ORIGINS:-}
+      # Error monitoring (opt-in). Sentry stays completely uninitialised
+      # unless SENTRY_DSN is set.
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT:-}
+      - SENTRY_RELEASE=${SENTRY_RELEASE:-}
+      # Anonymous usage telemetry (opt-out). Set MANIFEST_TELEMETRY_DISABLED=1
+      # to disable, or point TELEMETRY_ENDPOINT at your own collector. See
+      # https://manifest.build/docs/self-hosted#telemetry for the payload shape.
+      - MANIFEST_TELEMETRY_DISABLED=${MANIFEST_TELEMETRY_DISABLED:-0}
+      - TELEMETRY_ENDPOINT=${TELEMETRY_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "const p=process.env.PORT||'2099';fetch(`http://127.0.0.1:$${p}/api/v1/health`).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      # Cold first-pull with migrations + pricing-cache warmup comfortably
+      # runs past 60s. A 90s grace keeps Docker from flipping the container
+      # to `unhealthy` (and tripping `depends_on: service_healthy`) while
+      # the app is still legitimately booting.
+      start_period: 90s
+      retries: 3
+    # Cap container logs at ~50 MB (5 × 10 MB) so a long-running install
+    # can't fill the host disk via Docker's default unbounded json-file
+    # driver. Rotated logs are still retrievable via `docker logs`.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1g
+    pids_limit: 512
+    volumes:
+      - recordings:/data/request-recordings
+    networks:
+      - internal
+      - frontend
+
+  postgres:
+    image: postgres:16-alpine@sha256:20edbde7749f822887a1a022ad526fde0a47d6b2be9a8364433605cf65099416
+    environment:
+      - POSTGRES_USER=manifest
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-manifest}
+      - POSTGRES_DB=manifest
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U manifest
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+    internal: true
+  frontend:
+    driver: bridge
+
+volumes:
+  # Pin the volume name so existing installs (whose project name was
+  # inherited from the `manifest` directory basename) keep seeing their
+  # historical `manifest_pgdata` volume after we set an explicit
+  # `name: mnfst` project name above. Without this pin, renaming the
+  # project would orphan the old volume and the new stack would come up
+  # against a fresh empty DB — i.e. data loss.
+  pgdata:
+    name: manifest_pgdata
+  recordings:
+    name: manifest_request_recordings

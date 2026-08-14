@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="title">
+  <title id="title">BytePlus</title>
+  <path
+    fill="#0B5CFF"
+    d="M3 11.6 9.4 6v8.4L20.2 6v8.8L29 7.7v8.5L17.4 26v-8.7L6.6 26v-8.5L3 20.4v-8.8Z"
+  />
+  <path fill="#4CA3FF" d="M9.4 14.4 20.2 6v8.8L9.4 23.3v-8.9Z" opacity="0.72" />
+</svg>

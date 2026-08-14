@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.detect.outputs.should_publish }}
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Check for releasable changesets
+        id: releasable
+        run: |
+          # Skip the version-PR step only when we can PROVE nothing will be
+          # released. A changeset that targets only ignored packages
+          # (manifest-backend / -frontend / -shared) makes `changeset version` a
+          # no-op; changesets/action would then push an empty branch and fail
+          # with "No commits between main and changeset-release/main", aborting
+          # this job before the publish steps below ever run. Skipping (not
+          # failing) keeps the job green so Detect version bump can still fire.
+          skip=false
+          if npx changeset status --output=release-plan.json 2>/dev/null; then
+            if [ "$(jq '.releases | length' release-plan.json)" = "0" ]; then
+              skip=true
+            fi
+          fi
+          rm -f release-plan.json
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+      - uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
+        if: steps.releasable.outputs.skip != 'true'
+        id: changesets
+        with:
+          createGithubReleases: false
+          version: npm run version-packages
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Detect version bump
+        id: detect
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          # Read both versions from the immutable remote SHAs of the push
+          # event, NOT from `HEAD`. changesets/action@v1 runs
+          # `npm run version-packages` in this same checkout when there are
+          # unconsumed changesets and commits the result locally to push as
+          # a "chore: version packages" side-branch PR. After that runs,
+          # local HEAD points at a commit whose version bump is NOT yet on
+          # main — using it here would falsely report a bump and trigger
+          # downstream publish jobs with main's stale version number,
+          # clobbering an existing Docker tag and a GitHub Release. See the
+          # 5.47.0 re-publish incident during PR #1557 merge for the
+          # failure mode this guards against.
+          CURR=$(git show "${AFTER_SHA}:packages/manifest/package.json" 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          # Compare against the push base so multi-commit pushes are handled
+          # correctly. On first push to a branch, BEFORE_SHA is all zeros.
+          if [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            PREV=$(git show "${BEFORE_SHA}:packages/manifest/package.json" 2>/dev/null | jq -r .version 2>/dev/null || echo "")
+          else
+            PREV=""
+          fi
+          if [ -n "$PREV" ] && [ -n "$CURR" ] && [ "$PREV" != "$CURR" ]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            echo "Version bumped: $PREV -> $CURR"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+            echo "No version change (PREV=${PREV:-<none>} CURR=${CURR:-<none>})"
+          fi
+
+  github-release:
+    needs: release
+    if: needs.release.outputs.should_publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(jq -r .version packages/manifest/package.json)
+          TAG="manifest@${VERSION}"
+
+          # Extract changelog section for this version
+          BODY=$(awk -v ver="## ${VERSION}" \
+            '$0 == ver { found=1; next } found && /^## / { exit } found { print }' \
+            packages/manifest/CHANGELOG.md)
+
+          # Add emoji headers
+          BODY=$(echo "$BODY" | sed \
+            -e 's/^### Major Changes$/### 💥 Major Changes/' \
+            -e 's/^### Minor Changes$/### ✨ Minor Changes/' \
+            -e 's/^### Patch Changes$/### 🐛 Patch Changes/')
+
+          git tag "$TAG" 2>/dev/null || true
+          git push origin "$TAG" 2>/dev/null || true
+
+          gh release create "$TAG" \
+            --title "manifest v${VERSION}" \
+            --notes "${BODY:-No changelog}" \
+            --verify-tag
+
+      # Nudge the marketing site to rebuild so its /changelog/ page (generated
+      # from these GitHub releases) picks up this version within ~1 min. Kept in
+      # this job on purpose: the release is created with the default
+      # GITHUB_TOKEN, which does NOT trigger `release: published` workflows, so a
+      # standalone workflow would never fire. No-op if the secret is unset.
+      - name: Trigger website changelog rebuild
+        # Best-effort: the release, tag, and Docker publish already succeeded by
+        # this point, so a transient hook or network error must not fail the job
+        # (a red status after a good release is misleading). The site also
+        # rebuilds on the next release or any push to the website repo.
+        continue-on-error: true
+        env:
+          HOOK: ${{ secrets.WEBSITE_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "WEBSITE_DEPLOY_HOOK not set; skipping website rebuild."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
+
+  publish-docker:
+    needs: release
+    if: needs.release.outputs.should_publish == 'true'
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
