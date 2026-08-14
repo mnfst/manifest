@@ -1074,6 +1074,41 @@
   }
 }
 
+/* ── Mobile: fixed prompt bar + scrolling summary ── */
+
+@media (max-width: 768px) {
+  /* The prompt bar is fixed with a left offset that tracks the sidebar on
+     desktop; on mobile the sidebar is a drawer, so the bar spans the
+     viewport. */
+  .playground-prompt-wrapper {
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    padding: 0 12px;
+  }
+  .playground-prompt-wrapper--history-open {
+    right: 0;
+  }
+  .playground-summary {
+    overflow-x: auto;
+  }
+  .playground-summary__table {
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 480px) {
+  .playground-headers__row {
+    grid-template-columns: 1fr 28px;
+  }
+  .playground-headers__input--key {
+    grid-column: 1 / -1;
+  }
+  .playground-headers__warning {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ── Recent sidebar (app-level, sibling of main-content) */
 
 .playground-recent--collapsed {

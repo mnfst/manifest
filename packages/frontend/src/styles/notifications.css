@@ -449,6 +449,35 @@
   color: hsl(var(--foreground));
 }
 
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .provider-setup-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* The flush table uses negative margins sized for the desktop panel
+     padding; on mobile the panel scrolls instead, so drop the bleed. */
+  .notif-table--flush {
+    margin: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .provider-setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .provider-modal-picker {
+    flex-direction: column;
+  }
+
+  .provider-card__header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
 .modal-card__footer--split {
   display: flex;
   justify-content: space-between;

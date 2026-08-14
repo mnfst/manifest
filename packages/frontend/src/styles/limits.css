@@ -235,3 +235,11 @@
   color: hsl(var(--foreground));
   line-height: 1.4;
 }
+
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .limit-modal__row {
+    grid-template-columns: 1fr;
+    gap: var(--gap-md);
+  }
+}

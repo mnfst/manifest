@@ -390,6 +390,34 @@
   .billing-stat:last-child {
     border-bottom: none;
   }
+  .billing-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+  .billing-footer__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Settings rows (label left / control right) stack so the 260px control
+     never overflows a narrow viewport. */
+  .settings-card__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+  .settings-card__control {
+    width: 100%;
+  }
+  .settings-card__control--end {
+    justify-content: flex-start;
+  }
+  .account-modal__inner {
+    padding: var(--gap-md);
+  }
 }
 
 .upgrade-page-header {

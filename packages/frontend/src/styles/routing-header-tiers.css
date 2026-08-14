@@ -527,3 +527,39 @@
   color: hsl(var(--destructive));
   margin-top: 4px;
 }
+
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .routing-section__header--header-tiers {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--gap-sm);
+  }
+
+  .header-tier-card__icon-btn,
+  .header-tier-card__kebab-btn {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-tier-card__actions {
+    flex-wrap: wrap;
+  }
+
+  .header-tier-modal__swatches {
+    gap: 4px;
+  }
+
+  .header-tier-modal__swatch {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-tier-manage__footer,
+  .header-tier-modal__footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

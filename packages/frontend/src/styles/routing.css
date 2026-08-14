@@ -2008,3 +2008,99 @@
     grid-template-columns: 1fr;
   }
 }
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .routing-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-md);
+  }
+
+  /* Routing toolbar row (provider icons + Refresh models + Response mode):
+     the row is an unclassed inline-styled flex div, so anchor on its
+     response-mode button. The left and right clusters stack on mobile
+     instead of overflowing the container. */
+  .container--lg > div:has(.response-mode-btn) {
+    flex-wrap: wrap;
+    row-gap: var(--gap-sm);
+  }
+  .container--lg > div:has(.response-mode-btn) > div {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .routing-providers-info {
+    flex-wrap: wrap;
+    row-gap: var(--gap-sm);
+  }
+  .response-mode-btn {
+    min-width: 0;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.3;
+  }
+
+  .routing-footer {
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+  }
+
+  /* In-chip / in-list icon buttons get a larger hit area on touch screens
+     without changing the row height much. */
+  .routing-card__chip-action,
+  .fallback-list__remove,
+  .fallback-list__params {
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+  }
+
+  .routing-card__header-action,
+  .routing-card__header-add,
+  .routing-card__reset-btn {
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Chips: the model row and the footer wrap instead of overflowing;
+     action buttons stay on their own line so they remain tappable. */
+  .routing-card__chip-main {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .routing-card__chip-meta,
+  .model-capability-badges {
+    flex-wrap: wrap;
+  }
+
+  .routing-card__chip-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .routing-card__model-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .routing-card__actions {
+    flex-wrap: wrap;
+  }
+
+  .routing-card__header {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+
+  .fallback-list__card {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .quota-freeze-item {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+}

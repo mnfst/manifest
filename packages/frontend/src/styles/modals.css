@@ -502,12 +502,16 @@
 
 @media (max-width: 480px) {
   .modal-overlay {
-    padding: 10px;
+    padding: 0;
+    align-items: flex-end;
   }
 
   .modal-card {
-    max-height: calc(100dvh - 20px);
-    padding: 20px;
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
   .modal-card__title {
@@ -518,10 +522,19 @@
     margin-bottom: var(--gap-md);
   }
 
+  .setup-modal {
+    max-width: 100% !important;
+  }
+
   .setup-modal__nav {
-    bottom: -20px;
-    margin: var(--gap-lg) -20px -20px;
+    bottom: calc(-20px - env(safe-area-inset-bottom, 0px));
+    margin: var(--gap-lg) -20px calc(-20px - env(safe-area-inset-bottom, 0px));
     padding: var(--gap-md) 20px calc(var(--gap-md) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .header-tier-modal__close {
+    top: 12px;
+    right: 12px;
   }
 }
 

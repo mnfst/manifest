@@ -524,3 +524,28 @@
     text-align: left;
   }
 }
+
+@media (max-width: 480px) {
+  .routing-modal__card {
+    max-width: 100%;
+    max-height: 100dvh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .routing-modal__header {
+    padding: 16px 16px 12px;
+  }
+
+  .routing-modal__search-wrap {
+    padding: 0 16px;
+  }
+
+  .routing-modal__search-icon {
+    left: 30px;
+  }
+
+  .routing-modal__filter-bar {
+    padding: 8px 16px 0;
+    flex-wrap: wrap;
+  }
+}

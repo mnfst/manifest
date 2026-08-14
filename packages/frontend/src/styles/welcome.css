@@ -1642,6 +1642,11 @@
   .welcome__panel {
     gap: 14px;
   }
+  /* The centered routing cards keep a 340px min-width from the 860px
+     breakpoint; on a phone they must shrink with the viewport. */
+  .welcome__panel .routing-cards--centered {
+    min-width: 0;
+  }
   .welcome__actions--split {
     gap: 12px;
   }

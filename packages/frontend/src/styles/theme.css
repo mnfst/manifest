@@ -1662,6 +1662,74 @@ h6 {
   .empty-state {
     padding: var(--gap-xl) var(--gap-md);
   }
+  .container--lg {
+    max-width: 100%;
+  }
+  /* The usage banner is laid out against the desktop main-content padding;
+     on mobile the padding shrinks, so pull the banner out by the same
+     amount to keep it edge-to-edge inside the content column. */
+  .usage-limit-banner {
+    margin: calc(-1 * var(--gap-md)) calc(-1 * var(--gap-md)) var(--gap-md);
+  }
+  /* Touch targets: primary controls get a taller hit area on touch
+     screens. Dense data tables and .btn--sm are left alone. */
+  .btn:not(.btn--sm) {
+    height: 40px;
+  }
+  .select,
+  .settings-card__input,
+  .modal-card__input,
+  .provider-detail__input {
+    height: 2.5rem;
+  }
+  .custom-select__trigger,
+  .agent-filter-select__trigger,
+  .routing-action {
+    height: 2.25rem;
+  }
+  .panel__header {
+    flex-wrap: wrap;
+    gap: var(--gap-md);
+  }
+  /* Tab bars scroll horizontally instead of stretching the page: block-level
+     flex (never inline-flex, whose shrink-to-fit can exceed the viewport),
+     full width, no wrapping, internal scroll, hidden scrollbar. */
+  .panel__tabs {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .panel__tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .panel__tabs .panel__tab {
+    flex: 0 0 auto;
+  }
+  /* Guard rails so no chrome row can push the page past 100vw. */
+  .header {
+    max-width: 100vw;
+  }
+  .header__left,
+  .header__right {
+    min-width: 0;
+  }
+  .chart-card__controls {
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+  }
+  .settings-card__footer {
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+  }
+  .sidebar__section-add {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1683,6 +1751,53 @@ h6 {
   }
   .chart-card__value {
     font-size: var(--font-size-lg);
+  }
+  .main-content {
+    padding: 12px;
+  }
+  .usage-limit-banner {
+    margin: -12px -12px var(--gap-md);
+  }
+  .page-header h1 {
+    font-size: var(--font-size-lg);
+  }
+  .chart-card__header {
+    grid-template-columns: 1fr;
+  }
+  .chart-card__stat {
+    padding: 10px 12px;
+  }
+  .chart-card__stat:nth-child(odd) {
+    border-right: 0;
+  }
+  .chart-card__stat:last-of-type,
+  .chart-card__stat:nth-child(odd):last-of-type {
+    grid-column: auto;
+    border-bottom: none;
+  }
+  /* Dialogs (.modal + .modal-backdrop family) become full-bleed bottom
+     sheets: full width, rounded top only, internal scroll. */
+  .modal-backdrop {
+    align-items: flex-end;
+  }
+  .modal {
+    width: 100%;
+    max-width: 100% !important;
+    max-height: 100dvh;
+    border-radius: 16px 16px 0 0;
+  }
+  .modal.upgrade-success-modal,
+  .modal.user-discovery-modal {
+    max-width: 100%;
+  }
+  .modal__header,
+  .modal__body,
+  .modal__footer {
+    padding: var(--gap-md);
+  }
+  .modal__footer .btn {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 }
 

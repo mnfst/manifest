@@ -43,3 +43,9 @@
   white-space: nowrap;
   font-weight: 500;
 }
+
+@media (max-width: 480px) {
+  .routing-deprecation {
+    flex-wrap: wrap;
+  }
+}

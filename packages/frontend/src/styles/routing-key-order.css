@@ -421,3 +421,49 @@
   border-radius: var(--radius);
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
+
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .key-order-section__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--gap-sm);
+  }
+
+  .key-order-chip__btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .key-order-card__action {
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .key-order-card__head {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+
+  .key-order-card__actions {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .key-order-chip {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .key-order-modal__scope-options {
+    grid-template-columns: 1fr;
+  }
+
+  .key-order-modal__footer {
+    flex-wrap: wrap;
+  }
+}

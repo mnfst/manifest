@@ -210,3 +210,18 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .specificity-header.routing-section__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--gap-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .specificity-modal__row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

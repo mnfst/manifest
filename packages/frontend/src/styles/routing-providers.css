@@ -1236,3 +1236,36 @@ tr:hover .connection-label-cell__edit,
   color: hsl(var(--muted-foreground));
   margin: 6px 0 0;
 }
+
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .provider-toggle__key-row {
+    flex-wrap: wrap;
+  }
+  .provider-toggle__key-input {
+    flex: 1 1 100%;
+  }
+
+  .provider-detail__header {
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+  }
+  .provider-detail__header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .provider-detail__key-row {
+    flex-wrap: wrap;
+  }
+  .provider-detail__key-row .provider-detail__input {
+    flex: 1 1 100%;
+  }
+  .provider-detail__key-row .btn {
+    flex: 1 1 100%;
+  }
+
+  .provider-detail__format-options {
+    grid-template-columns: 1fr;
+  }
+}

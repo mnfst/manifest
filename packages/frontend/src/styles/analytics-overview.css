@@ -252,6 +252,42 @@
   .overview-split {
     grid-template-columns: 1fr !important;
   }
+
+  /* Long agent/connection names must wrap inside the title row instead of
+     stretching the page; the 2xl size is retained on desktop. */
+  .page-header__title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: var(--font-size-xl);
+    letter-spacing: 0;
+  }
+
+  /* KPI stat grids — !important beats the inline grid-template-columns
+     (repeat(3..5, 1fr)) that the analytics pages set per-card-count. */
+  .overview-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--gap-md);
+  }
+
+  .error-class-card__row {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .overview-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .error-class-card__label {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .afx-kpi-line {
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
 }
 
 /* ── Scrollable panel ────────────────────────────── */

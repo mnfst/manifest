@@ -1557,3 +1557,42 @@ table.msg-detail__table td {
     flex-wrap: wrap;
   }
 }
+
+/* ── Mobile ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Auto-fix cards render at half the row width on desktop; on a phone they
+     take the full width so their content never clips. */
+  .autofix-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .msg-detail__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--gap-sm);
+  }
+
+  .pagination__controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .model-bar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .model-bar__name {
+    width: 100%;
+  }
+
+  .model-bar__pct {
+    width: auto;
+  }
+}
