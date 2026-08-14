@@ -51,6 +51,33 @@ function makeQb(rows: Array<Record<string, unknown>> = []) {
 }
 
 describe('MessagesQueryService request-first queries', () => {
+  it('projects recovered_by_key_rotation on the grouped request rows', async () => {
+    const requestQb = makeQb([{ id: 'request-1', timestamp: '2026-07-14T10:00:00Z' }]);
+    const pageQb = makeQb();
+    requestQb.clone.mockReturnValue(pageQb);
+    const legacyBase = makeQb();
+    legacyBase.clone.mockReturnValueOnce(makeQb()).mockReturnValueOnce(makeQb());
+    const service = new MessagesQueryService(
+      { createQueryBuilder: jest.fn(() => legacyBase) } as never,
+      { find: jest.fn() } as never,
+      { createQueryBuilder: jest.fn(() => requestQb) } as never,
+    );
+
+    await service.getMessages({
+      tenantId: 'tenant-1',
+      limit: 50,
+      include_total: false,
+      include_filter_options: false,
+    });
+
+    // The modern grouped projection must surface the request-level rotation
+    // flag so the Messages list badge renders (docs/glossary.md step 5).
+    expect(requestQb.addSelect).toHaveBeenCalledWith(
+      'r.recovered_by_key_rotation',
+      'recovered_by_key_rotation',
+    );
+  });
+
   it('selects parent ids before aggregating the common request page', async () => {
     const requestQb = makeQb([{ id: 'request-1', timestamp: '2026-07-14T10:00:00Z' }]);
     const pageQb = makeQb();

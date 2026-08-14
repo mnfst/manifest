@@ -1239,9 +1239,9 @@ const GlobalOverview: Component = () => {
                               <td class="rel-col">
                                 <Show when={rel()} fallback="—">
                                   {(() => {
-                                    // Recovered = successful requests holding a
-                                    // recovery attempt (autofix or fallback).
-                                    const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
+                                    // recovery attempt (autofix, key rotation,
+                                    // or fallback).
+                                    const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,key_rotation,fallback`;
                                     return (
                                       <a
                                         class="count-link"

@@ -37,12 +37,15 @@ const TERMINAL_RANK = `CASE WHEN ${sqlIsSuccessStatus('pa.status')} THEN 3
 const REQUEST_SUCCEEDED = sqlIsSuccessStatus('t.request_status');
 
 /**
- * How the request CONCLUDED. Autofix comes from the request outcome; fallback
- * comes from the terminal attempt. These mark the method that produced the
- * conclusion, never mere attempts along the way.
+ * How the request CONCLUDED. Autofix comes from the request outcome; key
+ * rotation and fallback come from the request + terminal attempt. These mark
+ * the method that produced the conclusion, never mere attempts along the way.
+ * Order matters: Autofix wins, then same-model key rotation (step 5 in
+ * docs/glossary.md), then fallback (different model).
  */
 const DISPOSITION_EXPR = `CASE
     WHEN ${REQUEST_SUCCEEDED} AND t.autofix_status = 'retry_succeeded' THEN 'healed'
+    WHEN ${REQUEST_SUCCEEDED} AND t.recovered_by_key_rotation THEN 'key_rotation'
     WHEN ${REQUEST_SUCCEEDED} AND t.fallback_from_model IS NOT NULL THEN 'fallback'
     WHEN ${REQUEST_SUCCEEDED} THEN 'success'
     ELSE 'error'
@@ -79,6 +82,8 @@ export interface DimensionVolumeRow {
   succeeded: number;
   /** Requests recovered by Autofix (autofix_status = retry_succeeded). */
   healed: number;
+  /** Requests recovered by same-model key rotation. */
+  keyRotation: number;
   /** Requests recovered by fallback (terminal ok attempt with a fallback origin). */
   fallback: number;
 }
@@ -121,6 +126,7 @@ export class RequestVolumeService {
           r.timestamp AS ts,
           r.status AS request_status,
           r.autofix_status,
+          r.recovered_by_key_rotation,
           r.agent_name,
           pa.provider,
           pa.model,
@@ -151,6 +157,7 @@ export class RequestVolumeService {
           pa.status,
           CASE WHEN pa.autofix_role = 'retry' AND ${sqlIsSuccessStatus('pa.status')}
             THEN 'retry_succeeded' ELSE NULL END,
+          false,
           pa.agent_name,
           pa.provider,
           pa.model,
@@ -217,8 +224,22 @@ export class RequestVolumeService {
     from: string;
     to?: string;
     agentName?: string;
-  }): Promise<{ total: number; success: number; healed: number; fallback: number; error: number }> {
-    const empty = { total: 0, success: 0, healed: 0, fallback: 0, error: 0 };
+  }): Promise<{
+    total: number;
+    success: number;
+    healed: number;
+    keyRotation: number;
+    fallback: number;
+    error: number;
+  }> {
+    const empty = {
+      total: 0,
+      success: 0,
+      healed: 0,
+      keyRotation: 0,
+      fallback: 0,
+      error: 0,
+    };
     if (!params.tenantId) return empty;
     const sqlParams: unknown[] = [params.tenantId, params.from];
     if (params.to) sqlParams.push(params.to);
@@ -237,6 +258,7 @@ export class RequestVolumeService {
       totals.total += n;
       if (r.dim === 'success') totals.success += n;
       else if (r.dim === 'healed') totals.healed += n;
+      else if (r.dim === 'key_rotation') totals.keyRotation += n;
       else if (r.dim === 'fallback') totals.fallback += n;
       else totals.error += n;
     }
@@ -315,6 +337,7 @@ export class RequestVolumeService {
         COUNT(*) FILTER (WHERE ${sqlIsFailedStatus('t.request_status')})::int AS failed,
         COUNT(*) FILTER (WHERE ${REQUEST_SUCCEEDED})::int AS succeeded,
         COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'healed')::int AS healed,
+        COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'key_rotation')::int AS key_rotation,
         COUNT(*) FILTER (WHERE ${DISPOSITION_EXPR} = 'fallback')::int AS fallback
       FROM terminal t
       ${dim === 'provider' ? '' : `WHERE t.${dim} IS NOT NULL`}
@@ -328,6 +351,7 @@ export class RequestVolumeService {
       failed: number;
       succeeded: number;
       healed: number;
+      key_rotation: number;
       fallback: number;
     }>;
     return rows.map((r) => ({
@@ -336,6 +360,7 @@ export class RequestVolumeService {
       failed: Number(r.failed),
       succeeded: Number(r.succeeded),
       healed: Number(r.healed),
+      keyRotation: Number(r.key_rotation),
       fallback: Number(r.fallback),
     }));
   }

@@ -15,6 +15,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 
 /**
  * Locks the route-aware behavior of ProxyFallbackService.tryFallbacks:
@@ -158,6 +159,10 @@ describe('ProxyFallbackService.tryFallbacks — route-aware path', () => {
       modelParamsService,
       providerParamSpecs,
       new ReasoningContentCache(),
+      {
+        getRule: jest.fn().mockResolvedValue(null),
+        list: jest.fn().mockResolvedValue([]),
+      } as unknown as KeyRotationRuleService,
     );
   });
 

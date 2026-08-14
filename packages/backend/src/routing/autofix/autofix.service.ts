@@ -23,8 +23,20 @@ import { normalizeProviderError } from './provider-error-normalizer';
 import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { scrubProviderUrl } from './observation-payload';
 import type { AutofixChainEntry, AutofixRecord } from './autofix.types';
-import type { HealOutcome, HealResponse } from './phoenix.types';
+import { hasRotateKeyOperation, type HealOutcome, type HealResponse } from './phoenix.types';
 import { recordingResponseFromText } from '../proxy/attempt-recording-capture';
+import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
+import { markKeyLabelUsed, nextUnusedKeyLabel, type KeyRotationState } from '../proxy/key-rotation';
+
+/**
+ * Extra options the healing service may attach to a reforward. `keyRotationLabel`
+ * is set when the heal response carries a `rotate_key` operation: the healed
+ * body must be retried with that NEXT key (per the harness's rule), not the
+ * key that already failed.
+ */
+export interface ReforwardOptions {
+  keyRotationLabel?: string;
+}
 
 export interface MaybeHealParams {
   forward: ForwardResult;
@@ -39,8 +51,17 @@ export interface MaybeHealParams {
   requestBody: Record<string, unknown>;
   /** Optional endpoint URL, forwarded to Phoenix as readability context. */
   url?: string;
+  reasoningContentCache?: Record<string, string>;
+  /**
+   * The request's shared key-rotation state. rotate_key heal operations mark
+   * the rotated label used here so the later fallback loop never re-tries it.
+   */
+  keyRotationState: KeyRotationState;
   /** Re-send a patched body to the provider and return the fresh forward. */
-  reforward: (healedBody: Record<string, unknown>) => Promise<ForwardResult>;
+  reforward: (
+    healedBody: Record<string, unknown>,
+    opts?: ReforwardOptions,
+  ) => Promise<ForwardResult>;
 }
 
 export interface AutofixAttempt {
@@ -138,6 +159,7 @@ export class AutofixService {
     @Inject(HEALING_CLIENT) private readonly client: HealingClient,
     @InjectRepository(Agent) private readonly agentRepo: Repository<Agent>,
     config: ConfigService,
+    private readonly keyRotationRules: KeyRotationRuleService,
   ) {
     this.globalEnabled = config.get<string>('AUTOFIX_GLOBAL_ENABLED') !== 'false';
     this.defaultAgentEnabled = !isSelfHosted();
@@ -358,29 +380,28 @@ export class AutofixService {
 
     let heal: HealResponse;
     try {
-      heal = await this.client.heal(
-        {
-          traceId: groupId,
-          tenantId: params.tenantId,
-          provider: params.provider,
-          model: params.model,
-          authType: params.authType,
-          api: params.apiMode,
-          url: params.url,
-          request: params.requestBody,
-          response: { statusCode: status, error: normalized },
-          ...(originalForward.wireFormat
-            ? {
-                providerExchange: {
-                  format: originalForward.wireFormat,
-                  ...(originalForward.wireRequestUrl
-                    ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
-                    : {}),
-                  request: { body: params.requestBody, redactedFields: [] },
-                  response: {
-                    statusCode: status,
-                    body: parseProviderBody(originalText),
-                  },
+      heal = await this.client.heal({
+        traceId: groupId,
+        tenantId: params.tenantId,
+        provider: params.provider,
+        model: params.model,
+        authType: params.authType,
+        api: params.apiMode,
+        url: params.url,
+        request: params.requestBody,
+        response: { statusCode: status, error: normalized },
+        reasoningContentCache: params.reasoningContentCache,
+        ...(originalForward.wireFormat
+          ? {
+              providerExchange: {
+                format: originalForward.wireFormat,
+                ...(originalForward.wireRequestUrl
+                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                  : {}),
+                request: { body: params.requestBody, redactedFields: [] },
+                response: {
+                  statusCode: status,
+                  body: parseProviderBody(originalText),
                 },
               }
             : {}),
@@ -438,7 +459,10 @@ export class AutofixService {
     const healedBody = heal.healedBody;
     let next: ForwardResult;
     try {
-      next = await params.reforward(healedBody);
+      const reforwardOpts = await this.rotateKeyReforwardOptions(heal, params);
+      next = reforwardOpts
+        ? await params.reforward(healedBody, reforwardOpts)
+        : await params.reforward(healedBody);
     } catch (err) {
       // The patched resend threw (a provider transport error or the caller
       // aborting mid-retry, NOT a Phoenix failure — so it must not trip the
@@ -509,6 +533,49 @@ export class AutofixService {
       forward: rebuildForward(next, retryText, next.response.status),
       record: { groupId, outcome: 'exhausted', original_http_status: status, chain },
     };
+  }
+
+  /**
+   * Honor a `rotate_key` heal operation: when Phoenix says the failure was a
+   * key/quota problem, the healed body must be retried with the NEXT unused
+   * key per the harness's key-order rule instead of the same key.
+   *
+   * Bounded to exactly ONE rotation per heal attempt (the reforward happens
+   * once). The chosen label is marked used in the request's shared
+   * KeyRotationState BEFORE the reforward, so if the rotated retry still
+   * fails, the fallback loop that runs next skips that label. No rule (or no
+   * unused label) degrades to the current same-key retry, logged.
+   */
+  private async rotateKeyReforwardOptions(
+    heal: HealResponse,
+    params: MaybeHealParams,
+  ): Promise<ReforwardOptions | undefined> {
+    if (!hasRotateKeyOperation(heal.operations)) return undefined;
+
+    const rule = await this.keyRotationRules.getRule(params.model, params.agentId, params.provider);
+    if (!rule) {
+      this.logger.warn(
+        `autofix: rotate_key requested but no key rotation rule for model=${params.model} ` +
+          `provider=${params.provider} — same-key retry`,
+      );
+      return undefined;
+    }
+
+    const label = nextUnusedKeyLabel(rule, params.keyRotationState, params.model);
+    if (!label) {
+      this.logger.warn(
+        `autofix: rotate_key requested but all key labels already used for ` +
+          `model=${params.model} — same-key retry`,
+      );
+      return undefined;
+    }
+
+    markKeyLabelUsed(params.keyRotationState, rule, params.model, label);
+    this.logger.log(
+      `autofix: rotate_key — retrying model=${params.model} provider=${params.provider} ` +
+        `with key label=${label}`,
+    );
+    return { keyRotationLabel: label };
   }
 
   private async loadAgentConfig(agentId: string, tenantId: string): Promise<AgentAutofixConfig> {

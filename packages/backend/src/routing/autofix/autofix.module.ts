@@ -7,6 +7,7 @@ import { ManifestRequest } from '../../entities/request.entity';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { readManifestVersion } from '../../telemetry/telemetry.config';
 import { TelemetryModule } from '../../telemetry/telemetry.module';
+import { RoutingCoreModule } from '../routing-core/routing-core.module';
 import { AutofixService } from './autofix.service';
 import { AutofixHealthProbe } from './autofix-health-probe';
 import { resolveHealingUrl } from './autofix-healing-config';
@@ -30,7 +31,13 @@ const DEFAULT_TIMEOUT_MS = 10_000;
  * install id. `AUTOFIX_GLOBAL_ENABLED=false` disables the feature outright.
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]), TelemetryModule],
+  imports: [
+    TypeOrmModule.forFeature([Agent, AgentMessage, ManifestRequest]),
+    // Exposes KeyRotationRuleService to AutofixService for `rotate_key` heal
+    // operations (retry with the next key per the harness's rule).
+    RoutingCoreModule,
+    TelemetryModule,
+  ],
   providers: [
     AutofixService,
     AutofixHealthProbe,

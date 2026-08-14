@@ -20,6 +20,7 @@ import { HeaderTier } from '../entities/header-tier.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { BackfillState } from '../entities/backfill-state.entity';
 import { AgentModelParams } from '../entities/agent-model-params.entity';
+import { AgentKeyRotationRule } from '../entities/agent-key-rotation-rule.entity';
 import { PlaygroundRun } from '../entities/playground-run.entity';
 import { PlaygroundColumn } from '../entities/playground-column.entity';
 import { ReasoningContentCacheEntry } from '../entities/reasoning-content-cache-entry.entity';
@@ -158,6 +159,9 @@ import { MakeAutofixEnabledNullable1799000300000 } from './migrations/1799000300
 import { AddAutofixAccessGrant1799000400000 } from './migrations/1799000400000-AddAutofixAccessGrant';
 import { AddRequestsAndProviderAttempts1801000000000 } from './migrations/1801000000000-AddRequestsAndProviderAttempts';
 import { AddProviderAttemptOrdering1801100000000 } from './migrations/1801100000000-AddProviderAttemptOrdering';
+import { AddAgentKeyRotationRules1801700000000 } from './migrations/1801700000000-AddAgentKeyRotationRules';
+import { AddKeyRuleScope1801800000000 } from './migrations/1801800000000-AddKeyRuleScope';
+import { AddRequestRecoveredByKeyRotation1801810000000 } from './migrations/1801810000000-AddRequestRecoveredByKeyRotation';
 
 export const entities = [
   AgentMessage,
@@ -176,6 +180,7 @@ export const entities = [
   HeaderTier,
   InstallMetadata,
   AgentModelParams,
+  AgentKeyRotationRule,
   PlaygroundRun,
   PlaygroundColumn,
   ReasoningContentCacheEntry,
@@ -310,6 +315,9 @@ export const migrations = [
   AddRequestsAndProviderAttempts1801000000000,
   AddProviderAttemptOrdering1801100000000,
   ExtendDashboardCoveringIndex1801200000000,
+  AddAgentKeyRotationRules1801700000000,
+  AddKeyRuleScope1801800000000,
+  AddRequestRecoveredByKeyRotation1801810000000,
 
   AddTenantRequestUsage1801300000000,
   AddRequestRecordings1801300000000,

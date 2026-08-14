@@ -5,6 +5,7 @@ import { AgentEnabledProvider } from '../../entities/agent-enabled-provider.enti
 import { TierAssignment } from '../../entities/tier-assignment.entity';
 import { SpecificityAssignment } from '../../entities/specificity-assignment.entity';
 import { AgentModelParams } from '../../entities/agent-model-params.entity';
+import { AgentKeyRotationRule } from '../../entities/agent-key-rotation-rule.entity';
 import { Agent } from '../../entities/agent.entity';
 import { Tenant } from '../../entities/tenant.entity';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -20,6 +21,7 @@ import { ResolveAgentService } from './resolve-agent.service';
 import { SpecificityService } from './specificity.service';
 import { SpecificityPenaltyService } from './specificity-penalty.service';
 import { AgentModelParamsService } from './agent-model-params.service';
+import { KeyRotationRuleService } from './key-rotation-rule.service';
 import { ProviderParamSpecService } from './provider-param-spec.service';
 
 @Module({
@@ -30,6 +32,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
       TierAssignment,
       SpecificityAssignment,
       AgentModelParams,
+      AgentKeyRotationRule,
       Agent,
       Tenant,
       AgentMessage,
@@ -48,6 +51,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
     SpecificityService,
     SpecificityPenaltyService,
     AgentModelParamsService,
+    KeyRotationRuleService,
     ProviderParamSpecService,
   ],
   exports: [
@@ -61,6 +65,7 @@ import { ProviderParamSpecService } from './provider-param-spec.service';
     SpecificityService,
     SpecificityPenaltyService,
     AgentModelParamsService,
+    KeyRotationRuleService,
     ProviderParamSpecService,
   ],
 })

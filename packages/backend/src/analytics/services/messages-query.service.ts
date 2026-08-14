@@ -352,12 +352,18 @@ export class MessagesQueryService {
         if (trigger === 'autofix') return triggerExists('trigger_attempt.autofix_applied = true');
         if (trigger === 'fallback')
           return triggerExists('trigger_attempt.fallback_from_model IS NOT NULL');
-        // 'none': no recovery attempt anywhere on the request.
+        // Key rotation is a request-level outcome, not an attempt marker.
+        if (trigger === 'key_rotation') return 'r.recovered_by_key_rotation = true';
+        // 'none': no recovery attempt anywhere on the request. Deliberate:
+        // failed rotation attempts carry no attempt-level marker (rotation is
+        // a request-level recovery per docs/glossary.md), so a request whose
+        // ONLY recovery attempt was a failed key rotation is NOT excluded here
+        // — the rotation flag exists only when rotation recovered the request.
         return `NOT EXISTS (
           SELECT 1 FROM agent_messages trigger_attempt
           WHERE trigger_attempt.request_id = r.id
           AND (trigger_attempt.autofix_applied = true OR trigger_attempt.fallback_from_model IS NOT NULL)
-        )`;
+        ) AND (r.recovered_by_key_rotation IS NULL OR r.recovered_by_key_rotation = false)`;
       });
       qb.andWhere(`(${parts.join(' OR ')})`, triggerParameters);
     }
@@ -484,6 +490,7 @@ export class MessagesQueryService {
       .addSelect(picked('at.auth_type'), 'auth_type')
       .addSelect(picked('at.fallback_from_model'), 'fallback_from_model')
       .addSelect(picked('at.fallback_index'), 'fallback_index')
+      .addSelect('r.recovered_by_key_rotation', 'recovered_by_key_rotation')
       .addSelect('r.feedback_rating', 'feedback_rating')
       .addSelect(picked('at.header_tier_id'), 'header_tier_id')
       .addSelect(picked('at.header_tier_name'), 'header_tier_name')
@@ -807,6 +814,9 @@ export class MessagesQueryService {
         if (t === 'autofix') return 'at.autofix_role = :triggerAutofixRole';
         if (t === 'fallback')
           return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND at.fallback_from_model IS NOT NULL AND at.fallback_from_model != '')";
+        // Key rotation lives on the requests row; an unlinked attempt (this
+        // branch) has no request parent, so none can be rotation-recovered.
+        if (t === 'key_rotation') return '1 = 0';
         return "(COALESCE(at.autofix_role, '') != :triggerAutofixRole AND (at.fallback_from_model IS NULL OR at.fallback_from_model = ''))";
       });
       qb.andWhere(`(${conditions.join(' OR ')})`, { triggerAutofixRole: AUTOFIX_TRIGGER_ROLE });
@@ -818,6 +828,12 @@ export class MessagesQueryService {
       qb.andWhere('at.autofix_role = :triggerAutofixRole', {
         triggerAutofixRole: AUTOFIX_TRIGGER_ROLE,
       });
+      return;
+    }
+
+    if (trigger === 'key_rotation') {
+      // No unlinked/legacy attempt carries the request-level rotation flag.
+      qb.andWhere('1 = 0');
       return;
     }
 

@@ -79,6 +79,23 @@ export function FallbackIcon(): JSX.Element {
   );
 }
 
+export function KeyRotationIcon(): JSX.Element {
+  return (
+    <span class="key-rotation-icon">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="12"
+        height="12"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35Z" />
+      </svg>
+    </span>
+  );
+}
+
 const HEADER_LABELS: Record<MessageColumnKey, string> = {
   date: 'Date',
   message: 'Request',
@@ -335,9 +352,10 @@ export function AttemptsCell(item: MessageRow): JSX.Element {
 
 export function SelfHealCell(item: MessageRow): JSX.Element {
   const hasAutofix = !!item.autofix_applied;
+  const hasKeyRotation = !!item.recovered_by_key_rotation;
   const hasFallback = !!item.fallback_from_model;
 
-  if (!hasAutofix && !hasFallback) return <td style={MONO_XS}>{'\u2014'}</td>;
+  if (!hasAutofix && !hasKeyRotation && !hasFallback) return <td style={MONO_XS}>{'\u2014'}</td>;
 
   return (
     <td>
@@ -350,6 +368,16 @@ export function SelfHealCell(item: MessageRow): JSX.Element {
           >
             <AutofixIcon />
             autofix
+          </span>
+        )}
+        {hasKeyRotation && (
+          <span
+            class="trigger-badge trigger-badge--key-rotation"
+            title="Recovered by key rotation"
+            style="padding: 1px 3px;"
+          >
+            <KeyRotationIcon />
+            key rotation
           </span>
         )}
         {hasFallback && (

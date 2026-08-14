@@ -21,6 +21,7 @@ import { agentPlatform, agentCategory } from '../services/agent-platform-store.j
 import RoutingDefaultTierSection from './RoutingDefaultTierSection.js';
 import RoutingSpecificitySection from './RoutingSpecificitySection.js';
 import RoutingHeaderTiersSection from './RoutingHeaderTiersSection.js';
+import RoutingKeyOrderSection from './RoutingKeyOrderSection.js';
 import RoutingTierCard from './RoutingTierCard.js';
 import HeaderTierCard from '../components/HeaderTierCard.js';
 import { RoutingLoadingSkeleton, ActiveProviderIcons, RoutingFooter } from './RoutingPanels.js';
@@ -823,6 +824,13 @@ const Routing: Component = () => {
               }}
             </RoutingTabs>
           </Show>
+
+          <RoutingKeyOrderSection
+            agentName={agentName}
+            models={() => models() ?? []}
+            connectedProviders={enabledConnectedProviders}
+            customProviders={() => customProviders() ?? []}
+          />
 
           <RoutingFooter
             hasOverrides={hasOverrides}

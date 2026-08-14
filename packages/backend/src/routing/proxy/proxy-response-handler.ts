@@ -921,6 +921,7 @@ export function recordSuccess(
         headerTierColor: meta.header_tier_color,
         autofix,
         apiMode,
+        recoveredByKeyRotation: meta.recoveredByKeyRotation,
       }),
       'fallback success',
     );
@@ -948,6 +949,7 @@ export function recordSuccess(
         headerTierColor: meta.header_tier_color,
         autofix,
         apiMode,
+        recoveredByKeyRotation: meta.recoveredByKeyRotation,
       }),
       'success message',
     );

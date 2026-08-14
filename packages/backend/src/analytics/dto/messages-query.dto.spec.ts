@@ -73,7 +73,7 @@ describe('MessagesQueryDto', () => {
   });
 
   it('accepts each known trigger filter value', async () => {
-    for (const trigger of ['none', 'fallback', 'autofix']) {
+    for (const trigger of ['none', 'fallback', 'autofix', 'key_rotation']) {
       const dto = plainToInstance(MessagesQueryDto, { trigger });
       const errors = await validate(dto);
       expect(errors).toHaveLength(0);
@@ -105,6 +105,11 @@ describe('MessagesQueryDto', () => {
     const dto = plainToInstance(MessagesQueryDto, { trigger: 'autofix,fallback' });
     const errors = await validate(dto);
     expect(errors).toHaveLength(0);
+
+    const withRotation = plainToInstance(MessagesQueryDto, {
+      trigger: 'key_rotation,fallback',
+    });
+    expect(await validate(withRotation)).toHaveLength(0);
   });
 
   it('coerces total and filter-option flags', async () => {

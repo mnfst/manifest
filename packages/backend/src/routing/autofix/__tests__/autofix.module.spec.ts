@@ -6,6 +6,8 @@ import { AgentMessage } from '../../../entities/agent-message.entity';
 import { ManifestRequest } from '../../../entities/request.entity';
 import { InstallMetadata } from '../../../entities/install-metadata.entity';
 import { InstallIdService } from '../../../telemetry/install-id.service';
+import { RoutingCoreModule } from '../../routing-core/routing-core.module';
+import { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 import { AutofixModule } from '../autofix.module';
 import { HEALING_CLIENT } from '../healing-client';
 import { HttpHealingClient } from '../http-healing-client';
@@ -40,6 +42,16 @@ async function resolveHealingClient(configValues: Record<string, string>) {
       // module graph resolves without a database.
       .overrideProvider(getRepositoryToken(InstallMetadata))
       .useValue({})
+      // AutofixModule imports RoutingCoreModule to inject KeyRotationRuleService
+      // (rotate_key heal ops); the factory-under-test only needs the HEALING_CLIENT,
+      // so replace the whole core module with a stub rather than materializing its
+      // TypeORM repositories.
+      .overrideModule(RoutingCoreModule)
+      .useModule({
+        module: class StubRoutingCoreModule {},
+        providers: [{ provide: KeyRotationRuleService, useValue: { getRule: jest.fn() } }],
+        exports: [KeyRotationRuleService],
+      })
       .compile();
 
     const client = moduleRef.get(HEALING_CLIENT);
