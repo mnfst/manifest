@@ -2793,7 +2793,7 @@ describe('ProviderClient', () => {
   });
 
   describe('Command Code provider', () => {
-    it('routes non-Claude models through the Provider API chat completions endpoint', async () => {
+    it('routes non-Claude models through the CLI-dialect /alpha/generate endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       const result = await client.forward({
@@ -2806,16 +2806,22 @@ describe('ProviderClient', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.commandcode.ai/provider/v1/chat/completions',
+        'https://api.commandcode.ai/alpha/generate',
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer user_test',
             'Content-Type': 'application/json',
+            'x-command-code-version': '0.25.7',
+            'x-cli-environment': 'cli',
+            Accept: 'text/event-stream',
           }),
         }),
       );
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.model).toBe('deepseek/deepseek-v4-flash');
+      expect(sentBody.params.model).toBe('deepseek/deepseek-v4-flash');
+      // The CLI dialect always streams upstream, even for non-streaming callers.
+      expect(sentBody.params.stream).toBe(true);
+      expect(sentBody.config).toBeDefined();
       expect(result.isAnthropic).toBe(false);
       expect(result.isChatGpt).toBe(false);
       expect(result.isGoogle).toBe(false);
@@ -4412,7 +4418,6 @@ describe('ProviderClient', () => {
       ['xai', 'grok-3'],
       ['zai', 'glm-4.6'],
       ['copilot', 'gpt-4o-copilot'],
-      ['commandcode', 'commandcode/deepseek/deepseek-v4-flash'],
       ['opencode-go', 'claude-sonnet-4'],
       ['opencode-zen', 'qwen3.6-plus'],
     ])(

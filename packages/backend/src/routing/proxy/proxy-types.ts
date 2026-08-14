@@ -34,7 +34,8 @@ export type ProviderWireFormat =
   | 'anthropic_messages'
   | 'google_generate_content'
   | 'google_code_assist'
-  | 'kiro_chat';
+  | 'kiro_chat'
+  | 'commandcode_chat';
 
 export interface ProviderAttemptRecordingStart {
   requestBody: Record<string, unknown>;
