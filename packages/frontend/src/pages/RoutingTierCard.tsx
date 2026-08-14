@@ -154,6 +154,9 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const [primaryDragging, setPrimaryDragging] = createSignal(false);
   const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
   const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
+  // Chip highlight driven by the fallback list's TOUCH drag hovering the
+  // chip (mirrors the desktop dragover highlight above).
+  const [chipTouchDropTarget, setChipTouchDropTarget] = createSignal(false);
   const [swappingFbIndex, setSwappingFbIndex] = createSignal<number | null>(null);
 
   const handlePrimaryDragStart = (e: DragEvent) => {
@@ -517,7 +520,8 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                       class="routing-card__model-chip"
                       classList={{
                         'routing-card__model-chip--dragging': primaryDragging(),
-                        'routing-card__model-chip--drop-target': primaryDropTarget(),
+                        'routing-card__model-chip--drop-target':
+                          primaryDropTarget() || chipTouchDropTarget(),
                         'routing-card__model-chip--skipped': primarySkipped(),
                       }}
                       title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
@@ -708,6 +712,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
               onFallbackDragStart={(index) => setFallbackDragging(index)}
               onFallbackDragEnd={() => setFallbackDragging(null)}
               onFallbackDropOnPrimary={(index) => void swapPrimaryWithFallback(index)}
+              onChipDropTargetChange={setChipTouchDropTarget}
               externalDropSlot={touchDropSlot()}
               persistFallbacks={props.persistFallbacks}
               persistClearFallbacks={props.persistClearFallbacks}

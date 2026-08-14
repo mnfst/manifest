@@ -92,6 +92,13 @@ interface FallbackListProps {
    * land, including the very top (slot 0).
    */
   externalDropSlot?: number | null;
+  /**
+   * Reports whether a touch drag inside this list is currently hovering the
+   * parent's primary chip — the "about to go to the top" signal. Mirrors the
+   * desktop dragover highlight so the chip shows the same drop-target border
+   * when a fallback is dragged onto it on mobile.
+   */
+  onChipDropTargetChange?: (over: boolean) => void;
 }
 
 const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
@@ -436,6 +443,20 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const slot = computeFallbackDropSlot(listRef, e.clientY);
     // Don't show an indicator at the dragged item's current position.
     setDropSlot(slot === from || slot === from + 1 ? null : slot);
+    // Hovering the primary chip = "about to go to the top": light it up the
+    // same way desktop dragover does (border + ring), so a release on the
+    // chip (which swaps this fallback into the primary slot) is previewed.
+    const chip = listRef
+      ?.closest('.routing-card')
+      ?.querySelector<HTMLElement>('.routing-card__model-chip');
+    const r = chip?.getBoundingClientRect();
+    props.onChipDropTargetChange?.(
+      !!r &&
+        e.clientX >= r.left &&
+        e.clientX <= r.right &&
+        e.clientY >= r.top &&
+        e.clientY <= r.bottom,
+    );
   };
 
   const handleCardPointerUp = (e: PointerEvent) => {
@@ -446,6 +467,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     setDragIndex(null);
     setDropSlot(null);
     setTouchGhost(null);
+    props.onChipDropTargetChange?.(false);
     props.onFallbackDragEnd?.();
     if (!engaged) return; // a tap — leave click behavior alone
 
@@ -473,6 +495,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     setDragIndex(null);
     setDropSlot(null);
     setTouchGhost(null);
+    props.onChipDropTargetChange?.(false);
     props.onFallbackDragEnd?.();
   };
 
