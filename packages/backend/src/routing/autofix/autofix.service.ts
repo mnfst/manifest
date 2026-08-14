@@ -403,8 +403,9 @@ export class AutofixService {
                   statusCode: status,
                   body: parseProviderBody(originalText),
                 },
-              }
-            : {}),
+              },
+            }
+          : {}),
         },
         { harness: config.harness },
       );
