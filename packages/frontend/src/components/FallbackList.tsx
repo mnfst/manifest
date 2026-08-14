@@ -25,6 +25,7 @@ import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import RouteKeyChip from './RouteKeyChip.js';
+import DragGhost from './DragGhost.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
 
 interface FallbackListProps {
@@ -84,6 +85,13 @@ interface FallbackListProps {
   ) => Promise<unknown>;
   swappingIndex?: number | null;
   modelParamsScope?: string;
+  /**
+   * Drop slot driven from OUTSIDE the list (the primary chip's touch drag).
+   * When set, the indicator renders for this slot — same line feedback as the
+   * in-list drag — so dragging the primary onto the chain shows where it will
+   * land, including the very top (slot 0).
+   */
+  externalDropSlot?: number | null;
 }
 
 const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
@@ -105,6 +113,10 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
   let listRef: HTMLDivElement | undefined;
+
+  /** Slot shown by the drop indicators: the primary chip's touch drag when it
+   * is in flight (externalDropSlot), else this list's own drag. */
+  const activeDropSlot = () => props.externalDropSlot ?? dropSlot();
 
   const modelLabel = (model: string): string => {
     const info = props.models.find((m) => m.model_name === model);
@@ -389,42 +401,68 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
   // ── Touch drag (mobile) ─────────────────────────────────────────────
   // HTML5 drag-and-drop does not fire on touch devices, so fallback reorder
-  // and the fallback→primary swap use pointer events. A drag engages only
-  // after an 8px vertical threshold so normal scrolling from a card is not
-  // hijacked; once engaged, `touch-action: none` (set in CSS) lets us keep
-  // the gesture instead of the browser scrolling.
-  let touchDrag: { index: number; startY: number; engaged: boolean } | null = null;
+  // and the fallback→primary swap use pointer events. The drag engages on a
+  // TAP-AND-HOLD (long press): the finger must stay within a small slop for
+  // ~280ms, then the drag starts and a ghost card follows the finger.
+  // Moving before the hold fires cancels it, so normal scrolling from a card
+  // is not hijacked; `touch-action: none` (CSS) keeps the gesture once
+  // engaged.
+  const TOUCH_DRAG_HOLD_MS = 280;
+  const TOUCH_DRAG_SLOP = 10;
+
+  let hold: { index: number; startX: number; startY: number; engaged: boolean } | null = null;
+  let holdTimer: ReturnType<typeof setTimeout> | undefined;
+  const [touchGhost, setTouchGhost] = createSignal<{ x: number; y: number } | null>(null);
+
+  const clearHold = () => {
+    if (holdTimer !== undefined) {
+      clearTimeout(holdTimer);
+      holdTimer = undefined;
+    }
+    hold = null;
+  };
 
   const handleCardPointerDown = (index: number, e: PointerEvent) => {
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
-    touchDrag = { index, startY: e.clientY, engaged: false };
+    clearHold();
+    hold = { index, startX: e.clientX, startY: e.clientY, engaged: false };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    holdTimer = setTimeout(() => {
+      holdTimer = undefined;
+      if (!hold || hold.engaged) return;
+      hold.engaged = true;
+      setDragIndex(hold.index);
+      props.onFallbackDragStart?.(hold.index);
+    }, TOUCH_DRAG_HOLD_MS);
   };
 
   const handleCardPointerMove = (e: PointerEvent) => {
-    if (!touchDrag || !listRef) return;
-    if (!touchDrag.engaged) {
-      if (Math.abs(e.clientY - touchDrag.startY) < 8) return;
-      touchDrag.engaged = true;
-      setDragIndex(touchDrag.index);
-      props.onFallbackDragStart?.(touchDrag.index);
+    if (!hold || !listRef) return;
+    if (!hold.engaged) {
+      // Moved beyond the slop before the hold fired → scroll/tap, cancel.
+      if (Math.hypot(e.clientX - hold.startX, e.clientY - hold.startY) > TOUCH_DRAG_SLOP) {
+        clearHold();
+      }
+      return;
     }
     e.preventDefault();
-    const from = touchDrag.index;
+    setTouchGhost({ x: e.clientX, y: e.clientY });
+    const from = hold.index;
     const slot = computeFallbackDropSlot(listRef, e.clientY);
     // Don't show an indicator at the dragged item's current position.
     setDropSlot(slot === from || slot === from + 1 ? null : slot);
   };
 
   const handleCardPointerUp = (e: PointerEvent) => {
-    if (!touchDrag) return;
-    const { index, engaged } = touchDrag;
+    if (!hold) return;
+    const { index, engaged } = hold;
     const toSlot = dropSlot();
-    touchDrag = null;
+    clearHold();
     setDragIndex(null);
     setDropSlot(null);
+    setTouchGhost(null);
     props.onFallbackDragEnd?.();
-    if (!engaged) return;
+    if (!engaged) return; // a tap — leave click behavior alone
 
     // Released over the primary model chip → swap the fallback with the primary.
     const chip = listRef
@@ -445,11 +483,23 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleCardPointerCancel = () => {
-    if (!touchDrag) return;
-    touchDrag = null;
+    if (!hold) return;
+    clearHold();
     setDragIndex(null);
     setDropSlot(null);
+    setTouchGhost(null);
     props.onFallbackDragEnd?.();
+  };
+
+  /** Ghost content for the row currently being touch-dragged. */
+  const ghostInfo = () => {
+    const i = dragIndex();
+    const g = touchGhost();
+    if (i === null || g === null) return null;
+    const model = props.fallbacks[i];
+    if (model === undefined) return null;
+    const provId = providerIdFor(model, i);
+    return { ...g, label: modelLabel(model), providerId: provId, authType: authTypeFor(provId, i) };
   };
 
   const handleDragEnd = () => {
@@ -488,7 +538,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                   <div
                     class="fallback-list__drop-indicator"
                     classList={{
-                      'fallback-list__drop-indicator--active': dropSlot() === i(),
+                      'fallback-list__drop-indicator--active': activeDropSlot() === i(),
                     }}
                   />
                   <div
@@ -652,7 +702,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           <div
             class="fallback-list__drop-indicator"
             classList={{
-              'fallback-list__drop-indicator--active': dropSlot() === props.fallbacks.length,
+              'fallback-list__drop-indicator--active': activeDropSlot() === props.fallbacks.length,
             }}
           />
         </div>
@@ -700,6 +750,14 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           </button>
         </Show>
       </Show>
+      <DragGhost
+        show={ghostInfo() !== null}
+        x={ghostInfo()?.x ?? 0}
+        y={ghostInfo()?.y ?? 0}
+        providerId={ghostInfo()?.providerId}
+        authType={ghostInfo()?.authType}
+        label={ghostInfo()?.label ?? ''}
+      />
     </div>
   );
 };

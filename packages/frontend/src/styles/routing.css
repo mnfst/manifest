@@ -1636,6 +1636,43 @@
   position: relative;
 }
 
+/* ── Touch-drag ghost ─────────────────────────────── */
+/* Floating clone of the chip/card under the finger during a touch drag. */
+.drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.18);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform;
+}
+
+.drag-ghost__icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.drag-ghost__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Vertical connector bar between cards */
 .fallback-list__drop-indicator::before {
   content: '';

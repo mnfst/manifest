@@ -28,6 +28,7 @@ import {
 import { customProviderColor, formatPerRequestCost } from '../services/formatters.js';
 import { PROVIDERS } from '../services/providers.js';
 import FallbackList from './FallbackList.js';
+import DragGhost from './DragGhost.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
@@ -146,26 +147,49 @@ const HeaderTierCard: Component<Props> = (props) => {
 
   // ── Touch drag (mobile) ─────────────────────────────────────────────
   // HTML5 drag-and-drop does not fire on touch, so the primary → fallback
-  // drag is driven by pointer events on touch/pen devices. The drag engages
-  // only after an 8px vertical threshold so touching the chip does not
-  // hijack page scrolling; `touch-action: none` (CSS) keeps the gesture.
-  let chipTouchDrag: { startY: number; engaged: boolean } | null = null;
+  // drag is driven by pointer events on touch/pen devices. TAP-AND-HOLD
+  // engages the drag (~280ms within a small slop), then a ghost card follows
+  // the finger; `touch-action: none` (CSS) keeps the gesture.
+  const TOUCH_DRAG_HOLD_MS = 280;
+  const TOUCH_DRAG_SLOP = 10;
+
+  let chipHold: { startX: number; startY: number; engaged: boolean } | null = null;
+  let chipHoldTimer: ReturnType<typeof setTimeout> | undefined;
   const [touchDropSlot, setTouchDropSlot] = createSignal<number | null>(null);
+  const [touchGhost, setTouchGhost] = createSignal<{ x: number; y: number } | null>(null);
+
+  const clearChipHold = () => {
+    if (chipHoldTimer !== undefined) {
+      clearTimeout(chipHoldTimer);
+      chipHoldTimer = undefined;
+    }
+    chipHold = null;
+  };
 
   const handleChipPointerDown = (e: PointerEvent) => {
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
-    chipTouchDrag = { startY: e.clientY, engaged: false };
+    clearChipHold();
+    chipHold = { startX: e.clientX, startY: e.clientY, engaged: false };
     setPrimaryDragging(true);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    chipHoldTimer = setTimeout(() => {
+      chipHoldTimer = undefined;
+      if (!chipHold || chipHold.engaged) return;
+      chipHold.engaged = true;
+    }, TOUCH_DRAG_HOLD_MS);
   };
 
   const handleChipPointerMove = (e: PointerEvent) => {
-    if (!chipTouchDrag) return;
-    if (!chipTouchDrag.engaged) {
-      if (Math.abs(e.clientY - chipTouchDrag.startY) < 8) return;
-      chipTouchDrag.engaged = true;
+    if (!chipHold) return;
+    if (!chipHold.engaged) {
+      // Moved beyond the slop before the hold fired → scroll/tap, cancel.
+      if (Math.hypot(e.clientX - chipHold.startX, e.clientY - chipHold.startY) > TOUCH_DRAG_SLOP) {
+        clearChipHold();
+      }
+      return;
     }
     e.preventDefault();
+    setTouchGhost({ x: e.clientX, y: e.clientY });
     const listEl = (e.currentTarget as HTMLElement)
       .closest('.routing-card')
       ?.querySelector<HTMLElement>('.fallback-list__items');
@@ -173,19 +197,24 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const handleChipPointerUp = () => {
-    if (!chipTouchDrag) return;
-    const engaged = chipTouchDrag.engaged;
+    if (!chipHold) return;
+    const engaged = chipHold.engaged;
     const slot = touchDropSlot();
-    chipTouchDrag = null;
+    clearChipHold();
     setTouchDropSlot(null);
+    setTouchGhost(null);
     setPrimaryDragging(false);
-    if (engaged && slot !== null) void handlePrimaryDropAtSlot(slot);
+    if (!engaged) return;
+    // A drag gesture must not open the model picker on release.
+    dragEndedAt = Date.now();
+    if (slot !== null) void handlePrimaryDropAtSlot(slot);
   };
 
   const handleChipPointerCancel = () => {
-    if (!chipTouchDrag) return;
-    chipTouchDrag = null;
+    if (!chipHold) return;
+    clearChipHold();
     setTouchDropSlot(null);
+    setTouchGhost(null);
     setPrimaryDragging(false);
   };
 
@@ -791,6 +820,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             onFallbackDragEnd={() => setFallbackDragging(null)}
             onFallbackDropOnPrimary={(index) => void swapPrimaryWithFallback(index)}
             swappingIndex={swappingFbIndex()}
+            externalDropSlot={touchDropSlot()}
           />
         </div>
       </Show>
@@ -827,6 +857,14 @@ const HeaderTierCard: Component<Props> = (props) => {
           onClose={() => setSnippetOpen(false)}
         />
       </Show>
+      <DragGhost
+        show={touchGhost() !== null}
+        x={touchGhost()?.x ?? 0}
+        y={touchGhost()?.y ?? 0}
+        providerId={providerId()}
+        authType={effectiveAuth()}
+        label={modelLabel() || currentModel() || ''}
+      />
     </div>
   );
 };
