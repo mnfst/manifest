@@ -156,6 +156,24 @@ describe('validateApiKey', () => {
     expect(validateApiKey(pioneer, 'pio_sk_' + 'a'.repeat(20))).toEqual({ valid: true });
   });
 
+  it('validates OrcaRouter key prefix and length', () => {
+    const orcarouter = getProvider('orcarouter')!;
+    expect(orcarouter.keyPlaceholder).toBe('sk-orca-...');
+    expect(validateApiKey(orcarouter, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(orcarouter, 'sk-wrong-prefix-that-is-long-enough')).toEqual({
+      valid: false,
+      error: 'OrcaRouter keys start with "sk-orca-"',
+    });
+    expect(validateApiKey(orcarouter, 'sk-orca-short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 51 characters)',
+    });
+    expect(validateApiKey(orcarouter, 'sk-orca-' + 'a'.repeat(43))).toEqual({ valid: true });
+  });
+
   it('validates AWS Bedrock raw bearer-token and legacy API-key lengths', () => {
     const bedrock = getProvider('bedrock')!;
     expect(validateApiKey(bedrock, '')).toEqual({
@@ -517,6 +535,16 @@ describe('PROVIDERS', () => {
       expect(p.subtitle).toBeTruthy();
       expect(Array.isArray(p.models)).toBe(true);
     }
+  });
+
+  it('exposes OrcaRouter as an API-key gateway provider', () => {
+    const orcarouter = PROVIDERS.find((p) => p.id === 'orcarouter')!;
+    expect(orcarouter.name).toBe('OrcaRouter');
+    expect(orcarouter.subtitle).toBe('Auto-route to 188+ models');
+    expect(orcarouter.keyPrefix).toBe('sk-orca-');
+    expect(orcarouter.minKeyLength).toBe(51);
+    expect(orcarouter.noKeyRequired).toBeUndefined();
+    expect(getRoutingProviderApiKeyUrl('orcarouter')).toBe('https://www.orcarouter.ai/console');
   });
 
   it('OpenAI supports subscription with OAuth browser flow', () => {

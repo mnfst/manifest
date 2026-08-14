@@ -46,6 +46,7 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
+      'orcarouter',
       'gemini-free',
       'ollama',
       'ollama-cloud',
@@ -2267,6 +2268,51 @@ describe('ProviderModelFetcherService', () => {
 
       const result = await service.fetch('openrouter', '');
       expect(result).toEqual([]);
+    });
+  });
+
+  /* ── OrcaRouter provider ── */
+
+  describe('parseOpenRouter (via orcarouter provider)', () => {
+    it('should parse a valid OrcaRouter response and attribute it to orcarouter', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'orcarouter/auto',
+              name: 'OrcaRouter Auto',
+              context_length: 200000,
+              architecture: { output_modalities: ['text'] },
+              pricing: { prompt: '0.00001', completion: '0.00002' },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('orcarouter', 'sk-orca-test');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'orcarouter/auto',
+          displayName: 'OrcaRouter Auto',
+          provider: 'orcarouter',
+          contextWindow: 200000,
+          inputPricePerToken: 0.00001,
+          outputPricePerToken: 0.00002,
+        }),
+      );
+    });
+
+    it('should send the OrcaRouter API key as a Bearer token', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [{ id: 'orcarouter/auto' }] }),
+      });
+
+      await service.fetch('orcarouter', 'sk-orca-test');
+      const [, init] = fetchSpy.mock.calls[0];
+      expect(init.headers).toEqual({ Authorization: 'Bearer sk-orca-test' });
     });
   });
 

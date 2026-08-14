@@ -14,6 +14,10 @@ describe('inferProviderFromModel', () => {
     expect(inferProviderFromModel('openrouter/auto')).toBe('openrouter');
   });
 
+  it('returns "orcarouter" for orcarouter/ prefix', () => {
+    expect(inferProviderFromModel('orcarouter/auto')).toBe('orcarouter');
+  });
+
   it('returns "anthropic" for claude- prefix', () => {
     expect(inferProviderFromModel('claude-opus-4-6')).toBe('anthropic');
     expect(inferProviderFromModel('claude-3-5-sonnet-20241022')).toBe('anthropic');

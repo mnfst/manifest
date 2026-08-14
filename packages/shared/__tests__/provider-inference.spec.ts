@@ -60,6 +60,7 @@ describe('inferProviderFromModel', () => {
     ['llamacpp/Qwen3.5-9B-Q4_K_M.gguf', 'llamacpp'],
     ['llamacpp/mistral-7b-instruct-v0.3.Q4_K_M.gguf', 'llamacpp'],
     ['openrouter/auto', 'openrouter'],
+    ['orcarouter/auto', 'orcarouter'],
     ['anthropic/claude-sonnet-4', 'openrouter'],
   ])('infers %s as %s', (model, expected) => {
     expect(inferProviderFromModel(model)).toBe(expected);

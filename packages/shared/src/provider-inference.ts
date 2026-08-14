@@ -6,6 +6,7 @@ import { SHARED_PROVIDERS } from './providers';
  */
 const MODEL_PREFIX_MAP: [RegExp, string][] = [
   [/^openrouter\//, 'openrouter'],
+  [/^orcarouter\//, 'orcarouter'],
   [/^claude-/, 'anthropic'],
   [/^gpt-|^o[134]-|^o[134] |^chatgpt-/, 'openai'],
   [/^gemini-|^gemma-/, 'gemini'],

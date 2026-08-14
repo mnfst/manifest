@@ -83,6 +83,7 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('kilo')).toBe('kilo');
     expect(resolveEndpointKey('zai')).toBe('zai');
     expect(resolveEndpointKey('xiaomi')).toBe('xiaomi');
+    expect(resolveEndpointKey('orcarouter')).toBe('orcarouter');
   });
 
   it('is case-insensitive', () => {
@@ -554,6 +555,24 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/api/v1/chat/completions');
   });
 
+  it('orcarouter buildPath returns /v1/chat/completions', () => {
+    const path = PROVIDER_ENDPOINTS['orcarouter'].buildPath('orcarouter/auto');
+    expect(path).toBe('/v1/chat/completions');
+  });
+
+  it('orcarouter uses Bearer auth with attribution headers at api.orcarouter.ai', () => {
+    const ep = PROVIDER_ENDPOINTS['orcarouter'];
+    expect(ep.baseUrl).toBe('https://api.orcarouter.ai');
+    expect(ep.format).toBe('openai');
+    expect(ep.streamUsageReporting).toBe('openai_stream_options');
+    expect(ep.buildHeaders('sk-orca-test')).toEqual({
+      Authorization: 'Bearer sk-orca-test',
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-Title': 'Manifest',
+    });
+  });
+
   it('openai-subscription uses chatgpt.com backend base URL', () => {
     const ep = PROVIDER_ENDPOINTS['openai-subscription'];
     expect(ep.baseUrl).toBe('https://chatgpt.com/backend-api');
@@ -794,6 +813,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'zai-subscription',
       'copilot',
       'openrouter',
+      'orcarouter',
       'ollama',
       'ollama-cloud',
       'commandcode',

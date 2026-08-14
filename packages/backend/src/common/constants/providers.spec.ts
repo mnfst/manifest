@@ -60,6 +60,20 @@ describe('PROVIDER_REGISTRY', () => {
     expect(openrouter!.requiresApiKey).toBe(true);
   });
 
+  it('orcarouter is registered as a gateway provider with sk-orca- prefix', () => {
+    const orcarouter = PROVIDER_REGISTRY.find((p) => p.id === 'orcarouter');
+    expect(orcarouter).toBeDefined();
+    expect(orcarouter!.displayName).toBe('OrcaRouter');
+    expect(orcarouter!.aliases).toEqual([]);
+    expect(orcarouter!.openRouterPrefixes).toEqual(['orcarouter']);
+    expect(orcarouter!.requiresApiKey).toBe(true);
+    expect(orcarouter!.localOnly).toBe(false);
+    expect(orcarouter!.color).toBe('#0160E6');
+    expect(orcarouter!.keyPrefix).toBe('sk-orca-');
+    expect(orcarouter!.minKeyLength).toBe(51);
+    expect(orcarouter!.keyPlaceholder).toBe('sk-orca-...');
+  });
+
   it('anthropic has no aliases', () => {
     const anthropic = PROVIDER_REGISTRY.find((p) => p.id === 'anthropic');
     expect(anthropic).toBeDefined();

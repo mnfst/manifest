@@ -485,6 +485,18 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     format: 'openai',
     ...openaiStreamUsage,
   },
+  orcarouter: {
+    baseUrl: 'https://api.orcarouter.ai',
+    buildHeaders: (apiKey: string) => ({
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://manifest.build',
+      'X-Title': 'Manifest',
+    }),
+    buildPath: () => '/v1/chat/completions',
+    format: 'openai',
+    ...openaiStreamUsage,
+  },
   ...MANAGED_FREE_ENDPOINTS,
   ollama: {
     baseUrl: OLLAMA_HOST,
