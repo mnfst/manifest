@@ -2888,6 +2888,25 @@ describe('ProviderModelFetcherService', () => {
         }),
       ]);
     });
+
+    it('falls back to the 200k default context when the catalog omits context_length', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'gpt-5.4', name: 'GPT-5.4 (CC)' }],
+        }),
+      });
+
+      const result = await service.fetch('commandcode', 'user_test', 'subscription');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'commandcode/gpt-5.4',
+          contextWindow: 200000,
+          capabilityCode: true,
+        }),
+      ]);
+    });
   });
 
   describe('cline-pass provider', () => {

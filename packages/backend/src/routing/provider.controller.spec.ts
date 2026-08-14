@@ -7,6 +7,7 @@ import { ModelDiscoveryService } from '../model-discovery/model-discovery.servic
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { Agent } from '../entities/agent.entity';
+import { CommandCodeAuthService } from './command-code/command-code-auth.service';
 
 const mockCtx = { tenantId: 'tenant-1', userId: 'user-1' } as never;
 const mockAgentName = { agentName: 'test-agent' } as never;
@@ -23,6 +24,7 @@ describe('ProviderController', () => {
   let mockTierService: Record<string, jest.Mock>;
   let mockPricingSync: Record<string, jest.Mock>;
   let mockCacheManager: { clear: jest.Mock };
+  let mockCommandCodeAuth: { validateApiKey: jest.Mock };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -59,6 +61,9 @@ describe('ProviderController', () => {
     mockCacheManager = {
       clear: jest.fn().mockResolvedValue(true),
     };
+    mockCommandCodeAuth = {
+      validateApiKey: jest.fn().mockResolvedValue({ ok: true }),
+    };
 
     controller = new ProviderController(
       mockProviderService as unknown as ProviderService,
@@ -67,6 +72,7 @@ describe('ProviderController', () => {
       mockResolveAgent as unknown as ResolveAgentService,
       mockTierService as unknown as TierService,
       mockPricingSync as unknown as PricingSyncService,
+      mockCommandCodeAuth as unknown as CommandCodeAuthService,
       mockCacheManager as never,
     );
   });
@@ -368,6 +374,48 @@ describe('ProviderController', () => {
         priority: undefined,
         region: null,
       });
+    });
+
+    it('validates a new Command Code key via whoami before storing it', async () => {
+      mockProviderService.upsertProvider.mockResolvedValue({
+        provider: { id: 'p1', provider: 'commandcode', is_active: true, api_key_encrypted: 'enc' },
+        isNew: true,
+      });
+
+      await controller.upsertProvider(mockCtx, mockAgentName, {
+        provider: 'commandcode',
+        apiKey: 'user_test',
+        authType: 'subscription',
+      });
+
+      expect(mockCommandCodeAuth.validateApiKey).toHaveBeenCalledWith('user_test');
+      expect(mockProviderService.upsertProvider).toHaveBeenCalled();
+    });
+
+    it('rejects a Command Code key refused by whoami and does not store it', async () => {
+      mockCommandCodeAuth.validateApiKey.mockResolvedValue({
+        ok: false,
+        message: 'Command Code rejected this API key (HTTP 401).',
+      });
+
+      await expect(
+        controller.upsertProvider(mockCtx, mockAgentName, {
+          provider: 'commandcode',
+          apiKey: 'user_bad',
+          authType: 'subscription',
+        }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+
+      expect(mockProviderService.upsertProvider).not.toHaveBeenCalled();
+    });
+
+    it('does not validate the key for non-command-code providers', async () => {
+      await controller.upsertProvider(mockCtx, mockAgentName, {
+        provider: 'anthropic',
+        apiKey: 'sk-ant-test',
+      });
+
+      expect(mockCommandCodeAuth.validateApiKey).not.toHaveBeenCalled();
     });
 
     it('should call service without apiKey', async () => {

@@ -380,32 +380,33 @@ export class AutofixService {
 
     let heal: HealResponse;
     try {
-      heal = await this.client.heal({
-        traceId: groupId,
-        tenantId: params.tenantId,
-        provider: params.provider,
-        model: params.model,
-        authType: params.authType,
-        api: params.apiMode,
-        url: params.url,
-        request: params.requestBody,
-        response: { statusCode: status, error: normalized },
-        reasoningContentCache: params.reasoningContentCache,
-        ...(originalForward.wireFormat
-          ? {
-              providerExchange: {
-                format: originalForward.wireFormat,
-                ...(originalForward.wireRequestUrl
-                  ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
-                  : {}),
-                request: { body: params.requestBody, redactedFields: [] },
-                response: {
-                  statusCode: status,
-                  body: parseProviderBody(originalText),
+      heal = await this.client.heal(
+        {
+          traceId: groupId,
+          tenantId: params.tenantId,
+          provider: params.provider,
+          model: params.model,
+          authType: params.authType,
+          api: params.apiMode,
+          url: params.url,
+          request: params.requestBody,
+          response: { statusCode: status, error: normalized },
+          reasoningContentCache: params.reasoningContentCache,
+          ...(originalForward.wireFormat
+            ? {
+                providerExchange: {
+                  format: originalForward.wireFormat,
+                  ...(originalForward.wireRequestUrl
+                    ? { url: scrubProviderUrl(originalForward.wireRequestUrl) }
+                    : {}),
+                  request: { body: params.requestBody, redactedFields: [] },
+                  response: {
+                    statusCode: status,
+                    body: parseProviderBody(originalText),
+                  },
                 },
-              },
-            }
-          : {}),
+              }
+            : {}),
         },
         { harness: config.harness },
       );

@@ -45,6 +45,8 @@ const BYTEPLUS_CODING_MODELS_URL = 'https://ark.ap-southeast.bytepluses.com/api/
 const GEMINI_DEFAULT_CONTEXT = 1000000;
 const MINIMAX_SUBSCRIPTION_MODELS_URL = 'https://api.minimax.io/anthropic/v1/models?limit=100';
 const COMMAND_CODE_MODELS_URL = 'https://api.commandcode.ai/provider/v1/models';
+/** Context window assumed when the Provider API omits `context_length`. */
+const COMMAND_CODE_DEFAULT_CONTEXT = 200_000;
 const XIAOMI_MIMO_MODELS_URL = 'https://api.xiaomimimo.com/v1/models';
 const XIAOMI_TOKEN_PLAN_MODELS_URL = `${getXiaomiTokenPlanBaseUrl()}/v1/models`;
 const QWEN_TOKEN_PLAN_MODELS_URL =
@@ -320,7 +322,11 @@ const parseCommandCode = createModelParser<CommandCodeModelEntry>({
   filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
   getId: (entry) => `commandcode/${entry.id}`,
   getDisplayName: (entry, id) => entry.name || id,
-  contextWindow: (entry) => entry.context_length ?? DEFAULT_CONTEXT_WINDOW,
+  // Command Code's Provider API reports `context_length` per model; when it
+  // omits it, fall back to the subscription's nominal 200k window (mirrors
+  // the 9router/OmniRoute defaultContextLength for this provider) rather than
+  // the generic 128k discovery default.
+  contextWindow: (entry) => entry.context_length ?? COMMAND_CODE_DEFAULT_CONTEXT,
   capabilityCode: true,
 });
 
