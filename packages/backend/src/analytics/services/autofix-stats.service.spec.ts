@@ -51,9 +51,14 @@ describe('AutofixStatsService', () => {
   };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),
-    getDispositionTotals: jest
-      .fn()
-      .mockResolvedValue({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 }),
+    getDispositionTotals: jest.fn().mockResolvedValue({
+      total: 0,
+      success: 0,
+      healed: 0,
+      keyRotation: 0,
+      fallback: 0,
+      error: 0,
+    }),
     getVolumeByDimension: jest.fn().mockResolvedValue([]),
     getVolumeByProviderTimeseries: jest.fn().mockResolvedValue([]),
     getVolumeByAgentTimeseries: jest.fn().mockResolvedValue([]),
@@ -69,6 +74,7 @@ describe('AutofixStatsService', () => {
       total: 0,
       success: 0,
       healed: 0,
+      keyRotation: 0,
       fallback: 0,
       error: 0,
     });
@@ -226,6 +232,7 @@ describe('AutofixStatsService', () => {
         successes: 8,
         saves: 2,
         fallback_saves: 1,
+        key_rotation_saves: 1,
         errors: 2,
         healed: 2,
         no_fix_found: 1,
@@ -237,6 +244,7 @@ describe('AutofixStatsService', () => {
         successes: 0,
         saves: 0,
         fallback_saves: 0,
+        key_rotation_saves: 0,
         errors: 0,
         healed: 0,
         no_fix_found: 0,
@@ -251,6 +259,7 @@ describe('AutofixStatsService', () => {
       success_rate: { value: 0.8, previous: 0 },
       autofix_saves: { value: 2, previous: 0 },
       fallback_saves: { value: 1, previous: 0 },
+      key_rotation_saves: { value: 1, previous: 0 },
       total_requests: { value: 10, previous: 0 },
       errors_remaining: { value: 2, previous: 0 },
       coverage: { rate: 0.5, previous_rate: 0 },
@@ -395,17 +404,19 @@ describe('AutofixStatsService', () => {
       total: 100,
       success: 70,
       healed: 4,
+      keyRotation: 5,
       fallback: 6,
-      error: 20,
+      error: 15,
     });
     await expect(internals.queryWindow('from', 'to', 'tenant', 'demo')).resolves.toEqual({
       total: 100,
-      successes: 80, // success + recovered by Autofix + recovered by fallback
+      successes: 85, // success + recovered by Autofix + key rotation + fallback
       saves: 4, // autofix_status = retry_succeeded
       fallback_saves: 6,
-      errors: 20,
+      key_rotation_saves: 5,
+      errors: 15,
       healed: 4,
-      no_fix_found: 20,
+      no_fix_found: 15,
       resolving: 0,
       ineffective: 0,
     });

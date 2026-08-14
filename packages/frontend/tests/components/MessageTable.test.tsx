@@ -553,6 +553,43 @@ describe('MessageTable', () => {
       expect(badge.textContent).toContain('fallback');
     });
 
+    it('renders a key rotation badge between auto-fix and fallback', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[
+            makeRow({
+              autofix_applied: true,
+              recovered_by_key_rotation: true,
+              fallback_from_model: 'gpt-4o',
+            }),
+          ]}
+          columns={['selfheal']}
+          agentName="agent-1"
+        />
+      ));
+      const badges = container.querySelectorAll('[title="Auto-fix"], [title="Recovered by key rotation"], [title="Fallback"]');
+      expect(badges.length).toBe(3);
+      // Category order: Auto-fix, key rotation, fallback.
+      expect(badges[0]!.textContent).toContain('auto-fix');
+      expect(badges[1]!.textContent).toContain('key rotation');
+      expect(badges[2]!.textContent).toContain('fallback');
+    });
+
+    it('renders only the key rotation badge when it is the sole recovery', () => {
+      const { container } = render(() => (
+        <MessageTable
+          items={[makeRow({ recovered_by_key_rotation: true })]}
+          columns={['selfheal']}
+          agentName="agent-1"
+        />
+      ));
+      const badge = container.querySelector('[title="Recovered by key rotation"]') as HTMLElement;
+      expect(badge).not.toBeNull();
+      expect(badge.textContent).toContain('key rotation');
+      expect(container.querySelector('[title="Auto-fix"]')).toBeNull();
+      expect(container.querySelector('[title="Fallback"]')).toBeNull();
+    });
+
     it('renders dash when neither autofix nor fallback applies', () => {
       const { container } = render(() => (
         <MessageTable

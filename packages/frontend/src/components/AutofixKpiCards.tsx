@@ -119,7 +119,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
           <div
             class="overview-stat-card"
             {...linkProps(
-              requestsLink('&status=ok&trigger=autofix,fallback'),
+              requestsLink('&status=ok&trigger=autofix,key_rotation,fallback'),
               scopeTitle('recovered requests'),
             )}
           >

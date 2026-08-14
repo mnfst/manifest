@@ -1,0 +1,423 @@
+/* Key order rules — section + cards + create/edit modal.
+   Reuses the shared .routing-section / .routing-card / .modal-card / .btn
+   classes from routing.css and modals.css; adds the bits unique to key
+   order rules (ordered key chips, ordinal badges, reorder controls). */
+
+/* ── Section header ─────────────────────────────── */
+.key-order-section__header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap-md);
+}
+
+.key-order-section__header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.key-order-section__hint {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  max-width: 640px;
+}
+
+/* ── Rule card ──────────────────────────────────── */
+.key-order-card {
+  min-width: 0;
+}
+
+.key-order-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
+.key-order-card__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.key-order-card__letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.key-order-card__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.key-order-card__model {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-order-card__provider {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-order-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.key-order-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-family);
+  padding: 2px 0;
+  transition: color var(--transition-fast);
+}
+
+.key-order-card__action:hover:not(:disabled) {
+  color: hsl(var(--foreground));
+}
+
+.key-order-card__action--danger:hover:not(:disabled) {
+  color: hsl(var(--destructive));
+}
+
+.key-order-card__action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Ordered key chips ──────────────────────────── */
+.key-order-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.key-order-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 6px 5px 8px;
+  background: hsl(var(--muted) / 0.45);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+}
+
+.key-order-chip__ordinal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.key-order-chip__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--foreground));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-order-chip__hint {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+.key-order-chip__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.key-order-chip__btn:hover:not(:disabled) {
+  background: hsl(var(--muted) / 0.8);
+  color: hsl(var(--foreground));
+}
+
+.key-order-chip__btn:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 1px;
+}
+
+.key-order-chip__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.key-order-chip__btn--remove:hover:not(:disabled) {
+  color: hsl(var(--destructive));
+}
+
+/* ── Empty state ────────────────────────────────── */
+.key-order-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 24px;
+  gap: 8px;
+  width: 100%;
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+}
+
+.key-order-empty__title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.key-order-empty__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 8px;
+  line-height: 1.5;
+  max-width: 560px;
+}
+
+.key-order-empty__error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+}
+
+/* ── Create / edit modal ────────────────────────── */
+.key-order-modal {
+  max-width: 480px;
+  width: 100%;
+}
+
+.key-order-modal .select {
+  width: 100%;
+}
+
+.key-order-modal__helper {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.key-order-modal__error {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--destructive));
+  margin-top: 6px;
+}
+
+.key-order-modal__keys {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.key-order-modal__add {
+  width: 100%;
+}
+
+.key-order-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: var(--gap-xl);
+}
+
+/* ── Tiered layout (provider rules + model overrides) ── */
+.key-order-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.key-order-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.key-order-tier__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.key-order-tier__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+}
+
+.key-order-tier__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: hsl(var(--muted) / 0.6);
+  color: hsl(var(--muted-foreground));
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.key-order-tier__hint {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: right;
+}
+
+.key-order-tier__empty {
+  padding: 20px 24px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Scope selector in the create/edit modal ───────── */
+.key-order-modal__scope {
+  border: none;
+  padding: 0;
+  /* The Provider field label after it is the modal's first <label>, which the
+     shared .modal-card__field-label:first-of-type rule zeroes — this margin
+     keeps the scope control from sitting flush against it. */
+  margin: 0 0 10px;
+}
+
+.key-order-modal__scope legend {
+  padding: 0;
+}
+
+.key-order-modal__scope-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.key-order-modal__scope-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.key-order-modal__scope-option:hover:not(:has(input:disabled)) {
+  border-color: hsl(var(--ring) / 0.6);
+}
+
+.key-order-modal__scope-option.is-selected {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+}
+
+.key-order-modal__scope-option:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.key-order-modal__scope-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.key-order-modal__scope-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.key-order-modal__scope-desc {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+/* ── Loading skeleton ───────────────────────────── */
+.key-order-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.key-order-skeleton__bar {
+  background: hsl(var(--muted) / 0.45);
+  border-radius: var(--radius);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}

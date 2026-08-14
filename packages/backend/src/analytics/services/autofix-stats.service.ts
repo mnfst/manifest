@@ -44,6 +44,8 @@ export interface AutofixStatsResponse {
   autofix_saves: { value: number; previous: number };
   /** Additive: requests recovered by a successful fallback attempt. */
   fallback_saves: { value: number; previous: number };
+  /** Additive: requests recovered by a same-model key-rotation retry. */
+  key_rotation_saves: { value: number; previous: number };
   /** Additive: window total, denominator for the self-healed share. */
   total_requests: { value: number; previous: number };
   errors_remaining: { value: number; previous: number };
@@ -84,6 +86,7 @@ interface WindowCounts {
   successes: number;
   saves: number;
   fallback_saves: number;
+  key_rotation_saves: number;
   errors: number;
   healed: number;
   no_fix_found: number;
@@ -218,6 +221,10 @@ export class AutofixStatsService {
       success_rate: { value: rate(current), previous: rate(previous) },
       autofix_saves: { value: current.saves, previous: previous.saves },
       fallback_saves: { value: current.fallback_saves, previous: previous.fallback_saves },
+      key_rotation_saves: {
+        value: current.key_rotation_saves,
+        previous: previous.key_rotation_saves,
+      },
       total_requests: { value: current.total, previous: previous.total },
       errors_remaining: { value: current.errors, previous: previous.errors },
       coverage: { rate: covRate(current), previous_rate: covRate(previous) },
@@ -487,9 +494,11 @@ export class AutofixStatsService {
     });
     return {
       total: t.total,
-      successes: t.success + t.healed + t.fallback,
+      // Recovered by key rotation is a success too (docs/glossary.md step 5).
+      successes: t.success + t.healed + t.keyRotation + t.fallback,
       saves: t.healed,
       fallback_saves: t.fallback,
+      key_rotation_saves: t.keyRotation,
       errors: t.error,
       healed: t.healed,
       no_fix_found: t.error,

@@ -364,42 +364,53 @@ export const MESSAGE_ROW_SELECT_ALIASES = [
   'custom_provider_name',
   'autofix_applied',
   'autofix_role',
+  'recovered_by_key_rotation',
 ] as const;
 
 export function selectMessageRowColumns<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
   costExpr: string,
 ): SelectQueryBuilder<T> {
-  return qb
-    .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
-    .select('at.id', 'id')
-    .addSelect('at.timestamp', 'timestamp')
-    .addSelect('at.agent_name', 'agent_name')
-    .addSelect('at.model', 'model')
-    .addSelect('at.provider', 'provider')
-    .addSelect('at.model', 'display_name')
-    .addSelect('at.input_tokens', 'input_tokens')
-    .addSelect('at.output_tokens', 'output_tokens')
-    .addSelect('at.status', 'status')
-    .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
-    .addSelect(costExpr, 'cost')
-    .addSelect('at.routing_tier', 'routing_tier')
-    .addSelect('at.routing_reason', 'routing_reason')
-    .addSelect('at.specificity_category', 'specificity_category')
-    .addSelect('at.error_message', 'error_message')
-    .addSelect('at.error_code', 'error_code')
-    .addSelect('at.error_origin', 'error_origin')
-    .addSelect('at.error_class', 'error_class')
-    .addSelect('at.error_http_status', 'error_http_status')
-    .addSelect('at.auth_type', 'auth_type')
-    .addSelect('at.fallback_from_model', 'fallback_from_model')
-    .addSelect('at.fallback_index', 'fallback_index')
-    .addSelect('at.feedback_rating', 'feedback_rating')
-    .addSelect('at.header_tier_id', 'header_tier_id')
-    .addSelect('at.header_tier_name', 'header_tier_name')
-    .addSelect('at.header_tier_color', 'header_tier_color')
-    .addSelect('at.provider_key_label', 'provider_key_label')
-    .addSelect('cp.name', 'custom_provider_name')
-    .addSelect('at.autofix_applied', 'autofix_applied')
-    .addSelect('at.autofix_role', 'autofix_role');
+  return (
+    qb
+      .leftJoin(CustomProvider, 'cp', CUSTOM_PROVIDER_JOIN_CONDITION)
+      .select('at.id', 'id')
+      .addSelect('at.timestamp', 'timestamp')
+      .addSelect('at.agent_name', 'agent_name')
+      .addSelect('at.model', 'model')
+      .addSelect('at.provider', 'provider')
+      .addSelect('at.model', 'display_name')
+      .addSelect('at.input_tokens', 'input_tokens')
+      .addSelect('at.output_tokens', 'output_tokens')
+      .addSelect('at.status', 'status')
+      .addSelect('at.input_tokens + at.output_tokens', 'total_tokens')
+      .addSelect(costExpr, 'cost')
+      .addSelect('at.routing_tier', 'routing_tier')
+      .addSelect('at.routing_reason', 'routing_reason')
+      .addSelect('at.specificity_category', 'specificity_category')
+      .addSelect('at.error_message', 'error_message')
+      .addSelect('at.error_code', 'error_code')
+      .addSelect('at.error_origin', 'error_origin')
+      .addSelect('at.error_class', 'error_class')
+      .addSelect('at.error_http_status', 'error_http_status')
+      .addSelect('at.auth_type', 'auth_type')
+      .addSelect('at.fallback_from_model', 'fallback_from_model')
+      .addSelect('at.fallback_index', 'fallback_index')
+      .addSelect('at.feedback_rating', 'feedback_rating')
+      .addSelect('at.header_tier_id', 'header_tier_id')
+      .addSelect('at.header_tier_name', 'header_tier_name')
+      .addSelect('at.header_tier_color', 'header_tier_color')
+      .addSelect('at.provider_key_label', 'provider_key_label')
+      .addSelect('cp.name', 'custom_provider_name')
+      .addSelect('at.autofix_applied', 'autofix_applied')
+      .addSelect('at.autofix_role', 'autofix_role')
+      // Request-level recovery flag, reached via a correlated subquery so the
+      // helper keeps working for callers that never join `requests` directly
+      // (Overview recent messages, provider analytics). Mirrors the NOT EXISTS
+      // correlated-subquery pattern already used in this file.
+      .addSelect(
+        '(SELECT rq.recovered_by_key_rotation FROM requests rq WHERE rq.id = at.request_id)',
+        'recovered_by_key_rotation',
+      )
+  );
 }

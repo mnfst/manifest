@@ -349,6 +349,121 @@ describe('ReasoningContentCache', () => {
 
     Date.now = realNow;
   });
+
+  describe('reasoningContentForHeal', () => {
+    it('returns cached reasoning_content keyed by tool_call id for replayable turns', async () => {
+      cache.store('session-1', 'call_1', 'original reasoning');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, 'session-1');
+
+      expect(result).toEqual({ call_1: 'original reasoning' });
+    });
+
+    it('returns empty map when sessionKey is undefined', async () => {
+      cache.store('session-1', 'call_1', 'original reasoning');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, undefined);
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty map when body has no tool-call turns', async () => {
+      cache.store('session-1', 'call_1', 'original reasoning');
+      const body = {
+        messages: [{ role: 'user', content: 'hi' }],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, 'session-1');
+
+      expect(result).toEqual({});
+    });
+
+    it('returns empty map when body has no messages', async () => {
+      const result = await cache.reasoningContentForHeal({}, 'session-1');
+
+      expect(result).toEqual({});
+    });
+
+    it('omits entries where the cache has no hit', async () => {
+      cache.store('session-1', 'call_1', 'original reasoning');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_999', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, 'session-1');
+
+      expect(result).toEqual({});
+    });
+
+    it('returns multiple entries when body has multiple replayable turns', async () => {
+      cache.store('session-1', 'call_1', 'reasoning A');
+      cache.store('session-1', 'call_2', 'reasoning B');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: '{}' },
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_2', type: 'function', function: {} }],
+          },
+          { role: 'tool', tool_call_id: 'call_2', content: '{}' },
+        ],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, 'session-1');
+
+      expect(result).toEqual({ call_1: 'reasoning A', call_2: 'reasoning B' });
+    });
+
+    it('does not include turns that already have reasoning_content', async () => {
+      cache.store('session-1', 'call_1', 'original reasoning');
+      const body = {
+        messages: [
+          {
+            role: 'assistant',
+            reasoning_content: 'client reasoning',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      const result = await cache.reasoningContentForHeal(body, 'session-1');
+
+      // reasoningReplayCandidate returns null when reasoning_content is present,
+      // so no cache key is extracted and the result is empty.
+      expect(result).toEqual({});
+    });
+  });
 });
 
 describe('ReasoningContentCache catalog wiring', () => {

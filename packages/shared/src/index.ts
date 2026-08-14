@@ -73,6 +73,8 @@ export {
   routeToLegacy,
 } from './model-route';
 export type { ModelRoute, LegacyOverrideTriple } from './model-route';
+export { isKeyRotationRule, isKeyRotationRuleArray } from './key-rotation-rule';
+export type { KeyRotationRule, KeyRotationRuleScope } from './key-rotation-rule';
 export { applyRequestParamDefaults } from './request-params';
 export type { JsonValue, RequestParamDefaults } from './request-params';
 export { snapshotRequestParams } from './request-params-snapshot';

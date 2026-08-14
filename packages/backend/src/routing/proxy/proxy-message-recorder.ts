@@ -242,6 +242,12 @@ export interface FallbackSuccessOpts extends HeaderTierRef {
   autofix?: AutofixRecord;
   /** API surface to retain when this terminal write creates the Request. */
   apiMode?: ProxyApiMode;
+  /**
+   * True when the winning attempt was a SAME-model key-rotation retry (key A
+   * failed, key B succeeded). Stamped on the requests row as
+   * `recovered_by_key_rotation` unless the request was recovered by Auto-fix.
+   */
+  recoveredByKeyRotation?: boolean;
 }
 
 export interface SuccessMessageOpts extends HeaderTierRef {
@@ -268,6 +274,12 @@ export interface SuccessMessageOpts extends HeaderTierRef {
   autofix?: AutofixRecord;
   /** API surface to retain when this terminal write creates the Request. */
   apiMode?: ProxyApiMode;
+  /**
+   * True when the winning attempt was a SAME-model key-rotation retry.
+   * Stamped on the requests row as `recovered_by_key_rotation` unless the
+   * request was recovered by Auto-fix.
+   */
+  recoveredByKeyRotation?: boolean;
 }
 
 export interface AutofixOriginalOpts extends HeaderTierRef {
@@ -346,6 +358,7 @@ function buildRequestRow(
   terminal: boolean,
   autofix?: AutofixRecord,
   apiMode?: ProxyApiMode,
+  recoveredByKeyRotation?: boolean,
 ): ManifestRequest {
   const classified = classifyRow(attempt);
   // classifyRow above reads the rich attempt status; the request row stores the
@@ -371,6 +384,11 @@ function buildRequestRow(
     duration_ms: attempt.duration_ms ?? null,
     status,
     autofix_status: deriveAutofixStatus(autofix),
+    // Precedence (docs/glossary.md): a request recovered by Auto-fix stays
+    // "Recovered by Auto-fix" even if key rotation also ran — the rotation
+    // flag is only set when autofix did NOT recover the request.
+    recovered_by_key_rotation:
+      recoveredByKeyRotation === true && deriveAutofixStatus(autofix) !== 'retry_succeeded',
     error_message: errorMessage,
     error_http_status: terminal ? (attempt.error_http_status ?? null) : null,
     error_code: terminal ? (attempt.error_code ?? null) : null,
@@ -458,6 +476,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     terminal: boolean,
     autofix?: AutofixRecord,
     apiMode?: ProxyApiMode,
+    recoveredByKeyRotation?: boolean,
   ): Promise<boolean> {
     // Unit-test repository doubles predate the request table. Production
     // repositories always expose manager.getRepository().
@@ -465,7 +484,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (!getRepository) return false;
     const repo = getRepository(ManifestRequest);
     if (typeof repo.createQueryBuilder !== 'function') return false;
-    const row = buildRequestRow(ctx, requestId, attempt, terminal, autofix, apiMode);
+    const row = buildRequestRow(
+      ctx,
+      requestId,
+      attempt,
+      terminal,
+      autofix,
+      apiMode,
+      recoveredByKeyRotation,
+    );
     const insert = repo.createQueryBuilder().insert().into(ManifestRequest).values(row);
     if (terminal) {
       // Most terminal writers do not need to repeat the ingress surface. When
@@ -480,6 +507,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
         'duration_ms',
         'status',
         'autofix_status',
+        'recovered_by_key_rotation',
         'error_message',
         'error_http_status',
         'error_code',
@@ -1055,6 +1083,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor,
       autofix,
       apiMode,
+      recoveredByKeyRotation,
     } = opts ?? {};
 
     const inputTokens = usage?.prompt_tokens ?? 0;
@@ -1111,7 +1140,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_name: headerTierName ?? null,
       header_tier_color: headerTierColor ?? null,
     });
-    await this.persistRequest(ctx, requestId, row, true, autofix, apiMode);
+    await this.persistRequest(ctx, requestId, row, true, autofix, apiMode, recoveredByKeyRotation);
     await this.persistAttempt(row, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
@@ -1144,6 +1173,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       headerTierColor,
       autofix,
       apiMode,
+      recoveredByKeyRotation,
     } = opts ?? {};
     const requestId = providedRequestId ?? uuid();
 
@@ -1206,7 +1236,15 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       header_tier_color: headerTierColor ?? null,
       ...autofixColumns(autofix, 'retry'),
     });
-    await this.persistRequest(ctx, requestId, requestRow, true, autofix, apiMode);
+    await this.persistRequest(
+      ctx,
+      requestId,
+      requestRow,
+      true,
+      autofix,
+      apiMode,
+      recoveredByKeyRotation,
+    );
     await this.persistAttempt(requestRow, attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
   }
