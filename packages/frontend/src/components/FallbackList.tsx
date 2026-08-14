@@ -401,63 +401,48 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
   // ── Touch drag (mobile) ─────────────────────────────────────────────
   // HTML5 drag-and-drop does not fire on touch devices, so fallback reorder
-  // and the fallback→primary swap use pointer events. The drag engages on a
-  // TAP-AND-HOLD (long press): the finger must stay within a small slop for
-  // ~280ms, then the drag starts and a ghost card follows the finger.
-  // Moving before the hold fires cancels it, so normal scrolling from a card
-  // is not hijacked; `touch-action: none` (CSS) keeps the gesture once
-  // engaged.
-  const TOUCH_DRAG_HOLD_MS = 280;
-  const TOUCH_DRAG_SLOP = 10;
+  // and the fallback→primary swap use pointer events. The three gestures on
+  // a card are disambiguated by the initial finger direction:
+  //   • vertical movement → page scroll (CSS `touch-action: pan-y`)
+  //   • no movement       → tap (click behavior untouched)
+  //   • horizontal swipe  → drag: the card is "picked up", a ghost card
+  //                         follows the finger, and the drop line shows.
+  const SWIPE_ENGAGE_PX = 14;
 
-  let hold: { index: number; startX: number; startY: number; engaged: boolean } | null = null;
-  let holdTimer: ReturnType<typeof setTimeout> | undefined;
+  let touch: { index: number; startX: number; startY: number; engaged: boolean } | null = null;
   const [touchGhost, setTouchGhost] = createSignal<{ x: number; y: number } | null>(null);
-
-  const clearHold = () => {
-    if (holdTimer !== undefined) {
-      clearTimeout(holdTimer);
-      holdTimer = undefined;
-    }
-    hold = null;
-  };
 
   const handleCardPointerDown = (index: number, e: PointerEvent) => {
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
-    clearHold();
-    hold = { index, startX: e.clientX, startY: e.clientY, engaged: false };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    holdTimer = setTimeout(() => {
-      holdTimer = undefined;
-      if (!hold || hold.engaged) return;
-      hold.engaged = true;
-      setDragIndex(hold.index);
-      props.onFallbackDragStart?.(hold.index);
-    }, TOUCH_DRAG_HOLD_MS);
+    touch = { index, startX: e.clientX, startY: e.clientY, engaged: false };
   };
 
   const handleCardPointerMove = (e: PointerEvent) => {
-    if (!hold || !listRef) return;
-    if (!hold.engaged) {
-      // Moved beyond the slop before the hold fired → scroll/tap, cancel.
-      if (Math.hypot(e.clientX - hold.startX, e.clientY - hold.startY) > TOUCH_DRAG_SLOP) {
-        clearHold();
-      }
-      return;
+    if (!touch || !listRef) return;
+    if (!touch.engaged) {
+      // Only a horizontal swipe picks the card up; vertical movement is
+      // left to the browser so the page scrolls.
+      const dx = e.clientX - touch.startX;
+      const dy = e.clientY - touch.startY;
+      if (Math.abs(dx) <= SWIPE_ENGAGE_PX || Math.abs(dx) <= Math.abs(dy)) return;
+      touch.engaged = true;
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      setDragIndex(touch.index);
+      props.onFallbackDragStart?.(touch.index);
     }
-    e.preventDefault();
+    e.preventDefault(); // once engaged, keep the browser from panning
     setTouchGhost({ x: e.clientX, y: e.clientY });
-    const from = hold.index;
+    const from = touch.index;
     const slot = computeFallbackDropSlot(listRef, e.clientY);
     // Don't show an indicator at the dragged item's current position.
     setDropSlot(slot === from || slot === from + 1 ? null : slot);
   };
 
   const handleCardPointerUp = (e: PointerEvent) => {
-    if (!hold) return;
-    const { index, engaged } = hold;
+    if (!touch) return;
+    const { index, engaged } = touch;
     const toSlot = dropSlot();
-    clearHold();
+    touch = null;
     setDragIndex(null);
     setDropSlot(null);
     setTouchGhost(null);
@@ -483,8 +468,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleCardPointerCancel = () => {
-    if (!hold) return;
-    clearHold();
+    if (!touch) return;
+    touch = null;
     setDragIndex(null);
     setDropSlot(null);
     setTouchGhost(null);

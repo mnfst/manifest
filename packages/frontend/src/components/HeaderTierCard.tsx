@@ -147,48 +147,35 @@ const HeaderTierCard: Component<Props> = (props) => {
 
   // ── Touch drag (mobile) ─────────────────────────────────────────────
   // HTML5 drag-and-drop does not fire on touch, so the primary → fallback
-  // drag is driven by pointer events on touch/pen devices. TAP-AND-HOLD
-  // engages the drag (~280ms within a small slop), then a ghost card follows
-  // the finger; `touch-action: none` (CSS) keeps the gesture.
-  const TOUCH_DRAG_HOLD_MS = 280;
-  const TOUCH_DRAG_SLOP = 10;
+  // drag is driven by pointer events on touch/pen devices. The chip
+  // disambiguates the three gestures by the initial finger direction:
+  // vertical = scroll (CSS `touch-action: pan-y`), no movement = tap
+  // (click behavior untouched), horizontal swipe = drag — the chip is
+  // "picked up", a ghost card follows the finger and the drop line shows.
+  const SWIPE_ENGAGE_PX = 14;
 
-  let chipHold: { startX: number; startY: number; engaged: boolean } | null = null;
-  let chipHoldTimer: ReturnType<typeof setTimeout> | undefined;
+  let chipTouch: { startX: number; startY: number; engaged: boolean } | null = null;
   const [touchDropSlot, setTouchDropSlot] = createSignal<number | null>(null);
   const [touchGhost, setTouchGhost] = createSignal<{ x: number; y: number } | null>(null);
 
-  const clearChipHold = () => {
-    if (chipHoldTimer !== undefined) {
-      clearTimeout(chipHoldTimer);
-      chipHoldTimer = undefined;
-    }
-    chipHold = null;
-  };
-
   const handleChipPointerDown = (e: PointerEvent) => {
     if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
-    clearChipHold();
-    chipHold = { startX: e.clientX, startY: e.clientY, engaged: false };
-    setPrimaryDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    chipHoldTimer = setTimeout(() => {
-      chipHoldTimer = undefined;
-      if (!chipHold || chipHold.engaged) return;
-      chipHold.engaged = true;
-    }, TOUCH_DRAG_HOLD_MS);
+    chipTouch = { startX: e.clientX, startY: e.clientY, engaged: false };
   };
 
   const handleChipPointerMove = (e: PointerEvent) => {
-    if (!chipHold) return;
-    if (!chipHold.engaged) {
-      // Moved beyond the slop before the hold fired → scroll/tap, cancel.
-      if (Math.hypot(e.clientX - chipHold.startX, e.clientY - chipHold.startY) > TOUCH_DRAG_SLOP) {
-        clearChipHold();
-      }
-      return;
+    if (!chipTouch) return;
+    if (!chipTouch.engaged) {
+      // Only a horizontal swipe picks the chip up; vertical movement is
+      // left to the browser so the page scrolls.
+      const dx = e.clientX - chipTouch.startX;
+      const dy = e.clientY - chipTouch.startY;
+      if (Math.abs(dx) <= SWIPE_ENGAGE_PX || Math.abs(dx) <= Math.abs(dy)) return;
+      chipTouch.engaged = true;
+      setPrimaryDragging(true);
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }
-    e.preventDefault();
+    e.preventDefault(); // once engaged, keep the browser from panning
     setTouchGhost({ x: e.clientX, y: e.clientY });
     const listEl = (e.currentTarget as HTMLElement)
       .closest('.routing-card')
@@ -197,10 +184,10 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const handleChipPointerUp = () => {
-    if (!chipHold) return;
-    const engaged = chipHold.engaged;
+    if (!chipTouch) return;
+    const engaged = chipTouch.engaged;
     const slot = touchDropSlot();
-    clearChipHold();
+    chipTouch = null;
     setTouchDropSlot(null);
     setTouchGhost(null);
     setPrimaryDragging(false);
@@ -211,8 +198,8 @@ const HeaderTierCard: Component<Props> = (props) => {
   };
 
   const handleChipPointerCancel = () => {
-    if (!chipHold) return;
-    clearChipHold();
+    if (!chipTouch) return;
+    chipTouch = null;
     setTouchDropSlot(null);
     setTouchGhost(null);
     setPrimaryDragging(false);

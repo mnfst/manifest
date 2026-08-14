@@ -691,10 +691,10 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   cursor: grab;
-  /* Pointer-based touch drag: the chip handles pointermove/pointerup, and
-     touch-action: none keeps the browser from hijacking the gesture into a
-     page scroll. Desktop mouse drag-and-drop is unaffected. */
-  touch-action: none;
+  /* Pointer-based touch drag: the chip handles pointermove/pointerup. The
+     gestures are disambiguated by direction — vertical movement scrolls the
+     page (pan-y), a horizontal swipe engages the drag, and a tap clicks. */
+  touch-action: pan-y;
   /* Draggable chips must never start a text-selection drag instead of the
      element drag: without this, pressing and moving on the model label can
      select text until the drag threshold trips. */
@@ -1584,9 +1584,8 @@
   background: #f7f5ed;
   cursor: grab;
   /* Pointer-based touch drag: same rationale as the primary model chip —
-     the row owns pointermove/pointerup, so the browser must not turn the
-     gesture into a page scroll. */
-  touch-action: none;
+     vertical movement scrolls the page, a horizontal swipe engages the drag. */
+  touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
   transition:
@@ -1637,7 +1636,9 @@
 }
 
 /* ── Touch-drag ghost ─────────────────────────────── */
-/* Floating clone of the chip/card under the finger during a touch drag. */
+/* Floating clone of the chip/card under the finger during a touch drag.
+   Styled like a lifted card (rounded, bordered, shadowed, slightly scaled)
+   so the dragged model visibly moves with the finger. */
 .drag-ghost {
   position: fixed;
   left: 0;
@@ -1646,20 +1647,29 @@
   pointer-events: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 10px 14px;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px hsl(var(--foreground) / 0.18);
-  font-size: var(--font-size-xs);
-  font-weight: 500;
+  border-radius: calc(var(--radius) + 2px);
+  box-shadow:
+    0 12px 32px hsl(var(--foreground) / 0.22),
+    0 2px 8px hsl(var(--foreground) / 0.12);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
   color: hsl(var(--foreground));
-  max-width: 240px;
+  min-width: 170px;
+  max-width: 260px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transform: scale(1.04);
   will-change: transform;
+}
+
+.dark .drag-ghost {
+  background: #1c1c1c;
+  border-color: hsl(var(--border));
 }
 
 .drag-ghost__icon {
