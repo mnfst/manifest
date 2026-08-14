@@ -580,6 +580,35 @@ describe('RoutingTierCard', () => {
     expect(queryByTestId('fallback-list')).toBeNull();
   });
 
+  it('swaps with the first fallback when the primary is dropped at slot 0 (natural gesture)', async () => {
+    // Dropping the primary on/above the first fallback (slot 0) must swap with
+    // it — the slot-0 no-op would make the most natural drop do nothing.
+    const onFallbackUpdate = vi.fn();
+    const onOverride = vi.fn();
+    const { getByTestId } = render(() => (
+      <RoutingTierCard {...makeProps({ onFallbackUpdate, onOverride })} />
+    ));
+    fireEvent.click(getByTestId('trigger-primary-drop-0'));
+    await waitFor(() => {
+      // fb0 (gpt-4o-mini) promoted; primary gpt-4o inserted at fallback position 0.
+      expect(onFallbackUpdate).toHaveBeenCalledWith(
+        'simple',
+        ['gpt-4o', 'claude'],
+        [
+          { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+          { provider: 'anthropic', authType: 'api_key', model: 'claude' },
+        ],
+      );
+      expect(onOverride).toHaveBeenCalledWith(
+        'simple',
+        'gpt-4o-mini',
+        'openai',
+        'api_key',
+        undefined,
+      );
+    });
+  });
+
   it('does not invoke onOverride when the primary drop slot is the same as the source position', async () => {
     const onOverride = vi.fn();
     // No primary drop should occur with no fallbacks and a same-slot drop

@@ -113,9 +113,182 @@ const HeaderTierCard: Component<Props> = (props) => {
   const [snippetOpen, setSnippetOpen] = createSignal(false);
   const [menuOpen, setMenuOpen] = createSignal(false);
   const [resetting, setResetting] = createSignal(false);
+  const [primaryDragging, setPrimaryDragging] = createSignal(false);
+  const [fallbackDragging, setFallbackDragging] = createSignal<number | null>(null);
+  const [primaryDropTarget, setPrimaryDropTarget] = createSignal(false);
+  const [swappingFbIndex, setSwappingFbIndex] = createSignal<number | null>(null);
 
   const currentModel = (): string | null => props.tier.override_route?.model ?? null;
   const fallbacks = (): string[] => props.tier.fallback_routes?.map((r) => r.model) ?? [];
+
+  const handlePrimaryDragStart = (e: DragEvent) => {
+    setPrimaryDragging(true);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', 'primary');
+      e.dataTransfer.setData('application/x-primary', 'true');
+    }
+  };
+
+  // Timestamp of the most recent primary-chip dragend; clicks that land right
+  // after a drag gesture are treated as part of the drag, not as a pick.
+  let dragEndedAt = 0;
+
+  const handlePrimaryDragEnd = () => {
+    setPrimaryDragging(false);
+    setPrimaryDropTarget(false);
+    // A drag that ends without a valid drop (ESC, or released off-target)
+    // still produces a click on mouseup in some browsers. Swallow the next
+    // click so the model picker never pops up over a drag gesture.
+    dragEndedAt = Date.now();
+  };
+
+  const chipClick = () => {
+    if (Date.now() - dragEndedAt < 350) return;
+    setPickerMode('primary');
+  };
+
+  /**
+   * Index of the fallback being dragged, read from the drag payload. The
+   * parent's `fallbackDragging` signal is only set on its next re-render after
+   * the fallback's dragstart, so a fast fallback→primary drop can arrive
+   * before it — the payload is synchronous with the events and never misses.
+   */
+  const fallbackIndexFromDrag = (e: DragEvent): number | null => {
+    const raw = e.dataTransfer?.getData('application/x-fallback');
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const handlePrimaryDragOver = (e: DragEvent) => {
+    if (fallbackDragging() === null && fallbackIndexFromDrag(e) === null) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    setPrimaryDropTarget(true);
+  };
+
+  const handlePrimaryDragLeave = () => {
+    setPrimaryDropTarget(false);
+  };
+
+  const handlePrimaryDrop = (e: DragEvent) => {
+    e.preventDefault();
+    setPrimaryDropTarget(false);
+    dragEndedAt = Date.now();
+    const fbIndex = fallbackDragging() ?? fallbackIndexFromDrag(e);
+    if (fbIndex === null) return;
+    setFallbackDragging(null);
+    void swapPrimaryWithFallback(fbIndex);
+  };
+
+  const handlePrimaryDropAtSlot = async (slot: number) => {
+    const m = currentModel();
+    if (!m) return;
+    const fb = fallbacks();
+    if (fb.length === 0) return;
+    setSwappingFbIndex(Math.max(slot, 1) - 1);
+
+    const currentRoute = props.tier.override_route;
+    const fallbackRoutes = props.tier.fallback_routes ?? null;
+
+    // Promote the top fallback and insert the old primary at the drop
+    // position. `slot` counts drop indicators over the ORIGINAL chain; slot 0
+    // sits right below the primary itself, so both slot 0 and slot 1 mean
+    // "swap with the first fallback" — clamping to 1 keeps that natural
+    // gesture from silently no-oping. After promoting fb0 the remaining chain
+    // is one shorter, so the insert index shifts left by one.
+    const newPrimary = fb[0]!;
+    const insertSlot = Math.max(slot, 1);
+    const newFallbacks = fb.slice(1);
+    newFallbacks.splice(insertSlot - 1, 0, m);
+
+    const buildRoutes = (): typeof fallbackRoutes => {
+      if (!currentRoute || !fallbackRoutes || fallbackRoutes.length !== fb.length) {
+        return null;
+      }
+      const next = fallbackRoutes.slice(1);
+      next.splice(insertSlot - 1, 0, currentRoute);
+      return next;
+    };
+    const newRoutes = buildRoutes();
+    const newPrimaryRoute =
+      fallbackRoutes && fallbackRoutes.length === fb.length ? fallbackRoutes[0] : null;
+
+    props.onFallbacksUpdate(newFallbacks, newRoutes);
+    try {
+      await setHeaderTierFallbacks(
+        props.agentName,
+        props.tier.id,
+        newFallbacks,
+        newRoutes ?? undefined,
+      );
+    } catch {
+      props.onFallbacksUpdate(fb, fallbackRoutes);
+      toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
+      return;
+    }
+    const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models);
+    try {
+      await props.onOverride(
+        newPrimary,
+        provId ?? '',
+        newPrimaryRoute?.authType,
+        newPrimaryRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
+  };
+
+  const swapPrimaryWithFallback = async (fbIndex: number) => {
+    const m = currentModel();
+    if (!m) return;
+    setSwappingFbIndex(fbIndex);
+    const currentRoute = props.tier.override_route;
+    const fb = fallbacks();
+    const fbModel = fb[fbIndex];
+    if (!fbModel) {
+      setSwappingFbIndex(null);
+      return;
+    }
+    const fallbackRoutes = props.tier.fallback_routes ?? null;
+    const fbRoute = fallbackRoutes?.[fbIndex] ?? null;
+
+    const newFallbacks = [...fb];
+    newFallbacks[fbIndex] = m;
+    const newRoutes =
+      fallbackRoutes && currentRoute && fallbackRoutes.length === fb.length
+        ? fallbackRoutes.map((r, i) => (i === fbIndex ? currentRoute : r))
+        : null;
+
+    props.onFallbacksUpdate(newFallbacks, newRoutes);
+    try {
+      await setHeaderTierFallbacks(
+        props.agentName,
+        props.tier.id,
+        newFallbacks,
+        newRoutes ?? undefined,
+      );
+    } catch {
+      props.onFallbacksUpdate(fb, fallbackRoutes);
+      toast.error('Failed to update fallbacks');
+      setSwappingFbIndex(null);
+      return;
+    }
+    const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models);
+    try {
+      await props.onOverride(
+        fbModel,
+        provId ?? '',
+        fbRoute?.authType,
+        fbRoute?.keyLabel ?? undefined,
+      );
+    } finally {
+      setSwappingFbIndex(null);
+    }
+  };
 
   const providerId = (): string | undefined => {
     const m = currentModel();
@@ -247,7 +420,13 @@ const HeaderTierCard: Component<Props> = (props) => {
       await completePickerSelection(mode, model, provider, authType);
       return;
     }
-    setPendingKeyPick({ mode, model, provider, authType, keys: selection.keys });
+    setPendingKeyPick({
+      mode,
+      model,
+      provider,
+      authType,
+      keys: selection.keys,
+    });
   };
 
   const handlePendingKeyPick = (label: string | null): void => {
@@ -384,9 +563,19 @@ const HeaderTierCard: Component<Props> = (props) => {
           {(modelName) => (
             <div
               class="routing-card__model-chip"
-              classList={{ 'routing-card__model-chip--skipped': primarySkipped() }}
+              classList={{
+                'routing-card__model-chip--dragging': primaryDragging(),
+                'routing-card__model-chip--drop-target': primaryDropTarget(),
+                'routing-card__model-chip--skipped': primarySkipped(),
+              }}
               title={primarySkipped() ? 'Skipped while Stream mode is active' : undefined}
-              onClick={() => setPickerMode('primary')}
+              draggable={true}
+              onClick={chipClick}
+              onDragStart={handlePrimaryDragStart}
+              onDragEnd={handlePrimaryDragEnd}
+              onDragOver={handlePrimaryDragOver}
+              onDragLeave={handlePrimaryDragLeave}
+              onDrop={handlePrimaryDrop}
             >
               <div class="routing-card__chip-main">
                 <div class="routing-card__override">
@@ -546,6 +735,11 @@ const HeaderTierCard: Component<Props> = (props) => {
             persistClearFallbacks={(_agent, tierId) =>
               clearHeaderTierFallbacks(props.agentName, tierId)
             }
+            primaryDragging={primaryDragging()}
+            onPrimaryDropAtSlot={handlePrimaryDropAtSlot}
+            onFallbackDragStart={(index) => setFallbackDragging(index)}
+            onFallbackDragEnd={() => setFallbackDragging(null)}
+            swappingIndex={swappingFbIndex()}
           />
         </div>
       </Show>

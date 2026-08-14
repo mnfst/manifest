@@ -81,6 +81,8 @@ vi.mock('../../src/components/FallbackList.js', () => ({
       props.modelHasParams,
       props.modelParamsScope,
       props.responseMode,
+      props.primaryDragging,
+      props.swappingIndex,
     ];
     void _read;
     return (
@@ -92,6 +94,30 @@ vi.mock('../../src/components/FallbackList.js', () => ({
         </div>
         <button data-testid="fb-add" onClick={() => (props.onAddFallback as () => void)?.()}>
           add
+        </button>
+        <button
+          data-testid="fb-primary-drop-0"
+          onClick={() => (props.onPrimaryDropAtSlot as (s: number) => void)?.(0)}
+        >
+          primary-drop-0
+        </button>
+        <button
+          data-testid="fb-primary-drop-1"
+          onClick={() => (props.onPrimaryDropAtSlot as (s: number) => void)?.(1)}
+        >
+          primary-drop-1
+        </button>
+        <button
+          data-testid="fb-fb-drag-start-1"
+          onClick={() => (props.onFallbackDragStart as (i: number) => void)?.(1)}
+        >
+          fb-drag-start
+        </button>
+        <button
+          data-testid="fb-fb-drag-end"
+          onClick={() => (props.onFallbackDragEnd as () => void)?.()}
+        >
+          fb-drag-end
         </button>
         <button
           data-testid="fb-persist"
@@ -1014,6 +1040,170 @@ describe('HeaderTierCard', () => {
     ));
     fireEvent.click(container.querySelector('.routing-card__model-chip') as HTMLElement);
     expect(queryByTestId('model-picker')).not.toBeNull();
+  });
+
+  describe('primary model drag-and-drop', () => {
+    const tierWithFallbacks: HeaderTier = {
+      ...baseTier,
+      fallback_routes: [
+        { provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' },
+        { provider: 'anthropic', authType: 'api_key', model: 'claude-haiku-3.5' },
+      ],
+    };
+
+    it('marks the primary chip draggable and toggles the dragging class with drag payload', () => {
+      const setData = vi.fn();
+      const dataTransfer: { effectAllowed: string; setData: typeof setData } = {
+        effectAllowed: '',
+        setData,
+      };
+      const { container } = render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={baseTier}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={vi.fn()}
+          onFallbacksUpdate={vi.fn()}
+        />
+      ));
+      const chip = container.querySelector('.routing-card__model-chip') as HTMLElement;
+      expect(chip.getAttribute('draggable')).toBe('true');
+      fireEvent.dragStart(chip, { dataTransfer });
+      expect(dataTransfer.effectAllowed).toBe('move');
+      expect(setData).toHaveBeenCalledWith('text/plain', 'primary');
+      expect(setData).toHaveBeenCalledWith('application/x-primary', 'true');
+      expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(true);
+      fireEvent.dragEnd(chip);
+      expect(chip.classList.contains('routing-card__model-chip--dragging')).toBe(false);
+    });
+
+    it('swaps the primary into the fallback chain when dropped at a slot, persisting both arrays', async () => {
+      const onOverride = vi.fn();
+      const onFallbacksUpdate = vi.fn();
+      const { getByTestId } = render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={tierWithFallbacks}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={onOverride}
+          onFallbacksUpdate={onFallbacksUpdate}
+        />
+      ));
+      fireEvent.click(getByTestId('fb-primary-drop-1'));
+      await waitFor(() => {
+        expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith(
+          'demo',
+          'ht-1',
+          ['gpt-4o', 'claude-haiku-3.5'],
+          [
+            { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+            { provider: 'anthropic', authType: 'api_key', model: 'claude-haiku-3.5' },
+          ],
+        );
+        expect(onFallbacksUpdate).toHaveBeenCalledWith(
+          ['gpt-4o', 'claude-haiku-3.5'],
+          [
+            { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+            { provider: 'anthropic', authType: 'api_key', model: 'claude-haiku-3.5' },
+          ],
+        );
+        // The promoted fallback (gpt-4o-mini) becomes the new primary.
+        expect(onOverride).toHaveBeenCalledWith('gpt-4o-mini', 'openai', 'api_key', undefined);
+      });
+    });
+
+    it('swaps with the first fallback when dropped at slot 0 (natural gesture, not a no-op)', async () => {
+      const onOverride = vi.fn();
+      const onFallbacksUpdate = vi.fn();
+      const { getByTestId } = render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={tierWithFallbacks}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={onOverride}
+          onFallbacksUpdate={onFallbacksUpdate}
+        />
+      ));
+      fireEvent.click(getByTestId('fb-primary-drop-0'));
+      await waitFor(() => {
+        // fb0 (gpt-4o-mini) promoted; primary gpt-4o inserted at fallback position 0.
+        expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith(
+          'demo',
+          'ht-1',
+          ['gpt-4o', 'claude-haiku-3.5'],
+          [
+            { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
+            { provider: 'anthropic', authType: 'api_key', model: 'claude-haiku-3.5' },
+          ],
+        );
+        expect(onOverride).toHaveBeenCalledWith('gpt-4o-mini', 'openai', 'api_key', undefined);
+      });
+    });
+
+    it('reverts the optimistic state when the swap persist fails', async () => {
+      mockSetHeaderTierFallbacks.mockRejectedValueOnce(new Error('boom'));
+      const onFallbacksUpdate = vi.fn();
+      const { getByTestId } = render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={tierWithFallbacks}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={vi.fn()}
+          onFallbacksUpdate={onFallbacksUpdate}
+        />
+      ));
+      fireEvent.click(getByTestId('fb-primary-drop-1'));
+      await waitFor(() => {
+        // Optimistic update + revert
+        expect(onFallbacksUpdate).toHaveBeenCalledTimes(2);
+        expect(onFallbacksUpdate).toHaveBeenLastCalledWith(
+          ['gpt-4o-mini', 'claude-haiku-3.5'],
+          tierWithFallbacks.fallback_routes,
+        );
+      });
+    });
+
+    it('swaps a fallback with the primary when dropped onto the primary chip', async () => {
+      const onOverride = vi.fn();
+      const { container, getByTestId } = render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={tierWithFallbacks}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={onOverride}
+          onFallbacksUpdate={vi.fn()}
+        />
+      ));
+      const chip = container.querySelector('.routing-card__model-chip') as HTMLElement;
+      fireEvent.click(getByTestId('fb-fb-drag-start-1'));
+      fireEvent.dragOver(chip, {
+        dataTransfer: { dropEffect: '' },
+        preventDefault: vi.fn(),
+      });
+      expect(chip.classList.contains('routing-card__model-chip--drop-target')).toBe(true);
+      fireEvent.drop(chip, {
+        dataTransfer: { dropEffect: '' },
+        preventDefault: vi.fn(),
+      });
+      await waitFor(() => {
+        expect(onOverride).toHaveBeenCalledWith(
+          'claude-haiku-3.5',
+          'anthropic',
+          'api_key',
+          undefined,
+        );
+      });
+    });
   });
 
   it('renders the custom-provider letter chip when override_route points to a custom provider', () => {

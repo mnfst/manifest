@@ -263,14 +263,30 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   /**
+   * A primary-model drag is in flight when either the parent's reactive
+   * `primaryDragging` flag is set OR the drag payload itself says so. The
+   * dataTransfer check matters: the parent only learns about the drag on its
+   * next re-render, and a fast drag's dragover/drop can land before that
+   * happens. Reading the payload keeps slot computation and the drop handler
+   * synchronous with the actual drag — without it, quick drags silently no-op
+   * and no drop indicator ever appears.
+   */
+  const isPrimaryDrag = (e: DragEvent): boolean => {
+    if (props.primaryDragging) return true;
+    const types = e.dataTransfer?.types;
+    if (!types) return false;
+    return Array.from(types).includes('application/x-primary');
+  };
+
+  /**
    * Compute the drop slot from cursor Y relative to card positions.
    * This runs on the container so it works even when hovering
    * the gaps between cards or the indicator divs.
    */
-  const computeSlot = (clientY: number): number | null => {
+  const computeSlot = (clientY: number, primaryDrag: boolean): number | null => {
     if (!listRef) return null;
     const from = dragIndex();
-    const isPrimaryDrag = props.primaryDragging && from === null;
+    const isPrimaryDrag = primaryDrag && from === null;
     if (from === null && !isPrimaryDrag) return null;
 
     const cards = listRef.querySelectorAll<HTMLElement>('.fallback-list__card');
@@ -296,7 +312,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const handleContainerDragOver = (e: DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-    setDropSlot(computeSlot(e.clientY));
+    setDropSlot(computeSlot(e.clientY, isPrimaryDrag(e)));
   };
 
   const handleContainerDragLeave = (e: DragEvent) => {
@@ -310,12 +326,30 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const handleDrop = async (e: DragEvent) => {
     e.preventDefault();
     const fromIndex = dragIndex();
-    const toSlot = dropSlot();
+    const primaryDrag = isPrimaryDrag(e);
+    let toSlot = dropSlot();
     setDragIndex(null);
     setDropSlot(null);
 
+    // Fast drags can land a drop without a preceding dragover on this list
+    // (the last dragover happened over the chip or a gap). Recompute the slot
+    // from the drop coordinates so the action never silently no-ops.
+    if (toSlot === null && listRef) {
+      const cards = listRef.querySelectorAll<HTMLElement>('.fallback-list__card');
+      let slot = cards.length;
+      for (let i = 0; i < cards.length; i++) {
+        const rect = cards[i]!.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          slot = i;
+          break;
+        }
+      }
+      if (primaryDrag || fromIndex !== null) toSlot = slot;
+    }
+
     // Primary model dropped into fallback list
-    if (props.primaryDragging && fromIndex === null && toSlot !== null) {
+    if (primaryDrag && fromIndex === null && toSlot !== null) {
       props.onPrimaryDropAtSlot?.(toSlot);
       return;
     }

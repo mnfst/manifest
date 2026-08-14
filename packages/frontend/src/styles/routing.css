@@ -691,6 +691,11 @@
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   cursor: grab;
+  /* Draggable chips must never start a text-selection drag instead of the
+     element drag: without this, pressing and moving on the model label can
+     select text until the drag threshold trips. */
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background var(--transition-fast),
     border-color var(--transition-fast),
@@ -1574,6 +1579,8 @@
   border-radius: var(--radius);
   background: #f7f5ed;
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     border-color var(--transition-fast),
     background var(--transition-fast),

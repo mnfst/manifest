@@ -168,8 +168,21 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     setPrimaryDropTarget(false);
   };
 
+  /**
+   * Index of the fallback being dragged, read from the drag payload. The
+   * parent's `fallbackDragging` signal is only set on its next re-render after
+   * the fallback's dragstart, so a fast fallback→primary drop can arrive
+   * before it — the payload is synchronous with the events and never misses.
+   */
+  const fallbackIndexFromDrag = (e: DragEvent): number | null => {
+    const raw = e.dataTransfer?.getData('application/x-fallback');
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+  };
+
   const handlePrimaryDragOver = (e: DragEvent) => {
-    if (fallbackDragging() === null) return;
+    if (fallbackDragging() === null && fallbackIndexFromDrag(e) === null) return;
     e.preventDefault();
     if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
     setPrimaryDropTarget(true);
@@ -182,7 +195,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
   const handlePrimaryDrop = (e: DragEvent) => {
     e.preventDefault();
     setPrimaryDropTarget(false);
-    const fbIndex = fallbackDragging();
+    const fbIndex = fallbackDragging() ?? fallbackIndexFromDrag(e);
     if (fbIndex === null) return;
     setFallbackDragging(null);
     swapPrimaryWithFallback(fbIndex);
@@ -193,44 +206,39 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     if (!tier) return;
     const currentModel = eff();
     if (!currentModel) return;
-    setSwappingFbIndex(slot > 0 ? slot - 1 : 0);
+    const fallbacks = props.getFallbacksFor(props.stage.id);
+    if (fallbacks.length === 0) return;
+    setSwappingFbIndex(Math.max(slot, 1) - 1);
     // Carry the full primary route through the swap. Without this, the same
     // model name on a different auth (subscription vs api_key) collapses back
     // to "first match in discovery" when the backend rebuilds fallback_routes
     // — and the UI ends up rendering a ghost row whose auth no longer matches.
     const currentRoute = effectiveRoute(tier);
-    const fallbacks = props.getFallbacksFor(props.stage.id);
     const fallbackRoutes = tier.fallback_routes ?? null;
-    // Build the unified list: insert current primary at drop slot
-    const newFallbacks = [...fallbacks];
-    newFallbacks.splice(slot, 0, currentModel);
-    const newPrimary = newFallbacks.shift()!;
-    if (newPrimary === currentModel && slot === 0) {
-      setSwappingFbIndex(null);
-      return;
-    } // no-op
-    // Build the parallel route list when we have full coverage. The route
-    // shape carries `keyLabel`, so multi-key pins ride along with the swap
-    // automatically — primary→fallback or fallback→primary keeps the same
-    // (provider, authType, model, keyLabel) tuple. If any fallback predates
-    // the dual-write migration we drop to the bare model-name persist.
+    // Build the unified list: top fallback becomes new primary, current
+    // primary is inserted at the drop position. `slot` counts drop indicators
+    // over the ORIGINAL chain (0 = before fb0 … N = after fbN-1); slot 0 sits
+    // right below the primary itself, so both slot 0 and slot 1 mean "swap
+    // with the first fallback" — clamping to 1 keeps that natural gesture
+    // from silently no-oping. After promoting fb0 the remaining chain is one
+    // shorter, so the insert index shifts left by one.
+    const newPrimary = fallbacks[0]!;
+    const insertSlot = Math.max(slot, 1);
+    const newFallbacks = fallbacks.slice(1);
+    newFallbacks.splice(insertSlot - 1, 0, currentModel);
+
+    // Build the parallel route list when we have full coverage.
     const buildRoutes = (): typeof fallbackRoutes => {
       if (!currentRoute || !fallbackRoutes || fallbackRoutes.length !== fallbacks.length) {
         return null;
       }
-      const next = [...fallbackRoutes];
-      next.splice(slot, 0, currentRoute);
-      next.shift();
+      const next = fallbackRoutes.slice(1);
+      next.splice(insertSlot - 1, 0, currentRoute);
       return next;
     };
     const newRoutes = buildRoutes();
-    // Resolve the new primary's route for the override call.
     const newPrimaryRoute =
-      newRoutes && newRoutes.length === newFallbacks.length
-        ? // newPrimary came from position 0 of the post-splice list, which
-          // corresponds to the original fallback at the same slot
-          fallbackRoutes![0]
-        : null;
+      fallbackRoutes && fallbackRoutes.length === fallbacks.length ? fallbackRoutes[0] : null;
     // Optimistic update: set BOTH model names and routes so the FallbackList
     // doesn't render new names against stale fallback_routes (causes a gray
     // ghost row when the routes describe a different auth than the new model).
