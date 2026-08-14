@@ -325,6 +325,42 @@ snapshot_from_prod() {
   rm -f "$dump"
 }
 
+# seed_admin <bind_addr> <port> — give a test stack a predictable login so you
+# never have to walk the /setup wizard or know prod credentials.
+#   Fresh DB (needsSetup) → POST /api/v1/setup/admin (creates first admin).
+#   Snapshot DB (users exist) → POST /api/auth/sign-up/email (fresh login).
+# Defaults admin@manifest.local / admin1234 (product enforces 8-char min
+# password). Override with WT_ADMIN_EMAIL / WT_ADMIN_PASSWORD.
+seed_admin() {
+  local bind_addr="$1" port="$2"
+  local base="http://$bind_addr:$port"
+  local email="${WT_ADMIN_EMAIL:-admin@manifest.local}"
+  local password="${WT_ADMIN_PASSWORD:-admin1234}"
+  echo "Seeding local login ($email / $password) ..."
+  local status code
+  status="$(curl -s --max-time 10 "$base/api/v1/setup/status" 2>/dev/null || true)"
+  if [[ "$status" == *'"needsSetup":true'* ]]; then
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$base/api/v1/setup/admin" \
+      -H 'Content-Type: application/json' \
+      -d "{\"email\":\"$email\",\"name\":\"Admin\",\"password\":\"$password\"}")"
+    if [[ "$code" == "200" || "$code" == "201" ]]; then
+      echo "  ✓ Admin seeded — log in at $base with $email / $password"
+    else
+      echo "  ⚠ Setup admin returned HTTP $code — open $base/setup once to create the account, or check logs."
+    fi
+  else
+    # Users already exist (e.g. prod snapshot): register a fresh login instead.
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$base/api/auth/sign-up/email" \
+      -H 'Content-Type: application/json' \
+      -d "{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"Admin\"}")"
+    if [[ "$code" == "200" || "$code" == "201" ]]; then
+      echo "  ✓ User seeded — log in at $base with $email / $password"
+    else
+      echo "  ✓ Login $email / $password assumed present (sign-up HTTP $code)."
+    fi
+  fi
+}
+
 stack_volume_names() {  # <slug> → actual volume names (from compose config)
   local slug="$1" wt names=""
   wt="$(slot_worktree "$slug")"
@@ -361,7 +397,7 @@ stack_container_status() {  # <slug> <wt> → "svc=status svc=status ..."
 # ── commands ─────────────────────────────────────────────────────────────
 
 cmd_up() {
-  local wt_dir="" slug="" do_snapshot=1 do_rebuild=0
+  local wt_dir="" slug="" do_snapshot=1 do_rebuild=0 do_admin=1
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --slug)
@@ -372,6 +408,7 @@ cmd_up() {
       --snapshot)      do_snapshot=1 ;;
       --no-snapshot)   do_snapshot=0 ;;
       --rebuild)       do_rebuild=1 ;;
+      --no-admin)      do_admin=0 ;;
       -h|--help)       cmd_help; return 0 ;;
       -*)              die "unknown option: $1" ;;
       *)
@@ -380,7 +417,7 @@ cmd_up() {
     esac
     shift
   done
-  [[ -n "$wt_dir" ]] || die "usage: worktree-stack.sh up <worktree-dir> [--slug <name>] [--snapshot|--no-snapshot] [--rebuild]"
+  [[ -n "$wt_dir" ]] || die "usage: worktree-stack.sh up <worktree-dir> [--slug <name>] [--snapshot|--no-snapshot] [--rebuild] [--no-admin]"
 
   local WT
   WT="$(cd "$wt_dir" 2>/dev/null && pwd)" || die "worktree directory not found: $wt_dir"
@@ -436,6 +473,9 @@ cmd_up() {
     else
       echo "Skipping snapshot (stack was already running; its DB is preserved)."
     fi
+  fi
+  if [[ "$do_admin" == 1 ]]; then
+    seed_admin "$bind_addr" "$mp"
   fi
   echo "✓ Stack mnfst-wt-$slug is up: http://$bind_addr:$mp (healer :$hp)"
 }
@@ -595,6 +635,7 @@ COMMANDS
       --snapshot        (DEFAULT) Copy the PROD database into this stack.
       --no-snapshot     Start with a fresh empty database.
       --rebuild         Rebuild the image even if the tag already exists.
+      --no-admin        Skip seeding the predictable local login.
 
   down <slug> [--purge-volume]
       Stop the stack, remove the generated env/override files, release the
@@ -625,6 +666,8 @@ PORTS & NAMING (slug = sanitized [a-z0-9-])
   HOST_BIND_ADDRESS is forced to the host's live Tailscale IP
   (tailscale ip -4, fallback 100.69.158.7) so test stacks are reachable
   over the tailnet — never just localhost.
+  LOGIN: every stack is seeded with admin@manifest.local / admin1234
+  (override WT_ADMIN_EMAIL / WT_ADMIN_PASSWORD; skip with --no-admin).
 EOF
 }
 

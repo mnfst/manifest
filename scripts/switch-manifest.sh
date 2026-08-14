@@ -151,6 +151,39 @@ cmd_snapshot() {
   else
     echo "  ⚠ Dev returned HTTP $code — check logs: docker logs mnfst-dev-manifest-1"
   fi
+  seed_dev_admin
+}
+
+# seed_dev_admin — give the always-on Dev (2100) stack a predictable login so
+# you never have to know prod credentials after a snapshot. Defaults
+# admin@manifest.local / admin1234 (product enforces an 8-char min password);
+# override with WT_ADMIN_EMAIL / WT_ADMIN_PASSWORD.
+seed_dev_admin() {
+  local base="http://100.69.158.7:2100"
+  local email="${WT_ADMIN_EMAIL:-admin@manifest.local}"
+  local password="${WT_ADMIN_PASSWORD:-admin1234}"
+  echo "Seeding Dev login ($email / $password) ..."
+  local status code
+  status="$(curl -s --max-time 10 "$base/api/v1/setup/status" 2>/dev/null || true)"
+  if [[ "$status" == *'"needsSetup":true'* ]]; then
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$base/api/v1/setup/admin" \
+      -H 'Content-Type: application/json' \
+      -d "{\"email\":\"$email\",\"name\":\"Admin\",\"password\":\"$password\"}")"
+    if [[ "$code" == "200" || "$code" == "201" ]]; then
+      echo "  ✓ Dev admin seeded — log in at $base with $email / $password"
+    else
+      echo "  ⚠ Setup admin returned HTTP $code — open $base/setup once to create the account."
+    fi
+  else
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 -X POST "$base/api/auth/sign-up/email" \
+      -H 'Content-Type: application/json' \
+      -d "{\"email\":\"$email\",\"password\":\"$password\",\"name\":\"Admin\"}")"
+    if [[ "$code" == "200" || "$code" == "201" ]]; then
+      echo "  ✓ Dev user seeded — log in at $base with $email / $password"
+    else
+      echo "  ✓ Dev login $email / $password assumed present (sign-up HTTP $code)."
+    fi
+  fi
 }
 
 # check_stale_image <prod|dev> — warn when the running manifest container's

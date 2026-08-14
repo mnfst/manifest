@@ -58,7 +58,9 @@ Three tiers of Manifest stacks coexist on the host:
 ./scripts/worktree-stack.sh help
 ```
 
-**Safety:** worktree stacks never touch prod/dev containers, volumes, or images; only the project names prefixed `mnfst-wt-` are ever created/managed. The gitignored `docker/.env.dev` is read from the worktree (falling back to the repo's main checkout) and copied into `docker/.env.wt-<slug>` with PORT / HEALER_PORT / MANIFEST_VERSION / BETTER_AUTH_URL overridden.
+**Safety:** worktree stacks never touch prod/dev containers, volumes, or images; only the project names prefixed `mnfst-wt-` are ever created/managed. The gitignored `docker/.env.dev` is read from the worktree (falling back to the repo's main checkout) and copied into `docker/.env.wt-<slug>` with PORT / HEALER_PORT / MANIFEST_VERSION / BETTER_AUTH_URL / HOST_BIND_ADDRESS overridden.
+
+**Login:** every stack (and Dev after each `snapshot`) is seeded with `admin@manifest.local` / `admin1234` (product enforces an 8-char min password). Override with `WT_ADMIN_EMAIL` / `WT_ADMIN_PASSWORD`; skip per-stack with `--no-admin`. Fresh DBs go through `POST /api/v1/setup/admin` (first admin); snapshotted DBs use `POST /api/auth/sign-up/email` since prod users already exist.
 
 ## File Locations
 
