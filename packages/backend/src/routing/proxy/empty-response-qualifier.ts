@@ -18,6 +18,11 @@ import { createSsePayloadParser } from './sse-parser';
  * synthetic HTTP failure. The existing `shouldTriggerFallback(status >= 400)`
  * then picks it up and advances the fallback chain — no second exit-success
  * branch is introduced anywhere in the routing logic.
+ *
+ * The qualifier also understands native wire formats (Anthropic Messages,
+ * Google Generate Content) because those responses are converted to the same
+ * OpenAI chat-completion shape downstream and can also return HTTP 200 with
+ * empty content.
  */
 
 export const DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS = 60_000;
@@ -152,6 +157,45 @@ function hasDeliverableMessage(message: ChatCompletionMessage | undefined): bool
 }
 
 /**
+ * Detect deliverable content in an Anthropic Messages non-streaming payload.
+ * A `text` block with non-empty text or a `tool_use` block counts as
+ * deliverable.
+ */
+function hasDeliverableAnthropicContent(payload: Record<string, unknown>): boolean {
+  const content = Array.isArray(payload.content) ? payload.content : [];
+  for (const block of content) {
+    if (!isObjectRecord(block)) continue;
+    if (block.type === 'text' && typeof block.text === 'string' && block.text.trim().length > 0) {
+      return true;
+    }
+    if (block.type === 'tool_use') return true;
+  }
+  return false;
+}
+
+/**
+ * Detect deliverable content in a Google Generate Content non-streaming
+ * payload. A `text` part (excluding `thought` parts) or a `functionCall` part
+ * counts as deliverable. Also handles the CodeAssist envelope shape
+ * `{ response: { candidates: [...] } }`.
+ */
+function hasDeliverableGoogleContent(payload: Record<string, unknown>): boolean {
+  const inner = isObjectRecord(payload.response) ? payload.response : payload;
+  const candidates = Array.isArray(inner.candidates) ? inner.candidates : [];
+  if (candidates.length === 0) return false;
+  const first = isObjectRecord(candidates[0]) ? candidates[0] : undefined;
+  if (!first) return false;
+  const content = isObjectRecord(first.content) ? first.content : undefined;
+  const parts = content && Array.isArray(content.parts) ? content.parts : [];
+  for (const part of parts) {
+    if (!isObjectRecord(part)) continue;
+    if (typeof part.text === 'string' && part.text.trim().length > 0 && !part.thought) return true;
+    if (part.functionCall) return true;
+  }
+  return false;
+}
+
+/**
  * Extract the assistant message from a non-streaming chat completion payload.
  * Handles both the standard `choices[].message` shape and the degenerate
  * `choices: []` / `choices: [undefined]` cases that some providers emit.
@@ -164,7 +208,24 @@ function nonStreamingMessage(payload: Record<string, unknown>): ChatCompletionMe
   return isObjectRecord(first.message) ? first.message : undefined;
 }
 
-async function qualifyNonStreaming(response: Response): Promise<Response> {
+/**
+ * Determine whether a non-streaming payload carries deliverable output across
+ * any supported wire format:
+ * - OpenAI chat completions: `choices[].message.content` / `tool_calls`
+ * - Anthropic Messages: `content[]` text / tool_use blocks
+ * - Google Generate Content: `candidates[].content.parts[]` text / functionCall
+ */
+function hasDeliverableNonStreamingPayload(payload: Record<string, unknown>): boolean {
+  if (hasDeliverableMessage(nonStreamingMessage(payload))) return true;
+  if (hasDeliverableAnthropicContent(payload)) return true;
+  if (hasDeliverableGoogleContent(payload)) return true;
+  return false;
+}
+
+async function qualifyNonStreaming(
+  response: Response,
+  timeoutMs: number = EMPTY_RESPONSE_TIMEOUT_MS,
+): Promise<Response> {
   // Clone so consuming the body for inspection does not mark the original
   // as "already read" — downstream consumers (and retryWireBody) still need
   // to read it untouched. If the body was already consumed upstream (a
@@ -184,6 +245,13 @@ async function qualifyNonStreaming(response: Response): Promise<Response> {
       'Provider returned an empty response body',
       'empty_response',
     );
+  }
+
+  // A provider may stream real content but omit or mislabel the
+  // `content-type` header (e.g. `application/json`). Detect SSE framing and
+  // qualify as streaming instead of failing JSON parsing below.
+  if (trimmed.startsWith('data:') || trimmed.startsWith('event:') || trimmed.includes('[DONE]')) {
+    return qualifyStreaming(response, timeoutMs);
   }
 
   const parsed = safeParse(trimmed);
@@ -207,7 +275,7 @@ async function qualifyNonStreaming(response: Response): Promise<Response> {
     );
   }
 
-  if (!hasDeliverableMessage(nonStreamingMessage(parsed))) {
+  if (!hasDeliverableNonStreamingPayload(parsed)) {
     return errorResponse(
       response,
       502,
@@ -234,16 +302,71 @@ async function qualifyNonStreaming(response: Response): Promise<Response> {
  * (`choices[0].delta.tool_calls`). The standard SSE shape for
  * `chat.completion.chunk` is used; the degenerate `choices: []` /
  * `choices: [undefined]` cases are treated as not deliverable.
+ *
+ * Native wire formats are also recognized:
+ * - Anthropic Messages: `content_block_delta` with `text_delta`, or
+ *   `content_block_start` with a `tool_use` block.
+ * - Google Generate Content: `candidates[0].content.parts[]` with text or
+ *   `functionCall`.
  */
 function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
+  // OpenAI chat completion chunk
   const choices = Array.isArray(payload.choices) ? payload.choices : [];
-  if (choices.length === 0) return false;
-  const first = isObjectRecord(choices[0]) ? choices[0] : undefined;
-  if (!first) return false;
-  const delta = isObjectRecord(first.delta) ? first.delta : undefined;
-  if (!delta) return false;
-  if (typeof delta.content === 'string' && delta.content.trim().length > 0) return true;
-  return Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0;
+  if (choices.length > 0) {
+    const first = isObjectRecord(choices[0]) ? choices[0] : undefined;
+    if (first) {
+      const delta = isObjectRecord(first.delta) ? first.delta : undefined;
+      if (delta) {
+        if (typeof delta.content === 'string' && delta.content.trim().length > 0) return true;
+        if (Array.isArray(delta.tool_calls) && delta.tool_calls.length > 0) return true;
+      }
+    }
+  }
+
+  // Anthropic Messages stream event
+  if (payload.type === 'content_block_delta') {
+    const delta = isObjectRecord(payload.delta) ? payload.delta : undefined;
+    if (
+      delta &&
+      delta.type === 'text_delta' &&
+      typeof delta.text === 'string' &&
+      delta.text.trim().length > 0
+    ) {
+      return true;
+    }
+  }
+  if (payload.type === 'content_block_start') {
+    const block = isObjectRecord(payload.content_block) ? payload.content_block : undefined;
+    if (block && block.type === 'tool_use') return true;
+  }
+
+  // Google Generate Content stream chunk
+  if (hasDeliverableGoogleContent(payload)) return true;
+
+  return false;
+}
+
+/**
+ * Inspect a list of SSE payload strings and return true if any of them
+ * carries deliverable content (text or tool calls).
+ *
+ * Payloads may be plain JSON (OpenAI chat completions, Google Generate
+ * Content) or carry `event:` / `id:` lines alongside `data:` (Anthropic
+ * Messages stream events). The JSON is extracted from the `data:` line
+ * before parsing.
+ */
+function hasDeliverablePayload(payloads: string[]): boolean {
+  for (const payload of payloads) {
+    // Extract JSON from SSE payloads that carry event:/id: lines
+    // (e.g. Anthropic Messages stream events).
+    const jsonLine = payload
+      .split('\n')
+      .filter((line) => !line.startsWith('event:') && !line.startsWith('id:'))
+      .join('\n');
+    const parsed = safeParse(jsonLine);
+    if (parsed && hasDeliverableChunk(parsed)) return true;
+  }
+  return false;
 }
 
 /**
@@ -255,8 +378,12 @@ function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
  * 1. Catches errors from parser.feed() (buffer overflow) and returns upstream_stream_error 502
  * 2. Uses cumulative timeout tracking — timer resets only once at start, not per chunk
  * 3. Calls parser.flush() before declaring stream empty to inspect pending payloads
+ * 4. Accepts an injectable timeout for testability
  */
-async function qualifyStreaming(response: Response): Promise<Response> {
+async function qualifyStreaming(
+  response: Response,
+  timeoutMs: number = EMPTY_RESPONSE_TIMEOUT_MS,
+): Promise<Response> {
   const reader = response.body?.getReader();
   if (!reader) {
     return errorResponse(
@@ -273,50 +400,61 @@ async function qualifyStreaming(response: Response): Promise<Response> {
   // Track cumulative elapsed time for the timeout
   let elapsedMs = 0;
 
-  while (true) {
-    // Use remaining timeout for each read attempt
-    const result = await readWithTimeout(
-      reader,
-      Math.max(0, DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS - elapsedMs),
-    );
-    if (result === null) {
-      // Timeout with no deliverable output: treat as empty.
-      await discard(reader);
-      return errorResponse(
-        response,
-        502,
-        'Provider streamed no content or tool calls before the timeout',
-        'empty_response',
-      );
-    }
-    if (result.done) {
-      // Stream ended — flush pending payloads before deciding if empty.
-      parser.flush();
-      reader.releaseLock();
-      // After flushing, check if any pending payloads were deliverable.
-      // If the stream ended without any deliverable content, report empty.
-      return errorResponse(
-        response,
-        502,
-        'Provider stream ended without content or tool calls',
-        'empty_response',
-      );
-    }
-    if (result.value) {
-      buffered.push(result.value);
-      const text = new TextDecoder().decode(result.value);
-      const payloads = parser.feed(text);
-      for (const payload of payloads) {
-        const parsed = safeParse(payload);
-        if (parsed && hasDeliverableChunk(parsed)) {
+  try {
+    while (true) {
+      // Use remaining timeout for each read attempt
+      const result = await readWithTimeout(reader, Math.max(0, timeoutMs - elapsedMs));
+      if (result === null) {
+        // Timeout with no deliverable output: treat as empty.
+        await discard(reader);
+        return errorResponse(
+          response,
+          502,
+          'Provider streamed no content or tool calls before the timeout',
+          'empty_response',
+        );
+      }
+      if (result.done) {
+        // Stream ended — flush pending payloads before deciding if empty.
+        const pendingPayloads = parser.flush();
+        reader.releaseLock();
+        // If any pending payloads were deliverable, replay the stream.
+        if (hasDeliverablePayload(pendingPayloads)) {
+          return responseWithBody(response, replayStream(reader, buffered));
+        }
+        // Otherwise the stream ended without any deliverable content.
+        return errorResponse(
+          response,
+          502,
+          'Provider stream ended without content or tool calls',
+          'empty_response',
+        );
+      }
+      if (result.value) {
+        buffered.push(result.value);
+        const text = new TextDecoder().decode(result.value);
+        const payloads = parser.feed(text);
+        if (hasDeliverablePayload(payloads)) {
           // Deliverable: replay the consumed chunks so downstream
           // consumers still see the full stream.
           return responseWithBody(response, replayStream(reader, buffered));
         }
+        // Update elapsed time tracking
+        elapsedMs += timeoutMs;
       }
-      // Update elapsed time tracking
-      elapsedMs += DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS;
     }
+  } catch (error) {
+    // The upstream reader rejected or parser.feed() threw (e.g. SSE buffer
+    // overflow). Cancel and release the reader, then return a fallback-
+    // classifiable 502 so the existing fallback logic advances the chain.
+    await discard(reader);
+    const message = error instanceof Error ? error.message : String(error);
+    return errorResponse(
+      response,
+      502,
+      `Provider stream failed while qualifying: ${message}`,
+      'upstream_stream_error',
+    );
   }
 }
 
@@ -325,9 +463,21 @@ async function qualifyStreaming(response: Response): Promise<Response> {
  * inspected as a whole; streaming responses are inspected chunk by chunk.
  * When no deliverable output is found the response is rewritten as a
  * synthetic 502 so the existing fallback logic advances the chain.
+ *
+ * @param timeoutMs Optional streaming timeout override (used by tests).
+ * @param stream Optional request-level stream flag. When true, the response
+ *   is always treated as streaming even if the `content-type` header is
+ *   missing or mislabeled.
  */
-export async function qualifyEmptyResponse(response: Response): Promise<Response> {
+export async function qualifyEmptyResponse(
+  response: Response,
+  timeoutMs?: number,
+  stream?: boolean,
+): Promise<Response> {
   if (!response.ok) return response;
-  const isStreaming = response.headers.get('content-type')?.includes('text/event-stream') ?? false;
-  return isStreaming ? qualifyStreaming(response) : qualifyNonStreaming(response);
+  const contentType = response.headers.get('content-type') ?? '';
+  const isStreaming = stream === true || contentType.includes('text/event-stream');
+  return isStreaming
+    ? qualifyStreaming(response, timeoutMs)
+    : qualifyNonStreaming(response, timeoutMs);
 }
