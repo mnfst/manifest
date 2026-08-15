@@ -211,6 +211,20 @@ check_stale_image() {
   echo ""
 }
 
+cmd_restart_prod() {
+  echo "Rebuilding image and restarting PRODUCTION (2099)..."
+  docker build -f "$REPO_DIR/docker/Dockerfile" -t manifestdotbuild/manifest:latest "$REPO_DIR"
+  prod_compose up -d --force-recreate
+  echo "✓ Prod (2099) restarted."
+}
+
+cmd_restart_dev() {
+  echo "Rebuilding image and restarting DEV (2100)..."
+  docker build -f "$REPO_DIR/docker/Dockerfile" -t manifestdotbuild/manifest:latest "$REPO_DIR"
+  dev_compose up -d --force-recreate
+  echo "✓ Dev (2100) restarted."
+}
+
 cmd_rebuild() {
   echo "Rebuilding manifest image..."
   docker build -f "$REPO_DIR/docker/Dockerfile" -t manifestdotbuild/manifest:latest "$REPO_DIR"
@@ -228,6 +242,8 @@ case "${1:-status}" in
   status)          cmd_status ;;
   prod)            cmd_switch_preset "manifest" "port 2099" ;;
   dev)             cmd_switch_preset "manifest-dev" "port 2100" ;;
+  restart-prod)    cmd_restart_prod ;;
+  restart-dev)     cmd_restart_dev ;;
   snapshot)        cmd_snapshot ;;
   up)
     prod_compose up -d

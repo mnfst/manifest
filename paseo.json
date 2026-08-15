@@ -3,6 +3,12 @@
     "status": {
       "command": "./scripts/switch-manifest.sh status"
     },
+    "restart-prod": {
+      "command": "./scripts/switch-manifest.sh restart-prod"
+    },
+    "restart-dev": {
+      "command": "./scripts/switch-manifest.sh restart-dev"
+    },
     "worktree-up": {
       "command": "./scripts/worktree-stack.sh up"
     },
