@@ -18,8 +18,10 @@ import { randomUUID } from 'node:crypto';
  *   - system prompt is a TOP-LEVEL `params.system` STRING (system messages are
  *     not allowed inside `messages[]`)
  *   - message content is ALWAYS an array of blocks: `{type:"text",text}`,
- *     assistant `{type:"tool-call", toolCallId, toolName, input}`, user/tool
- *     `{type:"tool-result", toolCallId, toolName, output}`
+ *     assistant `{type:"tool-call", toolCallId, toolName, input}`,
+ *     `tool` `{type:"tool-result", toolCallId, toolName, output}` where
+ *     `output` is the AI-SDK-v5 typed shape `{type:"text"|"error-text", value}`
+ *     (a bare string output fails the upstream ModelMessage[] validation)
  *   - tools are Anthropic-shaped `{name, description, input_schema}`
  * - headers: `Authorization: Bearer <user_...>`, `x-command-code-version`,
  *   `x-cli-environment: cli`, `x-session-id` (fresh per request)
@@ -31,6 +33,11 @@ import { randomUUID } from 'node:crypto';
  *   `{"type":"tool-call","toolCallId","toolName","input"}`,
  *   `{"type":"finish-step","finishReason","usage":{inputTokens,outputTokens,totalTokens}}`,
  *   `{"type":"finish","totalUsage":...}`, `{"type":"error","error":...}`
+ * - upstream failures (schema validation, rate limits, overload) arrive as
+ *   `{"type":"error",...}` events inside an HTTP-200 body. The opening events
+ *   are pre-scanned (`preflightCommandCodeStream`) so those failures become a
+ *   non-OK HTTP response the proxy's fallback chain recognizes, instead of
+ *   being rendered as assistant output.
  *
  * This module translates both directions (OpenAI request → Command Code
  * envelope; NDJSON stream → OpenAI SSE) so the rest of the proxy treats
@@ -115,6 +122,27 @@ function safeParseJson(value: unknown): unknown {
   }
 }
 
+/**
+ * Build the `arguments` field for assistant `tool-call` / `tool` `tool-result`
+ * parts. The /alpha/generate server has rejected missing `arguments` on these
+ * parts live ("missing required field 'arguments'"); valid source values
+ * round-trip, anything else degrades to "{}".
+ */
+function toolCallArgumentsString(value: unknown): string {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return value;
+    } catch {
+      // fall through to "{}"
+    }
+  }
+  return '{}';
+}
+
 function convertTools(tools: unknown): Array<Record<string, unknown>> | undefined {
   if (!Array.isArray(tools)) return undefined;
   const result: Array<Record<string, unknown>> = [];
@@ -138,12 +166,54 @@ function convertTools(tools: unknown): Array<Record<string, unknown>> | undefine
   return result.length > 0 ? result : undefined;
 }
 
+const NO_TOOL_RESULT_TEXT =
+  '[manifest] no tool result was recorded for this tool call; execution status unknown.';
+
+/**
+ * Translate OpenAI-shaped messages into the /alpha/generate ModelMessage[]
+ * wire format.
+ *
+ * Wire requirements enforced here (verified against 9router's live-tested
+ * openai-to-commandcode translator and the AI SDK v5 ModelMessage schema the
+ * upstream validates against):
+ * - `tool-result` parts must carry `output: { type: "text", value }` (or
+ *   `{ type: "error-text", value }`) — a bare string output fails the upstream
+ *   zod validation with "The messages do not match the ModelMessage[] schema".
+ * - every assistant `tool-call` must be closed by a matching `tool-result`
+ *   immediately after the declaring assistant message; the upstream rejects an
+ *   unpaired call with "Tool result is missing for tool call <id>". Calls that
+ *   never received a result are closed with an explicit `error-text` result.
+ * - a `tool-result` with no matching declared call cannot ride a standalone
+ *   `tool` message (the wire pairs results with declared calls); the outcome is
+ *   carried as user text so the model still sees it.
+ * - tool-call/tool-result parts may carry the `arguments` string the server
+ *   expects ("missing required field 'arguments'").
+ */
 function convertMessages(messages: OpenAiMessage[]): {
   messages: Array<Record<string, unknown>>;
   system: string;
 } {
   const out: Array<Record<string, unknown>> = [];
   const systemTexts: string[] = [];
+  const pendingCalls: Array<{ id: string; name: string; arguments: string }> = [];
+
+  const closePendingCalls = (): void => {
+    for (const call of pendingCalls) {
+      out.push({
+        role: 'tool',
+        content: [
+          {
+            type: 'tool-result',
+            toolCallId: call.id,
+            toolName: call.name,
+            arguments: call.arguments,
+            output: { type: 'error-text', value: NO_TOOL_RESULT_TEXT },
+          },
+        ],
+      });
+    }
+    pendingCalls.length = 0;
+  };
 
   for (const message of messages) {
     if (!message) continue;
@@ -158,33 +228,60 @@ function convertMessages(messages: OpenAiMessage[]): {
     if (role === 'tool') {
       const value =
         typeof message.content === 'string' ? message.content : flattenText(message.content);
+      const toolCallId = message.tool_call_id ?? '';
+      const callIndex = pendingCalls.findIndex((call) => call.id === toolCallId);
+      if (callIndex < 0) {
+        // No declared assistant call matches this result. A standalone `tool`
+        // message is rejected by the wire; carry the outcome as user text.
+        closePendingCalls();
+        const label = message.name ? `${message.name} (${toolCallId})` : toolCallId;
+        out.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: `[tool result without adjacent tool call: ${label}]\n${value}` },
+          ],
+        });
+        continue;
+      }
+      const [call] = pendingCalls.splice(callIndex, 1);
       out.push({
         role: 'tool',
         content: [
           {
             type: 'tool-result',
-            toolCallId: message.tool_call_id ?? '',
-            toolName: message.name ?? '',
-            output: value,
+            toolCallId,
+            toolName: message.name || call.name || 'unknown',
+            arguments: call.arguments,
+            output: { type: 'text', value },
           },
         ],
       });
       continue;
     }
 
+    // user / assistant: any pending tool result must land before this message.
+    closePendingCalls();
+
     const blocks = toContentBlocks(message.content);
     if (role === 'assistant' && Array.isArray(message.tool_calls)) {
       for (const toolCall of message.tool_calls) {
+        const id = toolCall.id ?? '';
+        const name = toolCall.function?.name ?? '';
+        const argsString = toolCallArgumentsString(toolCall.function?.arguments);
         blocks.push({
           type: 'tool-call',
-          toolCallId: toolCall.id ?? '',
-          toolName: toolCall.function?.name ?? '',
+          toolCallId: id,
+          toolName: name,
           input: safeParseJson(toolCall.function?.arguments),
+          arguments: argsString,
         });
+        pendingCalls.push({ id, name, arguments: argsString });
       }
     }
     out.push({ role, content: blocks });
   }
+
+  closePendingCalls();
 
   return { messages: out, system: systemTexts.join('\n\n') };
 }
@@ -338,6 +435,212 @@ function parseEventLine(line: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+/* ── Error interception: streamed upstream errors → HTTP errors ── */
+
+/**
+ * A failure the /alpha/generate upstream signalled inside an otherwise-200
+ * NDJSON stream. `status` is chosen so the proxy's fallback chain treats it
+ * like an HTTP error (every status >= 400 triggers a fallback attempt) and
+ * the rate-limit cooldown engages for 429s.
+ */
+export interface CommandCodeStreamError {
+  status: number;
+  message: string;
+  /** Passthrough `Retry-After` for upstream rate limits, when provided. */
+  retryAfter?: string;
+}
+
+const RATE_LIMIT_MESSAGE_PATTERN = /rate\s*limit|too many requests|\b429\b/i;
+
+function pickString(...sources: Array<Record<string, unknown>>): string | undefined {
+  for (const source of sources) {
+    for (const key of ['retry-after', 'retryAfter', 'Retry-After']) {
+      const value = source[key];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+  }
+  return undefined;
+}
+
+function extractErrorStatus(
+  message: string,
+  ...sources: Array<Record<string, unknown>>
+): number {
+  for (const source of sources) {
+    const rawStatus = source.status ?? source.http_status ?? source.httpStatus;
+    const numeric = typeof rawStatus === 'number' ? rawStatus : Number(rawStatus);
+    if (Number.isFinite(numeric) && numeric >= 400 && numeric < 600) return Math.floor(numeric);
+  }
+  // No explicit status: treat a rate-limit-shaped message as 429 so the
+  // cooldown + fallback machinery responds the same way as an HTTP 429.
+  return RATE_LIMIT_MESSAGE_PATTERN.test(message) ? 429 : 502;
+}
+
+/**
+ * Extract a fallback-triggering error from one /alpha/generate stream event,
+ * or null when the event is not an error. Handles the `{"type":"error",
+ * "error":{...}}` shape (error payload may be an object with `message` /
+ * `status` or a plain string) and `finish`/`finish-step` events whose
+ * `finishReason` is `"error"`.
+ */
+export function commandCodeErrorFromEvent(
+  event: Record<string, unknown>,
+): CommandCodeStreamError | null {
+  if (event.type === 'error') {
+    const raw = event.error ?? event.message;
+    const record = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+    const message =
+      (typeof record.message === 'string' && record.message) ||
+      (typeof record.error === 'string' && record.error) ||
+      (typeof raw === 'string' ? raw : '') ||
+      (typeof event.message === 'string' ? event.message : '') ||
+      'Command Code stream error';
+    return {
+      status: extractErrorStatus(message, record, event),
+      message,
+      retryAfter: pickString(record, event),
+    };
+  }
+  if ((event.type === 'finish' || event.type === 'finish-step') && event.finishReason === 'error') {
+    const raw = event.error ?? event.message;
+    return {
+      status: 502,
+      message:
+        typeof raw === 'string' ? raw : 'Command Code upstream finished with an error',
+    };
+  }
+  return null;
+}
+
+const CONTENT_EVENT_TYPES = new Set([
+  'text-delta',
+  'reasoning-delta',
+  'tool-input-start',
+  'tool-input-delta',
+  'tool-call',
+  'finish-step',
+  'finish',
+]);
+
+/**
+ * Pre-scan the opening events of an /alpha/generate NDJSON body so a streamed
+ * upstream error (which the server reports over HTTP 200) can fail the request
+ * BEFORE any chunk reaches the client — and therefore before the proxy's
+ * fallback chain sees `response.ok === true`. Without this, errors such as the
+ * ModelMessage[] schema rejection are rendered as assistant output text and
+ * never fall back.
+ *
+ * Returns the first error detected before any content event, or a stream that
+ * replays the already-consumed lines before continuing with the rest of the
+ * body (the scan stops at the first content-bearing event, so the streaming
+ * path keeps its low time-to-first-byte).
+ */
+export async function preflightCommandCodeStream(
+  source: ReadableStream<Uint8Array>,
+): Promise<{ error: CommandCodeStreamError | null; stream: ReadableStream<Uint8Array> }> {
+  const reader = source.getReader();
+  const decoder = new TextDecoder();
+  const bufferedLines: string[] = [];
+  let buffer = '';
+  let error: CommandCodeStreamError | null = null;
+  let done = false;
+
+  try {
+    while (!error && !done) {
+      const read = await reader.read();
+      done = read.done;
+      if (read.done) break;
+      buffer += decoder.decode(read.value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const event = parseEventLine(line);
+        if (!event) continue;
+        bufferedLines.push(line);
+        error = commandCodeErrorFromEvent(event);
+        if (error) break;
+        if (CONTENT_EVENT_TYPES.has(event.type as string)) {
+          return {
+            error: null,
+            stream: replayCommandCodeStream(reader, decoder, bufferedLines, buffer),
+          };
+        }
+      }
+    }
+  } catch (err) {
+    // Body read failed mid-scan (truncated stream, abort, connection drop).
+    // Fail the request so the fallback chain can move on instead of throwing
+    // out of the forwarder.
+    await reader.cancel().catch(() => undefined);
+    return {
+      error: {
+        status: 502,
+        message: err instanceof Error ? err.message : String(err),
+      },
+      stream: source,
+    };
+  }
+
+  if (error) {
+    // Abandon the upstream body; the caller returns an error Response instead.
+    await reader.cancel().catch(() => undefined);
+    return { error, stream: source };
+  }
+
+  return {
+    error: null,
+    stream: replayCommandCodeStream(reader, decoder, bufferedLines, buffer),
+  };
+}
+
+function replayCommandCodeStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  decoder: TextDecoder,
+  bufferedLines: string[],
+  leftover: string,
+): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  let lines = [...bufferedLines];
+  let replayBuffer = leftover;
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        if (lines.length > 0) controller.enqueue(encoder.encode(`${lines.join('\n')}\n`));
+        if (replayBuffer) controller.enqueue(encoder.encode(replayBuffer));
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          controller.enqueue(value);
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+}
+
+function buildCommandCodeErrorResponse(error: CommandCodeStreamError): Response {
+  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (error.status === 429 && error.retryAfter) headers['retry-after'] = error.retryAfter;
+  return new Response(
+    JSON.stringify({
+      error: { message: error.message, type: 'upstream_response_error' },
+    }),
+    { status: error.status, headers },
+  );
+}
+
+function isCommandCodeStreamError(error: unknown): error is CommandCodeStreamError {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    typeof (error as CommandCodeStreamError).status === 'number' &&
+    typeof (error as CommandCodeStreamError).message === 'string'
+  );
 }
 
 /**
@@ -569,6 +872,14 @@ export async function collectCommandCodeCompletion(
   let usage: Record<string, unknown> | null = null;
 
   for await (const line of commandCodeLines(source)) {
+    const event = parseEventLine(line);
+    const streamError = event ? commandCodeErrorFromEvent(event) : null;
+    if (streamError) {
+      // Upstream signalled an error inside the 200 body; surface it as an
+      // error so the caller can fail the request instead of returning a
+      // completion whose content is the error text.
+      throw streamError;
+    }
     const chunks = commandCodeLineToOpenAiChunks(line, state, model);
     if (!chunks) continue;
     for (const chunk of chunks) {
@@ -647,14 +958,35 @@ export async function forwardCommandCodeChat(opts: {
   });
 
   if (!upstream.ok || !upstream.body) return upstream;
+
   if (opts.stream) {
-    return new Response(createCommandCodeOpenAiStream(upstream.body, opts.model), {
+    // The upstream reports request-level failures (schema validation, rate
+    // limits, overload) as `{"type":"error",...}` events over HTTP 200. Scan
+    // the opening events so those become a real error Response — the proxy's
+    // fallback chain only engages on a non-OK response.
+    const { error, stream } = await preflightCommandCodeStream(upstream.body);
+    if (error) {
+      return buildCommandCodeErrorResponse(error);
+    }
+    return new Response(createCommandCodeOpenAiStream(stream, opts.model), {
       status: 200,
       headers: { 'Content-Type': 'text/event-stream' },
     });
   }
 
-  const completion = await collectCommandCodeCompletion(upstream.body, opts.model);
+  let completion: Record<string, unknown>;
+  try {
+    completion = await collectCommandCodeCompletion(upstream.body, opts.model);
+  } catch (error) {
+    if (opts.signal?.aborted) throw error;
+    // Upstream error event OR a body-read failure: fail the request so the
+    // fallback chain can move on instead of throwing out of the forwarder.
+    return buildCommandCodeErrorResponse(
+      isCommandCodeStreamError(error)
+        ? error
+        : { status: 502, message: error instanceof Error ? error.message : String(error) },
+    );
+  }
   return new Response(JSON.stringify(completion), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

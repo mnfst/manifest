@@ -2,10 +2,12 @@ import {
   buildCommandCodeChatRequest,
   buildCommandCodeHeaders,
   collectCommandCodeCompletion,
+  commandCodeErrorFromEvent,
   commandCodeLineToOpenAiChunks,
   COMMAND_CODE_CHAT_URL,
   createCommandCodeOpenAiStream,
   forwardCommandCodeChat,
+  preflightCommandCodeStream,
 } from '../command-code-adapter';
 
 const mockFetch = jest.fn();
@@ -110,6 +112,7 @@ describe('buildCommandCodeChatRequest', () => {
         toolCallId: 'call_1',
         toolName: 'search',
         input: { q: 'manifest' },
+        arguments: '{"q":"manifest"}',
       },
     ]);
     expect(messages[1].role).toBe('tool');
@@ -117,10 +120,129 @@ describe('buildCommandCodeChatRequest', () => {
       {
         type: 'tool-result',
         toolCallId: 'call_1',
-        toolName: '',
-        output: '3 results',
+        toolName: 'search',
+        arguments: '{"q":"manifest"}',
+        output: { type: 'text', value: '3 results' },
       },
     ]);
+  });
+
+  it('renders tool-result output as the typed AI SDK v5 output shape', () => {
+    // Regression: a bare-string output fails the upstream ModelMessage[]
+    // validation ("The messages do not match the ModelMessage[] schema").
+    const request = buildCommandCodeChatRequest(
+      {
+        messages: [
+          {
+            role: 'assistant',
+            content: 'checking…',
+            tool_calls: [
+              {
+                id: 'c9',
+                type: 'function',
+                function: { name: 'lookup', arguments: '{"id":7}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'c9', name: 'lookup', content: 'found' },
+        ],
+      },
+      'gpt-5.4',
+    );
+
+    const messages = paramsOf(request).messages as Array<{ role: string; content: unknown[] }>;
+    const toolMessage = messages.find((m) => m.role === 'tool');
+    expect(toolMessage?.content).toEqual([
+      {
+        type: 'tool-result',
+        toolCallId: 'c9',
+        toolName: 'lookup',
+        arguments: '{"id":7}',
+        output: { type: 'text', value: 'found' },
+      },
+    ]);
+  });
+
+  it('closes an unpaired assistant tool call with an error-text tool-result', () => {
+    const request = buildCommandCodeChatRequest(
+      {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              {
+                id: 'call_orphan',
+                type: 'function',
+                function: { name: 'search', arguments: '{"q":"x"}' },
+              },
+            ],
+          },
+        ],
+      },
+      'claude-sonnet-4-6',
+    );
+
+    const messages = paramsOf(request).messages as Array<{ role: string; content: unknown[] }>;
+    expect(messages[1].role).toBe('tool');
+    expect(messages[1].content).toEqual([
+      {
+        type: 'tool-result',
+        toolCallId: 'call_orphan',
+        toolName: 'search',
+        arguments: '{"q":"x"}',
+        output: {
+          type: 'error-text',
+          value: expect.stringContaining('no tool result was recorded'),
+        },
+      },
+    ]);
+  });
+
+  it('degrades a tool result without a matching assistant call to a user carrier', () => {
+    const request = buildCommandCodeChatRequest(
+      {
+        messages: [{ role: 'tool', tool_call_id: 'ghost', name: 'grep', content: '2 hits' }],
+      },
+      'gpt-5.4',
+    );
+
+    const messages = paramsOf(request).messages as Array<{ role: string; content: unknown[] }>;
+    expect(messages[0].role).toBe('user');
+    expect(messages[0].content).toEqual([
+      {
+        type: 'text',
+        text: expect.stringContaining('tool result without adjacent tool call: grep (ghost)'),
+      },
+    ]);
+  });
+
+  it('falls back to {} arguments for malformed tool-call arguments', () => {
+    const request = buildCommandCodeChatRequest(
+      {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [
+              { id: 'bad', type: 'function', function: { name: 'boom', arguments: 'not-json' } },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'bad', content: 'ok' },
+        ],
+      },
+      'gpt-5.4',
+    );
+
+    const messages = paramsOf(request).messages as Array<{ role: string; content: unknown[] }>;
+    const call = messages[0].content?.[1] as Record<string, unknown>;
+    expect(call).toMatchObject({
+      type: 'tool-call',
+      toolCallId: 'bad',
+      toolName: 'boom',
+      input: {},
+      arguments: '{}',
+    });
   });
 
   it('converts OpenAI tools to Anthropic-shaped {name, description, input_schema}', () => {
@@ -401,6 +523,111 @@ describe('collectCommandCodeCompletion', () => {
   });
 });
 
+describe('commandCodeErrorFromEvent', () => {
+  it('extracts the message from a nested server_error object', () => {
+    expect(
+      commandCodeErrorFromEvent({
+        type: 'error',
+        error: {
+          type: 'server_error',
+          message: 'Invalid prompt: The messages do not match the ModelMessage[] schema.',
+        },
+      }),
+    ).toEqual({
+      status: 502,
+      message: 'Invalid prompt: The messages do not match the ModelMessage[] schema.',
+    });
+  });
+
+  it('honors an explicit status and retry-after for rate limits', () => {
+    expect(
+      commandCodeErrorFromEvent({
+        type: 'error',
+        status: 429,
+        'retry-after': '17',
+        error: { message: 'Rate limited' },
+      }),
+    ).toEqual({ status: 429, message: 'Rate limited', retryAfter: '17' });
+  });
+
+  it('treats a rate-limit-shaped message without a status as 429', () => {
+    expect(
+      commandCodeErrorFromEvent({
+        type: 'error',
+        error: { message: 'Too many requests, slow down' },
+      })?.status,
+    ).toBe(429);
+  });
+
+  it('handles string error payloads', () => {
+    expect(commandCodeErrorFromEvent({ type: 'error', error: 'model overloaded' })).toEqual({
+      status: 502,
+      message: 'model overloaded',
+    });
+  });
+
+  it('treats finish/finish-step with finishReason error as a failure', () => {
+    expect(commandCodeErrorFromEvent({ type: 'finish', finishReason: 'error' })).toEqual({
+      status: 502,
+      message: 'Command Code upstream finished with an error',
+    });
+  });
+
+  it('returns null for non-error events', () => {
+    expect(commandCodeErrorFromEvent({ type: 'start' })).toBeNull();
+    expect(commandCodeErrorFromEvent({ type: 'text-delta', text: 'hi' })).toBeNull();
+    expect(commandCodeErrorFromEvent({ type: 'finish', finishReason: 'stop' })).toBeNull();
+  });
+});
+
+describe('preflightCommandCodeStream', () => {
+  it('surfaces an error event that precedes any content', async () => {
+    const { error } = await preflightCommandCodeStream(
+      ndjsonStream([
+        '{"type":"start"}',
+        '{"type":"error","error":{"type":"server_error","message":"Invalid prompt: bad"}}',
+      ]),
+    );
+    expect(error).toMatchObject({
+      status: 502,
+      message: expect.stringContaining('Invalid prompt'),
+    });
+  });
+
+  it('passes a content-first stream through, replaying scanned lines', async () => {
+    const { error, stream } = await preflightCommandCodeStream(
+      ndjsonStream([
+        '{"type":"start"}',
+        '{"type":"text-delta","text":"Hi"}',
+        '{"type":"finish"}',
+      ]),
+    );
+    expect(error).toBeNull();
+    const sse = await collectStream(createCommandCodeOpenAiStream(stream, 'm'));
+    expect(sse).toContain('"content":"Hi"');
+    expect(sse).toContain('data: [DONE]');
+  });
+
+  it('treats an immediate finish with error reason as a failure', async () => {
+    const { error } = await preflightCommandCodeStream(
+      ndjsonStream(['{"type":"start"}', '{"type":"finish","finishReason":"error"}']),
+    );
+    expect(error).not.toBeNull();
+  });
+
+  it('fails the request when the body read errors mid-scan', async () => {
+    const encoder = new TextEncoder();
+    const broken = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        controller.enqueue(encoder.encode('{"type":"start"}\n'));
+        controller.error(new Error('connection reset'));
+      },
+    });
+    const { error } = await preflightCommandCodeStream(broken);
+    expect(error).toMatchObject({ status: 502, message: 'connection reset' });
+  });
+});
+
 describe('forwardCommandCodeChat', () => {
   beforeEach(() => {
     mockFetch.mockReset();
@@ -477,6 +704,72 @@ describe('forwardCommandCodeChat', () => {
     });
 
     expect(response.status).toBe(401);
+  });
+
+  it('turns a streamed upstream error into a non-OK response (fallback-triggering)', async () => {
+    // The ModelMessage[] schema rejection arrives over HTTP 200 as an error
+    // event. It must surface as an error so the proxy can fall back to the
+    // next model instead of streaming the error text as assistant output.
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: ndjsonStream([
+        '{"type":"start"}',
+        '{"type":"error","error":{"type":"server_error","message":"Invalid prompt: The messages do not match the ModelMessage[] schema."}}',
+      ]),
+    });
+
+    const response = await forwardCommandCodeChat({
+      apiKey: 'user_test',
+      model: 'gpt-5.4',
+      body: { messages: [{ role: 'user', content: 'hi' }], stream: true },
+      stream: true,
+      timeoutMs: 5000,
+    });
+
+    expect(response.status).toBe(502);
+    const errorBody = (await response.json()) as { error: { message: string } };
+    expect(errorBody.error.message).toContain('Invalid prompt');
+  });
+
+  it('maps a streamed rate-limit error to 429 with retry-after', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: ndjsonStream([
+        '{"type":"start"}',
+        '{"type":"error","error":{"status":429,"message":"Rate limited"},"retry-after":"30"}',
+      ]),
+    });
+
+    const response = await forwardCommandCodeChat({
+      apiKey: 'user_test',
+      model: 'gpt-5.4',
+      body: { messages: [{ role: 'user', content: 'hi' }], stream: true },
+      stream: true,
+      timeoutMs: 5000,
+    });
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get('retry-after')).toBe('30');
+  });
+
+  it('turns a streamed error into a non-OK response for non-streaming callers', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: ndjsonStream(['{"type":"error","error":{"message":"model overloaded"}}']),
+    });
+
+    const response = await forwardCommandCodeChat({
+      apiKey: 'user_test',
+      model: 'gpt-5.4',
+      body: { messages: [{ role: 'user', content: 'q' }], stream: false },
+      stream: false,
+      timeoutMs: 5000,
+    });
+
+    expect(response.status).toBe(502);
   });
 });
 
