@@ -3220,9 +3220,64 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
 
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
-      // Rule label beats any route keyLabel / default key.
+      // No pinned label — the rule beats the default key.
       expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
       expect(result.forward.response.status).toBe(200);
+    });
+
+    it('pinned primary keyLabel wins over the rotation rule (only that key is tried)', async () => {
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        route: { ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'Pinned' },
+      });
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      providerKeyService.selectProviderKey.mockImplementation(async (_t, _p, _a, label) => {
+        if (label && label.toLowerCase() !== 'pinned') return null;
+        return {
+          apiKey: 'decrypted-key',
+          id: 'up-pinned',
+          region: null,
+          label: label ?? 'Default',
+          priority: 0,
+        };
+      });
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // The rule is never consulted: the pinned label is the only key tried.
+      expect(keyRotationRules.getRule).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Pinned');
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.provider_key_label).toBe('Pinned');
+    });
+
+    it("keyLabel 'rotation' sentinel + rule → the rule's labels drive the primary", async () => {
+      resolveService.resolve.mockResolvedValue({
+        ...resolvedRoute,
+        route: { ...route('openai', 'api_key', 'gpt-4o'), keyLabel: 'rotation' },
+      });
+      keyRotationRules.getRule.mockResolvedValue(rotationRule());
+      labelAwareKeys();
+      const primaryAttempt = attemptRef('primary-1');
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(forward(401, primaryAttempt))
+        .mockResolvedValueOnce(forward(200));
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      // Sentinel opts into rotation: the rule's first label fails, the second
+      // wins on the rotation hop.
+      expect(keyRotationRules.getRule).toHaveBeenCalledTimes(1);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider.mock.calls[0][0].providerKeyLabel).toBe('Work');
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0].providerKeyLabel).toBe(
+        'Personal',
+      );
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(result.forward.response.status).toBe(200);
+      expect(result.meta.provider_key_label).toBe('Personal');
     });
 
     it('a provider-scope rule drives the primary key when no model rule exists', async () => {

@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show, type Component } from 'solid-js';
 import type { RoutingProvider } from '../services/api.js';
+import { KEY_LABEL_ROTATION } from 'manifest-shared';
 
 interface RouteKeyChipProps {
   keys: RoutingProvider[];
@@ -31,7 +32,12 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
   const stop = (event: Event) => {
     if (props.stopPropagation) event.stopPropagation();
   };
-  const displayLabel = () => props.currentLabel ?? props.keys[0]?.label ?? '';
+  const displayLabel = () =>
+    props.currentLabel === KEY_LABEL_ROTATION
+      ? 'Rotation'
+      : (props.currentLabel ?? props.keys[0]?.label ?? '');
+  const tooltipLabel = () =>
+    props.currentLabel === KEY_LABEL_ROTATION ? 'Rotation — use key order rule' : displayLabel();
   const usedLabels = () => props.usedLabels?.() ?? new Set<string>();
   const buttonStyle = () =>
     `background: hsl(var(--muted) / 0.5); border: 1px solid hsl(var(--border)); border-radius: 999px; padding: 2px 8px; font-size: var(--font-size-xs); color: hsl(var(--muted-foreground)); cursor: pointer; max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px;${props.leadingMargin ? ' margin-left: 4px;' : ''}`;
@@ -45,8 +51,8 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
         class={props.buttonClass}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        aria-label={`API key for ${props.modelLabel}: currently ${displayLabel()}. Click to change.`}
-        title={displayLabel()}
+        aria-label={`API key for ${props.modelLabel}: currently ${tooltipLabel()}. Click to change.`}
+        title={tooltipLabel()}
         disabled={props.disabled}
         onClick={(event) => {
           stop(event);
@@ -76,12 +82,43 @@ const RouteKeyChip: Component<RouteKeyChipProps> = (props) => {
               </button>
             </li>
           </Show>
+          <li>
+            <button
+              type="button"
+              role="option"
+              aria-selected={props.currentLabel === KEY_LABEL_ROTATION}
+              onClick={(event) => {
+                stop(event);
+                setOpen(false);
+                if (props.currentLabel !== KEY_LABEL_ROTATION) {
+                  void props.onPick(KEY_LABEL_ROTATION);
+                }
+              }}
+              style="width: 100%; text-align: left; background: none; border: none; padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: var(--font-size-xs); color: hsl(var(--foreground)); display: flex; align-items: center; gap: 6px;"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="8"
+                height="8"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+                style={`visibility: ${props.currentLabel === KEY_LABEL_ROTATION ? 'visible' : 'hidden'}`}
+              >
+                <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+              </svg>
+              Rotation
+              <span style="color: hsl(var(--muted-foreground)); font-size: 10px;">
+                Use key order rule
+              </span>
+            </button>
+          </li>
           <For each={props.keys}>
             {(key) => {
               const isUsedElsewhere = () => usedLabels().has(key.label.toLowerCase());
               const isSelected = () =>
                 props.currentLabel
-                  ? props.currentLabel.toLowerCase() === key.label.toLowerCase()
+                  ? props.currentLabel !== KEY_LABEL_ROTATION &&
+                    props.currentLabel.toLowerCase() === key.label.toLowerCase()
                   : displayLabel().toLowerCase() === key.label.toLowerCase();
               const shouldPick = () =>
                 (props.currentLabel ?? '').toLowerCase() !== key.label.toLowerCase();

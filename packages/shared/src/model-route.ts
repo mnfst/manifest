@@ -1,9 +1,24 @@
 import type { AuthType } from './auth-types';
 
+/**
+ * Sentinel `keyLabel` value meaning "use this model's key-rotation rule if one
+ * exists, else the default key". A real label pins the route to that single
+ * key (rotation is skipped); the sentinel or an absent label opts into the
+ * rotation rule. Kept in shared so the proxy hot path and the UI agree on the
+ * exact spelling.
+ */
+export const KEY_LABEL_ROTATION = 'rotation';
+
 export interface ModelRoute {
   provider: string;
   authType: AuthType;
   model: string;
+  /**
+   * The provider API-key label pinned to this route. A real label overrides
+   * key rotation (only that key is tried). {@link KEY_LABEL_ROTATION} (or an
+   * absent/null label) uses the agent's key-rotation rule for the model when
+   * one exists, else the tenant's default key.
+   */
   keyLabel?: string | null;
 }
 

@@ -25,6 +25,7 @@ import type {
 } from 'manifest-shared';
 import {
   DEFAULT_RESPONSE_MODE,
+  KEY_LABEL_ROTATION,
   SPECIFICITY_CATEGORIES,
   modelParamsScopeForRouting,
   routeEquals,
@@ -328,21 +329,26 @@ export class ProxyService {
 
     // Key rotation state: one Map per request, threaded through the fallback
     // chain so labels burned by the primary are never re-tried for the same
-    // model later. When a rotation rule exists for the primary model it fully
-    // controls the primary key choice — the first unused label wins over the
-    // route's pinned keyLabel.
+    // model later. Precedence for the primary key choice: a pinned real
+    // keyLabel on the route wins outright (only that key is tried — the
+    // rotation rule is ignored). The 'rotation' sentinel or an absent label
+    // opts into the model's key-rotation rule: when a rule covers the model
+    // it fully controls the primary key choice (first unused label wins),
+    // otherwise the route's (default) label applies.
     const keyRotationState = createKeyRotationState();
-    const primaryKeyRotationRule = await this.keyRotationRules.getRule(
-      primaryModel,
-      agentId,
-      route.provider,
-    );
+    const pinnedKeyLabel =
+      route.keyLabel && route.keyLabel !== KEY_LABEL_ROTATION ? route.keyLabel : undefined;
+    const primaryKeyRotationRule =
+      pinnedKeyLabel === undefined
+        ? await this.keyRotationRules.getRule(primaryModel, agentId, route.provider)
+        : null;
     const ruleControlsPrimary =
+      pinnedKeyLabel === undefined &&
       primaryKeyRotationRule !== null &&
       primaryKeyRotationRule.provider.toLowerCase() === route.provider.toLowerCase();
     const primaryKeyLabel = ruleControlsPrimary
       ? nextUnusedKeyLabel(primaryKeyRotationRule!, keyRotationState, primaryModel)
-      : (route.keyLabel ?? undefined);
+      : pinnedKeyLabel;
 
     const credentials = await this.resolveCredentials(agentId, tenantId, {
       provider: route.provider,

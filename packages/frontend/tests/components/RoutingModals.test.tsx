@@ -608,7 +608,7 @@ describe('RoutingModals', () => {
       expect(queryByTestId('key-picker-modal')).toBeNull();
     });
 
-    it("forwards null label as 'use default' to onOverride", async () => {
+    it("forwards null label as the rotation sentinel to onOverride (Rotation offered)", async () => {
       const onOverride = vi.fn();
       const { getByTestId } = render(() => (
         <RoutingModals
@@ -622,7 +622,9 @@ describe('RoutingModals', () => {
       await waitForPicker();
       fireEvent.click(getByTestId('picker-simple'));
       fireEvent.click(getByTestId('kpm-pick-default'));
-      expect(onOverride).toHaveBeenCalledWith('simple', 'gpt-4o', 'openai', 'api_key', undefined);
+      // Rotation in the primary picker persists the rotation sentinel — the
+      // chip shows "Rotation" and the proxy opts into the key order rule.
+      expect(onOverride).toHaveBeenCalledWith('simple', 'gpt-4o', 'openai', 'api_key', 'rotation');
     });
 
     it('opens the key picker via the fallback flow and forwards the label to onAddFallback', async () => {
@@ -700,6 +702,30 @@ describe('RoutingModals', () => {
         'api_key',
         'Personal',
       );
+    });
+
+    it('auto-selects Rotation (sentinel pin, picker skipped) when a rotation rule covers the model', async () => {
+      const onAddFallback = vi.fn();
+      const onFallbackPickerClose = vi.fn();
+      const { getByTestId, queryByTestId } = render(() => (
+        <RoutingModals
+          {...makeProps({
+            fallbackPickerTier: () => 'simple',
+            tiers: () => tiers,
+            getTier: (id: string) => tiers.find((t) => t.tier === id),
+            connectedProviders: () => multiKeyProviders,
+            hasRotationRule: (model: string) => model === 'gpt-4o',
+            onAddFallback,
+            onFallbackPickerClose,
+          })}
+        />
+      ));
+      await waitForPicker();
+      fireEvent.click(getByTestId('picker-simple'));
+      // The rule (not a specific key) controls the slot → pinned to Rotation.
+      expect(queryByTestId('key-picker-modal')).toBeNull();
+      expect(onFallbackPickerClose).toHaveBeenCalled();
+      expect(onAddFallback).toHaveBeenCalledWith('simple', 'gpt-4o', 'openai', 'api_key', 'rotation');
     });
 
     it('does nothing if a stale fallback selection has no available keys left', async () => {

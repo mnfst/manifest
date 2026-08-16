@@ -939,6 +939,54 @@ describe('HeaderTierCard', () => {
     });
   });
 
+  it('auto-selects Rotation (sentinel pin, picker skipped) when a rotation rule covers a fallback model', async () => {
+    const providers: RoutingProvider[] = [
+      {
+        ...connectedProviders[0],
+        id: 'p-default',
+        label: 'Default',
+        priority: 0,
+      },
+      {
+        ...connectedProviders[0],
+        id: 'p-personal',
+        label: 'Personal',
+        priority: 1,
+      },
+    ];
+    const onFallbacksUpdate = vi.fn();
+    const { getByTestId, queryByTestId } = render(() => (
+      <HeaderTierCard
+        agentName="demo"
+        tier={{ ...baseTier, fallback_routes: [] }}
+        models={models}
+        customProviders={customProviders}
+        connectedProviders={providers}
+        hasRotationRule={() => true}
+        onOverride={vi.fn()}
+        onFallbacksUpdate={onFallbacksUpdate}
+      />
+    ));
+
+    fireEvent.click(getByTestId('fb-add') as HTMLButtonElement);
+    fireEvent.click(getByTestId('picker-pick') as HTMLButtonElement);
+
+    // The rule (not a specific key) controls the slot → pinned to Rotation.
+    await waitFor(() => {
+      expect(mockSetHeaderTierFallbacks).toHaveBeenCalledWith(
+        'demo',
+        'ht-1',
+        ['gpt-4o'],
+        [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'rotation' }],
+      );
+      expect(onFallbacksUpdate).toHaveBeenCalledWith(
+        ['gpt-4o'],
+        [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'rotation' }],
+      );
+      expect(queryByTestId('key-picker-modal')).toBeNull();
+    });
+  });
+
   it('closes the picker without action on its onClose', () => {
     const { container, getByTestId, queryByTestId } = render(() => (
       <HeaderTierCard

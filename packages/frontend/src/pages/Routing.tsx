@@ -26,6 +26,8 @@ import RoutingTierCard from './RoutingTierCard.js';
 import HeaderTierCard from '../components/HeaderTierCard.js';
 import { RoutingLoadingSkeleton, ActiveProviderIcons, RoutingFooter } from './RoutingPanels.js';
 import { createRoutingActions } from './RoutingActions.js';
+import { listKeyRules } from '../services/api/key-rules.js';
+import type { KeyRotationRule } from '../services/api/key-rules.js';
 import {
   listHeaderTiers,
   overrideHeaderTier,
@@ -116,6 +118,29 @@ const Routing: Component = () => {
     () => agentName(),
     getComplexityStatus,
   );
+  const [keyRulesRes] = createResource(
+    () => agentName(),
+    (name) => listKeyRules(name).catch(() => ({ rules: [] as KeyRotationRule[] })),
+  );
+  /**
+   * True when a key rotation rule applies to (model, provider) — model-scope
+   * rules win over provider-scope, matching the backend's
+   * KeyRotationRuleService.getRule precedence. Used to auto-select Rotation
+   * when adding a multi-key model as a fallback.
+   */
+  const hasRotationRule = (modelName: string, providerId: string): boolean => {
+    const rules = keyRulesRes()?.rules ?? [];
+    const target = modelName.toLowerCase();
+    const provider = providerId.toLowerCase();
+    const modelRule = rules.find(
+      (r) =>
+        r.scope === 'model' &&
+        r.model?.toLowerCase() === target &&
+        r.provider.toLowerCase() === provider,
+    );
+    if (modelRule) return true;
+    return rules.some((r) => r.scope === 'provider' && r.provider.toLowerCase() === provider);
+  };
   const [togglingComplexity, setTogglingComplexity] = createSignal(false);
   const [changingDefaultResponseMode, setChangingDefaultResponseMode] = createSignal(false);
   const [changingSpecificityResponseMode, setChangingSpecificityResponseMode] = createSignal(false);
@@ -394,7 +419,12 @@ const Routing: Component = () => {
       // gpt-4o). Without this the backend silently stores nothing.
       const updatedRoutes =
         authType !== undefined
-          ? [...currentRoutes, { provider: providerId, authType, model: modelName }]
+          ? [
+              ...currentRoutes,
+              providerKeyLabel
+                ? { provider: providerId, authType, model: modelName, keyLabel: providerKeyLabel }
+                : { provider: providerId, authType, model: modelName },
+            ]
           : undefined;
       try {
         const { setSpecificityFallbacks } = await import('../services/api.js');
@@ -634,6 +664,7 @@ const Routing: Component = () => {
                         models={models() ?? []}
                         customProviders={customProviders() ?? []}
                         connectedProviders={enabledConnectedProviders()}
+                        hasRotationRule={hasRotationRule}
                         onOverride={async (m, p, a, label) => {
                           try {
                             await overrideHeaderTier(agentName(), tier.id, m, p, a, label);
@@ -697,6 +728,7 @@ const Routing: Component = () => {
                   models={() => models() ?? []}
                   customProviders={() => customProviders() ?? []}
                   connectedProviders={enabledConnectedProviders}
+                  hasRotationRule={hasRotationRule}
                   externalTiers={() => headerTiers()}
                   externalRefetch={() => void refetchHeaderTiers()}
                   externalMutate={mutateHeaderTiers}
@@ -813,6 +845,7 @@ const Routing: Component = () => {
                     models={() => models() ?? []}
                     customProviders={() => customProviders() ?? []}
                     connectedProviders={enabledConnectedProviders}
+                    hasRotationRule={hasRotationRule}
                     externalTiers={() => headerTiers()}
                     externalRefetch={() => void refetchHeaderTiers()}
                     externalMutate={mutateHeaderTiers}
@@ -912,6 +945,7 @@ const Routing: Component = () => {
         }}
         fallbackPickerTier={fallbackPickerTier}
         onFallbackPickerClose={() => setFallbackPickerTier(null)}
+        hasRotationRule={hasRotationRule}
         showProviderModal={showProviderModal}
         onProviderModalClose={closeProviderModal}
         customProviderPrefill={customProviderPrefill()}

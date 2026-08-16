@@ -10,6 +10,8 @@ import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.s
 import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
+import { normalizeProviderModel } from '../proxy/proxy-fallback.service';
 import {
   readAutoAssignedRoute,
   readFallbackRoutes,
@@ -65,6 +67,7 @@ export class ResolveService {
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly routingCache: RoutingCacheService,
+    private readonly keyRotationRules: KeyRotationRuleService,
   ) {
     // Bridge the central routing-cache invalidation to the discovered-model
     // cache. Every provider mutation already calls routingCache.invalidateAgent;
@@ -595,9 +598,18 @@ export class ResolveService {
   /**
    * Fill in `route.keyLabel` from the tenant's default (priority-0) key for
    * (route.provider, route.authType) when the route doesn't already pin a
-   * specific label. The proxy needs a concrete keyLabel to pick the right row
-   * in `tenant_providers`; without this, multi-key users would always hit the
-   * first key instead of the default key for the selected auth mode.
+   * specific label.
+   *
+   * Precedence:
+   *  - A real `keyLabel` (or the `'rotation'` sentinel) is left untouched —
+   *    a real label pins the route to that single key, the sentinel opts into
+   *    rotation at the proxy.
+   *  - With an absent label, a key-rotation rule covering the model also
+   *    leaves the route unchanged (no default filled in), so the proxy can
+   *    rotate through the rule's labels.
+   *  - Only when no rule covers the model is the default label filled in —
+   *    without it, multi-key users would hit the first key instead of the
+   *    default key for the selected auth mode.
    *
    * authType is taken from the route itself, not from any assignment-level
    * legacy field.
@@ -608,6 +620,9 @@ export class ResolveService {
     route: ModelRoute,
   ): Promise<ModelRoute> {
     if (route.keyLabel) return route;
+    const model = normalizeProviderModel(route.provider, route.model);
+    const rule = await this.keyRotationRules.getRule(model, agentId, route.provider);
+    if (rule) return route;
     const label = await this.providerKeyService.getDefaultKeyLabel(
       tenantId,
       route.provider,

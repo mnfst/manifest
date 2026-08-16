@@ -35,7 +35,7 @@ import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import RouteKeyChip from './RouteKeyChip.js';
 import KeyPickerModal from './KeyPickerModal.js';
 import { toast } from '../services/toast-store.js';
-import { modelParamsScopeForHeaderTier } from 'manifest-shared';
+import { modelParamsScopeForHeaderTier, KEY_LABEL_ROTATION } from 'manifest-shared';
 
 function providerIdForModel(model: string, apiModels: AvailableModel[]): string | undefined {
   const m =
@@ -99,6 +99,12 @@ interface Props {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  /**
+   * True when a key rotation rule applies to (model, provider) — model-scope
+   * rules win over provider-scope. When set, adding a multi-key model
+   * auto-selects Rotation (no key pin, picker skipped).
+   */
+  hasRotationRule?: (modelName: string, providerId: string) => boolean;
 }
 
 const HeaderTierCard: Component<Props> = (props) => {
@@ -109,6 +115,7 @@ const HeaderTierCard: Component<Props> = (props) => {
     provider: string;
     authType?: AuthType;
     keys: RoutingProvider[];
+    rotationAvailable?: boolean;
   }
   const [pickerMode, setPickerMode] = createSignal<PickerMode>(null);
   const [pendingKeyPick, setPendingKeyPick] = createSignal<PendingKeyPick | null>(null);
@@ -475,8 +482,16 @@ const HeaderTierCard: Component<Props> = (props) => {
       providerId: provider,
       authType: effectiveAuth,
       slot: mode,
+      hasRotationRule: props.hasRotationRule,
     });
     if (selection.exhausted) return;
+    if (selection.autoRotation) {
+      // A rotation rule exists for this model → Rotation is the default: pin
+      // the rotation sentinel (the rule controls the key at runtime) and skip
+      // the picker.
+      await completePickerSelection(mode, model, provider, authType, KEY_LABEL_ROTATION);
+      return;
+    }
     if (selection.autoLabel) {
       await completePickerSelection(mode, model, provider, authType, selection.autoLabel);
       return;
@@ -491,6 +506,7 @@ const HeaderTierCard: Component<Props> = (props) => {
       provider,
       authType,
       keys: selection.keys,
+      rotationAvailable: selection.rotationAvailable,
     });
   };
 
@@ -498,12 +514,17 @@ const HeaderTierCard: Component<Props> = (props) => {
     const pending = pendingKeyPick();
     if (!pending) return;
     setPendingKeyPick(null);
+    // Rotation (from the picker) is persisted as the shared rotation sentinel
+    // so the chip displays "Rotation" and the proxy opts into the key order
+    // rule — never as a bare "no label" (which reads as the first key in the
+    // UI).
+    const rotationLabel = label === null && pending.rotationAvailable ? KEY_LABEL_ROTATION : label;
     void completePickerSelection(
       pending.mode,
       pending.model,
       pending.provider,
       pending.authType,
-      label ?? undefined,
+      rotationLabel ?? undefined,
     );
   };
 
@@ -836,6 +857,7 @@ const HeaderTierCard: Component<Props> = (props) => {
             providerName={providerDisplayName(pending().provider, props.customProviders)}
             modelName={pending().model}
             keys={pending().keys}
+            rotationAvailable={pending().rotationAvailable}
             onPick={handlePendingKeyPick}
             onClose={() => setPendingKeyPick(null)}
           />

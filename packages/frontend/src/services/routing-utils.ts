@@ -98,6 +98,17 @@ export interface RouteKeySelection {
   autoLabel?: string;
   needsChoice: boolean;
   exhausted: boolean;
+  /**
+   * The provider has 2+ keys, so "Rotation" (no key pin — the proxy uses the
+   * key order rule when one exists, else the default key) is offered as a
+   * choice in the picker.
+   */
+  rotationAvailable?: boolean;
+  /**
+   * A rotation rule (model-scope wins over provider-scope) already exists for
+   * this model, so "Rotation" is auto-selected and the key picker is skipped.
+   */
+  autoRotation?: boolean;
 }
 
 export function routeKeySelectionForModel(input: {
@@ -107,10 +118,44 @@ export function routeKeySelectionForModel(input: {
   providerId: string;
   authType: AuthType;
   slot: 'primary' | 'fallback';
+  /** True when a key rotation rule applies to this (model, provider). */
+  hasRotationRule?: (modelName: string, providerId: string) => boolean;
 }): RouteKeySelection {
   const keys = activeRouteKeys(input.providers, input.providerId, input.authType);
   if (keys.length <= 1) return { keys, needsChoice: false, exhausted: false };
-  if (input.slot === 'primary') return { keys, needsChoice: true, exhausted: false };
+  const rotationRule = input.hasRotationRule?.(input.modelName, input.providerId) ?? false;
+  if (input.slot === 'primary') {
+    // A rotation rule fully controls the key at runtime — no specific key pin
+    // is needed. Rotation becomes the default for the primary too: apply
+    // without a pin and skip the picker (model-scope rules win over
+    // provider-scope, same precedence as the backend's
+    // KeyRotationRuleService.getRule). Without a rule, ask which key, with
+    // Rotation offered alongside.
+    if (rotationRule) {
+      return {
+        keys,
+        needsChoice: false,
+        exhausted: false,
+        rotationAvailable: true,
+        autoRotation: true,
+      };
+    }
+    return { keys, needsChoice: true, exhausted: false, rotationAvailable: true };
+  }
+
+  // A rotation rule fully controls the key at runtime — no specific key pin
+  // is needed. Rotation becomes the default: add the model without a pin and
+  // skip the picker entirely (model-scope rules win over provider-scope, same
+  // precedence as the backend's KeyRotationRuleService.getRule).
+  if (rotationRule) {
+    return {
+      keys,
+      needsChoice: false,
+      exhausted: false,
+      rotationAvailable: true,
+      autoRotation: true,
+    };
+  }
 
   const availableKeys = availableRouteKeysForModel(
     input.providers,
@@ -119,16 +164,19 @@ export function routeKeySelectionForModel(input: {
     input.providerId,
     input.authType,
   );
-  if (availableKeys.length === 0) return { keys: [], needsChoice: false, exhausted: true };
+  if (availableKeys.length === 0) {
+    return { keys: [], needsChoice: false, exhausted: true, rotationAvailable: true };
+  }
   if (availableKeys.length === 1) {
     return {
       keys: availableKeys,
       autoLabel: availableKeys[0]!.label,
       needsChoice: false,
       exhausted: false,
+      rotationAvailable: true,
     };
   }
-  return { keys: availableKeys, needsChoice: true, exhausted: false };
+  return { keys: availableKeys, needsChoice: true, exhausted: false, rotationAvailable: true };
 }
 
 /**

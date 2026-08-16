@@ -11,6 +11,7 @@ import type { RoutingCacheService } from '../../routing-core/routing-cache.servi
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
+import type { KeyRotationRuleService } from '../../routing-core/key-rotation-rule.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 
@@ -138,6 +139,10 @@ describe('ResolveService — edge cases', () => {
       headerTierService as unknown as HeaderTierService,
       agentRepo as unknown as Repository<Agent>,
       { addInvalidationListener: jest.fn() } as unknown as RoutingCacheService,
+      {
+        getRule: jest.fn().mockResolvedValue(null),
+        list: jest.fn().mockResolvedValue([]),
+      } as unknown as KeyRotationRuleService,
     );
   });
 
