@@ -233,7 +233,7 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
     expect(result.success!.keyLabel).toBe('Pinned');
   });
 
-  it('rule label wins over the route keyLabel', async () => {
+  it('pinned route keyLabel wins over the rotation rule (only that key is tried)', async () => {
     keyRotationRules.getRule.mockResolvedValue(rule('gpt-4o', ['Work', 'Personal']));
     providerClient.forward.mockResolvedValue(forward(200));
 
@@ -250,8 +250,52 @@ describe('ProxyFallbackService.tryFallbacks — key rotation', () => {
       createKeyRotationState(),
     );
 
+    // The rule is never consulted for a pinned label — the pinned key is the
+    // only one attempted.
+    expect(keyRotationRules.getRule).not.toHaveBeenCalled();
     expect(providerClient.forward).toHaveBeenCalledTimes(1);
-    expect(result.success!.keyLabel).toBe('Work');
+    expect(result.success!.keyLabel).toBe('Pinned');
+  });
+
+  it("keyLabel 'rotation' sentinel + rule → the rule's labels are used", async () => {
+    keyRotationRules.getRule.mockResolvedValue(rule('gpt-4o', ['Work', 'Personal']));
+    providerClient.forward.mockResolvedValueOnce(forward(401)).mockResolvedValueOnce(forward(200));
+
+    const result = await runFallbacks(
+      ['gpt-4o'],
+      [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'rotation' }],
+      createKeyRotationState(),
+    );
+
+    // Sentinel opts into rotation: the rule's first label fails, the second
+    // wins on the same chain slot.
+    expect(providerClient.forward).toHaveBeenCalledTimes(2);
+    expect(result.success).not.toBeNull();
+    expect(result.success!.fallbackIndex).toBe(0);
+    expect(result.success!.keyLabel).toBe('Personal');
+    expect(result.success!.tenantProviderId).toBe('up-personal');
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0].status).toBe(401);
+  });
+
+  it("keyLabel 'rotation' sentinel + no rule → falls through to the default key", async () => {
+    keyRotationRules.getRule.mockResolvedValue(null);
+    providerClient.forward.mockResolvedValue(forward(200));
+
+    const result = await runFallbacks(
+      ['gpt-4o'],
+      [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o', keyLabel: 'rotation' }],
+      createKeyRotationState(),
+    );
+
+    // The sentinel resolves to no pin; with no rule, the default credential
+    // (undefined label → default key row) is used.
+    expect(providerClient.forward).toHaveBeenCalledTimes(1);
+    expect(result.success).not.toBeNull();
+    expect(result.success!.tenantProviderId).toBe('up-default');
+    // The default row's own label is stamped on the success (same as any
+    // unpinned fallback — the meta names the connection that served it).
+    expect(result.success!.keyLabel).toBe('Default');
   });
 
   it('a provider-scope rule rotates labels for any model of that provider', async () => {

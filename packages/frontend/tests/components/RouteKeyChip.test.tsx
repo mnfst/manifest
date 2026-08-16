@@ -278,7 +278,75 @@ describe('RouteKeyChip', () => {
       usedLabels: () => new Set(['key-mixedcase']),
     });
     fireEvent.click(getTriggerButton(container));
-    const option = getOptionButtons(container)[0];
-    expect(option.hasAttribute('disabled')).toBe(true);
+    const option = getOptionButtons(container).find((o) => o.textContent?.includes('Key-MixedCase'));
+    expect(option).toBeDefined();
+    expect(option!.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('renders a Rotation option in the menu', () => {
+    const { container } = renderChip();
+    fireEvent.click(getTriggerButton(container));
+
+    const rotationOption = getOptionButtons(container).find((o) =>
+      o.textContent?.includes('Rotation'),
+    );
+    expect(rotationOption).toBeDefined();
+    expect(rotationOption!.textContent).toContain('Use key order rule');
+  });
+
+  it('calls onPick with the rotation sentinel when Rotation is clicked', () => {
+    const onPick = vi.fn();
+    const { container } = renderChip({ onPick });
+    fireEvent.click(getTriggerButton(container));
+
+    const rotationOption = getOptionButtons(container).find((o) =>
+      o.textContent?.includes('Rotation'),
+    );
+    expect(rotationOption).toBeDefined();
+    fireEvent.click(rotationOption!);
+
+    expect(onPick).toHaveBeenCalledTimes(1);
+    expect(onPick).toHaveBeenCalledWith('rotation');
+    expect(getListbox(container)).toBeNull();
+  });
+
+  it('displays "Rotation" on the chip button and marks the Rotation option selected when currentLabel is the sentinel', () => {
+    const { container } = renderChip({ currentLabel: 'rotation' });
+    const button = getTriggerButton(container);
+    expect(button.textContent).toContain('Rotation');
+    expect(button.textContent).not.toContain('key-1');
+
+    fireEvent.click(button);
+
+    const rotationOption = getOptionButtons(container).find((o) =>
+      o.textContent?.includes('Rotation'),
+    );
+    expect(rotationOption!.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('does not mark any real key selected when currentLabel is the rotation sentinel', () => {
+    const { container } = renderChip({ currentLabel: 'rotation' });
+    fireEvent.click(getTriggerButton(container));
+
+    const options = getOptionButtons(container);
+    const keyOptions = options.filter((o) => !o.textContent?.includes('Rotation'));
+    expect(keyOptions.length).toBe(twoKeys.length);
+    for (const opt of keyOptions) {
+      expect(opt.getAttribute('aria-selected')).toBe('false');
+    }
+  });
+
+  it('does not call onPick again when Rotation is already selected', () => {
+    const onPick = vi.fn();
+    const { container } = renderChip({ currentLabel: 'rotation', onPick });
+    fireEvent.click(getTriggerButton(container));
+
+    const rotationOption = getOptionButtons(container).find((o) =>
+      o.textContent?.includes('Rotation'),
+    );
+    fireEvent.click(rotationOption!);
+
+    expect(onPick).not.toHaveBeenCalled();
+    expect(getListbox(container)).toBeNull();
   });
 });

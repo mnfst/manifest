@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   pricePerM,
   resolveProviderId,
@@ -449,6 +449,104 @@ describe("route key selection", () => {
       }),
     ).toMatchObject({
       autoLabel: "Personal",
+      needsChoice: false,
+      exhausted: false,
+    });
+  });
+
+  it("auto-selects Rotation when a rotation rule exists for the model (picker skipped)", () => {
+    const hasRotationRule = vi.fn((model: string) => model === "gpt-4o");
+    const selection = routeKeySelectionForModel({
+      providers,
+      tier: undefined,
+      modelName: "gpt-4o",
+      providerId: "openai",
+      authType: "api_key",
+      slot: "fallback",
+      hasRotationRule,
+    });
+    expect(hasRotationRule).toHaveBeenCalledWith("gpt-4o", "openai");
+    expect(selection).toMatchObject({
+      autoRotation: true,
+      rotationAvailable: true,
+      needsChoice: false,
+      exhausted: false,
+    });
+  });
+
+  it("offers Rotation alongside the keys when no rule exists but the provider has 2+ keys", () => {
+    const selection = routeKeySelectionForModel({
+      providers,
+      tier: undefined,
+      modelName: "gpt-4o",
+      providerId: "openai",
+      authType: "api_key",
+      slot: "fallback",
+      hasRotationRule: () => false,
+    });
+    expect(selection).toMatchObject({
+      needsChoice: true,
+      exhausted: false,
+      rotationAvailable: true,
+    });
+    expect(selection.autoRotation).toBeUndefined();
+    expect(selection.keys.map((k) => k.label)).toEqual(["Default", "Personal"]);
+  });
+
+  it("does not offer Rotation when the provider has a single key", () => {
+    const singleKey: RoutingProvider[] = [
+      {
+        id: "p1",
+        provider: "openai",
+        auth_type: "api_key",
+        is_active: true,
+        has_api_key: true,
+        label: "Default",
+        priority: 0,
+        connected_at: "2026-01-01T00:00:00Z",
+      },
+    ];
+    const selection = routeKeySelectionForModel({
+      providers: singleKey,
+      tier: undefined,
+      modelName: "gpt-4o",
+      providerId: "openai",
+      authType: "api_key",
+      slot: "fallback",
+      hasRotationRule: () => true,
+    });
+    expect(selection).toMatchObject({ needsChoice: false, exhausted: false });
+    expect(selection.autoRotation).toBeUndefined();
+    expect(selection.rotationAvailable).toBeUndefined();
+  });
+
+  it("keeps Rotation available for the primary slot picker too", () => {
+    const selection = routeKeySelectionForModel({
+      providers,
+      tier: undefined,
+      modelName: "gpt-4o",
+      providerId: "openai",
+      authType: "api_key",
+      slot: "primary",
+      hasRotationRule: () => false,
+    });
+    expect(selection).toMatchObject({ needsChoice: true, rotationAvailable: true });
+    expect(selection.autoRotation).toBeUndefined();
+  });
+
+  it("auto-selects Rotation for the primary slot when a rotation rule covers the model", () => {
+    const selection = routeKeySelectionForModel({
+      providers,
+      tier: undefined,
+      modelName: "gpt-4o",
+      providerId: "openai",
+      authType: "api_key",
+      slot: "primary",
+      hasRotationRule: () => true,
+    });
+    expect(selection).toMatchObject({
+      autoRotation: true,
+      rotationAvailable: true,
       needsChoice: false,
       exhausted: false,
     });

@@ -38,6 +38,39 @@ describe('KeyPickerModal', () => {
     expect(screen.getByText('Work')).toBeDefined();
   });
 
+  it('offers Rotation (no key pin) when rotationAvailable is set', () => {
+    const onPick = vi.fn();
+    render(() => (
+      <KeyPickerModal
+        providerName="Google"
+        modelName="Gemini 2.5 Pro"
+        keys={[k({ label: 'Personal' }), k({ label: 'Work', id: 'p2' })]}
+        rotationAvailable
+        onPick={onPick}
+        onClose={vi.fn()}
+      />
+    ));
+    const rotation = screen.getByText('Rotation');
+    expect(rotation).toBeDefined();
+    expect(screen.getByText('Try keys in order from your key order rules')).toBeDefined();
+    fireEvent.click(rotation);
+    // Rotation maps to onPick(null) — no key pin, the rule controls the key.
+    expect(onPick).toHaveBeenCalledWith(null);
+  });
+
+  it('hides the Rotation option when rotationAvailable is not set', () => {
+    render(() => (
+      <KeyPickerModal
+        providerName="Google"
+        modelName="m"
+        keys={[k()]}
+        onPick={vi.fn()}
+        onClose={vi.fn()}
+      />
+    ));
+    expect(screen.queryByText('Rotation')).toBeNull();
+  });
+
   it('calls onPick with the chosen label when a row is clicked', () => {
     const onPick = vi.fn();
     render(() => (

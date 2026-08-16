@@ -1,4 +1,4 @@
-import { For, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import type { RoutingProvider } from '../services/api.js';
 
 export interface KeyPickerModalProps {
@@ -9,8 +9,15 @@ export interface KeyPickerModalProps {
   /** Active api_key chain for the provider, sorted by priority ASC. */
   keys: RoutingProvider[];
   /**
+   * Offer "Rotation" (no key pin) as a first-class option. Picking it calls
+   * `onPick(null)` — the proxy then uses the key order rule for this model
+   * when one exists, otherwise the default key.
+   */
+  rotationAvailable?: boolean;
+  /**
    * Called when the user picks a key. Pass `null` to leave the tier on Auto
-   * (proxy resolves to the priority-0 / Primary key at request time).
+   * (proxy resolves to the priority-0 / Primary key at request time, or the
+   * key order rule when one exists).
    */
   onPick: (label: string | null) => void;
   onClose: () => void;
@@ -54,6 +61,21 @@ const KeyPickerModal: Component<KeyPickerModalProps> = (props) => (
           aria-label={`Choose a ${props.providerName} key`}
           style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;"
         >
+          <Show when={props.rotationAvailable}>
+            <li>
+              <button
+                type="button"
+                class="key-picker-modal__option key-picker-modal__option--rotation"
+                onClick={() => props.onPick(null)}
+                style="width: 100%; text-align: left; padding: 10px 12px; border: 1px dashed hsl(var(--border)); border-radius: 6px; background: hsl(var(--muted) / 0.25); color: hsl(var(--foreground)); cursor: pointer;"
+              >
+                <div style="font-weight: 500;">Rotation</div>
+                <div style="font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                  Try keys in order from your key order rules
+                </div>
+              </button>
+            </li>
+          </Show>
           <For each={props.keys}>
             {(k) => (
               <li>

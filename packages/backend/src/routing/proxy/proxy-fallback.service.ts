@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import type { AuthType, ModelRoute } from 'manifest-shared';
-import { applyRequestParamDefaults } from 'manifest-shared';
+import { applyRequestParamDefaults, KEY_LABEL_ROTATION } from 'manifest-shared';
 import { AgentModelParamsService } from '../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { KeyRotationRuleService } from '../routing-core/key-rotation-rule.service';
@@ -280,17 +280,25 @@ export class ProxyFallbackService {
       }
       const model = normalizeProviderModel(provider, requestedModel);
 
-      // Key rotation: when a rule exists for this model, the rule fully
+      // Key rotation: when the slot carries no pinned real label (absent or
+      // the 'rotation' sentinel) and a rule exists for this model, the rule
       // controls this slot's key choice — its unused labels (in order) are
       // attempted for the SAME model, and each fallback-triggering failure
-      // advances to the next label without consuming an extra chain slot.
+      // advances to the next label without consuming an extra chain slot. A
+      // pinned real keyLabel beats the rule: only that key is tried.
       // Exhausted rules count the model as failed and the chain advances.
       const state = keyRotationState;
       // Provider passed explicitly so provider-scope rules resolve for bare
       // model ids that carry no prefix.
-      const rule = state ? await this.keyRotationRules.getRule(model, agentId, provider) : null;
+      const pinnedKeyLabel =
+        route?.keyLabel && route?.keyLabel !== KEY_LABEL_ROTATION ? route.keyLabel : undefined;
+      const rule =
+        pinnedKeyLabel === undefined && state
+          ? await this.keyRotationRules.getRule(model, agentId, provider)
+          : null;
       // `applyRule` implies both `state` and `rule` are non-null below.
       const applyRule =
+        pinnedKeyLabel === undefined &&
         state !== undefined &&
         rule !== null &&
         rule.provider.toLowerCase() === provider.toLowerCase();
@@ -298,7 +306,7 @@ export class ProxyFallbackService {
         ? rule!.keyOrder.filter(
             (label) => !state!.get(keyRotationStateKey(rule!, model))?.has(label),
           )
-        : [route?.keyLabel ?? undefined];
+        : [pinnedKeyLabel];
       if (applyRule && labels.length === 0) {
         this.logger.debug(
           `Fallback ${i}: skipping model=${model} (key rotation labels exhausted this request)`,

@@ -78,6 +78,12 @@ export interface RoutingHeaderTiersSectionProps {
     model: string,
     params: RequestParamDefaults | null,
   ) => Promise<unknown>;
+  /**
+   * True when a key rotation rule applies to (model, provider) — model-scope
+   * rules win over provider-scope. When set, adding a multi-key model to a
+   * header tier auto-selects Rotation (no key pin, picker skipped).
+   */
+  hasRotationRule?: (modelName: string, providerId: string) => boolean;
 }
 
 type Props = RoutingHeaderTiersSectionProps;
@@ -380,6 +386,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 models={props.models()}
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
+                hasRotationRule={props.hasRotationRule}
                 onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
