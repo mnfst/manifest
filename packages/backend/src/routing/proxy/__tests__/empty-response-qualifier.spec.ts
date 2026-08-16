@@ -107,6 +107,23 @@ function googleSseChunk(parts: Array<Record<string, unknown>>): string {
   })}\n\n`;
 }
 
+/** OpenAI Responses API non-streaming response shape. */
+function responsesResponse(output: Array<Record<string, unknown>>): Record<string, unknown> {
+  return {
+    id: 'resp_1',
+    object: 'response',
+    created_at: Date.now(),
+    status: 'completed',
+    model: 'gpt-5',
+    output,
+  };
+}
+
+/** OpenAI Responses API SSE event. */
+function responsesSseEvent(eventType: string, data: Record<string, unknown>): string {
+  return `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
 describe('qualifyEmptyResponse', () => {
   describe('non-streaming', () => {
     it('passes through a response with real content', async () => {
@@ -278,6 +295,73 @@ describe('qualifyEmptyResponse', () => {
         expect(response.status).toBe(200);
       });
     });
+
+    describe('OpenAI Responses API native format', () => {
+      it('passes through a response with output_text content', async () => {
+        const body = responsesResponse([
+          {
+            type: 'message',
+            id: 'msg_1',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: 'Hello from Responses' }],
+          },
+        ]);
+        const response = await qualifyEmptyResponse(jsonResponse(body));
+
+        expect(response.status).toBe(200);
+        const parsed = await response.json();
+        expect(parsed.output[0].content[0].text).toBe('Hello from Responses');
+      });
+
+      it('passes through a response with a function_call item', async () => {
+        const body = responsesResponse([
+          { type: 'function_call', id: 'fc_1', call_id: 'call_1', name: 'search', arguments: '{}' },
+        ]);
+        const response = await qualifyEmptyResponse(jsonResponse(body));
+
+        expect(response.status).toBe(200);
+      });
+
+      it('rewrites a response with empty output into a 502', async () => {
+        const body = responsesResponse([]);
+        const response = await qualifyEmptyResponse(jsonResponse(body));
+
+        expect(response.status).toBe(502);
+        await expect(response.json()).resolves.toEqual({
+          error: {
+            message: 'Provider returned a chat completion without content or tool calls',
+            type: 'upstream_response_error',
+            code: 'empty_response',
+          },
+          raw_body: expect.any(String),
+        });
+      });
+
+      it('rewrites a response with only empty output_text parts into a 502', async () => {
+        const body = responsesResponse([
+          {
+            type: 'message',
+            id: 'msg_1',
+            role: 'assistant',
+            content: [{ type: 'output_text', text: '   ' }],
+          },
+        ]);
+        const response = await qualifyEmptyResponse(jsonResponse(body));
+
+        expect(response.status).toBe(502);
+      });
+    });
+
+    it('passes through a non-streaming completion whose text contains a literal [DONE] token', async () => {
+      // A valid non-streaming completion may legitimately contain `[DONE]` in
+      // message text. It must not be misclassified as SSE and rewritten to 502.
+      const body = chatCompletion('The process finished. [DONE]');
+      const response = await qualifyEmptyResponse(jsonResponse(body));
+
+      expect(response.status).toBe(200);
+      const parsed = await response.json();
+      expect(parsed.choices[0].message.content).toBe('The process finished. [DONE]');
+    });
   });
 
   describe('streaming', () => {
@@ -417,6 +501,70 @@ describe('qualifyEmptyResponse', () => {
 
         expect(response.status).toBe(502);
       });
+    });
+
+    describe('OpenAI Responses API native stream', () => {
+      it('passes through a stream with an output_text delta', async () => {
+        const sse =
+          responsesSseEvent('response.created', { type: 'response.created' }) +
+          responsesSseEvent('response.output_text.delta', {
+            type: 'response.output_text.delta',
+            delta: 'Hello',
+          }) +
+          responsesSseEvent('response.completed', {
+            type: 'response.completed',
+            response: { id: 'resp_1', output: [] },
+          });
+        const response = await qualifyEmptyResponse(sseResponse(sse));
+
+        expect(response.status).toBe(200);
+        await expect(response.text()).resolves.toBe(sse);
+      });
+
+      it('passes through a stream whose delta relies on the event: line only', async () => {
+        // Responses API events may omit `type` inside the JSON payload and rely
+        // entirely on the `event:` line (e.g. `data: {"delta":"hi"}` for
+        // `event: response.output_text.delta`).
+        const sse =
+          responsesSseEvent('response.output_text.delta', { delta: 'Hi' }) +
+          responsesSseEvent('response.completed', { response: { status: 'completed' } });
+        const response = await qualifyEmptyResponse(sseResponse(sse));
+
+        expect(response.status).toBe(200);
+        await expect(response.text()).resolves.toBe(sse);
+      });
+
+      it('passes through a stream with a function_call output item', async () => {
+        const sse =
+          responsesSseEvent('response.output_item.added', {
+            type: 'response.output_item.added',
+            output_index: 0,
+            item: { type: 'function_call', id: 'fc_1', call_id: 'call_1', name: 'search' },
+          }) + responsesSseEvent('response.completed', { type: 'response.completed' });
+        const response = await qualifyEmptyResponse(sseResponse(sse));
+
+        expect(response.status).toBe(200);
+      });
+
+      it('rewrites a stream with only noise events into a 502', async () => {
+        const sse = responsesSseEvent('response.created', { type: 'response.created' });
+        const response = await qualifyEmptyResponse(sseResponse(sse));
+
+        expect(response.status).toBe(502);
+      });
+    });
+
+    it('replays a stream whose final chunk ends mid-event with deliverable pending payloads', async () => {
+      // The body ends with an unterminated SSE event. The final read reports
+      // `done: true`, parser.flush() surfaces the pending payload, and the
+      // qualifier must replay the buffered bytes through a live stream —
+      // releaseLock() must not happen before the replay's reader.read().
+      const sse =
+        'event: response.output_text.delta\ndata: {"type":"response.output_text.delta","delta":"Hello"}';
+      const response = await qualifyEmptyResponse(sseResponse(sse));
+
+      expect(response.status).toBe(200);
+      await expect(response.text()).resolves.toBe(sse);
     });
 
     describe('streaming detection', () => {

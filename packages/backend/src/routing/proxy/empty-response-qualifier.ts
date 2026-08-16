@@ -20,9 +20,9 @@ import { createSsePayloadParser } from './sse-parser';
  * branch is introduced anywhere in the routing logic.
  *
  * The qualifier also understands native wire formats (Anthropic Messages,
- * Google Generate Content) because those responses are converted to the same
- * OpenAI chat-completion shape downstream and can also return HTTP 200 with
- * empty content.
+ * Google Generate Content, Responses API) because those responses are
+ * converted to the same OpenAI chat-completion shape downstream and can also
+ * return HTTP 200 with empty content.
  */
 
 export const DEFAULT_EMPTY_RESPONSE_TIMEOUT_MS = 60_000;
@@ -209,16 +209,47 @@ function nonStreamingMessage(payload: Record<string, unknown>): ChatCompletionMe
 }
 
 /**
+ * Detect deliverable content in a Responses API non-streaming payload.
+ * `output` items of type `message` carry text via `content[].output_text`
+ * parts, and `function_call` items count as tool calls. Valid natively-shaped
+ * Responses JSON has no `choices`, so without this branch every successful
+ * Responses response would be rewritten to a 502 and trigger fallback (see
+ * provider-client `qualifyEmptyResponse` wiring for non-subscription
+ * Responses endpoints).
+ */
+function hasDeliverableResponsesPayload(payload: Record<string, unknown>): boolean {
+  const output = Array.isArray(payload.output) ? payload.output : [];
+  for (const item of output) {
+    if (!isObjectRecord(item)) continue;
+    if (item.type === 'function_call') return true;
+    if (item.type !== 'message' || !Array.isArray(item.content)) continue;
+    for (const part of item.content) {
+      if (
+        isObjectRecord(part) &&
+        part.type === 'output_text' &&
+        typeof part.text === 'string' &&
+        part.text.trim().length > 0
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Determine whether a non-streaming payload carries deliverable output across
  * any supported wire format:
  * - OpenAI chat completions: `choices[].message.content` / `tool_calls`
  * - Anthropic Messages: `content[]` text / tool_use blocks
  * - Google Generate Content: `candidates[].content.parts[]` text / functionCall
+ * - Responses API: `output[]` messages (`output_text`) / function_call
  */
 function hasDeliverableNonStreamingPayload(payload: Record<string, unknown>): boolean {
   if (hasDeliverableMessage(nonStreamingMessage(payload))) return true;
   if (hasDeliverableAnthropicContent(payload)) return true;
   if (hasDeliverableGoogleContent(payload)) return true;
+  if (hasDeliverableResponsesPayload(payload)) return true;
   return false;
 }
 
@@ -249,8 +280,12 @@ async function qualifyNonStreaming(
 
   // A provider may stream real content but omit or mislabel the
   // `content-type` header (e.g. `application/json`). Detect SSE framing and
-  // qualify as streaming instead of failing JSON parsing below.
-  if (trimmed.startsWith('data:') || trimmed.startsWith('event:') || trimmed.includes('[DONE]')) {
+  // qualify as streaming instead of failing JSON parsing below. The `[DONE]`
+  // sentinel is only meaningful when it actually appears on a `data:` line —
+  // a valid non-streaming completion whose text happens to contain `[DONE]`
+  // must not be misclassified as SSE.
+  const hasSseDoneSentinel = /^data:\s*\[DONE\]\s*$/m.test(trimmed);
+  if (trimmed.startsWith('data:') || trimmed.startsWith('event:') || hasSseDoneSentinel) {
     return qualifyStreaming(response, timeoutMs);
   }
 
@@ -343,6 +378,15 @@ function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
   // Google Generate Content stream chunk
   if (hasDeliverableGoogleContent(payload)) return true;
 
+  // Responses API stream events
+  if (payload.type === 'response.output_text.delta') {
+    return typeof payload.delta === 'string' && payload.delta.trim().length > 0;
+  }
+  if (payload.type === 'response.output_item.added') {
+    const item = isObjectRecord(payload.item) ? payload.item : undefined;
+    return item?.type === 'function_call';
+  }
+
   return false;
 }
 
@@ -357,14 +401,30 @@ function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
  */
 function hasDeliverablePayload(payloads: string[]): boolean {
   for (const payload of payloads) {
+    const lines = payload.split('\n');
     // Extract JSON from SSE payloads that carry event:/id: lines
     // (e.g. Anthropic Messages stream events).
-    const jsonLine = payload
-      .split('\n')
+    const jsonLine = lines
       .filter((line) => !line.startsWith('event:') && !line.startsWith('id:'))
       .join('\n');
     const parsed = safeParse(jsonLine);
     if (parsed && hasDeliverableChunk(parsed)) return true;
+
+    // Responses API events may omit `type` inside the JSON payload and rely
+    // entirely on the `event:` line (e.g. `data: {"delta":"hi"}` with
+    // `event: response.output_text.delta`). Mirror `chatgpt-response-qualifier`
+    // and read the event name so valid deltas are not rewritten to a 502.
+    const eventLine = lines.find((line) => line.startsWith('event:'));
+    const eventName = eventLine?.slice('event:'.length).trim();
+    if (eventName === 'response.output_text.delta') {
+      if (parsed && typeof parsed.delta === 'string' && parsed.delta.trim().length > 0) {
+        return true;
+      }
+    }
+    if (eventName === 'response.output_item.added') {
+      const item = parsed && isObjectRecord(parsed.item) ? parsed.item : undefined;
+      if (item?.type === 'function_call') return true;
+    }
   }
   return false;
 }
@@ -417,12 +477,17 @@ async function qualifyStreaming(
       if (result.done) {
         // Stream ended — flush pending payloads before deciding if empty.
         const pendingPayloads = parser.flush();
-        reader.releaseLock();
         // If any pending payloads were deliverable, replay the stream.
+        // replayStream takes ownership of the reader and releases the lock
+        // itself once the replayed stream is done or cancelled, so we must
+        // NOT release the lock here — doing so makes reader.read() throw
+        // "reader is not attached to a stream" from replayStream's pull and
+        // errores the replayed stream.
         if (hasDeliverablePayload(pendingPayloads)) {
           return responseWithBody(response, replayStream(reader, buffered));
         }
         // Otherwise the stream ended without any deliverable content.
+        await discard(reader);
         return errorResponse(
           response,
           502,
