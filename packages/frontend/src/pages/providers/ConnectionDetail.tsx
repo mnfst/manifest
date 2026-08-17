@@ -27,8 +27,6 @@ import {
   CONNECTION_SUCCESS_RATE_TOOLTIP,
   CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
-import { getAutofixCohort } from '../../services/api/autofix.js';
-import { messagePing } from '../../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
 import { providerIcon } from '../../components/ProviderIcon.jsx';
@@ -435,12 +433,6 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  // ── Auto-fix resources (workspace-level, conditional on availability) ──
-  const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
   // Harness tag selection for chart filtering (persisted in sessionStorage).
   // `null` means "no persisted preference" (→ default to all selected); a Set
   // — even an empty one — means an explicit user choice, so a genuine
@@ -824,10 +816,10 @@ const ConnectionDetail: Component = () => {
 
               {/* Attempt world cards: the connection's own numbers on the
                   filtered period. Fallback retries exist for everyone;
-                  auto-fixed attempts only exist with the Doctor version. */}
+                  autofixed attempts only exist with the Doctor version. */}
               <div
                 class="overview-stats"
-                style={`grid-template-columns: repeat(${autofixEligible() ? 5 : 4}, 1fr); margin-bottom: 16px;`}
+                style="grid-template-columns: repeat(5, 1fr); margin-bottom: 16px;"
               >
                 <div class="overview-stat-card">
                   <span class="overview-stat-card__label">
@@ -893,27 +885,25 @@ const ConnectionDetail: Component = () => {
                     {viewMore()}
                   </div>
                 </div>
-                <Show when={autofixEligible()}>
-                  <div
-                    class="overview-stat-card"
-                    style="cursor: pointer;"
-                    title="View the requests where this connection ran an auto-fixed attempt"
-                    onClick={() => navigate(requestsLink('&trigger=autofix'))}
-                  >
-                    <span class="overview-stat-card__label">Auto-fixed attempts</span>
-                    <div class="overview-stat-card__value-row">
-                      <span class="overview-stat-card__value">
-                        {formatNumber(breakdown()?.autofix_attempts ?? 0)}
+                <div
+                  class="overview-stat-card"
+                  style="cursor: pointer;"
+                  title="View the requests where this connection ran an autofixed attempt"
+                  onClick={() => navigate(requestsLink('&trigger=autofix'))}
+                >
+                  <span class="overview-stat-card__label">Autofixed attempts</span>
+                  <div class="overview-stat-card__value-row">
+                    <span class="overview-stat-card__value">
+                      {formatNumber(breakdown()?.autofix_attempts ?? 0)}
+                    </span>
+                    <Show when={(breakdown()?.autofix_attempts ?? 0) > 0}>
+                      <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                        {formatNumber(breakdown()?.autofix_attempts_succeeded ?? 0)} succeeded
                       </span>
-                      <Show when={(breakdown()?.autofix_attempts ?? 0) > 0}>
-                        <span style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                          {formatNumber(breakdown()?.autofix_attempts_succeeded ?? 0)} succeeded
-                        </span>
-                      </Show>
-                      {viewMore()}
-                    </div>
+                    </Show>
+                    {viewMore()}
                   </div>
-                </Show>
+                </div>
               </div>
 
               {/* Chart */}
@@ -933,7 +923,7 @@ const ConnectionDetail: Component = () => {
                       activeTab={chartView()}
                       onTabChange={setChartView}
                       requestsLabel="Attempts"
-                      requestsInfoTooltip={totalAttemptsTooltip(autofixEligible())}
+                      requestsInfoTooltip={totalAttemptsTooltip(true)}
                       requestsValue={attemptTotals().attempts}
                       requestsTrendPct={0}
                       tokensValue={analytics()!.summary.tokens.value}
@@ -1159,7 +1149,7 @@ const ConnectionDetail: Component = () => {
                           </Show>
                           <th class="rel-col">
                             Total attempts
-                            <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                            <InfoTooltip text={totalAttemptsTooltip(true)} />
                           </th>
                           <th class="rel-col">
                             Success rate

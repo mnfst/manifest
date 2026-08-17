@@ -174,9 +174,12 @@ describe('recorded chat message helpers', () => {
     ]);
   });
 
-  it('reads Gemini contents and normalizes model roles', () => {
+  it('reads Gemini system instructions and normalizes model roles', () => {
     expect(
       extractRequestMessages({
+        systemInstruction: {
+          parts: [{ text: 'Be concise.' }, { text: 'Use metric units.' }],
+        },
         contents: [
           { role: 'model', parts: [{ text: 'Answer' }] },
           { role: 'custom', parts: [{ text: 'Custom' }] },
@@ -185,9 +188,26 @@ describe('recorded chat message helpers', () => {
         ],
       }),
     ).toEqual([
+      { role: 'system', content: 'Be concise.\nUse metric units.' },
       { role: 'assistant', content: [{ text: 'Answer' }] },
       { role: 'custom', content: [{ text: 'Custom' }] },
       { role: 'user', content: [{ text: 'Prompt' }] },
+    ]);
+  });
+
+  it('unwraps Gemini CodeAssist request envelopes', () => {
+    expect(
+      extractRequestMessages({
+        model: 'gemini-2.5-pro',
+        project: 'project-id',
+        request: {
+          systemInstruction: { parts: [{ text: 'Answer in French.' }] },
+          contents: [{ role: 'user', parts: [{ text: 'Hello' }] }],
+        },
+      }),
+    ).toEqual([
+      { role: 'system', content: 'Answer in French.' },
+      { role: 'user', content: [{ text: 'Hello' }] },
     ]);
   });
 

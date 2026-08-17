@@ -61,7 +61,7 @@ describe('ModelParamsAffordance', () => {
     expect(findButton(container)).not.toBeNull();
   });
 
-  it('opens a model with no parameters and links to the request template', async () => {
+  it('opens a model with no parameters and links to a prefilled request', async () => {
     mockGetSpecs.mockResolvedValue([]);
     const { container } = render(() => (
       <ModelParamsAffordance {...baseProps} provider="openai" model="gpt-4o" slotLabel="gpt-4o" />
@@ -86,14 +86,15 @@ describe('ModelParamsAffordance', () => {
     expect(`${url.origin}${url.pathname}`).toBe(
       'https://github.com/mnfst/modelparams.dev/issues/new',
     );
-    expect(url.searchParams.get('template')).toBe('parameter-request.yml');
-    expect(url.searchParams.get('title')).toBe('openai/gpt-4o: parameter coverage');
-    expect(url.searchParams.get('provider')).toBe('openai');
-    expect(url.searchParams.get('model')).toBe('gpt-4o');
-    expect(url.searchParams.get('auth-type')).toBe('API key');
+    expect(url.searchParams.get('template')).toBeNull();
+    expect(url.searchParams.get('title')).toBe('Parameters: openai/gpt-4o');
+    expect(url.searchParams.get('labels')).toBe('parameters');
+    expect(url.searchParams.get('body')).toBe(
+      'Model: `openai/gpt-4o`\nAuth type: API key\n\nPlease add the configurable request parameters for this model.',
+    );
   });
 
-  it('prefills subscription auth type in the request template', async () => {
+  it('prefills subscription auth type in the request body', async () => {
     mockGetSpecs.mockResolvedValue([]);
     const { container } = render(() => (
       <ModelParamsAffordance
@@ -117,8 +118,8 @@ describe('ModelParamsAffordance', () => {
       }),
     )) as HTMLAnchorElement;
     const url = new URL(link.href);
-    expect(url.searchParams.get('title')).toBe('anthropic/claude-sonnet-4-6: parameter coverage');
-    expect(url.searchParams.get('auth-type')).toBe('Subscription');
+    expect(url.searchParams.get('title')).toBe('Parameters: anthropic/claude-sonnet-4-6');
+    expect(url.searchParams.get('body')).toContain('Auth type: Subscription');
   });
 
   it('does not render the button when authType is missing', () => {

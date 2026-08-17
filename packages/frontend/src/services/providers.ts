@@ -1,6 +1,10 @@
 /* ── LLM Provider definitions (shared by Routing page) ── */
 
-import { SHARED_PROVIDER_BY_ID, type SharedProviderEntry } from 'manifest-shared';
+import {
+  META_MODEL_API_MODELS,
+  SHARED_PROVIDER_BY_ID,
+  type SharedProviderEntry,
+} from 'manifest-shared';
 
 export interface SubscriptionEndpointRegion {
   value: string;
@@ -327,6 +331,14 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     },
     models: [],
   },
+  meta: {
+    initial: 'Me',
+    subtitle: 'Muse Spark 1.2, Contributor, and 1.1',
+    models: META_MODEL_API_MODELS.map((model) => ({
+      label: model.displayName,
+      value: model.id,
+    })),
+  },
   xiaomi: {
     initial: 'Mi',
     subtitle: 'MiMo V2.5 Pro, V2.5, Flash',
@@ -510,6 +522,7 @@ const PROVIDER_ORDER = [
   'kiro',
   'llamacpp',
   'lmstudio',
+  'meta',
   'minimax',
   'mistral',
   'moonshot',

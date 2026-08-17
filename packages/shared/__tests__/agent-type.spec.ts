@@ -5,6 +5,7 @@ import {
   PLATFORM_LABELS,
   PLATFORMS_BY_CATEGORY,
   PLATFORM_ICONS,
+  coerceAgentPlatform,
   platformIcon,
 } from '../src/agent-type';
 
@@ -84,6 +85,22 @@ describe('agent-type', () => {
         seen.set(platform, category);
       }
     }
+  });
+
+  describe('coerceAgentPlatform', () => {
+    it('preserves every registered platform', () => {
+      for (const platform of AGENT_PLATFORMS) {
+        expect(coerceAgentPlatform(platform)).toBe(platform);
+      }
+    });
+
+    it('maps missing, unknown, and prototype-like values to other', () => {
+      expect(coerceAgentPlatform(null)).toBe('other');
+      expect(coerceAgentPlatform(undefined)).toBe('other');
+      expect(coerceAgentPlatform('')).toBe('other');
+      expect(coerceAgentPlatform('custom-harness')).toBe('other');
+      expect(coerceAgentPlatform('__proto__')).toBe('other');
+    });
   });
 
   describe('platformIcon', () => {

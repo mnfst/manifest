@@ -32,6 +32,8 @@ import {
 import {
   getSubscriptionCapabilities,
   getSubscriptionKnownModels,
+  META_MODEL_API_CONTEXT_WINDOW,
+  META_MODEL_API_MODEL_BY_ID,
   MODEL_MODALITIES,
   type ModelCapability,
   type ModelModality,
@@ -57,6 +59,7 @@ const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models
 const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
 const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
+const META_MODELS_URL = 'https://api.meta.ai/v1/models';
 
 /* ── Generic parser factory ── */
 
@@ -68,7 +71,10 @@ interface ModelParserConfig<T> {
   contextWindow?: number | ((entry: T) => number);
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
+  capabilityReasoning?: boolean;
   capabilityCode?: boolean | ((entry: T) => boolean);
+  inputModalities?: readonly ModelModality[];
+  outputModalities?: readonly ModelModality[];
   supportedEndpoints?: (entry: T) => readonly string[] | undefined;
   qualityScore?: number;
 }
@@ -93,11 +99,13 @@ function createModelParser<T>(
           contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
-          capabilityReasoning: false,
+          capabilityReasoning: config.capabilityReasoning ?? false,
           capabilityCode:
             typeof config.capabilityCode === 'function'
               ? config.capabilityCode(entry)
               : (config.capabilityCode ?? false),
+          ...(config.inputModalities ? { inputModalities: config.inputModalities } : {}),
+          ...(config.outputModalities ? { outputModalities: config.outputModalities } : {}),
           ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
           qualityScore: config.qualityScore ?? 3,
         };
@@ -346,6 +354,18 @@ const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
   getDisplayName: (_entry, id) => id,
   contextWindow: (entry) => XIAOMI_MIMO_CONTEXT_WINDOWS.get(entry.id) ?? DEFAULT_CONTEXT_WINDOW,
   capabilityCode: true,
+});
+
+const parseMeta = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && META_MODEL_API_MODEL_BY_ID.has(entry.id),
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => META_MODEL_API_MODEL_BY_ID.get(id)?.displayName ?? id,
+  contextWindow: META_MODEL_API_CONTEXT_WINDOW,
+  capabilityReasoning: true,
+  capabilityCode: true,
+  inputModalities: ['text', 'image', 'audio', 'video'],
+  outputModalities: ['text'],
 });
 
 /* ── OpenAI-specific structural filters (not non-chat) ── */
@@ -856,6 +876,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
   },
+  meta: {
+    endpoint: META_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseMeta,
+  },
   'minimax-subscription': {
     endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,
     buildHeaders: (key: string) => ({
@@ -988,8 +1013,8 @@ export class ProviderModelFetcherService {
     } else if (configKey === 'xiaomi' && authType === 'subscription') {
       configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
-      // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
-      // rather than a subscription-scoped /models endpoint.
+      // Kimi Code documents a fixed subscription model catalog rather than a
+      // subscription-scoped /models endpoint.
       return [];
     } else if (configKey === 'qwen' && authType === 'subscription') {
       configKey = 'qwen-subscription';

@@ -19,8 +19,6 @@ AI Agents that don't break
 </p>
 
 <p align="center">
-  <span><img src="https://img.shields.io/badge/status-beta-yellow" alt="beta" /></span>
-  &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
   <a href="https://hub.docker.com/r/manifestdotbuild/manifest"><img src="https://img.shields.io/docker/pulls/manifestdotbuild/manifest?color=2496ED&label=docker%20pulls" alt="Docker pulls" /></a>
@@ -67,15 +65,17 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 
 ### Deploy with one click
 
-| Platform                                                                   | Notes                                                                   |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [Railway](https://railway.com/deploy/wild-wild)                            | Best path. Template includes Manifest and PostgreSQL.                   |
-| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest and Render PostgreSQL.                      |
-| [DigitalOcean](deploy/digitalocean/TUTORIAL.md)                            | App Platform button includes Manifest and a Dev PostgreSQL database.    |
-| [AWS](deploy/aws/TUTORIAL.md)                                              | CloudFormation quick-create for ECS, RDS, and Secrets Manager.          |
-| [GCP](deploy/gcp/TUTORIAL.md)                                              | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
+| Platform                                                                   | Notes                                                                                                |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [Railway](https://railway.com/deploy/wild-wild)                            | Best path. Template includes Manifest, PostgreSQL, and S3-compatible storage for request recordings. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest, PostgreSQL, and a persistent recording disk.                            |
+| [DigitalOcean](deploy/digitalocean/TUTORIAL.md)                            | App Platform and PostgreSQL; provide a private Space for recordings.                                 |
+| [AWS](deploy/aws/TUTORIAL.md)                                              | CloudFormation provisions ECS, RDS, and a private recording bucket.                                  |
+| [GCP](deploy/gcp/TUTORIAL.md)                                              | DeployStack provisions Cloud Run, Cloud SQL, and Cloud Storage.                                      |
 
-Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [Render](https://manifest.build/docs/deploy/render), [DigitalOcean](https://manifest.build/docs/deploy/digitalocean), [AWS](https://manifest.build/docs/deploy/aws), [GCP](https://manifest.build/docs/deploy/gcp), [Fly.io](https://manifest.build/docs/deploy/fly), [Coolify](https://manifest.build/docs/deploy/coolify), [Easypanel](https://manifest.build/docs/deploy/easypanel), [Heroku](https://manifest.build/docs/deploy/heroku), and [Koyeb](https://manifest.build/docs/deploy/koyeb).
+> Every deployment path now uses durable request-recording storage. Railway, AWS, GCP, and Fly.io provision it natively; Render, Coolify, Easypanel, Docker, and Apple Containers mount persistent storage. DigitalOcean, Heroku, and Koyeb collect external S3-compatible settings during setup. Volume-backed templates are single-instance; use S3-compatible storage before scaling horizontally.
+
+Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [Render](https://manifest.build/docs/deploy/render), [DigitalOcean](https://manifest.build/docs/deploy/digitalocean), [AWS](https://manifest.build/docs/deploy/aws), [GCP](https://manifest.build/docs/deploy/gcp), [Fly.io](https://manifest.build/docs/deploy/fly), [Coolify](https://manifest.build/docs/deploy/coolify), [Easypanel](https://manifest.build/docs/deploy/easypanel), [Heroku](https://manifest.build/docs/deploy/heroku), [Koyeb](https://manifest.build/docs/deploy/koyeb), and [Apple Containers](deploy/apple-containers/TUTORIAL.md).
 
 > The old npm-based self-hosting path is no longer supported. Use the Docker image or one of the deployment guides above.
 

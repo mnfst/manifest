@@ -345,11 +345,11 @@ export function SelfHealCell(item: MessageRow): JSX.Element {
         {hasAutofix && (
           <span
             class="trigger-badge trigger-badge--autofix"
-            title="Auto-fix"
+            title="Autofix"
             style="padding: 1px 3px;"
           >
             <AutofixIcon />
-            auto-fix
+            autofix
           </span>
         )}
         {hasFallback && (

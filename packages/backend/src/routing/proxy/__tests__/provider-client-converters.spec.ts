@@ -405,12 +405,13 @@ describe('provider-client-converters', () => {
       }
     });
 
-    it('re-injects cached reasoning_content for compatible assistant tool-call messages', () => {
+    it('preserves prepared reasoning_content for compatible assistant tool-call messages', () => {
       const body = {
         messages: [
           {
             role: 'assistant',
             content: '',
+            reasoning_content: '',
             tool_calls: [
               {
                 id: 'call_1',
@@ -422,34 +423,13 @@ describe('provider-client-converters', () => {
         ],
       };
 
-      const lookup = jest.fn((id: string) => (id === 'call_1' ? 'cached reasoning' : null));
-      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat');
       const messages = result.messages as any[];
 
-      expect(lookup).toHaveBeenCalledWith('call_1');
-      expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
-    });
-
-    it('injects empty reasoning_content for compatible tool-call messages when no reasoning is recoverable', () => {
-      const body = {
-        messages: [
-          {
-            role: 'assistant',
-            content: '',
-            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
-          },
-        ],
-      };
-
-      const lookup = jest.fn(() => null);
-      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash', lookup);
-      const messages = result.messages as any[];
-
-      expect(lookup).toHaveBeenCalledWith('call_1');
       expect(messages[0]).toHaveProperty('reasoning_content', '');
     });
 
-    it('does not map reasoning aliases to reasoning_content for compatible tool-call messages', () => {
+    it('does not map reasoning aliases to reasoning_content during sanitization', () => {
       const body = {
         messages: [
           {
@@ -465,7 +445,7 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash');
       const messages = result.messages as any[];
 
-      expect(messages[0]).toHaveProperty('reasoning_content', '');
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
       expect(messages[0]).not.toHaveProperty('reasoning');
       expect(messages[0]).not.toHaveProperty('reasoning_text');
     });
@@ -492,11 +472,11 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash');
       const messages = result.messages as any[];
 
-      expect(messages[0]).toHaveProperty('reasoning_content', '');
+      expect(messages[0]).not.toHaveProperty('reasoning_content');
       expect(messages[0]).not.toHaveProperty('reasoning_details');
     });
 
-    it('does not re-inject cached reasoning_content for strict providers', () => {
+    it('does not add reasoning_content to strict providers', () => {
       const body = {
         messages: [
           {
@@ -507,11 +487,9 @@ describe('provider-client-converters', () => {
         ],
       };
 
-      const lookup = jest.fn(() => 'cached reasoning');
-      const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large', lookup);
+      const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large');
       const messages = result.messages as any[];
 
-      expect(lookup).not.toHaveBeenCalled();
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
@@ -536,7 +514,7 @@ describe('provider-client-converters', () => {
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
-    it('does not replace existing reasoning_content during re-injection', () => {
+    it('does not replace existing reasoning_content during sanitization', () => {
       const body = {
         messages: [
           {
@@ -548,45 +526,10 @@ describe('provider-client-converters', () => {
         ],
       };
 
-      const lookup = jest.fn(() => 'cached reasoning');
-      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
+      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat');
       const messages = result.messages as any[];
 
-      expect(lookup).not.toHaveBeenCalled();
       expect(messages[0]).toHaveProperty('reasoning_content', 'client reasoning');
-    });
-
-    it('replaces empty reasoning_content with cached reasoning when available', () => {
-      const body = {
-        messages: [
-          {
-            role: 'assistant',
-            content: '',
-            reasoning_content: '',
-            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
-          },
-        ],
-      };
-
-      const lookup = jest.fn(() => 'cached reasoning');
-      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-v4-flash', lookup);
-      const messages = result.messages as any[];
-
-      expect(lookup).toHaveBeenCalledWith('call_1');
-      expect(messages[0]).toHaveProperty('reasoning_content', 'cached reasoning');
-    });
-
-    it('does not re-inject cached reasoning_content without tool calls', () => {
-      const body = {
-        messages: [{ role: 'assistant', content: 'Hi' }],
-      };
-
-      const lookup = jest.fn(() => 'cached reasoning');
-      const result = sanitizeOpenAiBody(body, 'deepseek', 'deepseek-chat', lookup);
-      const messages = result.messages as any[];
-
-      expect(lookup).not.toHaveBeenCalled();
-      expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
     /* ── Message sanitization: reasoning_details ── */
@@ -1351,5 +1294,47 @@ describe('provider-client-converters', () => {
 
       expect(callback).toHaveBeenCalledWith('call_1', 'use a tool');
     });
+  });
+});
+
+describe('sanitizeOpenAiBody reasoning dialect', () => {
+  const zenCatalog = {
+    isReasoningModel: (_endpointKey: string, model: string) =>
+      model.toLowerCase().endsWith('big-pickle') ? true : undefined,
+  };
+
+  const bodyWithReasoning = () => ({
+    messages: [
+      {
+        role: 'assistant',
+        content: '',
+        reasoning_content: 'upstream thinking',
+        tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+      },
+    ],
+  });
+
+  it('keeps reasoning_content for a Zen model the catalog marks as reasoning', () => {
+    const result = sanitizeOpenAiBody(
+      bodyWithReasoning(),
+      'opencode-zen',
+      'opencode-zen/big-pickle',
+      zenCatalog,
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBe('upstream thinking');
+  });
+
+  it('still strips reasoning_content for a Zen slug nothing vouches for', () => {
+    const result = sanitizeOpenAiBody(
+      bodyWithReasoning(),
+      'opencode-zen',
+      'opencode-zen/mystery-slug',
+      zenCatalog,
+    );
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBeUndefined();
   });
 });

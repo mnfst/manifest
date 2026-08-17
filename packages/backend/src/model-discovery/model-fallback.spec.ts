@@ -141,6 +141,31 @@ describe('buildFallbackModels', () => {
 
     expect(result[0].displayName).toBe('gpt-4o');
   });
+
+  it('should limit Meta fallback discovery to the shared Muse Spark catalog', () => {
+    const cache = new Map([
+      ['meta/muse-spark-1.2', { input: 0.0000004, output: 0.0000016 }],
+      ['meta/muse-spark-1.2-contributor', { input: 0.0000002, output: 0.0000008 }],
+      ['meta/muse-spark-1.1', { input: 0.0000004, output: 0.0000016 }],
+      ['meta/unrelated-model', { input: 0.01, output: 0.02 }],
+    ]);
+
+    const result = buildFallbackModels(makePricingSync(cache), 'meta');
+
+    expect(result.map((model) => model.id)).toEqual([
+      'muse-spark-1.2',
+      'muse-spark-1.2-contributor',
+      'muse-spark-1.1',
+    ]);
+    expect(result[1]).toMatchObject({
+      displayName: 'Muse Spark 1.2 Contributor (inputs and outputs may train Meta)',
+      contextWindow: 1_048_576,
+      capabilityReasoning: true,
+      capabilityCode: true,
+      inputModalities: ['text', 'image', 'audio', 'video'],
+      outputModalities: ['text'],
+    });
+  });
 });
 
 describe('findOpenRouterPrefix', () => {
@@ -162,6 +187,10 @@ describe('findOpenRouterPrefix', () => {
 
   it('should resolve via display name', () => {
     expect(findOpenRouterPrefix('Mistral')).toBeTruthy();
+  });
+
+  it('should resolve the Meta OpenRouter prefix', () => {
+    expect(findOpenRouterPrefix('meta')).toBe('meta');
   });
 });
 
@@ -294,6 +323,24 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result.find((model) => model.id === 'claude-sonnet-5')?.contextWindow).toBe(1000000);
   });
 
+  it('applies moonshot per-model context windows without prefix bleed', () => {
+    const result = buildSubscriptionFallbackModels('moonshot');
+
+    expect(result.map((model) => model.id)).toEqual([
+      'k3',
+      'k3-256k',
+      'kimi-for-coding',
+      'kimi-for-coding-highspeed',
+    ]);
+    expect(result.find((model) => model.id === 'k3')?.contextWindow).toBe(1048576);
+    // k3-256k must not inherit the 1M window of its k3 prefix sibling.
+    expect(result.find((model) => model.id === 'k3-256k')?.contextWindow).toBe(262144);
+    expect(result.find((model) => model.id === 'kimi-for-coding')?.contextWindow).toBe(262144);
+    expect(result.find((model) => model.id === 'kimi-for-coding-highspeed')?.contextWindow).toBe(
+      262144,
+    );
+  });
+
   it('preserves curated model casing', () => {
     expect(buildSubscriptionFallbackModels('minimax').map((model) => model.id)).toEqual([
       'MiniMax-M3',
@@ -371,6 +418,8 @@ describe('supplementWithKnownModels', () => {
 
     expect(ids).toContain('gemini-3.1-flash-lite');
     expect(ids).toContain('gemini-3.1-flash-lite-preview');
+    expect(ids).not.toContain('gemini-3.1-pro-preview');
+    expect(ids).not.toContain('gemini-3-flash-preview');
   });
 });
 

@@ -121,7 +121,7 @@ const Register: Component = () => {
   const handlePlanSelect = async (plan: PlanId) => {
     if (plan === 'free') {
       markPlanChosen(userId());
-      window.location.replace('/welcome');
+      window.location.replace('/');
       return;
     }
     if (plan === 'enterprise') {

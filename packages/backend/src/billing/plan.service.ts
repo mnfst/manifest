@@ -1,4 +1,11 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { MANIFEST_ERROR_ORIGINS, PLAN_LIMITS, UNLIMITED_PLAN_LIMITS } from 'manifest-shared';
@@ -64,8 +71,16 @@ interface BillingSnapshotRow {
   billingEmailPreferences: Partial<BillingEmailPreferences> | null;
 }
 
+function canonicalTimeZone(timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', { timeZone }).resolvedOptions().timeZone;
+}
+
+function currentProcessTimeZone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+}
+
 @Injectable()
-export class PlanService {
+export class PlanService implements OnModuleInit {
   private readonly logger = new Logger(PlanService.name);
   private priceCache: { value: BillingPrice; fetchedAt: number } | null = null;
   private lastCountFailureWarnAtMs = 0;
@@ -80,6 +95,18 @@ export class PlanService {
     @InjectRepository(Tenant) private readonly tenantRepo: Repository<Tenant>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    if (!isBillingEnabled()) return;
+
+    const storageTimeZone = await this.readRequestStorageTimeZone();
+    const processTimeZone = currentProcessTimeZone();
+    if (canonicalTimeZone(storageTimeZone) !== canonicalTimeZone(processTimeZone)) {
+      throw new Error(
+        `Request quota storage timezone mismatch: trigger=${storageTimeZone}, process=${processTimeZone}`,
+      );
+    }
+  }
 
   /**
    * Billing attaches to the tenant. The Stripe subscription row is keyed by
@@ -333,6 +360,21 @@ export class PlanService {
       [tenantId, windowStart, baseline],
     );
     return Number(initializedRows[0]?.n ?? baseline);
+  }
+
+  private async readRequestStorageTimeZone(): Promise<string> {
+    const rows: Array<{ definition: string | null }> = await this.dataSource.query(`
+      SELECT pg_get_functiondef(
+               to_regprocedure('"count_tenant_request_usage"()')
+             ) AS "definition"
+    `);
+    const storageTimeZone = rows[0]?.definition?.match(
+      /(?:OLD|NEW|prior|r)\."timestamp"\s+AT TIME ZONE '([^']+)'/,
+    )?.[1];
+    if (!storageTimeZone) {
+      throw new Error('Could not read request quota timezone from installed trigger');
+    }
+    return storageTimeZone;
   }
 
   /** Routed requests for the tenant so far this calendar month (UTC). */

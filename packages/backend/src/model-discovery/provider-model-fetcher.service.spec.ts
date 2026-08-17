@@ -37,6 +37,7 @@ describe('ProviderModelFetcherService', () => {
       'nvidia',
       'xai',
       'minimax',
+      'meta',
       'minimax-subscription',
       'xiaomi',
       'xiaomi-subscription',
@@ -792,6 +793,45 @@ describe('ProviderModelFetcherService', () => {
       );
       expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
       expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
+  describe('meta provider', () => {
+    it('discovers only current Muse Spark models with their native capabilities', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'muse-spark-1.2' },
+            { id: 'muse-spark-1.2-contributor' },
+            { id: 'muse-spark-1.1' },
+            { id: 'retired-or-unrelated-model' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('meta', 'LLM_test-meta-key-value');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.meta.ai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer LLM_test-meta-key-value' },
+        }),
+      );
+      expect(result.map((model) => model.id)).toEqual([
+        'muse-spark-1.2',
+        'muse-spark-1.2-contributor',
+        'muse-spark-1.1',
+      ]);
+      expect(result[1]).toMatchObject({
+        displayName: 'Muse Spark 1.2 Contributor (inputs and outputs may train Meta)',
+        provider: 'meta',
+        contextWindow: 1_048_576,
+        capabilityReasoning: true,
+        capabilityCode: true,
+        inputModalities: ['text', 'image', 'audio', 'video'],
+        outputModalities: ['text'],
+      });
     });
   });
 

@@ -748,7 +748,7 @@ describe('MessageLog', () => {
 
     const triggerSelect = selectWithOption(container, 'All attempts');
     expect(triggerSelect.textContent).toContain('With any recovery attempt');
-    expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With an autofix attempt');
     expect(triggerSelect.textContent).toContain('With a fallback attempt');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
 

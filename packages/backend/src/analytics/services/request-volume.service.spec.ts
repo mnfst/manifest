@@ -38,7 +38,7 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
   it('maps dispositions from how the request CONCLUDED, one count each', async () => {
     await service.getDispositionTimeseries({ tenantId: 't1', range: '24h', hourly: true });
     const sql = lastSql();
-    // Method is the request-level Auto-fix outcome; a rescued request counts once.
+    // Method is the request-level Autofix outcome; a rescued request counts once.
     expect(sql).toContain("t.request_status IN ('ok', 'success')");
     expect(sql).toContain("t.autofix_status = 'retry_succeeded' THEN 'healed'");
     expect(sql).toContain('r.autofix_status');
@@ -138,7 +138,7 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain('AND r.timestamp < $3');
     expect(sql).toContain('name = $4');
     expect(lastParams()).toEqual(['t1', '2026-01-01', '2026-01-08', 'demo']);
-    // Recovered by Auto-fix reads the materialized request verdict.
+    // Recovered by Autofix reads the materialized request verdict.
     expect(sql).toContain("t.autofix_status = 'retry_succeeded'");
   });
 

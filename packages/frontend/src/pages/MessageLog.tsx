@@ -157,8 +157,7 @@ const MessageLog: Component = () => {
       // includePlayground=true so the reserved Playground agent appears in the
       // filter and the log can be narrowed to Playground runs.
       const data = (await getAgents(true)) as
-        | { agents?: AgentFilterOption[] }
-        | AgentFilterOption[];
+        { agents?: AgentFilterOption[] } | AgentFilterOption[];
       return (Array.isArray(data) ? data : (data?.agents ?? [])) as AgentFilterOption[];
     },
   );
@@ -635,7 +634,7 @@ const MessageLog: Component = () => {
       ),
     },
     {
-      label: 'With an auto-fix attempt',
+      label: 'With an autofix attempt',
       value: 'autofix',
       icon: (
         <span class="recovery-opt-icon" aria-hidden="true">
@@ -671,7 +670,7 @@ const MessageLog: Component = () => {
     { label: 'Transport', value: 'transport' },
   ];
 
-  // Jump to a linked message (the Auto-fix sibling of an expanded row).
+  // Jump to a linked message (the Autofix sibling of an expanded row).
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
     if (!el) return;

@@ -53,6 +53,7 @@ import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
 import { WaitlistModule } from '../src/waitlist/waitlist.module';
+import { ProviderModelFetcherService } from '../src/model-discovery/provider-model-fetcher.service';
 
 export const TEST_USER_ID = 'test-user-001';
 export const TEST_API_KEY = 'test-api-key-001';
@@ -239,7 +240,12 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
         WaitlistModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: MockSessionGuard }],
-    }).compile();
+    })
+      // Provider-connect tests use fake credentials. Keep model discovery
+      // deterministic instead of waiting on live provider APIs to reject them.
+      .overrideProvider(ProviderModelFetcherService)
+      .useValue({ fetch: async () => [] })
+      .compile();
 
     const app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -301,6 +307,41 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
   } finally {
     restoreFetch();
   }
+}
+
+/**
+ * Persistent stub for provider model-discovery calls. Provider connects run
+ * live discovery against the provider's real /models API with the spec's fake
+ * key; on a healthy network that is an instant 401, but a degraded network
+ * turns every connect into a multi-second hang and times the suite out.
+ * Answering the 401 locally keeps the exact same code path (discovery falls
+ * back to the OpenRouter fixture) while making it deterministic.
+ *
+ * Install after createTestApp() and restore in afterAll.
+ */
+export function stubProviderDiscoveryFetch(): () => void {
+  const originalFetch = global.fetch;
+  const DISCOVERY_HOSTS = ['api.openai.com', 'api.anthropic.com'];
+
+  global.fetch = (async (
+    input: Parameters<typeof fetch>[0],
+    init?: Parameters<typeof fetch>[1],
+  ): Promise<Response> => {
+    const url = getFetchUrl(input);
+    if (DISCOVERY_HOSTS.some((host) => url.includes(host))) {
+      return new Response(
+        JSON.stringify({
+          error: { message: 'Incorrect API key provided', type: 'invalid_request_error' },
+        }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    return originalFetch(input, init);
+  }) as typeof fetch;
+
+  return () => {
+    global.fetch = originalFetch;
+  };
 }
 
 function stubOpenRouterPricingFetch(): () => void {

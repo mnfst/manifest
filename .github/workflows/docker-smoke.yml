@@ -11,6 +11,7 @@ on:
     paths:
       - ".github/scripts/mock-openai-provider.py"
       - ".github/workflows/docker-smoke.yml"
+      - "contracts/gateway/**"
       - "docker/Dockerfile"
       - ".dockerignore"
       - "docker/docker-compose.yml"
@@ -34,6 +35,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
 
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
@@ -127,6 +132,39 @@ jobs:
           echo "health never returned 200" >&2
           (cd docker && docker compose logs manifest)
           exit 1
+
+      - name: Checkout baseline gateway contracts
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .gateway-contract-baseline
+          sparse-checkout: contracts/gateway
+
+      - name: Run baseline gateway contracts
+        if: github.event_name == 'pull_request'
+        env:
+          MANIFEST_BASE_URL: http://127.0.0.1:2099
+        run: |
+          shopt -s nullglob
+          tests=(.gateway-contract-baseline/contracts/gateway/tests/*.test.mjs)
+          if (( ${#tests[@]} == 0 )); then
+            echo "::notice::No gateway contracts exist in the base commit; running candidate contracts only."
+            exit 0
+          fi
+          node --test "${tests[@]}"
+
+      - name: Run candidate gateway contracts
+        env:
+          MANIFEST_BASE_URL: http://127.0.0.1:2099
+        run: |
+          shopt -s nullglob
+          tests=(contracts/gateway/tests/*.test.mjs)
+          if (( ${#tests[@]} == 0 )); then
+            echo "::error::The candidate contains no gateway contracts."
+            exit 1
+          fi
+          node --test "${tests[@]}"
 
       - name: Verify health payload shape
         run: |

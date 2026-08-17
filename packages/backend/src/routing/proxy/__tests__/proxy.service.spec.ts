@@ -20,7 +20,6 @@ import type { LimitCheckService } from '../../../notifications/services/limit-ch
 import type { ProxyFallbackService } from '../proxy-fallback.service';
 import type { ThoughtSignatureCache } from '../thought-signature-cache';
 import type { ThinkingBlockCache } from '../thinking-block-cache';
-import type { ReasoningContentCache } from '../reasoning-content-cache';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import type { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
 import type { AutofixService } from '../../autofix/autofix.service';
@@ -85,7 +84,10 @@ const specCatalog: ProviderParamSpecCatalog = [
 
 describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<
-    Pick<ResolveService, 'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier'>
+    Pick<
+      ResolveService,
+      'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier' | 'pinRouteKeyLabel'
+    >
   >;
   let providerKeyService: jest.Mocked<
     Pick<
@@ -116,7 +118,6 @@ describe('ProxyService — orchestration', () => {
   let configService: ConfigService;
   let signatureCache: ThoughtSignatureCache;
   let thinkingCache: ThinkingBlockCache;
-  let reasoningCache: ReasoningContentCache;
   let modelParamsService: { get: jest.Mock; list: jest.Mock; set: jest.Mock; delete: jest.Mock };
   let providerParamSpecs: { getSpecs: jest.Mock; list: jest.Mock };
   let autofixService: { maybeHeal: jest.Mock };
@@ -143,6 +144,9 @@ describe('ProxyService — orchestration', () => {
       }),
       resolveForTier: jest.fn(),
       resolveHeaderTier: jest.fn().mockResolvedValue(null),
+      // Default: no connection pin configured — the route passes through.
+      // Tests that exercise pinning override this per case.
+      pinRouteKeyLabel: jest.fn(async (_agentId, _tenantId, route: ModelRoute) => route),
     };
     modelDiscovery = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
@@ -185,10 +189,6 @@ describe('ProxyService — orchestration', () => {
       retrieve: jest.fn().mockReturnValue(null),
     } as unknown as ThoughtSignatureCache;
     thinkingCache = { retrieve: jest.fn().mockReturnValue(null) } as unknown as ThinkingBlockCache;
-    reasoningCache = {
-      retrieve: jest.fn().mockReturnValue(null),
-    } as unknown as ReasoningContentCache;
-
     modelParamsService = {
       get: jest.fn().mockResolvedValue(null),
       list: jest.fn().mockResolvedValue([]),
@@ -219,7 +219,6 @@ describe('ProxyService — orchestration', () => {
       configService,
       signatureCache,
       thinkingCache,
-      reasoningCache,
       modelParamsService as unknown as AgentModelParamsService,
       providerParamSpecs as unknown as ProviderParamSpecService,
       autofixService as unknown as AutofixService,
@@ -429,7 +428,7 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('reports the captured provider body and provider-facing API mode to Auto-fix', async () => {
+    it('reports the captured provider body and provider-facing API mode to Autofix', async () => {
       routableResolve();
       const wireBody = {
         model: 'claude-opus-4-8',
@@ -448,7 +447,7 @@ describe('ProxyService — orchestration', () => {
       expect(autofixService.maybeHeal.mock.calls[0][0]).not.toHaveProperty('resolvedModel');
     });
 
-    it('sends native Gemini failures to Auto-fix with the exact provider body', async () => {
+    it('sends native Gemini failures to Autofix with the exact provider body', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('gemini', 'api_key', 'gemini-2.5-flash'),
@@ -570,12 +569,16 @@ describe('ProxyService — orchestration', () => {
       );
     });
 
-    it('returns a synthetic 502 (without throwing) when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
+    it('retries on the original transport when the heal changes to a model that no longer resolves (M5 no-route)', async () => {
       routableResolve();
-      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400));
-      // No discovered models → the healed model resolves to no route, and the
-      // configured routing it falls back to has none either, so reforwardHealed
-      // surfaces a synthetic 502 forward. The primary forward resolved first.
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+      // No discovered models → the healed model resolves to no route (a stale
+      // per-tenant catalog, typically — the provider may still serve it). The
+      // original forward's transport is proven, so the reforward pins the healed
+      // body there instead of synthesizing a 502.
       modelDiscovery.getModelsForAgent.mockResolvedValue([]);
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
@@ -602,34 +605,101 @@ describe('ProxyService — orchestration', () => {
             model: 'ghost/unknown-model',
             max_output_tokens: 5,
           });
-          // The healing loop treats this as a failed retry and degrades to the
-          // original error; the record's outcome is exhausted.
           return {
             forward: reforwardResult,
-            record: { outcome: 'exhausted', attempts: 0, original_http_status: 400, chain: [] },
+            record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
           };
         },
       );
 
       const result = await svc.proxyRequest(baseOpts());
 
-      // The reforward itself produced the synthetic 502.
-      expect(reforwardResult!.response.status).toBe(502);
-      // Only the primary forward reached the fallback service — the re-resolve
-      // bailed before forwarding because no route was found.
+      // The healed body went out on the original provider's transport with the
+      // healed model pinned — the provider judges the model, not the cache.
+      expect(reforwardResult).toBe(healed);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'ghost/unknown-model', max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'ghost/unknown-model',
+          authType: 'api_key',
+        }),
+      );
+      // Only the primary forward reached tryForwardToProvider — the re-resolve
+      // found no route and fell back to the pinned wire retry.
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
-      // The caller handled the 502 without throwing and produced a result.
       expect(result.forward).toBeDefined();
-      const body = await reforwardResult!.response.text();
-      expect(body).toContain('Auto-fix');
     });
 
-    it('returns a synthetic 502 when the re-resolved model has a route but no provider key (M5 no-credentials)', async () => {
+    it('keeps the synthetic 502 when the original forward has no wire transport to pin', async () => {
+      // Unreachable via proxyRequest (the maybeHeal gate requires retryWireBody)
+      // but the fallback guards it type-level: no transport → no invented
+      // provider call, surface the synthetic 502.
+      const failed = { ...fwd(400), retryWireBody: undefined };
+      const result = await (
+        svc as unknown as {
+          retryHealedOnOriginalTransport: (
+            healedBody: Record<string, unknown>,
+            originalForward: unknown,
+            ctx: { provider: string; model: string },
+            reason: string,
+          ) => Promise<{ response: Response }>;
+        }
+      ).retryHealedOnOriginalTransport(
+        { model: 'ghost/unknown-model' },
+        failed,
+        { provider: 'openai', model: 'gpt-4o' },
+        'no route resolved for the healed model',
+      );
+
+      expect(result.response.status).toBe(502);
+      expect(fallbackService.retryWireBody).not.toHaveBeenCalled();
+      expect(await result.response.text()).toContain('Autofix');
+    });
+
+    it('uses the original model when a pinned healed retry omits the model', async () => {
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+
+      const result = await (
+        svc as unknown as {
+          retryHealedOnOriginalTransport: (
+            healedBody: Record<string, unknown>,
+            originalForward: unknown,
+            ctx: { provider: string; model: string },
+            reason: string,
+          ) => Promise<{ response: Response }>;
+        }
+      ).retryHealedOnOriginalTransport(
+        { max_output_tokens: 5 },
+        failed,
+        { provider: 'openai', model: 'gpt-4o' },
+        'no route resolved for the healed model',
+      );
+
+      expect(result).toBe(healed);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-4o',
+        }),
+      );
+    });
+
+    it('retries on the original transport when the re-resolved model has a route but no provider key (M5 no-credentials)', async () => {
       routableResolve();
-      fallbackService.tryForwardToProvider.mockResolvedValueOnce(fwd(400));
+      const failed = fwd(400);
+      const healed = fwd(200);
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       // The healed model DOES resolve to a route, but the connection for it is
       // gone: selectProviderKey succeeds for the primary attempt, then returns
-      // null on the re-resolve so resolveCredentials yields no key.
+      // null on the re-resolve so resolveCredentials yields no key. The original
+      // transport still holds a working credential — retry there.
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
       ]);
@@ -653,7 +723,7 @@ describe('ProxyService — orchestration', () => {
           });
           return {
             forward: reforwardResult,
-            record: { outcome: 'exhausted', attempts: 0, original_http_status: 400, chain: [] },
+            record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
           };
         },
       );
@@ -661,14 +731,20 @@ describe('ProxyService — orchestration', () => {
       const result = await svc.proxyRequest(baseOpts());
 
       // A route was found (getModelsForAgent + a second selectProviderKey call),
-      // but the missing key short-circuits to the synthetic 502.
-      expect(reforwardResult!.response.status).toBe(502);
+      // but the missing key falls back to the pinned wire retry, not a 502.
+      expect(reforwardResult).toBe(healed);
       expect(providerKeyService.selectProviderKey).toHaveBeenCalledTimes(2);
-      // No forward for the healed model — credentials failed first.
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'openai/gpt-4o-mini', max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'openai/gpt-4o-mini',
+          authType: 'api_key',
+        }),
+      );
       expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
       expect(result.forward).toBeDefined();
-      const body = await reforwardResult!.response.text();
-      expect(body).toContain('no provider key');
     });
 
     it('takes the same-model branch when the heal drops the model field entirely', async () => {
@@ -1369,7 +1445,7 @@ describe('ProxyService — orchestration', () => {
       expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
-    it('sends the real provider model-not-found response to Auto-fix', async () => {
+    it('sends the real provider model-not-found response to Autofix', async () => {
       providerKeyService.hasRouteCredentials.mockImplementation(
         async (_tenantId, candidate) =>
           candidate.provider === 'openai' && candidate.authType === 'api_key',
@@ -1570,6 +1646,92 @@ describe('ProxyService — orchestration', () => {
         model: 'gpt-4o-mini',
       });
       expect(result.meta.fallbackFromModel).toBeUndefined();
+    });
+
+    /**
+     * Regression (#key-label-pin): an explicit `model` bypasses tier
+     * resolution, so it used to drop the operator's connection pin and bill
+     * whichever key sorted first.
+     */
+    describe('connection pin', () => {
+      const connections = [
+        { id: 'up-default', label: 'Default', priority: 0, apiKey: 'sk-default', region: null },
+        { id: 'up-work', label: 'Work', priority: 1, apiKey: 'sk-work', region: null },
+      ];
+
+      beforeEach(() => {
+        modelDiscovery.getModelsForAgent.mockResolvedValue([
+          discoveredModel({ id: 'gpt-4o-mini', provider: 'openai', authType: 'api_key' }),
+        ]);
+        // Mirrors ProviderKeyService.selectProviderKey: case-insensitive label
+        // match, else the first (priority-ordered) key.
+        providerKeyService.selectProviderKey.mockImplementation(
+          async (_tenantId, _provider, _authType, label) =>
+            connections.find((c) => c.label.toLowerCase() === label?.toLowerCase()) ??
+            connections[0],
+        );
+      });
+
+      it("uses the default tier's pinned connection for a concrete model name", async () => {
+        resolveService.pinRouteKeyLabel.mockImplementation(async (_a, _t, route) => ({
+          ...route,
+          keyLabel: 'Work',
+        }));
+
+        const result = await svc.proxyRequest(
+          baseOpts({
+            body: { model: 'openai/gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          }),
+        );
+
+        expect(resolveService.pinRouteKeyLabel).toHaveBeenCalledWith(
+          'agent-1',
+          'tenant-1',
+          expect.objectContaining({ provider: 'openai', authType: 'api_key' }),
+        );
+        expect(providerKeyService.selectProviderKey).toHaveBeenCalledWith(
+          'tenant-1',
+          'openai',
+          'api_key',
+          'Work',
+          'agent-1',
+        );
+        expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+          expect.objectContaining({
+            apiKey: 'sk-work',
+            providerKeyLabel: 'Work',
+            tenantProviderId: 'up-work',
+          }),
+        );
+        expect(result.meta).toMatchObject({
+          provider_key_label: 'Work',
+          tenantProviderId: 'up-work',
+        });
+      });
+
+      // A pin naming a renamed/deleted connection still serves the default key
+      // (selectProviderKey's documented fallback) — the recorded label must
+      // then name the row that was really used, not the dangling pin.
+      it('records the connection actually used when the pin is stale', async () => {
+        resolveService.pinRouteKeyLabel.mockImplementation(async (_a, _t, route) => ({
+          ...route,
+          keyLabel: 'Retired',
+        }));
+
+        const result = await svc.proxyRequest(
+          baseOpts({
+            body: { model: 'openai/gpt-4o-mini', messages: [{ role: 'user', content: 'hi' }] },
+          }),
+        );
+
+        expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+          expect.objectContaining({ apiKey: 'sk-default', tenantProviderId: 'up-default' }),
+        );
+        expect(result.meta).toMatchObject({
+          provider_key_label: 'Default',
+          tenantProviderId: 'up-default',
+        });
+      });
     });
   });
 
@@ -2888,7 +3050,7 @@ describe('ProxyService — orchestration', () => {
       expect(resolveService.resolve).toHaveBeenCalled();
     });
 
-    it('exercises the per-request signature, thinking, and reasoning lookup closures', async () => {
+    it('exercises the per-request signature and thinking lookup closures', async () => {
       resolveService.resolve.mockResolvedValue({
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
@@ -2901,7 +3063,6 @@ describe('ProxyService — orchestration', () => {
         // Invoke the lookups so coverage hits the closure bodies.
         opts.signatureLookup?.('tool-call-1');
         opts.thinkingLookup?.('first-use-1');
-        opts.reasoningContentLookup?.('reasoning-call-1');
         return {
           response: okResponse(),
           isGoogle: false,
@@ -2913,7 +3074,6 @@ describe('ProxyService — orchestration', () => {
       await svc.proxyRequest(baseOpts());
       expect(signatureCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'tool-call-1');
       expect(thinkingCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'first-use-1');
-      expect(reasoningCache.retrieve).toHaveBeenCalledWith('cache-sess-1', 'reasoning-call-1');
     });
 
     it('strips system / developer roles when scoring', async () => {

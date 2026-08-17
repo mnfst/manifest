@@ -22,13 +22,6 @@ export type ThinkingBlockLookup = (
   routeContext?: ThinkingBlockRouteContext,
 ) => ThinkingBlock[] | null;
 
-/**
- * Optional lookup to re-inject cached reasoning_content strings that were
- * stripped by OpenAI-compatible clients. Called with the first tool_call id
- * from the assistant turn; returns the cached reasoning_content or null.
- */
-export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
-
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
 
 /** Lazily derive the Chat Completions view used by legacy routing or cross-protocol adapters. */
@@ -53,9 +46,17 @@ export interface ProviderAttemptStart {
   model: string;
   authType?: string;
   tenantProviderId?: string | null;
+  /** Reserve ordering for a Manifest-local route failure without a pending provider-call row. */
+  providerCallStarted?: boolean;
+  /**
+   * Label of the connection serving this attempt. Carried from the start so a
+   * row that never reaches a terminal writer (a cancelled request) still names
+   * the connection it was billed against.
+   */
+  keyLabel?: string;
 }
 
-/** Identity and measured start of one persisted pending Provider Attempt. */
+/** Identity and measured start of one Attempt. */
 export interface ProviderAttemptRef {
   id: string;
   attemptNumber: number;
@@ -111,8 +112,6 @@ export interface ForwardOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Route scope used to decide whether cached Anthropic thinking can be replayed. */
   thinkingRouteContext?: ThinkingBlockRouteContext;
-  /** Lookup for re-injecting cached reasoning_content (DeepSeek-compatible providers). */
-  reasoningContentLookup?: ReasoningContentLookup;
   /**
    * Provider-specific routing field carried in the OAuth token blob's `u`
    * slot. For Gemini OAuth this is the CodeAssist
@@ -150,6 +149,6 @@ export interface ProxyRequestOptions {
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
   headers?: IncomingHttpHeaders;
-  /** Called immediately before Manifest invokes one upstream provider transport. */
+  /** Allocates the next Attempt; local route failures set providerCallStarted=false. */
   startProviderAttempt?: StartProviderAttempt;
 }

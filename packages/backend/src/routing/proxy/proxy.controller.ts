@@ -263,6 +263,7 @@ export class ProxyController {
         requestedModel: this.extractRequestedModel(body),
         callerAttribution,
         requestHeaders,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
@@ -287,6 +288,13 @@ export class ProxyController {
         startedAt: new Date(startedAtMs).toISOString(),
         pendingWrite: Promise.resolve(false),
       };
+      currentAttempt = attempt;
+      currentAttemptStart = start;
+      // Cooldown skips still need a unique position in the routing chain, but
+      // must not look like an in-flight provider call or trigger provider-call
+      // accounting before their terminal policy row is written.
+      if (start.providerCallStarted === false) return attempt;
+
       let recordingFinished = false;
       attempt.startRecording = ({ requestBody, wireFormat }) => {
         if (!recordingEnabled || !this.attemptRecording || attempt.recordingCapture) {
@@ -309,8 +317,6 @@ export class ProxyController {
           .save(tenantId, requestId, attempt.id, capture.buildRecording())
           .catch((e) => this.logger.warn(`Failed to finish Provider Attempt recording: ${e}`));
       };
-      currentAttempt = attempt;
-      currentAttemptStart = start;
       attempt.pendingWrite = this.recorder
         .recordPendingProviderAttempt(req.ingestionContext, requestId, attempt, start)
         .catch((e) => {
@@ -341,6 +347,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           'plan_request_limit_exceeded',
+          apiMode,
           HttpStatus.PAYMENT_REQUIRED,
           'M204',
           Date.now() - startTime,
@@ -403,11 +410,11 @@ export class ProxyController {
       if (!providerResponse.ok) {
         const errorBody = await providerResponse.text();
         await forward.attempt?.finishRecording?.(recordingResponseFromText(errorBody));
-        // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Auto-fix already hands Phoenix
+        // Evidence feed (AUTOFIX_REPORT_ALL_4XX). Autofix already hands Phoenix
         // the full body for the requests it heals; every other request-side 4xx
         // reaches Phoenix only via Peacock's hourly scrape, which carries the
         // model-parameter snapshot and not the messages. Report it live instead —
-        // but only for agents that turned Auto-fix on (the reporter's own gate).
+        // but only for agents that turned Autofix on (the reporter's own gate).
         //
         // `traceId` is the `traceparent` id Peacock's scrape reports for the same
         // row, so a scraped duplicate collapses onto this one in Phoenix's ledger.
@@ -415,7 +422,7 @@ export class ProxyController {
         // cannot match — those failures are recorded twice until the scrape is
         // retired for live traffic.
         //
-        // Auto-fix reports the PRIMARY attempt itself. The fallback chain runs
+        // Autofix reports the PRIMARY attempt itself. The fallback chain runs
         // after it, so when the response we're about to return came from a
         // fallback model it is a different provider/model failing and Phoenix has
         // never seen it — skipping on `autofix` alone would hide it.
@@ -458,6 +465,7 @@ export class ProxyController {
           autofix,
           requestId,
           Date.now() - startTime,
+          apiMode,
         );
         return;
       }
@@ -524,6 +532,7 @@ export class ProxyController {
           requestHeaders,
           autofix,
           Date.now() - startTime,
+          apiMode,
         );
       } else {
         recordSuccess(
@@ -541,6 +550,7 @@ export class ProxyController {
           requestId,
           currentPrimaryAttemptNumber(autofix) +
             (meta.fallbackFromModel ? (failedFallbacks?.length ?? 0) + 1 : 0),
+          apiMode,
         );
       }
     } catch (err: unknown) {
@@ -582,6 +592,7 @@ export class ProxyController {
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     autofix: AutofixRecord | undefined,
     durationMs: number,
+    apiMode: ProxyApiMode,
   ): void {
     const code = meta.manifest_error_code;
     if (!code || !isRecordableManifestCode(code)) return;
@@ -600,6 +611,7 @@ export class ProxyController {
         autofix,
         attempt: meta.attempt,
         durationMs,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest stub: ${e}`));
   }
@@ -629,6 +641,7 @@ export class ProxyController {
           attemptStart: currentAttemptStart,
           requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
           traceId,
+          apiMode,
         })
         .catch((e) => this.logger.warn(`Failed to record cancelled Request: ${e}`));
       if (!res.writableEnded) res.end();
@@ -665,6 +678,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           MANIFEST_CODE_TO_REASON[err.code],
+          apiMode,
           status,
           err.code,
           startTime == null ? undefined : Date.now() - startTime,
@@ -684,6 +698,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         MANIFEST_CODE_TO_REASON.M500,
+        apiMode,
         status,
         'M500',
         startTime == null ? undefined : Date.now() - startTime,
@@ -717,6 +732,7 @@ export class ProxyController {
           callerAttribution,
           requestHeaders,
           requestDurationMs: startTime == null ? undefined : Date.now() - startTime,
+          apiMode,
         })
         .catch((e) => this.logger.warn(`Failed to record provider error: ${e}`));
     }
@@ -874,6 +890,7 @@ export class ProxyController {
     callerAttribution: ReturnType<typeof classifyCaller>,
     requestHeaders: ReturnType<typeof sanitizeRequestHeaders>,
     reason: ManifestBlockedRequestReason,
+    apiMode: ProxyApiMode,
     httpStatus?: number,
     errorCode?: ManifestErrorCode,
     durationMs?: number,
@@ -894,6 +911,7 @@ export class ProxyController {
         callerAttribution,
         requestHeaders,
         durationMs,
+        apiMode,
       })
       .catch((e) => this.logger.warn(`Failed to record Manifest-blocked request: ${e}`));
   }

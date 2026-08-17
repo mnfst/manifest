@@ -33,8 +33,8 @@ export class AgentMessage {
   request_id!: string | null;
 
   /**
-   * Positive provider-call start order within the parent Request. NULL only for
-   * legacy rows that have not been assigned an unambiguous order.
+   * Positive route-attempt order within the parent Request. NULL only for legacy
+   * rows that have not been assigned an unambiguous order.
    */
   @Column('integer', { nullable: true })
   attempt_number!: number | null;
@@ -215,7 +215,7 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   tenant_provider_id!: string | null;
 
-  // Auto-fix (self-healing) audit. A healed request is recorded as TWO rows:
+  // Autofix (self-healing) audit. A healed request is recorded as TWO rows:
   // the failed original (status='auto_fixed') and the successful retry
   // (status='ok'), both sharing `autofix_group_id`. `autofix_role` distinguishes
   // them; `autofix_operations` holds the Phoenix edits that fixed it.
@@ -227,7 +227,7 @@ export class AgentMessage {
   @Column('varchar', { nullable: true })
   autofix_group_id!: string | null;
 
-  // 'original' (the failed request that was auto-fixed) or 'retry' (the
+  // 'original' (the failed request that was autofixed) or 'retry' (the
   // successful re-send). NULL for non-autofix rows.
   @Column('varchar', { nullable: true })
   autofix_role!: string | null;

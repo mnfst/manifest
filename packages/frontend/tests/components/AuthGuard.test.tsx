@@ -61,12 +61,12 @@ describe('AuthGuard', () => {
 
     expect(await screen.findByText('Protected content')).toBeDefined();
     // The plan store still resolves at bootstrap (range locks read it), but a
-    // chosen plan never redirects to /upgrade again.
+    // chosen plan never redirects to /register?step=plan again.
     expect(mockGetBillingPlan).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('redirects authenticated free users to /upgrade after onboarding', async () => {
+  it('redirects authenticated free users to /register?step=plan after onboarding', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
     mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
@@ -76,7 +76,7 @@ describe('AuthGuard', () => {
     ));
 
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/upgrade', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith('/register?step=plan', { replace: true });
     });
   });
 
@@ -94,9 +94,9 @@ describe('AuthGuard', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('skips the upgrade redirect and renders children when on /upgrade', async () => {
+  it('skips the redirect and renders children when on /register', async () => {
     localStorage.setItem('manifest_onboarding_done_u1', '1');
-    mockLocation = { pathname: '/upgrade', search: '' };
+    mockLocation = { pathname: '/register', search: '?step=plan' };
     mockGetBillingPlan.mockResolvedValue({ enabled: true, plan: 'free' });
     render(() => (
       <AuthGuard>

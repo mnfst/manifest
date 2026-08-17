@@ -192,6 +192,24 @@ describe('validateApiKey', () => {
     expect(validateApiKey(xiaomi, `sk-${'a'.repeat(47)}`)).toEqual({ valid: true });
   });
 
+  it('validates Meta Model API key prefix and length', () => {
+    const meta = getProvider('meta')!;
+    expect(meta.keyPlaceholder).toBe('LLM_...');
+    expect(validateApiKey(meta, '')).toEqual({
+      valid: false,
+      error: 'API key is required',
+    });
+    expect(validateApiKey(meta, 'wrong-prefix-key-that-is-long-enough')).toEqual({
+      valid: false,
+      error: 'Meta keys start with "LLM_"',
+    });
+    expect(validateApiKey(meta, 'LLM_short')).toEqual({
+      valid: false,
+      error: 'Key is too short (minimum 20 characters)',
+    });
+    expect(validateApiKey(meta, `LLM_${'a'.repeat(20)}`)).toEqual({ valid: true });
+  });
+
   it('validates NVIDIA NIM key length without enforcing an undocumented prefix', () => {
     const nvidia = getProvider('nvidia')!;
     expect(nvidia.keyPlaceholder).toBe('nvapi-...');
@@ -476,6 +494,18 @@ describe('PROVIDERS', () => {
     expect(getRoutingProviderApiKeyUrl('gemini-free')).toBe(
       'https://calendly.com/sebastien-manifest/30min',
     );
+  });
+
+  it('exposes the current Meta Muse Spark catalog and Contributor warning', () => {
+    const meta = PROVIDERS.find((provider) => provider.id === 'meta')!;
+    expect(meta.name).toBe('Meta');
+    expect(meta.models.map((model) => model.value)).toEqual([
+      'muse-spark-1.2',
+      'muse-spark-1.2-contributor',
+      'muse-spark-1.1',
+    ]);
+    expect(meta.models[1].label).toMatch(/may train Meta/);
+    expect(getRoutingProviderApiKeyUrl('meta')).toBe('https://dev.meta.ai/');
   });
 
   it('each provider has required fields', () => {

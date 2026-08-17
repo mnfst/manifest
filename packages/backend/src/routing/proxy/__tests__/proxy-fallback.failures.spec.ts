@@ -1,6 +1,7 @@
 import { Repository } from 'typeorm';
 import type { ModelRoute } from 'manifest-shared';
 import { ProxyFallbackService } from '../proxy-fallback.service';
+import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ProviderKeyService } from '../../routing-core/provider-key.service';
 import { CustomProvider } from '../../../entities/custom-provider.entity';
 import { OpenaiOauthService } from '../../oauth/openai/openai-oauth.service';
@@ -14,6 +15,7 @@ import { CopilotTokenService } from '../copilot-token.service';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import type { StartProviderAttempt } from '../proxy-types';
 
 /**
  * Status-code-driven fallback chain behavior for tryFallbacks().
@@ -140,6 +142,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
         getSpecs: jest.fn().mockResolvedValue([]),
         list: jest.fn().mockResolvedValue([]),
       } as unknown as ProviderParamSpecService,
+      new ReasoningContentCache(),
     );
   });
 
@@ -220,6 +223,70 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(second.response.headers.get('retry-after')).toBe('120');
     expect(await second.response.text()).toContain('temporarily cooling down');
     expect(providerClient.forward).toHaveBeenCalledTimes(1);
+  });
+
+  it('reserves attempt order for a cooldown before trying the real fallback', async () => {
+    providerClient.forward
+      .mockResolvedValueOnce({
+        response: new Response('rate limit', {
+          status: 429,
+          headers: { 'retry-after': '120' },
+        }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      })
+      .mockResolvedValueOnce({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+    const cooledRoute = {
+      provider: 'anthropic',
+      apiKey: 'sk-ant-oat-token',
+      model: 'claude-sonnet-4-6',
+      body,
+      stream: false,
+      sessionKey: 'sess-1',
+      agentId: 'agent-1',
+      providerKeyLabel: 'Claude Code',
+      authType: 'subscription',
+    };
+    await service.tryForwardToProvider(cooledRoute);
+
+    let attemptNumber = 0;
+    const startProviderAttempt: StartProviderAttempt = jest.fn((start) => ({
+      id: `attempt-${attemptNumber + 1}`,
+      attemptNumber: ++attemptNumber,
+      startedAtMs: Date.now(),
+      startedAt: new Date().toISOString(),
+      pendingWrite: Promise.resolve(start.providerCallStarted !== false),
+    }));
+
+    const cooldown = await service.tryForwardToProvider({
+      ...cooledRoute,
+      startProviderAttempt,
+    });
+    const fallback = await service.tryForwardToProvider({
+      ...cooledRoute,
+      provider: 'openai',
+      model: 'gpt-4o',
+      authType: 'api_key',
+      providerKeyLabel: 'OpenAI',
+      startProviderAttempt,
+    });
+
+    expect(cooldown.providerCallStarted).toBe(false);
+    expect(cooldown.attempt?.attemptNumber).toBe(1);
+    expect(fallback.providerCallStarted).toBe(true);
+    expect(fallback.attempt?.attemptNumber).toBe(2);
+    expect(startProviderAttempt).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ provider: 'anthropic', providerCallStarted: false }),
+    );
+    expect(providerClient.forward).toHaveBeenCalledTimes(2);
   });
 
   it('evicts an active cooldown when the cooldown cache is full', async () => {
@@ -501,5 +568,43 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     // Sanity: middle entries retain their own bodies — no overwrite.
     expect(result.failures[0].errorBody).toContain('openai: model_not_found');
     expect(result.failures[1].errorBody).toContain('anthropic: not_found_error');
+  });
+
+  it('records each failed hop against its own pinned connection', async () => {
+    providerClient.forward
+      .mockResolvedValueOnce({
+        response: new Response('{"error":"boom"}', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      })
+      .mockResolvedValueOnce({
+        response: new Response('{"error":"boom"}', { status: 502 }),
+        isGoogle: false,
+        isAnthropic: true,
+        isChatGpt: false,
+      });
+
+    const routes: ModelRoute[] = [
+      { ...route('openai', 'gpt-4o-mini'), keyLabel: 'Work' },
+      { ...route('anthropic', 'claude-haiku-3.5'), keyLabel: 'Personal' },
+    ];
+    const result = await runFallbacks(['gpt-4o-mini', 'claude-haiku-3.5'], routes);
+
+    expect(result.success).toBeNull();
+    // Each hop carries its own label; without it the recorder would stamp the
+    // primary's connection on every failed fallback row.
+    expect(result.failures.map((f) => f.keyLabel)).toEqual(['Work', 'Personal']);
+  });
+
+  it('keeps the pinned label on a hop that never got credentials', async () => {
+    providerKeyService.getProviderApiKey.mockResolvedValue(null);
+
+    const routes: ModelRoute[] = [{ ...route('openai', 'gpt-4o-mini'), keyLabel: 'Work' }];
+    const result = await runFallbacks(['gpt-4o-mini'], routes);
+
+    expect(providerClient.forward).not.toHaveBeenCalled();
+    expect(result.failures).toHaveLength(1);
+    expect(result.failures[0]).toMatchObject({ keyLabel: 'Work', status: 401 });
   });
 });

@@ -6,7 +6,7 @@ import type {
 } from './phoenix.types';
 
 /**
- * How an Auto-fix attempt ended:
+ * How an Autofix attempt ended:
  * - `healed`     — a patched request eventually succeeded.
  * - `unfixable`  — Phoenix had no patch (`no_patch`) or returned an empty one.
  * - `resolving`  — Phoenix is still authoring a patch (novel error); nothing to
@@ -42,9 +42,9 @@ export interface AutofixChainEntry {
 }
 
 /**
- * The full Auto-fix story. An `autofix` chain entry exists if and only if a
+ * The full Autofix story. An `autofix` chain entry exists if and only if a
  * patched request was actually sent to the provider. The recorder uses that
- * invariant—not Phoenix consultation alone—to decide whether Auto-fix was
+ * invariant—not Phoenix consultation alone—to decide whether Autofix was
  * applied. When a retry exists, the failed original and retry are recorded as
  * linked `agent_messages` rows sharing `groupId`.
  */

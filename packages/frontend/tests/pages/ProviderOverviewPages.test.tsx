@@ -30,7 +30,6 @@ const apiMocks = vi.hoisted(() => ({
   getConnectionAttemptHttpStatusTimeseries: vi.fn(),
   getConnectionAttemptBreakdown: vi.fn(),
   getConnectionAttemptsByAgentTimeseries: vi.fn(),
-  getAutofixCohort: vi.fn(),
   getPerAgentCostTimeseries: vi.fn(),
 }));
 
@@ -78,12 +77,12 @@ vi.mock('../../src/services/api/routing.js', () => ({
 }));
 
 vi.mock('../../src/services/api/analytics.js', () => ({
-  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Autofix or fallback.',
   REQUEST_SUCCESS_RATE_TOOLTIP:
     'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
-      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      ? 'Every provider call counts here, including fallback retries and autofixed attempts. One request can produce several attempts.'
       : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
   MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
   PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
@@ -115,8 +114,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () =>
-    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -124,10 +122,6 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getPerModelReliability: () => Promise.resolve([]),
   getPerAgentReliability: () => Promise.resolve([]),
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
-}));
-
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => apiMocks.getAutofixCohort(),
 }));
 
 vi.mock('../../src/services/api/billing.js', () => ({
@@ -210,6 +204,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
     tokensValue: number;
     tokensTrendPct?: number;
     requestsValue: number;
+    requestsInfoTooltip?: string;
     requestsTrendPct?: number;
     failedValue?: number;
     failedTrendPct?: number;
@@ -244,6 +239,7 @@ vi.mock('../../src/components/UnifiedChartCard.jsx', () => ({
       <span>{props.costTrendPct ?? 0}</span>
       <span>{props.costInfoTooltip ?? ''}</span>
       <span>{props.range}</span>
+      <span data-testid="requests-info-tooltip">{props.requestsInfoTooltip ?? ''}</span>
       <span data-testid="ts-agents">{props.agentTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="msg-agents">{props.agentRequestTimeseries?.agents.join(',') ?? ''}</span>
       <span data-testid="cost-agents">{props.agentCostTimeseries?.agents.join(',') ?? ''}</span>
@@ -759,7 +755,6 @@ beforeEach(() => {
     cancelAtPeriodEnd: false,
     subscriptionPeriodEnd: null,
   });
-  apiMocks.getAutofixCohort.mockResolvedValue({ eligible: false });
   apiMocks.getConnectionDetail.mockResolvedValue(connectionDetail);
   apiMocks.getProviderAnalytics.mockResolvedValue(connectionAnalytics);
   apiMocks.getPerAgentTimeseries.mockResolvedValue(agentTimeseries);
@@ -986,6 +981,9 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
+      'autofixed attempts',
+    );
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
@@ -1097,18 +1095,9 @@ describe('ConnectionDetail (analytics)', () => {
       expect(fb).toContain('10');
       expect(fb).toContain('8 succeeded');
     });
-    // No Doctor version in this fixture: no auto-fixed card, no recovered cards.
-    expect(screen.queryByText('Auto-fixed attempts')).toBeNull();
-    expect(screen.queryByText('Recovered by Auto-fix')).toBeNull();
-  });
-
-  it('shows the auto-fixed attempts card with the Doctor version', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
-    const { container } = render(() => <ConnectionDetail />);
-    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     await waitFor(() => {
       const card = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Auto-fixed attempts'),
+        c.textContent?.includes('Autofixed attempts'),
       );
       expect(card?.textContent).toContain('5');
       expect(card?.textContent).toContain('4 succeeded');
@@ -1136,13 +1125,12 @@ describe('ConnectionDetail (analytics)', () => {
     );
   });
 
-  it('links the Auto-fixed attempts card when the Doctor version is available', async () => {
-    apiMocks.getAutofixCohort.mockResolvedValue({ eligible: true });
+  it('links the Autofixed attempts card', async () => {
     const { container } = render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     const card = await waitFor(() => {
       const found = [...container.querySelectorAll('.overview-stat-card')].find((c) =>
-        c.textContent?.includes('Auto-fixed attempts'),
+        c.textContent?.includes('Autofixed attempts'),
       );
       expect(found).toBeDefined();
       return found!;

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@solidjs/testing-library";
 
 let mockPathname = "/overview";
@@ -39,6 +39,18 @@ vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
 }));
 
+// Workspace Autofix status drives the bottom-left card and the modal list.
+const mockGetAutofixStatus = vi.fn();
+vi.mock("../../src/services/api/analytics.js", () => ({
+  getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetAutofixStatus(...args),
+}));
+
+// Per-agent Autofix saves fired by the modal toggles.
+const mockUpdateAutofix = vi.fn();
+vi.mock("../../src/services/api/routing.js", () => ({
+  updateAutofix: (...args: unknown[]) => mockUpdateAutofix(...args),
+}));
+
 // Local providers only exist on self-hosted installs; the Sidebar hides the
 // Local nav entry in cloud. Default to self-hosted so the legacy link
 // assertions keep applying; cloud tests flip the flag.
@@ -68,24 +80,6 @@ vi.mock("../../src/components/AddAgentModal.jsx", async () => {
   };
 });
 
-// Stub the AutofixModal for the same reason.
-const mockAutofixModal = vi.fn();
-vi.mock("../../src/components/AutofixModal.jsx", async () => {
-  const { Show } = await import("solid-js");
-  return {
-    default: (props: any) => (
-      <Show
-        when={(() => {
-          mockAutofixModal(props.open);
-          return props.open;
-        })()}
-      >
-        <div data-testid="autofix-modal" />
-      </Show>
-    ),
-  };
-});
-
 import Sidebar from "../../src/components/Sidebar";
 import { refreshAgents } from "../../src/services/sse";
 
@@ -105,6 +99,14 @@ const SAMPLE_AGENTS = [
 ];
 
 beforeEach(() => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      disabled_agents: ["alpha", "beta"],
+      needs_enable_all: true,
+      consented: false,
+    });
+  sessionStorage.clear();
   vi.clearAllMocks();
   mockPathname = "/overview";
   mockIsSelfHosted = true;
@@ -518,23 +520,335 @@ describe("Sidebar — structure and interaction", () => {
   });
 });
 
-describe("Sidebar — Auto-fix card", () => {
-  it("describes Auto-fix without claiming it is already enabled", () => {
+describe("Sidebar — Autofix card", () => {
+  it("shows the card with the Enable button while some agents lack Autofix", async () => {
     const { container } = render(() => <Sidebar />);
+    await screen.findByText("Keep your agents reliable");
     expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
-    expect(container.querySelector(".sidebar-autofix__new-badge")).toBeNull();
-    expect(container.querySelector(".sidebar-autofix__title")?.textContent).toBe("Discover Auto-fix");
-    expect(container.textContent).toContain("Auto-fix can repair eligible failing requests");
-    expect(container.textContent).not.toContain("Failing requests are automatically fixed");
-    const link = container.querySelector(".sidebar-autofix__btn") as HTMLAnchorElement;
-    expect(link?.textContent).toBe("Learn more");
-    expect(link?.getAttribute("href")).toBe("https://manifest.build/autofix/");
-    expect(link?.getAttribute("target")).toBe("_blank");
-    expect(link?.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(container.textContent).toContain("Enable it to repair eligible failing requests");
+    const btn = container.querySelector("button.sidebar-autofix__btn") as HTMLButtonElement;
+    expect(btn?.textContent).toBe("Enable");
+  });
+
+  it("shows the card in cloud too", async () => {
+    mockIsSelfHosted = false;
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Keep your agents reliable");
+    expect(container.querySelector("button.sidebar-autofix__btn")).not.toBeNull();
+  });
+
+  it("hides the card when the status fetch fails (fail-soft fallback)", async () => {
+    mockGetAutofixStatus.mockRejectedValue(new Error("boom"));
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => expect(container.querySelector(".sidebar__agents-list")).not.toBeNull());
+    expect(container.querySelector(".sidebar-autofix")).toBeNull();
+  });
+
+  it("hides the card entirely once every agent has Autofix", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: true,
+      enabled_agents: ["alpha", "beta"],
+      disabled_agents: [],
+      needs_enable_all: false,
+      consented: true,
+    });
+    const { container } = render(() => <Sidebar />);
+    // Wait for the status resource to settle on an unrelated async element.
+    await waitFor(() => expect(container.querySelector(".sidebar__agents-list")).not.toBeNull());
+    expect(container.querySelector(".sidebar-autofix")).toBeNull();
+  });
+
+  it("keeps the card with coverage copy while only some agents are enabled", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: true,
+      enabled_agents: ["alpha"],
+      disabled_agents: ["beta"],
+      needs_enable_all: false,
+      consented: true,
+    });
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Keep your agents reliable");
+    expect(container.textContent).toContain("At least one of your agents runs without Autofix.");
+    expect(container.querySelector("button.sidebar-autofix__btn")).not.toBeNull();
+  });
+
+  it("dismisses the card for the session via the close button", async () => {
+    const { container, unmount } = render(() => <Sidebar />);
+    await screen.findByText("Keep your agents reliable");
+
+    fireEvent.click(container.querySelector("button.sidebar-autofix__dismiss")!);
+    expect(container.querySelector(".sidebar-autofix")).toBeNull();
+    expect(sessionStorage.getItem("autofix-card-dismissed")).toBe("1");
+    unmount();
+
+    // A remount within the same session stays dismissed.
+    const second = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(second.container.querySelector(".sidebar__agents-list")).not.toBeNull(),
+    );
+    expect(second.container.querySelector(".sidebar-autofix")).toBeNull();
+    second.unmount();
+
+    // A fresh session (cleared sessionStorage) brings the card back.
+    sessionStorage.clear();
+    const third = render(() => <Sidebar />);
+    await waitFor(() => expect(third.container.querySelector(".sidebar-autofix")).not.toBeNull());
+  });
+
+  it("closes the modal via Done, overlay, and Escape without saving anything", async () => {
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Keep your agents reliable");
+    const open = () => fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+
+    open();
+    await screen.findByText("Enable Autofix");
+    fireEvent.click(screen.getByText("Done"));
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
+
+    open();
+    await screen.findByText("Enable Autofix");
+    const overlay = document.querySelector(".modal-overlay")!;
+    fireEvent.click(overlay);
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
+
+    open();
+    await screen.findByText("Enable Autofix");
+    fireEvent.keyDown(document.querySelector(".modal-overlay")!, { key: "Escape" });
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
+
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
+  it("always opens the modal from Enable, even when the install already consented", async () => {
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      disabled_agents: ["alpha", "beta"],
+      needs_enable_all: true,
+      consented: true,
+    });
+    const { container } = render(() => <Sidebar />);
+    await screen.findByText("Enable");
+    fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+    await screen.findByText("Enable Autofix");
+    expect(mockUpdateAutofix).not.toHaveBeenCalled();
+  });
+
+  it("polls the status so a toggle made elsewhere hides the card", async () => {
+    // Autofix toggles emit no SSE event, so the card relies on the 15s poll
+    // to notice a change made from the Settings page.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      mockGetAutofixStatus
+        .mockResolvedValueOnce({
+          any_enabled: false,
+          enabled_agents: [],
+          disabled_agents: ["alpha"],
+          needs_enable_all: true,
+          consented: false,
+        })
+        .mockResolvedValue({
+          any_enabled: true,
+          enabled_agents: ["alpha"],
+          disabled_agents: [],
+          needs_enable_all: false,
+          consented: true,
+        });
+      const { container } = render(() => <Sidebar />);
+      await screen.findByText("Keep your agents reliable");
+      await vi.advanceTimersByTimeAsync(15_000);
+      await waitFor(() => expect(container.querySelector(".sidebar-autofix")).toBeNull());
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps the last known status when a poll tick fails", async () => {
+    // A network blip on a refetch must not blank a known-good status: the
+    // card would flicker off for a tick. Only the first load falls back empty.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      mockGetAutofixStatus
+        .mockResolvedValueOnce({
+          any_enabled: false,
+          enabled_agents: [],
+          disabled_agents: ["alpha"],
+          needs_enable_all: true,
+          consented: false,
+        })
+        .mockRejectedValue(new Error("blip"));
+      const { container } = render(() => <Sidebar />);
+      await screen.findByText("Keep your agents reliable");
+      await vi.advanceTimersByTimeAsync(15_000);
+      await waitFor(() => expect(mockGetAutofixStatus.mock.calls.length).toBeGreaterThan(1));
+      expect(container.querySelector(".sidebar-autofix")).not.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("Sidebar — Autofix per-agent modal", () => {
+  const openModal = async (container: HTMLElement) => {
+    await screen.findByText("Keep your agents reliable");
+    fireEvent.click(container.querySelector("button.sidebar-autofix__btn")!);
+    await screen.findByText("Enable Autofix");
+  };
+  const switches = () =>
+    Array.from(document.querySelectorAll(".autofix-consent__agent-row .settings-switch"));
+
+  it("lists one row per uncovered agent with its icon, name, and an off switch", async () => {
+    const { container } = render(() => <Sidebar />);
+    // Wait for the harness list so the snapshot can resolve display names.
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    const rows = document.querySelectorAll(".autofix-consent__agent-row");
+    expect(rows.length).toBe(2);
+    expect(rows[0].textContent).toContain("Alpha Harness");
+    expect(rows[0].querySelector("img.autofix-consent__agent-icon")).not.toBeNull();
+    expect(rows[1].textContent).toContain("beta");
+    expect(rows[1].querySelector("img.autofix-consent__agent-icon")).toBeNull();
+    for (const sw of switches()) {
+      expect(sw.getAttribute("aria-checked")).toBe("false");
+    }
+    expect(document.body.textContent).toContain("Autofix works per agent");
+    expect(document.body.textContent).toContain("you agree to Manifest's");
+  });
+
+  it("saves a toggle immediately and flips the switch on", async () => {
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, consented: true });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    expect(mockUpdateAutofix).toHaveBeenCalledWith("alpha", { enabled: true });
+    await waitFor(() => expect(switches()[0].getAttribute("aria-checked")).toBe("true"));
+  });
+
+  it("lets other toggles fire while a save is still in flight", async () => {
+    let resolveFirst!: (v: unknown) => void;
+    mockUpdateAutofix
+      .mockReturnValueOnce(new Promise((res) => (resolveFirst = res)))
+      .mockResolvedValueOnce({ enabled: true, consented: true });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    fireEvent.click(switches()[1]);
+    // Both saves fired without waiting for each other, both rows optimistic on.
+    expect(mockUpdateAutofix).toHaveBeenCalledTimes(2);
+    expect(mockUpdateAutofix).toHaveBeenNthCalledWith(1, "alpha", { enabled: true });
+    expect(mockUpdateAutofix).toHaveBeenNthCalledWith(2, "beta", { enabled: true });
+    expect(switches()[0].getAttribute("aria-checked")).toBe("true");
+    expect(switches()[1].getAttribute("aria-checked")).toBe("true");
+    resolveFirst({ enabled: true, consented: true });
+  });
+
+  it("ignores repeat clicks on a row while its own save is in flight", async () => {
+    // The switch stays focusable during a save (aria-disabled, not disabled,
+    // so the modal's focus trap keeps working) — the re-entry guard is JS.
+    let resolveFirst!: (v: unknown) => void;
+    mockUpdateAutofix.mockReturnValueOnce(new Promise((res) => (resolveFirst = res)));
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    expect(switches()[0].getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(switches()[0]);
+    expect(mockUpdateAutofix).toHaveBeenCalledTimes(1);
+    resolveFirst({ enabled: true, consented: true });
+    await waitFor(() => expect(switches()[0].getAttribute("aria-disabled")).toBe("false"));
+  });
+
+  it("reverts a row when its save fails", async () => {
+    mockUpdateAutofix.mockRejectedValue(new Error("boom"));
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    expect(switches()[0].getAttribute("aria-checked")).toBe("true");
+    await waitFor(() => expect(switches()[0].getAttribute("aria-checked")).toBe("false"));
+  });
+
+  it("saves a toggle back off and keeps the row listed", async () => {
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, consented: true });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    await waitFor(() => expect(switches()[0].getAttribute("aria-checked")).toBe("true"));
+
+    mockUpdateAutofix.mockResolvedValue({ enabled: false, consented: true });
+    fireEvent.click(switches()[0]);
+    expect(mockUpdateAutofix).toHaveBeenLastCalledWith("alpha", { enabled: false });
+    await waitFor(() => expect(switches()[0].getAttribute("aria-checked")).toBe("false"));
+    expect(document.querySelectorAll(".autofix-consent__agent-row").length).toBe(2);
+  });
+
+  it("hides the sidebar card once every agent is covered, while the modal stays open", async () => {
+    mockUpdateAutofix.mockResolvedValue({ enabled: true, consented: true });
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() =>
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2),
+    );
+    await openModal(container);
+
+    fireEvent.click(switches()[0]);
+    fireEvent.click(switches()[1]);
+    await waitFor(() => expect(container.querySelector(".sidebar-autofix")).toBeNull());
+    // The modal itself stays open until Done.
+    expect(screen.queryByText("Enable Autofix")).not.toBeNull();
+    fireEvent.click(screen.getByText("Done"));
+    expect(screen.queryByText("Enable Autofix")).toBeNull();
+  });
+
+  it("falls back to the raw agent name when the harness list has not resolved", async () => {
+    // Status resolves with an agent the harness switcher does not know.
+    mockGetAutofixStatus.mockResolvedValue({
+      any_enabled: false,
+      enabled_agents: [],
+      disabled_agents: ["ghost"],
+      needs_enable_all: true,
+      consented: false,
+    });
+    mockGetAgents.mockResolvedValue({ agents: [] });
+    const { container } = render(() => <Sidebar />);
+    await openModal(container);
+    const rows = document.querySelectorAll(".autofix-consent__agent-row");
+    expect(rows.length).toBe(1);
+    expect(rows[0].textContent).toContain("ghost");
+    expect(rows[0].querySelector("img.autofix-consent__agent-icon")).toBeNull();
   });
 });
 
 describe("Sidebar — usage card", () => {
+  beforeEach(() => {
+    // The usage meter only occupies the bottom-left slot in cloud; self-hosted
+    // always shows the Autofix card there.
+    mockIsSelfHosted = false;
+  });
+  afterEach(() => {
+    mockIsSelfHosted = true;
+  });
+
   it("renders free-plan usage and the near-limit warning state", async () => {
     mockGetBillingStatus.mockResolvedValue({
       enabled: true,
@@ -567,6 +881,13 @@ describe("Sidebar — usage card", () => {
       "You've reached your monthly limit. Requests are being blocked.",
     );
     expect(container.querySelector(".sidebar-usage__fill--danger")).not.toBeNull();
+  });
+
+  it("hides the usage card when the billing fetch fails (fail-soft fallback)", async () => {
+    mockGetBillingStatus.mockRejectedValue(new Error("boom"));
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => expect(container.querySelector(".sidebar__agents-list")).not.toBeNull());
+    expect(container.querySelector(".sidebar-usage")).toBeNull();
   });
 
   it("renders the warning fill before the danger threshold", async () => {

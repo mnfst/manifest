@@ -168,6 +168,33 @@ describe('resolveForwardEndpoint', () => {
     });
     expect(out.forwardModel).toBe('mistral.ministral-3-8b-instruct');
     expect(out.customEndpoint?.baseUrl).toBe('https://bedrock-mantle.eu-west-1.api.aws');
+    expect(out.customEndpoint?.buildPath(out.forwardModel)).toBe('/v1/chat/completions');
+  });
+
+  it('keeps the selected Bedrock region for OpenAI Responses models', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'bedrock',
+      authType: 'api_key',
+      model: 'openai.gpt-5.6-luna',
+      providerRegion: 'us-west-2',
+    });
+
+    expect(out.customEndpoint?.baseUrl).toBe('https://bedrock-mantle.us-west-2.api.aws');
+    expect(out.customEndpoint?.format).toBe('chatgpt');
+    expect(out.customEndpoint?.buildPath(out.forwardModel)).toBe('/openai/v1/responses');
+  });
+
+  it('keeps the selected Bedrock region for Anthropic Messages models', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'bedrock',
+      authType: 'api_key',
+      model: 'anthropic.claude-sonnet-5',
+      providerRegion: 'ap-southeast-2',
+    });
+
+    expect(out.customEndpoint?.baseUrl).toBe('https://bedrock-mantle.ap-southeast-2.api.aws');
+    expect(out.customEndpoint?.format).toBe('anthropic');
+    expect(out.customEndpoint?.buildPath(out.forwardModel)).toBe('/anthropic/v1/messages');
   });
 
   it('sets no qwen override for an unresolved region', () => {

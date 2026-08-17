@@ -97,7 +97,7 @@ describe('ErrorBreakdownService', () => {
     expect(result.provider_error_rate).toBeCloseTo(3 / 10, 10);
   });
 
-  it('counts requests whose Auto-fix retry succeeded, independent of the error groups', async () => {
+  it('counts requests whose Autofix retry succeeded, independent of the error groups', async () => {
     const { service, qb } = makeService(GROUPS, 81, 7);
     const result = await service.getBreakdown({ tenantId: 't1', range: '7d' });
 

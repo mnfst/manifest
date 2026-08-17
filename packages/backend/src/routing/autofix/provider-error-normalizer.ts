@@ -77,7 +77,7 @@ function envelopeOf(error: PhoenixProviderError, message: string): string {
  * the inverse of {@link normalizeProviderError}, and the shape every other
  * `agent_messages.error_message` already holds.
  *
- * Auto-fix rows used to persist `error.message` alone, silently dropping `type`, `param`
+ * Autofix rows used to persist `error.message` alone, silently dropping `type`, `param`
  * and `code`. Those are exactly the dimensions Phoenix fingerprints on, so a downstream
  * re-ingest of such a row (Peacock's historical scrape) landed on a *different* issue than
  * the live `/heal` that had already reported the same failure — one error, two issues,

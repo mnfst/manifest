@@ -577,6 +577,38 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Reason']).toBe('scored');
   });
 
+  it.each([
+    ['chatCompletions', 'chat_completions', { messages: [{ role: 'user', content: 'hi' }] }],
+    ['responses', 'responses', { input: 'hi' }],
+    ['messages', 'messages', { max_tokens: 8, messages: [{ role: 'user', content: 'hi' }] }],
+  ] as const)(
+    'stamps the API surface of /v1/%s on the pending Request',
+    async (route, expectedApiMode, body) => {
+      const mockProviderResp = new Response(
+        JSON.stringify({ choices: [{ message: { content: 'hello' } }] }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: mockProviderResp,
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: { tier: 'simple', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.9 },
+      });
+      const pending = jest.spyOn(recorder, 'recordPendingRequest').mockResolvedValue(undefined);
+      const { res } = mockResponse();
+
+      await controller[route](mockRequest({ ...body }) as never, res as never);
+
+      expect(pending).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ apiMode: expectedApiMode }),
+      );
+    },
+  );
+
   it('records the exact provider request and response on its Provider Attempt', async () => {
     recordingCache.isRecording.mockResolvedValue(true);
     const responseBody = {
@@ -641,7 +673,66 @@ describe('ProxyController', () => {
     );
   });
 
-  it('keeps Auto-fix original and retry payloads on separate Provider Attempts', async () => {
+  it('reserves cooldown order without inserting a pending provider-call row', async () => {
+    const pendingAttempt = jest.spyOn(recorder, 'recordPendingProviderAttempt');
+    let cooldownAttemptNumber: number | undefined;
+    let fallbackAttemptNumber: number | undefined;
+    proxyService.proxyRequest.mockImplementation(
+      async (options: { startProviderAttempt: StartProviderAttempt }) => {
+        const cooldown = options.startProviderAttempt({
+          provider: 'anthropic',
+          model: 'claude-opus-5',
+          authType: 'subscription',
+          providerCallStarted: false,
+        });
+        const fallback = options.startProviderAttempt({
+          provider: 'deepseek',
+          model: 'deepseek-v4-flash',
+          authType: 'api_key',
+        });
+        cooldownAttemptNumber = cooldown.attemptNumber;
+        fallbackAttemptNumber = fallback.attemptNumber;
+        return {
+          forward: {
+            response: new Response('{"choices":[]}', {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+            isGoogle: false,
+            isAnthropic: false,
+            isChatGpt: false,
+            attempt: fallback,
+          },
+          meta: {
+            tier: 'default',
+            model: 'deepseek-v4-flash',
+            provider: 'deepseek',
+            confidence: 0.9,
+            reason: 'scored',
+            attempt: fallback,
+          },
+        };
+      },
+    );
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(
+      mockRequest({ model: 'auto', messages: [{ role: 'user', content: 'hi' }] }) as never,
+      res as never,
+    );
+
+    expect(cooldownAttemptNumber).toBe(1);
+    expect(fallbackAttemptNumber).toBe(2);
+    expect(pendingAttempt).toHaveBeenCalledTimes(1);
+    expect(pendingAttempt).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.any(String),
+      expect.objectContaining({ attemptNumber: 2 }),
+      expect.objectContaining({ provider: 'deepseek' }),
+    );
+  });
+
+  it('keeps Autofix original and retry payloads on separate Provider Attempts', async () => {
     recordingCache.isRecording.mockResolvedValue(true);
     const originalBody = { model: 'gpt-4o', messages: [], unsupported: true };
     const retryBody = { model: 'gpt-4o', messages: [] };
@@ -1049,6 +1140,65 @@ describe('ProxyController', () => {
     expect(json.content).toEqual([{ type: 'text', text: 'hi there' }]);
     expect(json.stop_reason).toBe('end_turn');
     expect(json.usage).toMatchObject({ input_tokens: 4, output_tokens: 2 });
+  });
+
+  it('preserves an Anthropic 400 diagnostic on /v1/messages in production', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const providerError = {
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: '`temperature` is deprecated for this model.',
+        },
+      };
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: new Response(JSON.stringify(providerError), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+          isGoogle: false,
+          isAnthropic: true,
+          isChatGpt: false,
+        },
+        meta: {
+          tier: 'complex',
+          model: 'claude-opus-4-1',
+          provider: 'Anthropic',
+          confidence: 1,
+          reason: 'explicit-model',
+        },
+      });
+
+      const req = mockRequest({
+        model: 'claude-opus-4-1',
+        max_tokens: 64,
+        temperature: 0.1,
+        messages: [{ role: 'user', content: 'hi' }],
+      });
+      const { res } = mockResponse();
+
+      await controller.messages(req as never, res as never);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        type: 'error',
+        error: expect.objectContaining({
+          type: 'invalid_request_error',
+          message: '`temperature` is deprecated for this model.',
+          status: 400,
+          source: 'provider',
+        }),
+      });
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = originalEnv;
+      }
+    }
   });
 
   it('should pass through native Responses JSON bodies', async () => {
@@ -1697,7 +1847,7 @@ describe('ProxyController', () => {
       error: expect.objectContaining({
         message: 'Model unavailable',
         type: 'invalid_request_error',
-        code: null,
+        code: 'model_not_found',
         status: 404,
         source: 'provider',
       }),
@@ -3396,7 +3546,7 @@ describe('ProxyController', () => {
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 
-    it('should transform ChatGPT streaming through convertChatGptStreamChunk', async () => {
+    it('should transform ChatGPT streaming through the per-stream transformer', async () => {
       const mockProviderResp = createMockStreamResponse([
         'event: response.output_text.delta\ndata: {"delta":"hi"}\n\n',
       ]);
@@ -3417,9 +3567,12 @@ describe('ProxyController', () => {
         },
       });
 
-      (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk = jest
+      const transformer = jest
         .fn()
         .mockReturnValue('data: {"choices":[{"delta":{"content":"hi"}}]}\n\n');
+      (providerClient as Record<string, jest.Mock>).createChatGptStreamTransformer = jest
+        .fn()
+        .mockReturnValue(transformer);
 
       const req = mockRequest({
         messages: [{ role: 'user', content: 'test' }],
@@ -3429,9 +3582,7 @@ describe('ProxyController', () => {
 
       await controller.chatCompletions(req as never, res as never);
 
-      expect(
-        (providerClient as Record<string, jest.Mock>).convertChatGptStreamChunk,
-      ).toHaveBeenCalled();
+      expect(transformer).toHaveBeenCalled();
       expect(written.some((w) => w.includes('delta'))).toBe(true);
     });
 

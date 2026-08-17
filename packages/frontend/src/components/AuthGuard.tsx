@@ -25,8 +25,8 @@ const AuthGuard: ParentComponent = (props) => {
     // (range locks) read it synchronously. loadPlan never rejects (fail-open)
     // and costs one indexed query.
     loadPlan().then((status) => {
-      // /upgrade is the plan selection destination — never intercept it.
-      if (location.pathname === '/upgrade') {
+      // /register?step=plan is the plan selection destination — never intercept it.
+      if (location.pathname === '/register') {
         setPlanChecked(true);
         return;
       }
@@ -40,7 +40,7 @@ const AuthGuard: ParentComponent = (props) => {
         return;
       }
       if (status.enabled && status.plan !== 'pro') {
-        navigate('/upgrade', { replace: true });
+        navigate('/register?step=plan', { replace: true });
         return;
       }
       if (userId) markPlanChosen(userId);

@@ -46,7 +46,6 @@ import '../styles/overview.css';
 import '../styles/charts.css';
 import '../styles/routing.css';
 import { getAutofixStats } from '../services/api/analytics.js';
-import { getAutofixCohort } from '../services/api/autofix.js';
 
 const PRO_RANGES = new Set(['30d', '90d', '365d']);
 const AGENT_RANGE_OPTIONS = [
@@ -260,21 +259,13 @@ const Overview: Component = () => {
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
-  // ── Auto-fix resources (conditional on tenant cohort) ───────────────
-  const [autofixCohort] = createResource(
-    () => ({ _ping: analyticsPing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+  // ── Autofix resources ─────────────────────────────────
   const [autofixStats] = createResource(
-    () =>
-      autofixEligible()
-        ? {
-            range: effectiveRange(),
-            agent: decodeURIComponent(params.agentName),
-            _ping: analyticsPing(),
-          }
-        : false,
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: analyticsPing(),
+    }),
     (p) => getAutofixStats(p.range, p.agent),
   );
   // Disposition timeseries: the Requests chart's ONLY view on this page (an
@@ -472,13 +463,11 @@ const Overview: Component = () => {
                       </p>
                     </div>
                   </Show>
-                  <Show when={autofixEligible()}>
-                    <AutofixKpiCards
-                      stats={autofixStats()}
-                      agentName={decodeURIComponent(params.agentName)}
-                      range={effectiveRange()}
-                    />
-                  </Show>
+                  <AutofixKpiCards
+                    stats={autofixStats()}
+                    agentName={decodeURIComponent(params.agentName)}
+                    range={effectiveRange()}
+                  />
                   {(() => {
                     return (
                       <UnifiedChartCard
@@ -501,7 +490,7 @@ const Overview: Component = () => {
                             Math.min(999, Math.round(((cur - prev) / prev) * 100)),
                           );
                         })()}
-                        selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+                        selfHealedTimeseries={selfHealedTs()}
                         costValue={d().summary?.cost_today?.value ?? 0}
                         costTrendPct={d().summary?.cost_today?.trend_pct ?? 0}
                         costInfoTooltip="Actual API key costs only. Subscription usage is not included."
@@ -564,7 +553,7 @@ const Overview: Component = () => {
                   <CostByModelTable
                     rows={d().cost_by_model ?? []}
                     reliability={modelReliability()}
-                    doctorAvailable={autofixEligible()}
+                    doctorAvailable
                   />
                 </>
               );

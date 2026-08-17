@@ -1,6 +1,6 @@
 import { ProviderClient } from '../provider-client';
 import { ManifestError } from '../../../common/errors/manifest-error';
-import { buildCustomEndpoint } from '../provider-endpoints';
+import { buildCustomEndpoint, buildEndpointOverride } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
@@ -435,6 +435,101 @@ describe('ProviderClient', () => {
       expect(sentBody.stream).toBe(false);
       expect(result.isAnthropic).toBe(false);
       expect(result.isGoogle).toBe(false);
+    });
+
+    it.each([
+      'openai.gpt-5.4',
+      'openai.gpt-5.5',
+      'openai.gpt-5.6-sol',
+      'openai.gpt-5.6-terra',
+      'openai.gpt-5.6-luna',
+    ])('routes Bedrock %s through the namespaced Responses API', async (model) => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model,
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer bedrock-api-key-test',
+            'Content-Type': 'application/json',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe(model);
+      expect(sentBody.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'Hello' }] },
+      ]);
+      expect(sentBody.max_output_tokens).toBe(1024);
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.stream).toBe(false);
+      expect(result.isChatGpt).toBe(true);
+      expect(result.wireApiMode).toBe('responses');
+    });
+
+    it('preserves Bedrock Responses conversion for a selected region', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'openai.gpt-5.6-luna',
+        body: { ...body, max_tokens: 1024 },
+        stream: false,
+        customEndpoint: buildEndpointOverride(
+          'https://bedrock-mantle.us-west-2.api.aws',
+          'bedrock-responses',
+        ),
+      });
+
+      expect(mockFetch.mock.calls[0][0]).toBe(
+        'https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses',
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.max_output_tokens).toBe(1024);
+      expect(sentBody.stream).toBe(false);
+    });
+
+    it('routes Bedrock Anthropic models through the Messages API', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      const result = await client.forward({
+        provider: 'bedrock',
+        apiKey: 'bedrock-api-key-test',
+        model: 'anthropic.claude-sonnet-5',
+        body,
+        stream: false,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://bedrock-mantle.us-east-1.api.aws/anthropic/v1/messages',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'x-api-key': 'bedrock-api-key-test',
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01',
+          },
+        }),
+      );
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('anthropic.claude-sonnet-5');
+      expect(sentBody.messages).toEqual([
+        { role: 'user', content: [{ type: 'text', text: 'Hello' }] },
+      ]);
+      expect(result.isAnthropic).toBe(true);
+      expect(result.wireApiMode).toBe('messages');
     });
 
     it('builds correct URL for moonshot', async () => {
@@ -1510,6 +1605,22 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBe(false);
     });
 
+    it('forces upstream streaming when the caller sends stream:false (#2706)', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'oauth-token',
+        model: 'gpt-5.6-sol',
+        body: { ...body, stream: false },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.stream).toBe(true);
+    });
+
     it('sends default instructions when no system or developer prompt is present', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1524,6 +1635,22 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.instructions).toBe('You are a helpful assistant.');
+    });
+
+    it('maps reasoning_effort onto the Responses reasoning object with summary auto', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'token',
+        model: 'gpt-5.6-sol',
+        body: { messages: [{ role: 'user', content: 'Hello' }], reasoning_effort: 'xhigh' },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
     });
 
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
@@ -2159,6 +2286,24 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(true);
     });
 
+    it('maps max_completion_tokens to the Kimi Code Anthropic wire field', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'moonshot',
+        apiKey: 'kimi-code-key',
+        model: 'k3',
+        body: { ...body, max_completion_tokens: 123 },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('k3');
+      expect(sentBody.max_tokens).toBe(123);
+      expect(sentBody.max_completion_tokens).toBeUndefined();
+    });
+
     it('keeps standard Moonshot API-key auth on the Moonshot OpenAI endpoint', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -2755,17 +2900,19 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('convertChatGptStreamChunk', () => {
+  describe('createChatGptStreamTransformer', () => {
     it('converts output_text delta to chat completion chunk', () => {
       const chunk = 'event: response.output_text.delta\ndata: {"delta":"Hi"}';
-      const result = client.convertChatGptStreamChunk(chunk, 'gpt-5');
+      const result = client.createChatGptStreamTransformer('gpt-5')(chunk);
 
       expect(result).toContain('data: ');
       expect(result).toContain('"chat.completion.chunk"');
     });
 
     it('returns null for irrelevant events', () => {
-      const result = client.convertChatGptStreamChunk('event: response.created\ndata: {}', 'gpt-5');
+      const result = client.createChatGptStreamTransformer('gpt-5')(
+        'event: response.created\ndata: {}',
+      );
       expect(result).toBeNull();
     });
   });
@@ -4750,5 +4897,63 @@ describe('ProviderClient', () => {
       expect(result.isCodeAssist).toBeFalsy();
       expect(result.isGoogle).toBe(true);
     });
+  });
+});
+
+describe('ProviderClient reasoning catalog', () => {
+  const previousMode = process.env['MANIFEST_MODE'];
+
+  beforeEach(() => {
+    process.env['MANIFEST_MODE'] = 'selfhosted';
+    mockFetch.mockReset();
+    mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+  });
+
+  afterAll(() => {
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
+  });
+
+  const reasoningBody = {
+    messages: [
+      {
+        role: 'assistant',
+        content: '',
+        reasoning_content: 'upstream thinking',
+        tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+      },
+    ],
+  };
+
+  it('forwards reasoning_content to Zen when the injected catalog vouches for the model', async () => {
+    const catalogClient = new ProviderClient(undefined, undefined, undefined, {
+      isReasoningModel: () => true,
+    });
+
+    await catalogClient.forward({
+      provider: 'opencode-zen',
+      apiKey: 'zen-token',
+      model: 'opencode-zen/big-pickle',
+      body: reasoningBody,
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(sentBody.messages[0].reasoning_content).toBe('upstream thinking');
+  });
+
+  it('strips reasoning_content for Zen when no catalog is wired', async () => {
+    const bareClient = new ProviderClient();
+
+    await bareClient.forward({
+      provider: 'opencode-zen',
+      apiKey: 'zen-token',
+      model: 'opencode-zen/big-pickle',
+      body: reasoningBody,
+      stream: false,
+    });
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(sentBody.messages[0].reasoning_content).toBeUndefined();
   });
 });

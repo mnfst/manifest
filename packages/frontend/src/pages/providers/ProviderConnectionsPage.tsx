@@ -43,7 +43,6 @@ import {
   totalAttemptsTooltip,
   CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
 } from '../../services/api/analytics.js';
-import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
 
@@ -402,12 +401,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
 
-  const [autofixCohort] = createResource(
-    () => ({ _ping: analyticsPing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
-
   // Attempt-world totals for the header cards: summed over THIS page's rows
   // (provider + auth_type grain), so the Subscriptions page never blends an
   // api_key connection's failures into its numbers, and vice versa.
@@ -559,7 +552,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Total attempts (30d)
-              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+              <InfoTooltip text={totalAttemptsTooltip(true)} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
@@ -602,7 +595,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 </Show>
                 <th class="rel-col">
                   Total attempts (30d)
-                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                  <InfoTooltip text={totalAttemptsTooltip(true)} />
                 </th>
                 <th class="rel-col">
                   Success rate (30d)

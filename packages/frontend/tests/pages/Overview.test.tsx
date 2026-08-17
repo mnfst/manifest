@@ -76,13 +76,13 @@ const mockPerProviderTokens = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderMessages = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockPerProviderCosts = vi.fn((...a: unknown[]) => mockPerProvider(...a));
 const mockGetAutofixStats = vi.fn();
-let mockAutofixEligible = false;
 vi.mock('../../src/services/api/analytics.js', () => ({
-  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Auto-fix or fallback.',
-  REQUEST_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests. Recovered requests count as successful.',
+  RECOVERED_REQUESTS_TOOLTIP: 'Successful requests that were recovered by Autofix or fallback.',
+  REQUEST_SUCCESS_RATE_TOOLTIP:
+    'Successful requests over all requests. Recovered requests count as successful.',
   totalAttemptsTooltip: (doctor: boolean) =>
     doctor
-      ? 'Every provider call counts here, including fallback retries and auto-fixed attempts. One request can produce several attempts.'
+      ? 'Every provider call counts here, including fallback retries and autofixed attempts. One request can produce several attempts.'
       : 'Every provider call counts here, including fallback retries. One request can produce several attempts.',
   MODEL_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this model.',
   PROVIDER_SUCCESS_RATE_TOOLTIP: 'Successful attempts over all attempts for this provider.',
@@ -106,8 +106,7 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 5, previous: 4 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () =>
-    Promise.resolve({ available: false, any_enabled: false, enabled_agents: [] }),
+  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: (...a: unknown[]) => mockGetAutofixStats(...a),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -116,12 +115,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getErrorBreakdown: () => Promise.resolve({ by_class: {}, by_origin: {}, auto_fixed: 0 }),
 }));
 
-vi.mock('../../src/services/api/autofix.js', () => ({
-  getAutofixCohort: () => Promise.resolve({ eligible: mockAutofixEligible }),
-}));
-
 vi.mock('../../src/services/api/routing.js', () => ({
-  getAutofix: () => Promise.resolve({ available: false, enabled: false }),
+  getAutofix: () => Promise.resolve({ enabled: false }),
 }));
 
 import { resetPlanStore } from '../../src/services/plan-store';
@@ -271,7 +266,6 @@ describe('Overview', () => {
     mockIsSetupPending.mockReturnValue(false);
     mockAgentName = 'test-agent';
     mockLocationState = null;
-    mockAutofixEligible = false;
     mockGetAutofixStats.mockResolvedValue({
       success_rate: { value: 0.9, previous: 0.8 },
       autofix_saves: { value: 7, previous: 5 },
@@ -513,39 +507,23 @@ describe('Overview', () => {
       expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
-    fireEvent.click(stats[1]); // cost (non-cohort: Requests=0, Cost=1, Token usage=2)
+    fireEvent.click(stats[2]); // cost (Requests=0, Recovered=1, Cost=2, Token usage=3)
     await vi.waitFor(() => {
       expect(mockPerProviderCosts).toHaveBeenCalledWith('test-agent', '30d');
     });
   });
 
-  it('has clickable stat headers for requests, cost and tokens (no self-healed tab off-cohort)', async () => {
+  it('has clickable stat headers for requests, recovered requests, cost and tokens', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
       const clickable = container.querySelectorAll('.chart-card__stat--clickable');
-      expect(clickable.length).toBe(3);
+      expect(clickable.length).toBe(4);
     });
-    expect(screen.queryByText('Recovered requests')).toBeNull();
+    expect(screen.getAllByText('Recovered requests').length).toBeGreaterThan(0);
   });
 
-  it('hides the self-healed tab and KPI cards for non-cohort tenants', async () => {
-    mockGetOverview.mockResolvedValue(overviewData);
-    const { container } = render(() => <Overview />);
-
-    await vi.waitFor(() => {
-      expect(screen.getAllByText('Requests').length).toBeGreaterThan(0);
-    });
-    expect(screen.queryByText('Recovered requests')).toBeNull();
-    // The Auto-fix KPI row is the only overview-stat-card surface on this page;
-    // 'Success rate' alone is ambiguous (CostByModelTable has a per-model
-    // reliability column of the same name for every tenant).
-    expect(container.querySelector('.overview-stat-card')).toBeNull();
-    expect(mockGetAutofixStats).not.toHaveBeenCalled();
-  });
-
-  it('loads and renders the self-healed KPIs and tab only for cohort tenants', async () => {
-    mockAutofixEligible = true;
+  it('loads and renders the self-healed KPIs and tab for every tenant', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     render(() => <Overview />);
 
@@ -555,7 +533,7 @@ describe('Overview', () => {
     expect(mockGetAutofixStats).toHaveBeenCalledWith('30d', 'test-agent');
     // Tab + KPI cards share the label; both surfaces are present.
     expect(screen.getAllByText('Recovered requests').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Recovered by Auto-fix')).toBeDefined();
+    expect(screen.getByText('Recovered by Autofix')).toBeDefined();
     expect(screen.getByText('Recovered by Fallback')).toBeDefined();
   });
 
@@ -567,22 +545,22 @@ describe('Overview', () => {
     });
     const { container } = render(() => <Overview />);
     // The Requests view is status-only now (no per-provider request chart);
-    // usage views render the multi-provider chart. Off-cohort order:
-    // Requests / Cost / Tokens.
+    // usage views render the multi-provider chart. Order:
+    // Requests / Recovered requests / Cost / Tokens.
     await vi.waitFor(() => {
-      expect(container.querySelectorAll('.chart-card__stat--clickable').length).toBe(3);
+      expect(container.querySelectorAll('.chart-card__stat--clickable').length).toBe(4);
     });
     expect(container.querySelector('[data-testid="multi-agent-chart"]')).toBeNull();
 
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
 
-    fireEvent.click(stats[1]); // cost
+    fireEvent.click(stats[2]); // cost
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Cost');
     });
 
-    fireEvent.click(stats[2]); // tokens — renders the token-view chart
+    fireEvent.click(stats[3]); // tokens — renders the token-view chart
     await vi.waitFor(() => {
       const active = container.querySelector('.chart-card__stat--active');
       expect(active?.textContent).toContain('Token usage');

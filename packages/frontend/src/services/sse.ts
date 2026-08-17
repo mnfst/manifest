@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js';
 import { invalidateCustomProvidersCache } from './api/routing.js';
-import { invalidateGroup } from './api/cache.js';
+import { DEFAULT_TTL_MS, invalidateGroup } from './api/cache.js';
 
 // pingCount counts ANY event from the bus (legacy back-compat for callers that
 // don't care which kind fired). New code should depend on the targeted
@@ -31,14 +31,14 @@ export function connectSse(): () => void {
   let analyticsBumpTimer: ReturnType<typeof setTimeout> | null = null;
   const bumpMessagePing = () => {
     // Aggregate charts and 30-day summaries are much heavier than the recent
-    // message feed. Refresh them within a few seconds, but not twice per second
-    // during sustained agent traffic.
+    // message feed. Match their server/client cache TTL so sustained ingest
+    // cannot force every open dashboard to poll the analytics API every 5s.
     if (!analyticsBumpTimer) {
       analyticsBumpTimer = setTimeout(() => {
         analyticsBumpTimer = null;
         invalidateGroup('analytics');
         setAnalyticsPing((n) => n + 1);
-      }, 5_000);
+      }, DEFAULT_TTL_MS);
     }
     if (messageBumpTimer) return;
     messageBumpTimer = setTimeout(() => {

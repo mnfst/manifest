@@ -51,7 +51,7 @@ describe('ProxyFallbackService', () => {
   let pricingCache: jest.Mocked<ModelPricingCacheService>;
   let modelParamsService: jest.Mocked<AgentModelParamsService>;
   let providerParamSpecs: jest.Mocked<ProviderParamSpecService>;
-  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'reinjectMissingReasoningContent'>>;
+  let reasoningCache: jest.Mocked<Pick<ReasoningContentCache, 'prepareRequest'>>;
 
   beforeEach(() => {
     providerKeyService = {
@@ -161,7 +161,7 @@ describe('ProxyFallbackService', () => {
     } as unknown as jest.Mocked<ProviderParamSpecService>;
 
     reasoningCache = {
-      reinjectMissingReasoningContent: jest.fn(
+      prepareRequest: jest.fn(
         async (
           requestBody: Record<string, unknown>,
           _sessionKey: string,
@@ -724,7 +724,7 @@ describe('ProxyFallbackService', () => {
           },
         ],
       };
-      reasoningCache.reinjectMissingReasoningContent.mockResolvedValueOnce(enrichedBody);
+      reasoningCache.prepareRequest.mockResolvedValueOnce(enrichedBody);
 
       await service.tryForwardToProvider({
         provider: 'deepseek',
@@ -736,7 +736,7 @@ describe('ProxyFallbackService', () => {
         authType: 'api_key',
       });
 
-      expect(reasoningCache.reinjectMissingReasoningContent).toHaveBeenCalledWith(
+      expect(reasoningCache.prepareRequest).toHaveBeenCalledWith(
         requestBody,
         'sess-1',
         'deepseek',
@@ -1300,14 +1300,18 @@ describe('ProxyFallbackService', () => {
         model: 'gpt-4o',
         authType: 'api_key',
         tenantProviderId: 'connection-1',
+        providerKeyLabel: 'Work',
         startProviderAttempt,
       });
 
+      // The retry rides the same connection as the original call, so the
+      // pending attempt row it opens must name that connection's label too.
       expect(startProviderAttempt).toHaveBeenCalledWith({
         provider: 'openai',
         model: 'gpt-4o',
         authType: 'api_key',
         tenantProviderId: 'connection-1',
+        keyLabel: 'Work',
       });
       expect(result.attempt).toBe(attempt);
       expect(result.providerCallStarted).toBe(true);

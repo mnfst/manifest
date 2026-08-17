@@ -77,7 +77,6 @@ import {
   HARNESS_SUCCESS_RATE_TOOLTIP,
   HARNESS_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
-import { getAutofixCohort } from '../services/api/autofix.js';
 
 interface ProviderGroup {
   provider: string;
@@ -294,14 +293,9 @@ const GlobalOverview: Component = () => {
     },
   );
 
-  // ── Auto-fix resources (conditional on tenant access) ────────────────
-  const [autofixCohort] = createResource(
-    () => ({ _ping: analyticsPing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
+  // ── Autofix resources ─────────────────────────────────
   const [autofixStats] = createResource(
-    () => (autofixEligible() ? { range: effectiveChartRange(), _ping: analyticsPing() } : false),
+    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getAutofixStats(p.range),
   );
 
@@ -696,10 +690,8 @@ const GlobalOverview: Component = () => {
           </Show>
         }
       >
-        {/* ── Auto-fix KPI cards (autofix-gated) ── */}
-        <Show when={autofixEligible()}>
-          <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
-        </Show>
+        {/* ── Autofix KPI cards ── */}
+        <AutofixKpiCards stats={autofixStats()} range={effectiveChartRange()} />
 
         {/* ── 2. Unified Chart Card ─────────────────────────────────── */}
         {(() => {
@@ -727,7 +719,7 @@ const GlobalOverview: Component = () => {
                 if (prev === 0) return 0;
                 return Math.max(-999, Math.min(999, Math.round(((cur - prev) / prev) * 100)));
               })()}
-              selfHealedTimeseries={autofixEligible() ? selfHealedTs() : undefined}
+              selfHealedTimeseries={selfHealedTs()}
               costValue={o().summary.cost_today.value}
               costTrendPct={o().summary.cost_today.trend_pct}
               costInfoTooltip="Actual API key costs only. Subscription usage is not included."
@@ -852,7 +844,7 @@ const GlobalOverview: Component = () => {
                   <th style="text-align: right;">Est. cost</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    <InfoTooltip text={totalAttemptsTooltip(true)} />
                   </th>
                   <th class="rel-col">
                     Success rate
@@ -975,7 +967,7 @@ const GlobalOverview: Component = () => {
                   <th>Status</th>
                   <th class="rel-col">
                     Total attempts
-                    <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                    <InfoTooltip text={totalAttemptsTooltip(true)} />
                   </th>
                   <th class="rel-col">
                     Failed attempts
@@ -1166,9 +1158,7 @@ const GlobalOverview: Component = () => {
                     Total requests
                     <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
                   </th>
-                  <Show when={autofixEligible()}>
-                    <th class="rel-col">Recovered requests</th>
-                  </Show>
+                  <th class="rel-col">Recovered requests</th>
                   <th class="rel-col">
                     Success rate
                     <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
@@ -1246,31 +1236,29 @@ const GlobalOverview: Component = () => {
                             agentReliability()?.find((r) => r.agent_name === agent.agent_name);
                           return (
                             <>
-                              <Show when={autofixEligible()}>
-                                <td class="rel-col">
-                                  <Show when={rel()} fallback="—">
-                                    {(() => {
-                                      // Recovered = successful requests holding a
-                                      // recovery attempt (auto-fix or fallback).
-                                      const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
-                                      return (
-                                        <a
-                                          class="count-link"
-                                          href={link}
-                                          title="View this harness's recovered requests"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            navigate(link);
-                                          }}
-                                        >
-                                          {formatNumber(selfHealedCount(rel()!))}
-                                        </a>
-                                      );
-                                    })()}
-                                  </Show>
-                                </td>
-                              </Show>
+                              <td class="rel-col">
+                                <Show when={rel()} fallback="—">
+                                  {(() => {
+                                    // Recovered = successful requests holding a
+                                    // recovery attempt (autofix or fallback).
+                                    const link = `/messages?agent=${encodeURIComponent(agent.agent_name)}&range=${effectiveChartRange()}&status=ok&trigger=autofix,fallback`;
+                                    return (
+                                      <a
+                                        class="count-link"
+                                        href={link}
+                                        title="View this harness's recovered requests"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          navigate(link);
+                                        }}
+                                      >
+                                        {formatNumber(selfHealedCount(rel()!))}
+                                      </a>
+                                    );
+                                  })()}
+                                </Show>
+                              </td>
                               <td class="rel-col">
                                 {(() => {
                                   const rate = rel() ? successRate(rel()!) : null;
@@ -1287,7 +1275,7 @@ const GlobalOverview: Component = () => {
                 <Show when={agentList().length === 0}>
                   <tr>
                     <td
-                      colspan="4"
+                      colspan="5"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
                       No harnesses yet

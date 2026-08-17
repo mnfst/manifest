@@ -2,6 +2,7 @@ import { PROVIDER_REGISTRY } from '../../../common/constants/providers';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
+  resolveBedrockEndpointKey,
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
@@ -160,6 +161,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('cerebras');
     expect(known).toContain('cline-pass');
     expect(known).toContain('pioneer');
+    expect(known).toContain('meta');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -229,6 +231,26 @@ describe('resolveEndpointKey', () => {
   });
 });
 
+describe('resolveBedrockEndpointKey', () => {
+  it.each(['openai.gpt-5.6-luna', 'us.openai.gpt-5.6-luna', 'bedrock/openai.gpt-5.6-luna'])(
+    'routes %s through Responses',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-responses');
+    },
+  );
+
+  it.each(['anthropic.claude-sonnet-5', 'us.anthropic.claude-sonnet-5'])(
+    'routes %s through Messages',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-anthropic');
+    },
+  );
+
+  it('keeps other Bedrock model families on Chat Completions', () => {
+    expect(resolveBedrockEndpointKey('mistral.ministral-3-8b-instruct')).toBe('bedrock');
+  });
+});
+
 describe('PROVIDER_ENDPOINTS', () => {
   it('routes Atlas Cloud through its OpenAI-compatible endpoint', () => {
     const endpoint = PROVIDER_ENDPOINTS['atlascloud'];
@@ -242,6 +264,29 @@ describe('PROVIDER_ENDPOINTS', () => {
       'Content-Type': 'application/json',
     });
   });
+
+  it.each([
+    'openai.gpt-5',
+    'openai.gpt-5.1',
+    'openai.gpt-5.4',
+    'openai.gpt-5.4-2026-03-05',
+    'openai.gpt-5.5',
+    'openai.gpt-5.6-sol',
+    'openai.gpt-5.6-terra',
+    'openai.gpt-5.6-luna',
+    'openai.gpt-5.99-future',
+    'us.openai.gpt-5.6-luna',
+    'bedrock/openai.gpt-5.6-luna',
+  ])('uses the namespaced Bedrock Responses path for %s', (model) => {
+    expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath(model)).toBe('/openai/v1/responses');
+  });
+
+  it.each(['openai.gpt-oss-120b', 'openai.gpt-50'])(
+    'keeps non-GPT-5 Bedrock model %s on the generic Responses path',
+    (model) => {
+      expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath(model)).toBe('/v1/responses');
+    },
+  );
 
   it('routes Gemini Free through the configured LiteLLM gateway', () => {
     process.env['CREDITS_BASE_URL'] = 'https://credits.test/';
@@ -263,6 +308,18 @@ describe('PROVIDER_ENDPOINTS', () => {
       Authorization: 'Bearer hf_test_token',
       'Content-Type': 'application/json',
     });
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
+  it('meta uses the Model API OpenAI-compatible chat endpoint', () => {
+    const endpoint = PROVIDER_ENDPOINTS['meta'];
+    expect(endpoint.baseUrl).toBe('https://api.meta.ai');
+    expect(endpoint.buildPath('muse-spark-1.2')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('LLM_test-meta-key-value')).toEqual({
+      Authorization: 'Bearer LLM_test-meta-key-value',
+      'Content-Type': 'application/json',
+    });
+    expect(endpoint.format).toBe('openai');
     expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
   });
 
@@ -738,6 +795,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'mistral',
       'xai',
       'minimax',
+      'meta',
       'xiaomi',
       'moonshot',
       'nous',

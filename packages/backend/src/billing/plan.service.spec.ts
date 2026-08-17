@@ -18,6 +18,14 @@ describe('PlanService', () => {
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
   const TENANT = { id: 't1', owner_user_id: 'u1', limit_overrides: null };
 
+  function quotaTriggerDefinition(timeZone: string): string {
+    return `IF (NEW."timestamp" AT TIME ZONE '${timeZone}') AT TIME ZONE 'UTC' < counter_cutover_at`;
+  }
+
+  function processTimeZone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  }
+
   function enableBilling() {
     process.env['MANIFEST_MODE'] = 'cloud';
     process.env['STRIPE_SECRET_KEY'] = 'sk_test_x';
@@ -46,6 +54,42 @@ describe('PlanService', () => {
 
   afterAll(() => {
     process.env = { ...saved };
+  });
+
+  describe('onModuleInit', () => {
+    it('skips the timezone check for self-hosted mode', async () => {
+      process.env['MANIFEST_MODE'] = 'selfhosted';
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('accepts the request storage timezone used by the process', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(processTimeZone()) }]);
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery.mock.calls[0][0]).toContain('pg_get_functiondef');
+    });
+
+    it('rejects a request storage timezone mismatch', async () => {
+      enableBilling();
+      const mismatch = processTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(mismatch) }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Request quota storage timezone mismatch',
+      );
+    });
+
+    it('rejects a missing request quota trigger', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValue([{ definition: null }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Could not read request quota timezone from installed trigger',
+      );
+    });
   });
 
   describe('getPlan', () => {
