@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-08-17
 
 ## What Manifest Is
 
@@ -83,8 +83,9 @@ packages/
 │   │   │   ├── pricing-sync.service.ts      # OpenRouter pricing data sync
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
-│   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   │   ├── seed-messages.ts             # Demo request/provider-attempt seed data
+│   │   │   └── seed-cohorts.ts              # Seeds clean/legacy routing-cohort demo agents
+│   │   ├── entities/                        # TypeORM entities (24 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -97,6 +98,7 @@ packages/
 │   │   │   ├── interceptors/               # agent-cache, user-cache
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
 │   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
+│   │   │   ├── cache/, errors/, middleware/ # response caching, ManifestError codes, Express middleware
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
@@ -113,6 +115,7 @@ packages/
 │   │   │   ├── custom-provider/             # Custom provider CRUD
 │   │   │   ├── header-tiers/               # Header-based tier overrides
 │   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── managed-free-provider/       # Manifest-hosted free-tier provider credits
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
@@ -161,12 +164,13 @@ packages/
 │   │   │   ├── ConnectProvider.tsx, providers/       # Provider connection flow
 │   │   │   ├── FreeModels.tsx               # Free model catalog
 │   │   │   ├── Setup.tsx                    # First-run setup wizard
+│   │   │   ├── Welcome.tsx                  # Post-signup onboarding flow
 │   │   │   ├── Upgrade.tsx                  # Billing/plan upgrade page
 │   │   │   ├── Help.tsx                     # Help page
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
-│   │   │   ├── api.ts                       # API functions (credentials: include)
+│   │   │   ├── api.ts, api/                 # API functions (credentials: include); api.ts re-exports per-domain modules under api/
 │   │   │   ├── providers.ts                 # ProviderDef list + SPECIFICITY_STAGES + STAGES
 │   │   │   ├── model-display.ts             # Model display-name cache
 │   │   │   ├── formatters.ts               # Number/cost formatting
@@ -219,7 +223,6 @@ Set `SEED_DATA=true` in `packages/backend/.env` to seed on startup (dev/test onl
 - **Tenant**: `seed-tenant-001` linked to the admin user
 - **Agent**: `demo-agent` with OTLP key `dev-otlp-key-001`
 - **API key**: `dev-api-key-manifest-001`
-- **Security events**: 12 sample events for the security dashboard
 - **Requests and provider attempts**: Sample telemetry for the demo agent
 
 Seeding is idempotent — it checks for existing records before inserting.
@@ -325,7 +328,7 @@ User (Better Auth) ──→ Tenant ──→ Agent ──→ AgentApiKey (mnfst
 ```
 
 - **Tenant** (`tenants` table): Created automatically on first agent creation. `tenant.owner_user_id` = `user.id` is the ONLY user→tenant link (resolved through `TenantCacheService`); `tenant.name` mirrors it for display until repurposed as a slug.
-- **Agent** (`agents` table): Belongs to a tenant. Unique constraint on `[tenant_id, name]`.
+- **Agent** (`agents` table): Belongs to a tenant. Partial unique index on `[tenant_id, name]` scoped to non-deleted rows, so a soft-deleted agent's name can be reused.
 - **AgentApiKey** (`agent_api_keys` table): One-to-one with agent. `mnfst_*` format key for OTLP ingestion.
 - **ApiKey** (`api_keys` table): A separate, tenant-scoped credential (not per-agent) used for dashboard/API access — the primary key `ApiKeyGuard` checks. Distinct from `AgentApiKey`.
 - **Onboarding flow**: `ApiKeyGeneratorService.onboardAgent()` creates tenant (if new) + agent + API key via three sequential inserts.
@@ -353,7 +356,6 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | PATCH                     | `/api/v1/agents/:agentName`                     | Session/API Key                     | Rename agent                                                                                                |
 | GET                       | `/api/v1/messages`                              | Session/API Key                     | Paginated Requests log (legacy route name)                                                                  |
 | GET/PATCH/DELETE          | `/api/v1/messages/:id/*`                        | Session/API Key                     | Request details, feedback, miscategorized flag (legacy route name)                                          |
-| GET                       | `/api/v1/security`                              | Session/API Key                     | Security score + events                                                                                     |
 | GET                       | `/api/v1/model-prices`                          | Session/API Key                     | Model pricing list                                                                                          |
 | GET                       | `/api/v1/free-models`                           | Session/API Key                     | Free LLM model catalog                                                                                      |
 | GET                       | `/api/v1/agent/usage`                           | Bearer (mnfst\_\*)                  | Token usage for the calling agent                                                                           |
@@ -371,7 +373,9 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
 | GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
 | POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
-| GET/POST/DELETE           | `/api/v1/oauth/:provider/*`                     | Session/API Key                     | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax)                                                 |
+| GET                       | `/api/v1/autofix/status`                        | Session/API Key                     | Fleet Autofix coverage (see [Autofix](#autofix-self-healing-via-phoenix))                                   |
+| POST                      | `/api/v1/autofix/enable-all`                    | Session/API Key                     | Enable Autofix for every agent in the tenant                                                                |
+| GET/POST                  | `/api/v1/oauth/:provider/*`                     | Session/API Key                     | OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax)                                                 |
 | POST                      | `/api/v1/routing/resolve`                       | Bearer (mnfst\_\*)                  | Model resolution                                                                                            |
 | POST                      | `/api/v1/routing/subscription-providers`        | Bearer (mnfst\_\*)                  | Subscription provider config                                                                                |
 | GET                       | `/api/v1/setup/status`                          | Public                              | First-run setup status                                                                                      |
