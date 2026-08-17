@@ -1,0 +1,31 @@
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_036e57b72f5518::t_738b24a7886227 181-285,291-293,305-315
+  s_036e57b72f5518::t_c53b9623af8e65 286-290,294-304
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_036e57b72f5518::t_6c4250d0d1eb75 77-89,93-97,99-103,105-110,119-169
+  s_036e57b72f5518::t_549b4632f2ac33 32-35
+  s_036e57b72f5518::t_e69f24ba8e3b9a 90-92,98,104,111-118
+  s_036e57b72f5518::t_5c6cb59b8d57ce 4-5
+.changeset/mps-catalog-api-refresh.md
+  s_036e57b72f5518::t_429ce3bb1607b8 1-5
+package-lock.json
+  s_036e57b72f5518::t_1d33578ceec726 16458,16492-16500,16584
+packages/backend/package.json
+  s_036e57b72f5518::t_2633de726e84c2 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "aa079c5fbbeb328fa89192086f9457a053d42532",
+  "prompts": {},
+  "sessions": {
+    "s_036e57b72f5518": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d30aa6a4-9a49-4b36-909e-c83819298abb",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
