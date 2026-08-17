@@ -1,0 +1,43 @@
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_2a23f53bcd21d7::t_893916cd3e1519 351-485
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_2a23f53bcd21d7::t_de870ef56a8e47 1073
+packages/backend/src/common/utils/cost-calculator.ts
+  s_2a23f53bcd21d7::t_92cc866fadd0b2 30-65
+  s_2a23f53bcd21d7::t_b8c804055b5a6c 99-111,122-123,126-127
+  s_2a23f53bcd21d7::t_7c30b61faa13fc 1
+.changeset/deepseek-peak-pricing.md
+  s_2a23f53bcd21d7::t_59d0b694bcd96d 1-5
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_2a23f53bcd21d7::t_227735090e3d7a 397-429
+packages/backend/src/database/models-dev-sync.service.ts
+  s_2a23f53bcd21d7::t_ebcdfc4a6602e1 115-146,157,161
+  s_2a23f53bcd21d7::t_9a57221297f59d 532-558,564-566,568-575
+  s_2a23f53bcd21d7::t_373839ce698cc3 46-59,73,79-86,94-100
+  s_2a23f53bcd21d7::t_b6c515328c0e44 147-156,158-160,576-590,610
+packages/backend/src/model-prices/model-pricing-cache.time-tiers.spec.ts
+  s_2a23f53bcd21d7::t_3e61bf36d65ed8 1-115
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_2a23f53bcd21d7::t_62c1d3c61321e0 223-229
+  s_2a23f53bcd21d7::t_f00b75a52bf4f6 246-249,253-257
+  s_2a23f53bcd21d7::t_1205eea254d799 23-36,44-45
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_2a23f53bcd21d7::t_d191273fc12a46 1017-1208,1211-1214
+  s_2a23f53bcd21d7::t_9bc72b869e1fd3 1209-1210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "140f93bc0bc92f27e1c9b293c257443e3e0f851b",
+  "prompts": {},
+  "sessions": {
+    "s_2a23f53bcd21d7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6d15cce2-097b-4df3-885a-8cfd737e654c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
