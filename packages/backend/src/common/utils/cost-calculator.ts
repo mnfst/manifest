@@ -1,4 +1,4 @@
-import { PricingEntry } from '../../model-prices/model-pricing-cache.service';
+import { PricingEntry, PricingTimeTier } from '../../model-prices/model-pricing-cache.service';
 
 export interface CostInput {
   inputTokens: number;
@@ -27,6 +27,42 @@ export interface CostInput {
    * (for example NousResearch Portal) instead of being flat-fee unlimited.
    */
   reportedCostUsd?: number | null;
+  /**
+   * Billing timestamp used to resolve time-of-day pricing tiers (peak/off-peak
+   * providers like DeepSeek V4). Pass the request start when available;
+   * defaults to the moment of computation, which for proxy traffic is within
+   * seconds of the response.
+   */
+  at?: Date;
+}
+
+/**
+ * Minutes since UTC midnight for a "HH:MM" string, or null when malformed.
+ * Tier windows are validated upstream, so null only guards corrupted data.
+ */
+function toUtcMinutes(time: string | undefined): number | null {
+  if (!time) return null;
+  const [hours, minutes] = time.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  return hours * 60 + minutes;
+}
+
+/** True when `minutes` falls inside a "HH:MM-HH:MM" window (end exclusive, wraps midnight). */
+function windowMatches(window: string, minutes: number): boolean {
+  const [start, end] = window.split('-').map(toUtcMinutes);
+  if (start == null || end == null) return false;
+  return start < end ? minutes >= start && minutes < end : minutes >= start || minutes < end;
+}
+
+/**
+ * The time tier whose windows contain `at`, if any. A matching tier replaces
+ * the base prices outright (tiers never compose with the base cost).
+ */
+function resolveTimeTier(pricing: PricingEntry, at: Date): PricingTimeTier | undefined {
+  const tiers = pricing.time_tiers;
+  if (!tiers || tiers.length === 0) return undefined;
+  const minutes = at.getUTCHours() * 60 + at.getUTCMinutes();
+  return tiers.find((tier) => tier.windows.some((window) => windowMatches(window, minutes)));
 }
 
 /**
@@ -60,8 +96,19 @@ export function computeTokenCost(input: CostInput): number | null {
     return null;
   }
 
-  const inputPrice = Number(pricing.input_price_per_token);
-  const outputPrice = Number(pricing.output_price_per_token);
+  // A time tier that matches the billing timestamp replaces the base prices
+  // (peak-hour billing); a tier missing its own input/output prices is
+  // ignored rather than half-applied.
+  const timeTier = resolveTimeTier(pricing, input.at ?? new Date());
+  const effective =
+    timeTier != null &&
+    timeTier.input_price_per_token != null &&
+    timeTier.output_price_per_token != null
+      ? timeTier
+      : pricing;
+
+  const inputPrice = Number(effective.input_price_per_token);
+  const outputPrice = Number(effective.output_price_per_token);
   const cacheReadTokens = Math.min(input.inputTokens, Math.max(0, input.cacheReadTokens ?? 0));
   const cacheCreationTokens = Math.min(
     input.inputTokens - cacheReadTokens,
@@ -72,12 +119,12 @@ export function computeTokenCost(input: CostInput): number | null {
     input.inputTokens - cacheReadTokens - cacheCreationTokens,
   );
   const cacheReadPrice =
-    pricing.cache_read_price_per_token != null
-      ? Number(pricing.cache_read_price_per_token)
+    effective.cache_read_price_per_token != null
+      ? Number(effective.cache_read_price_per_token)
       : inputPrice;
   const cacheWritePrice =
-    pricing.cache_write_price_per_token != null
-      ? Number(pricing.cache_write_price_per_token)
+    effective.cache_write_price_per_token != null
+      ? Number(effective.cache_write_price_per_token)
       : inputPrice;
 
   const cost =

@@ -348,6 +348,141 @@ describe('computeTokenCost', () => {
     expect(result).toBeCloseTo(0.0075, 10);
   });
 
+  describe('time-of-day pricing tiers', () => {
+    // DeepSeek V4 Flash shape: off-peak base, peak windows at double.
+    const peakPricing: PricingEntry = {
+      model_name: 'deepseek-v4-flash',
+      provider: 'DeepSeek',
+      input_price_per_token: 0.22e-6,
+      output_price_per_token: 0.66e-6,
+      cache_read_price_per_token: 0.007e-6,
+      time_tiers: [
+        {
+          windows: ['01:00-04:00', '06:00-10:00'],
+          input_price_per_token: 0.44e-6,
+          output_price_per_token: 1.32e-6,
+          cache_read_price_per_token: 0.014e-6,
+        },
+      ],
+      display_name: 'DeepSeek V4 Flash',
+    };
+    const base = {
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+      model: 'deepseek-v4-flash',
+      pricing: peakPricing,
+    };
+
+    it('bills the base rate outside every peak window', () => {
+      const cost = computeTokenCost({ ...base, at: new Date('2026-08-17T12:00:00Z') });
+      expect(cost).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('bills the tier rate inside a peak window', () => {
+      const cost = computeTokenCost({ ...base, at: new Date('2026-08-17T02:30:00Z') });
+      expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('treats window starts as inclusive and ends as exclusive', () => {
+      expect(computeTokenCost({ ...base, at: new Date('2026-08-17T06:00:00Z') })).toBeCloseTo(
+        0.44 + 1.32,
+        10,
+      );
+      expect(computeTokenCost({ ...base, at: new Date('2026-08-17T10:00:00Z') })).toBeCloseTo(
+        0.22 + 0.66,
+        10,
+      );
+    });
+
+    it('uses the tier cache-read price for cache hits inside a window', () => {
+      const cost = computeTokenCost({
+        ...base,
+        cacheReadTokens: 1_000_000,
+        at: new Date('2026-08-17T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.014 + 1.32, 10);
+    });
+
+    it('falls back to the tier input price for cache writes the tier does not price', () => {
+      const cost = computeTokenCost({
+        ...base,
+        cacheCreationTokens: 1_000_000,
+        at: new Date('2026-08-17T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('matches windows that wrap past midnight', () => {
+      const wrapped: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [
+          {
+            windows: ['22:00-02:00'],
+            input_price_per_token: 0.44e-6,
+            output_price_per_token: 1.32e-6,
+          },
+        ],
+      };
+      expect(
+        computeTokenCost({ ...base, pricing: wrapped, at: new Date('2026-08-17T23:00:00Z') }),
+      ).toBeCloseTo(0.44 + 1.32, 10);
+      expect(
+        computeTokenCost({ ...base, pricing: wrapped, at: new Date('2026-08-17T01:30:00Z') }),
+      ).toBeCloseTo(0.44 + 1.32, 10);
+      expect(
+        computeTokenCost({ ...base, pricing: wrapped, at: new Date('2026-08-17T12:00:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('defaults the billing timestamp to now', () => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-08-17T02:00:00Z'));
+      try {
+        expect(computeTokenCost({ ...base })).toBeCloseTo(0.44 + 1.32, 10);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('ignores a matching tier that lacks its own input/output prices', () => {
+      const incomplete: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [
+          {
+            windows: ['01:00-04:00'],
+            input_price_per_token: null,
+            output_price_per_token: 1.32e-6,
+          },
+        ],
+      };
+      expect(
+        computeTokenCost({ ...base, pricing: incomplete, at: new Date('2026-08-17T02:00:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('ignores malformed windows instead of matching them', () => {
+      const malformed: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [
+          {
+            windows: ['nonsense', '01:00-'],
+            input_price_per_token: 0.44e-6,
+            output_price_per_token: 1.32e-6,
+          },
+        ],
+      };
+      expect(
+        computeTokenCost({ ...base, pricing: malformed, at: new Date('2026-08-17T02:00:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('ignores an empty tier list', () => {
+      const empty: PricingEntry = { ...peakPricing, time_tiers: [] };
+      expect(
+        computeTokenCost({ ...base, pricing: empty, at: new Date('2026-08-17T02:00:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+  });
+
   it('subscription check takes priority over negative pricing guard', () => {
     const negativePricing: PricingEntry = {
       model_name: 'bad-model',

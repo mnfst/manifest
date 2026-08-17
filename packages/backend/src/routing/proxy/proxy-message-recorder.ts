@@ -1070,6 +1070,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
       reportedCostUsd: usage?.reported_cost_usd,
+      at: timestamp ? new Date(timestamp) : undefined,
     });
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(

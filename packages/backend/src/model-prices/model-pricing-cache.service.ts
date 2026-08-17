@@ -20,6 +20,20 @@ const CUSTOM_PROVIDER_LABEL = 'Custom';
  * Reads from models.dev (preferred), OpenRouter cache (fallback), and the
  * `custom_providers` table (user-defined OpenAI-compatible endpoints).
  */
+/**
+ * Time-of-day pricing band. The tier's rates replace the base rates for
+ * requests whose billing time falls inside `windows` (UTC "HH:MM-HH:MM",
+ * start inclusive / end exclusive, an end before its start wraps past
+ * midnight). Mirrors models.dev `cost.tiers[].tier.type = "time"`.
+ */
+export interface PricingTimeTier {
+  windows: readonly string[];
+  input_price_per_token: number | null;
+  output_price_per_token: number | null;
+  cache_read_price_per_token?: number | null;
+  cache_write_price_per_token?: number | null;
+}
+
 export interface PricingEntry {
   model_name: string;
   provider: string;
@@ -27,6 +41,8 @@ export interface PricingEntry {
   output_price_per_token: number | null;
   cache_read_price_per_token?: number | null;
   cache_write_price_per_token?: number | null;
+  /** Peak-hour price bands (e.g. DeepSeek V4); base prices apply outside them. */
+  time_tiers?: readonly PricingTimeTier[] | null;
   display_name: string | null;
   /** True if confirmed via provider-native API, false if unverified, undefined if no data. */
   validated?: boolean;
@@ -204,6 +220,13 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           output_price_per_token: model.outputPricePerToken,
           cache_read_price_per_token: model.cacheReadPricePerToken ?? null,
           cache_write_price_per_token: model.cacheWritePricePerToken ?? null,
+          time_tiers: model.timeTiers?.map((tier) => ({
+            windows: tier.windows,
+            input_price_per_token: tier.inputPricePerToken,
+            output_price_per_token: tier.outputPricePerToken,
+            cache_read_price_per_token: tier.cacheReadPricePerToken,
+            cache_write_price_per_token: tier.cacheWritePricePerToken,
+          })),
           display_name: model.name || null,
           validated: this.resolveValidatedForModelsDev(providerId, model.id),
           source: 'models.dev',
@@ -220,11 +243,18 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         if (!hasRealPricing || !isZeroPricing) {
           this.cache.set(model.id, pricingEntry);
         }
-        // Also update the OpenRouter-prefixed key if it exists
+        // Also update the OpenRouter-prefixed key if it exists. Time tiers
+        // are dropped here: the prefixed key means the request rode through
+        // OpenRouter, which bills its own flat rate regardless of the lab's
+        // peak-hour schedule.
         for (const prefix of registryEntry.openRouterPrefixes) {
           const prefixedKey = `${prefix}/${model.id}`;
           if (this.cache.has(prefixedKey)) {
-            this.cache.set(prefixedKey, { ...pricingEntry, model_name: prefixedKey });
+            this.cache.set(prefixedKey, {
+              ...pricingEntry,
+              model_name: prefixedKey,
+              time_tiers: null,
+            });
           }
         }
         count++;

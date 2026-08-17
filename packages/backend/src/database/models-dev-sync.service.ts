@@ -43,6 +43,20 @@ function resolveProviderId(providerId: string): string {
   return entry?.id ?? lower;
 }
 
+/**
+ * Time-of-day pricing band: the tier's rates replace the model's base rates
+ * inside `windows` (UTC "HH:MM-HH:MM", start inclusive / end exclusive, an end
+ * before its start wraps past midnight). Mirrors the models.dev
+ * `cost.tiers[].tier.type = "time"` schema (anomalyco/models.dev#4892).
+ */
+export interface ModelsDevTimeTier {
+  windows: readonly string[];
+  inputPricePerToken: number | null;
+  outputPricePerToken: number | null;
+  cacheReadPricePerToken: number | null;
+  cacheWritePricePerToken: number | null;
+}
+
 export interface ModelsDevModelEntry {
   id: string;
   name: string;
@@ -56,9 +70,18 @@ export interface ModelsDevModelEntry {
   outputPricePerToken: number | null;
   cacheReadPricePerToken?: number | null;
   cacheWritePricePerToken?: number | null;
+  timeTiers?: readonly ModelsDevTimeTier[] | null;
   capabilities: readonly ModelCapability[];
   inputModalities: readonly ModelModality[];
   outputModalities: readonly ModelModality[];
+}
+
+interface RawModelsDevCostTier {
+  tier?: { type?: string; size?: number; windows?: string[] };
+  input?: number;
+  output?: number;
+  cache_read?: number;
+  cache_write?: number;
 }
 
 interface RawModelsDevModel {
@@ -68,7 +91,13 @@ interface RawModelsDevModel {
   reasoning?: boolean;
   tool_call?: boolean;
   structured_output?: boolean;
-  cost?: { input?: number; output?: number; cache_read?: number; cache_write?: number };
+  cost?: {
+    input?: number;
+    output?: number;
+    cache_read?: number;
+    cache_write?: number;
+    tiers?: RawModelsDevCostTier[];
+  };
   limit?: { context?: number; output?: number };
   modalities?: { input?: string[]; output?: string[] };
 }
@@ -83,6 +112,53 @@ type RawModelsDevResponse = Record<string, RawModelsDevProvider>;
 
 const MODELS_DEV_API = 'https://models.dev/api.json';
 const FETCH_TIMEOUT_MS = 10000;
+
+/** UTC "HH:MM-HH:MM" range, as validated by the models.dev schema. */
+const TIME_WINDOW_RE = /^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * DeepSeek V4 moved to peak/off-peak billing on 2026-08-16: peak hours are
+ * 01:00-04:00 and 06:00-10:00 UTC, every other hour is off-peak at half the
+ * peak rate. models.dev cannot express time-of-day pricing yet
+ * (anomalyco/models.dev#4892 adds `cost.tiers[].tier.type = "time"`; #4891
+ * corrects the flat numbers in the meantime), so until the catalog carries a
+ * time tier for these models this seed replaces whatever flat rate the sync
+ * returns with the real off-peak base plus a peak-window tier.
+ *
+ * DELETE once models.dev serves time tiers for DeepSeek — the seed only
+ * applies when `parseTimeTiers` finds nothing, so it retires itself, but the
+ * dead constant should not outlive that. Prices are USD per 1M tokens from
+ * https://api-docs.deepseek.com/quick_start/pricing/ (accessed 2026-08-17).
+ */
+const DEEPSEEK_PEAK_WINDOWS: readonly string[] = ['01:00-04:00', '06:00-10:00'];
+const DEEPSEEK_V4_PEAK_SEED: ReadonlyMap<
+  string,
+  {
+    input: number;
+    output: number;
+    cacheRead: number;
+    peak: { input: number; output: number; cacheRead: number };
+  }
+> = new Map([
+  [
+    'deepseek-v4-flash',
+    {
+      input: 0.22,
+      output: 0.66,
+      cacheRead: 0.007,
+      peak: { input: 0.44, output: 1.32, cacheRead: 0.014 },
+    },
+  ],
+  [
+    'deepseek-v4-pro',
+    {
+      input: 0.66,
+      output: 1.98,
+      cacheRead: 0.022,
+      peak: { input: 1.32, output: 3.96, cacheRead: 0.044 },
+    },
+  ],
+]);
 /** Matches trailing version suffixes like -001, -002 (Google API convention). */
 const VERSION_SUFFIX_RE = /-\d{3}$/;
 /** Matches trailing date suffixes like -20250514, -2025-04-14. */
@@ -453,15 +529,65 @@ export class ModelsDevSyncService implements OnModuleInit {
     if (!index.has(normalized)) index.set(normalized, modelsDevId);
   }
 
+  /**
+   * Extract time-of-day pricing tiers from a raw models.dev cost block.
+   * Context-size tiers (`tier.type = "context"`) are ignored — Manifest does
+   * not price by context band. Returns null when no valid time tier exists.
+   */
+  private parseTimeTiers(raw: RawModelsDevModel): ModelsDevTimeTier[] | null {
+    const tiers = raw.cost?.tiers;
+    if (!Array.isArray(tiers)) return null;
+
+    const parsed: ModelsDevTimeTier[] = [];
+    for (const tier of tiers) {
+      if (tier?.tier?.type !== 'time') continue;
+      const windows = (tier.tier.windows ?? []).filter(
+        (window) => typeof window === 'string' && TIME_WINDOW_RE.test(window),
+      );
+      if (windows.length === 0) continue;
+      parsed.push({
+        windows,
+        inputPricePerToken: tier.input != null ? tier.input / 1_000_000 : null,
+        outputPricePerToken: tier.output != null ? tier.output / 1_000_000 : null,
+        cacheReadPricePerToken: tier.cache_read != null ? tier.cache_read / 1_000_000 : null,
+        cacheWritePricePerToken: tier.cache_write != null ? tier.cache_write / 1_000_000 : null,
+      });
+    }
+    return parsed.length > 0 ? parsed : null;
+  }
+
   private parseModel(
     providerId: string,
     modelId: string,
     raw: RawModelsDevModel,
   ): ModelsDevModelEntry {
-    const inputPerMillion = raw.cost?.input ?? null;
-    const outputPerMillion = raw.cost?.output ?? null;
-    const cacheReadPerMillion = raw.cost?.cache_read ?? null;
+    let inputPerMillion = raw.cost?.input ?? null;
+    let outputPerMillion = raw.cost?.output ?? null;
+    let cacheReadPerMillion = raw.cost?.cache_read ?? null;
     const cacheWritePerMillion = raw.cost?.cache_write ?? null;
+    let timeTiers = this.parseTimeTiers(raw);
+
+    // Peak/off-peak seed for DeepSeek's own API until models.dev can carry
+    // the schedule itself (see DEEPSEEK_V4_PEAK_SEED). Catalog data wins the
+    // moment it exists.
+    if (providerId === 'deepseek' && !timeTiers) {
+      const seed = DEEPSEEK_V4_PEAK_SEED.get(modelId);
+      if (seed) {
+        inputPerMillion = seed.input;
+        outputPerMillion = seed.output;
+        cacheReadPerMillion = seed.cacheRead;
+        timeTiers = [
+          {
+            windows: DEEPSEEK_PEAK_WINDOWS,
+            inputPricePerToken: seed.peak.input / 1_000_000,
+            outputPricePerToken: seed.peak.output / 1_000_000,
+            cacheReadPricePerToken: seed.peak.cacheRead / 1_000_000,
+            cacheWritePricePerToken: null,
+          },
+        ];
+      }
+    }
+
     const modalities = modelModalitiesFromModelsDev(raw.modalities);
 
     return {
@@ -481,6 +607,7 @@ export class ModelsDevSyncService implements OnModuleInit {
       cacheReadPricePerToken: cacheReadPerMillion !== null ? cacheReadPerMillion / 1_000_000 : null,
       cacheWritePricePerToken:
         cacheWritePerMillion !== null ? cacheWritePerMillion / 1_000_000 : null,
+      timeTiers,
     };
   }
 

@@ -1014,6 +1014,204 @@ describe('ModelsDevSyncService', () => {
     });
   });
 
+  describe('time-of-day pricing tiers', () => {
+    it('parses time tiers from cost.tiers and ignores context tiers', async () => {
+      const response = {
+        openai: {
+          id: 'openai',
+          name: 'OpenAI',
+          models: {
+            'tiered-model': {
+              id: 'tiered-model',
+              name: 'Tiered',
+              cost: {
+                input: 1.0,
+                output: 2.0,
+                tiers: [
+                  { tier: { type: 'context', size: 200_000 }, input: 2.0, output: 4.0 },
+                  {
+                    tier: { type: 'time', windows: ['01:00-04:00', '06:00-10:00'] },
+                    input: 2.0,
+                    output: 4.0,
+                    cache_read: 0.2,
+                  },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const model = service.lookupModel('openai', 'tiered-model');
+      expect(model!.timeTiers).toEqual([
+        {
+          windows: ['01:00-04:00', '06:00-10:00'],
+          inputPricePerToken: 2.0 / 1_000_000,
+          outputPricePerToken: 4.0 / 1_000_000,
+          cacheReadPricePerToken: 0.2 / 1_000_000,
+          cacheWritePricePerToken: null,
+        },
+      ]);
+    });
+
+    it('drops time tiers with malformed or missing windows', async () => {
+      const response = {
+        openai: {
+          id: 'openai',
+          name: 'OpenAI',
+          models: {
+            'bad-tiers': {
+              id: 'bad-tiers',
+              name: 'Bad Tiers',
+              cost: {
+                input: 1.0,
+                output: 2.0,
+                tiers: [
+                  {
+                    tier: { type: 'time', windows: ['25:00-99:00', 'later'] },
+                    input: 2.0,
+                    output: 4.0,
+                  },
+                  { tier: { type: 'time' }, input: 2.0, output: 4.0 },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      expect(service.lookupModel('openai', 'bad-tiers')!.timeTiers).toBeNull();
+    });
+
+    it('keeps only valid windows within a mixed tier and nulls unpriced fields', async () => {
+      const response = {
+        openai: {
+          id: 'openai',
+          name: 'OpenAI',
+          models: {
+            'mixed-windows': {
+              id: 'mixed-windows',
+              name: 'Mixed Windows',
+              cost: {
+                input: 1.0,
+                output: 2.0,
+                tiers: [
+                  { tier: { type: 'time', windows: ['01:00-04:00', 'garbage'] }, input: 2.0 },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      expect(service.lookupModel('openai', 'mixed-windows')!.timeTiers).toEqual([
+        {
+          windows: ['01:00-04:00'],
+          inputPricePerToken: 2.0 / 1_000_000,
+          outputPricePerToken: null,
+          cacheReadPricePerToken: null,
+          cacheWritePricePerToken: null,
+        },
+      ]);
+    });
+
+    it('seeds DeepSeek V4 peak pricing when the catalog carries no time tiers', async () => {
+      const response = {
+        deepseek: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          models: {
+            'deepseek-v4-flash': {
+              id: 'deepseek-v4-flash',
+              name: 'DeepSeek V4 Flash',
+              cost: { input: 0.14, output: 0.28, cache_read: 0.0028 },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+            'deepseek-chat': {
+              id: 'deepseek-chat',
+              name: 'DeepSeek Chat',
+              cost: { input: 0.14, output: 0.28 },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const flash = service.lookupModel('deepseek', 'deepseek-v4-flash');
+      // Stale catalog rates are replaced by the real off-peak base…
+      expect(flash!.inputPricePerToken).toBe(0.22 / 1_000_000);
+      expect(flash!.outputPricePerToken).toBe(0.66 / 1_000_000);
+      expect(flash!.cacheReadPricePerToken).toBe(0.007 / 1_000_000);
+      // …plus the peak windows at double.
+      expect(flash!.timeTiers).toEqual([
+        {
+          windows: ['01:00-04:00', '06:00-10:00'],
+          inputPricePerToken: 0.44 / 1_000_000,
+          outputPricePerToken: 1.32 / 1_000_000,
+          cacheReadPricePerToken: 0.014 / 1_000_000,
+          cacheWritePricePerToken: null,
+        },
+      ]);
+      // Models outside the seed (legacy aliases) are untouched.
+      const chat = service.lookupModel('deepseek', 'deepseek-chat');
+      expect(chat!.inputPricePerToken).toBe(0.14 / 1_000_000);
+      expect(chat!.timeTiers).toBeNull();
+    });
+
+    it('prefers catalog time tiers over the DeepSeek seed once models.dev has them', async () => {
+      const response = {
+        deepseek: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          models: {
+            'deepseek-v4-flash': {
+              id: 'deepseek-v4-flash',
+              name: 'DeepSeek V4 Flash',
+              cost: {
+                input: 0.25,
+                output: 0.7,
+                tiers: [
+                  { tier: { type: 'time', windows: ['02:00-05:00'] }, input: 0.5, output: 1.4 },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const flash = service.lookupModel('deepseek', 'deepseek-v4-flash');
+      expect(flash!.inputPricePerToken).toBe(0.25 / 1_000_000);
+      expect(flash!.timeTiers).toEqual([
+        {
+          windows: ['02:00-05:00'],
+          inputPricePerToken: 0.5 / 1_000_000,
+          outputPricePerToken: 1.4 / 1_000_000,
+          cacheReadPricePerToken: null,
+          cacheWritePricePerToken: null,
+        },
+      ]);
+    });
+  });
+
   describe('refreshCache edge cases', () => {
     it('should skip providers with no models key', async () => {
       const response = {
