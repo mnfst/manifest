@@ -541,8 +541,14 @@ export class ModelsDevSyncService implements OnModuleInit {
     const parsed: ModelsDevTimeTier[] = [];
     for (const tier of tiers) {
       if (tier?.tier?.type !== 'time') continue;
+      // Zero-length windows (e.g. "06:00-06:00") are rejected: only an end
+      // before the start wraps midnight, so equal endpoints would read as a
+      // full-day band and override the base rate around the clock.
       const windows = (tier.tier.windows ?? []).filter(
-        (window) => typeof window === 'string' && TIME_WINDOW_RE.test(window),
+        (window) =>
+          typeof window === 'string' &&
+          TIME_WINDOW_RE.test(window) &&
+          window.slice(0, 5) !== window.slice(6),
       );
       if (windows.length === 0) continue;
       parsed.push({
@@ -564,7 +570,7 @@ export class ModelsDevSyncService implements OnModuleInit {
     let inputPerMillion = raw.cost?.input ?? null;
     let outputPerMillion = raw.cost?.output ?? null;
     let cacheReadPerMillion = raw.cost?.cache_read ?? null;
-    const cacheWritePerMillion = raw.cost?.cache_write ?? null;
+    let cacheWritePerMillion = raw.cost?.cache_write ?? null;
     let timeTiers = this.parseTimeTiers(raw);
 
     // Peak/off-peak seed for DeepSeek's own API until models.dev can carry
@@ -576,6 +582,10 @@ export class ModelsDevSyncService implements OnModuleInit {
         inputPerMillion = seed.input;
         outputPerMillion = seed.output;
         cacheReadPerMillion = seed.cacheRead;
+        // DeepSeek bills cache writes at the plain input rate (no premium), so
+        // clear any stale catalog value; the cost calculator falls back to the
+        // effective input price when cache-write pricing is null.
+        cacheWritePerMillion = null;
         timeTiers = [
           {
             windows: DEEPSEEK_PEAK_WINDOWS,

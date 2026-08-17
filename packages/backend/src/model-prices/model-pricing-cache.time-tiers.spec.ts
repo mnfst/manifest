@@ -95,9 +95,10 @@ describe('ModelPricingCacheService — time-of-day pricing tiers', () => {
     expect(service.getByModel('deepseek-chat')!.time_tiers).toBeUndefined();
   });
 
-  it('strips time tiers from the OpenRouter-prefixed copy of the entry', async () => {
-    // OpenRouter also lists the model, so the prefixed key pre-exists and the
-    // models.dev overlay rewrites it.
+  it('keeps the OpenRouter entry on the prefixed key and only drops the tiers', async () => {
+    // OpenRouter also lists the model, so the prefixed key pre-exists. Pricing
+    // follows transport: the OR entry keeps OR's own flat rate — the overlay
+    // must not replace it with the lab's prices, only guarantee no tiers.
     mockGetAll.mockReturnValue(
       new Map<string, OpenRouterPricingEntry>([
         ['deepseek/deepseek-v4-flash', { input: 0.3 / 1_000_000, output: 0.9 / 1_000_000 }],
@@ -109,6 +110,9 @@ describe('ModelPricingCacheService — time-of-day pricing tiers', () => {
     const prefixed = service.getByModel('deepseek/deepseek-v4-flash');
     expect(prefixed).toBeDefined();
     expect(prefixed!.time_tiers).toBeNull();
+    // OpenRouter's flat rate survives the models.dev overlay.
+    expect(prefixed!.input_price_per_token).toBe(0.3 / 1_000_000);
+    expect(prefixed!.output_price_per_token).toBe(0.9 / 1_000_000);
     // The bare key still carries the schedule for direct-API traffic.
     expect(service.getByModel('deepseek-v4-flash')!.time_tiers).toHaveLength(1);
   });

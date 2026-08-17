@@ -434,6 +434,27 @@ describe('computeTokenCost', () => {
       ).toBeCloseTo(0.22 + 0.66, 10);
     });
 
+    it('never matches a zero-length window (start === end)', () => {
+      const degenerate: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [
+          {
+            windows: ['12:00-12:00'],
+            input_price_per_token: 0.44e-6,
+            output_price_per_token: 1.32e-6,
+          },
+        ],
+      };
+      // Equal endpoints must not fall into the midnight-wrap branch and
+      // become a full-day peak band — base rates apply at any hour.
+      for (const at of ['2026-08-17T12:00:00Z', '2026-08-17T00:00:00Z', '2026-08-17T18:30:00Z']) {
+        expect(computeTokenCost({ ...base, pricing: degenerate, at: new Date(at) })).toBeCloseTo(
+          0.22 + 0.66,
+          10,
+        );
+      }
+    });
+
     it('defaults the billing timestamp to now', () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-08-17T02:00:00Z'));
       try {

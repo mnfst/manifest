@@ -1104,7 +1104,10 @@ describe('ModelsDevSyncService', () => {
                 input: 1.0,
                 output: 2.0,
                 tiers: [
-                  { tier: { type: 'time', windows: ['01:00-04:00', 'garbage'] }, input: 2.0 },
+                  {
+                    tier: { type: 'time', windows: ['01:00-04:00', 'garbage', '06:00-06:00'] },
+                    input: 2.0,
+                  },
                 ],
               },
               modalities: { input: ['text'], output: ['text'] },
@@ -1136,7 +1139,7 @@ describe('ModelsDevSyncService', () => {
             'deepseek-v4-flash': {
               id: 'deepseek-v4-flash',
               name: 'DeepSeek V4 Flash',
-              cost: { input: 0.14, output: 0.28, cache_read: 0.0028 },
+              cost: { input: 0.14, output: 0.28, cache_read: 0.0028, cache_write: 0.35 },
               modalities: { input: ['text'], output: ['text'] },
             },
             'deepseek-chat': {
@@ -1157,6 +1160,9 @@ describe('ModelsDevSyncService', () => {
       expect(flash!.inputPricePerToken).toBe(0.22 / 1_000_000);
       expect(flash!.outputPricePerToken).toBe(0.66 / 1_000_000);
       expect(flash!.cacheReadPricePerToken).toBe(0.007 / 1_000_000);
+      // The stale catalog cache-write rate must not survive either: DeepSeek
+      // bills cache writes at the input rate, which null falls back to.
+      expect(flash!.cacheWritePricePerToken).toBeNull();
       // …plus the peak windows at double.
       expect(flash!.timeTiers).toEqual([
         {

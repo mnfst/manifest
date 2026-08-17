@@ -51,6 +51,10 @@ function toUtcMinutes(time: string | undefined): number | null {
 function windowMatches(window: string, minutes: number): boolean {
   const [start, end] = window.split('-').map(toUtcMinutes);
   if (start == null || end == null) return false;
+  // A zero-length window matches nothing. Without this, start === end falls
+  // into the wrap branch and matches the whole day, letting a malformed
+  // upstream band override the base rate around the clock.
+  if (start === end) return false;
   return start < end ? minutes >= start && minutes < end : minutes >= start || minutes < end;
 }
 

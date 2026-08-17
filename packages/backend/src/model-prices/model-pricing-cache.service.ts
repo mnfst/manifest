@@ -243,18 +243,15 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
         if (!hasRealPricing || !isZeroPricing) {
           this.cache.set(model.id, pricingEntry);
         }
-        // Also update the OpenRouter-prefixed key if it exists. Time tiers
-        // are dropped here: the prefixed key means the request rode through
-        // OpenRouter, which bills its own flat rate regardless of the lab's
-        // peak-hour schedule.
+        // The OpenRouter-prefixed key keeps OpenRouter's own entry: pricing
+        // follows transport, and OpenRouter bills its flat rate regardless of
+        // the lab's peak-hour schedule — so only make sure no time tiers ride
+        // along, never overwrite the OR prices with the lab's.
         for (const prefix of registryEntry.openRouterPrefixes) {
           const prefixedKey = `${prefix}/${model.id}`;
-          if (this.cache.has(prefixedKey)) {
-            this.cache.set(prefixedKey, {
-              ...pricingEntry,
-              model_name: prefixedKey,
-              time_tiers: null,
-            });
+          const orEntry = this.cache.get(prefixedKey);
+          if (orEntry) {
+            this.cache.set(prefixedKey, { ...orEntry, time_tiers: null });
           }
         }
         count++;

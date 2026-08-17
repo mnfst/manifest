@@ -425,6 +425,27 @@ describe('ProxyMessageRecorder', () => {
         usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
       });
       expect(insertMock.mock.calls[1][0].cost_usd).toBeCloseTo(0.22 + 0.66, 10);
+
+      // The provider attempt start wins over the synthetic fallback timestamp:
+      // the attempt ran in-peak even though the delayed write stamps off-peak.
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-peak',
+        attemptNumber: 1,
+        startedAtMs: Date.parse('2026-08-17T02:30:00.000Z'),
+        startedAt: '2026-08-17T02:30:00.000Z',
+        pendingWrite: Promise.resolve(true),
+      };
+      await recorder.recordFallbackSuccess(ctx, 'deepseek-v4-flash', 'standard', {
+        authType: 'api_key',
+        attempt,
+        timestamp: '2026-08-17T12:00:00.000Z',
+        usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
+      });
+      // The resolved pendingWrite routes this through the update path.
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-peak' },
+        expect.objectContaining({ cost_usd: expect.closeTo(0.44 + 1.32, 10) }),
+      );
     });
 
     it('computes cost_usd with cache-read pricing when usage has cached tokens', async () => {
