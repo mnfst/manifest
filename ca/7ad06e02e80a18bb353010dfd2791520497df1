@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_bbc09c1ba5f8c9::t_558fa08713ba5c 254-255,262-263,269-274
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_bbc09c1ba5f8c9::t_558fa08713ba5c 83,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "ca7ad06e02e80a18bb353010dfd2791520497df1",
+  "prompts": {},
+  "sessions": {
+    "s_bbc09c1ba5f8c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe173-686d-7111-b41d-cef2e024c069",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

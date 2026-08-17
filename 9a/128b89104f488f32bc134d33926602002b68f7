@@ -1,0 +1,24 @@
+.changeset/meta-provider-logo.md
+  s_713c729ddd07a3::t_e5c6ce090c8b07 1-5
+packages/frontend/src/components/ProviderIcon.tsx
+  s_713c729ddd07a3::t_e5c6ce090c8b07 18-29
+  s_713c729ddd07a3::t_2bdb35f44e25fd 17
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_713c729ddd07a3::t_e5c6ce090c8b07 51-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9a128b89104f488f32bc134d33926602002b68f7",
+  "prompts": {},
+  "sessions": {
+    "s_713c729ddd07a3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ffcf3-e66c-7042-9b88-467f69d73c97",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_c6cd54c81b6b68::t_9236aeacf5e3af 122,127-141
+  s_c6cd54c81b6b68::t_692ab824f4ad50 177
+  s_c6cd54c81b6b68::t_1bbe1496d0d2b8 123-126
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_c6cd54c81b6b68::t_9236aeacf5e3af 986-987
+docs/providers/subscription-based-providers.md
+  s_c6cd54c81b6b68::t_9236aeacf5e3af 18,68
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_c6cd54c81b6b68::t_4e5cd73a1da406 52-58,182-185
+  s_c6cd54c81b6b68::t_591472da03e938 136,174-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5738a5f9bdeaab0da23c1ddfa6e6667e5ece0b73",
+  "prompts": {},
+  "sessions": {
+    "s_c6cd54c81b6b68": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe1d0-8adc-7fc2-908d-dccfa60a27ea",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

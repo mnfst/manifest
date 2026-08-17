@@ -1,0 +1,62 @@
+packages/backend/src/database/database.module.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 61
+packages/backend/src/common/interceptors/user-cache.interceptor.spec.ts
+  s_c578c56d15b2ef::t_da0418b2f02afe 3,58
+  s_c578c56d15b2ef::t_0d0a282eba80df 1,28,31-34,37-40,56-57,59-99
+  s_c578c56d15b2ef::t_f39d43f32fec17 41-55
+packages/backend/src/auth/auth.instance.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 32
+packages/backend/src/auth/auth.instance.spec.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 411
+docker/.env.example
+  s_c578c56d15b2ef::t_0d0a282eba80df 151-152
+docker/docker-compose.yml
+  s_c578c56d15b2ef::t_0d0a282eba80df 126-127
+docker/DOCKER_README.md
+  s_c578c56d15b2ef::t_0d0a282eba80df 406
+  s_c578c56d15b2ef::t_edb19038ee8792 410
+packages/frontend/src/services/sse.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 3,34-35,41
+packages/frontend/tests/services/sse.test.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 39,63,66,68,80,84,86,88,102,106,108,110,115,122,125,127,137,223,225,228-229,233,235,247-248,250,261,263,266,268,270,275
+  s_c578c56d15b2ef::t_26696aff8ce819 185-189
+  s_c578c56d15b2ef::t_204f6e51b5ead6 1,6,10,20-25,33-34,36,40,48,50,143,145,159,167,175-180,196-197,202,204,211,213,218,220
+packages/backend/src/common/interceptors/user-cache.interceptor.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 2,5,10-11,16-30,32-36
+  s_c578c56d15b2ef::t_da0418b2f02afe 31
+  s_b7cafa785081ef::t_2cbeef9d411cea 37-38
+packages/backend/src/config/app.config.spec.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 64,67
+packages/backend/src/config/app.config.ts
+  s_c578c56d15b2ef::t_0d0a282eba80df 40-43
+packages/backend/.env.example
+  s_c578c56d15b2ef::t_0d0a282eba80df 24
+CLAUDE.md
+  s_c578c56d15b2ef::t_0d0a282eba80df 406,426
+.changeset/calm-postgres-pools.md
+  s_c578c56d15b2ef::t_11102b9cc82b72 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "80dc3c012fe27d15950e12afadd08746bda2c79c",
+  "prompts": {},
+  "sessions": {
+    "s_b7cafa785081ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd892-f450-7500-bf33-77827fe6db73",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c578c56d15b2ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fdb3c-62fd-79c3-a1a3-6bf45e18c667",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
