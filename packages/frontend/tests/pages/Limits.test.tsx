@@ -13,6 +13,8 @@ vi.mock("@solidjs/meta", () => ({
 
 let mockRules: any[] = [];
 let mockRoutingStatus = { enabled: false };
+let mockIsSelfHosted = false;
+let mockEmailProvider: any = null;
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
@@ -20,7 +22,28 @@ vi.mock("../../src/services/api.js", () => ({
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
+  getEmailProvider: vi.fn(() => Promise.resolve(mockEmailProvider)),
+  removeEmailProvider: vi.fn(() => Promise.resolve({})),
   getRoutingStatus: vi.fn(() => Promise.resolve(mockRoutingStatus)),
+}));
+
+vi.mock("../../src/services/setup-status.js", () => ({
+  checkIsSelfHosted: vi.fn(() => Promise.resolve(mockIsSelfHosted)),
+  checkEmailConfigured: vi.fn(() => Promise.resolve(true)),
+}));
+
+vi.mock("../../src/components/EmailProviderSection.js", () => ({
+  default: (props: any) => (
+    <div data-testid="email-provider-section" data-has-provider={String(!!props.emailProvider)}>
+      EmailProviderSection
+    </div>
+  ),
+}));
+
+vi.mock("../../src/components/EmailProviderModal.js", () => ({
+  default: (props: any) => (
+    <div data-testid="email-provider-modal" data-open={String(props.open)}>EmailProviderModal</div>
+  ),
 }));
 
 vi.mock("../../src/services/toast-store.js", () => ({
@@ -59,6 +82,8 @@ describe("Limits page", () => {
   beforeEach(() => {
     mockRules = [];
     mockRoutingStatus = { enabled: false };
+    mockIsSelfHosted = false;
+    mockEmailProvider = null;
   });
 
   it("does not render a duplicate page heading", () => {
@@ -530,4 +555,22 @@ describe("Limits page", () => {
     });
   });
 
+
+  it("shows the email provider section instead of the cloud card on self-hosted", async () => {
+    mockIsSelfHosted = true;
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("email-provider-section")).toBeDefined();
+    });
+    expect(screen.queryByTestId("cloud-email-info")).toBeNull();
+  });
+
+  it("keeps the cloud email card on cloud", async () => {
+    mockIsSelfHosted = false;
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+    });
+    expect(screen.queryByTestId("email-provider-section")).toBeNull();
+  });
 });
