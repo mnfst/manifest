@@ -76,8 +76,20 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
     ];
   }
 
+  // Typed items with no chat-completions equivalent — `reasoning` (whose
+  // `encrypted_content` is opaque outside OpenAI), `item_reference`,
+  // `web_search_call`, and friends. Dropping them is the only safe mapping:
+  // falling through would emit `{ role: 'user' }` with no `content`, which
+  // strictly-validating providers reject with 400/422.
+  if (!isNativeResponsesMessageItem(item)) return [];
+
   const role = typeof item.role === 'string' ? item.role : 'user';
-  return [{ role, content: toChatContent(item.content, role) }];
+  const content = toChatContent(item.content, role);
+  // A message item carrying no content at all is the same wire hazard: the
+  // key is omitted on serialization and `{ role: 'user' }` goes out again.
+  if (content === undefined) return [];
+
+  return [{ role, content }];
 }
 
 export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
