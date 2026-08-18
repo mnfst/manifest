@@ -1,0 +1,19 @@
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_1330eca8ef806c::t_dab2d7e0078a70 141-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "dc6620747864eb6df18d6e50460df573e208ddbd",
+  "prompts": {},
+  "sessions": {
+    "s_1330eca8ef806c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "57090c30-a0b8-45c1-91a2-59ce7bbe8fba",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
