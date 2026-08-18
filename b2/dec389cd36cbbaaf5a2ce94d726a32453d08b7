@@ -1,0 +1,23 @@
+.changeset/responses-drop-non-message-items.md
+  s_d8c2b837723ac7::t_cc4956d7485fde 1-5
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_d8c2b837723ac7::t_0f6fdb6b376aff 198-238
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_d8c2b837723ac7::t_1af91477959368 79-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b2dec389cd36cbbaaf5a2ce94d726a32453d08b7",
+  "prompts": {},
+  "sessions": {
+    "s_d8c2b837723ac7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e27c2691-0590-4dc1-b5a0-d3727c04ee16",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
