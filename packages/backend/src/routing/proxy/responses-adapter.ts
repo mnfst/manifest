@@ -76,7 +76,12 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
     ];
   }
 
-  const role = typeof item.role === 'string' ? item.role : 'user';
+  const rawRole = typeof item.role === 'string' ? item.role : 'user';
+  // Responses-API clients (Codex CLI especially) wire their instructions as
+  // role:"developer". Chat/Completions upstreams that aren't OpenAI only accept
+  // {system,user,assistant,tool} and 400 on "developer", so fold it into
+  // "system". OpenAI itself treats developer≈system, so this is lossless.
+  const role = rawRole === 'developer' ? 'system' : rawRole;
   return [{ role, content: toChatContent(item.content, role) }];
 }
 
@@ -143,9 +148,15 @@ function toChatResponseFormat(text: unknown): JsonRecord | undefined {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
-  return tools.filter(isRecord).map((tool) => {
-    if (tool.type !== 'function') return tool;
-    return {
+  // Chat/Completions only understands function tools. Responses-API clients
+  // such as Codex advertise OpenAI-hosted tools (web_search, file_search,
+  // computer_use_preview, ...) whose `type` isn't "function"; forwarding those
+  // 400s every non-OpenAI upstream, so drop them here. The native Responses
+  // path (toNativeResponsesRequest) leaves hosted tools intact for OpenAI.
+  return tools
+    .filter(isRecord)
+    .filter((tool) => tool.type === 'function')
+    .map((tool) => ({
       type: 'function',
       function: {
         name: tool.name,
@@ -153,8 +164,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
         ...(tool.parameters !== undefined && { parameters: tool.parameters }),
         ...(tool.strict !== undefined && { strict: tool.strict }),
       },
-    };
-  });
+    }));
 }
 
 function toChatToolChoice(toolChoice: unknown): unknown {

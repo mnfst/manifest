@@ -46,16 +46,17 @@ describe("SetupStepAddProvider", () => {
     expect(activeBtn!.textContent).toBe("Agents");
   });
 
-  it("shows OpenClaw, Hermes, Nanobot, Craft, Claude Code, and OpenCode tabs inside Agents", () => {
+  it("shows OpenClaw, Hermes, Nanobot, Craft, Claude Code, OpenCode, and Codex tabs inside Agents", () => {
     const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
     const agentTabs = container.querySelectorAll(".panel__tab");
-    expect(agentTabs).toHaveLength(6);
+    expect(agentTabs).toHaveLength(7);
     expect(agentTabs[0].textContent).toContain("OpenClaw");
     expect(agentTabs[1].textContent).toContain("Hermes Agent");
     expect(agentTabs[2].textContent).toContain("Nanobot");
     expect(agentTabs[3].textContent).toContain("Craft Agent");
     expect(agentTabs[4].textContent).toContain("Claude Code");
     expect(agentTabs[5].textContent).toContain("OpenCode");
+    expect(agentTabs[6].textContent).toContain("Codex");
   });
 
   it("shows Nanobot setup when Nanobot tab clicked", () => {
@@ -88,6 +89,14 @@ describe("SetupStepAddProvider", () => {
     fireEvent.click(agentTabs[5]); // OpenCode
     expect(container.textContent).toContain("~/.config/opencode/opencode.json");
     expect(container.textContent).toContain('"model": "manifest/auto"');
+  });
+
+  it("shows Codex setup when Codex tab clicked", () => {
+    const { container } = render(() => <SetupStepAddProvider {...defaultProps} />);
+    const agentTabs = container.querySelectorAll(".panel__tab");
+    fireEvent.click(agentTabs[6]); // Codex
+    expect(container.textContent).toContain("~/.codex/config.toml");
+    expect(container.textContent).toContain('wire_api = "responses"');
   });
 
   it("defaults to OpenClaw agent tab", () => {
@@ -369,6 +378,22 @@ describe("SetupStepAddProvider", () => {
         <SetupStepAddProvider {...defaultProps} platform="opencode" />
       ));
       expect(screen.getByText("Connect OpenCode to Manifest")).toBeDefined();
+    });
+
+    it("shows CodexSetup directly when platform is codex", () => {
+      const { container } = render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="codex" />
+      ));
+      expect(container.textContent).toContain("~/.codex/config.toml");
+      expect(container.textContent).toContain('wire_api = "responses"');
+      expect(container.querySelector('[aria-label="Setup method"]')).toBeNull();
+    });
+
+    it("shows correct heading for codex", () => {
+      render(() => (
+        <SetupStepAddProvider {...defaultProps} platform="codex" />
+      ));
+      expect(screen.getByText("Connect Codex to Manifest")).toBeDefined();
     });
 
     it("shows OpenAI SDK snippet when platform is openai-sdk", () => {
