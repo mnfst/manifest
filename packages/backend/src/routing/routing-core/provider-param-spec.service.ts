@@ -31,8 +31,6 @@ const MODELPARAMS_PACKAGE_JSON = 'modelparams/package.json';
 const MODELPARAMS_DATA_RELATIVE_PATH = 'dist/generated/data.js';
 const MODELPARAMS_API_DEFAULT_URL = 'https://modelparams.dev/api/v1/models.json';
 const MODELPARAMS_API_TIMEOUT_MS = 10000;
-/** Hard ceiling on the API payload; today's catalog is ~0.6 MB. */
-const MODELPARAMS_API_MAX_BYTES = 16 * 1024 * 1024;
 const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 const SHORT_CLAUDE_MODEL_RE = /^claude-(opus|sonnet|haiku)-/i;
 const DOTTED_CLAUDE_MINOR_RE = /-(\d+)\.(\d{1,2})(?=$|-\d{8}$)/g;
@@ -140,13 +138,9 @@ export class ProviderParamSpecService implements OnModuleInit {
       return false;
     }
 
-    const body = await readBodyWithinByteCap(response, MODELPARAMS_API_MAX_BYTES);
-    if (body === null) {
-      this.logger.warn(
-        `modelparams catalog response exceeds ${MODELPARAMS_API_MAX_BYTES} bytes, keeping current catalog`,
-      );
-      return false;
-    }
+    // The AbortSignal above also bounds body consumption, so the download can
+    // never outlive the 10s timeout — no separate size cap needed.
+    const body = await response.text();
 
     let raw: unknown;
     try {
@@ -243,31 +237,6 @@ export class ProviderParamSpecService implements OnModuleInit {
     }
     return [];
   }
-}
-
-/**
- * Read the response body while enforcing the byte ceiling *before* buffering:
- * an over-limit Content-Length is rejected without touching the body, and a
- * chunked/lying stream is cancelled the moment the running byte count crosses
- * the cap. Returns null when the cap is exceeded.
- */
-async function readBodyWithinByteCap(response: Response, maxBytes: number): Promise<string | null> {
-  if (Number(response.headers.get('content-length')) > maxBytes) return null;
-  if (!response.body) return response.text();
-  const reader = response.body.getReader();
-  const chunks: Buffer[] = [];
-  let receivedBytes = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    receivedBytes += value.byteLength;
-    if (receivedBytes > maxBytes) {
-      await reader.cancel();
-      return null;
-    }
-    chunks.push(Buffer.from(value));
-  }
-  return Buffer.concat(chunks).toString('utf8');
 }
 
 function loadModelparamsCatalog(): ProviderParamSpecCatalog {

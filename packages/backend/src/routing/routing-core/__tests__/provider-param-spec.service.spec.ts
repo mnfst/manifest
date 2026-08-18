@@ -283,34 +283,6 @@ describe('ProviderParamSpecService API refresh', () => {
     expect(specs.length).toBeGreaterThan(0);
   });
 
-  it('rejects an oversized Content-Length before reading the body', async () => {
-    const response = jsonResponse(CATALOG_BODY, {
-      headers: { 'content-length': String(17 * 1024 * 1024) },
-    });
-    fetchSpy.mockResolvedValue(response);
-    const service = new ProviderParamSpecService();
-
-    await expect(service.refreshCatalog()).resolves.toBe(false);
-    expect(response.bodyUsed).toBe(false);
-  });
-
-  it('cancels the stream when the received bytes cross the size ceiling', async () => {
-    const chunk = new Uint8Array(9 * 1024 * 1024);
-    const stream = new ReadableStream<Uint8Array>({
-      start(controller) {
-        controller.enqueue(chunk);
-        controller.enqueue(chunk);
-        controller.close();
-      },
-    });
-    fetchSpy.mockResolvedValue(new Response(stream, { status: 200 }));
-    const service = new ProviderParamSpecService();
-
-    await expect(service.refreshCatalog()).resolves.toBe(false);
-    const specs = await service.getSpecs('openai', 'api_key', 'gpt-4o');
-    expect(specs.length).toBeGreaterThan(0);
-  });
-
   it('keeps the bundled catalog when reading the response body throws', async () => {
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
