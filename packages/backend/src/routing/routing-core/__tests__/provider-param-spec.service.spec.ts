@@ -269,6 +269,7 @@ describe('ProviderParamSpecService API refresh', () => {
     ['a network error', () => fetchSpy.mockRejectedValue(new Error('boom'))],
     ['a non-2xx status', () => fetchSpy.mockResolvedValue(new Response('nope', { status: 503 }))],
     ['invalid JSON', () => fetchSpy.mockResolvedValue(jsonResponse('{not json'))],
+    ['an empty body', () => fetchSpy.mockResolvedValue(new Response(null, { status: 200 }))],
     [
       'a body that fails catalog validation',
       () => fetchSpy.mockResolvedValue(jsonResponse(JSON.stringify({ models: 'wat' }))),
@@ -282,24 +283,44 @@ describe('ProviderParamSpecService API refresh', () => {
     expect(specs.length).toBeGreaterThan(0);
   });
 
-  it('keeps the bundled catalog when the response exceeds the size ceiling', async () => {
-    const response = jsonResponse(CATALOG_BODY);
-    const textSpy = jest.spyOn(response, 'text').mockResolvedValue('x'.repeat(17 * 1024 * 1024));
+  it('rejects an oversized Content-Length before reading the body', async () => {
+    const response = jsonResponse(CATALOG_BODY, {
+      headers: { 'content-length': String(17 * 1024 * 1024) },
+    });
     fetchSpy.mockResolvedValue(response);
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCatalog()).resolves.toBe(false);
-    textSpy.mockRestore();
+    expect(response.bodyUsed).toBe(false);
+  });
+
+  it('cancels the stream when the received bytes cross the size ceiling', async () => {
+    const chunk = new Uint8Array(9 * 1024 * 1024);
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(chunk);
+        controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+    fetchSpy.mockResolvedValue(new Response(stream, { status: 200 }));
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCatalog()).resolves.toBe(false);
+    const specs = await service.getSpecs('openai', 'api_key', 'gpt-4o');
+    expect(specs.length).toBeGreaterThan(0);
   });
 
   it('keeps the bundled catalog when reading the response body throws', async () => {
-    const response = jsonResponse(CATALOG_BODY);
-    const textSpy = jest.spyOn(response, 'text').mockRejectedValue(new Error('socket reset'));
-    fetchSpy.mockResolvedValue(response);
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('socket reset'));
+      },
+    });
+    fetchSpy.mockResolvedValue(new Response(stream, { status: 200 }));
     const service = new ProviderParamSpecService();
 
     await expect(service.refreshCatalog()).resolves.toBe(false);
-    textSpy.mockRestore();
   });
 
   it('refreshes on module init and on the cron tick, surviving failures', async () => {

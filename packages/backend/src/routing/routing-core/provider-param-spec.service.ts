@@ -140,10 +140,10 @@ export class ProviderParamSpecService implements OnModuleInit {
       return false;
     }
 
-    const body = await response.text();
-    if (body.length > MODELPARAMS_API_MAX_BYTES) {
+    const body = await readBodyWithinByteCap(response, MODELPARAMS_API_MAX_BYTES);
+    if (body === null) {
       this.logger.warn(
-        `modelparams catalog response is ${body.length} bytes (max ${MODELPARAMS_API_MAX_BYTES}), keeping current catalog`,
+        `modelparams catalog response exceeds ${MODELPARAMS_API_MAX_BYTES} bytes, keeping current catalog`,
       );
       return false;
     }
@@ -243,6 +243,31 @@ export class ProviderParamSpecService implements OnModuleInit {
     }
     return [];
   }
+}
+
+/**
+ * Read the response body while enforcing the byte ceiling *before* buffering:
+ * an over-limit Content-Length is rejected without touching the body, and a
+ * chunked/lying stream is cancelled the moment the running byte count crosses
+ * the cap. Returns null when the cap is exceeded.
+ */
+async function readBodyWithinByteCap(response: Response, maxBytes: number): Promise<string | null> {
+  if (Number(response.headers.get('content-length')) > maxBytes) return null;
+  if (!response.body) return response.text();
+  const reader = response.body.getReader();
+  const chunks: Buffer[] = [];
+  let receivedBytes = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    receivedBytes += value.byteLength;
+    if (receivedBytes > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks).toString('utf8');
 }
 
 function loadModelparamsCatalog(): ProviderParamSpecCatalog {
