@@ -84,7 +84,12 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
   if (!isNativeResponsesMessageItem(item)) return [];
 
   const role = typeof item.role === 'string' ? item.role : 'user';
-  return [{ role, content: toChatContent(item.content, role) }];
+  const content = toChatContent(item.content, role);
+  // A message item carrying no content at all is the same wire hazard: the
+  // key is omitted on serialization and `{ role: 'user' }` goes out again.
+  if (content === undefined) return [];
+
+  return [{ role, content }];
 }
 
 export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {

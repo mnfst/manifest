@@ -236,6 +236,18 @@ describe('Responses adapter', () => {
       expect(JSON.stringify(messages)).not.toContain('{"role":"user"}');
     });
 
+    it('drops message items that carry no content at all', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          { type: 'message', role: 'user' },
+          { role: 'assistant' },
+          { role: 'user', content: [{ type: 'input_text', text: 'still here' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([{ role: 'user', content: 'still here' }]);
+    });
+
     it('uses safe defaults for malformed input items', () => {
       const result = toChatCompletionsRequest({
         input: [
