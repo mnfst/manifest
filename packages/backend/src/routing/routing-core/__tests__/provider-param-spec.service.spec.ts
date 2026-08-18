@@ -283,6 +283,17 @@ describe('ProviderParamSpecService API refresh', () => {
     expect(specs.length).toBeGreaterThan(0);
   });
 
+  it('rejects an oversized Content-Length without reading the body', async () => {
+    const response = jsonResponse(CATALOG_BODY, {
+      headers: { 'content-length': String(17 * 1024 * 1024) },
+    });
+    fetchSpy.mockResolvedValue(response);
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCatalog()).resolves.toBe(false);
+    expect(response.bodyUsed).toBe(false);
+  });
+
   it('keeps the bundled catalog when reading the response body throws', async () => {
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {

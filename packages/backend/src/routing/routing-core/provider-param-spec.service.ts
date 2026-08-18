@@ -31,6 +31,8 @@ const MODELPARAMS_PACKAGE_JSON = 'modelparams/package.json';
 const MODELPARAMS_DATA_RELATIVE_PATH = 'dist/generated/data.js';
 const MODELPARAMS_API_DEFAULT_URL = 'https://modelparams.dev/api/v1/models.json';
 const MODELPARAMS_API_TIMEOUT_MS = 10000;
+/** Sanity bound on the buffered payload; today's catalog is ~0.6 MB. */
+const MODELPARAMS_API_MAX_BYTES = 16 * 1024 * 1024;
 const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 const SHORT_CLAUDE_MODEL_RE = /^claude-(opus|sonnet|haiku)-/i;
 const DOTTED_CLAUDE_MINOR_RE = /-(\d+)\.(\d{1,2})(?=$|-\d{8}$)/g;
@@ -138,8 +140,16 @@ export class ProviderParamSpecService implements OnModuleInit {
       return false;
     }
 
-    // The AbortSignal above also bounds body consumption, so the download can
-    // never outlive the 10s timeout — no separate size cap needed.
+    // Reject an oversized declared payload before buffering it. A chunked or
+    // lying response is deliberately left to the 10s AbortSignal (which also
+    // bounds body consumption) rather than a streaming byte cap — this is our
+    // own CDN, and the simplicity is worth the residual risk.
+    if (Number(response.headers.get('content-length')) > MODELPARAMS_API_MAX_BYTES) {
+      this.logger.warn(
+        `modelparams catalog response declares more than ${MODELPARAMS_API_MAX_BYTES} bytes, keeping current catalog`,
+      );
+      return false;
+    }
     const body = await response.text();
 
     let raw: unknown;
