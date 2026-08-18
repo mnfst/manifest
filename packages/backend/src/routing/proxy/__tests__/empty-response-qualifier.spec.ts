@@ -327,6 +327,10 @@ describe('qualifyEmptyResponse', () => {
         ['computer_call', { type: 'computer_call', id: 'cc_1', action: 'click' }],
         ['code_interpreter_call', { type: 'code_interpreter_call', id: 'ci_1', code: 'print(1)' }],
         ['file_search_call', { type: 'file_search_call', id: 'fs_1', queries: ['q'] }],
+        [
+          'image_generation_call',
+          { type: 'image_generation_call', id: 'ig_1', prompt: 'a red panda astronaut' },
+        ],
       ] as const)(
         'passes through a response with a %s item',
         async (_name: string, item: Record<string, unknown>) => {
@@ -566,6 +570,10 @@ describe('qualifyEmptyResponse', () => {
         ['computer_call', { type: 'computer_call', id: 'cc_1', action: 'click' }],
         ['code_interpreter_call', { type: 'code_interpreter_call', id: 'ci_1', code: 'print(1)' }],
         ['file_search_call', { type: 'file_search_call', id: 'fs_1', queries: ['q'] }],
+        [
+          'image_generation_call',
+          { type: 'image_generation_call', id: 'ig_1', prompt: 'a red panda astronaut' },
+        ],
       ] as const)(
         'passes through a stream with a %s output item',
         async (_name: string, item: Record<string, unknown>) => {
