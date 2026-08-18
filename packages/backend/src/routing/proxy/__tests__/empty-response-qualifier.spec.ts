@@ -322,6 +322,21 @@ describe('qualifyEmptyResponse', () => {
         expect(response.status).toBe(200);
       });
 
+      it.each([
+        ['web_search_call', { type: 'web_search_call', id: 'ws_1', status: 'completed' }],
+        ['computer_call', { type: 'computer_call', id: 'cc_1', action: 'click' }],
+        ['code_interpreter_call', { type: 'code_interpreter_call', id: 'ci_1', code: 'print(1)' }],
+        ['file_search_call', { type: 'file_search_call', id: 'fs_1', queries: ['q'] }],
+      ] as const)(
+        'passes through a response with a %s item',
+        async (_name: string, item: Record<string, unknown>) => {
+          const body = responsesResponse([item]);
+          const response = await qualifyEmptyResponse(jsonResponse(body));
+
+          expect(response.status).toBe(200);
+        },
+      );
+
       it('rewrites a response with empty output into a 502', async () => {
         const body = responsesResponse([]);
         const response = await qualifyEmptyResponse(jsonResponse(body));
@@ -541,6 +556,40 @@ describe('qualifyEmptyResponse', () => {
             output_index: 0,
             item: { type: 'function_call', id: 'fc_1', call_id: 'call_1', name: 'search' },
           }) + responsesSseEvent('response.completed', { type: 'response.completed' });
+        const response = await qualifyEmptyResponse(sseResponse(sse));
+
+        expect(response.status).toBe(200);
+      });
+
+      it.each([
+        ['web_search_call', { type: 'web_search_call', id: 'ws_1', status: 'completed' }],
+        ['computer_call', { type: 'computer_call', id: 'cc_1', action: 'click' }],
+        ['code_interpreter_call', { type: 'code_interpreter_call', id: 'ci_1', code: 'print(1)' }],
+        ['file_search_call', { type: 'file_search_call', id: 'fs_1', queries: ['q'] }],
+      ] as const)(
+        'passes through a stream with a %s output item',
+        async (_name: string, item: Record<string, unknown>) => {
+          const sse =
+            responsesSseEvent('response.output_item.added', {
+              type: 'response.output_item.added',
+              output_index: 0,
+              item,
+            }) + responsesSseEvent('response.completed', { type: 'response.completed' });
+          const response = await qualifyEmptyResponse(sseResponse(sse));
+
+          expect(response.status).toBe(200);
+        },
+      );
+
+      it('passes through a stream whose output_item.added relies on the event: line only', async () => {
+        // Responses API events may omit `type` inside the JSON payload and rely
+        // entirely on the `event:` line (e.g. `data: {"item":{...}}` for
+        // `event: response.output_item.added`).
+        const sse =
+          responsesSseEvent('response.output_item.added', {
+            output_index: 0,
+            item: { type: 'web_search_call', id: 'ws_1', status: 'completed' },
+          }) + responsesSseEvent('response.completed', { response: { status: 'completed' } });
         const response = await qualifyEmptyResponse(sseResponse(sse));
 
         expect(response.status).toBe(200);

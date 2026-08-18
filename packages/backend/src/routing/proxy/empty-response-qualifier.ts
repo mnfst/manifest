@@ -209,19 +209,38 @@ function nonStreamingMessage(payload: Record<string, unknown>): ChatCompletionMe
 }
 
 /**
+ * A Responses API output item is a deliverable tool call when its type is one
+ * of the native tool item shapes: `function_call`, `web_search_call`,
+ * `computer_call`, `code_interpreter_call`, or `file_search_call`. These all
+ * represent real tool invocations delivered to the caller even when no
+ * `output_text` accompanies them. `reasoning` items are explicitly excluded —
+ * they carry only chain-of-thought and are not deliverable output.
+ */
+function isDeliverableResponsesToolItem(item: Record<string, unknown>): boolean {
+  return (
+    item.type === 'function_call' ||
+    item.type === 'web_search_call' ||
+    item.type === 'computer_call' ||
+    item.type === 'code_interpreter_call' ||
+    item.type === 'file_search_call'
+  );
+}
+
+/**
  * Detect deliverable content in a Responses API non-streaming payload.
  * `output` items of type `message` carry text via `content[].output_text`
- * parts, and `function_call` items count as tool calls. Valid natively-shaped
- * Responses JSON has no `choices`, so without this branch every successful
- * Responses response would be rewritten to a 502 and trigger fallback (see
- * provider-client `qualifyEmptyResponse` wiring for non-subscription
- * Responses endpoints).
+ * parts, and native tool items (`function_call`, `web_search_call`,
+ * `computer_call`, `code_interpreter_call`, `file_search_call`) count as
+ * tool calls. Valid natively-shaped Responses JSON has no `choices`, so
+ * without this branch every successful Responses response would be rewritten
+ * to a 502 and trigger fallback (see provider-client `qualifyEmptyResponse`
+ * wiring for non-subscription Responses endpoints).
  */
 function hasDeliverableResponsesPayload(payload: Record<string, unknown>): boolean {
   const output = Array.isArray(payload.output) ? payload.output : [];
   for (const item of output) {
     if (!isObjectRecord(item)) continue;
-    if (item.type === 'function_call') return true;
+    if (isDeliverableResponsesToolItem(item)) return true;
     if (item.type !== 'message' || !Array.isArray(item.content)) continue;
     for (const part of item.content) {
       if (
@@ -384,7 +403,7 @@ function hasDeliverableChunk(payload: Record<string, unknown>): boolean {
   }
   if (payload.type === 'response.output_item.added') {
     const item = isObjectRecord(payload.item) ? payload.item : undefined;
-    return item?.type === 'function_call';
+    return item ? isDeliverableResponsesToolItem(item) : false;
   }
 
   return false;
@@ -423,7 +442,7 @@ function hasDeliverablePayload(payloads: string[]): boolean {
     }
     if (eventName === 'response.output_item.added') {
       const item = parsed && isObjectRecord(parsed.item) ? parsed.item : undefined;
-      if (item?.type === 'function_call') return true;
+      if (item && isDeliverableResponsesToolItem(item)) return true;
     }
   }
   return false;
