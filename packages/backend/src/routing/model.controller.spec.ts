@@ -460,7 +460,10 @@ describe('ModelController', () => {
 
       const result = await controller.getAvailableModels(mockCtx, mockAgentName);
 
-      expect(mockModelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith('mistral', 'magistral-small-2509');
+      expect(mockModelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
+        'mistral',
+        'magistral-small-2509',
+      );
       expect(result[0].model_name).toBe('mistral.magistral-small-2509');
       expect(result[0].display_name).toBe('Magistral Small');
     });

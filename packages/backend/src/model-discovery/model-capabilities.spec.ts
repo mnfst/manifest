@@ -144,6 +144,9 @@ describe('resolveModelCapabilityMetadata', () => {
       modelsDevSync,
     );
 
-    expect(modelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith('anthropic', 'claude-sonnet-5-v1:0');
+    expect(modelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
+      'anthropic',
+      'claude-sonnet-5-v1:0',
+    );
   });
 });

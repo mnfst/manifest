@@ -13,7 +13,10 @@ describe('reasoning catalog dependency injection', () => {
         ReasoningContentCache,
         ProviderClient,
         ModelsDevReasoningCatalog,
-        { provide: ModelsDevSyncService, useValue: { lookupModel: () => null, lookupModelCapabilities: () => null } },
+        {
+          provide: ModelsDevSyncService,
+          useValue: { lookupModel: () => null, lookupModelCapabilities: () => null },
+        },
       ],
     }).compile();
 
