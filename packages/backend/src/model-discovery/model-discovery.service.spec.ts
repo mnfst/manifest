@@ -1309,19 +1309,37 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('should route capability lookups through lookupModelCapabilities', async () => {
-      // enrichModel must not call lookupModel for capabilities: that path is
+      // enrichModel must not read capabilities from lookupModel: that path is
       // reserved for pricing, and a capability-only entry carries a reseller's
-      // rate for a vendor's model ID.
+      // rate for a vendor's model ID. Only the capability catalog answers here,
+      // so reverting enrichModel to lookupModel leaves the flags unset.
+      mockModelsDevSync.lookupModel.mockReturnValue(null);
+      mockModelsDevSync.lookupModelCapabilities.mockImplementation(
+        (providerId: string, modelId: string) =>
+          providerId === 'openai' && modelId === 'test-model'
+            ? {
+                id: 'test-model',
+                name: 'Test Model',
+                reasoning: true,
+                toolCall: true,
+                inputModalities: ['text', 'image'],
+                outputModalities: ['text'],
+                capabilities: ['text', 'image', 'tools'],
+              }
+            : null,
+      );
       fetcher.fetch.mockResolvedValue([
         makeModel({ inputPricePerToken: 0, outputPricePerToken: 0 }),
       ]);
 
-      await service.discoverModels(makeProvider());
+      const result = await service.discoverModels(makeProvider());
 
       expect(mockModelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
         'openai',
         'test-model',
       );
+      expect(result[0].capabilityReasoning).toBe(true);
+      expect(result[0].inputModalities).toEqual(['text', 'image']);
     });
 
     it('should fall back to exact model ID lookup when prefix lookup misses', async () => {

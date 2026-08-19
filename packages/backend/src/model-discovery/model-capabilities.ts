@@ -135,9 +135,9 @@ export async function resolveModelCapabilityMetadata(
   // Bedrock vendor-prefixed ids). Resolve that provenance for metadata only.
   const metadata = resolveProviderMetadataIdentity(model.provider, model.id);
   const metadataProvider = metadata.provider ?? model.provider;
-  // Capability-only providers (Kilo, Pioneer, Cline Pass, Xiaomi) resolve here
-  // too; every field read off this entry is capability metadata or a display
-  // name, never a price.
+  // Capability-only providers (Kilo, Pioneer, Cline Pass, Xiaomi, OpenRouter)
+  // resolve here too; every field read off this entry is capability metadata or
+  // a display name, never a price.
   const modelsDevEntry = modelsDevSync.lookupModelCapabilities(metadataProvider, metadata.model);
   // Curated facts are the last resort, and applying them here (not only at
   // discovery time) means stale cached_models still resolve correctly.
