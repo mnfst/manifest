@@ -53,16 +53,16 @@ describe('inputModalitiesFromCapabilities', () => {
 
 describe('resolveModelCapabilityMetadata', () => {
   const paramSpecs = { getCapabilities: jest.fn() };
-  const modelsDevSync = { lookupModel: jest.fn() };
+  const modelsDevSync = { lookupModelCapabilities: jest.fn() };
 
   beforeEach(() => {
     paramSpecs.getCapabilities.mockReset().mockResolvedValue(null);
-    modelsDevSync.lookupModel.mockReset().mockReturnValue(null);
+    modelsDevSync.lookupModelCapabilities.mockReset().mockReturnValue(null);
   });
 
   it('merges discovery, models.dev, param-spec, and streaming-heuristic capabilities', async () => {
     paramSpecs.getCapabilities.mockResolvedValue(['tools']);
-    modelsDevSync.lookupModel.mockReturnValue(makeModelsDevEntry());
+    modelsDevSync.lookupModelCapabilities.mockReturnValue(makeModelsDevEntry());
 
     const resolved = await resolveModelCapabilityMetadata(
       makeModel({ capabilities: ['audio'], authType: 'subscription' }),
@@ -144,6 +144,6 @@ describe('resolveModelCapabilityMetadata', () => {
       modelsDevSync,
     );
 
-    expect(modelsDevSync.lookupModel).toHaveBeenCalledWith('anthropic', 'claude-sonnet-5-v1:0');
+    expect(modelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith('anthropic', 'claude-sonnet-5-v1:0');
   });
 });

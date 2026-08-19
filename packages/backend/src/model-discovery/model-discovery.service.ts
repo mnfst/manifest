@@ -326,7 +326,7 @@ export class ModelDiscoveryService {
     const filtered = enriched.filter((model) => {
       const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
       const metadataProvider = metadata.provider ?? provider.provider;
-      const mdEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadata.model);
+      const mdEntry = this.modelsDevSync?.lookupModelCapabilities(metadataProvider, metadata.model);
       if (mdEntry && mdEntry.toolCall === false) return false;
       return true;
     });

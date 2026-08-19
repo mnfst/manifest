@@ -1277,6 +1277,37 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBeNull();
     });
 
+    it('should filter tool-less models of capability-only providers', async () => {
+      // The tool-support filter reads the same capability catalog as
+      // enrichment, so a Kilo model models.dev marks toolCall=false is
+      // dropped while an unknown one is kept.
+      mockModelsDevSync.lookupModelCapabilities.mockImplementation(
+        (providerId: string, modelId: string) =>
+          providerId === 'kilo' && modelId === 'vendor/no-tools'
+            ? { id: 'vendor/no-tools', name: 'No Tools', toolCall: false }
+            : null,
+      );
+
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'vendor/no-tools',
+          provider: 'kilo',
+          inputPricePerToken: 0.000001,
+          outputPricePerToken: 0.000002,
+        }),
+        makeModel({
+          id: 'vendor/unknown',
+          provider: 'kilo',
+          inputPricePerToken: 0.000001,
+          outputPricePerToken: 0.000002,
+        }),
+      ]);
+
+      const result = await service.discoverModels(makeProvider({ provider: 'kilo' }));
+
+      expect(result.map((m) => m.id)).toEqual(['vendor/unknown']);
+    });
+
     it('should route capability lookups through lookupModelCapabilities', async () => {
       // enrichModel must not call lookupModel for capabilities: that path is
       // reserved for pricing, and a capability-only entry carries a reseller's
