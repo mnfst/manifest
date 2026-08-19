@@ -313,6 +313,33 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  'ollama-cloud': {
+    id: 'ollama-cloud',
+    name: 'Ollama Cloud',
+    models: {
+      'kimi-k3': {
+        id: 'kimi-k3',
+        name: 'kimi-k3',
+        reasoning: true,
+        tool_call: true,
+        modalities: { input: ['text', 'image'], output: ['text'] },
+      },
+      'deepseek-v4-pro': {
+        id: 'deepseek-v4-pro',
+        name: 'deepseek-v4-pro',
+        reasoning: true,
+        tool_call: true,
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'gpt-oss:120b': {
+        id: 'gpt-oss:120b',
+        name: 'gpt-oss:120b',
+        reasoning: true,
+        tool_call: true,
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   'unknown-provider': {
     id: 'unknown-provider',
     name: 'Unknown',
@@ -348,8 +375,9 @@ describe('ModelsDevSyncService', () => {
       );
       // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
       // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2,
-      // nvidia: 1, opencode-go: 1, opencode: 1, cerebras: 1 = 29
-      expect(count).toBe(29);
+      // nvidia: 1, opencode-go: 1, opencode: 1, cerebras: 1,
+      // ollama-cloud: 3 = 32
+      expect(count).toBe(32);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -699,6 +727,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.isProviderSupported('fireworks')).toBe(true);
       expect(service.isProviderSupported('bedrock')).toBe(true);
       expect(service.isProviderSupported('cerebras')).toBe(true);
+      expect(service.isProviderSupported('ollama-cloud')).toBe(true);
     });
 
     it('should return false for unmapped providers', () => {
@@ -1404,6 +1433,55 @@ describe('ModelsDevSyncService', () => {
       const upper = service.getModelsForProvider('ANTHROPIC');
       expect(lower).toEqual(upper);
       expect(lower.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('ollama-cloud', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should expose modalities and capability flags for cloud models', () => {
+      const model = service.lookupModel('ollama-cloud', 'kimi-k3');
+      expect(model).not.toBeNull();
+      expect(model!.inputModalities).toEqual(['text', 'image']);
+      expect(model!.outputModalities).toEqual(['text']);
+      expect(model!.reasoning).toBe(true);
+      expect(model!.toolCall).toBe(true);
+    });
+
+    it('should leave pricing null when models.dev lists no cost', () => {
+      const model = service.lookupModel('ollama-cloud', 'deepseek-v4-pro');
+      expect(model).not.toBeNull();
+      expect(model!.inputPricePerToken).toBeNull();
+      expect(model!.outputPricePerToken).toBeNull();
+    });
+
+    it('should strip Ollama release tags absent from the models.dev key', () => {
+      expect(service.lookupModel('ollama-cloud', 'deepseek-v4-pro:preview')?.id).toBe(
+        'deepseek-v4-pro',
+      );
+      expect(service.lookupModel('ollama-cloud', 'deepseek-v4-pro:0813')?.id).toBe(
+        'deepseek-v4-pro',
+      );
+    });
+
+    it('should not strip parameter-size tags that are part of the model ID', () => {
+      expect(service.lookupModel('ollama-cloud', 'gpt-oss:120b')?.id).toBe('gpt-oss:120b');
+      expect(service.lookupModel('ollama-cloud', 'gpt-oss:20b')).toBeNull();
+    });
+
+    it('should not apply the tag strip to other providers', () => {
+      expect(service.lookupModel('bedrock', 'qwen.qwen3-32b:preview')).toBeNull();
+    });
+
+    it('should leave local ollama unsupported', () => {
+      expect(service.isProviderSupported('ollama')).toBe(false);
+      expect(service.lookupModel('ollama', 'kimi-k3')).toBeNull();
     });
   });
 

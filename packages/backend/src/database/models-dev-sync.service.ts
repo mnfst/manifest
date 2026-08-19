@@ -31,6 +31,7 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   groq: 'groq',
   'opencode-go': 'opencode-go',
   'opencode-zen': 'opencode',
+  'ollama-cloud': 'ollama-cloud',
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));
@@ -184,6 +185,13 @@ const MODEL_ID_PREFIX_ALIASES: ReadonlyMap<string, string> = new Map([
 ]);
 /** Matches instruction-tuned suffixes that models.dev sometimes omits on Bedrock keys. */
 const INSTRUCT_SUFFIX_RE = /-instruct$/;
+/**
+ * Matches Ollama release tags that models.dev omits from its base model key
+ * (e.g. `deepseek-v4-pro:preview` → `deepseek-v4-pro`). Deliberately narrow:
+ * parameter-size tags (`:120b`, `:397b`) and Bedrock-style `-v1:0` versions
+ * must not match, since those are part of the canonical model ID.
+ */
+const OLLAMA_TAG_SUFFIX_RE = /:(?:preview|\d{4})$/;
 
 @Injectable()
 export class ModelsDevSyncService implements OnModuleInit {
@@ -404,6 +412,16 @@ export class ModelsDevSyncService implements OnModuleInit {
     if (noReasoning !== modelId) {
       const found = providerModels.get(noReasoning);
       if (found) return found;
+    }
+
+    if (providerId === 'ollama-cloud') {
+      // 7a. Strip Ollama release tags absent from the models.dev key
+      //     (e.g. deepseek-v4-pro:preview → deepseek-v4-pro).
+      const noTag = modelId.replace(OLLAMA_TAG_SUFFIX_RE, '');
+      if (noTag !== modelId) {
+        const found = providerModels.get(noTag);
+        if (found) return found;
+      }
     }
 
     if (providerId === 'bedrock') {
