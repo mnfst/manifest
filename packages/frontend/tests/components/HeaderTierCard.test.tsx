@@ -387,6 +387,65 @@ describe('HeaderTierCard', () => {
     expect(container.textContent).toContain('Included in subscription');
   });
 
+  describe('quota skip toggle', () => {
+    const subTier: HeaderTier = {
+      ...baseTier,
+      override_route: {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus',
+      },
+    };
+    const renderCard = (props: Partial<Parameters<typeof HeaderTierCard>[0]>, tier = subTier) =>
+      render(() => (
+        <HeaderTierCard
+          agentName="demo"
+          tier={tier}
+          models={models}
+          customProviders={customProviders}
+          connectedProviders={connectedProviders}
+          onOverride={vi.fn()}
+          onFallbacksUpdate={vi.fn()}
+          {...props}
+        />
+      ));
+    const quotaButton = (container: HTMLElement) =>
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label^="Toggle skip-on-quota-exhaustion"]',
+      );
+
+    it('renders on the primary chip for a quota-capable subscription override and forwards clicks', () => {
+      const onQuotaSkipToggle = vi.fn();
+      const { container } = renderCard({ onQuotaSkipToggle });
+      const button = quotaButton(container);
+      expect(button).not.toBeNull();
+      expect(button!.getAttribute('aria-pressed')).toBe('false');
+      fireEvent.click(button!);
+      expect(onQuotaSkipToggle).toHaveBeenCalledWith(true);
+    });
+
+    it('reflects the stored flag via aria-pressed and the configured class', () => {
+      const flagged: HeaderTier = {
+        ...subTier,
+        override_route: { ...subTier.override_route!, skipWhenQuotaExhausted: true },
+      };
+      const { container } = renderCard({ onQuotaSkipToggle: vi.fn() }, flagged);
+      const button = quotaButton(container);
+      expect(button?.getAttribute('aria-pressed')).toBe('true');
+      expect(button?.classList.contains('routing-card__chip-action--configured')).toBe(true);
+    });
+
+    it('is hidden for api_key overrides', () => {
+      const { container } = renderCard({ onQuotaSkipToggle: vi.fn() }, baseTier);
+      expect(quotaButton(container)).toBeNull();
+    });
+
+    it('is hidden when no toggle handler is provided', () => {
+      const { container } = renderCard({});
+      expect(quotaButton(container)).toBeNull();
+    });
+  });
+
   it('shows the primary account chip for multi-account header tier routes', () => {
     const onOverride = vi.fn();
     const tierSub = {

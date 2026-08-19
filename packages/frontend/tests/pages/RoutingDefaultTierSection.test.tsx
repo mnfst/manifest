@@ -36,6 +36,7 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
       props.persistParamDefaults,
       props.onParamDefaultsSaved,
       props.onPinKey,
+      props.onQuotaSkipToggle,
       props.getModelParams,
       props.setModelParams,
     ];
@@ -48,6 +49,14 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
           onClick={() => (props.onDropdownOpen as (id: string) => void)(stage.id)}
         >
           open
+        </button>
+        <button
+          data-testid={`quota-toggle-${stage.id}`}
+          onClick={() =>
+            (props.onQuotaSkipToggle as (id: string, enabled: boolean) => void)?.(stage.id, true)
+          }
+        >
+          quota-toggle
         </button>
       </div>
     );
@@ -235,5 +244,23 @@ describe('RoutingDefaultTierSection', () => {
     // No assertion needed beyond the render — the assignment getters are
     // exercised when the mock reads `props.tier` for each card.
     expect(screen.getByTestId('tier-card-simple')).toBeDefined();
+  });
+
+  it('threads onQuotaSkipToggle into the default card when complexity is off', () => {
+    const onQuotaSkipToggle = vi.fn();
+    render(() => <RoutingDefaultTierSection {...makeProps({ onQuotaSkipToggle })} />);
+    fireEvent.click(screen.getByTestId('quota-toggle-default'));
+    expect(onQuotaSkipToggle).toHaveBeenCalledWith('default', true);
+  });
+
+  it('threads onQuotaSkipToggle into the complexity tier cards when complexity is on', () => {
+    const onQuotaSkipToggle = vi.fn();
+    render(() => (
+      <RoutingDefaultTierSection
+        {...makeProps({ complexityEnabled: () => true, onQuotaSkipToggle })}
+      />
+    ));
+    fireEvent.click(screen.getByTestId('quota-toggle-simple'));
+    expect(onQuotaSkipToggle).toHaveBeenCalledWith('simple', true);
   });
 });

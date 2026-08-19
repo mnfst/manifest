@@ -101,6 +101,18 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
         >
           response-buffered
         </button>
+        <button
+          data-testid={`quota-toggle-${tier.id}`}
+          onClick={() => (props.onQuotaSkipToggle as (enabled: boolean) => void)?.(true)}
+        >
+          quota-toggle
+        </button>
+        <button
+          data-testid={`quota-toggle-off-${tier.id}`}
+          onClick={() => (props.onQuotaSkipToggle as (enabled: boolean) => void)?.(false)}
+        >
+          quota-toggle-off
+        </button>
       </div>
     );
   },
@@ -289,6 +301,83 @@ describe('RoutingHeaderTiersSection', () => {
     fireEvent.click(getByTestId('override-ht-1'));
     await waitFor(() => {
       expect(mockToastError).toHaveBeenCalledWith('boom');
+    });
+  });
+
+  describe('quota skip toggle', () => {
+    const subTier: HeaderTier = {
+      ...tier1,
+      override_route: {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude-opus',
+        keyLabel: 'Work',
+      },
+    };
+
+    it('re-sends the current override with skipWhenQuotaExhausted=true and refetches', async () => {
+      const externalRefetch = vi.fn();
+      render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({ externalTiers: () => [subTier], externalRefetch })}
+        />
+      ));
+      fireEvent.click(screen.getByTestId('quota-toggle-ht-1'));
+      await waitFor(() => {
+        expect(mockOverrideHeaderTier).toHaveBeenCalledWith(
+          'demo',
+          'ht-1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          'Work',
+          true,
+        );
+      });
+      await waitFor(() => {
+        expect(externalRefetch).toHaveBeenCalled();
+        expect(mockToastSuccess).toHaveBeenCalledWith('Route skipped on quota exhaustion');
+      });
+    });
+
+    it('disables the flag with skipWhenQuotaExhausted=false', async () => {
+      render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({ externalTiers: () => [subTier], externalRefetch: vi.fn() })}
+        />
+      ));
+      fireEvent.click(screen.getByTestId('quota-toggle-off-ht-1'));
+      await waitFor(() => {
+        expect(mockOverrideHeaderTier).toHaveBeenCalledWith(
+          'demo',
+          'ht-1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          'Work',
+          false,
+        );
+        expect(mockToastSuccess).toHaveBeenCalledWith('Quota skip disabled');
+      });
+    });
+
+    it('does nothing when the tier has no override route', async () => {
+      render(() => <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [tier1] })} />);
+      fireEvent.click(screen.getByTestId('quota-toggle-ht-1'));
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockOverrideHeaderTier).not.toHaveBeenCalled();
+    });
+
+    it('toasts an error when the quota-skip update fails', async () => {
+      mockOverrideHeaderTier.mockRejectedValue(new Error('boom'));
+      render(() => (
+        <RoutingHeaderTiersSection {...makeProps({ externalTiers: () => [subTier] })} />
+      ));
+      fireEvent.click(screen.getByTestId('quota-toggle-ht-1'));
+      await waitFor(() => {
+        expect(mockToastError).toHaveBeenCalledWith('boom');
+      });
+      expect(mockToastSuccess).not.toHaveBeenCalledWith('Route skipped on quota exhaustion');
     });
   });
 

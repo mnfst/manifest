@@ -1391,5 +1391,31 @@ describe('FallbackList', () => {
         [{ ...anthropicSubRoute, skipWhenQuotaExhausted: false }],
       );
     });
+
+    it('reverts the optimistic update when persisting the toggle fails', async () => {
+      const onUpdate = vi.fn();
+      mockSetFallbacks.mockRejectedValue(new Error('boom'));
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          onUpdate={onUpdate}
+          fallbacks={['model-b']}
+          fallbackRoutes={[{ ...anthropicSubRoute, skipWhenQuotaExhausted: true }]}
+        />
+      ));
+      fireEvent.click(quotaButton(container)!);
+      await waitFor(() => expect(mockSetFallbacks).toHaveBeenCalled());
+      // Optimistic flip, then revert to the original routes on failure.
+      expect(onUpdate).toHaveBeenNthCalledWith(
+        1,
+        ['model-b'],
+        [{ ...anthropicSubRoute, skipWhenQuotaExhausted: false }],
+      );
+      expect(onUpdate).toHaveBeenNthCalledWith(
+        2,
+        ['model-b'],
+        [{ ...anthropicSubRoute, skipWhenQuotaExhausted: true }],
+      );
+    });
   });
 });
