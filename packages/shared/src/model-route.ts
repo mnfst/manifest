@@ -78,7 +78,9 @@ export function legacyToRoute(triple: LegacyOverrideTriple): ModelRoute | null {
     authType: triple.authType,
     model: triple.model,
   };
-  if (triple.skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
+  if (triple.skipWhenQuotaExhausted != null) {
+    route.skipWhenQuotaExhausted = triple.skipWhenQuotaExhausted;
+  }
   return route;
 }
 
@@ -93,6 +95,8 @@ export function routeToLegacy(route: ModelRoute | null): LegacyOverrideTriple {
     provider: route.provider,
     authType: route.authType,
   };
-  if (route.skipWhenQuotaExhausted) triple.skipWhenQuotaExhausted = true;
+  if (route.skipWhenQuotaExhausted != null) {
+    triple.skipWhenQuotaExhausted = route.skipWhenQuotaExhausted;
+  }
   return triple;
 }

@@ -145,8 +145,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
-  // Which tier currently has a quota-skip toggle save in flight.
-  const [quotaToggling, setQuotaToggling] = createSignal<string | null>(null);
+  // Which tiers currently have a quota-skip toggle save in flight.
+  const [quotaToggling, setQuotaToggling] = createSignal<Set<string>>(new Set());
 
   /**
    * Flip the quota-skip flag on a custom tier's override route by re-sending
@@ -156,8 +156,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
    */
   const handleQuotaSkipToggle = async (tier: HeaderTier, enabled: boolean): Promise<void> => {
     const route = tier.override_route;
-    if (!route || quotaToggling() === tier.id) return;
-    setQuotaToggling(tier.id);
+    if (!route || quotaToggling().has(tier.id)) return;
+    setQuotaToggling((prev) => new Set(prev).add(tier.id));
     try {
       await overrideHeaderTier(
         props.agentName(),
@@ -173,7 +173,11 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update tier');
     } finally {
-      setQuotaToggling(null);
+      setQuotaToggling((prev) => {
+        const next = new Set(prev);
+        next.delete(tier.id);
+        return next;
+      });
     }
   };
 
@@ -414,7 +418,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 connectedProviders={props.connectedProviders()}
                 onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
                 onQuotaSkipToggle={(enabled) => void handleQuotaSkipToggle(tier, enabled)}
-                quotaSkipPending={quotaToggling() === tier.id}
+                quotaSkipPending={quotaToggling().has(tier.id)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
                 }

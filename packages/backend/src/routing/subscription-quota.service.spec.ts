@@ -185,6 +185,17 @@ describe('parseAnthropicUsage', () => {
 });
 
 describe('parseKimiUsage', () => {
+  it('fails open when quota strings are malformed or partially numeric', () => {
+    const result = parseKimiUsage(
+      kimiUsage({ usage: { used: '0oops', limit: '100', resetTime: FUTURE } }),
+    );
+    expect(result).toEqual({ exhausted: false, resetsAt: null });
+
+    const result2 = parseKimiUsage(
+      kimiUsage({ usage: { used: ' ', limit: '100', resetTime: FUTURE } }),
+    );
+    expect(result2).toEqual({ exhausted: false, resetsAt: null });
+  });
   it('is not exhausted when all windows have headroom', () => {
     expect(parseKimiUsage(kimiUsage())).toEqual({ exhausted: false, resetsAt: null });
   });
@@ -580,6 +591,12 @@ describe('grpc-web framing helpers', () => {
 });
 
 describe('resolveQuotaPollIntervalMs', () => {
+  it('rejects values beyond the maximum timeout limit', () => {
+    expect(resolveQuotaPollIntervalMs('2147483648')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
+    expect(resolveQuotaPollIntervalMs('999999999999999999999999999999')).toBe(
+      DEFAULT_QUOTA_POLL_INTERVAL_MS,
+    );
+  });
   it('defaults to 60s when unset or invalid', () => {
     expect(resolveQuotaPollIntervalMs(undefined)).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
     expect(resolveQuotaPollIntervalMs('')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);

@@ -41,7 +41,9 @@ export function resolveQuotaPollIntervalMs(raw: string | undefined): number {
   // accept a numeric prefix like '60000junk'.
   const trimmed = raw?.trim() ?? '';
   if (!/^\d+$/.test(trimmed)) return DEFAULT_QUOTA_POLL_INTERVAL_MS;
-  return Math.max(Number.parseInt(trimmed, 10), MIN_QUOTA_POLL_INTERVAL_MS);
+  const parsed = Number.parseInt(trimmed, 10);
+  if (!Number.isFinite(parsed) || parsed > 2147483647) return DEFAULT_QUOTA_POLL_INTERVAL_MS;
+  return Math.max(parsed, MIN_QUOTA_POLL_INTERVAL_MS);
 }
 
 /** Canonical id for providers with a quota endpoint, else null. */
@@ -116,7 +118,9 @@ export function parseAnthropicUsage(data: unknown): QuotaVerdict {
  */
 function kimiNumber(value: unknown): number {
   if (value === null || value === undefined) return NaN;
-  const parsed = Number.parseInt(String(value), 10);
+  const text = String(value).trim();
+  if (!text) return NaN;
+  const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : NaN;
 }
 
