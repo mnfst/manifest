@@ -1,0 +1,32 @@
+packages/backend/src/database/models-dev-sync.service.ts
+  s_d501b238b14871::t_9d5da5cb178811 308-323
+  s_d501b238b14871::t_eb99b74f2fdc3b 307
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_d501b238b14871::t_6da38a8638b7df 89-90,104-105,107-113
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_d501b238b14871::t_1f7aa15b49532f 734,737-742,744-748,752-756,764
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_d501b238b14871::t_ae969235bc3789 1211-1310
+  s_d501b238b14871::t_6da38a8638b7df 101-102,117-118,120-126
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_d501b238b14871::t_c14f4dca7a9284 1535
+  s_d501b238b14871::t_120d6280da6e81 1523-1534,1536-1555
+.changeset/unmapped-provider-capabilities.md
+  s_d501b238b14871::t_f18419a0978061 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6e7e2736bb5ca2333d7c1964facc61ab7b822c25",
+  "prompts": {},
+  "sessions": {
+    "s_d501b238b14871": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "632a9e45-f2ca-453e-a25d-ee044ddf2a02",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
