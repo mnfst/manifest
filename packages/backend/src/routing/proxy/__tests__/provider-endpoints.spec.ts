@@ -536,6 +536,26 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
+  it('vertex targets express mode, which resolves the project from the key', () => {
+    const endpoint = PROVIDER_ENDPOINTS['vertex'];
+    expect(endpoint.baseUrl).toBe('https://aiplatform.googleapis.com');
+    expect(endpoint.format).toBe('google');
+    // A project-scoped path would need a project id we have nowhere to store.
+    expect(endpoint.buildPath('gemini-2.5-flash')).toBe(
+      '/v1beta1/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).toBe(
+      '/v1beta1/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+    );
+  });
+
+  it('vertex sends the API key in x-goog-api-key like the Gemini API', () => {
+    expect(PROVIDER_ENDPOINTS['vertex'].buildHeaders('AQ.test')).toEqual({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': 'AQ.test',
+    });
+  });
+
   it('google buildHeaders sends the API key in x-goog-api-key (not query string)', () => {
     const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
     expect(headers).toEqual({

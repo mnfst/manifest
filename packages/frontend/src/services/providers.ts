@@ -162,6 +162,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_paste',
     models: [],
   },
+  vertex: {
+    initial: 'GV',
+    subtitle: 'Gemini via Google Cloud Vertex AI',
+    models: [],
+  },
   bedrock: {
     initial: 'AWS',
     subtitle: 'Claude, GPT, Kimi, MiniMax, Nova via Amazon Bedrock',
@@ -501,6 +506,7 @@ const PROVIDER_ORDER = [
   'qwen',
   'anthropic',
   'bedrock',
+  'vertex',
   'byteplus',
   'cerebras',
   'cline-pass',
