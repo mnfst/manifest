@@ -26,6 +26,8 @@ import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
 import { PROVIDERS, type ProviderDef } from '../../services/providers.js';
+import { createClientPagination } from '../../services/pagination.js';
+import Pagination from '../../components/Pagination.jsx';
 import {
   customProviderColor,
   formatCost,
@@ -224,6 +226,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const [customProviderPrefill, setCustomProviderPrefill] =
     createSignal<CustomProviderPrefill | null>(null);
   const [viewMode, setViewMode] = createSignal<ViewMode>('grid');
+  const allProviders = () => providerListForKind(props.kind);
+  const pager = createClientPagination(allProviders, 20);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Inline rename state
@@ -835,7 +839,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               </tr>
             </thead>
             <tbody>
-              <For each={providerListForKind(props.kind)}>
+              <For each={pager.pageItems()}>
                 {(provider) => {
                   const activeCount = () => activeConnectionCount(provider.id);
                   return (
@@ -878,12 +882,20 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               </For>
             </tbody>
           </table>
+          <Pagination
+            currentPage={pager.currentPage}
+            totalItems={pager.totalItems}
+            pageSize={pager.pageSize}
+            hasNextPage={pager.hasNextPage}
+            onPrevious={pager.previousPage}
+            onNext={pager.nextPage}
+          />
         </div>
       </Show>
 
       <Show when={viewMode() === 'grid'}>
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-          <For each={providerListForKind(props.kind)}>
+          <For each={pager.pageItems()}>
             {(provider) => {
               const activeCount = () => activeConnectionCount(provider.id);
               return (
@@ -927,6 +939,14 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               );
             }}
           </For>
+          <Pagination
+            currentPage={pager.currentPage}
+            totalItems={pager.totalItems}
+            pageSize={pager.pageSize}
+            hasNextPage={pager.hasNextPage}
+            onPrevious={pager.previousPage}
+            onNext={pager.nextPage}
+          />
         </div>
       </Show>
 
