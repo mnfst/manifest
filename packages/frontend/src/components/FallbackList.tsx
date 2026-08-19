@@ -100,6 +100,7 @@ const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
 
 const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
+  const [quotaSkipPending, setQuotaSkipPending] = createSignal<number | null>(null);
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
   let listRef: HTMLDivElement | undefined;
@@ -201,21 +202,27 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   /**
    * Flip the quota-skip flag on a single fallback row. Mirrors setLabelAt:
    * the structured routes are canonical, so the flag rides through the same
-   * persist call with optimistic update + revert on failure.
+   * persist call with optimistic update + revert on failure. A second click
+   * while the save is in flight is ignored so two rapid toggles can't submit
+   * stale state or land out of order.
    */
   const setQuotaSkipAt = async (index: number, enabled: boolean) => {
+    if (quotaSkipPending() === index) return;
     const original = [...props.fallbacks];
     const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
     if (!originalRoutes) return;
     const updatedRoutes = originalRoutes.map((r, i) =>
       i === index ? ({ ...r, skipWhenQuotaExhausted: enabled } as ModelRoute) : r,
     );
+    setQuotaSkipPending(index);
     props.onUpdate(original, updatedRoutes);
     try {
       await persistSet(props.agentName, props.tier, original, updatedRoutes);
       toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
     } catch {
       props.onUpdate(original, originalRoutes);
+    } finally {
+      setQuotaSkipPending(null);
     }
   };
 
@@ -511,7 +518,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                       <QuotaSkipToggle
                         route={route()}
                         modelLabel={modelLabel(model())}
-                        disabled={removingIndex() !== null}
+                        disabled={removingIndex() !== null || quotaSkipPending() === i()}
                         onToggle={(enabled) => void setQuotaSkipAt(i(), enabled)}
                       />
                       <Show

@@ -422,6 +422,74 @@ describe('HeaderTierService', () => {
       });
     });
 
+    describe('skipWhenQuotaExhausted', () => {
+      const flaggedRow = () =>
+        ({
+          id: 'h1',
+          agent_id: 'agent-1',
+          override_route: {
+            ...route('anthropic', 'subscription', 'claude-opus'),
+            skipWhenQuotaExhausted: true,
+          },
+        }) as unknown as HeaderTier;
+
+      it('sets the flag when true is passed', async () => {
+        repo.findOne.mockResolvedValue({ id: 'h1', agent_id: 'agent-1', override_route: null });
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'h1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          true,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('preserves the stored flag when the argument is omitted', async () => {
+        repo.findOne.mockResolvedValue(flaggedRow());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'h1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('clears the stored flag when explicit false is passed', async () => {
+        repo.findOne.mockResolvedValue(flaggedRow());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'h1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          false,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+
+      it('leaves the route without the flag when omitted and none is stored', async () => {
+        repo.findOne.mockResolvedValue({ id: 'h1', agent_id: 'agent-1', override_route: null });
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'h1',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+    });
+
     it('resolves via discovery when only the model is given', async () => {
       const row = { id: 'h1', agent_id: 'agent-1', override_route: null } as HeaderTier;
       repo.findOne.mockResolvedValue(row);

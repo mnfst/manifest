@@ -218,7 +218,13 @@ export class HeaderTierService {
         await this.discoveryService.getModelsForAgent(tenantId, row.agent_id),
         providerKeyLabel,
       );
-    if (route && skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
+    // skipWhenQuotaExhausted: true sets the flag, explicit false clears it,
+    // and omitted (undefined) preserves the stored route's value.
+    const preserved =
+      skipWhenQuotaExhausted === undefined && row.override_route?.skipWhenQuotaExhausted === true;
+    if (route && (skipWhenQuotaExhausted === true || preserved)) {
+      route.skipWhenQuotaExhausted = true;
+    }
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,

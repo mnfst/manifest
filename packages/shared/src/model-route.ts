@@ -61,6 +61,7 @@ export interface LegacyOverrideTriple {
   model: string | null;
   provider: string | null;
   authType: AuthType | null;
+  skipWhenQuotaExhausted?: boolean | null;
 }
 
 /**
@@ -72,11 +73,13 @@ export interface LegacyOverrideTriple {
 export function legacyToRoute(triple: LegacyOverrideTriple): ModelRoute | null {
   if (!triple.model) return null;
   if (!triple.provider || !triple.authType) return null;
-  return {
+  const route: ModelRoute = {
     provider: triple.provider,
     authType: triple.authType,
     model: triple.model,
   };
+  if (triple.skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
+  return route;
 }
 
 /**
@@ -85,9 +88,11 @@ export function legacyToRoute(triple: LegacyOverrideTriple): ModelRoute | null {
  */
 export function routeToLegacy(route: ModelRoute | null): LegacyOverrideTriple {
   if (!route) return { model: null, provider: null, authType: null };
-  return {
+  const triple: LegacyOverrideTriple = {
     model: route.model,
     provider: route.provider,
     authType: route.authType,
   };
+  if (route.skipWhenQuotaExhausted) triple.skipWhenQuotaExhausted = true;
+  return triple;
 }

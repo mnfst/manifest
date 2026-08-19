@@ -179,6 +179,74 @@ describe('SpecificityService', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
+    describe('skipWhenQuotaExhausted', () => {
+      const flaggedExisting = () =>
+        ({
+          category: 'coding',
+          is_active: true,
+          override_route: {
+            ...route('anthropic', 'subscription', 'claude-opus'),
+            skipWhenQuotaExhausted: true,
+          },
+        }) as unknown as SpecificityAssignment;
+
+      it('sets the flag when true is passed', async () => {
+        repo.findOne.mockResolvedValue(null);
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'coding',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          true,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('preserves the stored flag when the argument is omitted', async () => {
+        repo.findOne.mockResolvedValue(flaggedExisting());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'coding',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('clears the stored flag when explicit false is passed', async () => {
+        repo.findOne.mockResolvedValue(flaggedExisting());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'coding',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          false,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+
+      it('creates without the flag when omitted and no row exists yet', async () => {
+        repo.findOne.mockResolvedValue(null);
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'coding',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+    });
+
     it('falls back to discovery resolution when no explicit triple is passed', async () => {
       discoveryService.getModelsForAgent.mockResolvedValue([
         discovered('gpt-4o', 'openai', 'api_key'),

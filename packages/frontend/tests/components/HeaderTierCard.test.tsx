@@ -444,6 +444,11 @@ describe('HeaderTierCard', () => {
       const { container } = renderCard({});
       expect(quotaButton(container)).toBeNull();
     });
+
+    it('disables the toggle while a save is in flight', () => {
+      const { container } = renderCard({ onQuotaSkipToggle: vi.fn(), quotaSkipPending: true });
+      expect(quotaButton(container)?.disabled).toBe(true);
+    });
   });
 
   it('shows the primary account chip for multi-account header tier routes', () => {

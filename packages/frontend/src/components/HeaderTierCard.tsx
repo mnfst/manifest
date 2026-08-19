@@ -78,6 +78,8 @@ interface Props {
    * When absent, the toggle is not rendered on the primary chip.
    */
   onQuotaSkipToggle?: (enabled: boolean) => void | Promise<void>;
+  /** Disables the quota-skip toggle while its save is in flight. */
+  quotaSkipPending?: boolean;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
@@ -462,6 +464,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                     <QuotaSkipToggle
                       route={props.tier.override_route}
                       modelLabel={modelLabel() || modelName()}
+                      disabled={props.quotaSkipPending}
                       onToggle={(enabled) => void props.onQuotaSkipToggle?.(enabled)}
                     />
                   </Show>

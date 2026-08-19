@@ -335,6 +335,80 @@ describe('TierService', () => {
       expect(routingCache.invalidateAgent).toHaveBeenCalledWith('agent-1');
     });
 
+    describe('skipWhenQuotaExhausted', () => {
+      const flaggedExisting = () =>
+        ({
+          agent_id: 'agent-1',
+          tier: 'standard',
+          override_route: {
+            ...route('anthropic', 'subscription', 'claude-opus'),
+            skipWhenQuotaExhausted: true,
+          },
+          fallback_routes: null,
+        }) as unknown as TierAssignment;
+
+      beforeEach(() => {
+        discoveryService.getModelsForAgent.mockResolvedValue([
+          discovered('claude-opus', 'anthropic', 'subscription'),
+        ]);
+      });
+      it('sets the flag when true is passed', async () => {
+        tierRepo.findOne.mockResolvedValue(null);
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'standard',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          true,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('preserves the stored flag when the argument is omitted', async () => {
+        tierRepo.findOne.mockResolvedValue(flaggedExisting());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'standard',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBe(true);
+      });
+
+      it('clears the stored flag when explicit false is passed', async () => {
+        tierRepo.findOne.mockResolvedValue(flaggedExisting());
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'standard',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+          undefined,
+          false,
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+
+      it('creates without the flag when omitted and no row exists yet', async () => {
+        tierRepo.findOne.mockResolvedValue(null);
+        const result = await svc.setOverride(
+          'agent-1',
+          'tenant-1',
+          'standard',
+          'claude-opus',
+          'anthropic',
+          'subscription',
+        );
+        expect(result.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+      });
+    });
+
     it('retries on a unique-index conflict and returns the persisted row', async () => {
       // Conflict path: the concurrent row already exists on re-read, so the
       // service adopts it (recursing into the existing-row branch) and returns

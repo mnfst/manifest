@@ -100,8 +100,14 @@ export class SpecificityService {
           `provider + authType so the route is unambiguous.`,
       );
     }
-    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+
+    // skipWhenQuotaExhausted: true sets the flag, explicit false clears it,
+    // and omitted (undefined) preserves the stored route's value.
+    const preserved =
+      skipWhenQuotaExhausted === undefined &&
+      existing?.override_route?.skipWhenQuotaExhausted === true;
+    if (skipWhenQuotaExhausted === true || preserved) route.skipWhenQuotaExhausted = true;
 
     if (existing) {
       assertStreamableResponseMode(

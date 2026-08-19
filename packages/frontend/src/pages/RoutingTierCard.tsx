@@ -545,7 +545,7 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
                             }}
                             disabled={() => props.changingTier() === props.stage.id}
                           />
-                          <Show when={props.onQuotaSkipToggle && isManual()}>
+                          <Show when={props.onQuotaSkipToggle}>
                             <QuotaSkipToggle
                               route={props.tier()?.override_route}
                               modelLabel={labelFor(modelName())}

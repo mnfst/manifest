@@ -379,6 +379,25 @@ describe('RoutingHeaderTiersSection', () => {
       });
       expect(mockToastSuccess).not.toHaveBeenCalledWith('Route skipped on quota exhaustion');
     });
+
+    it('ignores a second toggle click while the first save is in flight', async () => {
+      let resolveSave: (v: unknown) => void = () => {};
+      mockOverrideHeaderTier.mockReturnValue(
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+      );
+      render(() => (
+        <RoutingHeaderTiersSection
+          {...makeProps({ externalTiers: () => [subTier], externalRefetch: vi.fn() })}
+        />
+      ));
+      fireEvent.click(screen.getByTestId('quota-toggle-ht-1'));
+      fireEvent.click(screen.getByTestId('quota-toggle-ht-1'));
+      expect(mockOverrideHeaderTier).toHaveBeenCalledTimes(1);
+      resolveSave(undefined);
+      await waitFor(() => expect(mockOverrideHeaderTier).toHaveBeenCalledTimes(1));
+    });
   });
 
   it('refetches when a card fires onFallbacksUpdate without routes (e.g. tier reset)', async () => {

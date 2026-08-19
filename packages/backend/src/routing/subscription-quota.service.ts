@@ -37,9 +37,11 @@ type QuotaProviderKind = 'anthropic' | 'moonshot' | 'openai' | 'minimax' | 'xai'
 
 /** Poll cadence from SUBSCRIPTION_QUOTA_POLL_INTERVAL_MS, clamped to >= 30s. */
 export function resolveQuotaPollIntervalMs(raw: string | undefined): number {
-  const parsed = raw ? Number.parseInt(raw, 10) : NaN;
-  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_QUOTA_POLL_INTERVAL_MS;
-  return Math.max(parsed, MIN_QUOTA_POLL_INTERVAL_MS);
+  // Digits-only (surrounding whitespace tolerated): parseInt would silently
+  // accept a numeric prefix like '60000junk'.
+  const trimmed = raw?.trim() ?? '';
+  if (!/^\d+$/.test(trimmed)) return DEFAULT_QUOTA_POLL_INTERVAL_MS;
+  return Math.max(Number.parseInt(trimmed, 10), MIN_QUOTA_POLL_INTERVAL_MS);
 }
 
 /** Canonical id for providers with a quota endpoint, else null. */
@@ -107,10 +109,15 @@ export function parseAnthropicUsage(data: unknown): QuotaVerdict {
   };
 }
 
-/** Kimi reports every quota number as a string; parseInt with 0 fallback. */
+/**
+ * Kimi reports every quota number as a string; NaN when missing or corrupt.
+ * Callers must check Number.isFinite before comparing — a missing value must
+ * never read as 0 and trip a `<= 0` / `>= limit` exhaustion check (fail-open).
+ */
 function kimiNumber(value: unknown): number {
-  const parsed = Number.parseInt(String(value ?? ''), 10);
-  return Number.isFinite(parsed) ? parsed : 0;
+  if (value === null || value === undefined) return NaN;
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isFinite(parsed) ? parsed : NaN;
 }
 
 /**
@@ -127,8 +134,9 @@ export function parseKimiUsage(data: unknown): QuotaVerdict {
 
   const weekly = body.usage as Record<string, unknown> | undefined;
   if (weekly && typeof weekly === 'object') {
+    const used = kimiNumber(weekly.used);
     const limit = kimiNumber(weekly.limit);
-    if (limit > 0 && kimiNumber(weekly.used) >= limit) {
+    if (Number.isFinite(used) && Number.isFinite(limit) && limit > 0 && used >= limit) {
       exhausted = true;
       resets.push(typeof weekly.resetTime === 'string' ? weekly.resetTime : null);
     }
@@ -142,8 +150,9 @@ export function parseKimiUsage(data: unknown): QuotaVerdict {
     }) ?? limits[0];
   const detail = rolling?.detail as Record<string, unknown> | undefined;
   if (detail && typeof detail === 'object') {
+    const used = kimiNumber(detail.used);
     const limit = kimiNumber(detail.limit);
-    if (limit > 0 && kimiNumber(detail.used) >= limit) {
+    if (Number.isFinite(used) && Number.isFinite(limit) && limit > 0 && used >= limit) {
       exhausted = true;
       resets.push(typeof detail.resetTime === 'string' ? detail.resetTime : null);
     }
@@ -152,7 +161,8 @@ export function parseKimiUsage(data: unknown): QuotaVerdict {
   const monthly = body.totalQuota as Record<string, unknown> | undefined;
   if (monthly && typeof monthly === 'object') {
     const limit = kimiNumber(monthly.limit);
-    if (limit > 0 && kimiNumber(monthly.remaining) <= 0) {
+    const remaining = kimiNumber(monthly.remaining);
+    if (Number.isFinite(remaining) && Number.isFinite(limit) && limit > 0 && remaining <= 0) {
       exhausted = true;
     }
   }
@@ -570,6 +580,13 @@ export class SubscriptionQuotaService implements OnModuleInit, OnModuleDestroy {
       where: { auth_type: 'subscription', is_active: true },
     });
     const targets = rows.filter((row) => row.api_key_encrypted && supportsQuotaCheck(row.provider));
+    // Prune snapshots for connections that were deleted or deactivated since
+    // the last poll — the map would otherwise grow (and serve stale reads)
+    // forever.
+    const targetIds = new Set(targets.map((row) => row.id));
+    for (const id of this.states.keys()) {
+      if (!targetIds.has(id)) this.states.delete(id);
+    }
     await Promise.all(targets.map((row) => this.refreshOne(row)));
   }
 

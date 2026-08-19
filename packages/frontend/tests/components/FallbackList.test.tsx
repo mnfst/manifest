@@ -1417,5 +1417,29 @@ describe('FallbackList', () => {
         [{ ...anthropicSubRoute, skipWhenQuotaExhausted: true }],
       );
     });
+
+    it('ignores a second click while the first save is in flight and disables the toggle', async () => {
+      let resolveSave: (v: unknown) => void = () => {};
+      mockSetFallbacks.mockReturnValue(
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+      );
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={['model-b']}
+          fallbackRoutes={[anthropicSubRoute]}
+        />
+      ));
+      const button = quotaButton(container)!;
+      fireEvent.click(button);
+      expect(button.disabled).toBe(true);
+      // The in-flight save makes the second click a no-op.
+      fireEvent.click(button);
+      expect(mockSetFallbacks).toHaveBeenCalledTimes(1);
+      resolveSave([]);
+      await waitFor(() => expect(button.disabled).toBe(false));
+    });
   });
 });

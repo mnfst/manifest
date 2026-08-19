@@ -260,6 +260,18 @@ describe('legacyToRoute / routeToLegacy round-trip', () => {
     expect(legacyToRoute(triple)).toEqual(route);
   });
 
+  it('preserves skipWhenQuotaExhausted through the round-trip', () => {
+    const route: ModelRoute = {
+      provider: 'anthropic',
+      authType: 'subscription',
+      model: 'claude-opus',
+      skipWhenQuotaExhausted: true,
+    };
+    const triple = routeToLegacy(route);
+    expect(triple.skipWhenQuotaExhausted).toBe(true);
+    expect(legacyToRoute(triple)).toEqual(route);
+  });
+
   it('round-trips a missing route through null', () => {
     expect(legacyToRoute(routeToLegacy(null))).toBeNull();
   });

@@ -282,6 +282,40 @@ describe('parseKimiUsage', () => {
       resetsAt: null,
     });
   });
+
+  it('never treats missing or corrupt numbers as zero (fail-open)', () => {
+    // A missing/corrupt monthly remaining must NOT read as remaining <= 0.
+    expect(parseKimiUsage(kimiUsage({ totalQuota: { limit: '1000' } }))).toEqual({
+      exhausted: false,
+      resetsAt: null,
+    });
+    expect(parseKimiUsage(kimiUsage({ totalQuota: { limit: '1000', remaining: 'abc' } }))).toEqual({
+      exhausted: false,
+      resetsAt: null,
+    });
+    // Corrupt weekly used / 5h limit likewise cannot exhaust.
+    expect(
+      parseKimiUsage(kimiUsage({ usage: { used: 'abc', limit: '100', resetTime: FUTURE } })),
+    ).toEqual({ exhausted: false, resetsAt: null });
+    expect(
+      parseKimiUsage(
+        kimiUsage({
+          limits: [
+            {
+              window: { duration: 300, timeUnit: 'TIME_UNIT_MINUTE' },
+              detail: { used: '5', resetTime: FUTURE },
+            },
+          ],
+        }),
+      ),
+    ).toEqual({ exhausted: false, resetsAt: null });
+  });
+
+  it('still parses a legitimate "0" string as zero and can exhaust on it', () => {
+    // remaining "0" with a positive limit is a real exhaustion signal.
+    const result = parseKimiUsage(kimiUsage({ totalQuota: { limit: '1000', remaining: '0' } }));
+    expect(result.exhausted).toBe(true);
+  });
 });
 
 describe('parseOpenAiUsage', () => {
@@ -553,8 +587,18 @@ describe('resolveQuotaPollIntervalMs', () => {
     expect(resolveQuotaPollIntervalMs('-5000')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
   });
 
+  it('rejects numeric prefixes with trailing junk (digits-only)', () => {
+    expect(resolveQuotaPollIntervalMs('60000junk')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
+    expect(resolveQuotaPollIntervalMs('60_000')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
+    expect(resolveQuotaPollIntervalMs('6e4')).toBe(DEFAULT_QUOTA_POLL_INTERVAL_MS);
+  });
+
+  it('trims surrounding whitespace', () => {
+    expect(resolveQuotaPollIntervalMs(' 45000 ')).toBe(45_000);
+  });
+
   it('clamps to the 30s minimum', () => {
-    expect(resolveQuotaPollIntervalMs('1000')).toBe(MIN_QUOTA_POLL_INTERVAL_MS);
+    expect(resolveQuotaPollIntervalMs('100')).toBe(MIN_QUOTA_POLL_INTERVAL_MS);
     expect(resolveQuotaPollIntervalMs('30000')).toBe(MIN_QUOTA_POLL_INTERVAL_MS);
   });
 
@@ -857,6 +901,19 @@ describe('SubscriptionQuotaService', () => {
     await poll();
 
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(svc.isQuotaExhausted('tp-1')).toBe(false);
+  });
+
+  it('prunes state for connections no longer returned by the poll', async () => {
+    providerRepo.find.mockResolvedValue([row({})]);
+    fetchMock.mockResolvedValue(okResponse(anthropicUsage(100)));
+    await poll();
+    expect(svc.getQuotaState('tp-1')).toBeDefined();
+
+    // The connection is deleted/deactivated before the next poll.
+    providerRepo.find.mockResolvedValue([]);
+    await poll();
+    expect(svc.getQuotaState('tp-1')).toBeUndefined();
     expect(svc.isQuotaExhausted('tp-1')).toBe(false);
   });
 
