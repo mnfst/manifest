@@ -543,9 +543,12 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(endpoint.buildPath('gemini-2.5-flash')).toBe(
       '/publishers/google/models/gemini-2.5-flash:generateContent',
     );
+    // No `?alt=sse`: provider-client appends it for every google-format
+    // stream, so including it here would emit the query string twice.
     expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).toBe(
-      '/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+      '/publishers/google/models/gemini-2.5-flash:streamGenerateContent',
     );
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).not.toContain('alt=sse');
   });
 
   it('vertex composes the same path onto a project-scoped base', () => {

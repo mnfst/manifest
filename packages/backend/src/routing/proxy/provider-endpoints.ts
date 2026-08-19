@@ -451,8 +451,9 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
       'x-goog-api-key': apiKey,
     }),
     buildPath: (model: string) => `/publishers/google/models/${model}:generateContent`,
-    buildStreamPath: (model: string) =>
-      `/publishers/google/models/${model}:streamGenerateContent?alt=sse`,
+    // No `?alt=sse` here: provider-client appends it for every google-format
+    // stream, so adding it would produce the query string twice.
+    buildStreamPath: (model: string) => `/publishers/google/models/${model}:streamGenerateContent`,
     format: 'google',
   },
   // Gemini OAuth (gemini-cli flow) routes through the CodeAssist API, which

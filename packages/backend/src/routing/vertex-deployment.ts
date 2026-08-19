@@ -13,8 +13,12 @@
 
 /** Project ids: 6-30 chars, lowercase letter first, letters/digits/hyphens. */
 const PROJECT_ID = /^[a-z][a-z0-9-]{4,28}[a-z0-9]$/;
-/** Locations look like `us-central1`, `europe-west4`, or `global`. */
-const LOCATION = /^(?:global|[a-z]+-[a-z]+\d)$/;
+/**
+ * Locations look like `us-central1`, `europe-west4`, or `global`. The region
+ * number is multi-digit: `europe-west12` is real, and a single-digit pattern
+ * would silently demote such a connection back to express mode.
+ */
+const LOCATION = /^(?:global|[a-z]+-[a-z]+\d+)$/;
 
 export interface VertexDeployment {
   project: string;

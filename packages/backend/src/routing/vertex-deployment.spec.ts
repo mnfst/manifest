@@ -29,6 +29,15 @@ describe('parseVertexDeployment', () => {
     expect(parseVertexDeployment('my-project/not a region')).toBeNull();
   });
 
+  it('accepts multi-digit region numbers', () => {
+    // europe-west12 is a real location; a single-digit pattern silently
+    // demoted such connections back to express mode.
+    expect(parseVertexDeployment('my-project/europe-west12')).toEqual({
+      project: 'my-project',
+      location: 'europe-west12',
+    });
+  });
+
   it('accepts the global location', () => {
     expect(parseVertexDeployment('my-project/global')).toEqual({
       project: 'my-project',
