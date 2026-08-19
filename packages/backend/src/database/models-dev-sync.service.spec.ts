@@ -1520,6 +1520,39 @@ describe('ModelsDevSyncService', () => {
     });
   });
 
+  describe('lookupModelCapabilities', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should prefer the native catalog', () => {
+      const model = service.lookupModelCapabilities('anthropic', 'claude-opus-4-6');
+      expect(model).not.toBeNull();
+      expect(model!.inputModalities).toEqual(['text', 'image']);
+    });
+
+    it('should fall back to providers absent from PROVIDER_ID_MAP', () => {
+      // `kilo` is a first-class Manifest provider but is not mapped, so
+      // lookupModel misses and only the custom-provider catalog resolves it.
+      expect(service.lookupModel('kilo', 'openai/gpt-4o-mini')).toBeNull();
+      const model = service.lookupModelCapabilities('kilo', 'openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+    });
+
+    it('should not resolve local Ollama against the Ollama Cloud catalog', () => {
+      expect(service.lookupModelCapabilities('ollama', 'kimi-k3')).toBeNull();
+    });
+
+    it('should return null for providers models.dev does not list', () => {
+      expect(service.lookupModelCapabilities('nous', 'some-model')).toBeNull();
+    });
+  });
+
   describe('lookupModelAcrossProviders', () => {
     beforeEach(async () => {
       fetchSpy.mockResolvedValue({

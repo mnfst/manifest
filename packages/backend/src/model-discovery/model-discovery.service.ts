@@ -731,33 +731,29 @@ export class ModelDiscoveryService {
     }
 
     // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
+    let priced = modelWithMetadataName;
     if (this.pricingSync && !isBedrock) {
       const orPrefix = findOpenRouterPrefix(metadataProvider);
-      if (orPrefix) {
-        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, metadataModel);
-        if (orPricing) {
-          return this.computeScore({
-            ...modelWithMetadataName,
-            inputPricePerToken: orPricing.input,
-            outputPricePerToken: orPricing.output,
-            contextWindow: orPricing.contextWindow ?? modelWithMetadataName.contextWindow,
-            displayName: orPricing.displayName || modelWithMetadataName.displayName,
-          });
-        }
-      }
-      const exactPricing = this.pricingSync.lookupPricing(model.id);
-      if (exactPricing) {
-        return this.computeScore({
+      const orPricing = orPrefix
+        ? lookupWithVariants(this.pricingSync, orPrefix, metadataModel)
+        : null;
+      const pricing = orPricing ?? this.pricingSync.lookupPricing(model.id);
+      if (pricing) {
+        priced = {
           ...modelWithMetadataName,
-          inputPricePerToken: exactPricing.input,
-          outputPricePerToken: exactPricing.output,
-          contextWindow: exactPricing.contextWindow ?? modelWithMetadataName.contextWindow,
-          displayName: exactPricing.displayName || modelWithMetadataName.displayName,
-        });
+          inputPricePerToken: pricing.input,
+          outputPricePerToken: pricing.output,
+          contextWindow: pricing.contextWindow ?? modelWithMetadataName.contextWindow,
+          displayName: pricing.displayName || modelWithMetadataName.displayName,
+        };
       }
     }
 
-    return this.computeScore(modelWithMetadataName);
+    // Capabilities are independent of which catalog priced the model: a miss on
+    // every pricing source still leaves modalities and capability flags to
+    // apply. Providers whose own /models endpoint publishes no modality data
+    // (Kilo, Pioneer, Cline Pass, Xiaomi) reach models.dev only here.
+    return this.computeScore(this.applyCapabilities(priced, providerId));
   }
 
   /** Merge capability flags from models.dev without touching pricing or display name. */
@@ -765,7 +761,7 @@ export class ModelDiscoveryService {
     if (!this.modelsDevSync) return model;
     const metadata = resolveProviderMetadataIdentity(providerId, model.id);
     const metadataProvider = metadata.provider ?? providerId;
-    const mdEntry = this.modelsDevSync.lookupModel(metadataProvider, metadata.model);
+    const mdEntry = this.modelsDevSync.lookupModelCapabilities(metadataProvider, metadata.model);
     if (!mdEntry) return model;
     return {
       ...model,

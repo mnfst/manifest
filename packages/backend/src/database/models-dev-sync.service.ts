@@ -305,6 +305,23 @@ export class ModelsDevSyncService implements OnModuleInit {
   }
 
   /**
+   * Capability-only lookup: the native catalog first, then the models.dev
+   * provider catalog for providers Manifest knows but `PROVIDER_ID_MAP` does
+   * not map (Kilo, Pioneer, Cline Pass, Xiaomi, OpenRouter, HuggingFace).
+   *
+   * **Never read pricing from the result.** Those catalogs are keyed by an
+   * aggregator's own rates, and a connection has to be billed at the price its
+   * own provider charges. Mapping them in `PROVIDER_ID_MAP` instead would push
+   * those rates into the shared pricing cache and the discovery fallback
+   * catalogs; this stays scoped to modalities and capability flags.
+   */
+  lookupModelCapabilities(providerId: string, modelId: string): ModelsDevModelEntry | null {
+    return (
+      this.lookupModel(providerId, modelId) ?? this.lookupCustomProviderModel(providerId, modelId)
+    );
+  }
+
+  /**
    * Conservative model-only fallback for custom providers that are not listed
    * on models.dev. Prefer official provider catalogs, then exact IDs from
    * aggregator catalogs. This is intentionally not fuzzy.

@@ -86,6 +86,8 @@ describe('ModelDiscoveryService — boundary conditions', () => {
   let mockModelRegistry: { registerModels: jest.Mock; getConfirmedModels: jest.Mock };
   let mockModelsDevSync: {
     lookupModel: jest.Mock;
+    lookupModelCapabilities: jest.Mock;
+    lookupCustomProviderModel: jest.Mock;
     getModelsForProvider: jest.Mock;
     refreshCache: jest.Mock;
   };
@@ -99,8 +101,16 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       lookupPricing: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue(new Map()),
     };
+    const lookupModel = jest.fn().mockReturnValue(null);
+    const lookupCustomProviderModel = jest.fn().mockReturnValue(null);
     mockModelsDevSync = {
-      lookupModel: jest.fn().mockReturnValue(null),
+      lookupModel,
+      lookupCustomProviderModel,
+      // Mirrors the real service: native catalog first, custom catalog second.
+      lookupModelCapabilities: jest.fn(
+        (providerId: string, modelId: string) =>
+          lookupModel(providerId, modelId) ?? lookupCustomProviderModel(providerId, modelId),
+      ),
       getModelsForProvider: jest.fn().mockReturnValue([]),
       refreshCache: jest.fn().mockResolvedValue(0),
     };
