@@ -86,6 +86,7 @@ describe('ModelDiscoveryService — boundary conditions', () => {
   let mockModelRegistry: { registerModels: jest.Mock; getConfirmedModels: jest.Mock };
   let mockModelsDevSync: {
     lookupModel: jest.Mock;
+    lookupModelCapabilities: jest.Mock;
     getModelsForProvider: jest.Mock;
     refreshCache: jest.Mock;
   };
@@ -99,8 +100,14 @@ describe('ModelDiscoveryService — boundary conditions', () => {
       lookupPricing: jest.fn().mockReturnValue(null),
       getAll: jest.fn().mockReturnValue(new Map()),
     };
+    const lookupModel = jest.fn().mockReturnValue(null);
     mockModelsDevSync = {
-      lookupModel: jest.fn().mockReturnValue(null),
+      lookupModel,
+      // The real service tries the priced catalog first. Tests that exercise
+      // the capability-only catalog override this directly.
+      lookupModelCapabilities: jest.fn((providerId: string, modelId: string) =>
+        lookupModel(providerId, modelId),
+      ),
       getModelsForProvider: jest.fn().mockReturnValue([]),
       refreshCache: jest.fn().mockResolvedValue(0),
     };
