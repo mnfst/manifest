@@ -9,8 +9,18 @@ import {
 import { GOOGLE_VARIANT_RE } from '../model-prices/model-name-normalizer';
 
 /**
- * Mapping from our internal provider IDs to models.dev provider directory names.
- * models.dev uses its own naming convention for provider directories.
+ * Providers whose models.dev catalog is authoritative for **pricing as well as
+ * capabilities**. models.dev uses its own naming convention for provider
+ * directories, so this maps our internal ID to theirs.
+ *
+ * An entry here does more than name a directory. It also decides that
+ * models.dev may price the provider (`loadModelsDevEntries` overlays these
+ * rates onto the shared pricing cache, keyed by bare model ID), that
+ * `buildModelsDevFallback` may synthesize the provider's whole catalog when its
+ * API is unreachable, and that a lookup miss is authoritative
+ * (`isProviderSupported`). Add a provider here only when its models.dev rates
+ * are the rates its connections actually pay. For a provider that only needs
+ * modalities and capability flags, use CAPABILITY_ONLY_PROVIDER_ID_MAP.
  */
 const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   anthropic: 'anthropic',
@@ -32,6 +42,29 @@ const PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   'opencode-go': 'opencode-go',
   'opencode-zen': 'opencode',
   'ollama-cloud': 'ollama-cloud',
+};
+
+/**
+ * Providers whose models.dev catalog is authoritative for **capabilities only**.
+ *
+ * These publish no modality data on their own `/models` endpoint, so models.dev
+ * is the only source of their modalities and capability flags. They are kept
+ * out of PROVIDER_ID_MAP because their models.dev prices must not reach the
+ * shared pricing cache: they list resold vendor models under the vendor's own
+ * ID (`kilo/openai/gpt-4o-mini`, `pioneer/gpt-4o`), so overlaying them would
+ * overwrite the real vendor rate for every client of that model ID. Their
+ * connections are priced from their own API instead.
+ */
+const CAPABILITY_ONLY_PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
+  kilo: 'kilo',
+  pioneer: 'pioneer',
+  'cline-pass': 'cline-pass',
+  xiaomi: 'xiaomi',
+  // OpenRouter's own /models feed already prices every connection, down to the
+  // routing variants (`:free`, `:nitro`, `:batch`) models.dev does not carry,
+  // and PricingSyncService keeps it fresh. models.dev is read here only for the
+  // modalities and tool-call flags that feed does not publish (#2737).
+  openrouter: 'openrouter',
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));
@@ -186,6 +219,13 @@ const MODEL_ID_PREFIX_ALIASES: ReadonlyMap<string, string> = new Map([
 /** Matches instruction-tuned suffixes that models.dev sometimes omits on Bedrock keys. */
 const INSTRUCT_SUFFIX_RE = /-instruct$/;
 /**
+ * Matches an OpenRouter routing variant (`:free`, `:nitro`, `:batch`, ...).
+ * The variant selects how a request is routed, not which model answers, so the
+ * base entry carries its capabilities. Only applied to OpenRouter: elsewhere a
+ * colon is part of the model ID itself (Ollama tags, Bedrock `-v1:0`).
+ */
+const OPENROUTER_VARIANT_SUFFIX_RE = /:[a-z0-9-]+$/;
+/**
  * Matches Ollama release tags that models.dev omits from its base model key
  * (e.g. `deepseek-v4-pro:preview` → `deepseek-v4-pro`). Deliberately narrow:
  * parameter-size tags (`:120b`, `:397b`) and Bedrock-style `-v1:0` versions
@@ -198,6 +238,8 @@ export class ModelsDevSyncService implements OnModuleInit {
   private readonly logger = new Logger(ModelsDevSyncService.name);
   /** Map: our provider ID → Map<model ID (native), entry> */
   private cache = new Map<string, Map<string, ModelsDevModelEntry>>();
+  /** Map: our provider ID → Map<model ID, entry>, for capability-only providers. */
+  private capabilityCache = new Map<string, Map<string, ModelsDevModelEntry>>();
   /** Map: models.dev provider ID → Map<model ID, entry>. Includes providers Manifest does not natively know. */
   private customProviderCache = new Map<string, Map<string, ModelsDevModelEntry>>();
   /** Map: provider id/display-name aliases → models.dev provider ID. */
@@ -264,7 +306,26 @@ export class ModelsDevSyncService implements OnModuleInit {
       }
     }
 
+    // Capability-only providers stay out of `cache`, so no pricing or fallback
+    // consumer can reach them. `totalModels` counts priced coverage only.
+    const newCapabilityCache = new Map<string, Map<string, ModelsDevModelEntry>>();
+    for (const [ourId, modelsDevId] of Object.entries(CAPABILITY_ONLY_PROVIDER_ID_MAP)) {
+      const provider = raw[modelsDevId];
+      if (!provider?.models) continue;
+
+      const modelMap = new Map<string, ModelsDevModelEntry>();
+      for (const [modelId, model] of Object.entries(provider.models)) {
+        if (!this.isChatCompatible(model)) continue;
+        modelMap.set(modelId, this.parseModel(ourId, modelId, model));
+      }
+
+      if (modelMap.size > 0) {
+        newCapabilityCache.set(ourId, modelMap);
+      }
+    }
+
     this.cache = newCache;
+    this.capabilityCache = newCapabilityCache;
     this.customProviderCache = newCustomProviderCache;
     this.customProviderIndex = newCustomProviderIndex;
     this.lastFetchedAt = new Date();
@@ -302,6 +363,24 @@ export class ModelsDevSyncService implements OnModuleInit {
     const providerModels = this.customProviderCache.get(providerKey);
     if (!providerModels) return null;
     return this.lookupModelInProvider(providerModels, modelId);
+  }
+
+  /**
+   * Look up a model for its modalities and capability flags: the priced catalog
+   * first, then CAPABILITY_ONLY_PROVIDER_ID_MAP.
+   *
+   * **Never read pricing from the result.** A capability-only entry carries a
+   * reseller's rate for a vendor's model ID, which is not what the connection
+   * pays. Callers that need a price must use `lookupModel`.
+   */
+  lookupModelCapabilities(providerId: string, modelId: string): ModelsDevModelEntry | null {
+    const native = this.lookupModel(providerId, modelId);
+    if (native) return native;
+
+    const resolvedProviderId = resolveProviderId(providerId);
+    const providerModels = this.capabilityCache.get(resolvedProviderId);
+    if (!providerModels) return null;
+    return this.lookupModelInProvider(providerModels, modelId, resolvedProviderId);
   }
 
   /**
@@ -420,6 +499,15 @@ export class ModelsDevSyncService implements OnModuleInit {
       const noTag = modelId.replace(OLLAMA_TAG_SUFFIX_RE, '');
       if (noTag !== modelId) {
         const found = providerModels.get(noTag);
+        if (found) return found;
+      }
+    }
+
+    if (providerId === 'openrouter') {
+      // 7a. Strip the routing variant (qwen/qwen3-coder:batch → qwen/qwen3-coder)
+      const noVariant = modelId.replace(OPENROUTER_VARIANT_SUFFIX_RE, '');
+      if (noVariant !== modelId) {
+        const found = providerModels.get(noVariant);
         if (found) return found;
       }
     }
