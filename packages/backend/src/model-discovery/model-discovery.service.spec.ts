@@ -99,7 +99,6 @@ describe('ModelDiscoveryService', () => {
   let mockModelsDevSync: {
     lookupModel: jest.Mock;
     lookupModelCapabilities: jest.Mock;
-    lookupCustomProviderModel: jest.Mock;
     getModelsForProvider: jest.Mock;
     refreshCache: jest.Mock;
   };
@@ -115,14 +114,12 @@ describe('ModelDiscoveryService', () => {
       getAll: jest.fn().mockReturnValue(new Map()),
     };
     const lookupModel = jest.fn().mockReturnValue(null);
-    const lookupCustomProviderModel = jest.fn().mockReturnValue(null);
     mockModelsDevSync = {
       lookupModel,
-      lookupCustomProviderModel,
-      // Mirrors the real service: native catalog first, custom catalog second.
-      lookupModelCapabilities: jest.fn(
-        (providerId: string, modelId: string) =>
-          lookupModel(providerId, modelId) ?? lookupCustomProviderModel(providerId, modelId),
+      // The real service tries the priced catalog first. Tests that exercise
+      // the capability-only catalog override this directly.
+      lookupModelCapabilities: jest.fn((providerId: string, modelId: string) =>
+        lookupModel(providerId, modelId),
       ),
       getModelsForProvider: jest.fn().mockReturnValue([]),
       refreshCache: jest.fn().mockResolvedValue(0),
@@ -1212,7 +1209,7 @@ describe('ModelDiscoveryService', () => {
       // Kilo prices its own catalog, so enrichment takes the price-already-set
       // path. models.dev does not map `kilo`, so only the custom-provider
       // catalog carries its modalities.
-      mockModelsDevSync.lookupCustomProviderModel.mockImplementation(
+      mockModelsDevSync.lookupModelCapabilities.mockImplementation(
         (providerId: string, modelId: string) =>
           providerId === 'kilo' && modelId === 'openai/gpt-4o-mini'
             ? {
@@ -1251,7 +1248,7 @@ describe('ModelDiscoveryService', () => {
     it('should apply capabilities from an unmapped models.dev provider (unpriced model)', async () => {
       // Xiaomi's /models publishes no pricing, so enrichment falls through
       // every pricing source before capabilities are applied.
-      mockModelsDevSync.lookupCustomProviderModel.mockImplementation(
+      mockModelsDevSync.lookupModelCapabilities.mockImplementation(
         (providerId: string, modelId: string) =>
           providerId === 'xiaomi' && modelId === 'mimo-v2.5'
             ? {
@@ -1280,32 +1277,20 @@ describe('ModelDiscoveryService', () => {
       expect(result[0].outputPricePerToken).toBeNull();
     });
 
-    it('should keep the native catalog ahead of the custom-provider fallback', async () => {
-      mockModelsDevSync.lookupModel.mockReturnValue({
-        id: 'test-model',
-        name: 'Native',
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        inputModalities: ['text'],
-        outputModalities: ['text'],
-      });
-      mockModelsDevSync.lookupCustomProviderModel.mockReturnValue({
-        id: 'test-model',
-        name: 'Fallback',
-        inputPricePerToken: null,
-        outputPricePerToken: null,
-        inputModalities: ['text', 'image'],
-        outputModalities: ['text'],
-      });
-
+    it('should route capability lookups through lookupModelCapabilities', async () => {
+      // enrichModel must not call lookupModel for capabilities: that path is
+      // reserved for pricing, and a capability-only entry carries a reseller's
+      // rate for a vendor's model ID.
       fetcher.fetch.mockResolvedValue([
         makeModel({ inputPricePerToken: 0, outputPricePerToken: 0 }),
       ]);
 
-      const result = await service.discoverModels(makeProvider());
+      await service.discoverModels(makeProvider());
 
-      expect(result[0].inputModalities).toEqual(['text']);
-      expect(mockModelsDevSync.lookupCustomProviderModel).not.toHaveBeenCalled();
+      expect(mockModelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
+        'openai',
+        'test-model',
+      );
     });
 
     it('should fall back to exact model ID lookup when prefix lookup misses', async () => {
