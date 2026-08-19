@@ -100,7 +100,6 @@ const FallbackUndoIcon: Component<{ size: 20 | 16; class?: string }> = (p) => (
 
 const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
-  const [quotaSkipPending, setQuotaSkipPending] = createSignal<number | null>(null);
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
   const [isMutating, setIsMutating] = createSignal(false);
@@ -212,15 +211,13 @@ const FallbackList: Component<FallbackListProps> = (props) => {
    * stale state or land out of order.
    */
   const setQuotaSkipAt = async (index: number, enabled: boolean) => {
-    if (isMutating()) return;
+    if (isMutating() || !props.fallbackRoutes) return;
     setIsMutating(true);
     const original = [...props.fallbacks];
-    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
-    if (!originalRoutes) return;
+    const originalRoutes = [...props.fallbackRoutes];
     const updatedRoutes = originalRoutes.map((r, i) =>
       i === index ? ({ ...r, skipWhenQuotaExhausted: enabled } as ModelRoute) : r,
     );
-    setQuotaSkipPending(index);
     props.onUpdate(original, updatedRoutes);
     try {
       await persistSet(props.agentName, props.tier, original, updatedRoutes);
@@ -228,7 +225,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     } catch {
       props.onUpdate(original, originalRoutes);
     } finally {
-      setQuotaSkipPending(null);
       setIsMutating(false);
     }
   };
@@ -353,6 +349,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     setDragIndex(null);
     setDropSlot(null);
 
+    if (isMutating()) return;
+
     // Primary model dropped into fallback list
     if (props.primaryDragging && fromIndex === null && toSlot !== null) {
       props.onPrimaryDropAtSlot?.(toSlot);
@@ -364,7 +362,6 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const insertAt = toSlot > fromIndex ? toSlot - 1 : toSlot;
     if (insertAt === fromIndex) return;
 
-    if (isMutating()) return;
     setIsMutating(true);
 
     const original = [...props.fallbacks];

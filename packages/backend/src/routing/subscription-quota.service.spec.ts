@@ -373,6 +373,16 @@ describe('parseOpenAiUsage', () => {
       parseOpenAiUsage({ rate_limit: { primary_window: { used_percent: '100', reset_at: 1 } } }),
     ).toEqual({ exhausted: false, resetsAt: null });
   });
+
+  it('reports exhaustion with no reset when reset_at is missing or invalid', () => {
+    expect(
+      parseOpenAiUsage({
+        rate_limit: {
+          primary_window: { used_percent: 100, reset_at: 'not-an-epoch' },
+        },
+      }),
+    ).toEqual({ exhausted: true, resetsAt: null });
+  });
 });
 
 describe('parseMinimaxUsage', () => {
@@ -552,6 +562,23 @@ describe('parseXaiUsage', () => {
       resetsAt: XAI_PROD_RESET_ISO,
     });
   });
+
+  it.each([
+    ['unterminated varint value', [0x08, ...Array(10).fill(0x80)]],
+    ['truncated fixed64', [0x09]],
+    ['oversized nested message', [0x0a, 0x05, 0x00]],
+    ['truncated fixed32', [0x0d, 0x00]],
+    ['unsupported wire type', [0x0b]],
+  ])('rejects malformed protobuf input: %s', (_label, bytes) => {
+    expect(() => parseXaiUsage(grpcFrame(Uint8Array.from(bytes as number[])))).toThrow();
+  });
+
+  it('skips a zero field key and continues scanning the payload', () => {
+    expect(parseXaiUsage(grpcFrame(Uint8Array.from([0x00, 0x0d, ...floatLE(10)])))).toEqual({
+      usedPercent: 10,
+      resetsAt: null,
+    });
+  });
 });
 
 describe('grpc-web framing helpers', () => {
@@ -578,6 +605,10 @@ describe('grpc-web framing helpers', () => {
       'grpc-status': '7',
       'grpc-message': 'bad req',
     });
+    expect(grpcWebTrailerFields(grpcFrame(Buffer.from('grpc-message: bad%ZZ\r\n'), 0x80))).toEqual({
+      'grpc-message': 'bad%ZZ',
+    });
+    expect(grpcWebTrailerFields(Uint8Array.from([0, 0, 0, 0, 2, 1]))).toEqual({});
   });
 
   it('validateGrpcStatusFields accepts missing or zero status, throws otherwise', () => {
@@ -921,6 +952,69 @@ describe('SubscriptionQuotaService', () => {
     expect(svc.isQuotaExhausted('tp-1')).toBe(false);
   });
 
+  it('fails open when the provider query itself fails', async () => {
+    providerRepo.find.mockRejectedValue(new Error('database unavailable'));
+
+    await expect(poll()).resolves.toBeUndefined();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('ignores an unsupported provider passed directly to refreshOne', async () => {
+    await (svc as unknown as { refreshOne(value: TenantProvider): Promise<void> }).refreshOne(
+      row({ provider: 'unsupported-provider' }),
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(svc.getQuotaState('tp-1')).toBeUndefined();
+  });
+
+  it('returns no credential when encrypted data is absent', async () => {
+    await expect(
+      (
+        svc as unknown as {
+          resolveCredential(
+            value: TenantProvider,
+            kind: 'anthropic',
+          ): Promise<{ token: string } | null>;
+        }
+      ).resolveCredential(row({ api_key_encrypted: '' }), 'anthropic'),
+    ).resolves.toBeNull();
+  });
+
+  it.each([
+    ['moonshot', 'https://api.kimi.com/coding/v1/usages', 'Kimi'],
+    ['openai', 'https://chatgpt.com/backend-api/wham/usage', 'OpenAI'],
+    ['minimax', 'https://api.minimax.io/v1/token_plan/remains', 'MiniMax'],
+    ['xai', 'https://grok.com/grok_api_v2.GrokBuildBilling/GetGrokCreditsConfig', 'xAI'],
+  ])(
+    'fails open when the %s quota endpoint returns a non-OK response',
+    async (provider, url, name) => {
+      providerRepo.find.mockResolvedValue([row({ id: `tp-${provider}`, provider })]);
+      fetchMock.mockResolvedValue(binaryResponse(new Uint8Array(), { status: 503 }));
+
+      await poll();
+
+      expect(fetchMock).toHaveBeenCalledWith(url, expect.any(Object));
+      expect(svc.getQuotaState(`tp-${provider}`)?.error).toContain(`${name} usage fetch failed`);
+    },
+  );
+
+  it.each([
+    ['openai', 'openaiOauth'],
+    ['minimax', 'minimaxOauth'],
+    ['xai', 'xaiOauth'],
+  ])('fails open when %s token unwrapping returns no token', async (provider, oauthName) => {
+    const oauth = { openaiOauth, minimaxOauth, xaiOauth }[oauthName]!;
+    oauth.unwrapToken.mockResolvedValue(null);
+    providerRepo.find.mockResolvedValue([row({ id: `tp-${provider}`, provider, agent_id: null })]);
+
+    await poll();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(svc.getQuotaState(`tp-${provider}`)).toMatchObject({ exhausted: false });
+  });
+
   it('prunes state for connections no longer returned by the poll', async () => {
     providerRepo.find.mockResolvedValue([row({})]);
     fetchMock.mockResolvedValue(okResponse(anthropicUsage(100)));
@@ -944,12 +1038,15 @@ describe('SubscriptionQuotaService', () => {
     expect(svc.isQuotaExhausted('tp-1')).toBe(false);
   });
 
-  it('starts and clears the poll timer with the module lifecycle', () => {
+  it('starts, executes, and clears the poll timer with the module lifecycle', async () => {
     jest.useFakeTimers();
     const setIntervalSpy = jest.spyOn(global, 'setInterval');
     try {
       svc.onModuleInit();
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 60_000);
+      jest.advanceTimersByTime(60_000);
+      await Promise.resolve();
+      expect(providerRepo.find).toHaveBeenCalledTimes(2);
       svc.onModuleDestroy();
     } finally {
       setIntervalSpy.mockRestore();

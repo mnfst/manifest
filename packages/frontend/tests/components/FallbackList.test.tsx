@@ -996,6 +996,46 @@ describe('FallbackList', () => {
     expect(items).not.toBeNull();
   });
 
+  it('ignores a primary drop while a fallback save is in flight', async () => {
+    let resolveSave: (value: unknown) => void = () => {};
+    mockSetFallbacks.mockReturnValue(
+      new Promise((resolve) => {
+        resolveSave = resolve;
+      }),
+    );
+    const onPrimaryDropAtSlot = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={['model-a', 'model-b']}
+        fallbackRoutes={[
+          { provider: 'openai', authType: 'api_key', model: 'model-a' } as any,
+          { provider: 'anthropic', authType: 'subscription', model: 'model-b' } as any,
+        ]}
+        primaryDragging={true}
+        onPrimaryDropAtSlot={onPrimaryDropAtSlot}
+      />
+    ));
+
+    const quotaButton = container.querySelector<HTMLButtonElement>(
+      'button[aria-label^="Toggle skip-on-quota-exhaustion"]',
+    )!;
+    fireEvent.click(quotaButton);
+    expect(quotaButton.disabled).toBe(true);
+
+    const list = container.querySelector('.fallback-list__items')!;
+    fireEvent.dragOver(list, {
+      clientY: 100,
+      dataTransfer: { dropEffect: '' },
+      preventDefault: vi.fn(),
+    });
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    expect(onPrimaryDropAtSlot).not.toHaveBeenCalled();
+    resolveSave(undefined);
+    await waitFor(() => expect(quotaButton.disabled).toBe(false));
+  });
+
   it('onFallbackDragStart callback is called', () => {
     const onFallbackDragStart = vi.fn();
     const { container } = render(() => (
