@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_42e0fc047eb6c5::t_f65a13170f8287 546-547,549,551
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_42e0fc047eb6c5::t_ff2d0ceb9e6f9f 454-456
+packages/backend/src/routing/vertex-deployment.spec.ts
+  s_42e0fc047eb6c5::t_367a82ee956b35 32-40
+packages/backend/src/routing/vertex-deployment.ts
+  s_42e0fc047eb6c5::t_02164341ad6400 16-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "767ea3c60f2b0278dbc50abfff369e5cf72bcf00",
+  "prompts": {},
+  "sessions": {
+    "s_42e0fc047eb6c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8459669-8327-4fa0-b7f8-f5aeea60800a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
