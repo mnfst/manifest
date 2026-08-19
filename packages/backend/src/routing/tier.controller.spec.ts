@@ -120,6 +120,33 @@ describe('TierController', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
+    );
+  });
+
+  it('PUT /tiers/:tier forwards skipWhenQuotaExhausted from the structured route', async () => {
+    (tierService.setOverride as jest.Mock).mockResolvedValue({
+      tier: 'default',
+      override_model: 'claude',
+    });
+    await controller.setOverride(ctx, 'demo', 'default', {
+      model: 'claude',
+      route: {
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'claude',
+        skipWhenQuotaExhausted: true,
+      },
+    });
+    expect(tierService.setOverride).toHaveBeenCalledWith(
+      'agent-1',
+      'tenant-1',
+      'default',
+      'claude',
+      'anthropic',
+      'subscription',
+      undefined,
+      true,
     );
   });
 

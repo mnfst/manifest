@@ -205,6 +205,7 @@ export class HeaderTierService {
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string | null,
+    skipWhenQuotaExhausted?: boolean,
   ): Promise<HeaderTier> {
     const row = await this.findOrThrow(agentId, id);
     // When the caller passes an explicit (provider, authType) the route is
@@ -217,6 +218,7 @@ export class HeaderTierService {
         await this.discoveryService.getModelsForAgent(tenantId, row.agent_id),
         providerKeyLabel,
       );
+    if (route && skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
     assertStreamableResponseMode(
       row.response_mode,
       `custom tier "${row.name}"`,

@@ -11,6 +11,7 @@ import type { RoutingCacheService } from '../../routing-core/routing-cache.servi
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
+import type { SubscriptionQuotaService } from '../../subscription-quota.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 
@@ -86,6 +87,7 @@ describe('ResolveService — edge cases', () => {
       | 'getAuthType'
       | 'getDefaultKeyLabel'
       | 'hasRouteCredentials'
+      | 'getProviderKeyId'
     >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
@@ -108,6 +110,7 @@ describe('ResolveService — edge cases', () => {
       getAuthType: jest.fn().mockResolvedValue('api_key'),
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       hasRouteCredentials: jest.fn().mockResolvedValue(true),
+      getProviderKeyId: jest.fn().mockResolvedValue(null),
     };
     specificityService = { getActiveAssignments: jest.fn().mockResolvedValue([]) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
@@ -136,6 +139,7 @@ describe('ResolveService — edge cases', () => {
       discoveryService as unknown as ModelDiscoveryService,
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
+      { isQuotaExhausted: jest.fn().mockReturnValue(false) } as unknown as SubscriptionQuotaService,
       agentRepo as unknown as Repository<Agent>,
       { addInvalidationListener: jest.fn() } as unknown as RoutingCacheService,
     );

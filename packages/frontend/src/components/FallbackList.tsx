@@ -24,6 +24,7 @@ import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import RouteKeyChip from './RouteKeyChip.js';
+import QuotaSkipToggle from './QuotaSkipToggle.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
 
 interface FallbackListProps {
@@ -195,6 +196,27 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const info = props.models.find((m) => m.model_name === model);
     if (info) return resolveProviderId(info.provider);
     return undefined;
+  };
+
+  /**
+   * Flip the quota-skip flag on a single fallback row. Mirrors setLabelAt:
+   * the structured routes are canonical, so the flag rides through the same
+   * persist call with optimistic update + revert on failure.
+   */
+  const setQuotaSkipAt = async (index: number, enabled: boolean) => {
+    const original = [...props.fallbacks];
+    const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
+    if (!originalRoutes) return;
+    const updatedRoutes = originalRoutes.map((r, i) =>
+      i === index ? ({ ...r, skipWhenQuotaExhausted: enabled } as ModelRoute) : r,
+    );
+    props.onUpdate(original, updatedRoutes);
+    try {
+      await persistSet(props.agentName, props.tier, original, updatedRoutes);
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch {
+      props.onUpdate(original, originalRoutes);
+    }
   };
 
   const authTypeFor = (providerId: string | undefined, index: number): string | null => {
@@ -486,6 +508,12 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                           onPick={(label) => setLabelAt(i(), label)}
                         />
                       </Show>
+                      <QuotaSkipToggle
+                        route={route()}
+                        modelLabel={modelLabel(model())}
+                        disabled={removingIndex() !== null}
+                        onToggle={(enabled) => void setQuotaSkipAt(i(), enabled)}
+                      />
                       <Show
                         when={
                           props.getModelParams &&

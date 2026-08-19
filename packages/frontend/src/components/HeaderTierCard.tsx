@@ -31,6 +31,7 @@ import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import ModelPickerModal from './ModelPickerModal.js';
 import HeaderTierSnippetModal from './HeaderTierSnippetModal.js';
 import RouteKeyChip from './RouteKeyChip.js';
+import QuotaSkipToggle from './QuotaSkipToggle.js';
 import KeyPickerModal from './KeyPickerModal.js';
 import { toast } from '../services/toast-store.js';
 import { modelParamsScopeForHeaderTier } from 'manifest-shared';
@@ -72,6 +73,11 @@ interface Props {
     authType?: AuthType,
     providerKeyLabel?: string,
   ) => void | Promise<void>;
+  /**
+   * Persist the per-route quota-skip flag on the tier's override route.
+   * When absent, the toggle is not rendered on the primary chip.
+   */
+  onQuotaSkipToggle?: (enabled: boolean) => void | Promise<void>;
   onFallbacksUpdate: (fallbacks: string[], routes?: ModelRoute[] | null) => void;
   onEdit?: () => void;
   onDisable?: () => void;
@@ -450,6 +456,13 @@ const HeaderTierCard: Component<Props> = (props) => {
                       leadingMargin
                       stopPropagation
                       onPick={handlePrimaryKeyPick}
+                    />
+                  </Show>
+                  <Show when={props.onQuotaSkipToggle}>
+                    <QuotaSkipToggle
+                      route={props.tier.override_route}
+                      modelLabel={modelLabel() || modelName()}
+                      onToggle={(enabled) => void props.onQuotaSkipToggle?.(enabled)}
                     />
                   </Show>
                   <Show

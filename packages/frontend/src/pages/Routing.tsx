@@ -498,6 +498,36 @@ const Routing: Component = () => {
     }
   };
 
+  /**
+   * Flip the quota-skip flag on a specificity tier's override route. Re-uses
+   * the same PUT endpoint as `handleSpecificityOverride` — the route stays
+   * the same, only skipWhenQuotaExhausted changes (mirrors
+   * handleSpecificityPinKey).
+   */
+  const handleSpecificityQuotaSkipToggle = async (category: string, enabled: boolean) => {
+    const assignment = specificityAssignments()?.find((a) => a.category === category);
+    const route = assignment?.override_route;
+    if (!assignment || !route) return;
+    setChangingSpecificity(category);
+    try {
+      await overrideSpecificity(
+        agentName(),
+        category,
+        route.model,
+        route.provider,
+        route.authType,
+        route.keyLabel ?? undefined,
+        enabled,
+      );
+      await refetchSpecificity();
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch {
+      // toast handled upstream
+    } finally {
+      setChangingSpecificity(null);
+    }
+  };
+
   return (
     <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} Routing - Manifest</Title>
@@ -617,6 +647,9 @@ const Routing: Component = () => {
                     onDropdownOpen={(tierId) => setDropdownTier(tierId)}
                     onOverride={handleOverride}
                     onPinKey={actions.handlePinKey}
+                    onQuotaSkipToggle={(tierId, enabled) =>
+                      void actions.handleQuotaSkipToggle(tierId, enabled)
+                    }
                     onReset={actions.handleReset}
                     onFallbackUpdate={actions.handleFallbackUpdate}
                     onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
@@ -637,6 +670,29 @@ const Routing: Component = () => {
                           try {
                             await overrideHeaderTier(agentName(), tier.id, m, p, a, label);
                             await refetchHeaderTiers();
+                          } catch (err) {
+                            toast.error(
+                              err instanceof Error ? err.message : 'Failed to update tier',
+                            );
+                          }
+                        }}
+                        onQuotaSkipToggle={async (enabled) => {
+                          const route = tier.override_route;
+                          if (!route) return;
+                          try {
+                            await overrideHeaderTier(
+                              agentName(),
+                              tier.id,
+                              route.model,
+                              route.provider,
+                              route.authType,
+                              route.keyLabel ?? undefined,
+                              enabled,
+                            );
+                            await refetchHeaderTiers();
+                            toast.success(
+                              enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled',
+                            );
                           } catch (err) {
                             toast.error(
                               err instanceof Error ? err.message : 'Failed to update tier',
@@ -744,6 +800,9 @@ const Routing: Component = () => {
                     onDropdownOpen={(tierId) => setDropdownTier(tierId)}
                     onOverride={handleOverride}
                     onPinKey={actions.handlePinKey}
+                    onQuotaSkipToggle={(tierId, enabled) =>
+                      void actions.handleQuotaSkipToggle(tierId, enabled)
+                    }
                     onReset={actions.handleReset}
                     onFallbackUpdate={actions.handleFallbackUpdate}
                     onAddFallback={(tierId) => setFallbackPickerTier(tierId)}
@@ -776,6 +835,9 @@ const Routing: Component = () => {
                     onDropdownOpen={(category) => setSpecificityDropdown(category)}
                     onOverride={handleSpecificityOverride}
                     onPinKey={handleSpecificityPinKey}
+                    onQuotaSkipToggle={(category, enabled) =>
+                      void handleSpecificityQuotaSkipToggle(category, enabled)
+                    }
                     onReset={async (category) => {
                       setResettingSpecificity(category);
                       try {

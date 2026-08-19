@@ -97,6 +97,7 @@ export class TierService {
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ): Promise<TierAssignment> {
     const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     const matches = available.filter((m) => m.id === model);
@@ -132,6 +133,7 @@ export class TierService {
           `provider + authType so the route is unambiguous.`,
       );
     }
+    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
 
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
@@ -187,6 +189,7 @@ export class TierService {
           provider,
           authType,
           providerKeyLabel,
+          skipWhenQuotaExhausted,
         );
       }
       throw err;

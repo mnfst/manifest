@@ -131,6 +131,35 @@ export function createRoutingActions(input: RoutingActionsInput) {
     }
   };
 
+  /**
+   * Flip the quota-skip flag on a tier's override route. Re-uses the existing
+   * PUT /tiers/:tier endpoint by re-sending the current route — the only
+   * delta is the new skipWhenQuotaExhausted value (mirrors handlePinKey).
+   */
+  const handleQuotaSkipToggle = async (tierId: string, enabled: boolean) => {
+    const tier = getTier(tierId);
+    const route = tier?.override_route;
+    if (!tier || !route) return;
+    setChangingTier(tierId);
+    try {
+      const updated = await overrideTier(
+        input.agentName(),
+        tierId,
+        route.model,
+        route.provider,
+        route.authType,
+        route.keyLabel ?? undefined,
+        enabled,
+      );
+      input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch {
+      // error toast from fetchMutate
+    } finally {
+      setChangingTier(null);
+    }
+  };
+
   const handleResetAll = async () => {
     setResettingAll(true);
     try {
@@ -264,6 +293,7 @@ export function createRoutingActions(input: RoutingActionsInput) {
     getFallbacksFor,
     handleOverride,
     handlePinKey,
+    handleQuotaSkipToggle,
     handleResetAll,
     handleReset,
     handleAddFallback,

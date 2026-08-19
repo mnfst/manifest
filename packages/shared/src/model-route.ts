@@ -5,6 +5,8 @@ export interface ModelRoute {
   authType: AuthType;
   model: string;
   keyLabel?: string | null;
+  /** Skip this route while the backing subscription connection's quota is exhausted. */
+  skipWhenQuotaExhausted?: boolean;
 }
 
 export function routeEquals(
@@ -40,6 +42,12 @@ export function isModelRoute(value: unknown): value is ModelRoute {
     v.keyLabel !== undefined &&
     v.keyLabel !== null &&
     typeof v.keyLabel !== 'string'
+  )
+    return false;
+  if (
+    'skipWhenQuotaExhausted' in v &&
+    v.skipWhenQuotaExhausted !== undefined &&
+    typeof v.skipWhenQuotaExhausted !== 'boolean'
   )
     return false;
   return true;

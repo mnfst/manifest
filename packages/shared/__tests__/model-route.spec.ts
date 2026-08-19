@@ -140,6 +140,44 @@ describe('isModelRoute', () => {
       false,
     );
   });
+
+  it('accepts a boolean skipWhenQuotaExhausted flag', () => {
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: true,
+      }),
+    ).toBe(true);
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects a non-boolean skipWhenQuotaExhausted', () => {
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: 'yes',
+      }),
+    ).toBe(false);
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: 1,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe('isModelRouteArray', () => {

@@ -79,6 +79,7 @@ export class TierController {
       provider,
       authType,
       providerKeyLabel,
+      body.route?.skipWhenQuotaExhausted,
     );
   }
 

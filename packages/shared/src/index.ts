@@ -152,6 +152,7 @@ export {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
+  supportsQuotaCheck,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
 export type {

@@ -8,6 +8,7 @@ import { RoutingCacheService } from '../routing-core/routing-cache.service';
 import { SpecificityService } from '../routing-core/specificity.service';
 import { SpecificityPenaltyService } from '../routing-core/specificity-penalty.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { SubscriptionQuotaService } from '../subscription-quota.service';
 import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import {
@@ -62,6 +63,7 @@ export class ResolveService {
     private readonly discoveryService: ModelDiscoveryService,
     private readonly penaltyService: SpecificityPenaltyService,
     private readonly headerTierService: HeaderTierService,
+    private readonly subscriptionQuota: SubscriptionQuotaService,
     @InjectRepository(Agent)
     private readonly agentRepo: Repository<Agent>,
     private readonly routingCache: RoutingCacheService,
@@ -279,16 +281,47 @@ export class ResolveService {
     const fallbackRoutes = readFallbackRoutes(match);
     let primaryOverride: ModelRoute | null = overrideRoute;
     let remainingFallbacks: ModelRoute[] | null = fallbackRoutes;
-    if (!(await this.providerKeyService.isRouteAvailable(tenantId, overrideRoute, agentId))) {
+    const overrideAvailable = await this.providerKeyService.isRouteAvailable(
+      tenantId,
+      overrideRoute,
+      agentId,
+    );
+    const overrideExhausted =
+      overrideAvailable && (await this.isRouteQuotaExhausted(overrideRoute, agentId, tenantId));
+    if (!overrideAvailable || overrideExhausted) {
       // An explicitly configured tier shouldn't die with its primary: promote
       // the first available fallback instead of abandoning the whole tier.
+      // A flagged override whose quota is exhausted is treated the same way.
       this.logger.warn(
-        `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
-          `for agent=${agentId} — trying the tier's fallbacks`,
+        overrideExhausted
+          ? `Header tier "${match.name}" override ${overrideRoute.model} skipped ` +
+              `for agent=${agentId} — its subscription quota is exhausted`
+          : `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
+              `for agent=${agentId} — trying the tier's fallbacks`,
       );
       primaryOverride = null;
-      const candidates = fallbackRoutes ?? [];
-      for (let i = 0; i < candidates.length; i++) {
+      let candidates = await this.filterQuotaExhaustedRoutes(
+        fallbackRoutes ?? [],
+        agentId,
+        tenantId,
+      );
+      if (candidates.length === 0 && ((fallbackRoutes ?? []).length > 0 || overrideAvailable)) {
+        // Never-empty: quota filtering must not leave the tier with nothing to
+        // try — restore the original chain (the override first when it is
+        // credential-available).
+        this.logger.warn(
+          `Quota filtering would remove every route for header tier "${match.name}" ` +
+            `agent=${agentId} — keeping the original chain`,
+        );
+        if (overrideAvailable) {
+          primaryOverride = overrideRoute;
+          remainingFallbacks = fallbackRoutes;
+          candidates = [];
+        } else {
+          candidates = fallbackRoutes ?? [];
+        }
+      }
+      for (let i = 0; !primaryOverride && i < candidates.length; i++) {
         if (await this.providerKeyService.isRouteAvailable(tenantId, candidates[i], agentId)) {
           primaryOverride = candidates[i];
           const rest = candidates.slice(i + 1);
@@ -303,6 +336,11 @@ export class ResolveService {
         );
         return null;
       }
+    } else {
+      // The primary survived, so quota-filtered fallbacks may empty out — the
+      // chain still has its primary and stays routable.
+      const kept = await this.filterQuotaExhaustedRoutes(fallbackRoutes ?? [], agentId, tenantId);
+      remainingFallbacks = kept.length > 0 ? kept : null;
     }
 
     const provider =
@@ -424,6 +462,12 @@ export class ResolveService {
    * becoming primary without adding a separate model-discovery query to the
    * gateway path. When nothing has usable credentials, the proxy gets a null
    * route and returns the neutral M101 instead of M100 (#2494).
+   *
+   * Quota-aware skip applies to every link in the chain: a flagged override
+   * whose subscription quota is exhausted is treated as unavailable, and
+   * flagged candidates are dropped before credential promotion. The
+   * never-empty rule covers the whole chain — if filtering would leave
+   * nothing to try, the original unfiltered outcome stands.
    */
   private async buildResolvedRouteChain(
     agentId: string,
@@ -437,34 +481,122 @@ export class ResolveService {
     // TierService.hasRoutableTier / effectiveRoute (see route-helpers.ts).
     const autoAssigned = readAutoAssignedRoute(assignment);
 
-    if (override && (await this.providerKeyService.isRouteAvailable(tenantId, override, agentId))) {
-      return {
-        primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
-        fallbackRoutes,
-      };
-    }
+    let overrideAvailable = false;
     if (override) {
+      overrideAvailable = await this.providerKeyService.isRouteAvailable(
+        tenantId,
+        override,
+        agentId,
+      );
+      if (overrideAvailable && !(await this.isRouteQuotaExhausted(override, agentId, tenantId))) {
+        // The primary survived, so quota-filtered fallbacks may empty out.
+        const keptFallbacks = fallbackRoutes
+          ? await this.filterQuotaExhaustedRoutes(fallbackRoutes, agentId, tenantId)
+          : null;
+        return {
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
+          fallbackRoutes: keptFallbacks && keptFallbacks.length > 0 ? keptFallbacks : null,
+        };
+      }
       this.logger.warn(
-        `Override ${override.model} unavailable for agent=${agentId} — ` +
-          `falling back to configured routes`,
+        overrideAvailable
+          ? `Override ${override.model} skipped for agent=${agentId} — ` +
+              `its subscription quota is exhausted`
+          : `Override ${override.model} unavailable for agent=${agentId} — ` +
+              `falling back to configured routes`,
       );
     }
 
-    // An orphaned override walks its fallbacks before the legacy auto-assigned
-    // route; a tier with no override starts from the auto-assigned route.
+    // An orphaned or quota-skipped override walks its fallbacks before the
+    // legacy auto-assigned route; a tier with no override starts from the
+    // auto-assigned route.
     const candidates = override
       ? [...(fallbackRoutes ?? []), ...(autoAssigned ? [autoAssigned] : [])]
       : [...(autoAssigned ? [autoAssigned] : []), ...(fallbackRoutes ?? [])];
-    for (let i = 0; i < candidates.length; i++) {
-      if (await this.providerKeyService.hasRouteCredentials(tenantId, candidates[i], agentId)) {
-        const rest = candidates.slice(i + 1);
+    // Quota-aware skip: drop flagged candidates whose connection is exhausted
+    // before credential promotion.
+    const promotable = await this.filterQuotaExhaustedRoutes(candidates, agentId, tenantId);
+
+    // Never-empty: quota filtering must not leave the chain with nothing to
+    // try. Restore the original unfiltered outcome — the override first when
+    // it is credential-available, otherwise the unfiltered candidates.
+    if (promotable.length === 0 && (candidates.length > 0 || overrideAvailable)) {
+      this.logger.warn(
+        `Quota filtering would remove every route candidate for agent=${agentId} — ` +
+          `keeping the original chain`,
+      );
+      if (overrideAvailable && override) {
         return {
-          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, candidates[i]),
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
+          fallbackRoutes: fallbackRoutes && fallbackRoutes.length > 0 ? fallbackRoutes : null,
+        };
+      }
+      return this.promoteFirstWithCredentials(candidates, agentId, tenantId);
+    }
+
+    return this.promoteFirstWithCredentials(promotable, agentId, tenantId);
+  }
+
+  /** Promote the first candidate with live credentials to primary. */
+  private async promoteFirstWithCredentials(
+    routes: ModelRoute[],
+    agentId: string,
+    tenantId: string,
+  ): Promise<ResolvedRouteChain> {
+    for (let i = 0; i < routes.length; i++) {
+      if (await this.providerKeyService.hasRouteCredentials(tenantId, routes[i], agentId)) {
+        const rest = routes.slice(i + 1);
+        return {
+          primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, routes[i]),
           fallbackRoutes: rest.length > 0 ? rest : null,
         };
       }
     }
     return { primaryRoute: null, fallbackRoutes: null };
+  }
+
+  /**
+   * True when the route opted into quota-aware skipping
+   * (`skipWhenQuotaExhausted`) AND the subscription connection backing it is
+   * quota-exhausted. The connection is resolved through the same key-row
+   * lookup the credential check uses, so the quota snapshot keyed by
+   * `tenant_providers.id` lines up with the key the proxy would actually
+   * forward. Fail-open: unknown quota state is never exhausted.
+   */
+  private async isRouteQuotaExhausted(
+    route: ModelRoute,
+    agentId: string,
+    tenantId: string,
+  ): Promise<boolean> {
+    if (route.skipWhenQuotaExhausted !== true) return false;
+    const keyId = await this.providerKeyService.getProviderKeyId(
+      tenantId,
+      route.provider,
+      route.authType,
+      route.keyLabel ?? undefined,
+      agentId,
+    );
+    return keyId !== null && this.subscriptionQuota.isQuotaExhausted(keyId);
+  }
+
+  /**
+   * Drop routes that opted into quota-aware skipping while the subscription
+   * connection backing them is quota-exhausted. Callers own the never-empty
+   * rule — this filter may legitimately return an empty list.
+   */
+  private async filterQuotaExhaustedRoutes(
+    routes: ModelRoute[],
+    agentId: string,
+    tenantId: string,
+  ): Promise<ModelRoute[]> {
+    if (routes.length === 0 || !routes.some((r) => r.skipWhenQuotaExhausted === true)) {
+      return routes;
+    }
+    const kept: ModelRoute[] = [];
+    for (const route of routes) {
+      if (!(await this.isRouteQuotaExhausted(route, agentId, tenantId))) kept.push(route);
+    }
+    return kept;
   }
 
   /**

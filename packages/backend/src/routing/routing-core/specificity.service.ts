@@ -84,6 +84,7 @@ export class SpecificityService {
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ): Promise<SpecificityAssignment> {
     const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
@@ -99,6 +100,7 @@ export class SpecificityService {
           `provider + authType so the route is unambiguous.`,
       );
     }
+    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
 
     if (existing) {
@@ -146,6 +148,7 @@ export class SpecificityService {
           provider,
           authType,
           providerKeyLabel,
+          skipWhenQuotaExhausted,
         );
       }
       throw err;

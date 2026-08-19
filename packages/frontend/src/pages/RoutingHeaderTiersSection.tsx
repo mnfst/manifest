@@ -145,6 +145,30 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
+  /**
+   * Flip the quota-skip flag on a custom tier's override route by re-sending
+   * the current route with the new skipWhenQuotaExhausted value.
+   */
+  const handleQuotaSkipToggle = async (tier: HeaderTier, enabled: boolean): Promise<void> => {
+    const route = tier.override_route;
+    if (!route) return;
+    try {
+      await overrideHeaderTier(
+        props.agentName(),
+        tier.id,
+        route.model,
+        route.provider,
+        route.authType,
+        route.keyLabel ?? undefined,
+        enabled,
+      );
+      await refetch();
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update tier');
+    }
+  };
+
   const handleDelete = async (id: string): Promise<void> => {
     try {
       await deleteHeaderTier(props.agentName(), id);
@@ -381,6 +405,7 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
                 onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
+                onQuotaSkipToggle={(enabled) => void handleQuotaSkipToggle(tier, enabled)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
                 }

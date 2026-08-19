@@ -194,6 +194,7 @@ export class HeaderTierController {
       provider,
       authType,
       providerKeyLabel,
+      body.route?.skipWhenQuotaExhausted,
     );
   }
 

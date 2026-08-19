@@ -33,6 +33,7 @@ export interface RoutingDefaultTierSectionProps {
     providerKeyLabel: string | null,
     authType?: AuthType,
   ) => void;
+  onQuotaSkipToggle?: (tierId: string, enabled: boolean) => void;
   onReset: (tierId: string) => void;
   onFallbackUpdate: (tierId: string, fallbacks: string[]) => void;
   onAddFallback: (tierId: string) => void;
@@ -101,6 +102,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
         onDropdownOpen={props.onDropdownOpen}
         onOverride={props.onOverride}
         onPinKey={props.onPinKey}
+        onQuotaSkipToggle={props.onQuotaSkipToggle}
         onReset={props.onReset}
         onFallbackUpdate={props.onFallbackUpdate}
         onAddFallback={props.onAddFallback}
@@ -131,6 +133,7 @@ const RoutingDefaultTierSection: Component<RoutingDefaultTierSectionProps> = (pr
             onDropdownOpen={props.onDropdownOpen}
             onOverride={props.onOverride}
             onPinKey={props.onPinKey}
+            onQuotaSkipToggle={props.onQuotaSkipToggle}
             onReset={props.onReset}
             onFallbackUpdate={props.onFallbackUpdate}
             onAddFallback={props.onAddFallback}

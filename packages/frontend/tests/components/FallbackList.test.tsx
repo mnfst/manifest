@@ -1306,4 +1306,90 @@ describe('FallbackList', () => {
       expect(btn).toBeDefined();
     });
   });
+
+  describe('quota skip toggle', () => {
+    const anthropicSubRoute = {
+      provider: 'anthropic',
+      authType: 'subscription',
+      model: 'model-b',
+    } as any;
+
+    const quotaButton = (container: HTMLElement) =>
+      container.querySelector<HTMLButtonElement>(
+        'button[aria-label^="Toggle skip-on-quota-exhaustion"]',
+      );
+
+    it('renders for subscription routes on quota-capable providers', () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={['model-b']}
+          fallbackRoutes={[anthropicSubRoute]}
+        />
+      ));
+      expect(quotaButton(container)).not.toBeNull();
+    });
+
+    it('renders for moonshot (Kimi) subscription routes', () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={['model-b']}
+          fallbackRoutes={[
+            { provider: 'moonshot', authType: 'subscription', model: 'model-b' } as any,
+          ]}
+        />
+      ));
+      expect(quotaButton(container)).not.toBeNull();
+    });
+
+    it('is hidden for api_key routes', () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={['model-b']}
+          fallbackRoutes={[{ provider: 'anthropic', authType: 'api_key', model: 'model-b' } as any]}
+        />
+      ));
+      expect(quotaButton(container)).toBeNull();
+    });
+
+    it('is hidden for subscription routes on providers without a quota endpoint', () => {
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          fallbacks={['model-a']}
+          fallbackRoutes={[
+            { provider: 'gemini', authType: 'subscription', model: 'model-a' } as any,
+          ]}
+        />
+      ));
+      expect(quotaButton(container)).toBeNull();
+    });
+
+    it('reflects the stored flag via aria-pressed and persists toggles through setFallbacks', async () => {
+      const onUpdate = vi.fn();
+      const { container } = render(() => (
+        <FallbackList
+          {...defaultProps}
+          onUpdate={onUpdate}
+          fallbacks={['model-b']}
+          fallbackRoutes={[{ ...anthropicSubRoute, skipWhenQuotaExhausted: true }]}
+        />
+      ));
+      const button = quotaButton(container)!;
+      expect(button.getAttribute('aria-pressed')).toBe('true');
+      expect(button.classList.contains('routing-card__chip-action--configured')).toBe(true);
+
+      fireEvent.click(button);
+      await waitFor(() => expect(mockSetFallbacks).toHaveBeenCalled());
+      const [, , modelsArg, routesArg] = mockSetFallbacks.mock.calls[0] as any[];
+      expect(modelsArg).toEqual(['model-b']);
+      expect(routesArg).toEqual([{ ...anthropicSubRoute, skipWhenQuotaExhausted: false }]);
+      expect(onUpdate).toHaveBeenCalledWith(
+        ['model-b'],
+        [{ ...anthropicSubRoute, skipWhenQuotaExhausted: false }],
+      );
+    });
+  });
 });
