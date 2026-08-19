@@ -536,6 +536,40 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
+  it('vertex defaults to express mode, which resolves the project from the key', () => {
+    const endpoint = PROVIDER_ENDPOINTS['vertex'];
+    expect(endpoint.baseUrl).toBe('https://aiplatform.googleapis.com/v1beta1');
+    expect(endpoint.format).toBe('google');
+    expect(endpoint.buildPath('gemini-2.5-flash')).toBe(
+      '/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+    // No `?alt=sse`: provider-client appends it for every google-format
+    // stream, so including it here would emit the query string twice.
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).toBe(
+      '/publishers/google/models/gemini-2.5-flash:streamGenerateContent',
+    );
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).not.toContain('alt=sse');
+  });
+
+  it('vertex composes the same path onto a project-scoped base', () => {
+    // Both addressing modes end in the same suffix, so only the base differs.
+    const endpoint = buildEndpointOverride(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1',
+      'vertex',
+    );
+    expect(`${endpoint.baseUrl}${endpoint.buildPath('gemini-2.5-flash')}`).toBe(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1' +
+        '/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+  });
+
+  it('vertex sends the API key in x-goog-api-key like the Gemini API', () => {
+    expect(PROVIDER_ENDPOINTS['vertex'].buildHeaders('AQ.test')).toEqual({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': 'AQ.test',
+    });
+  });
+
   it('google buildHeaders sends the API key in x-goog-api-key (not query string)', () => {
     const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
     expect(headers).toEqual({

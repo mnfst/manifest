@@ -429,6 +429,33 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
+  // Vertex AI: the same Gemini wire format as `google`, on Google Cloud's
+  // serving stack. Vertex has two addressing modes and both end in the same
+  // `/publishers/google/models/...` suffix, so only the base URL differs:
+  //
+  //   express  https://aiplatform.googleapis.com/v1beta1
+  //   project  https://{loc}-aiplatform.googleapis.com/v1/projects/{p}/locations/{loc}
+  //
+  // Express is the default because it needs no configuration — the key itself
+  // resolves the project. A connection that stores `project/location` in
+  // `region` gets the project-scoped base instead (see vertex-deployment.ts),
+  // which is how Google Cloud accounts normally address Vertex.
+  //
+  // Vertex's OpenAI-compatible route is deliberately unused: it rejects
+  // express calls with RESOURCE_PROJECT_INVALID, so it would force a project
+  // on everyone for no gain.
+  vertex: {
+    baseUrl: 'https://aiplatform.googleapis.com/v1beta1',
+    buildHeaders: (apiKey: string) => ({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    }),
+    buildPath: (model: string) => `/publishers/google/models/${model}:generateContent`,
+    // No `?alt=sse` here: provider-client appends it for every google-format
+    // stream, so adding it would produce the query string twice.
+    buildStreamPath: (model: string) => `/publishers/google/models/${model}:streamGenerateContent`,
+    format: 'google',
+  },
   // Gemini OAuth (gemini-cli flow) routes through the CodeAssist API, which
   // wraps the standard Gemini request/response in a small envelope and
   // identifies the user via a Bearer token + their assigned

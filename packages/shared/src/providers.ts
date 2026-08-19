@@ -103,6 +103,18 @@ export const SHARED_PROVIDERS: readonly SharedProviderEntry[] = [
     keyPlaceholder: 'ABSK...',
   },
   {
+    id: 'vertex',
+    displayName: 'Google Vertex AI',
+    aliases: ['google-vertex', 'google vertex', 'vertex-ai', 'vertex ai'],
+    openRouterPrefixes: [],
+    requiresApiKey: true,
+    localOnly: false,
+    color: '#4285f4',
+    keyPrefix: 'AQ.',
+    minKeyLength: 40,
+    keyPlaceholder: 'AQ...',
+  },
+  {
     id: 'byteplus',
     displayName: 'BytePlus',
     aliases: ['byteplus-plan', 'byteplus plan', 'modelark', 'modelark-coding-plan'],
