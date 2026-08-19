@@ -1520,6 +1520,55 @@ describe('ModelsDevSyncService', () => {
     });
   });
 
+  describe('lookupModelCapabilities', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should prefer the native catalog', () => {
+      const model = service.lookupModelCapabilities('anthropic', 'claude-opus-4-6');
+      expect(model).not.toBeNull();
+      expect(model!.inputModalities).toEqual(['text', 'image']);
+    });
+
+    it('should resolve capability-only providers', () => {
+      // `kilo` is a first-class Manifest provider that models.dev may not
+      // price, so only the capability catalog resolves it.
+      expect(service.lookupModel('kilo', 'openai/gpt-4o-mini')).toBeNull();
+      const model = service.lookupModelCapabilities('kilo', 'openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+    });
+
+    it('should keep capability-only providers out of every pricing consumer', () => {
+      // getModelsForProvider feeds the shared pricing cache and the discovery
+      // fallback catalog. Kilo lists resold vendor models under the vendor's
+      // own ID, so its rates must not reach either.
+      expect(service.getModelsForProvider('kilo')).toEqual([]);
+      expect(service.isProviderSupported('kilo')).toBe(false);
+    });
+
+    it('should not count capability-only models as priced coverage', async () => {
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => MOCK_API_RESPONSE });
+      // Same total as refreshCache asserts: the kilo model is cached for
+      // capabilities but never counted or priced.
+      expect(await service.refreshCache()).toBe(32);
+    });
+
+    it('should not resolve local Ollama against the Ollama Cloud catalog', () => {
+      expect(service.lookupModelCapabilities('ollama', 'kimi-k3')).toBeNull();
+    });
+
+    it('should return null for providers on neither map', () => {
+      expect(service.lookupModelCapabilities('nous', 'some-model')).toBeNull();
+      expect(service.lookupModelCapabilities('kilo', 'missing-model')).toBeNull();
+    });
+  });
+
   describe('lookupModelAcrossProviders', () => {
     beforeEach(async () => {
       fetchSpy.mockResolvedValue({
