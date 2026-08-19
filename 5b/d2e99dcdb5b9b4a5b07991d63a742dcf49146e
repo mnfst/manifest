@@ -1,0 +1,25 @@
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_d501b238b14871::t_cf2a11685418c7 16-19
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_d501b238b14871::t_cf2a11685418c7 135-138
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_d501b238b14871::t_cf2a11685418c7 147-150
+packages/backend/src/routing/model.controller.spec.ts
+  s_d501b238b14871::t_cf2a11685418c7 463-466
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5bd2e99dcdb5b9b4a5b07991d63a742dcf49146e",
+  "prompts": {},
+  "sessions": {
+    "s_d501b238b14871": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "632a9e45-f2ca-453e-a25d-ee044ddf2a02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
