@@ -60,6 +60,11 @@ const CAPABILITY_ONLY_PROVIDER_ID_MAP: Readonly<Record<string, string>> = {
   pioneer: 'pioneer',
   'cline-pass': 'cline-pass',
   xiaomi: 'xiaomi',
+  // OpenRouter's own /models feed already prices every connection, down to the
+  // routing variants (`:free`, `:nitro`, `:batch`) models.dev does not carry,
+  // and PricingSyncService keeps it fresh. models.dev is read here only for the
+  // modalities and tool-call flags that feed does not publish (#2737).
+  openrouter: 'openrouter',
 };
 
 const SUPPORTED_PROVIDERS = new Set(Object.keys(PROVIDER_ID_MAP));
@@ -213,6 +218,13 @@ const MODEL_ID_PREFIX_ALIASES: ReadonlyMap<string, string> = new Map([
 ]);
 /** Matches instruction-tuned suffixes that models.dev sometimes omits on Bedrock keys. */
 const INSTRUCT_SUFFIX_RE = /-instruct$/;
+/**
+ * Matches an OpenRouter routing variant (`:free`, `:nitro`, `:batch`, ...).
+ * The variant selects how a request is routed, not which model answers, so the
+ * base entry carries its capabilities. Only applied to OpenRouter: elsewhere a
+ * colon is part of the model ID itself (Ollama tags, Bedrock `-v1:0`).
+ */
+const OPENROUTER_VARIANT_SUFFIX_RE = /:[a-z0-9-]+$/;
 /**
  * Matches Ollama release tags that models.dev omits from its base model key
  * (e.g. `deepseek-v4-pro:preview` → `deepseek-v4-pro`). Deliberately narrow:
@@ -487,6 +499,15 @@ export class ModelsDevSyncService implements OnModuleInit {
       const noTag = modelId.replace(OLLAMA_TAG_SUFFIX_RE, '');
       if (noTag !== modelId) {
         const found = providerModels.get(noTag);
+        if (found) return found;
+      }
+    }
+
+    if (providerId === 'openrouter') {
+      // 7a. Strip the routing variant (qwen/qwen3-coder:batch → qwen/qwen3-coder)
+      const noVariant = modelId.replace(OPENROUTER_VARIANT_SUFFIX_RE, '');
+      if (noVariant !== modelId) {
+        const found = providerModels.get(noVariant);
         if (found) return found;
       }
     }
