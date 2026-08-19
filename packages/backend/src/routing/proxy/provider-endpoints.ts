@@ -429,22 +429,30 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: (model: string) => `/v1beta/models/${model}:generateContent`,
     format: 'google',
   },
-  // Vertex AI in express mode: the same Gemini wire format as `google`, on
-  // Google Cloud's serving stack. Express mode is what makes this a plain
-  // API-key provider — the project-scoped path
-  // (`/v1/projects/{p}/locations/{l}/...`) needs a project id we have nowhere
-  // to store, while `/v1beta1/publishers/google/...` resolves the project from
-  // the key itself. Vertex's OpenAI-compatible route is deliberately not used
-  // here: it rejects express calls with RESOURCE_PROJECT_INVALID.
+  // Vertex AI: the same Gemini wire format as `google`, on Google Cloud's
+  // serving stack. Vertex has two addressing modes and both end in the same
+  // `/publishers/google/models/...` suffix, so only the base URL differs:
+  //
+  //   express  https://aiplatform.googleapis.com/v1beta1
+  //   project  https://{loc}-aiplatform.googleapis.com/v1/projects/{p}/locations/{loc}
+  //
+  // Express is the default because it needs no configuration — the key itself
+  // resolves the project. A connection that stores `project/location` in
+  // `region` gets the project-scoped base instead (see vertex-deployment.ts),
+  // which is how Google Cloud accounts normally address Vertex.
+  //
+  // Vertex's OpenAI-compatible route is deliberately unused: it rejects
+  // express calls with RESOURCE_PROJECT_INVALID, so it would force a project
+  // on everyone for no gain.
   vertex: {
-    baseUrl: 'https://aiplatform.googleapis.com',
+    baseUrl: 'https://aiplatform.googleapis.com/v1beta1',
     buildHeaders: (apiKey: string) => ({
       'Content-Type': 'application/json',
       'x-goog-api-key': apiKey,
     }),
-    buildPath: (model: string) => `/v1beta1/publishers/google/models/${model}:generateContent`,
+    buildPath: (model: string) => `/publishers/google/models/${model}:generateContent`,
     buildStreamPath: (model: string) =>
-      `/v1beta1/publishers/google/models/${model}:streamGenerateContent?alt=sse`,
+      `/publishers/google/models/${model}:streamGenerateContent?alt=sse`,
     format: 'google',
   },
   // Gemini OAuth (gemini-cli flow) routes through the CodeAssist API, which

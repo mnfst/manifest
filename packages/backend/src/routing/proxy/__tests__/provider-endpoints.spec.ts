@@ -536,16 +536,27 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
-  it('vertex targets express mode, which resolves the project from the key', () => {
+  it('vertex defaults to express mode, which resolves the project from the key', () => {
     const endpoint = PROVIDER_ENDPOINTS['vertex'];
-    expect(endpoint.baseUrl).toBe('https://aiplatform.googleapis.com');
+    expect(endpoint.baseUrl).toBe('https://aiplatform.googleapis.com/v1beta1');
     expect(endpoint.format).toBe('google');
-    // A project-scoped path would need a project id we have nowhere to store.
     expect(endpoint.buildPath('gemini-2.5-flash')).toBe(
-      '/v1beta1/publishers/google/models/gemini-2.5-flash:generateContent',
+      '/publishers/google/models/gemini-2.5-flash:generateContent',
     );
     expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).toBe(
-      '/v1beta1/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+      '/publishers/google/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+    );
+  });
+
+  it('vertex composes the same path onto a project-scoped base', () => {
+    // Both addressing modes end in the same suffix, so only the base differs.
+    const endpoint = buildEndpointOverride(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1',
+      'vertex',
+    );
+    expect(`${endpoint.baseUrl}${endpoint.buildPath('gemini-2.5-flash')}`).toBe(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1' +
+        '/publishers/google/models/gemini-2.5-flash:generateContent',
     );
   });
 
