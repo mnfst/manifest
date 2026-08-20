@@ -1,0 +1,29 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_4ce0ad31e29c6d::t_a6842ca2ab88ff 80-89,91-94,96,105-112,116,169-195
+  s_4ce0ad31e29c6d::t_9ae23a7c2e7d19 142-146
+  s_4ce0ad31e29c6d::t_c733785deedf44 79,90,95,97-104,113-115,117-141,147-168,196-228
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_4ce0ad31e29c6d::t_c733785deedf44 46-51,65,198-265
+  s_4ce0ad31e29c6d::t_f136521bf0f198 266-267
+packages/backend/src/routing/proxy/provider-client.ts
+  s_4ce0ad31e29c6d::t_a6842ca2ab88ff 148-151,155-158,168,426
+  s_4ce0ad31e29c6d::t_c733785deedf44 136-147,152-154,159-167,169-181,422-425,427,432,436
+.changeset/fallback-empty-chat-completions.md
+  s_4ce0ad31e29c6d::t_c733785deedf44 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7a8162318a63d0496c61cbef36c6d1326dae038d",
+  "prompts": {},
+  "sessions": {
+    "s_4ce0ad31e29c6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01def-c12a-7ab1-a552-c774e1a264f9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
