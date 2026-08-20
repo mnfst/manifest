@@ -216,6 +216,9 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
           { status: 200, headers: { 'content-type': 'application/json' } },
         );
       }
+      if (hostname !== 'api.deepseek.com') {
+        throw new Error(`Unexpected fallback hostname: ${hostname}`);
+      }
       return new Response(
         JSON.stringify({
           id: 'chatcmpl-success',

@@ -142,7 +142,7 @@ function hasChatCompletionOutput(message: Record<string, unknown>): boolean {
 }
 
 function isEmptyChatCompletion(body: unknown): boolean {
-  if (!isRecord(body) || !Array.isArray(body.choices) || body.choices.length === 0) return false;
+  if (!isRecord(body) || !Array.isArray(body.choices)) return false;
   return body.choices.every(
     (choice) =>
       isRecord(choice) &&
@@ -423,7 +423,7 @@ export class ProviderClient {
         !stream &&
         endpoint.format === 'openai' &&
         (opts.apiMode === undefined || opts.apiMode === 'chat_completions')
-          ? await qualifyEmptyChatCompletion(result.response, opts.attempt)
+          ? await qualifyEmptyChatCompletion(result.response, attempt)
           : result.response;
       const qualifiedResult =
         endpointKey === 'openai-subscription'

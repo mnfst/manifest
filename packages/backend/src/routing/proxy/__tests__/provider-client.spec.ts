@@ -123,6 +123,85 @@ describe('ProviderClient', () => {
       });
     });
 
+    it('turns an empty choices list into a provider failure', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(JSON.stringify({ choices: [] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response.status).toBe(502);
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    });
+
+    it('records an empty retry response against the retry attempt', async () => {
+      const retryBody = { choices: [] };
+      mockFetch
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  index: 0,
+                  message: { role: 'assistant', content: 'Initial response' },
+                  finish_reason: 'stop',
+                },
+              ],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(retryBody), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      const originalFinishRecording = jest.fn().mockResolvedValue(undefined);
+      const retryFinishRecording = jest.fn().mockResolvedValue(undefined);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+        attempt: {
+          id: 'attempt-original',
+          attemptNumber: 1,
+          startedAtMs: 0,
+          startedAt: new Date(0).toISOString(),
+          pendingWrite: Promise.resolve(true),
+          finishRecording: originalFinishRecording,
+        },
+      });
+      const retry = await result.retryWireBody!(body, {
+        id: 'attempt-retry',
+        attemptNumber: 2,
+        startedAtMs: 1,
+        startedAt: new Date(1).toISOString(),
+        pendingWrite: Promise.resolve(true),
+        finishRecording: retryFinishRecording,
+      });
+
+      expect(retry.response.status).toBe(502);
+      expect(originalFinishRecording).not.toHaveBeenCalled();
+      expect(retryFinishRecording).toHaveBeenCalledWith({ type: 'json', body: retryBody });
+    });
+
     it.each([
       ['content', { role: 'assistant', content: 'Hello' }],
       [
