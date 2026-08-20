@@ -185,7 +185,8 @@ const Register: Component = () => {
                 </div>
               )}
               <div class="auth-form__success">
-                Click the link in your email to verify your account and get started.
+                Click the link in your email to verify your account and get started. If you already
+                had an account with this address, we've sent you a sign-in link instead.
               </div>
               <button
                 class="auth-form__link-btn"
