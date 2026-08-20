@@ -894,51 +894,53 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       </Show>
 
       <Show when={viewMode() === 'grid'}>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-          <For each={pager.pageItems()}>
-            {(provider) => {
-              const activeCount = () => activeConnectionCount(provider.id);
-              return (
-                <div
-                  class="panel"
-                  style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
-                >
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                      <ProviderMark providerId={provider.id} name={provider.name} size={24} />
-                      <span style="font-weight: 600; font-size: var(--font-size-sm); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        {provider.name}
-                      </span>
+        <div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+            <For each={pager.pageItems()}>
+              {(provider) => {
+                const activeCount = () => activeConnectionCount(provider.id);
+                return (
+                  <div
+                    class="panel"
+                    style="padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 0;"
+                  >
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <ProviderMark providerId={provider.id} name={provider.name} size={24} />
+                        <span style="font-weight: 600; font-size: var(--font-size-sm); color: hsl(var(--foreground)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                          {provider.name}
+                        </span>
+                      </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                      <Show when={activeCount() > 0} fallback={<span />}>
+                        <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                          <svg
+                            width="8"
+                            height="8"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
+                          </svg>
+                          {activeLabel(activeCount())}
+                        </span>
+                      </Show>
+                      <button
+                        class="btn btn--outline btn--sm"
+                        disabled={!firstAgentName()}
+                        style="font-size: var(--font-size-xs); white-space: nowrap;"
+                        onClick={() => openModal(provider.id)}
+                      >
+                        {copy().addLabel}
+                      </button>
                     </div>
                   </div>
-                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                    <Show when={activeCount() > 0} fallback={<span />}>
-                      <span style="color: hsl(var(--success)); font-size: var(--font-size-xs); font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
-                        <svg
-                          width="8"
-                          height="8"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path d="M12 5a7 7 0 1 0 0 14 7 7 0 1 0 0-14" />
-                        </svg>
-                        {activeLabel(activeCount())}
-                      </span>
-                    </Show>
-                    <button
-                      class="btn btn--outline btn--sm"
-                      disabled={!firstAgentName()}
-                      style="font-size: var(--font-size-xs); white-space: nowrap;"
-                      onClick={() => openModal(provider.id)}
-                    >
-                      {copy().addLabel}
-                    </button>
-                  </div>
-                </div>
-              );
-            }}
-          </For>
+                );
+              }}
+            </For>
+          </div>
           <Pagination
             currentPage={pager.currentPage}
             totalItems={pager.totalItems}
