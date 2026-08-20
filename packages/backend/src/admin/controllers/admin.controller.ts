@@ -7,11 +7,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { IsOptional, IsString } from 'class-validator';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AdminAiGuard } from '../guards/admin-ai.guard';
 import { AdminKeyService } from '../services/admin-key.service';
 
 class CreateAdminKeyDto {
+  @IsOptional()
+  @IsString()
   name?: string;
 }
 
