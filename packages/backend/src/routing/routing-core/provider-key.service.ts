@@ -9,6 +9,7 @@ import { ModelDiscoveryService } from '../../model-discovery/model-discovery.ser
 import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { verifyKey } from '../../common/utils/hash.util';
 import {
   expandProviderNames,
   inferProviderFromModelName,
@@ -239,6 +240,33 @@ export class ProviderKeyService {
       agentId,
     );
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
+  }
+
+  /**
+   * Admin match-verify: confirms whether a posted raw key equals the stored
+   * credential for (tenant, provider) WITHOUT ever returning the secret.
+   * Compares the one-way key_hash (written at connect/update time) against
+   * hashKey(postedKey). A tenant may have multiple keyed rows per provider
+   * (labels); returns true if ANY active row's hash matches.
+   */
+  async verifyKeyMatches(
+    tenantId: string,
+    provider: string,
+    rawKey: string,
+  ): Promise<{ match: boolean }> {
+    const names = expandProviderNames([provider]);
+    const rows = await this.providerRepo.find({
+      where: { tenant_id: tenantId, is_active: true },
+    });
+    // Only the one-way key_hash is consulted — the raw secret is never read
+    // from storage or returned. verifyKey() does salt-aware comparison
+    // (hashKey() salts per call, so a naive hash-equality check would never
+    // match).
+    const candidates = rows.filter(
+      (r) => r.key_hash && names.has(r.provider.toLowerCase()),
+    );
+    if (candidates.length === 0) return { match: false };
+    return { match: candidates.some((r) => verifyKey(rawKey, r.key_hash!)) };
   }
 
   async getProviderRegion(
