@@ -43,7 +43,12 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
 
   // Helper: invoke tryFallbacks with the 16-arg signature. Trailing args we
   // don't care about are passed as undefined.
-  const runFallbacks = (models: string[], routes: ModelRoute[] | null, primaryModel = 'gpt-4o') =>
+  const runFallbacks = (
+    models: string[],
+    routes: ModelRoute[] | null,
+    primaryModel = 'gpt-4o',
+    apiMode?: 'chat_completions' | 'responses' | 'messages',
+  ) =>
     service.tryFallbacks(
       'agent-1',
       'user-1',
@@ -57,7 +62,7 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
       undefined,
       undefined,
       undefined,
-      undefined,
+      apiMode,
       undefined,
       routes,
     );
@@ -188,6 +193,79 @@ describe('ProxyFallbackService.tryFallbacks — failure chain by status code', (
     expect(result.failures).toHaveLength(2);
     expect(result.failures.map((f) => f.status)).toEqual([429, 429]);
     expect(result.failures.map((f) => f.provider)).toEqual(['openai', 'anthropic']);
+  });
+
+  it('advances after a fallback returns HTTP 200 with an empty completion', async () => {
+    const realClient = new ProviderClient();
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn(async (input: string | URL | Request) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      const hostname = new URL(url).hostname;
+      if (hostname === 'api.openai.com') {
+        return new Response(
+          JSON.stringify({
+            id: 'chatcmpl-empty',
+            choices: [
+              {
+                index: 0,
+                message: { role: 'assistant', content: null },
+                finish_reason: 'stop',
+              },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      if (hostname !== 'api.deepseek.com') {
+        throw new Error(`Unexpected fallback hostname: ${hostname}`);
+      }
+      return new Response(
+        JSON.stringify({
+          id: 'chatcmpl-success',
+          choices: [
+            {
+              index: 0,
+              message: { role: 'assistant', content: 'Recovered' },
+              finish_reason: 'stop',
+            },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    global.fetch = fetchMock as typeof fetch;
+    providerClient.forward.mockImplementation((options) => realClient.forward(options));
+
+    try {
+      const routes: ModelRoute[] = [
+        route('openai', 'gpt-4o-mini'),
+        route('deepseek', 'deepseek-chat'),
+      ];
+      const result = await runFallbacks(
+        ['gpt-4o-mini', 'deepseek-chat'],
+        routes,
+        'primary-model',
+        'chat_completions',
+      );
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(result.success).toMatchObject({
+        fallbackIndex: 1,
+        provider: 'deepseek',
+        model: 'deepseek-chat',
+      });
+      expect(result.failures).toHaveLength(1);
+      expect(result.failures[0]).toMatchObject({
+        fallbackIndex: 0,
+        provider: 'openai',
+        status: 502,
+      });
+      expect(JSON.parse(result.failures[0].errorBody)).toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   it('cooldowns repeated 429 attempts for the same provider key and model', async () => {

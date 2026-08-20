@@ -76,6 +76,235 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(false);
     });
 
+    it('turns an empty non-streaming Chat Completions response into a provider failure', async () => {
+      const upstreamBody = {
+        id: 'chatcmpl-empty',
+        choices: [
+          {
+            index: 0,
+            message: { role: 'assistant', content: '', tool_calls: [] },
+            finish_reason: 'stop',
+          },
+        ],
+      };
+      mockFetch.mockResolvedValue(
+        new Response(JSON.stringify(upstreamBody), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+      const finishRecording = jest.fn().mockResolvedValue(undefined);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+        attempt: {
+          id: 'attempt-empty',
+          attemptNumber: 1,
+          startedAtMs: 0,
+          startedAt: new Date(0).toISOString(),
+          pendingWrite: Promise.resolve(true),
+          finishRecording,
+        },
+      });
+
+      expect(result.response.status).toBe(502);
+      expect(finishRecording).toHaveBeenCalledWith({ type: 'json', body: upstreamBody });
+      await expect(result.response.json()).resolves.toEqual({
+        error: {
+          message: 'Upstream provider returned an empty Chat Completions response',
+          type: 'server_error',
+          code: 'empty_response',
+        },
+      });
+    });
+
+    it('turns an empty choices list into a provider failure', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(JSON.stringify({ choices: [] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response.status).toBe(502);
+      await expect(result.response.json()).resolves.toMatchObject({
+        error: { code: 'empty_response' },
+      });
+    });
+
+    it('records an empty retry response against the retry attempt', async () => {
+      const retryBody = { choices: [] };
+      mockFetch
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              choices: [
+                {
+                  index: 0,
+                  message: { role: 'assistant', content: 'Initial response' },
+                  finish_reason: 'stop',
+                },
+              ],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+        )
+        .mockResolvedValueOnce(
+          new Response(JSON.stringify(retryBody), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        );
+      const originalFinishRecording = jest.fn().mockResolvedValue(undefined);
+      const retryFinishRecording = jest.fn().mockResolvedValue(undefined);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+        attempt: {
+          id: 'attempt-original',
+          attemptNumber: 1,
+          startedAtMs: 0,
+          startedAt: new Date(0).toISOString(),
+          pendingWrite: Promise.resolve(true),
+          finishRecording: originalFinishRecording,
+        },
+      });
+      const retry = await result.retryWireBody!(body, {
+        id: 'attempt-retry',
+        attemptNumber: 2,
+        startedAtMs: 1,
+        startedAt: new Date(1).toISOString(),
+        pendingWrite: Promise.resolve(true),
+        finishRecording: retryFinishRecording,
+      });
+
+      expect(retry.response.status).toBe(502);
+      expect(originalFinishRecording).not.toHaveBeenCalled();
+      expect(retryFinishRecording).toHaveBeenCalledWith({ type: 'json', body: retryBody });
+    });
+
+    it.each([
+      ['content', { role: 'assistant', content: 'Hello' }],
+      [
+        'tool call',
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [
+            {
+              id: 'call-1',
+              type: 'function',
+              function: { name: 'get_weather', arguments: '{}' },
+            },
+          ],
+        },
+      ],
+      [
+        'provider output extension',
+        { role: 'assistant', content: null, reasoning_content: 'Done' },
+      ],
+      ['audio output', { role: 'assistant', content: null, audio: { id: 'audio-1' } }],
+    ])('keeps a Chat Completions response with %s', async (_label, message) => {
+      const upstream = new Response(
+        JSON.stringify({ choices: [{ index: 0, message, finish_reason: 'stop' }] }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response).toBe(upstream);
+      expect(result.response.status).toBe(200);
+    });
+
+    it('leaves a malformed successful response unchanged', async () => {
+      const upstream = new Response('not-json', { status: 200 });
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response).toBe(upstream);
+    });
+
+    it('keeps an empty completion stopped by a content filter', async () => {
+      const upstream = new Response(
+        JSON.stringify({
+          choices: [
+            {
+              index: 0,
+              message: { role: 'assistant', content: null },
+              finish_reason: 'content_filter',
+            },
+          ],
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response).toBe(upstream);
+    });
+
+    it('does not inspect streaming Chat Completions responses', async () => {
+      const upstream = new Response(
+        'data: {"choices":[{"delta":{"role":"assistant"}}]}\n\ndata: [DONE]\n\n',
+        { status: 200, headers: { 'content-type': 'text/event-stream' } },
+      );
+      mockFetch.mockResolvedValue(upstream);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: true,
+        apiMode: 'chat_completions',
+      });
+
+      expect(result.response).toBe(upstream);
+    });
+
     it('adds scoped prompt cache affinity for OpenAI without exposing the session', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
