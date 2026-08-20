@@ -8,6 +8,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { IsOptional, IsString } from 'class-validator';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AdminAiGuard } from '../guards/admin-ai.guard';
 import { ProviderService } from '../../routing/routing-core/provider.service';
@@ -15,12 +16,16 @@ import { ProviderKeyService } from '../../routing/routing-core/provider-key.serv
 import { CustomProviderService } from '../../routing/custom-provider/custom-provider.service';
 
 class AttachProviderKeyDto {
+  @IsString()
   apiKey!: string;
+  @IsOptional()
   authType?: 'api_key' | 'subscription' | 'local';
+  @IsOptional()
   label?: string;
 }
 
 class VerifyProviderKeyDto {
+  @IsString()
   apiKey!: string;
 }
 
