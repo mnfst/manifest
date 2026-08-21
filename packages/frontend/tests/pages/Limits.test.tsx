@@ -15,6 +15,8 @@ let mockRules: any[] = [];
 let mockRoutingStatus = { enabled: false };
 let mockIsSelfHosted = false;
 let mockEmailProvider: any = null;
+let mockEmailConfigured = true;
+let mockRemoveError = false;
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
@@ -23,26 +25,56 @@ vi.mock("../../src/services/api.js", () => ({
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
   getEmailProvider: vi.fn(() => Promise.resolve(mockEmailProvider)),
-  removeEmailProvider: vi.fn(() => Promise.resolve({})),
+  removeEmailProvider: vi.fn(() =>
+    mockRemoveError ? Promise.reject(new Error("remove failed")) : Promise.resolve({}),
+  ),
   getRoutingStatus: vi.fn(() => Promise.resolve(mockRoutingStatus)),
 }));
 
 vi.mock("../../src/services/setup-status.js", () => ({
   checkIsSelfHosted: vi.fn(() => Promise.resolve(mockIsSelfHosted)),
-  checkEmailConfigured: vi.fn(() => Promise.resolve(true)),
+  checkEmailConfigured: vi.fn(() => Promise.resolve(mockEmailConfigured)),
 }));
 
 vi.mock("../../src/components/EmailProviderSection.js", () => ({
   default: (props: any) => (
-    <div data-testid="email-provider-section" data-has-provider={String(!!props.emailProvider)}>
+    <div
+      data-testid="email-provider-section"
+      data-has-provider={String(!!props.emailProvider)}
+      data-loading={String(props.loading)}
+    >
       EmailProviderSection
+      <button data-testid="mock-provider-configured" onClick={() => props.onConfigured()}>
+        configured
+      </button>
+      <button data-testid="mock-provider-edit" onClick={() => props.onEdit()}>
+        edit
+      </button>
+      <button data-testid="mock-provider-remove" onClick={() => props.onRemove()}>
+        remove
+      </button>
     </div>
   ),
 }));
 
 vi.mock("../../src/components/EmailProviderModal.js", () => ({
   default: (props: any) => (
-    <div data-testid="email-provider-modal" data-open={String(props.open)}>EmailProviderModal</div>
+    <div
+      data-testid="email-provider-modal"
+      data-open={String(props.open)}
+      data-initial-provider={props.initialProvider}
+      data-key-prefix={String(props.existingKeyPrefix)}
+      data-domain={String(props.existingDomain)}
+      data-notification-email={String(props.existingNotificationEmail)}
+    >
+      EmailProviderModal
+      <button data-testid="mock-provider-modal-close" onClick={() => props.onClose()}>
+        close
+      </button>
+      <button data-testid="mock-provider-modal-saved" onClick={() => props.onSaved()}>
+        saved
+      </button>
+    </div>
   ),
 }));
 
@@ -84,6 +116,8 @@ describe("Limits page", () => {
     mockRoutingStatus = { enabled: false };
     mockIsSelfHosted = false;
     mockEmailProvider = null;
+    mockEmailConfigured = true;
+    mockRemoveError = false;
   });
 
   it("does not render a duplicate page heading", () => {
@@ -153,14 +187,18 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows cloud email info", () => {
+  it("shows cloud email info", async () => {
     render(() => <Limits />);
-    expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+    await waitFor(() => {
+      expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+    });
   });
 
-  it("passes session email to cloud email info", () => {
+  it("passes session email to cloud email info", async () => {
     const { container } = render(() => <Limits />);
-    expect(container.textContent).toContain("user@example.com");
+    await waitFor(() => {
+      expect(container.textContent).toContain("user@example.com");
+    });
   });
 
   it("renders modal component", async () => {
@@ -572,5 +610,137 @@ describe("Limits page", () => {
       expect(screen.getByTestId("cloud-email-info")).toBeDefined();
     });
     expect(screen.queryByTestId("email-provider-section")).toBeNull();
+  });
+
+  it("passes hasProvider=false to the rule modal on self-hosted with no sender", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = null;
+    mockEmailConfigured = false;
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("limit-modal").getAttribute("data-has-provider")).toBe("false");
+    });
+  });
+
+  it("passes hasProvider=true when a dashboard provider is saved without EMAIL_* vars", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "resend", keyPrefix: "re_abc" };
+    mockEmailConfigured = false;
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("email-provider-section").getAttribute("data-has-provider")).toBe(
+        "true",
+      );
+      expect(screen.getByTestId("limit-modal").getAttribute("data-has-provider")).toBe("true");
+    });
+  });
+
+  it("opens the edit modal with the saved provider preselected", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "mailgun", keyPrefix: "key-abc", domain: "mg.example.com" };
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-provider-edit")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-edit"));
+    await waitFor(() => {
+      const modal = screen.getByTestId("email-provider-modal");
+      expect(modal.getAttribute("data-open")).toBe("true");
+      expect(modal.getAttribute("data-initial-provider")).toBe("mailgun");
+      expect(modal.getAttribute("data-key-prefix")).toBe("key-abc");
+      expect(modal.getAttribute("data-domain")).toBe("mg.example.com");
+      expect(modal.getAttribute("data-notification-email")).toBe("null");
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-modal-saved"));
+    fireEvent.click(screen.getByTestId("mock-provider-modal-close"));
+    await waitFor(() => {
+      expect(screen.getByTestId("email-provider-modal").getAttribute("data-open")).toBe("false");
+    });
+  });
+
+  it("defaults the edit modal to resend when no provider is loaded", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = null;
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-provider-edit")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-edit"));
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("email-provider-modal").getAttribute("data-initial-provider"),
+      ).toBe("resend");
+    });
+  });
+
+  it("removes the email provider via the confirm modal", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "resend", keyPrefix: "re_abc" };
+    const { removeEmailProvider } = await import("../../src/services/api.js");
+    const { toast } = await import("../../src/services/toast-store.js");
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-provider-remove")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-remove"));
+    await waitFor(() => {
+      expect(document.querySelector('[aria-labelledby="remove-provider-modal-title"]')).not.toBeNull();
+    });
+    fireEvent.click(document.querySelector(".btn--danger") as HTMLButtonElement);
+    await waitFor(() => {
+      expect(removeEmailProvider).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalledWith("Email provider removed");
+      expect(document.querySelector('[aria-labelledby="remove-provider-modal-title"]')).toBeNull();
+    });
+  });
+
+  it("keeps the remove modal open and shows no success toast when removal fails", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "resend", keyPrefix: "re_abc" };
+    mockRemoveError = true;
+    const { toast } = await import("../../src/services/toast-store.js");
+    (toast.success as ReturnType<typeof vi.fn>).mockClear();
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-provider-remove")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-remove"));
+    await waitFor(() => {
+      expect(document.querySelector('[aria-labelledby="remove-provider-modal-title"]')).not.toBeNull();
+    });
+    fireEvent.click(document.querySelector(".btn--danger") as HTMLButtonElement);
+    await waitFor(() => {
+      const removeBtn = document.querySelector(".btn--danger") as HTMLButtonElement;
+      expect(removeBtn).not.toBeNull();
+      expect(removeBtn.disabled).toBe(false);
+    });
+    expect(toast.success).not.toHaveBeenCalledWith("Email provider removed");
+  });
+
+  it("warns about email rules in the remove modal and closes it on cancel", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "resend", keyPrefix: "re_abc" };
+    mockRules = [{
+      id: "r1", agent_name: "test-agent", metric_type: "tokens",
+      threshold: 50000, period: "day", action: "notify",
+      is_active: true, trigger_count: 0, created_at: "2026-01-01",
+    }];
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("mock-provider-remove")).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId("mock-provider-remove"));
+    await waitFor(() => {
+      const modal = document.querySelector('[aria-labelledby="remove-provider-modal-title"]');
+      expect(modal).not.toBeNull();
+      expect(modal!.textContent).toContain("Email alerts won't be sent");
+    });
+    const cancelBtn = Array.from(document.querySelectorAll(".btn--ghost")).find(
+      (b) => b.textContent === "Cancel",
+    ) as HTMLButtonElement;
+    fireEvent.click(cancelBtn);
+    await waitFor(() => {
+      expect(document.querySelector('[aria-labelledby="remove-provider-modal-title"]')).toBeNull();
+    });
   });
 });

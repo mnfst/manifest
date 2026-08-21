@@ -11,8 +11,8 @@ vi.mock('../../src/components/EmailProviderSetup.js', () => ({
   ),
 }));
 vi.mock('../../src/components/ProviderBanner.js', () => ({
-  default: (props: { onEdit: () => void; onRemove: () => void }) => (
-    <div data-testid="provider-banner">
+  default: (props: { config?: { provider?: string }; onEdit: () => void; onRemove: () => void }) => (
+    <div data-testid="provider-banner" data-provider={props.config?.provider}>
       <button onClick={props.onEdit}>edit</button>
       <button onClick={props.onRemove}>remove</button>
     </div>
@@ -52,6 +52,7 @@ describe('EmailProviderSection', () => {
     ));
     const banner = container.querySelector('[data-testid="provider-banner"]');
     expect(banner).not.toBeNull();
+    expect(banner!.getAttribute('data-provider')).toBe('mailgun');
     const buttons = banner!.querySelectorAll('button');
     fireEvent.click(buttons[0]);
     fireEvent.click(buttons[1]);
@@ -69,8 +70,9 @@ describe('EmailProviderSection', () => {
         onRemove={vi.fn()}
       />
     ));
-    // Setup skeleton: a .panel wrapping a row of three skeleton rects.
-    expect(container.querySelector('.panel')).not.toBeNull();
+    // Setup skeleton: unboxed title/subtitle lines above a grid of three
+    // bordered cards, mirroring the real EmailProviderSetup layout.
+    expect(container.querySelector('.provider-setup-grid')).not.toBeNull();
     expect(container.querySelectorAll('.skeleton--rect')).toHaveLength(3);
     expect(container.querySelector('[data-testid="email-setup"]')).toBeNull();
   });

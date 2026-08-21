@@ -40,7 +40,12 @@ const Limits: Component = () => {
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const [isSelfHosted] = createResource(checkIsSelfHosted);
   const [emailConfigured] = createResource(checkEmailConfigured);
-  const [emailProvider, { refetch: refetchProvider }] = createResource(getEmailProvider);
+  // Only fetch the provider config on self-hosted — cloud never renders it, and
+  // an errored resource read would take the whole page down with it.
+  const [emailProvider, { refetch: refetchProvider }] = createResource(
+    () => (isSelfHosted() === true ? true : undefined),
+    getEmailProvider,
+  );
   const session = authClient.useSession();
   const [showModal, setShowModal] = createSignal(false);
   const [showEditProvider, setShowEditProvider] = createSignal(false);
@@ -69,13 +74,20 @@ const Limits: Component = () => {
     setRemovingProvider(true);
     try {
       await removeEmailProvider();
-      await refetchProvider();
-      setShowRemoveProvider(false);
-      toast.success('Email provider removed');
     } catch {
       // error toast from fetchMutate
-    } finally {
       setRemovingProvider(false);
+      return;
+    }
+    // The DELETE succeeded: acknowledge it before the refetch, whose own
+    // failure must not leave the modal open claiming nothing happened.
+    setRemovingProvider(false);
+    setShowRemoveProvider(false);
+    toast.success('Email provider removed');
+    try {
+      await refetchProvider();
+    } catch {
+      // next visit refetches
     }
   };
 
@@ -243,21 +255,25 @@ const Limits: Component = () => {
         </div>
       </Show>
 
-      <Show
-        when={isSelfHosted() === true}
-        fallback={
-          <div style="margin-bottom: var(--gap-lg);">
-            <CloudEmailInfo email={session().data?.user?.email ?? ''} />
-          </div>
-        }
-      >
-        <EmailProviderSection
-          emailProvider={emailProvider()}
-          loading={emailProvider.loading}
-          onConfigured={refetchProvider}
-          onEdit={() => setShowEditProvider(true)}
-          onRemove={() => setShowRemoveProvider(true)}
-        />
+      {/* Render nothing until the deployment mode is known: the cloud card makes
+          a factual claim about who sends emails that is false on self-hosted. */}
+      <Show when={isSelfHosted() !== undefined}>
+        <Show
+          when={isSelfHosted() === true}
+          fallback={
+            <div style="margin-bottom: var(--gap-lg);">
+              <CloudEmailInfo email={session().data?.user?.email ?? ''} />
+            </div>
+          }
+        >
+          <EmailProviderSection
+            emailProvider={emailProvider()}
+            loading={emailProvider.state === 'pending' || emailProvider.state === 'unresolved'}
+            onConfigured={refetchProvider}
+            onEdit={() => setShowEditProvider(true)}
+            onRemove={() => setShowRemoveProvider(true)}
+          />
+        </Show>
       </Show>
 
       <LimitRuleTable
