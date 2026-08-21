@@ -12,10 +12,11 @@ import type { CallerAttribution } from '../routing/proxy/caller-classifier';
 @Index(['tenant_id', 'trace_id'])
 @Index(['tenant_id', 'model'])
 @Index(['tenant_id', 'agent_id', 'status'])
-// Originally added for the per-completion success dedup, which is gone. Kept
-// because the planner still picks it for other tenant+agent+model reads; at
-// ~1.7 GB it is a drop candidate once those are attributed to another index.
-@Index(['tenant_id', 'agent_id', 'model', 'status', 'timestamp'])
+// Originally (tenant_id, agent_id, model, status, timestamp) for the
+// per-completion success dedup, which is gone. The per-agent "cost by model"
+// read (agent-analytics.service.ts) only needs the leading three columns, so
+// the trailing status/timestamp were dropped in 1802000000000.
+@Index(['tenant_id', 'agent_id', 'model'])
 // Per-connection analytics scope by the exact key that served each message
 // (tenant_provider_id) ordered by recency, and the FK below resolves its
 // ON DELETE SET NULL against the same column. tenant_provider_id leads so one
