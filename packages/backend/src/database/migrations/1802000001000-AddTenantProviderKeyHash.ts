@@ -18,7 +18,10 @@ export class AddTenantProviderKeyHash1802000001000 implements MigrationInterface
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`SET LOCAL lock_timeout = '5s'`);
+    // Session-scoped for --transaction-none reverts (SET LOCAL would not
+    // persist); reset afterwards. See AddApiKeyScope.down for rationale.
+    await queryRunner.query(`SET lock_timeout = '5s'`);
     await queryRunner.query(`ALTER TABLE "tenant_providers" DROP COLUMN IF EXISTS "key_hash"`);
+    await queryRunner.query(`RESET lock_timeout`);
   }
 }

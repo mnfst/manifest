@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Post,
@@ -10,6 +11,7 @@ import {
 import { IsOptional, IsString } from 'class-validator';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AdminAiGuard } from '../guards/admin-ai.guard';
+import { AdminBootstrap } from '../decorators/admin-bootstrap.decorator';
 import { AdminKeyService } from '../services/admin-key.service';
 
 class CreateAdminKeyDto {
@@ -26,6 +28,9 @@ class CreateAdminKeyDto {
  *
  * No handler returns a stored provider/harness secret. Key minting returns the
  * raw key exactly once at creation time.
+ *
+ * Bootstrap: `POST /keys` also accepts an owner key so a fresh self-hosted
+ * install can mint its first `ai_admin` key (see AdminBootstrap).
  */
 @Controller('api/v1/admin')
 @UseGuards(AdminAiGuard)
@@ -33,9 +38,10 @@ export class AdminController {
   constructor(private readonly adminKeyService: AdminKeyService) {}
 
   @Post('keys')
+  @AdminBootstrap()
   async createKey(@TenantCtx() ctx: TenantContext, @Body() body: CreateAdminKeyDto) {
     if (!ctx.tenantId) {
-      throw new Error('Admin key creation requires a resolved tenant.');
+      throw new ForbiddenException('Admin key creation requires a resolved tenant.');
     }
     const { id, key, keyPrefix } = await this.adminKeyService.createAdminKey({
       tenantId: ctx.tenantId,

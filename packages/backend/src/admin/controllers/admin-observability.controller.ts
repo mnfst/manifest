@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, NotFoundException } from '@nestjs/common';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AdminAiGuard } from '../guards/admin-ai.guard';
 import { TimeseriesQueriesService } from '../../analytics/services/timeseries-queries.service';
@@ -40,12 +33,12 @@ export class AdminObservabilityController {
   ) {
     if (!ctx.tenantId) return { series: [] };
     const r = (range as never) ?? '24h';
-    const perAgent = await this.timeseries.getPerAgentTimeseries(r, ctx.tenantId, hourly === 'true');
-    const perProvider = await this.timeseries.getPerProviderTimeseries(
-      r,
-      ctx.tenantId,
-      hourly === 'true',
-    );
+    // Independent reads — run concurrently instead of serializing two
+    // potentially expensive timeseries scans.
+    const [perAgent, perProvider] = await Promise.all([
+      this.timeseries.getPerAgentTimeseries(r, ctx.tenantId, hourly === 'true'),
+      this.timeseries.getPerProviderTimeseries(r, ctx.tenantId, hourly === 'true'),
+    ]);
     return { perAgent, perProvider };
   }
 

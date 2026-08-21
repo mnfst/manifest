@@ -62,7 +62,8 @@ export class ApiKeyGuard implements CanActivate {
       };
       // Stash the resolved key scope so scope-restricted guards (e.g.
       // AdminAiGuard on /api/v1/admin) can authorize without re-querying.
-      (request as Request & { authScope?: string }).authScope = (found as { scope?: string }).scope ?? 'owner';
+      const scope = (found as { scope?: string }).scope ?? 'owner';
+      (request as Request & { authScope?: string }).authScope = scope;
       if (found.created_by_user_id) {
         (request as Request & { user: { id: string } }).user = {
           id: String(found.created_by_user_id),

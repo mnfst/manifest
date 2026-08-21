@@ -8,7 +8,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { IsOptional, IsString } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 import { TenantCtx, TenantContext } from '../../common/decorators/tenant-context.decorator';
 import { AdminAiGuard } from '../guards/admin-ai.guard';
 import { ProviderService } from '../../routing/routing-core/provider.service';
@@ -19,6 +19,7 @@ class AttachProviderKeyDto {
   @IsString()
   apiKey!: string;
   @IsOptional()
+  @IsIn(['api_key', 'subscription', 'local'])
   authType?: 'api_key' | 'subscription' | 'local';
   @IsOptional()
   label?: string;
@@ -60,7 +61,11 @@ export class AdminProviderController {
         auth_type: p.auth_type,
         label: p.label,
         key_prefix: p.key_prefix,
-        has_key: !!p.key_hash,
+        // `key_hash` only exists on rows connected after that column was added;
+        // legacy connections still carry the credential in the encrypted
+        // column. Report presence from either so upgraded tenants don't see
+        // phantom "no key" rows.
+        has_key: !!p.key_hash || !!p.api_key_encrypted,
         priority: p.priority,
         is_active: p.is_active,
       })),
@@ -79,7 +84,12 @@ export class AdminProviderController {
       const id = CustomProviderService.extractId(provider);
       const cp = await this.customProviderService.getById(id, ctx.tenantId);
       if (!cp) throw new NotFoundException(`Custom provider ${provider} not found`);
-      await this.customProviderService.update(id, ctx.tenantId, { apiKey: body.apiKey }, ctx.userId);
+      await this.customProviderService.update(
+        id,
+        ctx.tenantId,
+        { apiKey: body.apiKey },
+        ctx.userId,
+      );
     } else {
       await this.providerService.upsertProvider(
         null,

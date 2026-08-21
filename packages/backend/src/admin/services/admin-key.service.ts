@@ -48,7 +48,11 @@ export class AdminKeyService {
     const id = uuidv4();
     await this.apiKeyRepo.insert({
       id,
-      key: rawKey,
+      // Hash-only storage: `key` stays NULL exactly like every other key minted
+      // after the HashApiKeys migration removed plaintext from this column.
+      // The guard authorizes via the salt-aware `key_hash`; the raw secret is
+      // returned once below and never persisted.
+      key: null,
       key_hash: hashKey(rawKey),
       key_prefix: keyPrefix(rawKey),
       tenant_id: params.tenantId,
@@ -63,12 +67,19 @@ export class AdminKeyService {
   }
 
   /** List admin keys for a tenant (prefix + metadata only, never the secret). */
-  async listAdminKeys(tenantId: string): Promise<Array<{ id: string; keyPrefix: string; name: string; createdAt: string }>> {
+  async listAdminKeys(
+    tenantId: string,
+  ): Promise<Array<{ id: string; keyPrefix: string; name: string; createdAt: string }>> {
     const rows = await this.apiKeyRepo.find({
       where: { tenant_id: tenantId, scope: ADMIN_KEY_SCOPE },
       select: ['id', 'key_prefix', 'name', 'created_at'],
     });
-    return rows.map((r) => ({ id: r.id, keyPrefix: r.key_prefix, name: r.name, createdAt: r.created_at }));
+    return rows.map((r) => ({
+      id: r.id,
+      keyPrefix: r.key_prefix,
+      name: r.name,
+      createdAt: r.created_at,
+    }));
   }
 
   async revokeAdminKey(tenantId: string, id: string): Promise<void> {

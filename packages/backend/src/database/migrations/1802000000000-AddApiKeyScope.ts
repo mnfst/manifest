@@ -21,7 +21,12 @@ export class AddApiKeyScope1802000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`SET LOCAL lock_timeout = '5s'`);
+    // `migration:revert` may run with --transaction none, where SET LOCAL has
+    // no surrounding transaction to bind to and would not stay scoped for the
+    // following ALTER. Use a session-scoped setting and reset it afterwards;
+    // inside a normal transactional run both forms behave the same.
+    await queryRunner.query(`SET lock_timeout = '5s'`);
     await queryRunner.query(`ALTER TABLE "api_keys" DROP COLUMN IF EXISTS "scope"`);
+    await queryRunner.query(`RESET lock_timeout`);
   }
 }

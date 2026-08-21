@@ -5,8 +5,10 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { ADMIN_KEY_SCOPE } from '../../common/constants/admin-key.constants';
+import { ADMIN_BOOTSTRAP_KEY } from '../decorators/admin-bootstrap.decorator';
 
 /**
  * Restricts the `/api/v1/admin` surface to keys carrying `scope = 'ai_admin'`.
@@ -14,14 +16,25 @@ import { ADMIN_KEY_SCOPE } from '../../common/constants/admin-key.constants';
  * Primary authentication is performed upstream by the global ApiKeyGuard, which
  * resolves the `api_keys` row, populates `tenantContext`, and stashes the
  * resolved `authScope` on the request. This guard only checks that scope.
+ *
+ * Exception: routes marked `@AdminBootstrap()` additionally accept owner keys
+ * (`scope = 'owner'`) so a fresh install can mint its first admin key.
  */
 @Injectable()
 export class AdminAiGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request & { authScope?: string }>();
     const resolvedScope = request.authScope;
 
     if (resolvedScope === ADMIN_KEY_SCOPE) return true;
+
+    const bootstrapAllowed = this.reflector.getAllAndOverride<boolean>(ADMIN_BOOTSTRAP_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (bootstrapAllowed && resolvedScope === 'owner') return true;
 
     if (typeof resolvedScope === 'string') {
       // Authenticated via some other key (e.g. an owner key) but lacking the

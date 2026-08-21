@@ -9,7 +9,7 @@ import { ModelDiscoveryService } from '../../model-discovery/model-discovery.ser
 import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
-import { verifyKey } from '../../common/utils/hash.util';
+import { hashKey, verifyKey } from '../../common/utils/hash.util';
 import {
   expandProviderNames,
   inferProviderFromModelName,
@@ -262,11 +262,33 @@ export class ProviderKeyService {
     // from storage or returned. verifyKey() does salt-aware comparison
     // (hashKey() salts per call, so a naive hash-equality check would never
     // match).
+    //
+    // Rows connected before key_hash existed have NULL hash but a decryptable
+    // credential. Backfill lazily on first verify so upgraded tenants get
+    // working verification without a data-touching migration; decryption
+    // failures are left as-is (still unusable for verification, same as
+    // before this column existed).
     const candidates = rows.filter(
-      (r) => r.key_hash && names.has(r.provider.toLowerCase()),
+      (r) => names.has(r.provider.toLowerCase()) && (!!r.key_hash || !!r.api_key_encrypted),
     );
     if (candidates.length === 0) return { match: false };
-    return { match: candidates.some((r) => verifyKey(rawKey, r.key_hash!)) };
+    let matched = false;
+    for (const row of candidates) {
+      if (!row.key_hash && row.api_key_encrypted) {
+        let raw: string | null = null;
+        try {
+          raw = decrypt(row.api_key_encrypted, getEncryptionSecret());
+        } catch {
+          raw = null;
+        }
+        if (raw) {
+          row.key_hash = hashKey(raw);
+          await this.providerRepo.update(row.id, { key_hash: row.key_hash });
+        }
+      }
+      if (row.key_hash && verifyKey(rawKey, row.key_hash)) matched = true;
+    }
+    return { match: matched };
   }
 
   async getProviderRegion(
