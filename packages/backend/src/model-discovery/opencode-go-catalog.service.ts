@@ -6,7 +6,7 @@ export interface OpencodeGoCatalogEntry {
   /** Human-readable display name from the docs (e.g. "GLM-5.1"). */
   displayName: string;
   /** Which upstream API format the model expects. */
-  format: 'openai' | 'anthropic';
+  format: 'openai' | 'anthropic' | 'responses';
   /**
    * Cost in USD attributed to one request, derived from the docs Usage Limits
    * table: `OPENCODE_GO_BUDGET_5H_USD / requestsPer5h`. `null` when the docs
@@ -196,7 +196,7 @@ export class OpencodeGoCatalogService implements OnModuleInit {
   parse(mdx: string): OpencodeGoCatalogEntry[] {
     const costByName = this.parseLimits(mdx);
     const rowRe =
-      /\|\s*([A-Za-z][^|]*?)\s*\|\s*([a-z][a-z0-9.-]*)\s*\|\s*`?https:\/\/opencode\.ai\/zen\/go\/v1\/(chat\/completions|messages)`?\s*\|/g;
+      /\|\s*([A-Za-z][^|]*?)\s*\|\s*([a-z][a-z0-9.-]*)\s*\|\s*`?https:\/\/opencode\.ai\/zen\/go\/v1\/(chat\/completions|messages|responses)`?\s*\|/g;
     const entries: OpencodeGoCatalogEntry[] = [];
     const seen = new Set<string>();
     let match: RegExpExecArray | null;
@@ -211,7 +211,12 @@ export class OpencodeGoCatalogService implements OnModuleInit {
       entries.push({
         id: modelId,
         displayName,
-        format: endpointSuffix === 'messages' ? 'anthropic' : 'openai',
+        format:
+          endpointSuffix === 'messages'
+            ? 'anthropic'
+            : endpointSuffix === 'responses'
+              ? 'responses'
+              : 'openai',
         costPerRequestUsd: costByName.get(normalizeDisplayName(displayName)) ?? null,
       });
     }

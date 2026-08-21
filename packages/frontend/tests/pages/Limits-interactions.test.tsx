@@ -30,16 +30,6 @@ vi.mock("../../src/services/setup-status.js", () => ({
   checkEmailConfigured: vi.fn(() => Promise.resolve(true)),
 }));
 
-vi.mock("../../src/components/EmailProviderSection.js", () => ({
-  default: () => <div data-testid="email-provider-section">EmailProviderSection</div>,
-}));
-
-vi.mock("../../src/components/EmailProviderModal.js", () => ({
-  default: (props: any) => (
-    <div data-testid="email-provider-modal" data-open={String(props.open)}>EmailProviderModal</div>
-  ),
-}));
-
 vi.mock("../../src/services/toast-store.js", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

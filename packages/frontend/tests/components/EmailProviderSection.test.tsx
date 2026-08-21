@@ -11,7 +11,7 @@ vi.mock('../../src/components/EmailProviderSetup.js', () => ({
   ),
 }));
 vi.mock('../../src/components/ProviderBanner.js', () => ({
-  default: (props: { config?: { provider?: string }; onEdit: () => void; onRemove: () => void }) => (
+  default: (props: { config: { provider: string }; onEdit: () => void; onRemove: () => void }) => (
     <div data-testid="provider-banner" data-provider={props.config?.provider}>
       <button onClick={props.onEdit}>edit</button>
       <button onClick={props.onRemove}>remove</button>

@@ -133,6 +133,52 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
+function hasChatCompletionOutput(message: Record<string, unknown>): boolean {
+  return Object.entries(message).some(([key, value]) => {
+    if (key === 'role' || value == null) return false;
+    if (typeof value === 'string' || Array.isArray(value)) return value.length > 0;
+    return true;
+  });
+}
+
+function isEmptyChatCompletion(body: unknown): boolean {
+  if (!isRecord(body) || !Array.isArray(body.choices)) return false;
+  return body.choices.every(
+    (choice) =>
+      isRecord(choice) &&
+      choice.finish_reason === 'stop' &&
+      isRecord(choice.message) &&
+      !hasChatCompletionOutput(choice.message),
+  );
+}
+
+async function qualifyEmptyChatCompletion(
+  response: Response,
+  attempt?: ProviderAttemptRef,
+): Promise<Response> {
+  if (response.status !== HttpStatus.OK) return response;
+
+  let body: unknown;
+  try {
+    body = await response.clone().json();
+  } catch {
+    return response;
+  }
+  if (!isEmptyChatCompletion(body)) return response;
+  await attempt?.finishRecording?.({ type: 'json', body });
+
+  return new Response(
+    JSON.stringify({
+      error: {
+        message: 'Upstream provider returned an empty Chat Completions response',
+        type: 'server_error',
+        code: 'empty_response',
+      },
+    }),
+    { status: HttpStatus.BAD_GATEWAY, headers: { 'content-type': 'application/json' } },
+  );
+}
+
 function responsesTextFormat(
   body: Record<string, unknown>,
   apiMode: ForwardOptions['apiMode'],
@@ -373,15 +419,21 @@ export class ProviderClient {
         structuredOutputToolName,
         responsesTextFormat: textFormat,
       });
+      const response =
+        !stream &&
+        endpoint.format === 'openai' &&
+        (opts.apiMode === undefined || opts.apiMode === 'chat_completions')
+          ? await qualifyEmptyChatCompletion(result.response, attempt)
+          : result.response;
       const qualifiedResult =
         endpointKey === 'openai-subscription'
           ? {
               ...result,
-              response: await qualifyChatGptResponse(result.response, {
+              response: await qualifyChatGptResponse(response, {
                 downstreamFormat: isResponses ? 'responses' : 'chat-completions',
               }),
             }
-          : result;
+          : { ...result, response };
       if (affinity) this.codexAffinity.capture(affinity.storeKey, qualifiedResult.response);
       return {
         ...qualifiedResult,
@@ -450,10 +502,14 @@ export class ProviderClient {
     }
     if (resolved === 'opencode-go') {
       const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
-      const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
       const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
-      if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
-        resolved = 'opencode-go-anthropic';
+      if (catalogFormat === 'responses') {
+        resolved = 'opencode-go-responses';
+      } else {
+        const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
+        if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
+          resolved = 'opencode-go-anthropic';
+        }
       }
     }
     if (resolved === 'commandcode') {
@@ -482,7 +538,9 @@ export class ProviderClient {
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 
-  private async resolveOpencodeGoFormat(bareModel: string): Promise<'openai' | 'anthropic' | null> {
+  private async resolveOpencodeGoFormat(
+    bareModel: string,
+  ): Promise<'openai' | 'anthropic' | 'responses' | null> {
     if (!this.opencodeGoCatalog) return null;
     try {
       return await this.opencodeGoCatalog.resolveFormat(bareModel);

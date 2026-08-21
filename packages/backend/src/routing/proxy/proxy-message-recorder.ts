@@ -1070,6 +1070,10 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isSubscription: authType === 'subscription',
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
       reportedCostUsd: usage?.reported_cost_usd,
+      // Bill the hour the provider attempt actually ran: `timestamp` is the
+      // synthetic ordering stamp from recordFallbackFailures, not the attempt
+      // start, so it can cross a peak boundary on delayed writes.
+      at: attempt ? new Date(attempt.startedAt) : timestamp ? new Date(timestamp) : undefined,
     });
 
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
