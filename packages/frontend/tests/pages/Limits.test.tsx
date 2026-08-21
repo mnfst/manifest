@@ -168,14 +168,20 @@ describe("Limits page", () => {
     });
   });
 
-  it("shows cloud email info", () => {
+  it("shows cloud email info", async () => {
     render(() => <Limits />);
-    expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+    // The email block waits for the deployment mode, so the cloud card only
+    // appears once checkIsSelfHosted() has resolved.
+    await waitFor(() => {
+      expect(screen.getByTestId("cloud-email-info")).toBeDefined();
+    });
   });
 
-  it("passes session email to cloud email info", () => {
+  it("passes session email to cloud email info", async () => {
     const { container } = render(() => <Limits />);
-    expect(container.textContent).toContain("user@example.com");
+    await waitFor(() => {
+      expect(container.textContent).toContain("user@example.com");
+    });
   });
 
   it("renders modal component", async () => {
