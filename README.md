@@ -45,7 +45,7 @@ Manifest is an open-source LLM gateway for AI agents and apps. Connect your API 
 - 🔀 Custom Routing: API keys, Subscriptions, Local models, Custom providers
 - 💾 Full Body Logs for Success and Error Messages
 - 📊 Track every single dollar, setup notifications and limits
-- 🚑 Fallback on different models when queries fails, Self-heals your bad requests
+- 🚑 Fallback on different models when queries fail, Self-heals your bad requests
 
 ## Quick start
 
