@@ -5,7 +5,7 @@ import { HttpException } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { PlanService } from './plan.service';
 import { Tenant } from '../entities/tenant.entity';
-import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
+import { toLocalSqlTimestamp, toSqlTimestamp } from '../common/utils/postgres-sql';
 import * as billingConfig from './billing.config';
 
 describe('PlanService', () => {
@@ -17,6 +17,14 @@ describe('PlanService', () => {
   const CTX = { tenantId: 't1', userId: 'u1' };
   const FRESH_CTX = { tenantId: null, userId: 'u1' };
   const TENANT = { id: 't1', owner_user_id: 'u1', limit_overrides: null };
+
+  function quotaTriggerDefinition(timeZone: string): string {
+    return `IF (NEW."timestamp" AT TIME ZONE '${timeZone}') AT TIME ZONE 'UTC' < counter_cutover_at`;
+  }
+
+  function processTimeZone(): string {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  }
 
   function enableBilling() {
     process.env['MANIFEST_MODE'] = 'cloud';
@@ -46,6 +54,42 @@ describe('PlanService', () => {
 
   afterAll(() => {
     process.env = { ...saved };
+  });
+
+  describe('onModuleInit', () => {
+    it('skips the timezone check for self-hosted mode', async () => {
+      process.env['MANIFEST_MODE'] = 'selfhosted';
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('accepts the request storage timezone used by the process', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(processTimeZone()) }]);
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined();
+      expect(mockQuery.mock.calls[0][0]).toContain('pg_get_functiondef');
+    });
+
+    it('rejects a request storage timezone mismatch', async () => {
+      enableBilling();
+      const mismatch = processTimeZone() === 'UTC' ? 'Europe/Paris' : 'UTC';
+      mockQuery.mockResolvedValue([{ definition: quotaTriggerDefinition(mismatch) }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Request quota storage timezone mismatch',
+      );
+    });
+
+    it('rejects a missing request quota trigger', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValue([{ definition: null }]);
+
+      await expect(service.onModuleInit()).rejects.toThrow(
+        'Could not read request quota timezone from installed trigger',
+      );
+    });
   });
 
   describe('getPlan', () => {
@@ -79,6 +123,20 @@ describe('PlanService', () => {
     it('returns free when no active subscription row exists', async () => {
       enableBilling();
       expect(await service.getPlan(CTX)).toBe('free');
+    });
+  });
+
+  describe('getPlanStatus', () => {
+    it('reports billing disabled without querying', async () => {
+      expect(await service.getPlanStatus(CTX)).toEqual({ enabled: false, plan: 'free' });
+      expect(mockQuery).not.toHaveBeenCalled();
+    });
+
+    it('returns the resolved plan with a single snapshot query when enabled', async () => {
+      enableBilling();
+      mockQuery.mockResolvedValueOnce([{ subscriptionPlan: 'pro' }]);
+      expect(await service.getPlanStatus(CTX)).toEqual({ enabled: true, plan: 'pro' });
+      expect(mockQuery).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -161,8 +219,8 @@ describe('PlanService', () => {
     it('reports plan, usage and limits when enabled', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('FROM requests r')
-          ? Promise.resolve([{ n: 42 }])
+        sql.includes('FROM "tenant_request_usage"')
+          ? Promise.resolve([{ n: 42, baseline_counted: true }])
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
       const status = await service.getBillingStatus(CTX);
@@ -174,6 +232,35 @@ describe('PlanService', () => {
       });
       // periodEnd is the 1st of next month at midnight UTC.
       expect(status.requests.periodEnd).toMatch(/^\d{4}-\d{2}-01T00:00:00\.000Z$/);
+    });
+
+    it('returns live usage without waiting for the historical baseline scan', async () => {
+      enableBilling();
+      let resolveBaseline!: (v: Array<{ n: string }>) => void;
+      const baselineHang = new Promise<Array<{ n: string }>>((r) => {
+        resolveBaseline = r;
+      });
+      mockQuery.mockImplementation((sql: string) => {
+        if (sql.includes('FROM "tenant_request_usage"') && sql.includes('SELECT "request_count"')) {
+          return Promise.resolve([{ n: '8', baseline_counted: false }]);
+        }
+        if (sql.includes('EXTRACT(EPOCH')) {
+          return Promise.resolve([{ cutover_ms: String(Date.parse('2026-07-28T09:00:00Z')) }]);
+        }
+        if (sql.includes('SELECT COUNT(*)')) return baselineHang;
+        if (sql.includes('FROM (SELECT 1) seed') || sql.includes('subscriptionPlan')) {
+          return Promise.resolve([{ subscriptionPlan: 'free' }]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const status = await service.getBillingStatus(CTX);
+      expect(status.requests.used).toBe(8);
+
+      // Unblock the background init so the suite does not leak a hanging promise.
+      resolveBaseline([{ n: '1' }]);
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
     });
   });
 
@@ -219,6 +306,14 @@ describe('PlanService', () => {
   });
 
   describe('price lookup', () => {
+    beforeEach(() => {
+      mockQuery.mockImplementation((sql: string) =>
+        sql.includes('FROM "tenant_request_usage"')
+          ? Promise.resolve([{ n: 0, baseline_counted: true }])
+          : Promise.resolve([{ subscriptionPlan: 'free' }]),
+      );
+    });
+
     it('fetches, converts cents to dollars, and caches', async () => {
       enableBilling();
       const retrieve = jest.fn().mockResolvedValue({
@@ -294,19 +389,17 @@ describe('PlanService', () => {
       expect(mockQuery).not.toHaveBeenCalled();
     });
 
-    it('counts via SQL, excluding Manifest-side blocks, and applies the rollout reset window', async () => {
-      mockQuery.mockResolvedValue([{ n: 7 }]);
+    it('reads the exact tenant and rollout-window counter row', async () => {
+      mockQuery.mockResolvedValue([{ n: 7, baseline_counted: true }]);
       expect(await service.countRequestsSince('t1', START)).toBe(7);
       const [sql, params] = mockQuery.mock.calls[0];
-      expect(sql).toContain(
-        "m.error_origin IS NULL OR m.error_origin NOT IN ('config', 'policy', 'internal', 'request')",
-      );
-      expect(params[0]).toBe('t1');
-      expect(params[1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
+      expect(sql).toContain('FROM "tenant_request_usage"');
+      expect(sql).not.toContain('COUNT(');
+      expect(params).toEqual(['t1', toSqlTimestamp(new Date(ROLLOUT_RESET))]);
     });
 
-    it('casts PostgreSQL bigint counts to numbers before caching', async () => {
-      mockQuery.mockResolvedValue([{ n: '7' }]);
+    it('casts PostgreSQL bigint counters to numbers', async () => {
+      mockQuery.mockResolvedValue([{ n: '7', baseline_counted: true }]);
 
       const count = await service.countRequestsSince('t1', START);
 
@@ -316,72 +409,138 @@ describe('PlanService', () => {
 
     it('allows the quota reset window to be moved by env override', async () => {
       process.env['PLAN_REQUEST_QUOTA_RESET_AT'] = '2026-07-10T12:34:56Z';
-      mockQuery.mockResolvedValue([{ n: 4 }]);
+      mockQuery.mockResolvedValue([{ n: 4, baseline_counted: true }]);
 
       expect(await service.countRequestsSince('t1', START)).toBe(4);
 
-      expect(mockQuery.mock.calls[0][1][1]).toBe(
-        toLocalSqlTimestamp(new Date('2026-07-10T12:34:56Z')),
-      );
+      expect(mockQuery.mock.calls[0][1][1]).toBe(toSqlTimestamp(new Date('2026-07-10T12:34:56Z')));
     });
 
-    it('caches within the TTL — a second call does not re-query', async () => {
-      mockQuery.mockResolvedValue([{ n: 3 }]);
+    it('reads the shared counter on every call instead of serving replica-local state', async () => {
+      mockQuery.mockResolvedValue([{ n: 3, baseline_counted: true }]);
       await service.countRequestsSince('t1', START);
       await service.countRequestsSince('t1', START);
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-    });
-
-    it('coalesces concurrent misses into a single query (single-flight)', async () => {
-      let resolve!: (v: Array<{ n: number }>) => void;
-      mockQuery.mockReturnValue(new Promise((r) => (resolve = r)));
-      const a = service.countRequestsSince('t1', START);
-      const b = service.countRequestsSince('t1', START);
-      resolve([{ n: 5 }]);
-      expect(await a).toBe(5);
-      expect(await b).toBe(5);
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-queries when the month rolls over (different window)', async () => {
-      mockQuery.mockResolvedValue([{ n: 1 }]);
-      await service.countRequestsSince('t1', START);
-      await service.countRequestsSince('t1', Date.UTC(2026, 7, 1)); // August
       expect(mockQuery).toHaveBeenCalledTimes(2);
     });
 
-    it('defaults a missing row to 0', async () => {
-      mockQuery.mockResolvedValue([]);
-      expect(await service.countRequestsSince('t1', START)).toBe(0);
+    it('changes the counter key when the month rolls over', async () => {
+      mockQuery.mockResolvedValue([{ n: 1, baseline_counted: true }]);
+      await service.countRequestsSince('t1', START);
+      await service.countRequestsSince('t1', Date.UTC(2026, 7, 1)); // August
+      expect(mockQuery).toHaveBeenCalledTimes(2);
+      expect(mockQuery.mock.calls[1][1][1]).toBe(toSqlTimestamp(new Date(Date.UTC(2026, 7, 1))));
     });
 
-    it('drops the pending entry and rethrows on a DB error (so the next call retries)', async () => {
+    it('returns the live counter immediately and baselines history in the background', async () => {
+      const cutover = Date.parse('2026-07-28T09:00:00Z');
+      mockQuery
+        .mockResolvedValueOnce([{ n: '3', baseline_counted: false }])
+        .mockResolvedValueOnce([{ cutover_ms: String(cutover) }])
+        .mockResolvedValueOnce([{ n: '2' }])
+        .mockResolvedValueOnce([{ n: '5' }]);
+
+      // Hot path must not wait on the historical COUNT — only live increments.
+      expect(await service.countRequestsSince('t1', START)).toBe(3);
+
+      // Flush the scheduled baseline init.
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      const [baselineSql, baselineParams] = mockQuery.mock.calls[2];
+      expect(baselineSql).toContain('FROM "requests" r');
+      expect(baselineSql).toContain('m."request_id" IS NULL');
+      expect(baselineSql).toContain('pa."timestamp" < c.local_timestamp');
+      expect(baselineSql).toContain('m."timestamp" < c.local_timestamp');
+      expect(baselineParams).toEqual([
+        't1',
+        toLocalSqlTimestamp(new Date(ROLLOUT_RESET)),
+        Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        'tenant_request_usage_cutover_v1',
+      ]);
+      expect(mockQuery.mock.calls[3][0]).toContain(
+        'WHEN "tenant_request_usage"."baseline_counted" THEN 0',
+      );
+    });
+
+    it('schedules a post-cutover zero-row without blocking or scanning history', async () => {
+      const augustStart = Date.UTC(2026, 7, 1);
+      const cutover = Date.parse('2026-07-28T09:00:00Z');
+      mockQuery
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ cutover_ms: cutover }])
+        .mockResolvedValueOnce([{ n: '0' }]);
+
+      expect(await service.countRequestsSince('t1', augustStart)).toBe(0);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(mockQuery).toHaveBeenCalledTimes(3);
+      expect(
+        mockQuery.mock.calls.every(([sql]) => !String(sql).includes('FROM "requests" r')),
+      ).toBe(true);
+      expect(mockQuery.mock.calls[2][1]).toEqual(['t1', toSqlTimestamp(new Date(augustStart)), 0]);
+    });
+
+    it('coalesces concurrent baseline initialization within one process', async () => {
+      const cutover = Date.parse('2026-07-28T09:00:00Z');
+      mockQuery.mockImplementation((sql: string) => {
+        if (sql.includes('SELECT "request_count"'))
+          return Promise.resolve([{ n: 0, baseline_counted: false }]);
+        if (sql.includes('EXTRACT(EPOCH')) return Promise.resolve([{ cutover_ms: cutover }]);
+        if (sql.includes('SELECT COUNT(*)')) return Promise.resolve([{ n: '4' }]);
+        if (sql.includes('INSERT INTO "tenant_request_usage"'))
+          return Promise.resolve([{ n: '4' }]);
+        return Promise.resolve([]);
+      });
+
+      // Both callers return the live counter immediately (0), without awaiting baseline.
+      await expect(
+        Promise.all([
+          service.countRequestsSince('t1', START),
+          service.countRequestsSince('t1', START),
+        ]),
+      ).resolves.toEqual([0, 0]);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(
+        mockQuery.mock.calls.filter(([sql]) => String(sql).includes('EXTRACT(EPOCH')),
+      ).toHaveLength(1);
+      expect(
+        mockQuery.mock.calls.filter(([sql]) => String(sql).includes('SELECT COUNT(*)')),
+      ).toHaveLength(1);
+      expect(
+        mockQuery.mock.calls.filter(([sql]) =>
+          String(sql).includes('INSERT INTO "tenant_request_usage"'),
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not fail the hot path when the migration cutover marker is missing', async () => {
+      mockQuery.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+
+      // Live counter is 0; baseline init fails in the background.
+      await expect(service.countRequestsSince('t1', START)).resolves.toBe(0);
+
+      await new Promise((resolve) => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
+    });
+
+    it('rethrows a DB error so the next call can retry', async () => {
       mockQuery.mockRejectedValueOnce(new Error('boom'));
       await expect(service.countRequestsSince('t1', START)).rejects.toThrow('boom');
-      mockQuery.mockResolvedValueOnce([{ n: 9 }]);
+      mockQuery.mockResolvedValueOnce([{ n: 9, baseline_counted: true }]);
       expect(await service.countRequestsSince('t1', START)).toBe(9);
-    });
-
-    it('evicts the oldest entry once the cache exceeds its size cap', async () => {
-      mockQuery.mockResolvedValue([{ n: 1 }]);
-      // One distinct tenant per entry; the (cap + 1)th insert triggers eviction.
-      for (let i = 0; i <= 10_000; i++) {
-        await service.countRequestsSince(`t-${i}`, START);
-      }
-      // The very first tenant should have been evicted → its next read re-queries.
-      const before = mockQuery.mock.calls.length;
-      await service.countRequestsSince('t-0', START);
-      expect(mockQuery.mock.calls.length).toBe(before + 1);
     });
 
     it('countRequestsThisMonth derives the current UTC month window', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-08-15T10:00:00Z'));
       try {
-        mockQuery.mockResolvedValue([{ n: 2 }]);
+        mockQuery.mockResolvedValue([{ n: 2, baseline_counted: true }]);
         expect(await service.countRequestsThisMonth('t1')).toBe(2);
-        expect(mockQuery.mock.calls[0][1][1]).toBe(
-          toLocalSqlTimestamp(new Date(Date.UTC(2026, 7, 1))),
-        );
+        expect(mockQuery.mock.calls[0][1][1]).toBe(toSqlTimestamp(new Date(Date.UTC(2026, 7, 1))));
       } finally {
         jest.useRealTimers();
       }
@@ -390,32 +549,21 @@ describe('PlanService', () => {
     it('countRequestsThisMonth starts at the rollout reset during the rollout month', async () => {
       jest.useFakeTimers().setSystemTime(new Date('2026-07-10T10:00:00Z'));
       try {
-        mockQuery.mockResolvedValue([{ n: 2 }]);
+        mockQuery.mockResolvedValue([{ n: 2, baseline_counted: true }]);
         expect(await service.countRequestsThisMonth('t1')).toBe(2);
-        expect(mockQuery.mock.calls[0][1][1]).toBe(toLocalSqlTimestamp(new Date(ROLLOUT_RESET)));
+        expect(mockQuery.mock.calls[0][1][1]).toBe(toSqlTimestamp(new Date(ROLLOUT_RESET)));
       } finally {
         jest.useRealTimers();
       }
     });
-
-    it('invalidateRequestCountCache forces the next count to re-query', async () => {
-      mockQuery.mockResolvedValue([{ n: 3 }]);
-      await service.countRequestsSince('t1', START);
-      expect(mockQuery).toHaveBeenCalledTimes(1);
-
-      service.invalidateRequestCountCache('t1');
-      mockQuery.mockResolvedValue([{ n: 5 }]);
-      expect(await service.countRequestsSince('t1', START)).toBe(5);
-      expect(mockQuery).toHaveBeenCalledTimes(2);
-    });
   });
 
   describe('assertWithinRequestLimit', () => {
-    // Route subscription lookups vs the request COUNT to the right mock result.
+    // Route subscription lookups vs the request counter lookup to the right result.
     function routeQuery(plan: string, count: number) {
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('FROM requests r')
-          ? Promise.resolve([{ n: count }])
+        sql.includes('FROM "tenant_request_usage"')
+          ? Promise.resolve([{ n: count, baseline_counted: true }])
           : Promise.resolve([{ subscriptionPlan: plan }]),
       );
     }
@@ -429,10 +577,10 @@ describe('PlanService', () => {
       enableBilling();
       mockQuery.mockResolvedValue([{ subscriptionPlan: 'pro' }]); // plan null limit
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
-      // Only the subscription lookup ran; no request COUNT.
-      expect(mockQuery.mock.calls.every(([sql]) => !String(sql).includes('FROM requests r'))).toBe(
-        true,
-      );
+      // Only the subscription lookup ran; no usage lookup.
+      expect(
+        mockQuery.mock.calls.every(([sql]) => !String(sql).includes('FROM "tenant_request_usage"')),
+      ).toBe(true);
     });
 
     it('allows a free tenant below the request limit', async () => {
@@ -461,11 +609,11 @@ describe('PlanService', () => {
     it('fails open (allows the request) when the count query errors', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('FROM requests r')
+        sql.includes('FROM "tenant_request_usage"')
           ? Promise.reject(new Error('db down'))
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );
-      // A COUNT failure must never block: the soft Free-tier gate errs to "allow".
+      // A usage lookup failure must never block: the soft Free-tier gate fails open.
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
     });
 
@@ -474,13 +622,13 @@ describe('PlanService', () => {
       mockQuery.mockRejectedValue(new Error('snapshot down'));
       await expect(service.assertWithinRequestLimit(CTX)).resolves.toBeUndefined();
       expect(mockQuery).toHaveBeenCalledTimes(1);
-      expect(String(mockQuery.mock.calls[0][0])).not.toContain('FROM requests r');
+      expect(String(mockQuery.mock.calls[0][0])).not.toContain('FROM "tenant_request_usage"');
     });
 
     it('throttles the fail-open warning and reports the suppressed count', async () => {
       enableBilling();
       mockQuery.mockImplementation((sql: string) =>
-        sql.includes('FROM requests r')
+        sql.includes('FROM "tenant_request_usage"')
           ? Promise.reject(new Error('db down'))
           : Promise.resolve([{ subscriptionPlan: 'free' }]),
       );

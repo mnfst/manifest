@@ -1328,6 +1328,69 @@ describe('parseUsageObject', () => {
     });
   });
 
+  it('passes through top-level cache_creation_input_tokens for the OpenAI-compat shape', () => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 20,
+        completion_tokens: 5,
+        cache_creation_input_tokens: 9,
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: 9,
+    });
+  });
+
+  it.each([
+    ['OpenAI cache_write_tokens', { cache_write_tokens: 7 }],
+    ['Qwen cache_creation_input_tokens', { cache_creation_input_tokens: 9 }],
+  ])('maps nested %s to cache creation usage', (_label, promptTokensDetails) => {
+    expect(
+      parseUsageObject({
+        prompt_tokens: 20,
+        completion_tokens: 5,
+        prompt_tokens_details: promptTokensDetails,
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: undefined,
+      cache_creation_tokens: Object.values(promptTokensDetails)[0],
+    });
+  });
+
+  it('maps Responses cache_write_tokens to cache creation usage', () => {
+    expect(
+      parseUsageObject({
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 4, cache_write_tokens: 6 },
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: 6,
+    });
+  });
+
+  it('maps Responses cache_creation_input_tokens to cache creation usage', () => {
+    expect(
+      parseUsageObject({
+        input_tokens: 20,
+        output_tokens: 5,
+        input_tokens_details: { cached_tokens: 4, cache_creation_input_tokens: 6 },
+      }),
+    ).toEqual({
+      prompt_tokens: 20,
+      completion_tokens: 5,
+      cache_read_tokens: 4,
+      cache_creation_tokens: 6,
+    });
+  });
+
   it('defaults output_tokens to 0 in the Anthropic shape when missing', () => {
     expect(parseUsageObject({ input_tokens: 4 })).toEqual({
       prompt_tokens: 4,

@@ -76,8 +76,20 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
     ];
   }
 
+  // Typed items with no chat-completions equivalent — `reasoning` (whose
+  // `encrypted_content` is opaque outside OpenAI), `item_reference`,
+  // `web_search_call`, and friends. Dropping them is the only safe mapping:
+  // falling through would emit `{ role: 'user' }` with no `content`, which
+  // strictly-validating providers reject with 400/422.
+  if (!isNativeResponsesMessageItem(item)) return [];
+
   const role = typeof item.role === 'string' ? item.role : 'user';
-  return [{ role, content: toChatContent(item.content, role) }];
+  const content = toChatContent(item.content, role);
+  // A message item carrying no content at all is the same wire hazard: the
+  // key is omitted on serialization and `{ role: 'user' }` goes out again.
+  if (content === undefined) return [];
+
+  return [{ role, content }];
 }
 
 export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
@@ -400,10 +412,15 @@ function toResponsesUsage(usage: unknown): JsonRecord | null {
     typeof usage.total_tokens === 'number' ? usage.total_tokens : promptTokens + completionTokens;
   const cachedTokens =
     typeof usage.cache_read_tokens === 'number' ? usage.cache_read_tokens : undefined;
+  const cacheWriteTokens =
+    typeof usage.cache_creation_tokens === 'number' ? usage.cache_creation_tokens : undefined;
 
   return {
     input_tokens: promptTokens,
-    input_tokens_details: { cached_tokens: cachedTokens ?? 0 },
+    input_tokens_details: {
+      cached_tokens: cachedTokens ?? 0,
+      cache_write_tokens: cacheWriteTokens ?? 0,
+    },
     output_tokens: completionTokens,
     output_tokens_details: { reasoning_tokens: 0 },
     total_tokens: totalTokens,

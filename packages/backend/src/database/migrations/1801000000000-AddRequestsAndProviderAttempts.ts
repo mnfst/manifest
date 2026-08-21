@@ -153,6 +153,13 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // A newer quota-counter migration attaches a trigger to request_id. In a
+    // full-schema test or manual out-of-order rollback, remove it before the
+    // column so this historical down migration remains usable.
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS "TRG_agent_messages_count_tenant_request_usage" ON "agent_messages"`,
+    );
+    await queryRunner.query(`DROP FUNCTION IF EXISTS "count_tenant_request_usage"()`);
     await queryRunner.query(
       `DROP INDEX CONCURRENTLY IF EXISTS "IDX_agent_messages_unlinked_fallback"`,
     );
@@ -161,6 +168,10 @@ export class AddRequestsAndProviderAttempts1801000000000 implements MigrationInt
       `ALTER TABLE "agent_messages" DROP CONSTRAINT IF EXISTS "FK_agent_messages_request"`,
     );
     await queryRunner.query(`ALTER TABLE "agent_messages" DROP COLUMN IF EXISTS "request_id"`);
+    // Migration tests and manual recovery can invoke this historical down()
+    // directly after newer migrations have run. Remove the newer dependent
+    // table first so PostgreSQL can safely drop requests.
+    await queryRunner.query(`DROP TABLE IF EXISTS "request_recordings"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "requests"`);
   }
 }

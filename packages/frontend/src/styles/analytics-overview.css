@@ -67,11 +67,11 @@
 }
 
 /* Accent variants: each recovery KPI wears its chart series colour (blue =
-   recovered by Auto-fix, teal green = recovered by fallback) and the failed
+   recovered by Autofix, teal green = recovered by fallback) and the failed
    card reads destructive, label included.
 
    The backgrounds are three layers in one `background-image` (the house recipe —
-   the auto-fix/fallback icon squares are built the same way, card-sized):
+   the autofix/fallback icon squares are built the same way, card-sized):
    1. a diagonal fade of the card's colour toward transparent,
    2. a denser, darker glow anchored in the top-right corner (the "blurred
       shape" — a radial does it without an extra node or a GPU blur),

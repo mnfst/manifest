@@ -15,12 +15,14 @@ import type { Logger } from '@nestjs/common';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
+  resolveBedrockEndpointKey,
   resolveEndpointKey,
   type ProviderEndpoint,
 } from './provider-endpoints';
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../provider-base-url';
 import { getBedrockMantleBaseUrl, isBedrockRegion } from '../bedrock-region';
+import { getVertexBaseUrl, parseVertexDeployment } from '../vertex-deployment';
 import { MINIMAX_BASE_URLS } from '../oauth/minimax/minimax-oauth-helpers';
 import { getQwenCompatibleBaseUrl, isQwenResolvedEndpoint } from '../qwen-region';
 import {
@@ -107,6 +109,8 @@ export function resolveForwardEndpoint(
     }
   }
 
+  const vertexDeployment = parseVertexDeployment(providerRegion);
+
   // --- Endpoint overrides --------------------------------------------------
   if (CustomProviderService.isCustom(provider)) {
     if (customProvider) {
@@ -117,7 +121,14 @@ export function resolveForwardEndpoint(
       forwardModel = CustomProviderService.rawModelName(model);
     }
   } else if (resolveEndpointKey(provider) === 'bedrock' && isBedrockRegion(providerRegion)) {
-    customEndpoint = buildEndpointOverride(getBedrockMantleBaseUrl(providerRegion), 'bedrock');
+    customEndpoint = buildEndpointOverride(
+      getBedrockMantleBaseUrl(providerRegion),
+      resolveBedrockEndpointKey(model),
+    );
+  } else if (resolveEndpointKey(provider) === 'vertex' && vertexDeployment) {
+    // Connections that carry `project/location` address Vertex the way Google
+    // Cloud accounts do; everything else stays on the express base URL.
+    customEndpoint = buildEndpointOverride(getVertexBaseUrl(vertexDeployment), 'vertex');
   } else if (resolveEndpointKey(provider) === 'qwen' && isQwenResolvedEndpoint(providerRegion)) {
     customEndpoint = buildEndpointOverride(getQwenCompatibleBaseUrl(providerRegion), 'qwen');
   } else if (authType === 'subscription' && lower === 'minimax') {

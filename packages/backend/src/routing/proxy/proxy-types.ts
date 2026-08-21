@@ -1,5 +1,7 @@
 import type { IncomingHttpHeaders } from 'http';
+import type { RecordingResponseBody } from './attempt-recording.types';
 import { ProviderEndpoint } from './provider-endpoints';
+import type { AttemptRecordingCapture } from './attempt-recording-capture';
 import type { ThinkingBlock, ThinkingBlockRouteContext } from './thinking-block-cache';
 import { CallerAttribution } from './caller-classifier';
 
@@ -20,14 +22,10 @@ export type ThinkingBlockLookup = (
   routeContext?: ThinkingBlockRouteContext,
 ) => ThinkingBlock[] | null;
 
-/**
- * Optional lookup to re-inject cached reasoning_content strings that were
- * stripped by OpenAI-compatible clients. Called with the first tool_call id
- * from the assistant turn; returns the cached reasoning_content or null.
- */
-export type ReasoningContentLookup = (firstToolCallId: string) => string | null;
-
 export type ProxyApiMode = 'chat_completions' | 'responses' | 'messages';
+
+/** Lazily derive the Chat Completions view used by legacy routing or cross-protocol adapters. */
+export type ResolveChatBody = () => Promise<Record<string, unknown>>;
 
 /** The protocol shape actually emitted at the provider transport boundary. */
 export type ProviderWireFormat =
@@ -35,16 +33,30 @@ export type ProviderWireFormat =
   | 'openai_responses'
   | 'anthropic_messages'
   | 'google_generate_content'
-  | 'google_code_assist';
+  | 'google_code_assist'
+  | 'kiro_chat';
+
+export interface ProviderAttemptRecordingStart {
+  requestBody: Record<string, unknown>;
+  wireFormat: ProviderWireFormat;
+}
 
 export interface ProviderAttemptStart {
   provider: string;
   model: string;
   authType?: string;
   tenantProviderId?: string | null;
+  /** Reserve ordering for a Manifest-local route failure without a pending provider-call row. */
+  providerCallStarted?: boolean;
+  /**
+   * Label of the connection serving this attempt. Carried from the start so a
+   * row that never reaches a terminal writer (a cancelled request) still names
+   * the connection it was billed against.
+   */
+  keyLabel?: string;
 }
 
-/** Identity and measured start of one persisted pending Provider Attempt. */
+/** Identity and measured start of one Attempt. */
 export interface ProviderAttemptRef {
   id: string;
   attemptNumber: number;
@@ -57,6 +69,10 @@ export interface ProviderAttemptRef {
     errorBody: string;
     superseded: boolean;
   }) => Promise<void>;
+  /** Capture owned by this exact provider call, never by the parent Request. */
+  recordingCapture?: AttemptRecordingCapture;
+  startRecording?: (recording: ProviderAttemptRecordingStart) => void;
+  finishRecording?: (response?: RecordingResponseBody | null) => Promise<void>;
 }
 
 export type StartProviderAttempt = (attempt: ProviderAttemptStart) => ProviderAttemptRef;
@@ -79,10 +95,12 @@ export interface ForwardOptions {
   apiKey: string;
   model: string;
   body: Record<string, unknown>;
-  chatBody?: Record<string, unknown>;
+  resolveChatBody?: ResolveChatBody;
   apiMode?: ProxyApiMode;
-  /** Stable Manifest conversation/session key for provider prompt-cache affinity. */
+  /** Legacy caller session identifier. Provider cache affinity must use providerCacheKey. */
   sessionKey?: string;
+  /** Opaque, tenant/agent/session-scoped provider prompt-cache affinity key. */
+  providerCacheKey?: string;
   stream: boolean;
   signal?: AbortSignal;
   extraHeaders?: Record<string, string>;
@@ -94,14 +112,14 @@ export interface ForwardOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Route scope used to decide whether cached Anthropic thinking can be replayed. */
   thinkingRouteContext?: ThinkingBlockRouteContext;
-  /** Lookup for re-injecting cached reasoning_content (DeepSeek-compatible providers). */
-  reasoningContentLookup?: ReasoningContentLookup;
   /**
    * Provider-specific routing field carried in the OAuth token blob's `u`
    * slot. For Gemini OAuth this is the CodeAssist
    * `cloudaicompanionProject` id assigned during `enrichBlob`.
    */
   providerResource?: string;
+  /** Persisted identity of this exact upstream call. */
+  attempt?: ProviderAttemptRef;
 }
 
 /** Options for ProxyService.proxyRequest. */
@@ -120,11 +138,17 @@ export interface ProxyRequestOptions {
   routingBody?: Record<string, unknown>;
   apiMode?: ProxyApiMode;
   sessionKey: string;
+  /** Fixed-length tenant/agent/session key for internal replay caches. */
+  sessionCacheKey: string;
+  /** Scoped provider prompt-cache key; absent when the caller omitted x-session-key. */
+  providerCacheKey?: string;
+  /** Scoped routing-momentum key; absent when the caller omitted x-session-key. */
+  sessionMomentumKey?: string;
   agentName?: string;
   signal?: AbortSignal;
   specificityOverride?: string;
   callerAttribution?: CallerAttribution | null;
   headers?: IncomingHttpHeaders;
-  /** Called immediately before Manifest invokes one upstream provider transport. */
+  /** Allocates the next Attempt; local route failures set providerCallStarted=false. */
   startProviderAttempt?: StartProviderAttempt;
 }

@@ -32,7 +32,7 @@ export function computeTrend(current: number, previous: number): number {
  * "what is an error" — consumed both by the Messages-log error filter and by
  * every "messages" KPI count below, so the two notions can never drift.
  */
-// `auto_fixed` is the failed-original row of a healed Auto-fix pair; its paired
+// `auto_fixed` is the failed-original row of a healed Autofix pair; its paired
 // `ok` retry row is the real success, so the original is excluded here to avoid
 // double-counting one logical request.
 //
@@ -212,6 +212,43 @@ export function excludePlaygroundAgents<T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
 ): SelectQueryBuilder<T> {
   return qb.andWhere(EXCLUDE_PLAYGROUND_AGENTS_PREDICATE);
+}
+
+/**
+ * Exclude `direct` traffic — the requests where the caller pinned an explicit
+ * model in the request body, so the agent's configured routing never chose
+ * anything (the proxy stamps `routing_tier`/`routing_reason` = `direct` on the
+ * attempt, see `buildBaseMeta` in `proxy.service.ts`).
+ *
+ * A harness's own Overview answers "what did MY routing do", and a client-pinned
+ * model is not that harness's routing — it bypassed it. The global Overview and
+ * the Messages log stay complete, so those requests are still visible and total
+ * spend still reconciles there; these predicates are only for agent-scoped
+ * Overview widgets.
+ *
+ * `routing_reason` lives on the ATTEMPT (`agent_messages`), never on the parent
+ * request, so there are two predicates:
+ *
+ *  - `EXCLUDE_DIRECT_ATTEMPTS_PREDICATE` filters an attempt-level aggregate
+ *    directly. `IS DISTINCT FROM` rather than `!=` because an attempt recorded
+ *    before a route was chosen (pending/cancelled) carries a NULL
+ *    `routing_reason`, which `!=` would drop (NULL comparison yields NULL).
+ *  - `sqlExcludeDirectRequests(alias)` filters a request-level aggregate via
+ *    `NOT EXISTS` on its attempts — mirroring how `getRequests` applies every
+ *    other attempt-level facet. A request with no attempts at all (recorded
+ *    before any provider was contacted) has nothing claiming `direct`, so it
+ *    correctly survives.
+ */
+export const EXCLUDE_DIRECT_ATTEMPTS_PREDICATE = "at.routing_reason IS DISTINCT FROM 'direct'";
+
+export function excludeDirectAttempts<T extends ObjectLiteral>(
+  qb: SelectQueryBuilder<T>,
+): SelectQueryBuilder<T> {
+  return qb.andWhere(EXCLUDE_DIRECT_ATTEMPTS_PREDICATE);
+}
+
+export function sqlExcludeDirectRequests(alias: string): string {
+  return `NOT EXISTS (SELECT 1 FROM agent_messages direct_attempt WHERE direct_attempt.request_id = ${alias}.id AND direct_attempt.routing_reason = 'direct')`;
 }
 
 /**

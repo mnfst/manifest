@@ -21,6 +21,11 @@ const TEXT_IMAGE_TOOLS: KnownCapabilities = {
   output: ['text'],
   capabilities: ['text', 'image', 'tools', 'stream'],
 };
+const TEXT_IMAGE_VIDEO_TOOLS: KnownCapabilities = {
+  input: ['text', 'image', 'video'],
+  output: ['text'],
+  capabilities: ['text', 'image', 'video', 'tools', 'stream'],
+};
 const TEXT_TOOLS: KnownCapabilities = {
   input: ['text'],
   output: ['text'],
@@ -40,6 +45,13 @@ const KNOWN_MODEL_MODALITIES: Readonly<Record<string, KnownCapabilities>> = {
   'openai/gpt-5.4-mini': TEXT_IMAGE_TOOLS,
   // Rejects image input (#2537).
   'openai/gpt-5.3-codex-spark': TEXT_TOOLS,
+  // Kimi Coding Plan has no /models endpoint and the subscription catalog is
+  // curated, so no upstream source carries these modalities. Keys use the
+  // wire-format ids the coding endpoint expects (k3, not kimi-k3).
+  'moonshot/k3': TEXT_IMAGE_VIDEO_TOOLS,
+  'moonshot/k3-256k': TEXT_IMAGE_TOOLS,
+  'moonshot/kimi-for-coding': TEXT_IMAGE_VIDEO_TOOLS,
+  'moonshot/kimi-for-coding-highspeed': TEXT_IMAGE_VIDEO_TOOLS,
 };
 
 export function lookupKnownModalities(

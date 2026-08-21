@@ -1,5 +1,6 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createSignal, For, onMount, Show, startTransition, type Component } from 'solid-js';
 import {
+  refreshModels,
   refreshProviderModels,
   type AuthType,
   type AvailableModel,
@@ -70,6 +71,17 @@ const ACTION_CAPABILITIES: readonly ModelCapability[] = ['stream', 'tools'];
 const MODALITY_ORDER: readonly ModelModality[] = ['text', 'image', 'audio', 'video'];
 const DEFAULT_MODALITIES: readonly ModelModality[] = ['text'];
 
+const wasFetchedToday = (fetchedAt: string | null | undefined, now: Date): boolean => {
+  if (!fetchedAt) return false;
+  const fetched = new Date(fetchedAt);
+  if (Number.isNaN(fetched.getTime())) return false;
+  return (
+    fetched.getFullYear() === now.getFullYear() &&
+    fetched.getMonth() === now.getMonth() &&
+    fetched.getDate() === now.getDate()
+  );
+};
+
 const unavailableCapabilityLabel = (capability: ModelCapability): string => {
   if (capability === 'stream') return 'Stream unavailable';
   return `${capability.charAt(0).toUpperCase()}${capability.slice(1)} unavailable`;
@@ -107,6 +119,31 @@ const ModelPickerModal: Component<Props> = (props) => {
     props.requiredCapability ? new Set([props.requiredCapability]) : new Set(),
   );
   const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
+  // Parent callbacks refetch resources read inside this modal's Suspense
+  // boundary. Keep the current picker visible until those resources settle.
+  const notifyProviderRefreshed = () => startTransition(() => props.onProviderRefreshed?.());
+
+  onMount(() => {
+    const agentName = props.agentName;
+    if (!agentName) return;
+    const now = new Date();
+    const needsRefresh = (props.connectedProviders ?? []).some(
+      (provider) =>
+        provider.is_active &&
+        !provider.provider.startsWith('custom:') &&
+        !wasFetchedToday(provider.models_fetched_at, now),
+    );
+    if (!needsRefresh) return;
+
+    const refreshKey = `manifest:routing-model-refresh:${agentName}`;
+    const today = now.toDateString();
+    if (sessionStorage.getItem(refreshKey) === today) return;
+    sessionStorage.setItem(refreshKey, today);
+
+    void refreshModels(agentName)
+      .then(() => notifyProviderRefreshed())
+      .catch(() => undefined);
+  });
 
   const toggleCapability = (cap: ModelCapability) => {
     const current = new Set(requiredCapabilities());
@@ -139,7 +176,7 @@ const ModelPickerModal: Component<Props> = (props) => {
       } else {
         toast.error(result.error ?? `Couldn't refresh ${displayName}`);
       }
-      await props.onProviderRefreshed?.();
+      await notifyProviderRefreshed();
     } catch {
       // network/server error toast already raised by fetchMutate
     } finally {

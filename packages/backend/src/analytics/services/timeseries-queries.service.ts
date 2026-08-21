@@ -9,6 +9,7 @@ import {
   addTenantFilter,
   selectMessageRowColumns,
   excludePlaygroundAgents,
+  excludeDirectAttempts,
   scopeToConnection,
   sqlCountMessages,
   CUSTOM_PROVIDER_JOIN_CONDITION,
@@ -73,6 +74,7 @@ export class TimeseriesQueriesService {
     excludePlayground = false,
     label?: string,
     tenantProviderId?: string,
+    excludeDirect = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -91,6 +93,7 @@ export class TimeseriesQueriesService {
     if (authType) qb.andWhere('at.auth_type = :authType', { authType });
     if (provider) qb.andWhere('at.provider = :provider', { provider });
     if (excludePlayground) excludePlaygroundAgents(qb);
+    if (excludeDirect) excludeDirectAttempts(qb);
     // Scope to this connection: pin to the tenant_providers id when present,
     // else the provider+auth_type+label tuple (see scopeToConnection).
     scopeToConnection(qb, tenantProviderId, label);
@@ -187,6 +190,7 @@ export class TimeseriesQueriesService {
     tenantId: string | null,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -201,6 +205,7 @@ export class TimeseriesQueriesService {
       .andWhere('at.skill_name IS NOT NULL');
     addTenantFilter(qb, tenantId, agentName);
     if (excludePlayground) excludePlaygroundAgents(qb);
+    if (excludeDirect) excludeDirectAttempts(qb);
     const rows = await qb.groupBy('at.skill_name').orderBy('run_count', 'DESC').getRawMany();
     return rows.map((r: Record<string, unknown>) => ({
       name: String(r['name']),
@@ -217,6 +222,7 @@ export class TimeseriesQueriesService {
     limit = 5,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -229,6 +235,7 @@ export class TimeseriesQueriesService {
     );
     addTenantFilter(qb, tenantId, agentName);
     if (excludePlayground) excludePlaygroundAgents(qb);
+    if (excludeDirect) excludeDirectAttempts(qb);
     return qb.orderBy('at.timestamp', 'DESC').limit(limit).getRawMany();
   }
 
@@ -237,6 +244,7 @@ export class TimeseriesQueriesService {
     tenantId: string | null,
     agentName?: string,
     excludePlayground = false,
+    excludeDirect = false,
   ) {
     const interval = rangeToInterval(range);
     const cutoff = computeCutoff(interval);
@@ -256,6 +264,7 @@ export class TimeseriesQueriesService {
       .andWhere("at.model != ''");
     addTenantFilter(qb, tenantId, agentName);
     if (excludePlayground) excludePlaygroundAgents(qb);
+    if (excludeDirect) excludeDirectAttempts(qb);
     const rows = await qb
       .groupBy('at.model')
       .addGroupBy('at.auth_type')
@@ -693,6 +702,12 @@ export class TimeseriesQueriesService {
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
+    // Scoped to one harness => that harness's routing only; a client-pinned
+    // model bypassed it (see excludeDirectAttempts). These per-provider series
+    // feed the KPI card sparklines on the harness Overview, so they must drop
+    // exactly what the /overview widgets drop or a card and its sparkline
+    // disagree. Unscoped (global Overview) keeps everything.
+    if (agentName) excludeDirectAttempts(qb);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -727,6 +742,8 @@ export class TimeseriesQueriesService {
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
+    // Agent-scoped => this harness's routing only (see getPerProviderTimeseries).
+    if (agentName) excludeDirectAttempts(qb);
 
     const rows = await qb
       .groupBy(bucketAlias)
@@ -828,6 +845,8 @@ export class TimeseriesQueriesService {
     // addTenantFilter also scopes to the LIVE agent owning the slug (id-based),
     // so a soft-deleted agent sharing the name doesn't leak its old rows.
     addTenantFilter(qb, tenantId, agentName);
+    // Agent-scoped => this harness's routing only (see getPerProviderTimeseries).
+    if (agentName) excludeDirectAttempts(qb);
     const rows = await qb
       .groupBy(bucketAlias)
       .addGroupBy(PROVIDER_SERIES_KEY_EXPR)

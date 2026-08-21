@@ -60,7 +60,7 @@ vi.mock('../../src/components/ProviderKeyForm.js', () => ({
       data-validation-error={props.validationError() ?? ''}
     />
   ),
-  MAX_KEYS_PER_PROVIDER: 5,
+  MAX_KEYS_PER_PROVIDER: 50,
 }));
 
 vi.mock('../../src/components/OAuthDetailView.js', () => ({
@@ -398,6 +398,24 @@ describe('ProviderDetailView', () => {
     expect(screen.getByTestId('provider-key-form')).toBeDefined();
   });
 
+  it('keeps the add-key action available after 5 active keys', () => {
+    const providers: RoutingProvider[] = Array.from({ length: 6 }, (_, index) => ({
+      id: `p${index + 1}`,
+      provider: 'openai',
+      auth_type: 'api_key',
+      is_active: true,
+      has_api_key: true,
+      label: `Key ${index + 1}`,
+      priority: index,
+      connected_at: '2026-01-01',
+    }));
+    const props = createTestProps({ provId: 'openai', providers });
+
+    render(() => <ProviderDetailView {...props} />);
+
+    expect(screen.getByText('Add another key')).toBeDefined();
+  });
+
   describe('per-provider refresh button', () => {
     const connectedAnthropicSub: RoutingProvider[] = [
       {
@@ -447,6 +465,58 @@ describe('ProviderDetailView', () => {
         );
         expect(toast.success).toHaveBeenCalledWith('Anthropic: refreshed 3 models');
         expect(props.onUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('updates the model count immediately after a successful refresh', async () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      const [providers, setProviders] = createSignal(connectedAnthropicSub);
+      props.onUpdate.mockImplementation(() => {
+        setProviders([
+          {
+            ...connectedAnthropicSub[0]!,
+            cached_model_count: 3,
+            models_fetched_at: '2026-04-12T10:00:00Z',
+          },
+        ]);
+      });
+      render(() => <ProviderDetailView {...props} providers={providers()} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(screen.getByText(/3 models - last refreshed: 5m ago/)).toBeDefined();
+      });
+    });
+
+    it('keeps refreshing until the parent model catalog has reloaded', async () => {
+      const props = createTestProps({
+        provId: 'anthropic',
+        providers: connectedAnthropicSub,
+        selectedAuthType: 'subscription',
+      });
+      let finishUpdate!: () => void;
+      props.onUpdate.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            finishUpdate = resolve;
+          }),
+      );
+      render(() => <ProviderDetailView {...props} />);
+
+      fireEvent.click(screen.getByLabelText('Refresh models from Anthropic'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Refreshing…')).toBeDefined();
+      });
+      finishUpdate();
+
+      await waitFor(() => {
+        expect(screen.getByText('Refresh models')).toBeDefined();
       });
     });
 

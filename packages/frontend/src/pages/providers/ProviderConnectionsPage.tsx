@@ -21,7 +21,7 @@ import {
   connectionUsage,
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
-import { messagePing, routingPing } from '../../services/sse.js';
+import { analyticsPing, routingPing } from '../../services/sse.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
@@ -43,7 +43,6 @@ import {
   totalAttemptsTooltip,
   CONNECTION_SUCCESS_RATE_TOOLTIP_30D,
 } from '../../services/api/analytics.js';
-import { getAutofixCohort } from '../../services/api/autofix.js';
 import '../../styles/routing.css';
 import '../../styles/analytics-overview.css';
 
@@ -294,11 +293,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   });
 
   // USAGE resource — the expensive 30d aggregation, fetched independently. Its
-  // source includes the SSE ping signals so a newly ingested message
-  // (messagePing) or a provider connect/disconnect/rename (routingPing)
-  // re-runs the usage fetch within ~500ms, exactly like Overview/MessageLog.
+  // source includes the SSE ping signals so coalesced message activity
+  // (analyticsPing) or a provider connect/disconnect/rename (routingPing)
+  // re-runs the usage fetch.
   const [usage, { refetch: refetchUsage }] = createResource(
-    () => ({ m: messagePing(), r: routingPing() }),
+    () => ({ m: analyticsPing(), r: routingPing() }),
     async () => {
       try {
         return (await getProviderUsage()).providers;
@@ -401,12 +400,6 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const totalApiCost = createMemo(() =>
     connectedSummaries().reduce((sum, summary) => sum + summary.consumption_cost, 0),
   );
-
-  const [autofixCohort] = createResource(
-    () => ({ _ping: messagePing() }),
-    () => getAutofixCohort(),
-  );
-  const autofixEligible = () => autofixCohort()?.eligible ?? false;
 
   // Attempt-world totals for the header cards: summed over THIS page's rows
   // (provider + auth_type grain), so the Subscriptions page never blends an
@@ -559,7 +552,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Total attempts (30d)
-              <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+              <InfoTooltip text={totalAttemptsTooltip(true)} />
             </span>
             <div class="overview-stat-card__value-row">
               <span class="overview-stat-card__value">{formatNumber(totalAttempts())}</span>
@@ -602,7 +595,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
                 </Show>
                 <th class="rel-col">
                   Total attempts (30d)
-                  <InfoTooltip text={totalAttemptsTooltip(autofixEligible())} />
+                  <InfoTooltip text={totalAttemptsTooltip(true)} />
                 </th>
                 <th class="rel-col">
                   Success rate (30d)

@@ -6,7 +6,7 @@
   </picture>
 </p>
 <p align="center">
-Plug your AI agents into any provider
+AI Agents that don't break
 </p>
 
 ![manifest-gh](https://github.com/user-attachments/assets/7dd74fc2-f7d6-4558-a95a-014ed754a125)
@@ -19,8 +19,6 @@ Plug your AI agents into any provider
 </p>
 
 <p align="center">
-  <span><img src="https://img.shields.io/badge/status-beta-yellow" alt="beta" /></span>
-  &nbsp;
   <a href="https://github.com/mnfst/manifest/stargazers"><img src="https://img.shields.io/github/stars/mnfst/manifest?style=flat" alt="GitHub stars" /></a>
   &nbsp;
   <a href="https://hub.docker.com/r/manifestdotbuild/manifest"><img src="https://img.shields.io/docker/pulls/manifestdotbuild/manifest?color=2496ED&label=docker%20pulls" alt="Docker pulls" /></a>
@@ -42,12 +40,12 @@ Plug your AI agents into any provider
 
 ## What is Manifest?
 
-Manifest is an open-source model router for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
+Manifest is an open-source LLM gateway for AI agents and apps. Connect your API keys, subscriptions, and local models to one OpenAI-compatible endpoint, and each query goes to the right model. No single-provider lock-in.
 
-- 🔀 Routing based on complexity, specificity and custom HTTP headers
-- 🎛️ Mix your providers: API keys, Subscriptions, Local models, Custom providers
+- 🔀 Custom Routing: API keys, Subscriptions, Local models, Custom providers
+- 💾 Full Body Logs for Success and Error Messages
 - 📊 Track every single dollar, setup notifications and limits
-- 🚑 Fallback on different models when queries fails
+- 🚑 Fallback on different models when queries fail, Self-heals your bad requests
 
 ## Quick start
 
@@ -67,57 +65,60 @@ Open [http://localhost:2099](http://localhost:2099) and sign up — the first ac
 
 ### Deploy with one click
 
-| Platform | Notes |
-| --- | --- |
-| [Railway](https://railway.com/deploy/wild-wild) | Best path. Template includes Manifest and PostgreSQL. |
-| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest and Render PostgreSQL. |
-| [DigitalOcean](deploy/digitalocean/TUTORIAL.md) | App Platform button includes Manifest and a Dev PostgreSQL database. |
-| [AWS](deploy/aws/TUTORIAL.md) | CloudFormation quick-create for ECS, RDS, and Secrets Manager. |
-| [GCP](deploy/gcp/TUTORIAL.md) | Cloud Shell guided deploy for Cloud Run, Cloud SQL, and Secret Manager. |
+| Platform                                                                   | Notes                                                                                                |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [Railway](https://railway.com/deploy/wild-wild)                            | Best path. Template includes Manifest, PostgreSQL, and S3-compatible storage for request recordings. |
+| [Render](https://render.com/deploy?repo=https://github.com/mnfst/manifest) | Blueprint includes Manifest, PostgreSQL, and a persistent recording disk.                            |
+| [DigitalOcean](deploy/digitalocean/TUTORIAL.md)                            | App Platform and PostgreSQL; provide a private Space for recordings.                                 |
+| [AWS](deploy/aws/TUTORIAL.md)                                              | CloudFormation provisions ECS, RDS, and a private recording bucket.                                  |
+| [GCP](deploy/gcp/TUTORIAL.md)                                              | DeployStack provisions Cloud Run, Cloud SQL, and Cloud Storage.                                      |
 
-Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [Render](https://manifest.build/docs/deploy/render), [DigitalOcean](https://manifest.build/docs/deploy/digitalocean), [AWS](https://manifest.build/docs/deploy/aws), [GCP](https://manifest.build/docs/deploy/gcp), [Fly.io](https://manifest.build/docs/deploy/fly), [Coolify](https://manifest.build/docs/deploy/coolify), [Easypanel](https://manifest.build/docs/deploy/easypanel), [Heroku](https://manifest.build/docs/deploy/heroku), and [Koyeb](https://manifest.build/docs/deploy/koyeb).
+> Every deployment path now uses durable request-recording storage. Railway, AWS, GCP, and Fly.io provision it natively; Render, Coolify, Easypanel, Docker, and Apple Containers mount persistent storage. DigitalOcean, Heroku, and Koyeb collect external S3-compatible settings during setup. Volume-backed templates are single-instance; use S3-compatible storage before scaling horizontally.
+
+Full deployment guides: [Railway](https://manifest.build/docs/deploy/railway), [Render](https://manifest.build/docs/deploy/render), [DigitalOcean](https://manifest.build/docs/deploy/digitalocean), [AWS](https://manifest.build/docs/deploy/aws), [GCP](https://manifest.build/docs/deploy/gcp), [Fly.io](https://manifest.build/docs/deploy/fly), [Coolify](https://manifest.build/docs/deploy/coolify), [Easypanel](https://manifest.build/docs/deploy/easypanel), [Heroku](https://manifest.build/docs/deploy/heroku), [Koyeb](https://manifest.build/docs/deploy/koyeb), and [Apple Containers](deploy/apple-containers/TUTORIAL.md).
 
 > The old npm-based self-hosting path is no longer supported. Use the Docker image or one of the deployment guides above.
 
 ## Providers
 
-Manifest connects to **300+ models through 31 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same `/auto` endpoint.
+Manifest connects to **300+ models through 32 built-in provider connections** plus any custom OpenAI/Anthropic-compatible endpoint. Bring your own API key, reuse one of **18 subscription flows**, or run models locally. Everything is routed through the same OpenAI-compatible endpoint — send `"model": "auto"` and Manifest picks the model.
 
 Provider catalogs are discovered dynamically when credentials are connected. The examples below are representative, not exhaustive.
 
-| Provider | API key / local | Subscription | Model catalog |
-| --- | :---: | :--- | --- |
-| [**OpenAI**](https://platform.openai.com/) | ✅ | ✅ ChatGPT Plus / Pro / Team | GPT-5 family, o-series, Codex / Responses models |
-| [**Anthropic**](https://www.anthropic.com/) | ✅ | ✅ Claude Max / Pro | Claude Opus, Sonnet, Haiku, Fable |
-| [**Google**](https://ai.google.dev/) | ✅ | ✅ Sign in with Google | Gemini 3.1, Gemini 3, Gemini 2.5 |
-| [**xAI**](https://x.ai/) | ✅ | ✅ Grok subscription | Grok, Grok Code Fast |
-| [**AWS Bedrock**](https://aws.amazon.com/bedrock/) | ✅ | — | Claude, Llama, Mistral, Nova via Bedrock |
-| [**Alibaba Cloud / Qwen**](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) | ✅ | ✅ Qwen Token Plan | Qwen, DeepSeek, Kimi, GLM via Alibaba Cloud |
-| [**DeepSeek**](https://www.deepseek.com/) | ✅ | — | DeepSeek V3, DeepSeek R1 |
-| [**Mistral**](https://mistral.ai/) | ✅ | ✅ Mistral Vibe | Mistral Large, Codestral, Pixtral |
-| [**Moonshot** (Kimi)](https://kimi.ai/) | ✅ | ✅ Kimi Coding Plan | Kimi K2, Kimi for Coding, Moonshot v1 |
-| [**MiniMax**](https://www.minimax.io/) | ✅ | ✅ MiniMax Coding Plan | MiniMax M3, M2.7, M2.5 |
-| [**Xiaomi MiMo**](https://platform.xiaomimimo.com/) | ✅ | ✅ MiMo Token Plan | MiMo V2.5 Pro, V2.5, Flash |
-| [**Z.ai**](https://z.ai/) | ✅ | ✅ GLM Coding Plan | GLM 5.2, GLM 5.1, GLM 5 Turbo |
-| [**BytePlus**](https://www.byteplus.com/en/activity/codingplan) | — | ✅ ModelArk Coding Plan | Ark Code, Seed Code, GLM, Kimi, DeepSeek |
-| [**GitHub Copilot**](https://github.com/features/copilot) | — | ✅ Copilot subscription | Claude, GPT, Gemini, Grok via Copilot |
-| [**Kiro**](https://kiro.dev/) | — | ✅ Kiro subscription | `kiro/auto`, Claude, DeepSeek, MiniMax, GLM, Qwen |
-| [**Command Code**](https://commandcode.ai/studio) | — | ✅ Command Code subscription | Claude, GPT, Kimi, DeepSeek, Qwen |
-| [**ClinePass**](https://app.cline.bot/) | — | ✅ ClinePass subscription | `cline-pass/glm-5.2`, Kimi, DeepSeek, MiMo, MiniMax, Qwen |
-| [**NousResearch**](https://portal.nousresearch.com/) | — | ✅ NousResearch subscription | NousResearch Portal model catalog |
-| [**OpenCode Go**](https://opencode.ai/) | — | ✅ OpenCode Go | GLM, Kimi, MiMo, MiniMax |
-| [**Ollama / Ollama Cloud**](https://ollama.com/) | 🖥️ Local | ✅ Ollama Cloud | Local or cloud tags: Llama, Qwen, DeepSeek, Gemma |
-| [**LM Studio**](https://lmstudio.ai/) | 🖥️ Local | — | Local GGUF models, port `1234` |
-| [**llama.cpp**](https://github.com/ggml-org/llama.cpp) | 🖥️ Local | — | Local GGUF models, port `8080` |
-| [**OpenRouter**](https://openrouter.ai/) | ✅ | — | 300+ models across labs |
-| [**OpenCode Zen**](https://opencode.ai/) | ✅ | — | Claude, GPT, Gemini, Qwen, GLM, MiniMax |
-| [**Kilo**](https://kilo.ai/) | ✅ | — | Kilo Gateway catalog |
-| [**Cerebras**](https://www.cerebras.ai/) | ✅ | — | GPT OSS, GLM on Cerebras inference |
-| [**Fireworks AI**](https://fireworks.ai/) | ✅ | — | GLM 5.2, DeepSeek, Kimi, Qwen, Llama |
-| [**Groq**](https://groq.com/) | ✅ | — | Llama, Gemma, Mixtral |
-| [**NVIDIA NIM**](https://build.nvidia.com/) | ✅ | — | Nemotron, Llama, Mistral |
-| [**Pioneer**](https://pioneer.ai/) | ✅ | — | OpenAI-compatible and fine-tuned Pioneer models |
-| **Custom** | ✅ | — | Any `/v1/chat/completions` or `/v1/messages` endpoint |
+| Provider                                                                                 | API key / local | Subscription                 | Model catalog                                                   |
+| ---------------------------------------------------------------------------------------- | :-------------: | :--------------------------- | --------------------------------------------------------------- |
+| [**OpenAI**](https://platform.openai.com/)                                               |       ✅        | ✅ ChatGPT Plus / Pro / Team | GPT-5.6 (Sol / Terra / Luna), GPT-5.5, GPT-5.4, Codex, o-series |
+| [**Anthropic**](https://www.anthropic.com/)                                              |       ✅        | ✅ Claude Max / Pro          | Claude Opus 5, Sonnet 5, Fable 5, Haiku 4.5                     |
+| [**Google**](https://ai.google.dev/)                                                     |       ✅        | ✅ Sign in with Google       | Gemini 3.6 Flash, 3.5 Flash, 3.1 Pro, Gemini 2.5                |
+| [**xAI**](https://x.ai/)                                                                 |       ✅        | ✅ Grok subscription         | Grok 4.5, Grok 4.3, Grok Build, Grok 4.20                       |
+| [**AWS Bedrock**](https://aws.amazon.com/bedrock/)                                       |       ✅        | —                            | Claude, GPT, Kimi, MiniMax, Nemotron, Nova via Bedrock          |
+| [**Alibaba Cloud / Qwen**](https://www.alibabacloud.com/en/solutions/generative-ai/qwen) |       ✅        | ✅ Qwen Token Plan           | Qwen 3.7 Max / Plus / Flash, DeepSeek, Kimi, GLM                |
+| [**DeepSeek**](https://www.deepseek.com/)                                                |       ✅        | —                            | DeepSeek V4 Pro, V4 Flash, V3.2, R1                             |
+| [**Mistral**](https://mistral.ai/)                                                       |       ✅        | ✅ Mistral Vibe              | Mistral Large, Medium 3.5, Devstral, Codestral                  |
+| [**Moonshot** (Kimi)](https://kimi.ai/)                                                  |       ✅        | ✅ Kimi Coding Plan          | Kimi K3, K2.7 Code, Kimi for Coding                             |
+| [**MiniMax**](https://www.minimax.io/)                                                   |       ✅        | ✅ MiniMax Coding Plan       | MiniMax M3, M2.7, M2.5                                          |
+| [**Xiaomi MiMo**](https://platform.xiaomimimo.com/)                                      |       ✅        | ✅ MiMo Token Plan           | MiMo V2.5 Pro, V2.5, Flash                                      |
+| [**Z.ai**](https://z.ai/)                                                                |       ✅        | ✅ GLM Coding Plan           | GLM 5.2, GLM 5.1, GLM 5 Turbo                                   |
+| [**BytePlus**](https://www.byteplus.com/en/activity/codingplan)                          |        —        | ✅ ModelArk Coding Plan      | Ark Code, Seed Code, GLM, Kimi, DeepSeek, GPT-OSS               |
+| [**GitHub Copilot**](https://github.com/features/copilot)                                |        —        | ✅ Copilot subscription      | Claude, GPT, Gemini, Grok via Copilot                           |
+| [**Kiro**](https://kiro.dev/)                                                            |        —        | ✅ Kiro subscription         | `kiro/auto`, Claude, DeepSeek, MiniMax, GLM, Qwen               |
+| [**Command Code**](https://commandcode.ai/studio)                                        |        —        | ✅ Command Code subscription | Claude, DeepSeek V4, Qwen 3.7, Gemini, Kimi                     |
+| [**ClinePass**](https://app.cline.bot/)                                                  |        —        | ✅ ClinePass subscription    | `cline-pass/glm-5.2`, Kimi, DeepSeek, MiMo, MiniMax, Qwen       |
+| [**NousResearch**](https://portal.nousresearch.com/)                                     |        —        | ✅ NousResearch subscription | NousResearch Portal model catalog                               |
+| [**OpenCode Go**](https://opencode.ai/)                                                  |        —        | ✅ OpenCode Go               | DeepSeek V4, Qwen 3.7, GLM, Kimi, MiMo                          |
+| [**Ollama / Ollama Cloud**](https://ollama.com/)                                         |    🖥️ Local     | ✅ Ollama Cloud              | Local tags: Llama, Qwen, Gemma. Cloud: DeepSeek V4, GLM, Kimi   |
+| [**LM Studio**](https://lmstudio.ai/)                                                    |    🖥️ Local     | —                            | Local GGUF models, port `1234`                                  |
+| [**llama.cpp**](https://github.com/ggml-org/llama.cpp)                                   |    🖥️ Local     | —                            | Local GGUF models, port `8080`                                  |
+| [**OpenRouter**](https://openrouter.ai/)                                                 |       ✅        | —                            | 300+ models across labs                                         |
+| [**OpenCode Zen**](https://opencode.ai/)                                                 |       ✅        | —                            | Curated Claude, GPT, DeepSeek, MiMo, Nemotron                   |
+| [**Kilo**](https://kilo.ai/)                                                             |       ✅        | —                            | Kilo Gateway catalog                                            |
+| [**Cerebras**](https://www.cerebras.ai/)                                                 |       ✅        | —                            | GPT-OSS, GLM, Gemma on Cerebras inference                       |
+| [**Fireworks AI**](https://fireworks.ai/)                                                |       ✅        | —                            | DeepSeek V4, Kimi K2.7, Qwen 3.7, Nemotron                      |
+| [**Groq**](https://groq.com/)                                                            |       ✅        | —                            | Llama 4, Qwen 3.6, GPT-OSS, Gemma                               |
+| [**Hugging Face**](https://huggingface.co/docs/inference-providers/)                     |       ✅        | —                            | Open models through Hugging Face Inference Providers            |
+| [**NVIDIA NIM**](https://build.nvidia.com/)                                              |       ✅        | —                            | Nemotron 3, GLM, Kimi, MiniMax, Qwen                            |
+| [**Pioneer**](https://pioneer.ai/)                                                       |       ✅        | —                            | OpenAI-compatible and fine-tuned Pioneer models                 |
+| **Custom**                                                                               |       ✅        | —                            | Any `/v1/chat/completions` or `/v1/messages` endpoint           |
 
 ## Quick links
 

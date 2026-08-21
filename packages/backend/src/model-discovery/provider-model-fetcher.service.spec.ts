@@ -26,6 +26,7 @@ describe('ProviderModelFetcherService', () => {
       'commandcode',
       'fireworks',
       'groq',
+      'huggingface',
       'kilo',
       'mistral',
       'mistral-subscription',
@@ -35,6 +36,7 @@ describe('ProviderModelFetcherService', () => {
       'nvidia',
       'xai',
       'minimax',
+      'meta',
       'minimax-subscription',
       'xiaomi',
       'xiaomi-subscription',
@@ -44,6 +46,7 @@ describe('ProviderModelFetcherService', () => {
       'anthropic',
       'gemini',
       'openrouter',
+      'gemini-free',
       'ollama',
       'ollama-cloud',
       'copilot',
@@ -52,6 +55,165 @@ describe('ProviderModelFetcherService', () => {
     for (const id of expected) {
       expect(PROVIDER_CONFIGS[id]).toBeDefined();
     }
+  });
+
+  it('discovers only Gemini models from the Gemini Free LiteLLM catalog', async () => {
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test';
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'gpt-5' },
+          { id: 'gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-flash' },
+          { id: 'gemini/gemini-2.5-pro' },
+          { id: 'gemini/*' },
+        ],
+      }),
+    });
+
+    const result = await service.fetch('gemini-free', 'sk-virtual');
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'https://credits.test/v1/models',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer sk-virtual',
+        }),
+      }),
+    );
+    expect(result.map((model) => model.id)).toEqual([
+      'gemini/gemini-2.5-flash',
+      'gemini/gemini-2.5-pro',
+    ]);
+  });
+
+  describe('huggingface provider', () => {
+    it('discovers chat models using the fastest live provider metadata', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'Qwen/Qwen3-Coder',
+              architecture: {
+                input_modalities: ['text', 'image', 'unknown'],
+                output_modalities: ['text'],
+              },
+              providers: [
+                {
+                  provider: 'slow-provider',
+                  status: 'live',
+                  context_length: 128000,
+                  pricing: { input: 0.2, output: 0.8 },
+                  supports_tools: false,
+                  throughput: 20,
+                },
+                {
+                  provider: 'fast-provider',
+                  status: 'live',
+                  context_length: 262144,
+                  pricing: { input: 0.5, output: 1.5 },
+                  supports_tools: true,
+                  throughput: 80,
+                },
+              ],
+            },
+            {
+              id: 'unavailable/model',
+              providers: [{ provider: 'down', status: 'error' }],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://router.huggingface.co/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer hf_test_token' },
+        }),
+      );
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'Qwen/Qwen3-Coder',
+          provider: 'huggingface',
+          contextWindow: 262144,
+          inputPricePerToken: 0.5 / 1_000_000,
+          outputPricePerToken: 1.5 / 1_000_000,
+          capabilityCode: true,
+          capabilities: ['text', 'image', 'stream', 'tools'],
+          inputModalities: ['text', 'image'],
+          outputModalities: ['text'],
+        }),
+      ]);
+    });
+
+    it('uses safe defaults when optional provider metadata is absent', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [{ id: 'openai/gpt-oss-120b', providers: [{ status: 'live' }] }],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(result[0]).toMatchObject({
+        contextWindow: 128000,
+        inputPricePerToken: null,
+        outputPricePerToken: null,
+        capabilityCode: false,
+        capabilities: ['stream'],
+      });
+    });
+
+    it('ignores malformed model and provider metadata', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 42, providers: [] },
+            { id: '', providers: [] },
+            { id: 'missing-provider-array', providers: {} },
+            {
+              id: 'mixed/metadata',
+              architecture: {
+                input_modalities: ['text', 42],
+                output_modalities: [],
+              },
+              providers: [
+                null,
+                { status: 'live', throughput: 'unknown' },
+                { status: 'live', throughput: 10 },
+                { status: 'live' },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('huggingface', 'hf_test_token');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'mixed/metadata',
+          capabilities: ['text', 'stream'],
+          inputModalities: ['text'],
+        }),
+      ]);
+      expect(result[0]).not.toHaveProperty('outputModalities');
+    });
+
+    it('returns no models when the catalog data is malformed', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: {} }),
+      });
+
+      await expect(service.fetch('huggingface', 'hf_test_token')).resolves.toEqual([]);
+    });
   });
 
   it('should fetch AWS Bedrock models from the selected Mantle region', async () => {
@@ -611,6 +773,45 @@ describe('ProviderModelFetcherService', () => {
       );
       expect(result.map((m) => m.id)).toEqual(['grok-3', 'grok-4']);
       expect(result.every((m) => m.provider === 'xai')).toBe(true);
+    });
+  });
+
+  describe('meta provider', () => {
+    it('discovers only current Muse Spark models with their native capabilities', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 'muse-spark-1.2' },
+            { id: 'muse-spark-1.2-contributor' },
+            { id: 'muse-spark-1.1' },
+            { id: 'retired-or-unrelated-model' },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('meta', 'LLM_test-meta-key-value');
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://api.meta.ai/v1/models',
+        expect.objectContaining({
+          headers: { Authorization: 'Bearer LLM_test-meta-key-value' },
+        }),
+      );
+      expect(result.map((model) => model.id)).toEqual([
+        'muse-spark-1.2',
+        'muse-spark-1.2-contributor',
+        'muse-spark-1.1',
+      ]);
+      expect(result[1]).toMatchObject({
+        displayName: 'Muse Spark 1.2 Contributor (inputs and outputs may train Meta)',
+        provider: 'meta',
+        contextWindow: 1_048_576,
+        capabilityReasoning: true,
+        capabilityCode: true,
+        inputModalities: ['text', 'image', 'audio', 'video'],
+        outputModalities: ['text'],
+      });
     });
   });
 
@@ -1868,6 +2069,54 @@ describe('ProviderModelFetcherService', () => {
           outputPricePerToken: 0.00006,
         }),
       );
+    });
+
+    it('should normalize OpenRouter input and output modalities', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'deepseek/deepseek-v4-flash',
+              architecture: {
+                input_modalities: ['text'],
+                output_modalities: ['text'],
+              },
+            },
+            {
+              id: 'google/gemini-2.5-flash',
+              architecture: {
+                input_modalities: ['file', 'image', 'text', 'audio', 'video'],
+                output_modalities: ['text'],
+              },
+            },
+            {
+              id: 'file-only',
+              architecture: {
+                input_modalities: ['file'],
+                output_modalities: ['text'],
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+
+      expect(result).toEqual([
+        expect.objectContaining({
+          inputModalities: ['text'],
+          outputModalities: ['text'],
+        }),
+        expect.objectContaining({
+          inputModalities: ['text', 'image', 'audio', 'video'],
+          outputModalities: ['text'],
+        }),
+        expect.objectContaining({
+          outputModalities: ['text'],
+        }),
+      ]);
+      expect(result[2]).not.toHaveProperty('inputModalities');
     });
 
     it('should filter out non-text output modality models', async () => {

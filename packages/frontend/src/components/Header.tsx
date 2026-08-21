@@ -4,7 +4,6 @@ import {
   createSignal,
   createEffect,
   createResource,
-  lazy,
   onCleanup,
   onMount,
   type Component,
@@ -25,8 +24,6 @@ import {
 } from '../services/connection-breadcrumb-store.js';
 import { providerIcon } from './ProviderIcon.jsx';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
-
-const DevAutofixToggle = __DEV_MODE__ ? lazy(() => import('./DevAutofixToggle.jsx')) : null;
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -161,7 +158,6 @@ const Header: Component<HeaderProps> = (props) => {
             Self-hosted
           </span>
         </Show>
-        {__DEV_MODE__ && DevAutofixToggle && <DevAutofixToggle />}
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
           <A

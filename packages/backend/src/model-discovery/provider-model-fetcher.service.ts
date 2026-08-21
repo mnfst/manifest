@@ -1,5 +1,10 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { DiscoveredModel, FetcherConfig, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
+import {
+  getManagedFreeLiteLlmModelsUrl,
+  MANAGED_FREE_PROVIDER_CONFIGS,
+  ManagedFreeProviderConfig,
+} from '../common/constants/managed-free-providers';
 import { OLLAMA_CLOUD_HOST, OLLAMA_HOST } from '../common/constants/ollama';
 import {
   CODEX_CLI_ORIGINATOR,
@@ -24,7 +29,15 @@ import {
   KIRO_MODELS_TARGET,
   parseKiroModels,
 } from '../routing/proxy/kiro-adapter';
-import { getSubscriptionCapabilities, getSubscriptionKnownModels } from 'manifest-shared';
+import {
+  getSubscriptionCapabilities,
+  getSubscriptionKnownModels,
+  META_MODEL_API_CONTEXT_WINDOW,
+  META_MODEL_API_MODEL_BY_ID,
+  MODEL_MODALITIES,
+  type ModelCapability,
+  type ModelModality,
+} from 'manifest-shared';
 
 const FETCH_TIMEOUT_MS = 5000;
 const ANTHROPIC_DEFAULT_CONTEXT = 200000;
@@ -39,12 +52,14 @@ const QWEN_TOKEN_PLAN_MODELS_URL =
 const QWEN_TOKEN_PLAN_CONTEXT_WINDOW = 991000;
 const KILO_GATEWAY_BASE = 'https://api.kilo.ai/api/gateway';
 const FIREWORKS_MODELS_URL = 'https://api.fireworks.ai/v1/accounts/fireworks/models';
+const HUGGING_FACE_MODELS_URL = 'https://router.huggingface.co/v1/models';
 const FIREWORKS_MODELS_PAGE_SIZE = 200;
 const FIREWORKS_MODELS_MAX_PAGES = 20;
 const NOUS_PORTAL_MODELS_URL = 'https://inference-api.nousresearch.com/v1/models';
 const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
 const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
+const META_MODELS_URL = 'https://api.meta.ai/v1/models';
 
 /* ── Generic parser factory ── */
 
@@ -56,7 +71,10 @@ interface ModelParserConfig<T> {
   contextWindow?: number | ((entry: T) => number);
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
+  capabilityReasoning?: boolean;
   capabilityCode?: boolean | ((entry: T) => boolean);
+  inputModalities?: readonly ModelModality[];
+  outputModalities?: readonly ModelModality[];
   supportedEndpoints?: (entry: T) => readonly string[] | undefined;
   qualityScore?: number;
 }
@@ -81,11 +99,13 @@ function createModelParser<T>(
           contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
-          capabilityReasoning: false,
+          capabilityReasoning: config.capabilityReasoning ?? false,
           capabilityCode:
             typeof config.capabilityCode === 'function'
               ? config.capabilityCode(entry)
               : (config.capabilityCode ?? false),
+          ...(config.inputModalities ? { inputModalities: config.inputModalities } : {}),
+          ...(config.outputModalities ? { outputModalities: config.outputModalities } : {}),
           ...(supportedEndpoints && supportedEndpoints.length > 0 ? { supportedEndpoints } : {}),
           qualityScore: config.qualityScore ?? 3,
         };
@@ -129,12 +149,56 @@ interface CommandCodeModelEntry extends OpenAIModelEntry {
   context_length?: number;
 }
 
+interface HuggingFaceProviderEntry {
+  status?: string;
+  context_length?: number;
+  pricing?: {
+    input?: number;
+    output?: number;
+  };
+  supports_tools?: boolean;
+  throughput?: number;
+}
+
+interface HuggingFaceModelEntry extends OpenAIModelEntry {
+  architecture?: {
+    input_modalities?: unknown;
+    output_modalities?: unknown;
+  };
+  providers?: unknown;
+}
+
 const parseOpenAI = createModelParser<OpenAIModelEntry>({
   arrayKey: 'data',
   filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
   getId: (entry) => entry.id,
   getDisplayName: (_entry, id) => id,
 });
+
+/** Keep only the configured model family and prefer LiteLLM's vendor-prefixed ID. */
+function parseManagedFreeLiteLlm(
+  body: unknown,
+  provider: string,
+  config: ManagedFreeProviderConfig,
+): DiscoveredModel[] {
+  const models = parseOpenAI(body, provider).filter((model) => {
+    const bare = model.id.slice(model.id.lastIndexOf('/') + 1);
+    return !model.id.includes('*') && bare.startsWith(config.catalogModelIdPrefix);
+  });
+  const byBareId = new Map<string, DiscoveredModel>();
+  for (const model of models) {
+    const bare = model.id.slice(model.id.lastIndexOf('/') + 1);
+    const existing = byBareId.get(bare);
+    if (
+      !existing ||
+      (model.id.startsWith(config.preferredModelIdPrefix) &&
+        !existing.id.startsWith(config.preferredModelIdPrefix))
+    ) {
+      byBareId.set(bare, model);
+    }
+  }
+  return Array.from(byBareId.values());
+}
 
 const parsePioneer = createModelParser<PioneerModelEntry>({
   arrayKey: 'data',
@@ -148,6 +212,76 @@ function perMillionToPerToken(value: number | null | undefined): number | null {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? value / 1_000_000
     : null;
+}
+
+function parseModalities(value: unknown): readonly ModelModality[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const allowed = new Set<ModelModality>(['text', 'image', 'audio', 'video']);
+  const modalities: ModelModality[] = [];
+  for (const raw of value) {
+    if (typeof raw !== 'string') continue;
+    const modality = raw.toLowerCase() as ModelModality;
+    if (allowed.has(modality) && !modalities.includes(modality)) modalities.push(modality);
+  }
+  return modalities.length > 0 ? modalities : undefined;
+}
+
+function fastestLiveHuggingFaceProvider(value: unknown): HuggingFaceProviderEntry | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const live = value.filter(
+    (provider): provider is HuggingFaceProviderEntry =>
+      !!provider && typeof provider === 'object' && provider.status === 'live',
+  );
+  return live.reduce<HuggingFaceProviderEntry | undefined>((fastest, provider) => {
+    if (!fastest) return provider;
+    const throughput =
+      typeof provider.throughput === 'number' && Number.isFinite(provider.throughput)
+        ? provider.throughput
+        : -1;
+    const fastestThroughput =
+      typeof fastest.throughput === 'number' && Number.isFinite(fastest.throughput)
+        ? fastest.throughput
+        : -1;
+    return throughput > fastestThroughput ? provider : fastest;
+  }, undefined);
+}
+
+function parseHuggingFace(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown[] })?.data;
+  if (!Array.isArray(data)) return [];
+
+  return data.flatMap((raw): DiscoveredModel[] => {
+    const entry = raw as HuggingFaceModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) return [];
+    const fastest = fastestLiveHuggingFaceProvider(entry.providers);
+    if (!fastest) return [];
+
+    const inputModalities = parseModalities(entry.architecture?.input_modalities);
+    const outputModalities = parseModalities(entry.architecture?.output_modalities);
+    const capabilities: ModelCapability[] = [];
+    for (const modality of [...(inputModalities ?? []), ...(outputModalities ?? [])]) {
+      if (!capabilities.includes(modality)) capabilities.push(modality);
+    }
+    capabilities.push('stream');
+    if (fastest.supports_tools === true) capabilities.push('tools');
+
+    return [
+      {
+        id: entry.id,
+        displayName: entry.id,
+        provider,
+        contextWindow: fastest.context_length ?? DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken: perMillionToPerToken(fastest.pricing?.input),
+        outputPricePerToken: perMillionToPerToken(fastest.pricing?.output),
+        capabilityReasoning: false,
+        capabilityCode: fastest.supports_tools === true,
+        capabilities,
+        ...(inputModalities ? { inputModalities } : {}),
+        ...(outputModalities ? { outputModalities } : {}),
+        qualityScore: 3,
+      },
+    ];
+  });
 }
 
 function parsePioneerBaseCatalog(body: unknown): Map<string, PioneerBaseModelEntry> {
@@ -222,6 +356,18 @@ const parseXiaomiMimo = createModelParser<OpenAIModelEntry>({
   capabilityCode: true,
 });
 
+const parseMeta = createModelParser<OpenAIModelEntry>({
+  arrayKey: 'data',
+  filter: (entry) => typeof entry.id === 'string' && META_MODEL_API_MODEL_BY_ID.has(entry.id),
+  getId: (entry) => entry.id,
+  getDisplayName: (_entry, id) => META_MODEL_API_MODEL_BY_ID.get(id)?.displayName ?? id,
+  contextWindow: META_MODEL_API_CONTEXT_WINDOW,
+  capabilityReasoning: true,
+  capabilityCode: true,
+  inputModalities: ['text', 'image', 'audio', 'video'],
+  outputModalities: ['text'],
+});
+
 /* ── OpenAI-specific structural filters (not non-chat) ── */
 
 /** Date-suffixed snapshots returned by OpenAI (e.g. gpt-4o-mini-2024-07-18). */
@@ -274,6 +420,13 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // must NOT be filtered.
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
+  // Vertex serves the same non-chat families as the Gemini API, plus Imagen
+  // and Veo under their own names.
+  vertex:
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^imagen|^veo|robotics|flash-lite-preview-\d{2}-\d{4}$)/i,
+  ...Object.fromEntries(
+    MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [config.id, config.nonChatModelPattern]),
+  ),
   mistral:
     /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-|^mistral-vibe-cli)/i,
   'mistral-subscription': /(?:^mistral-ocr|moderation|voxtral-.*-(?:transcribe|realtime)|^labs-)/i,
@@ -437,8 +590,17 @@ interface OpenRouterModelEntry {
   id: string;
   name?: string;
   context_length?: number;
-  architecture?: { output_modalities?: string[] };
+  architecture?: { input_modalities?: string[]; output_modalities?: string[] };
   pricing?: { prompt?: string; completion?: string };
+}
+
+function normalizeOpenRouterModalities(
+  values: readonly string[] | undefined,
+): readonly ModelModality[] | undefined {
+  if (!values?.length) return undefined;
+  const upstreamModalities = new Set(values.map((value) => value.toLowerCase()));
+  const modalities = MODEL_MODALITIES.filter((modality) => upstreamModalities.has(modality));
+  return modalities.length > 0 ? modalities : undefined;
 }
 
 interface FireworksModelEntry {
@@ -476,6 +638,8 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
       const entry = m as OpenRouterModelEntry;
       const prompt = entry.pricing?.prompt ? Number(entry.pricing.prompt) : null;
       const completion = entry.pricing?.completion ? Number(entry.pricing.completion) : null;
+      const inputModalities = normalizeOpenRouterModalities(entry.architecture?.input_modalities);
+      const outputModalities = normalizeOpenRouterModalities(entry.architecture?.output_modalities);
       return {
         id: entry.id,
         displayName: entry.name || entry.id,
@@ -487,6 +651,8 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
           completion !== null && Number.isFinite(completion) && completion >= 0 ? completion : null,
         capabilityReasoning: false,
         capabilityCode: false,
+        ...(inputModalities ? { inputModalities } : {}),
+        ...(outputModalities ? { outputModalities } : {}),
         qualityScore: 3,
       };
     });
@@ -602,6 +768,17 @@ const parseOpencodeZen = createModelParser<OpenAIModelEntry>({
 
 /* ── Provider configs ── */
 
+const MANAGED_FREE_FETCHER_CONFIGS: Record<string, FetcherConfig> = Object.fromEntries(
+  MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [
+    config.id,
+    {
+      endpoint: (_key: string) => getManagedFreeLiteLlmModelsUrl(),
+      buildHeaders: bearerHeaders,
+      parse: (body: unknown, provider: string) => parseManagedFreeLiteLlm(body, provider, config),
+    },
+  ]),
+);
+
 export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   openai: {
     endpoint: 'https://api.openai.com/v1/models',
@@ -642,6 +819,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.groq.com/openai/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  huggingface: {
+    endpoint: HUGGING_FACE_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseHuggingFace,
   },
   fireworks: {
     endpoint: FIREWORKS_MODELS_URL,
@@ -692,6 +874,11 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     endpoint: 'https://api.minimaxi.chat/v1/models',
     buildHeaders: bearerHeaders,
     parse: parseOpenAI,
+  },
+  meta: {
+    endpoint: META_MODELS_URL,
+    buildHeaders: bearerHeaders,
+    parse: parseMeta,
   },
   'minimax-subscription': {
     endpoint: MINIMAX_SUBSCRIPTION_MODELS_URL,
@@ -762,6 +949,7 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
     buildHeaders: () => ({}),
     parse: parseOpenRouter,
   },
+  ...MANAGED_FREE_FETCHER_CONFIGS,
   ollama: {
     endpoint: `${OLLAMA_HOST}/api/tags`,
     buildHeaders: () => ({}),
@@ -824,8 +1012,8 @@ export class ProviderModelFetcherService {
     } else if (configKey === 'xiaomi' && authType === 'subscription') {
       configKey = 'xiaomi-subscription';
     } else if (configKey === 'moonshot' && authType === 'subscription') {
-      // Kimi Code documents a fixed subscription model id (`kimi-for-coding`)
-      // rather than a subscription-scoped /models endpoint.
+      // Kimi Code documents a fixed subscription model catalog rather than a
+      // subscription-scoped /models endpoint.
       return [];
     } else if (configKey === 'qwen' && authType === 'subscription') {
       configKey = 'qwen-subscription';

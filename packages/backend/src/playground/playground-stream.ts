@@ -38,7 +38,8 @@ function buildChunkTransform(
     return (event) => transformer(event);
   }
   if (forward.isChatGpt) {
-    return (event) => providerClient.convertChatGptStreamChunk(event, model);
+    // Stateful: must be created once per stream and fed events in order.
+    return providerClient.createChatGptStreamTransformer(model);
   }
   // OpenAI-compatible passthrough: re-wrap the bare JSON payload so the same
   // line parser below handles every provider uniformly.

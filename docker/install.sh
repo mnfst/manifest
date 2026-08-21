@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Manifest — self-host quick install
+# Manifest — self-host install and upgrade helper
 #
 # Downloads the Docker Compose file and the `.env.example` template,
 # generates a BETTER_AUTH_SECRET and a MANIFEST_ENCRYPTION_KEY, writes them
@@ -13,12 +13,15 @@
 #   bash install.sh                  # install into $HOME/manifest
 #   bash install.sh --dir /opt/mnfst # install into a custom directory
 #   bash install.sh --port 8080      # serve the dashboard on a different port
+#   bash install.sh --upgrade        # safely upgrade $HOME/manifest
+#   bash install.sh --upgrade --dir /opt/mnfst
 #   bash install.sh --dry-run        # print what would happen, do nothing
 #   bash install.sh --yes            # skip confirmation prompt (non-interactive)
 #
 # Re-running against an existing install directory resumes it: the compose
 # file and the generated secrets are left alone and the stack is brought
-# back up. Nothing is overwritten.
+# back up. Pass --upgrade to back up and replace only the managed Compose
+# file; `.env` and `docker-compose.override.yml` remain untouched.
 #
 # Review before running:
 #   curl -sSLO https://raw.githubusercontent.com/mnfst/manifest/main/docker/install.sh
@@ -45,10 +48,21 @@ INSTALL_DIR="$DEFAULT_DIR"
 HOST_PORT=2099
 DRY_RUN=0
 ASSUME_YES=0
+UPGRADE=0
+NEW_COMPOSE_PATH=""
+BACKUP_PATH=""
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m  %s\n' "$*" >&2; }
 die()  { printf '\033[1;31mxx\033[0m  %s\n' "$*" >&2; exit 1; }
+
+# shellcheck disable=SC2329 # Invoked by the EXIT trap.
+cleanup() {
+  if [[ -n "$NEW_COMPOSE_PATH" && -f "$NEW_COMPOSE_PATH" ]]; then
+    rm -f "$NEW_COMPOSE_PATH"
+  fi
+}
+trap cleanup EXIT
 
 run() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -70,6 +84,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --dir)     INSTALL_DIR="${2:?--dir requires a path}"; shift 2 ;;
     --port)    HOST_PORT="${2:?--port requires a port number}"; shift 2 ;;
+    --upgrade) UPGRADE=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     --yes|-y)  ASSUME_YES=1; shift ;;
     -h|--help) usage ;;
@@ -77,23 +92,14 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ "$HOST_PORT" =~ ^[0-9]+$ ]] && (( HOST_PORT >= 1 && HOST_PORT <= 65535 )) \
-  || die "--port must be a number between 1 and 65535 (got: $HOST_PORT)"
-
 command -v docker >/dev/null 2>&1 \
   || die "docker not found. Install Docker first: https://docs.docker.com/get-docker/"
 docker compose version >/dev/null 2>&1 \
   || die "'docker compose' plugin not found. Upgrade Docker to a version that bundles Compose v2."
 command -v curl >/dev/null 2>&1 || die "curl is required."
 
-SECRET_TOOL=""
-if command -v openssl >/dev/null 2>&1; then
-  SECRET_TOOL="openssl"
-elif [[ -r /dev/urandom ]]; then
-  SECRET_TOOL="urandom"
-else
-  die "Need either openssl or /dev/urandom to generate a secret."
-fi
+COMPOSE_PATH="$INSTALL_DIR/docker-compose.yml"
+ENV_PATH="$INSTALL_DIR/.env"
 
 # An existing install directory is a resume, not an error. The common way to
 # land here is a first run that downloaded the files and then failed at
@@ -104,12 +110,57 @@ fi
 # every provider credential encrypted with it. So: keep what's there and
 # just bring the stack up.
 RESUME=0
-if [[ -e "$INSTALL_DIR" && -n "$(ls -A "$INSTALL_DIR" 2>/dev/null || true)" ]]; then
+if [[ "$UPGRADE" -eq 1 ]]; then
+  [[ -d "$INSTALL_DIR" ]] \
+    || die "No installation found at $INSTALL_DIR. Remove --upgrade to create one."
+  [[ -f "$COMPOSE_PATH" ]] \
+    || die "Missing $COMPOSE_PATH. Cannot upgrade this installation safely."
+  [[ -f "$ENV_PATH" ]] \
+    || die "Missing $ENV_PATH. Cannot upgrade without the existing configuration."
+  RESUME=1
+elif [[ -e "$INSTALL_DIR" && -n "$(ls -A "$INSTALL_DIR" 2>/dev/null || true)" ]]; then
   if [[ -f "$INSTALL_DIR/docker-compose.yml" && -f "$INSTALL_DIR/.env" ]]; then
     RESUME=1
   else
     die "$INSTALL_DIR already exists, is not empty, and does not look like a Manifest install (no docker-compose.yml + .env). Pass --dir to choose another location, or remove it first."
   fi
+fi
+
+SECRET_TOOL=""
+if [[ "$RESUME" -eq 0 ]]; then
+  if command -v openssl >/dev/null 2>&1; then
+    SECRET_TOOL="openssl"
+  elif [[ -r /dev/urandom ]]; then
+    SECRET_TOOL="urandom"
+  else
+    die "Need either openssl or /dev/urandom to generate a secret."
+  fi
+fi
+
+read_env_value() {
+  local key="$1"
+  local file="$2"
+  local line
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    case "$line" in
+      "$key="*)
+        printf '%s\n' "${line#*=}"
+        return 0
+        ;;
+    esac
+  done < "$file"
+  return 1
+}
+
+if [[ "$UPGRADE" -eq 1 ]]; then
+  configured_host_port="$(read_env_value HOST_PORT "$ENV_PATH" || true)"
+  configured_app_port="$(read_env_value PORT "$ENV_PATH" || true)"
+  HOST_PORT="${configured_host_port:-${configured_app_port:-2099}}"
+fi
+
+if ! [[ "$HOST_PORT" =~ ^[0-9]+$ ]] ||
+  (( HOST_PORT < 1 || HOST_PORT > 65535 )); then
+  die "Dashboard port must be a number between 1 and 65535 (got: $HOST_PORT)"
 fi
 
 # Nothing we install will start if the host port is already taken; surface
@@ -122,15 +173,28 @@ if [[ "$DRY_RUN" -eq 0 && "$RESUME" -eq 0 ]]; then
   fi
 fi
 
-log "Manifest self-host installer"
+if [[ "$UPGRADE" -eq 1 ]]; then
+  operation="upgrade"
+else
+  operation="install"
+fi
+
+log "Manifest self-host ${operation}"
 printf '    Install directory: %s\n' "$INSTALL_DIR"
 printf '    Dashboard port:    %s\n' "$HOST_PORT"
 printf '    Source:            %s\n' "$REPO_RAW"
-printf '    Mode:              %s\n' "$([[ $DRY_RUN -eq 1 ]] && echo 'dry-run (no changes)' || echo 'live install')"
-if [[ "$RESUME" -eq 1 ]]; then
+printf '    Mode:              %s\n' "$([[ $DRY_RUN -eq 1 ]] && echo "dry-run ${operation} (no changes)" || echo "live ${operation}")"
+if [[ "$RESUME" -eq 1 && "$UPGRADE" -eq 0 ]]; then
   printf '    Existing install:  resuming (compose file and .env left untouched)\n'
 fi
 echo
+
+if [[ "$UPGRADE" -eq 1 ]] && ! grep -q '^# manifest-compose-version:' "$COMPOSE_PATH"; then
+  warn "This is the first managed Compose upgrade for this installation."
+  warn "The current docker-compose.yml will be backed up and replaced."
+  warn "Move custom edits to .env or docker-compose.override.yml after the upgrade."
+  echo
+fi
 
 if [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
   # `bash <(curl ...)` and `curl | bash` can leave stdin detached or
@@ -147,8 +211,6 @@ if [[ "$ASSUME_YES" -eq 0 && "$DRY_RUN" -eq 0 ]]; then
   [[ "$reply" =~ ^[Yy]$ ]] || { warn "Aborted."; exit 1; }
 fi
 
-ENV_PATH="$INSTALL_DIR/.env"
-
 gen_secret() {
   case "$SECRET_TOOL" in
     openssl) openssl rand -hex 32 ;;
@@ -156,7 +218,46 @@ gen_secret() {
   esac
 }
 
-if [[ "$RESUME" -eq 1 ]]; then
+restore_previous_compose() {
+  local restart="${1:-0}"
+  if [[ -z "$BACKUP_PATH" || ! -f "$BACKUP_PATH" ]]; then
+    return
+  fi
+  warn "Restoring the previous Compose configuration."
+  cp -p "$BACKUP_PATH" "$COMPOSE_PATH"
+  if [[ "$restart" -eq 1 ]] && ! (cd "$INSTALL_DIR" && docker compose up -d); then
+    warn "The previous Compose file was restored, but its containers did not restart."
+  fi
+}
+
+if [[ "$UPGRADE" -eq 1 ]]; then
+  log "Downloading and validating the managed compose file"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '    \033[2m$ curl -sSLf %s/docker-compose.yml -o %s/.docker-compose.yml.<temporary>\033[0m\n' "$REPO_RAW" "$INSTALL_DIR"
+    printf '    \033[2m$ docker compose --env-file %s -f <temporary> config --quiet\033[0m\n' "$ENV_PATH"
+    printf '    \033[2m$ backup %s, then replace it atomically\033[0m\n' "$COMPOSE_PATH"
+  else
+    NEW_COMPOSE_PATH="$(mktemp "$INSTALL_DIR/.docker-compose.yml.XXXXXX")"
+    curl -sSLf "$REPO_RAW/docker-compose.yml" -o "$NEW_COMPOSE_PATH" \
+      || die "Failed to download docker-compose.yml"
+    grep -qE '^# manifest-compose-version: [0-9]+$' "$NEW_COMPOSE_PATH" \
+      || die "Downloaded docker-compose.yml is not a managed Manifest Compose file."
+    docker compose --env-file "$ENV_PATH" -f "$NEW_COMPOSE_PATH" config --quiet \
+      || die "Downloaded docker-compose.yml is invalid for the existing .env."
+
+    timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+    BACKUP_PATH="${COMPOSE_PATH}.backup.${timestamp}"
+    cp -p "$COMPOSE_PATH" "$BACKUP_PATH"
+    mv "$NEW_COMPOSE_PATH" "$COMPOSE_PATH"
+    NEW_COMPOSE_PATH=""
+
+    if ! (cd "$INSTALL_DIR" && docker compose config --quiet); then
+      restore_previous_compose 0
+      die "The updated Compose configuration conflicts with a local override."
+    fi
+    printf '    Previous compose: %s\n' "$BACKUP_PATH"
+  fi
+elif [[ "$RESUME" -eq 1 ]]; then
   log "Reusing existing install (skipping download and secret generation)"
   printf '    Keeping %s and %s as they are.\n' "$INSTALL_DIR/docker-compose.yml" "$ENV_PATH"
 else
@@ -233,23 +334,51 @@ else
   fi
 fi
 
-log "Starting the stack"
 if [[ "$DRY_RUN" -eq 1 ]]; then
+  if [[ "$UPGRADE" -eq 1 && "${MANIFEST_INSTALLER_SKIP_PULL:-0}" != "1" ]]; then
+    printf '    \033[2m$ (cd %s && docker compose pull)\033[0m\n' "$INSTALL_DIR"
+  fi
   printf '    \033[2m$ (cd %s && docker compose up -d)\033[0m\n' "$INSTALL_DIR"
-else
-  (cd "$INSTALL_DIR" && docker compose up -d) || die "docker compose up failed"
-fi
-
-if [[ "$DRY_RUN" -eq 1 ]]; then
   log "Dry run complete. No changes made."
   exit 0
 fi
 
-log "Waiting for Manifest to become healthy (up to 120s — first boot pulls images)"
+if [[ "$UPGRADE" -eq 1 && "${MANIFEST_INSTALLER_SKIP_PULL:-0}" != "1" ]]; then
+  log "Pulling release images"
+  if ! (cd "$INSTALL_DIR" && docker compose pull); then
+    restore_previous_compose 0
+    die "Image pull failed. The previous Compose configuration was restored."
+  fi
+fi
+
+if [[ "$UPGRADE" -eq 1 ]]; then
+  log "Applying the upgrade"
+else
+  log "Starting the stack"
+fi
+if ! (cd "$INSTALL_DIR" && docker compose up -d); then
+  if [[ "$UPGRADE" -eq 1 ]]; then
+    restore_previous_compose 1
+    die "Upgrade failed. The previous Compose configuration was restored."
+  fi
+  die "docker compose up failed"
+fi
+
+log "Waiting for Manifest to become healthy (up to 120s)"
 HEALTH_URL="http://127.0.0.1:${HOST_PORT}/api/v1/health"
 for _ in $(seq 1 24); do
   if curl -sSf "$HEALTH_URL" >/dev/null 2>&1; then
     log "Manifest is up."
+    if [[ "$UPGRADE" -eq 1 ]]; then
+      cat <<EOF
+
+  Upgraded: $INSTALL_DIR
+  Config:   $ENV_PATH  (preserved)
+  Backup:   $BACKUP_PATH
+  Verify:   curl -sSf $HEALTH_URL
+EOF
+      exit 0
+    fi
     cat <<EOF
 
   Open:   http://localhost:${HOST_PORT}
@@ -276,6 +405,11 @@ EOF
   fi
   sleep 5
 done
+
+if [[ "$UPGRADE" -eq 1 ]]; then
+  restore_previous_compose 1
+  die "Manifest did not become healthy after the upgrade. The previous Compose configuration was restored."
+fi
 
 warn "Manifest did not become healthy within 120s. Check logs with:"
 warn "  (cd $INSTALL_DIR && docker compose logs -f manifest)"

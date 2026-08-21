@@ -118,6 +118,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(fireworks!.keyPrefix).toBe('fw_');
   });
 
+  it('huggingface is registered as an API-key provider', () => {
+    const huggingface = PROVIDER_REGISTRY.find((p) => p.id === 'huggingface');
+    expect(huggingface).toBeDefined();
+    expect(huggingface!.displayName).toBe('Hugging Face');
+    expect(huggingface!.aliases).toEqual(['hugging-face', 'hugging face', 'hf']);
+    expect(huggingface!.openRouterPrefixes).toEqual([]);
+    expect(huggingface!.requiresApiKey).toBe(true);
+    expect(huggingface!.localOnly).toBe(false);
+    expect(huggingface!.keyPrefix).toBe('hf_');
+  });
+
   it('kiro is registered as a CLI OAuth subscription provider', () => {
     const kiro = PROVIDER_REGISTRY.find((p) => p.id === 'kiro');
     expect(kiro).toBeDefined();
@@ -167,6 +178,17 @@ describe('PROVIDER_REGISTRY', () => {
     expect(pioneer!.localOnly).toBe(false);
     expect(pioneer!.keyPrefix).toBe('pio_sk_');
     expect(pioneer!.keyPlaceholder).toBe('pio_sk_...');
+  });
+
+  it('meta is registered as an API-key provider with an OpenRouter fallback prefix', () => {
+    const meta = PROVIDER_REGISTRY.find((p) => p.id === 'meta');
+    expect(meta).toBeDefined();
+    expect(meta!.displayName).toBe('Meta');
+    expect(meta!.openRouterPrefixes).toEqual(['meta']);
+    expect(meta!.requiresApiKey).toBe(true);
+    expect(meta!.localOnly).toBe(false);
+    expect(meta!.keyPrefix).toBe('LLM_');
+    expect(meta!.keyPlaceholder).toBe('LLM_...');
   });
 });
 

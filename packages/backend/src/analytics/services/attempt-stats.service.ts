@@ -45,9 +45,9 @@ interface AttemptCounts {
 
 /**
  * Universal attempt aggregates. Request totals remain on
- * `overview.request_reliability`; Auto-fix totals remain on the adjacent
- * Auto-fix/error aggregates. When those surfaces are composed, the canonical
- * Auto-fixed attempt is the successful `autofix_role='retry'` row. No cohort
+ * `overview.request_reliability`; Autofix totals remain on the adjacent
+ * Autofix/error aggregates. When those surfaces are composed, the canonical
+ * Autofixed attempt is the successful `autofix_role='retry'` row. No cohort
  * or eligibility predicate belongs in this service.
  */
 @Injectable()
@@ -321,7 +321,7 @@ export class AttemptStatsService {
   /**
    * The connection's attempt breakdown for the header cards: totals, and the
    * two retry families with their own outcomes. Fallback retries exist for
-   * everyone; auto-fixed attempts only exist with the Doctor version.
+   * everyone; autofixed attempts only exist with the Doctor version.
    */
   async getConnectionBreakdown(params: {
     tenantId: string | null;

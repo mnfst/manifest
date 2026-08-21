@@ -134,7 +134,7 @@ describe('Register', () => {
         name: 'Test',
         email: 'test@test.com',
         password: 'pass123',
-        callbackURL: '/upgrade',
+        callbackURL: '/welcome',
       });
     });
   });
@@ -193,7 +193,7 @@ describe('Register', () => {
     expect(container.querySelector('a[href="/reset-password"]')).not.toBeNull();
   });
 
-  it('opens the plan step when signup returns a token and billing is enabled', async () => {
+  it('redirects directly to /welcome when signup returns a token', async () => {
     const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
       ...window.location,
       href: '',
@@ -201,11 +201,6 @@ describe('Register', () => {
     const hrefSetter = vi.fn();
     Object.defineProperty(window.location, 'href', { set: hrefSetter, configurable: true });
 
-    mockGetBillingStatus.mockResolvedValue({
-      enabled: true,
-      plan: 'free',
-      priceMonthly: { amount: 20, currency: 'USD', interval: 'month' },
-    });
     mockSignUpEmail.mockResolvedValue({
       data: { token: 'tok', user: { id: 'u1' } },
       error: null,
@@ -220,7 +215,7 @@ describe('Register', () => {
     });
     fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
-      expect(hrefSetter).toHaveBeenCalledWith('/register?step=plan');
+      expect(hrefSetter).toHaveBeenCalledWith('/welcome');
     });
 
     locationSpy.mockRestore();
@@ -371,7 +366,7 @@ describe('Register', () => {
       await vi.waitFor(() => {
         expect(mockSendVerificationEmail).toHaveBeenCalledWith({
           email: 'test@test.com',
-          callbackURL: '/upgrade',
+          callbackURL: '/welcome',
         });
       });
     }

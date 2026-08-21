@@ -1408,6 +1408,42 @@ describe('Routing page', () => {
     });
   });
 
+  it('keeps the routing page mounted when model refresh completes after a selection', async () => {
+    let resolveProviderRefresh!: (providers: typeof baseProvider[]) => void;
+    mockGetProviders
+      .mockResolvedValueOnce([baseProvider])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveProviderRefresh = resolve;
+          }),
+      );
+
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('default-section')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId('open-dropdown'));
+    await waitFor(() => {
+      expect((lastModalsProps?.dropdownTier as () => string | null)()).toBe('simple');
+    });
+    fireEvent.click(screen.getByTestId('modal-trigger-override'));
+    await waitFor(() => {
+      expect((lastModalsProps?.dropdownTier as () => string | null)()).toBeNull();
+    });
+
+    fireEvent.click(screen.getByTestId('modal-trigger-provider-update'));
+    await waitFor(() => {
+      expect(mockGetProviders).toHaveBeenCalledTimes(2);
+    });
+
+    expect(screen.queryByTestId('loading-skeleton')).toBeNull();
+    expect(screen.getByTestId('default-section')).toBeDefined();
+
+    resolveProviderRefresh([baseProvider]);
+  });
+
   it('closes the instruction modal via onInstructionClose', async () => {
     render(() => <Routing />);
     await waitFor(() => {

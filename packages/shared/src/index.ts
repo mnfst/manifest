@@ -5,6 +5,7 @@ export {
   PLATFORM_LABELS,
   PLATFORMS_BY_CATEGORY,
   PLATFORM_ICONS,
+  coerceAgentPlatform,
   platformIcon,
 } from './agent-type';
 export type { AgentCategory, AgentPlatform } from './agent-type';
@@ -57,6 +58,8 @@ export type {
   RequestStatus,
   AttemptStatus,
 } from './error-taxonomy';
+export { isAnthropicExtraUsageError } from './provider-error-semantics';
+export type { ProviderErrorSignals } from './provider-error-semantics';
 export { MANIFEST_ERRORS_DOCS_BASE, manifestErrorDocsUrl } from './manifest-error-docs';
 export { DEFAULT_RESPONSE_MODE, RESPONSE_MODES, isResponseMode } from './response-mode';
 export type { ResponseMode } from './response-mode';
@@ -113,6 +116,7 @@ export {
 } from './model-params-scope';
 export type { ModelParamsRoutingScopeInput } from './model-params-scope';
 export { API_KEY_PREFIX } from './api-key';
+export { MAX_KEYS_PER_PROVIDER } from './provider-limits';
 export {
   FALLBACK_KEY_DELIMITER,
   parseFallbackEntry,
@@ -133,9 +137,12 @@ export {
   SHARED_PROVIDER_BY_ID_OR_ALIAS,
   CANONICAL_LOCAL_IDS,
   LOCAL_SERVER_HINTS,
+  META_MODEL_API_CONTEXT_WINDOW,
+  META_MODEL_API_MODELS,
+  META_MODEL_API_MODEL_BY_ID,
   normalizeProviderName,
 } from './providers';
-export type { SharedProviderEntry, LocalServerHint } from './providers';
+export type { SharedProviderEntry, LocalServerHint, MetaModelApiModel } from './providers';
 export type { ResolveResponse } from './resolve-response';
 export {
   SUBSCRIPTION_PROVIDER_CONFIGS,
@@ -144,7 +151,6 @@ export {
   supportsSubscriptionProvider,
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
-  getSubscriptionExcludedModels,
   getSubscriptionCapabilities,
 } from './subscription';
 export type { SubscriptionCapabilities, SubscriptionProviderConfig } from './subscription';
@@ -164,6 +170,7 @@ export {
 } from './plan-limits';
 export type {
   BillingEmailPreferences,
+  BillingPlanStatus,
   BillingPrice,
   BillingStatus,
   Plan,
@@ -171,3 +178,13 @@ export type {
 } from './plan-limits';
 export { AUTOFIX_STATUSES, AUTOFIX_STATUS_LABELS, deriveAutofixStatus } from './autofix-status';
 export type { AutofixStatus, AutofixStatusChainEntry, AutofixStatusRecord } from './autofix-status';
+export {
+  coerceContentToText,
+  extractRecordedConversationMessages,
+  extractRequestMessages,
+  extractRequestTools,
+  extractResponseMessages,
+  extractResponseToolCalls,
+  normalizeRole,
+} from './chat-message';
+export type { ChatMessage, ChatTool, RecordedResponseBody, Role, ToolCall } from './chat-message';

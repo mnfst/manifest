@@ -2,6 +2,7 @@ import { PROVIDER_REGISTRY } from '../../../common/constants/providers';
 import {
   buildCustomEndpoint,
   buildEndpointOverride,
+  resolveBedrockEndpointKey,
   resolveEndpointKey,
   PROVIDER_ENDPOINTS,
 } from '../provider-endpoints';
@@ -74,6 +75,8 @@ describe('resolveEndpointKey', () => {
     expect(resolveEndpointKey('deepseek')).toBe('deepseek');
     expect(resolveEndpointKey('commandcode')).toBe('commandcode');
     expect(resolveEndpointKey('fireworks')).toBe('fireworks');
+    expect(resolveEndpointKey('huggingface')).toBe('huggingface');
+    expect(resolveEndpointKey('gemini-free')).toBe('gemini-free');
     expect(resolveEndpointKey('nous')).toBe('nous');
     expect(resolveEndpointKey('nvidia')).toBe('nvidia');
     expect(resolveEndpointKey('ollama')).toBe('ollama');
@@ -99,6 +102,12 @@ describe('resolveEndpointKey', () => {
   it('resolves Fireworks AI aliases to fireworks', () => {
     expect(resolveEndpointKey('fireworks-ai')).toBe('fireworks');
     expect(resolveEndpointKey('fireworks ai')).toBe('fireworks');
+  });
+
+  it('resolves Hugging Face aliases to huggingface', () => {
+    expect(resolveEndpointKey('hugging-face')).toBe('huggingface');
+    expect(resolveEndpointKey('Hugging Face')).toBe('huggingface');
+    expect(resolveEndpointKey('hf')).toBe('huggingface');
   });
 
   it('resolves Command Code aliases to commandcode', () => {
@@ -151,6 +160,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('cerebras');
     expect(known).toContain('cline-pass');
     expect(known).toContain('pioneer');
+    expect(known).toContain('meta');
     expect(known).toContain('google');
     expect(known).toContain('qwen');
     expect(known).toContain('copilot');
@@ -159,6 +169,8 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('commandcode');
     expect(known).toContain('commandcode-anthropic');
     expect(known).toContain('fireworks');
+    expect(known).toContain('huggingface');
+    expect(known).toContain('gemini-free');
     expect(known).toContain('nous');
     expect(known).toContain('openrouter');
     expect(known).toContain('nvidia');
@@ -171,6 +183,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
+    expect(known).toContain('opencode-go-responses');
     expect(known).toContain('opencode-zen');
     expect(known).toContain('opencode-zen-google');
   });
@@ -218,7 +231,85 @@ describe('resolveEndpointKey', () => {
   });
 });
 
+describe('resolveBedrockEndpointKey', () => {
+  it.each(['openai.gpt-5.6-luna', 'us.openai.gpt-5.6-luna', 'bedrock/openai.gpt-5.6-luna'])(
+    'routes %s through Responses',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-responses');
+    },
+  );
+
+  it.each(['anthropic.claude-sonnet-5', 'us.anthropic.claude-sonnet-5'])(
+    'routes %s through Messages',
+    (model) => {
+      expect(resolveBedrockEndpointKey(model)).toBe('bedrock-anthropic');
+    },
+  );
+
+  it('keeps other Bedrock model families on Chat Completions', () => {
+    expect(resolveBedrockEndpointKey('mistral.ministral-3-8b-instruct')).toBe('bedrock');
+  });
+});
+
 describe('PROVIDER_ENDPOINTS', () => {
+  it.each([
+    'openai.gpt-5',
+    'openai.gpt-5.1',
+    'openai.gpt-5.4',
+    'openai.gpt-5.4-2026-03-05',
+    'openai.gpt-5.5',
+    'openai.gpt-5.6-sol',
+    'openai.gpt-5.6-terra',
+    'openai.gpt-5.6-luna',
+    'openai.gpt-5.99-future',
+    'us.openai.gpt-5.6-luna',
+    'bedrock/openai.gpt-5.6-luna',
+  ])('uses the namespaced Bedrock Responses path for %s', (model) => {
+    expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath(model)).toBe('/openai/v1/responses');
+  });
+
+  it.each(['openai.gpt-oss-120b', 'openai.gpt-50'])(
+    'keeps non-GPT-5 Bedrock model %s on the generic Responses path',
+    (model) => {
+      expect(PROVIDER_ENDPOINTS['bedrock-responses'].buildPath(model)).toBe('/v1/responses');
+    },
+  );
+
+  it('routes Gemini Free through the configured LiteLLM gateway', () => {
+    process.env['CREDITS_BASE_URL'] = 'https://credits.test/';
+    const endpoint = PROVIDER_ENDPOINTS['gemini-free'];
+
+    expect(endpoint.baseUrl).toBe('https://credits.test');
+    expect(endpoint.buildPath('gemini/gemini-2.5-flash')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('sk-virtual')).toEqual({
+      Authorization: 'Bearer sk-virtual',
+      'Content-Type': 'application/json',
+    });
+  });
+
+  it('huggingface uses the OpenAI-compatible Inference Providers endpoint', () => {
+    const endpoint = PROVIDER_ENDPOINTS['huggingface'];
+    expect(endpoint.baseUrl).toBe('https://router.huggingface.co');
+    expect(endpoint.buildPath('openai/gpt-oss-120b')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('hf_test_token')).toEqual({
+      Authorization: 'Bearer hf_test_token',
+      'Content-Type': 'application/json',
+    });
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
+  it('meta uses the Model API OpenAI-compatible chat endpoint', () => {
+    const endpoint = PROVIDER_ENDPOINTS['meta'];
+    expect(endpoint.baseUrl).toBe('https://api.meta.ai');
+    expect(endpoint.buildPath('muse-spark-1.2')).toBe('/v1/chat/completions');
+    expect(endpoint.buildHeaders('LLM_test-meta-key-value')).toEqual({
+      Authorization: 'Bearer LLM_test-meta-key-value',
+      'Content-Type': 'application/json',
+    });
+    expect(endpoint.format).toBe('openai');
+    expect(endpoint.streamUsageReporting).toBe('openai_stream_options');
+  });
+
   it('zai buildPath returns correct path', () => {
     const path = PROVIDER_ENDPOINTS['zai'].buildPath('test-model');
     expect(path).toBe('/api/paas/v4/chat/completions');
@@ -446,6 +537,40 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(path).toBe('/v1/messages');
   });
 
+  it('vertex defaults to express mode, which resolves the project from the key', () => {
+    const endpoint = PROVIDER_ENDPOINTS['vertex'];
+    expect(endpoint.baseUrl).toBe('https://aiplatform.googleapis.com/v1beta1');
+    expect(endpoint.format).toBe('google');
+    expect(endpoint.buildPath('gemini-2.5-flash')).toBe(
+      '/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+    // No `?alt=sse`: provider-client appends it for every google-format
+    // stream, so including it here would emit the query string twice.
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).toBe(
+      '/publishers/google/models/gemini-2.5-flash:streamGenerateContent',
+    );
+    expect(endpoint.buildStreamPath?.('gemini-2.5-flash')).not.toContain('alt=sse');
+  });
+
+  it('vertex composes the same path onto a project-scoped base', () => {
+    // Both addressing modes end in the same suffix, so only the base differs.
+    const endpoint = buildEndpointOverride(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1',
+      'vertex',
+    );
+    expect(`${endpoint.baseUrl}${endpoint.buildPath('gemini-2.5-flash')}`).toBe(
+      'https://us-central1-aiplatform.googleapis.com/v1/projects/p1/locations/us-central1' +
+        '/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+  });
+
+  it('vertex sends the API key in x-goog-api-key like the Gemini API', () => {
+    expect(PROVIDER_ENDPOINTS['vertex'].buildHeaders('AQ.test')).toEqual({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': 'AQ.test',
+    });
+  });
+
   it('google buildHeaders sends the API key in x-goog-api-key (not query string)', () => {
     const headers = PROVIDER_ENDPOINTS['google'].buildHeaders('AIza-test');
     expect(headers).toEqual({
@@ -599,6 +724,19 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBeUndefined();
   });
 
+  it('opencode-go-responses targets /v1/responses with chatgpt format and Bearer auth', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-go-responses'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen/go');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.5')).toBe('/v1/responses');
+    expect(ep.forwardResponsesStream).toBe(true);
+    expect(ep.acceptsMaxOutputTokens).toBe(true);
+    expect(ep.buildHeaders('og-token')).toEqual({
+      Authorization: 'Bearer og-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('opencode-zen uses OpenCode Zen base URL with OpenAI format', () => {
     const ep = PROVIDER_ENDPOINTS['opencode-zen'];
     expect(ep.baseUrl).toBe('https://opencode.ai/zen');
@@ -691,6 +829,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'mistral',
       'xai',
       'minimax',
+      'meta',
       'xiaomi',
       'moonshot',
       'nous',
@@ -730,6 +869,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'minimax-subscription',
       'qwen-subscription-responses',
       'opencode-go-anthropic',
+      'opencode-go-responses',
       'opencode-zen-google',
     ];
 
@@ -827,23 +967,24 @@ describe('gemini-subscription endpoint', () => {
 describe('buildProviderExtraHeaders', () => {
   it('returns x-grok-conv-id for xai', () => {
     expect(buildProviderExtraHeaders('xai', 'sess-abc')).toEqual({
-      'x-grok-conv-id': 'sess-abc',
+      'x-grok-conv-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
     });
   });
 
   it('returns x-session-id for openrouter', () => {
     expect(buildProviderExtraHeaders('openrouter', 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b')).toEqual(
-      { 'x-session-id': 'ba44c58a-a1f5-4cc7-bc2a-9394d266cc2b' },
+      { 'x-session-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/) },
     );
   });
 
-  it('does not forward the fallback default session id to openrouter', () => {
-    expect(buildProviderExtraHeaders('openrouter', 'default')).toBeUndefined();
+  it('does not create provider headers without an explicit cache key', () => {
+    expect(buildProviderExtraHeaders('xai')).toBeUndefined();
+    expect(buildProviderExtraHeaders('openrouter')).toBeUndefined();
   });
 
   it('is case-insensitive for provider name', () => {
     expect(buildProviderExtraHeaders('OpenRouter', 'sess-xyz')).toEqual({
-      'x-session-id': 'sess-xyz',
+      'x-session-id': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
     });
   });
 

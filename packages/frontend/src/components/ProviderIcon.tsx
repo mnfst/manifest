@@ -15,6 +15,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         <img src="/icons/manifest.svg" alt="Manifest" style={{ ...s, 'border-radius': '3px' }} />
       );
 
+    /* ── Meta ────────────────────────────────────── */
+    case 'meta':
+      return (
+        <img
+          src="/icons/providers/meta.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
+      );
+
     /* ── OpenAI ───────────────────────────────────── */
     case 'openai':
       return (
@@ -118,6 +131,7 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
       );
 
     /* ── Gemini ───────────────────────────────────── */
+    case 'gemini-free':
     case 'gemini':
       return (
         <svg
@@ -186,6 +200,67 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
         </svg>
       );
 
+    /* ── Google Vertex AI ─────────────────────────── */
+    case 'vertex':
+      // Source: official Google Cloud product icon for Vertex AI.
+      return (
+        <svg
+          style={s}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            fill="#669df6"
+            d="M20 13.89a.77.77 0 0 0-1-.16l-7 5.14v.22a.72.72 0 1 1 0 1.43a.74.74 0 0 0 .45-.15l7.41-5.47a.76.76 0 0 0 .14-1.01"
+          />
+          <path
+            fill="#aecbfa"
+            d="M12 20.52a.72.72 0 0 1 0-1.43v-.22l-7-5.14a.76.76 0 0 0-1 .16a.74.74 0 0 0 .16 1l7.41 5.47a.73.73 0 0 0 .44.15Z"
+          />
+          <path
+            fill="#4285f4"
+            d="M12 18.34a1.47 1.47 0 1 0 1.47 1.47A1.47 1.47 0 0 0 12 18.34m0 2.18a.72.72 0 1 1 .72-.71a.71.71 0 0 1-.72.71"
+          />
+          <path
+            fill="#aecbfa"
+            d="M6 6.11a.76.76 0 0 1-.75-.75V3.48a.76.76 0 1 1 1.51 0v1.88a.76.76 0 0 1-.76.75"
+          />
+          <circle cx="5.98" cy="12" r=".76" fill="#aecbfa" />
+          <circle cx="5.98" cy="9.79" r=".76" fill="#aecbfa" />
+          <circle cx="5.98" cy="7.57" r=".76" fill="#aecbfa" />
+          <path
+            fill="#4285f4"
+            d="M18 8.31a.76.76 0 0 1-.75-.76V5.67a.75.75 0 1 1 1.5 0v1.88a.75.75 0 0 1-.75.76"
+          />
+          <circle cx="18.02" cy="12.01" r=".76" fill="#4285f4" />
+          <circle cx="18.02" cy="9.76" r=".76" fill="#4285f4" />
+          <circle cx="18.02" cy="3.48" r=".76" fill="#4285f4" />
+          <path
+            fill="#669df6"
+            d="M12 15a.76.76 0 0 1-.75-.75v-1.91a.76.76 0 0 1 1.51 0v1.89A.76.76 0 0 1 12 15"
+          />
+          <circle cx="12" cy="16.45" r=".76" fill="#669df6" />
+          <circle cx="12" cy="10.14" r=".76" fill="#669df6" />
+          <circle cx="12" cy="7.92" r=".76" fill="#669df6" />
+          <path
+            fill="#4285f4"
+            d="M15 10.54a.76.76 0 0 1-.75-.75V7.91a.76.76 0 1 1 1.51 0v1.88a.76.76 0 0 1-.76.75"
+          />
+          <circle cx="15.01" cy="5.69" r=".76" fill="#4285f4" />
+          <circle cx="15.01" cy="14.19" r=".76" fill="#4285f4" />
+          <circle cx="15.01" cy="11.97" r=".76" fill="#4285f4" />
+          <circle cx="8.99" cy="14.19" r=".76" fill="#aecbfa" />
+          <circle cx="8.99" cy="7.92" r=".76" fill="#aecbfa" />
+          <circle cx="8.99" cy="5.69" r=".76" fill="#aecbfa" />
+          <path
+            fill="#aecbfa"
+            d="M9 12.73a.76.76 0 0 1-.76-.73v-1.9a.75.75 0 1 1 1.5 0V12a.75.75 0 0 1-.74.73"
+          />
+        </svg>
+      );
+
     /* ── Groq ─────────────────────────────────────── */
     case 'groq':
       // Source: https://groq.com/favicon.svg (lightning bolt mark on the
@@ -204,6 +279,19 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
             d="m18.445 4.406-9.468 13.74 7.341.665-1.69 9.578 9.469-13.74-7.342-.664 1.69-9.579Z"
           />
         </svg>
+      );
+
+    /* ── Hugging Face ──────────────────────────────── */
+    case 'huggingface':
+      return (
+        <img
+          src="/icons/huggingface.svg"
+          alt=""
+          width={size}
+          height={size}
+          style={{ ...s, display: 'block', 'object-fit': 'contain' }}
+          aria-hidden="true"
+        />
       );
 
     /* ── Kilo ─────────────────────────────────────── */
@@ -457,13 +545,11 @@ export function providerIcon(id: string, size: number = 20): JSX.Element | null 
     /* ── OpenRouter ─────────────────────────────────── */
     case 'openrouter':
       return (
-        <svg
-          style={s}
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M18.654 3.87a5.087 5.087 0 110 10.174L23.7 19.09c.64.641.187 1.737-.72 1.737H8.48a8.479 8.479 0 010-16.958h10.175zM8.479 7.26a5.087 5.087 0 100 10.176 5.087 5.087 0 000-10.175z" fill="#7624F4" />
+        <svg style={s} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path
+            d="M18.654 3.87a5.087 5.087 0 110 10.174L23.7 19.09c.64.641.187 1.737-.72 1.737H8.48a8.479 8.479 0 010-16.958h10.175zM8.479 7.26a5.087 5.087 0 100 10.176 5.087 5.087 0 000-10.175z"
+            fill="#7624F4"
+          />
         </svg>
       );
 
@@ -663,6 +749,9 @@ const CUSTOM_PROVIDER_LOGOS: Record<string, string> = {
   pioneer: '/icons/pioneer.svg',
   'pioneer ai': '/icons/pioneer.svg',
   qwen: '/icons/qwen.svg',
+  vertex: '/icons/vertex.svg',
+  'vertex ai': '/icons/vertex.svg',
+  'google vertex ai': '/icons/vertex.svg',
   siliconflow: '/icons/siliconflow.svg',
   'z ai': '/icons/zai.svg',
   'z ai (zhipu ai)': '/icons/zai.svg',
@@ -687,6 +776,7 @@ const BASE_URL_TO_PROVIDER: [RegExp, string][] = [
   [/openrouter\.ai/i, 'openrouter'],
   [/api\.pioneer\.ai|pioneer\.ai/i, 'pioneer'],
   [/siliconflow\.cn|api\.siliconflow/i, 'siliconflow'],
+  [/aiplatform\.googleapis\.com/i, 'vertex'],
 ];
 
 const MODEL_NAME_TO_PROVIDER: [RegExp, string][] = [

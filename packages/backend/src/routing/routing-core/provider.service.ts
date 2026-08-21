@@ -22,7 +22,7 @@ import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
 } from '../../common/utils/subscription-support';
-import type { AuthType, ModelRoute } from 'manifest-shared';
+import { MAX_KEYS_PER_PROVIDER, type AuthType, type ModelRoute } from 'manifest-shared';
 import {
   QWEN_REGION_VALIDATION_MESSAGE,
   detectQwenRegion,
@@ -41,8 +41,9 @@ import {
   SubscriptionEndpointRegionConfig,
 } from '../subscription-region';
 import { filterProvidersForDeployment } from '../../common/utils/provider-availability';
+import { getManagedFreeProviderConfig } from '../../common/constants/managed-free-providers';
 
-const MAX_KEYS_PER_PROVIDER = 5;
+const MAX_KEYS_MANAGED_FREE_PROVIDER = 1;
 const MAX_LABEL_LENGTH = 50;
 const DEFAULT_LABEL = 'Default';
 // Bounds for withSubscriptionCredentialLock's critical section (the provider
@@ -485,9 +486,13 @@ export class ProviderService {
     }
 
     const activeCount = existingRows.filter((r) => r.is_active).length;
-    if (activeCount >= MAX_KEYS_PER_PROVIDER) {
+    const managedFreeConfig = getManagedFreeProviderConfig(provider);
+    const maxKeys = managedFreeConfig ? MAX_KEYS_MANAGED_FREE_PROVIDER : MAX_KEYS_PER_PROVIDER;
+    if (activeCount >= maxKeys) {
       throw new BadRequestException(
-        `You can connect at most ${MAX_KEYS_PER_PROVIDER} keys per provider`,
+        maxKeys === 1
+          ? `You can connect at most 1 key for ${managedFreeConfig!.displayName}`
+          : `You can connect at most ${maxKeys} keys per provider`,
       );
     }
 

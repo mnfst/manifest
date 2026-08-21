@@ -114,20 +114,20 @@ describe('RequestDrawer', () => {
 
     await waitFor(() => expect(screen.getByText('Request request-1234')).toBeDefined());
     expect(mockGetMessageDetails).toHaveBeenCalledWith('request-1234567890');
-    expect(screen.getAllByText('Auto-fixed').length).toBeGreaterThan(0);
-    expect(screen.getByText('Auto-fix: Retry succeeded')).toBeDefined();
+    expect(screen.getAllByText('Autofixed').length).toBeGreaterThan(0);
+    expect(screen.getByText('Autofix: Retry succeeded')).toBeDefined();
     // The header meta row carries NO fallback/autofix badge: that story belongs
     // to the attempts (sidebar icons + context cards), not the request title.
     expect(container.querySelector('.drawer__meta-row .trigger-badge')).toBeNull();
     // The branded badges still exist further down, on the attempt content.
-    expect(screen.getAllByText('auto-fix').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('autofix').length).toBeGreaterThan(0);
     // Sidebar attempt icons use the same branded squares.
     expect(container.querySelector('.attempt-item__icon .fallback-icon')).not.toBeNull();
     expect(container.querySelector('.attempt-item__icon .autofix-icon')).not.toBeNull();
     expect(screen.getByText('bad parameter')).toBeDefined();
     expect(screen.getByText('invalid_request')).toBeDefined();
     expect(screen.getByText('$0.0123')).toBeDefined();
-    // Auto-fix context card: role-aware copy + operations table.
+    // Autofix context card: role-aware copy + operations table.
     expect(container.textContent).toContain('rename: old → new');
 
     fireEvent.click(screen.getByText('Request headers'));
@@ -163,12 +163,12 @@ describe('RequestDrawer', () => {
     });
     render(() => <RequestDrawer messageId={`status-${autofix_status}`} onClose={vi.fn()} />);
 
-    await waitFor(() => expect(screen.getByText(`Auto-fix: ${label}`)).toBeDefined());
+    await waitFor(() => expect(screen.getByText(`Autofix: ${label}`)).toBeDefined());
   });
 
   it.each([
     [{ fallback_from_model: 'old' }, 'fallback'],
-    [{ autofix_role: 'retry' }, 'auto-fix'],
+    [{ autofix_role: 'retry' }, 'autofix'],
     [{}, 'initial'],
   ])('builds a single %s attempt when no attempt array is present', async (extra, type) => {
     mockGetMessageDetails.mockResolvedValue({
@@ -216,6 +216,69 @@ describe('RequestDrawer', () => {
     );
     expect(container.querySelector('.attempt-item')).toBeNull();
     expect(container.querySelector('.drawer__sidebar')).toBeNull();
+    expect(screen.queryByText('Messages')).toBeNull();
+  });
+
+  it('shows Messages inside each attempt and scopes the payload to the selected attempt', async () => {
+    mockGetMessageDetails.mockResolvedValue({
+      message: {
+        ...fullMessage,
+        attempts: fullMessage.attempts.map((attempt, index) =>
+          index === 0
+            ? {
+                ...attempt,
+                recording: {
+                  request_body: {
+                    messages: [{ role: 'user', content: 'Recorded user turn' }],
+                  },
+                  response_body: {
+                    type: 'json',
+                    body: {
+                      choices: [
+                        {
+                          message: {
+                            role: 'assistant',
+                            content: 'Recorded assistant turn',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                  api_format: 'chat_completions',
+                },
+              }
+            : { ...attempt, recording: null },
+        ),
+      },
+    });
+    const { container } = render(() => (
+      <RequestDrawer messageId="recorded-request" onClose={vi.fn()} />
+    ));
+
+    await waitFor(() => expect(screen.getByText('Messages')).toBeDefined());
+    expect(screen.getByText('Tools')).toBeDefined();
+    fireEvent.click(screen.getByText('Messages'));
+
+    expect(
+      screen.getByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByText('Recorded assistant turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeDefined();
+
+    // Switch to attempt 1 — no recording, so Messages/Tools/Raw tabs do not appear.
+    fireEvent.click(container.querySelectorAll('.attempt-item')[1]!);
+    expect(screen.queryByText('Messages')).toBeNull();
+    expect(screen.queryByText('Tools')).toBeNull();
+    expect(
+      screen.queryByText('Recorded user turn', {
+        selector: '.request-message__content',
+      }),
+    ).toBeNull();
   });
 
   it.each([

@@ -100,6 +100,17 @@ function countCacheControlBlocks(value: unknown): number {
   return count;
 }
 
+function hasOneHourCacheControl(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+
+  if (!Array.isArray(value)) {
+    const cacheControl = (value as Record<string, unknown>).cache_control;
+    if (isObjectRecord(cacheControl) && cacheControl.ttl === '1h') return true;
+  }
+  const children = Array.isArray(value) ? value : Object.values(value);
+  return children.some(hasOneHourCacheControl);
+}
+
 function tryAddCacheControl(
   block: { cache_control?: unknown } | undefined,
   budget: { remaining: number },
@@ -112,6 +123,10 @@ function tryAddCacheControl(
 export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown>): void {
   if (body.cache_control !== undefined) return;
   if (countCacheControlBlocks(body) >= MAX_CACHE_CONTROL_BLOCKS) return;
+  // Anthropic rejects a default five-minute automatic breakpoint when the
+  // final explicit breakpoint uses a one-hour TTL. Preserve the caller's
+  // explicit cache plan instead of risking a provider-side 400.
+  if (hasOneHourCacheControl(body)) return;
   body.cache_control = CACHE;
 }
 
@@ -294,8 +309,7 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   const out: AnthropicTool[] = [];
   for (const t of tools) {
     const fn = t.function as
-      | { name: string; description?: string; parameters?: unknown }
-      | undefined;
+      { name: string; description?: string; parameters?: unknown } | undefined;
     if (fn) out.push({ name: fn.name, description: fn.description, input_schema: fn.parameters });
   }
   return out.length > 0 ? out : undefined;
@@ -365,7 +379,7 @@ export function toAnthropicRequest(
     .filter(Boolean);
   const result: Record<string, unknown> = {
     messages: converted,
-    max_tokens: (body.max_tokens as number) || 4096,
+    max_tokens: resolveAnthropicMaxTokens(body),
   };
   if (systemBlocks.length > 0) result.system = systemBlocks;
 
@@ -457,6 +471,8 @@ export function applyAnthropicMessagesMutations(
   options?: AnthropicRequestOptions,
 ): Record<string, unknown> {
   const result: Record<string, unknown> = { ...body };
+  result.max_tokens = resolveAnthropicMaxTokens(body);
+  delete result.max_completion_tokens;
   if (body.thinking !== undefined) {
     result.thinking = normalizeAnthropicThinking(body.thinking);
   }
@@ -498,7 +514,6 @@ export function applyAnthropicMessagesMutations(
     result.tools = tools;
   }
 
-  if (result.max_tokens === undefined) result.max_tokens = 4096;
   if (result.output_config !== undefined) {
     result.output_config = normalizeOutputConfigForModel(
       result.output_config,
@@ -559,6 +574,11 @@ export function applyAnthropicMessagesMutations(
   }
 
   return result;
+}
+
+function resolveAnthropicMaxTokens(body: Record<string, unknown>): number {
+  const value = body.max_tokens ?? body.max_completion_tokens;
+  return (value as number) || 4096;
 }
 
 /* ── Response conversion ── */

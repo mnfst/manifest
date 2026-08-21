@@ -1,3 +1,7 @@
+# Managed by Manifest's installer. Keep local settings in `.env` or
+# `docker-compose.override.yml` so upgrades can replace this file safely.
+# manifest-compose-version: 1
+#
 # First boot: `docker compose up -d` starts the stack. Visit
 # http://localhost:2099 and the app walks you through creating the first
 # admin account via the setup wizard at /setup. No hardcoded credentials.
@@ -24,8 +28,7 @@
 #     set BETTER_AUTH_URL to a reachable public URL so the verification
 #     links resolve.
 #   - The app port binds to 127.0.0.1 by default. To expose on the LAN,
-#     change `127.0.0.1:${PORT:-2099}:${PORT:-2099}` below to
-#     `${PORT:-2099}:${PORT:-2099}` AND update BETTER_AUTH_URL in .env to
+#     set HOST_BIND_ADDRESS=0.0.0.0 and update BETTER_AUTH_URL in .env to
 #     match the host you reach it on.
 #
 # Staying on the legacy 3001 port (existing installs):
@@ -42,9 +45,9 @@ name: mnfst
 
 services:
   manifest:
-    image: manifestdotbuild/manifest:latest
+    image: manifestdotbuild/manifest:${MANIFEST_VERSION:-latest}
     ports:
-      - "127.0.0.1:${PORT:-2099}:${PORT:-2099}"
+      - "${HOST_BIND_ADDRESS:-127.0.0.1}:${HOST_PORT:-${PORT:-2099}}:${PORT:-2099}"
     # Lets the container reach LLM servers running on the host (Ollama,
     # LM Studio, or any other OpenAI-compatible server) at
     # host.docker.internal:<port>. Requires Docker Engine 20.10+ (Docker
@@ -61,7 +64,7 @@ services:
       # Optional dedicated at-rest encryption key for stored provider/OAuth
       # credentials. When unset, the backend falls back to BETTER_AUTH_SECRET.
       - MANIFEST_ENCRYPTION_KEY=${MANIFEST_ENCRYPTION_KEY:-}
-      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${PORT:-2099}}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:${HOST_PORT:-${PORT:-2099}}}
       # Defaults to the host-installed Ollama. Override in .env if your
       # Ollama runs elsewhere (e.g. on another host on your LAN).
       - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
@@ -82,6 +85,17 @@ services:
       # exotic runtimes produce neither marker. Setting this avoids
       # silently flipping users back to cloud-mode SSRF rules (issue #1780).
       - MANIFEST_MODE=${MANIFEST_MODE:-selfhosted}
+      # Message recordings use this mounted Docker volume automatically when
+      # S3-compatible bucket credentials are not present.
+      - REQUEST_RECORDING_STORAGE=${REQUEST_RECORDING_STORAGE:-auto}
+      - REQUEST_RECORDING_FILESYSTEM_PATH=/data/request-recordings
+      - REQUEST_RECORDING_RETENTION_DAYS=${REQUEST_RECORDING_RETENTION_DAYS:-}
+      - REQUEST_RECORDING_S3_BUCKET=${REQUEST_RECORDING_S3_BUCKET:-}
+      - REQUEST_RECORDING_S3_ENDPOINT=${REQUEST_RECORDING_S3_ENDPOINT:-}
+      - REQUEST_RECORDING_S3_REGION=${REQUEST_RECORDING_S3_REGION:-}
+      - REQUEST_RECORDING_S3_ACCESS_KEY_ID=${REQUEST_RECORDING_S3_ACCESS_KEY_ID:-}
+      - REQUEST_RECORDING_S3_SECRET_ACCESS_KEY=${REQUEST_RECORDING_S3_SECRET_ACCESS_KEY:-}
+      - REQUEST_RECORDING_S3_FORCE_PATH_STYLE=${REQUEST_RECORDING_S3_FORCE_PATH_STYLE:-false}
       # Email provider (optional). Covers both login/verification emails
       # and threshold alert notifications. Set one provider block — see
       # DOCKER_README.md "Email setup". Supports resend, mailgun, sendgrid.
@@ -109,8 +123,8 @@ services:
       - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
       # Database tuning. DB_POOL_MAX sizes the app pool, AUTH_DB_POOL_MAX the
       # separate pool Better Auth opens for itself.
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-10}
+      - DB_POOL_MAX=${DB_POOL_MAX:-10}
+      - AUTH_DB_POOL_MAX=${AUTH_DB_POOL_MAX:-5}
       - DB_TUNE_SESSION=${DB_TUNE_SESSION:-}
       # Set false for multi-replica deploys where only one instance should run
       # migrations. A single-container compose install wants the default.
@@ -169,6 +183,8 @@ services:
       - ALL
     mem_limit: 1g
     pids_limit: 512
+    volumes:
+      - recordings:/data/request-recordings
     networks:
       - internal
       - frontend
@@ -212,3 +228,5 @@ volumes:
   # against a fresh empty DB — i.e. data loss.
   pgdata:
     name: manifest_pgdata
+  recordings:
+    name: manifest_request_recordings

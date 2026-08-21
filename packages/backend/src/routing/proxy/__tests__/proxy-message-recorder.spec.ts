@@ -101,6 +101,7 @@ describe('ProxyMessageRecorder', () => {
           model: 'gpt-4o',
           authType: 'api_key',
           tenantProviderId: 'connection-1',
+          keyLabel: 'Work',
         }),
       ).resolves.toBe(true);
       await recorder.completePendingProviderFailure(attempt, 429, 'rate limited', true);
@@ -113,6 +114,7 @@ describe('ProxyMessageRecorder', () => {
           status: 'pending',
           auth_type: 'api_key',
           tenant_provider_id: 'connection-1',
+          provider_key_label: 'Work',
         }),
       );
       expect(updateMock).toHaveBeenCalledWith(
@@ -201,6 +203,7 @@ describe('ProxyMessageRecorder', () => {
           provider: 'openai',
           model: 'gpt-5',
           authType: 'subscription',
+          keyLabel: 'Work',
         },
         requestDurationMs: 150,
         traceId: 'trace-cancelled',
@@ -215,6 +218,9 @@ describe('ProxyMessageRecorder', () => {
           provider: 'openai',
           model: 'gpt-5',
           auth_type: 'subscription',
+          // A cancelled row has no terminal writer to fill this in, so it has
+          // to come from the attempt start.
+          provider_key_label: 'Work',
           duration_ms: 125,
         }),
       );
@@ -386,6 +392,60 @@ describe('ProxyMessageRecorder', () => {
       const inserted = insertMock.mock.calls[0][0];
       // 1000 * 0.0000025 + 500 * 0.00001 = 0.0075
       expect(inserted.cost_usd).toBeCloseTo(0.0075, 10);
+    });
+
+    it('bills peak-window pricing from the attempt timestamp, not the wall clock', async () => {
+      getByModelMock.mockReturnValue({
+        model_name: 'deepseek-v4-flash',
+        provider: 'DeepSeek',
+        input_price_per_token: 0.22 / 1_000_000,
+        output_price_per_token: 0.66 / 1_000_000,
+        time_tiers: [
+          {
+            windows: ['01:00-04:00', '06:00-10:00'],
+            input_price_per_token: 0.44 / 1_000_000,
+            output_price_per_token: 1.32 / 1_000_000,
+          },
+        ],
+        display_name: 'DeepSeek V4 Flash',
+      });
+
+      // Attempt started inside a peak window.
+      await recorder.recordFallbackSuccess(ctx, 'deepseek-v4-flash', 'standard', {
+        authType: 'api_key',
+        timestamp: '2026-08-17T02:30:00.000Z',
+        usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
+      });
+      expect(insertMock.mock.calls[0][0].cost_usd).toBeCloseTo(0.44 + 1.32, 10);
+
+      // Same usage off-peak bills the base rate.
+      await recorder.recordFallbackSuccess(ctx, 'deepseek-v4-flash', 'standard', {
+        authType: 'api_key',
+        timestamp: '2026-08-17T12:00:00.000Z',
+        usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
+      });
+      expect(insertMock.mock.calls[1][0].cost_usd).toBeCloseTo(0.22 + 0.66, 10);
+
+      // The provider attempt start wins over the synthetic fallback timestamp:
+      // the attempt ran in-peak even though the delayed write stamps off-peak.
+      const attempt: ProviderAttemptRef = {
+        id: 'attempt-peak',
+        attemptNumber: 1,
+        startedAtMs: Date.parse('2026-08-17T02:30:00.000Z'),
+        startedAt: '2026-08-17T02:30:00.000Z',
+        pendingWrite: Promise.resolve(true),
+      };
+      await recorder.recordFallbackSuccess(ctx, 'deepseek-v4-flash', 'standard', {
+        authType: 'api_key',
+        attempt,
+        timestamp: '2026-08-17T12:00:00.000Z',
+        usage: { prompt_tokens: 1_000_000, completion_tokens: 1_000_000 },
+      });
+      // The resolved pendingWrite routes this through the update path.
+      expect(updateMock).toHaveBeenCalledWith(
+        { id: 'attempt-peak' },
+        expect.objectContaining({ cost_usd: expect.closeTo(0.44 + 1.32, 10) }),
+      );
     });
 
     it('computes cost_usd with cache-read pricing when usage has cached tokens', async () => {
@@ -572,6 +632,29 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[0][0]).toMatchObject({
         status: 'failed',
         error_http_status: 400,
+      });
+    });
+
+    it('keeps Anthropic extra-usage errors as HTTP 400 but classifies them as billing', async () => {
+      const errorBody = JSON.stringify({
+        type: 'error',
+        error: {
+          type: 'invalid_request_error',
+          message: 'You are out of extra usage. Add more at claude.ai to keep going.',
+        },
+      });
+
+      await recorder.recordProviderError(ctx, 400, errorBody, {
+        provider: 'anthropic',
+        model: 'claude-sonnet-4',
+        authType: 'subscription',
+      });
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'failed',
+        error_http_status: 400,
+        error_class: 'billing',
+        error_origin: 'provider',
       });
     });
 
@@ -946,6 +1029,53 @@ describe('ProxyMessageRecorder', () => {
       );
     });
 
+    // Connection attribution on failure rows: the label must follow the key
+    // each hop actually used, and only fall back to the primary's for legacy
+    // rows that carry none.
+    it('stamps each failed fallback with its own connection label', async () => {
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 0,
+          keyLabel: 'Personal',
+        },
+        {
+          model: 'gemini-2.5-flash',
+          provider: 'gemini',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 1,
+        },
+      ];
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures, {
+        providerKeyLabel: 'Work',
+      });
+
+      const rows = insertMock.mock.calls[0][0];
+      expect(rows[0]).toMatchObject({ provider: 'anthropic', provider_key_label: 'Personal' });
+      expect(rows[1]).toMatchObject({ provider: 'gemini', provider_key_label: 'Work' });
+    });
+
+    it('leaves provider_key_label null when neither the hop nor the primary has one', async () => {
+      const failures = [
+        {
+          model: 'claude-sonnet-4',
+          provider: 'anthropic',
+          status: 502,
+          errorBody: 'boom',
+          fallbackIndex: 0,
+        },
+      ];
+
+      await recorder.recordFailedFallbacks(ctx, 'standard', 'primary-model', failures);
+
+      expect(insertMock.mock.calls[0][0][0]).toMatchObject({ provider_key_label: null });
+    });
+
     it('stamps error_code on mid-chain Manifest credential failures', async () => {
       const failures = [
         {
@@ -1262,6 +1392,36 @@ describe('ProxyMessageRecorder', () => {
         provider: 'openai',
       });
       expect(insertMock.mock.calls[0][0].error_message).toContain('M102');
+    });
+
+    it('stamps the connection label on the failed primary row', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'default',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+        'api_key',
+        { provider: 'openai', tenantProviderId: 'up-work', providerKeyLabel: 'Work' },
+      );
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({
+        status: 'failed',
+        tenant_provider_id: 'up-work',
+        provider_key_label: 'Work',
+      });
+    });
+
+    it('leaves provider_key_label null when the primary failure carries no label', async () => {
+      await recorder.recordPrimaryFailure(
+        ctx,
+        'default',
+        'gpt-4o',
+        'upstream error',
+        '2025-01-01T00:00:00.000Z',
+      );
+
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ provider_key_label: null });
     });
 
     it('persists the provider column when passed a provider', async () => {
@@ -1650,7 +1810,7 @@ describe('ProxyMessageRecorder', () => {
       expect(row.autofix_operations).toEqual(operations);
     });
 
-    it('recordProviderError keeps a no-patch Phoenix audit without claiming Auto-fix', async () => {
+    it('recordProviderError keeps a no-patch Phoenix audit without claiming Autofix', async () => {
       const noPatch: AutofixRecord = {
         groupId: 'grp-no-patch',
         outcome: 'unfixable',
@@ -1778,7 +1938,7 @@ describe('ProxyMessageRecorder', () => {
 
     it('recordAutofixOriginal carries the Phoenix explanation onto autofix_decision', async () => {
       // Phoenix's human-readable "why" is persisted alongside the ids so the
-      // dashboard Auto-fix card can render it (not re-derive it locally).
+      // dashboard Autofix card can render it (not re-derive it locally).
       const explanation = {
         summary: 'Renamed the "max_tokens" parameter to "max_output_tokens".',
         operations: [

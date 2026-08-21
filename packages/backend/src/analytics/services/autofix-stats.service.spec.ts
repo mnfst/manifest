@@ -30,12 +30,24 @@ const queryBuilder = () => {
   return qb;
 };
 
+const ORIGINAL_MANIFEST_MODE = process.env.MANIFEST_MODE;
+
 describe('AutofixStatsService', () => {
-  const agentRepo = { find: jest.fn() };
+  beforeAll(() => {
+    // Pin cloud mode so consented:true assertions hold regardless of the
+    // shell's MANIFEST_MODE (dev often exports selfhosted).
+    process.env.MANIFEST_MODE = 'cloud';
+  });
+  afterAll(() => {
+    if (ORIGINAL_MANIFEST_MODE === undefined) delete process.env.MANIFEST_MODE;
+    else process.env.MANIFEST_MODE = ORIGINAL_MANIFEST_MODE;
+  });
+
+  const agentRepo = { find: jest.fn(), update: jest.fn() };
   const messageRepo = { createQueryBuilder: jest.fn() };
   const autofix = {
-    hasAccess: jest.fn().mockResolvedValue(true),
     resolveEnabled: jest.fn((stored: boolean | null) => stored ?? true),
+    invalidateTenantConfig: jest.fn(),
   };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),
@@ -51,7 +63,6 @@ describe('AutofixStatsService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     messageRepo.createQueryBuilder.mockReset();
-    autofix.hasAccess.mockResolvedValue(true);
     autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? true);
     requestVolume.getDispositionTimeseries.mockResolvedValue([]);
     requestVolume.getDispositionTotals.mockResolvedValue({
@@ -65,38 +76,35 @@ describe('AutofixStatsService', () => {
     service = new AutofixStatsService(
       agentRepo as never,
       messageRepo as never,
+      { findOne: jest.fn().mockResolvedValue(null) } as never,
       autofix as never,
       requestVolume as never,
     );
   });
 
-  it('returns unavailable status without a tenant or Auto-fix access', async () => {
+  it('returns an empty status without a tenant', async () => {
     await expect(service.getWorkspaceStatus(null)).resolves.toEqual({
-      available: false,
       any_enabled: false,
+      consented: true,
       enabled_agents: [],
+      disabled_agents: [],
+      needs_enable_all: false,
     });
-
-    autofix.hasAccess.mockResolvedValueOnce(false);
-    await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: false,
-      any_enabled: false,
-      enabled_agents: [],
-    });
-    expect(autofix.hasAccess).toHaveBeenCalledWith('tenant');
     expect(agentRepo.find).not.toHaveBeenCalled();
   });
 
-  it('returns effectively enabled agent names for an eligible cloud workspace', async () => {
+  it('returns effectively enabled agent names for a cloud workspace', async () => {
     agentRepo.find.mockResolvedValue([
       { name: 'inherited', autofix_enabled: null },
       { name: 'disabled', autofix_enabled: false },
       { name: 'enabled', autofix_enabled: true },
     ]);
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: true,
       any_enabled: true,
       enabled_agents: ['inherited', 'enabled'],
+      disabled_agents: ['disabled'],
+      needs_enable_all: false,
+      consented: true,
     });
     expect(agentRepo.find).toHaveBeenCalledWith({
       where: { tenant_id: 'tenant', deleted_at: expect.anything(), is_playground: false },
@@ -112,13 +120,101 @@ describe('AutofixStatsService', () => {
     ]);
 
     await expect(service.getWorkspaceStatus('tenant')).resolves.toEqual({
-      available: true,
       any_enabled: true,
       enabled_agents: ['enabled'],
+      disabled_agents: ['inherited'],
+      needs_enable_all: false,
+      consented: true,
     });
   });
 
-  it('computes Auto-fix-only stats for current and previous windows', async () => {
+  describe('fleet-enable CTA (self-hosted)', () => {
+    // The CTA only exists on self-hosted: cloud is always "consented" and NULL
+    // resolves to enabled there, so the condition can never hold. Build the
+    // service against a real self-hosted consent lookup rather than mixing a
+    // self-hosted resolveEnabled with cloud's implicit consent.
+    const selfHostedService = (consentedAt: string | null) => {
+      process.env.MANIFEST_MODE = 'selfhosted';
+      autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
+      return new AutofixStatsService(
+        agentRepo as never,
+        messageRepo as never,
+        {
+          findOne: jest
+            .fn()
+            .mockResolvedValue(consentedAt ? { autofix_consented_at: consentedAt } : null),
+        } as never,
+        autofix as never,
+        requestVolume as never,
+      );
+    };
+    afterEach(() => {
+      process.env.MANIFEST_MODE = 'cloud';
+    });
+
+    it('offers fleet enable for an unconsented install with unconfigured agents', async () => {
+      agentRepo.find.mockResolvedValue([
+        { name: 'legacy', autofix_enabled: null },
+        { name: 'explicitly-disabled', autofix_enabled: false },
+      ]);
+
+      await expect(selfHostedService(null).getWorkspaceStatus('tenant')).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: true,
+      });
+    });
+
+    it('does not offer it when every agent already made an explicit choice', async () => {
+      // Pins the NULL term specifically: this install is self-hosted AND
+      // unconsented, so it clears both other gates. Only "no agent is
+      // unconfigured" keeps the CTA away from someone who deliberately turned
+      // Autofix off everywhere.
+      agentRepo.find.mockResolvedValue([
+        { name: 'chose-off', autofix_enabled: false },
+        { name: 'also-chose-off', autofix_enabled: false },
+      ]);
+
+      await expect(selfHostedService(null).getWorkspaceStatus('tenant')).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: false,
+      });
+    });
+
+    it('stops offering it once the install has consented', async () => {
+      // NULL is the "inherit the mode default" state, not a legacy marker — an
+      // OTLP-onboarded agent stores it too. Keying the one-time CTA on NULL
+      // alone re-prompted installs that had already decided.
+      agentRepo.find.mockResolvedValue([{ name: 'inherited', autofix_enabled: null }]);
+
+      await expect(
+        selfHostedService('2026-08-05T00:00:00.000Z').getWorkspaceStatus('tenant'),
+      ).resolves.toMatchObject({
+        any_enabled: false,
+        enabled_agents: [],
+        needs_enable_all: false,
+        consented: true,
+      });
+    });
+  });
+
+  it.each([
+    ['an empty workspace', []],
+    ['only explicitly disabled new agents', [{ name: 'new-agent', autofix_enabled: false }]],
+  ])('does not offer fleet enable for %s', async (_label, agents) => {
+    autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? false);
+    agentRepo.find.mockResolvedValue(agents);
+
+    await expect(service.getWorkspaceStatus('tenant')).resolves.toMatchObject({
+      any_enabled: false,
+      enabled_agents: [],
+      needs_enable_all: false,
+    });
+  });
+
+  it('computes Autofix-only stats for current and previous windows', async () => {
     const internals = service as unknown as {
       queryWindow: jest.Mock;
       queryNeedsAttention: jest.Mock;
@@ -209,7 +305,7 @@ describe('AutofixStatsService', () => {
     // Canonical success and legacy NULL/ok remain compatible.
     expect(providerSql).toContain("at.status IN ('ok', 'success')");
     expect(providerSql).toContain("at.status NOT IN ('pending', 'cancelled', 'ok', 'success')");
-    // No retry exclusion: an auto-fix retry is a real provider call here.
+    // No retry exclusion: an autofix retry is a real provider call here.
     expect(providerQb.andWhere.mock.calls.flat()).not.toContain(
       "(at.autofix_role IS NULL OR at.autofix_role != 'retry')",
     );
@@ -304,7 +400,7 @@ describe('AutofixStatsService', () => {
     });
     await expect(internals.queryWindow('from', 'to', 'tenant', 'demo')).resolves.toEqual({
       total: 100,
-      successes: 80, // success + recovered by Auto-fix + recovered by fallback
+      successes: 80, // success + recovered by Autofix + recovered by fallback
       saves: 4, // autofix_status = retry_succeeded
       fallback_saves: 6,
       errors: 20,
@@ -356,5 +452,24 @@ describe('AutofixStatsService', () => {
     expect(filterSql).toContain("r.autofix_status <> 'retry_succeeded'");
     expect(filterSql).toContain('FROM agent_messages sib');
     expect(filterSql).not.toContain('FROM provider_attempts sib');
+  });
+
+  describe('enableAll', () => {
+    it('updates only live non-playground agents and records consent', async () => {
+      agentRepo.update.mockResolvedValue({ affected: 2 });
+      agentRepo.find.mockResolvedValue([{ name: 'a', autofix_enabled: true }]);
+      await expect(service.enableAll('tenant')).resolves.toMatchObject({
+        any_enabled: true,
+        enabled_agents: ['a'],
+      });
+      expect(agentRepo.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenant_id: 'tenant',
+          is_playground: false,
+          deleted_at: expect.objectContaining({ _type: 'isNull' }),
+        }),
+        { autofix_enabled: true },
+      );
+    });
   });
 });

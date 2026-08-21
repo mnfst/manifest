@@ -115,29 +115,47 @@ describe('routing API client (additional coverage)', () => {
     await expect(routing.copilotPollToken('demo', 'dc-1')).rejects.toThrow(/Poll failed/);
   });
 
-  describe('auto-fix config', () => {
+  describe('autofix config', () => {
     it('getAutofix GETs the autofix endpoint', async () => {
-      // The config now carries the early-access `available` flag alongside
-      // `enabled`; the client returns whatever the server sends verbatim.
-      const fetchMock = setupFetch({ enabled: true, available: true });
+      const fetchMock = setupFetch({ enabled: true });
       const out = await routing.getAutofix('demo');
-      expect(out).toEqual({ enabled: true, available: true });
+      expect(out).toEqual({ enabled: true });
       const url = fetchMock.mock.calls[0][0] as string;
       expect(url).toContain('/api/v1/routing/demo/autofix');
     });
 
     it('updateAutofix PATCHes the autofix endpoint with a JSON body', async () => {
-      // Server echoes the full config back (here with early access NOT granted)
-      // — the client passes `available` through untouched, only sending `enabled`.
-      const fetchMock = setupFetch({ enabled: true, available: false });
+      const fetchMock = setupFetch({ enabled: true });
       const out = await routing.updateAutofix('demo', { enabled: true });
-      expect(out).toEqual({ enabled: true, available: false });
+      expect(out).toEqual({ enabled: true });
       const [url, init] = fetchMock.mock.calls[0];
       expect(url).toContain('/api/v1/routing/demo/autofix');
       expect((init as RequestInit).method).toBe('PATCH');
       expect(JSON.parse((init as RequestInit).body as string)).toEqual({
         enabled: true,
       });
+    });
+  });
+
+  describe('message recording config', () => {
+    it('GETs and PATCHes the per-agent recording flag', async () => {
+      const fetchMock = setupFetch({ enabled: false });
+      await expect(routing.getRecording('demo')).resolves.toEqual({ enabled: false });
+      expect(fetchMock.mock.calls[0][0]).toContain('/api/v1/routing/demo/recording');
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ enabled: true }),
+        text: async () => '{"enabled":true}',
+      });
+      await expect(routing.updateRecording('demo', { enabled: true })).resolves.toEqual({
+        enabled: true,
+      });
+      const [url, init] = fetchMock.mock.calls[1];
+      expect(url).toContain('/api/v1/routing/demo/recording');
+      expect((init as RequestInit).method).toBe('PATCH');
+      expect(JSON.parse((init as RequestInit).body as string)).toEqual({ enabled: true });
     });
   });
 

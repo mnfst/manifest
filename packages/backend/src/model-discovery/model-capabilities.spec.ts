@@ -53,16 +53,16 @@ describe('inputModalitiesFromCapabilities', () => {
 
 describe('resolveModelCapabilityMetadata', () => {
   const paramSpecs = { getCapabilities: jest.fn() };
-  const modelsDevSync = { lookupModel: jest.fn() };
+  const modelsDevSync = { lookupModelCapabilities: jest.fn() };
 
   beforeEach(() => {
     paramSpecs.getCapabilities.mockReset().mockResolvedValue(null);
-    modelsDevSync.lookupModel.mockReset().mockReturnValue(null);
+    modelsDevSync.lookupModelCapabilities.mockReset().mockReturnValue(null);
   });
 
   it('merges discovery, models.dev, param-spec, and streaming-heuristic capabilities', async () => {
     paramSpecs.getCapabilities.mockResolvedValue(['tools']);
-    modelsDevSync.lookupModel.mockReturnValue(makeModelsDevEntry());
+    modelsDevSync.lookupModelCapabilities.mockReturnValue(makeModelsDevEntry());
 
     const resolved = await resolveModelCapabilityMetadata(
       makeModel({ capabilities: ['audio'], authType: 'subscription' }),
@@ -137,6 +137,22 @@ describe('resolveModelCapabilityMetadata', () => {
     expect(resolved.outputModalities).toEqual(['text']);
   });
 
+  it('keeps the vendor prefix on OpenRouter ids so the OpenRouter catalog answers', async () => {
+    // OpenRouter is not a transparent gateway: it resells a vendor's model
+    // under its own catalog entry, so `openai/gpt-4o-mini` must be looked up
+    // whole rather than split into ('openai', 'gpt-4o-mini') (#2737).
+    await resolveModelCapabilityMetadata(
+      makeModel({ id: 'openai/gpt-4o-mini', provider: 'openrouter' }),
+      paramSpecs,
+      modelsDevSync,
+    );
+
+    expect(modelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
+      'openrouter',
+      'openai/gpt-4o-mini',
+    );
+  });
+
   it('looks up metadata under the underlying provider for vendor-prefixed ids', async () => {
     await resolveModelCapabilityMetadata(
       makeModel({ id: 'anthropic.claude-sonnet-5-v1:0', provider: 'bedrock' }),
@@ -144,6 +160,9 @@ describe('resolveModelCapabilityMetadata', () => {
       modelsDevSync,
     );
 
-    expect(modelsDevSync.lookupModel).toHaveBeenCalledWith('anthropic', 'claude-sonnet-5-v1:0');
+    expect(modelsDevSync.lookupModelCapabilities).toHaveBeenCalledWith(
+      'anthropic',
+      'claude-sonnet-5-v1:0',
+    );
   });
 });

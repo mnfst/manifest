@@ -41,6 +41,7 @@ vi.mock('@solidjs/meta', () => ({
 }));
 
 const mockGetMessages = vi.fn();
+const mockGetMessageCount = vi.fn();
 const mockGetMessageFilterOptions = vi.fn();
 const mockGetAgents = vi.fn();
 const mockGetCustomProviders = vi.fn();
@@ -52,6 +53,7 @@ const mockSetMessageFeedback = vi.fn();
 const mockClearMessageFeedback = vi.fn();
 vi.mock('../../src/services/api.js', () => ({
   getMessages: (...args: unknown[]) => mockGetMessages(...args),
+  getMessageCount: (...args: unknown[]) => mockGetMessageCount(...args),
   getMessageFilterOptions: (...args: unknown[]) => mockGetMessageFilterOptions(...args),
   getAgents: (...args: unknown[]) => mockGetAgents(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
@@ -148,14 +150,12 @@ vi.mock('../../src/components/MultiSelect.jsx', () => ({
   ),
 }));
 
-const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
-vi.mock('../../src/services/api/billing.js', () => ({
-  getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
-}));
+import { resetPlanStore } from '../../src/services/plan-store';
 
 vi.mock('../../src/services/sse.js', () => ({
   pingCount: () => 0,
   messagePing: () => pingBox.read(),
+  analyticsPing: () => 0,
   agentPing: () => 0,
   routingPing: () => 0,
 }));
@@ -327,6 +327,7 @@ describe('MessageLog', () => {
       agents: [{ agent_name: 'agent-alpha' }, { agent_name: 'agent-beta' }],
     });
     mockGetMessageFilterOptions.mockResolvedValue({ providers: ['anthropic', 'openai'] });
+    mockGetMessageCount.mockResolvedValue(undefined);
     mockGetCustomProviders.mockResolvedValue([]);
     mockGetSpecificityAssignments.mockResolvedValue([]);
     mockGetRoutingStatus.mockResolvedValue({ enabled: false });
@@ -334,7 +335,7 @@ describe('MessageLog', () => {
     const [ping, setPing] = createSignal(0);
     pingBox.read = ping;
     pingBox.set = setPing;
-    mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
+    resetPlanStore({ enabled: false, plan: 'free' });
   });
 
   it('renders Requests heading', () => {
@@ -702,7 +703,9 @@ describe('MessageLog', () => {
 
   it('clamps a Pro-range deep link before loading data for a free plan', async () => {
     mockSearchParams = { range: '365d' };
-    mockGetBillingStatus.mockResolvedValue({ enabled: true, plan: 'free' });
+    // The plan store is resolved by AuthGuard before any page mounts, so the
+    // clamp is synchronous — no fetch ever goes out at the PRO range.
+    resetPlanStore({ enabled: true, plan: 'free' });
     mockGetMessages.mockResolvedValue(messagesData);
 
     render(() => <MessageLog />);
@@ -745,7 +748,7 @@ describe('MessageLog', () => {
 
     const triggerSelect = selectWithOption(container, 'All attempts');
     expect(triggerSelect.textContent).toContain('With any recovery attempt');
-    expect(triggerSelect.textContent).toContain('With an auto-fix attempt');
+    expect(triggerSelect.textContent).toContain('With an autofix attempt');
     expect(triggerSelect.textContent).toContain('With a fallback attempt');
     expect(triggerSelect.textContent).toContain('No recovery attempt');
 
@@ -815,6 +818,26 @@ describe('MessageLog', () => {
   });
 
   describe('pagination', () => {
+    it('loads rows without a total and counts independently', async () => {
+      mockGetMessages.mockResolvedValue(messagesData);
+      mockGetMessageCount.mockResolvedValue({ ...messagesData, total_count: 120 });
+      const { container } = render(() => <MessageLog />);
+
+      await vi.waitFor(() => {
+        expect(mockGetMessages).toHaveBeenCalledWith(
+          expect.objectContaining({
+            include_total: 'false',
+            include_filter_options: 'false',
+            limit: '50',
+          }),
+        );
+        expect(mockGetMessageCount).toHaveBeenCalledWith(
+          expect.objectContaining({ agent_name: 'test-agent' }),
+        );
+        expect(container.textContent).toContain('120 total');
+      });
+    });
+
     it('shows pagination when total_count exceeds page size', async () => {
       const bigData = { ...messagesData, total_count: 120, next_cursor: 'cursor-2' };
       mockGetMessages.mockResolvedValue(bigData);

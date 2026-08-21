@@ -158,19 +158,33 @@ async function pendingRequestCount(): Promise<number> {
   return row.c;
 }
 
-/** Poll until the async recorders settle (streaming rows finish off-request). */
+/**
+ * Poll until the async recorders settle. Both writers run off-request:
+ * `recordSuccessMessage` is fired through `recordSafely()` without an await,
+ * so the HTTP response can land before its `agent_messages` row commits.
+ * Waits on `agent_messages` as well as `requests`, otherwise a slow runner
+ * counts one row short. Returns on timeout so the caller's assertions, not
+ * this helper, report the failure.
+ */
 async function settle(expected: number, timeoutMs = 15000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   for (;;) {
     const c = await counts();
     const pending = await pendingRequestCount();
-    if (c.requests >= expected && pending === 0) return;
+    if (c.requests >= expected && c.messages >= expected && pending === 0) return;
     if (Date.now() > deadline) return;
     await new Promise((r) => setTimeout(r, 250));
   }
 }
 
 async function truncate(): Promise<void> {
+  // Recording-enabled responses can finish before the terminal Request upsert.
+  // Wait for that writer before deleting rows so it cannot recreate a prior
+  // test's Request after cleanup.
+  await settle(0);
+  if ((await pendingRequestCount()) !== 0) {
+    throw new Error('Timed out waiting for pending Requests before cleanup');
+  }
   await ds.query(`DELETE FROM agent_messages WHERE tenant_id = $1`, [TEST_TENANT_ID]);
   await ds.query(`DELETE FROM requests WHERE tenant_id = $1`, [TEST_TENANT_ID]);
 }
@@ -277,6 +291,7 @@ describe('Message log completeness — #2513 regression', () => {
     const statuses: number[] = [];
     for (let i = 0; i < N; i++) statuses.push(await fire());
     expect(statuses.every((s) => s === 200)).toBe(true);
+    await settle(N);
 
     const c = await counts();
     expect(c.requests).toBe(N);
@@ -291,6 +306,7 @@ describe('Message log completeness — #2513 regression', () => {
     const statuses: number[] = [];
     for (let i = 0; i < N; i++) statuses.push(await fire());
     expect(statuses.every((s) => s === 200)).toBe(true);
+    await settle(N);
 
     const c = await counts();
     expect(c.requests).toBe(N);
@@ -307,6 +323,7 @@ describe('Message log completeness — #2513 regression', () => {
     const statuses: number[] = [];
     for (let i = 0; i < N; i++) statuses.push(await fire({ traceparent }));
     expect(statuses.every((s) => s === 200)).toBe(true);
+    await settle(N);
 
     const c = await counts();
     expect(c.requests).toBe(N);

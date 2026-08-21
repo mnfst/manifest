@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AgentMessage } from '../../entities/agent-message.entity';
@@ -6,6 +6,9 @@ import type { CallerAttribution } from '../../routing/proxy/caller-classifier';
 import type { PhoenixExplanation, PhoenixOperation } from '../../routing/autofix/phoenix.types';
 import { isSuccessStatus, type AutofixStatus, type RequestParamDefaults } from 'manifest-shared';
 import { ManifestRequest } from '../../entities/request.entity';
+import type { RecordingResponseBody } from '../../routing/proxy/attempt-recording.types';
+import { RequestRecordingStorageService } from '../../common/services/request-recording-storage.service';
+import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
 
 export interface MessageDetailResponse {
   message: {
@@ -84,18 +87,29 @@ export interface MessageDetailResponse {
       autofix_role: string | null;
       autofix_operations: object | null;
       autofix_decision: object | null;
+      recording: AttemptRecordingDetail | null;
     }>;
   };
 }
 
+export interface AttemptRecordingDetail {
+  request_body: Record<string, unknown>;
+  response_body: RecordingResponseBody | null;
+  wire_format: string;
+}
+
 @Injectable()
 export class MessageDetailsService {
+  private readonly logger = new Logger(MessageDetailsService.name);
+
   constructor(
     @InjectRepository(AgentMessage)
     private readonly messageRepo: Repository<AgentMessage>,
     @Optional()
     @InjectRepository(ManifestRequest)
     private readonly requestRepo?: Repository<ManifestRequest>,
+    @Optional()
+    private readonly recordingStorage?: RequestRecordingStorageService,
   ) {}
 
   async getDetails(messageId: string, tenantId: string | null): Promise<MessageDetailResponse> {
@@ -141,6 +155,8 @@ export class MessageDetailsService {
       }
     }
     if (!message && !request) throw new NotFoundException('Message not found');
+
+    const recordingsByAttempt = await this.loadAttemptRecordings(attempts);
 
     const autofix_sibling = message?.autofix_group_id
       ? await this.findAutofixSibling(message.id, message.autofix_group_id, tenantId)
@@ -251,6 +267,7 @@ export class MessageDetailsService {
                 autofix_role: attempt.autofix_role,
                 autofix_operations: attempt.autofix_operations,
                 autofix_decision: attempt.autofix_decision,
+                recording: recordingsByAttempt.get(attempt.id) ?? null,
               })),
             }
           : {}),
@@ -259,7 +276,42 @@ export class MessageDetailsService {
     return response;
   }
 
-  /** Resolve the paired Auto-fix row (failed original ↔ successful retry). */
+  private async loadAttemptRecordings(
+    attempts: AgentMessage[],
+  ): Promise<Map<string, AttemptRecordingDetail>> {
+    const result = new Map<string, AttemptRecordingDetail>();
+    if (!this.recordingStorage || attempts.length === 0) return result;
+
+    await Promise.all(
+      attempts.map(async (attempt) => {
+        if (!attempt.recording_key) return;
+        const payload = await this.loadRecording(attempt.id, attempt.recording_key);
+        if (!payload) return;
+        result.set(attempt.id, {
+          request_body: payload.request_body,
+          response_body: payload.response_body,
+          wire_format: payload.wire_format,
+        });
+      }),
+    );
+    return result;
+  }
+
+  private async loadRecording(attemptId: string, storageKey: string) {
+    if (!this.recordingStorage) return null;
+    try {
+      return await decodeRequestRecording(await this.recordingStorage.get(storageKey));
+    } catch (error) {
+      this.logger.warn(
+        `Failed to load Provider Attempt recording ${attemptId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+      return null;
+    }
+  }
+
+  /** Resolve the paired Autofix row (failed original ↔ successful retry). */
   private async findAutofixSibling(
     id: string,
     groupId: string,

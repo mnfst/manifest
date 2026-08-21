@@ -40,6 +40,7 @@ import { AgentEnabledProvider } from '../src/entities/agent-enabled-provider.ent
 import { BackfillState } from '../src/entities/backfill-state.entity';
 import { PublicErrorPage } from '../src/entities/public-error-page.entity';
 import { WaitlistClaim } from '../src/entities/waitlist-claim.entity';
+import { TenantRequestUsage } from '../src/entities/tenant-request-usage.entity';
 import { HealthModule } from '../src/health/health.module';
 import { AnalyticsModule } from '../src/analytics/analytics.module';
 import { OtlpModule } from '../src/otlp/otlp.module';
@@ -52,6 +53,7 @@ import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
 import { WaitlistModule } from '../src/waitlist/waitlist.module';
+import { ProviderModelFetcherService } from '../src/model-discovery/provider-model-fetcher.service';
 
 export const TEST_USER_ID = 'test-user-001';
 export const TEST_API_KEY = 'test-api-key-001';
@@ -83,6 +85,7 @@ const entities = [
   BackfillState,
   PublicErrorPage,
   WaitlistClaim,
+  TenantRequestUsage,
 ];
 const OPENROUTER_MODELS_URL = 'https://openrouter.ai/api/v1/models';
 const OPENROUTER_MODELS_FIXTURE = {
@@ -142,13 +145,18 @@ const OPENROUTER_MODELS_FIXTURE = {
   ],
 } as const;
 
-function buildTypeOrmConfig(): TypeOrmModuleOptions {
+export interface CreateTestAppOptions {
+  dropSchema?: boolean;
+  seed?: boolean;
+}
+
+function buildTypeOrmConfig(options: CreateTestAppOptions): TypeOrmModuleOptions {
   return {
     type: 'postgres' as const,
     url: process.env['DATABASE_URL'] ?? 'postgresql://myuser:mypassword@localhost:5432/mydatabase',
     entities,
     synchronize: true,
-    dropSchema: true,
+    dropSchema: options.dropSchema ?? true,
     logging: false,
   };
 }
@@ -204,7 +212,7 @@ class MockSessionGuard implements CanActivate {
   }
 }
 
-export async function createTestApp(): Promise<INestApplication> {
+export async function createTestApp(options: CreateTestAppOptions = {}): Promise<INestApplication> {
   process.env['API_KEY'] = TEST_API_KEY;
   process.env['NODE_ENV'] = 'test';
   process.env['BETTER_AUTH_SECRET'] =
@@ -217,7 +225,7 @@ export async function createTestApp(): Promise<INestApplication> {
         ConfigModule.forRoot({ isGlobal: true, load: [appConfig] }),
         CacheModule.register({ isGlobal: true, ttl: 5000 }),
         ThrottlerModule.forRoot([{ ttl: 60000, limit: 1000 }]),
-        TypeOrmModule.forRoot(buildTypeOrmConfig()),
+        TypeOrmModule.forRoot(buildTypeOrmConfig(options)),
         TypeOrmModule.forFeature(entities),
         CommonModule,
         HealthModule,
@@ -232,7 +240,12 @@ export async function createTestApp(): Promise<INestApplication> {
         WaitlistModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: MockSessionGuard }],
-    }).compile();
+    })
+      // Provider-connect tests use fake credentials. Keep model discovery
+      // deterministic instead of waiting on live provider APIs to reject them.
+      .overrideProvider(ProviderModelFetcherService)
+      .useValue({ fetch: async () => [] })
+      .compile();
 
     const app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -249,40 +262,42 @@ export async function createTestApp(): Promise<INestApplication> {
     const ds = app.get(DataSource);
     const now = new Date().toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
 
-    // Seed test tenant (owner_user_id is the ONLY user→tenant link), agent,
-    // API key and OTLP key (hashed)
-    await ds.query(
-      `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
-      [TEST_TENANT_ID, TEST_USER_ID, TEST_USER_ID, 'Test Org', now, now],
-    );
-    await ds.query(
-      `INSERT INTO api_keys (id, key, key_hash, key_prefix, tenant_id, created_by_user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7)`,
-      [
-        'test-key-id',
-        hashKey(TEST_API_KEY),
-        keyPrefix(TEST_API_KEY),
-        TEST_TENANT_ID,
-        TEST_USER_ID,
-        'Test Key',
-        now,
-      ],
-    );
-    await ds.query(
-      `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,
-      [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
-    );
-    await ds.query(
-      `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
-      [
-        'test-otlp-key-id',
-        hashKey(TEST_OTLP_KEY),
-        keyPrefix(TEST_OTLP_KEY),
-        'Test OTLP Key',
-        TEST_TENANT_ID,
-        TEST_AGENT_ID,
-        now,
-      ],
-    );
+    if (options.seed !== false) {
+      // Seed test tenant (owner_user_id is the ONLY user→tenant link), agent,
+      // API key and OTLP key (hashed)
+      await ds.query(
+        `INSERT INTO tenants (id, name, owner_user_id, organization_name, is_active, created_at, updated_at) VALUES ($1,$2,$3,$4,true,$5,$6)`,
+        [TEST_TENANT_ID, TEST_USER_ID, TEST_USER_ID, 'Test Org', now, now],
+      );
+      await ds.query(
+        `INSERT INTO api_keys (id, key, key_hash, key_prefix, tenant_id, created_by_user_id, name, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, $7)`,
+        [
+          'test-key-id',
+          hashKey(TEST_API_KEY),
+          keyPrefix(TEST_API_KEY),
+          TEST_TENANT_ID,
+          TEST_USER_ID,
+          'Test Key',
+          now,
+        ],
+      );
+      await ds.query(
+        `INSERT INTO agents (id, name, display_name, description, is_active, complexity_routing_enabled, tenant_id, created_at, updated_at) VALUES ($1,$2,$3,$4,true,true,$5,$6,$7)`,
+        [TEST_AGENT_ID, 'test-agent', 'Test Agent', 'Test agent', TEST_TENANT_ID, now, now],
+      );
+      await ds.query(
+        `INSERT INTO agent_api_keys (id, key, key_hash, key_prefix, label, tenant_id, agent_id, is_active, created_at) VALUES ($1, NULL, $2, $3, $4, $5, $6, true, $7)`,
+        [
+          'test-otlp-key-id',
+          hashKey(TEST_OTLP_KEY),
+          keyPrefix(TEST_OTLP_KEY),
+          'Test OTLP Key',
+          TEST_TENANT_ID,
+          TEST_AGENT_ID,
+          now,
+        ],
+      );
+    }
 
     // Reload pricing cache from deterministic fixture data to keep e2e startup fast.
     const pricingCache = app.get(ModelPricingCacheService);
@@ -292,6 +307,41 @@ export async function createTestApp(): Promise<INestApplication> {
   } finally {
     restoreFetch();
   }
+}
+
+/**
+ * Persistent stub for provider model-discovery calls. Provider connects run
+ * live discovery against the provider's real /models API with the spec's fake
+ * key; on a healthy network that is an instant 401, but a degraded network
+ * turns every connect into a multi-second hang and times the suite out.
+ * Answering the 401 locally keeps the exact same code path (discovery falls
+ * back to the OpenRouter fixture) while making it deterministic.
+ *
+ * Install after createTestApp() and restore in afterAll.
+ */
+export function stubProviderDiscoveryFetch(): () => void {
+  const originalFetch = global.fetch;
+  const DISCOVERY_HOSTS = ['api.openai.com', 'api.anthropic.com'];
+
+  global.fetch = (async (
+    input: Parameters<typeof fetch>[0],
+    init?: Parameters<typeof fetch>[1],
+  ): Promise<Response> => {
+    const url = getFetchUrl(input);
+    if (DISCOVERY_HOSTS.some((host) => url.includes(host))) {
+      return new Response(
+        JSON.stringify({
+          error: { message: 'Incorrect API key provided', type: 'invalid_request_error' },
+        }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    return originalFetch(input, init);
+  }) as typeof fetch;
+
+  return () => {
+    global.fetch = originalFetch;
+  };
 }
 
 function stubOpenRouterPricingFetch(): () => void {

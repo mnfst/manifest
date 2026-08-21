@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, screen, waitFor } from '@solidjs/testing-library';
+import { createResource, Suspense } from 'solid-js';
 
 vi.mock('../../src/components/ProviderIcon.js', () => ({
   providerIcon: () => null,
@@ -50,16 +51,20 @@ vi.mock('../../src/services/formatters.js', async (importOriginal) => ({
   customProviderColor: () => '#000',
 }));
 
-const { mockRefreshProviderModels, mockToastSuccess, mockToastError } = vi.hoisted(() => ({
-  mockRefreshProviderModels: vi.fn(),
-  mockToastSuccess: vi.fn(),
-  mockToastError: vi.fn(),
-}));
+const { mockRefreshModels, mockRefreshProviderModels, mockToastSuccess, mockToastError } = vi.hoisted(
+  () => ({
+    mockRefreshModels: vi.fn(),
+    mockRefreshProviderModels: vi.fn(),
+    mockToastSuccess: vi.fn(),
+    mockToastError: vi.fn(),
+  }),
+);
 
 vi.mock('../../src/services/api.js', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
+    refreshModels: (...args: unknown[]) => mockRefreshModels(...args),
     refreshProviderModels: (...args: unknown[]) => mockRefreshProviderModels(...args),
   };
 });
@@ -123,6 +128,7 @@ const apiKeyOnly: RoutingProvider[] = [
     is_active: true,
     has_api_key: true,
     connected_at: '2025-01-01',
+    models_fetched_at: new Date().toISOString(),
   },
 ];
 
@@ -137,6 +143,7 @@ const subAndApi: RoutingProvider[] = [
     // Subscriptions carry no API key, so a usable one is proven by cached models.
     cached_model_count: 3,
     connected_at: '2025-01-01',
+    models_fetched_at: new Date().toISOString(),
   },
 ];
 
@@ -155,11 +162,203 @@ const tiers: TierAssignment[] = [
 describe('ModelPickerModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
+    mockRefreshModels.mockResolvedValue({ ok: true });
     mockRefreshProviderModels.mockResolvedValue({
       ok: true,
       model_count: 4,
       last_fetched_at: '2026-04-12T10:00:00Z',
       error: null,
+    });
+  });
+
+  describe('automatic daily refresh', () => {
+    it('refreshes stale models only once per agent and browser session each day', async () => {
+      const onProviderRefreshed = vi.fn();
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      const first = render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+          onProviderRefreshed={onProviderRefreshed}
+        />
+      ));
+
+      await waitFor(() => {
+        expect(mockRefreshModels).toHaveBeenCalledOnce();
+        expect(mockRefreshModels).toHaveBeenCalledWith('demo-agent');
+        expect(onProviderRefreshed).toHaveBeenCalledOnce();
+      });
+
+      first.unmount();
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+          onProviderRefreshed={onProviderRefreshed}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).toHaveBeenCalledOnce();
+      expect(onProviderRefreshed).toHaveBeenCalledOnce();
+      expect(screen.getByRole('dialog')).toBeDefined();
+    });
+
+    it('does not refresh when provider models were already fetched today', async () => {
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).not.toHaveBeenCalled();
+    });
+
+    it('does not retry a failed refresh when the picker reopens that day', async () => {
+      mockRefreshModels.mockRejectedValueOnce(new Error('refresh failed'));
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      const first = render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      await waitFor(() => expect(mockRefreshModels).toHaveBeenCalledOnce());
+
+      first.unmount();
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={staleProviders}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).toHaveBeenCalledOnce();
+    });
+
+    it('stays open while refreshed model data is loading after the user scrolls', async () => {
+      let resolveAutomaticRefresh!: (value: { ok: boolean }) => void;
+      let resolveModelsRefetch!: (value: AvailableModel[]) => void;
+      let modelRequestCount = 0;
+      mockRefreshModels.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveAutomaticRefresh = resolve;
+          }),
+      );
+      const staleProviders = apiKeyOnly.map((provider) => ({
+        ...provider,
+        models_fetched_at: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+      }));
+
+      const Parent = () => {
+        const [models, { refetch }] = createResource(async () => {
+          modelRequestCount += 1;
+          if (modelRequestCount === 1) return baseModels;
+          return new Promise<AvailableModel[]>((resolve) => {
+            resolveModelsRefetch = resolve;
+          });
+        });
+
+        return (
+          <Suspense fallback={<div data-testid="picker-loading" />}>
+            <ModelPickerModal
+              tierId="default"
+              agentName="demo-agent"
+              models={models() ?? []}
+              tiers={[]}
+              connectedProviders={staleProviders}
+              onSelect={vi.fn()}
+              onClose={vi.fn()}
+              onProviderRefreshed={async () => {
+                await refetch();
+              }}
+            />
+          </Suspense>
+        );
+      };
+
+      const { container } = render(() => <Parent />);
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeDefined();
+      });
+
+      fireEvent.scroll(container.querySelector('.routing-modal__list') as HTMLElement, {
+        target: { scrollTop: 200 },
+      });
+      resolveAutomaticRefresh({ ok: true });
+
+      await waitFor(() => {
+        expect(modelRequestCount).toBe(2);
+      });
+      expect(screen.queryByTestId('picker-loading')).toBeNull();
+      expect(screen.getByRole('dialog')).toBeDefined();
+
+      resolveModelsRefetch(baseModels);
+    });
+
+    it('ignores stale inactive and custom providers', async () => {
+      const providers: RoutingProvider[] = [
+        { ...apiKeyOnly[0]!, is_active: false, models_fetched_at: null },
+        {
+          ...apiKeyOnly[0]!,
+          id: 'custom-1',
+          provider: 'custom:provider-id',
+          models_fetched_at: null,
+        },
+      ];
+
+      render(() => (
+        <ModelPickerModal
+          tierId="default"
+          agentName="demo-agent"
+          models={baseModels}
+          tiers={[]}
+          connectedProviders={providers}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+
+      await Promise.resolve();
+      expect(mockRefreshModels).not.toHaveBeenCalled();
     });
   });
 
