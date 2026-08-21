@@ -232,6 +232,17 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const [connectionsExpanded, setConnectionsExpanded] = createSignal(false);
   const connectionsCollapsible = () => connectedRows().length > CONNECTIONS_COLLAPSE_THRESHOLD;
   const connectionsCollapsed = () => connectionsCollapsible() && !connectionsExpanded();
+  let connectionsScroller: HTMLDivElement | undefined;
+  const toggleConnections = () => {
+    setConnectionsExpanded((open) => !open);
+    // Expanding takes the cap off, which drops the scroll position. The
+    // at-bottom flag from before it would otherwise survive into the next
+    // collapse and keep the fade hidden at the top of the list.
+    if (connectionsScroller) {
+      connectionsScroller.scrollTop = 0;
+      connectionsScroller.parentElement?.classList.remove('scroll-panel--at-bottom');
+    }
+  };
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Inline rename state
@@ -599,6 +610,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
             <div
               class="connections-panel__body"
               id="connected-connections"
+              ref={connectionsScroller}
               onScroll={toggleScrollFade}
             >
               <table class="data-table" style="width: 100%;">
@@ -826,7 +838,7 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
               class="connections-panel__toggle"
               aria-expanded={connectionsExpanded()}
               aria-controls="connected-connections"
-              onClick={() => setConnectionsExpanded((open) => !open)}
+              onClick={toggleConnections}
             >
               <Show
                 when={connectionsExpanded()}

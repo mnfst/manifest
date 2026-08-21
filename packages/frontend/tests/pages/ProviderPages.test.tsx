@@ -929,6 +929,28 @@ describe('provider pages', () => {
     });
   });
 
+  it('brings the bottom fade back after expanding and collapsing again', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetProviderUsage.mockResolvedValue({ providers: [] });
+    const { container } = render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+
+    const body = container.querySelector('.connections-panel__body') as HTMLElement;
+    const viewport = container.querySelector('.connections-panel__viewport')!;
+    fireEvent.scroll(body);
+    expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(true);
+
+    // Expanding drops the scroll position, so the flag must not survive into
+    // the next collapse and hide the fade at the top of the list.
+    fireEvent.click(screen.getByText('Show all 12 connections').closest('button')!);
+    await waitFor(() => expect(screen.getByText('Show less')).toBeDefined());
+    expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(false);
+
+    fireEvent.click(screen.getByText('Show less').closest('button')!);
+    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+    expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(false);
+  });
+
   it('drops the bottom fade once the capped list is scrolled to the end', async () => {
     mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
