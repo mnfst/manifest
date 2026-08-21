@@ -855,4 +855,92 @@ describe('provider pages', () => {
       expect(spark.textContent).toBe('4');
     });
   });
+  // ── Collapsed connections list ──────────────────────────────────────────
+  // Past ten connections the list is capped inside its own card so the
+  // supported-provider catalog below stays reachable. Nothing is dropped: the
+  // card scrolls, and the footer button expands it to full height.
+  const manyConnections = (count: number) => ({
+    providers: [
+      {
+        provider: 'openai',
+        auth_type: 'api_key',
+        connection_count: count,
+        connections: Array.from({ length: count }, (_, i) =>
+          connection(`key-${i}`, `Key ${i + 1}`),
+        ),
+        total_models: 3,
+        consumption_tokens: 1,
+        consumption_messages: 1,
+        consumption_cost: 0,
+        last_used_at: null,
+        sparkline_7d: [],
+      },
+    ],
+    model_counts: {},
+  });
+
+  it('leaves the connections list uncapped at ten connections', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(10));
+    mockGetProviderUsage.mockResolvedValue({ providers: [] });
+    const { container } = render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Key 10')).toBeDefined());
+
+    expect(container.querySelector('.connections-panel--collapsed')).toBeNull();
+    expect(screen.queryByText(/^Show all /)).toBeNull();
+  });
+
+  it('caps the connections list past ten and names how many there are', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(14));
+    mockGetProviderUsage.mockResolvedValue({ providers: [] });
+    const { container } = render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Key 14')).toBeDefined());
+
+    expect(container.querySelector('.connections-panel--collapsed')).not.toBeNull();
+    const toggle = screen.getByText('Show all 14 connections').closest('button')!;
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    // Every row stays in the DOM: the card scrolls, it does not paginate.
+    expect(screen.getByText('Key 1')).toBeDefined();
+    expect(screen.getByText('Key 14')).toBeDefined();
+  });
+
+  it('expands the connections list and collapses it again', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetProviderUsage.mockResolvedValue({ providers: [] });
+    const { container } = render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+
+    const toggle = screen.getByText('Show all 12 connections').closest('button')!;
+    // The button points at the region it expands.
+    expect(container.querySelector(`#${toggle.getAttribute('aria-controls')}`)).not.toBeNull();
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(screen.getByText('Show less')).toBeDefined();
+      expect(container.querySelector('.connections-panel--collapsed')).toBeNull();
+    });
+    expect(screen.getByText('Show less').closest('button')!.getAttribute('aria-expanded')).toBe(
+      'true',
+    );
+
+    fireEvent.click(screen.getByText('Show less').closest('button')!);
+    await waitFor(() => {
+      expect(screen.getByText('Show all 12 connections')).toBeDefined();
+      expect(container.querySelector('.connections-panel--collapsed')).not.toBeNull();
+    });
+  });
+
+  it('drops the bottom fade once the capped list is scrolled to the end', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetProviderUsage.mockResolvedValue({ providers: [] });
+    const { container } = render(() => <Byok />);
+    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+
+    const body = container.querySelector('.connections-panel__body') as HTMLElement;
+    const viewport = container.querySelector('.connections-panel__viewport')!;
+    expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(false);
+
+    // jsdom reports zero layout, which reads as "already at the end".
+    fireEvent.scroll(body);
+    expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(true);
+  });
 });

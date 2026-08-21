@@ -22,6 +22,7 @@ import {
   type TenantProviderSummary,
 } from '../../services/api/providers.js';
 import { analyticsPing, routingPing } from '../../services/sse.js';
+import { toggleScrollFade } from '../../services/scroll-fade.js';
 import { renameProviderKey } from '../../services/api/routing.js';
 import type { AuthType, CustomProviderData, RoutingProvider } from '../../services/api.js';
 import type { CustomProviderPrefill, ProviderDeepLink } from '../../services/routing-params.js';
@@ -115,6 +116,8 @@ const PAGE_COPY: Record<
     activePlural: 'connections',
   },
 };
+
+const CONNECTIONS_COLLAPSE_THRESHOLD = 10;
 
 const providerListForKind = (kind: ProviderPageKind): ProviderDef[] => {
   if (kind === 'subscriptions')
@@ -224,6 +227,11 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
   const [customProviderPrefill, setCustomProviderPrefill] =
     createSignal<CustomProviderPrefill | null>(null);
   const [viewMode, setViewMode] = createSignal<ViewMode>('grid');
+  // Past this many connections the list is capped inside its own card, so the
+  // supported-provider catalog below stays reachable without a long scroll.
+  const [connectionsExpanded, setConnectionsExpanded] = createSignal(false);
+  const connectionsCollapsible = () => connectedRows().length > CONNECTIONS_COLLAPSE_THRESHOLD;
+  const connectionsCollapsed = () => connectionsCollapsible() && !connectionsExpanded();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Inline rename state
@@ -582,216 +590,266 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
         <h3 style="font-size: var(--font-size-base); font-weight: 600; color: hsl(var(--foreground)); margin-bottom: 12px;">
           {copy().connectedHeading}
         </h3>
-        <div class="panel" style="padding: 0; margin-bottom: 24px; overflow-x: auto;">
-          <table class="data-table" style="width: 100%;">
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th>Connection</th>
-                <th>Status</th>
-                <th>Usage (30d)</th>
-                <Show when={copy().rowMetricHeading}>
-                  <th>{copy().rowMetricHeading}</th>
-                </Show>
-                <th class="rel-col">
-                  Total attempts (30d)
-                  <InfoTooltip text={totalAttemptsTooltip(true)} />
-                </th>
-                <th class="rel-col">
-                  Success rate (30d)
-                  <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
-                </th>
-                <th>Last used</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              <For each={connectedRows()}>
-                {(row) => (
-                  <tr
-                    style="cursor: pointer;"
-                    onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
-                    onKeyDown={(event) => {
-                      if (event.target !== event.currentTarget) return;
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        navigate(`/providers/connections/${row.connection.id}`);
-                      }
-                    }}
-                    tabindex="0"
-                  >
-                    <td>
-                      <span style="display: flex; align-items: center; gap: 10px;">
-                        <ProviderMark providerId={row.summary.provider} name={row.name} />
-                        <span style="font-weight: 500;">{row.name}</span>
-                        <Show when={row.summary.provider.startsWith('custom:')}>
-                          <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
-                            Custom
-                          </span>
-                        </Show>
-                      </span>
-                    </td>
-                    <td
-                      style="color: hsl(var(--muted-foreground));"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Show
-                        when={renamingId() === row.connection.id}
-                        fallback={
-                          <span
-                            style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
-                            class="connection-label-cell"
-                          >
-                            {row.connection.label}
-                            <button
-                              type="button"
-                              class="connection-label-cell__edit"
-                              onClick={(e) =>
-                                startRename(row.connection.id, row.connection.label, e)
-                              }
-                              aria-label={`Rename ${row.connection.label}`}
-                              style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
-                                <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
-                              </svg>
-                            </button>
-                          </span>
-                        }
+        <div
+          class="panel connections-panel"
+          classList={{ 'connections-panel--collapsed': connectionsCollapsed() }}
+          style="padding: 0; margin-bottom: 24px;"
+        >
+          <div class="connections-panel__viewport">
+            <div
+              class="connections-panel__body"
+              id="connected-connections"
+              onScroll={toggleScrollFade}
+            >
+              <table class="data-table" style="width: 100%;">
+                <thead>
+                  <tr>
+                    <th>Provider</th>
+                    <th>Connection</th>
+                    <th>Status</th>
+                    <th>Usage (30d)</th>
+                    <Show when={copy().rowMetricHeading}>
+                      <th>{copy().rowMetricHeading}</th>
+                    </Show>
+                    <th class="rel-col">
+                      Total attempts (30d)
+                      <InfoTooltip text={totalAttemptsTooltip(true)} />
+                    </th>
+                    <th class="rel-col">
+                      Success rate (30d)
+                      <InfoTooltip text={CONNECTION_SUCCESS_RATE_TOOLTIP_30D} />
+                    </th>
+                    <th>Last used</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={connectedRows()}>
+                    {(row) => (
+                      <tr
+                        style="cursor: pointer;"
+                        onClick={() => navigate(`/providers/connections/${row.connection.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            navigate(`/providers/connections/${row.connection.id}`);
+                          }
+                        }}
+                        tabindex="0"
                       >
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                          <input
-                            type="text"
-                            class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
-                            value={renameValue()}
-                            onInput={(e) => {
-                              setRenameValue(e.currentTarget.value);
-                              setRenameError('');
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter')
-                                submitRename(
-                                  row.summary.provider,
-                                  row.connection.label,
-                                  row.summary.auth_type ?? copy().authType,
-                                  e,
-                                );
-                              if (e.key === 'Escape') cancelRename(e);
-                            }}
-                            style="width: 120px;"
-                            ref={(el) => requestAnimationFrame(() => el.focus())}
-                          />
-                          <button
-                            class="btn btn--primary btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            disabled={renameBusy()}
-                            onClick={(e) =>
-                              submitRename(
-                                row.summary.provider,
-                                row.connection.label,
-                                row.summary.auth_type ?? copy().authType,
-                                e,
-                              )
+                        <td>
+                          <span style="display: flex; align-items: center; gap: 10px;">
+                            <ProviderMark providerId={row.summary.provider} name={row.name} />
+                            <span style="font-weight: 500;">{row.name}</span>
+                            <Show when={row.summary.provider.startsWith('custom:')}>
+                              <span style="display: inline-flex; padding: 1px 6px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); font-size: var(--font-size-xs); color: hsl(var(--muted-foreground));">
+                                Custom
+                              </span>
+                            </Show>
+                          </span>
+                        </td>
+                        <td
+                          style="color: hsl(var(--muted-foreground));"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Show
+                            when={renamingId() === row.connection.id}
+                            fallback={
+                              <span
+                                style="display: inline-flex; align-items: center; gap: 6px; cursor: default;"
+                                class="connection-label-cell"
+                              >
+                                {row.connection.label}
+                                <button
+                                  type="button"
+                                  class="connection-label-cell__edit"
+                                  onClick={(e) =>
+                                    startRename(row.connection.id, row.connection.label, e)
+                                  }
+                                  aria-label={`Rename ${row.connection.label}`}
+                                  style="background: none; border: none; cursor: pointer; padding: 2px; color: hsl(var(--muted-foreground)); opacity: 0; transition: opacity 0.15s; display: inline-flex; align-items: center; line-height: 1;"
+                                >
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                  >
+                                    <path d="M5 21h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2" />
+                                    <path d="M7 13v3c0 .55.45 1 1 1h3c.27 0 .52-.11.71-.29l9-9a.996.996 0 0 0 0-1.41l-3-3a.996.996 0 0 0-1.41 0l-9.01 8.99A1 1 0 0 0 7 13m10-7.59L18.59 7 17.5 8.09 15.91 6.5zm-8 8 5.5-5.5 1.59 1.59-5.5 5.5H9z" />
+                                  </svg>
+                                </button>
+                              </span>
                             }
                           >
-                            Save
-                          </button>
-                          <button
-                            class="btn btn--outline btn--sm"
-                            style="font-size: var(--font-size-xs); padding: 4px 10px;"
-                            onClick={cancelRename}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                        <Show when={renameError()}>
-                          <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
-                            {renameError()}
-                          </div>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                              <input
+                                type="text"
+                                class={`provider-detail__input${renameError() ? ' provider-detail__input--error' : ''}`}
+                                value={renameValue()}
+                                onInput={(e) => {
+                                  setRenameValue(e.currentTarget.value);
+                                  setRenameError('');
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter')
+                                    submitRename(
+                                      row.summary.provider,
+                                      row.connection.label,
+                                      row.summary.auth_type ?? copy().authType,
+                                      e,
+                                    );
+                                  if (e.key === 'Escape') cancelRename(e);
+                                }}
+                                style="width: 120px;"
+                                ref={(el) => requestAnimationFrame(() => el.focus())}
+                              />
+                              <button
+                                class="btn btn--primary btn--sm"
+                                style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                                disabled={renameBusy()}
+                                onClick={(e) =>
+                                  submitRename(
+                                    row.summary.provider,
+                                    row.connection.label,
+                                    row.summary.auth_type ?? copy().authType,
+                                    e,
+                                  )
+                                }
+                              >
+                                Save
+                              </button>
+                              <button
+                                class="btn btn--outline btn--sm"
+                                style="font-size: var(--font-size-xs); padding: 4px 10px;"
+                                onClick={cancelRename}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                            <Show when={renameError()}>
+                              <div style="color: hsl(var(--destructive)); font-size: var(--font-size-xs); margin-top: 2px;">
+                                {renameError()}
+                              </div>
+                            </Show>
+                          </Show>
+                        </td>
+                        <td>
+                          <StatusBadge active={row.connection.is_active} />
+                        </td>
+                        <td>
+                          <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                              {(() => {
+                                const u = usageForConnection(row.summary, row.connection);
+                                const spark = u?.sparkline_7d ?? row.summary.sparkline_7d;
+                                return (
+                                  <>
+                                    <Show when={spark?.length}>
+                                      <span style="flex-shrink: 0;">
+                                        <Sparkline data={spark} width={60} height={20} />
+                                      </span>
+                                    </Show>
+                                    <span>
+                                      {formatNumber(
+                                        perConnectionTokens(row.summary, row.connection),
+                                      )}{' '}
+                                      tokens
+                                    </span>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          </Show>
+                        </td>
+                        <Show when={copy().rowMetricHeading}>
+                          <td>
+                            <Show when={!usageLoading()} fallback={<UsageShimmer />}>
+                              {formatCost(perConnectionCost(row.summary, row.connection)) ??
+                                '$0.00'}
+                            </Show>
+                          </td>
                         </Show>
-                      </Show>
-                    </td>
-                    <td>
-                      <StatusBadge active={row.connection.is_active} />
-                    </td>
-                    <td>
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={96} />}>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                          {(() => {
-                            const u = usageForConnection(row.summary, row.connection);
-                            const spark = u?.sparkline_7d ?? row.summary.sparkline_7d;
-                            return (
-                              <>
-                                <Show when={spark?.length}>
-                                  <span style="flex-shrink: 0;">
-                                    <Sparkline data={spark} width={60} height={20} />
-                                  </span>
-                                </Show>
-                                <span>
-                                  {formatNumber(perConnectionTokens(row.summary, row.connection))}{' '}
-                                  tokens
-                                </span>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </Show>
-                    </td>
-                    <Show when={copy().rowMetricHeading}>
-                      <td>
-                        <Show when={!usageLoading()} fallback={<UsageShimmer />}>
-                          {formatCost(perConnectionCost(row.summary, row.connection)) ?? '$0.00'}
-                        </Show>
-                      </td>
-                    </Show>
-                    {/* Attempt reliability at the row's own grain (provider +
+                        {/* Attempt reliability at the row's own grain (provider +
                         auth_type): a subscription row never shows a rate
                         blended with the provider's api_key traffic. */}
-                    <td class="rel-col">
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {formatNumber(
-                          usageForConnection(row.summary, row.connection)?.attempts_30d ??
-                            row.summary.attempts_30d,
-                        )}
-                      </Show>
-                    </td>
-                    <td class="rel-col">
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {(() => {
-                          const u = usageForConnection(row.summary, row.connection);
-                          const rate = attemptSuccessRate({
-                            attempts: u?.attempts_30d ?? row.summary.attempts_30d,
-                            succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
-                          });
-                          return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
-                        })()}
-                      </Show>
-                    </td>
-                    <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
-                      <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
-                        {connectionLastUsedAt(row.summary, row.connection)
-                          ? formatTimeAgo(connectionLastUsedAt(row.summary, row.connection)!)
-                          : '-'}
-                      </Show>
-                    </td>
-                    <td style="text-align: right;">
-                      <button
-                        class="btn btn--outline btn--sm"
-                        style="font-size: var(--font-size-xs); white-space: nowrap;"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          navigate(`/providers/connections/${row.connection.id}`);
-                        }}
-                      >
-                        View details
-                      </button>
-                    </td>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+                        <td class="rel-col">
+                          <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                            {formatNumber(
+                              usageForConnection(row.summary, row.connection)?.attempts_30d ??
+                                row.summary.attempts_30d,
+                            )}
+                          </Show>
+                        </td>
+                        <td class="rel-col">
+                          <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                            {(() => {
+                              const u = usageForConnection(row.summary, row.connection);
+                              const rate = attemptSuccessRate({
+                                attempts: u?.attempts_30d ?? row.summary.attempts_30d,
+                                succeeded: u?.succeeded_30d ?? row.summary.succeeded_30d,
+                              });
+                              return rate == null ? '—' : `${(rate * 100).toFixed(1)}%`;
+                            })()}
+                          </Show>
+                        </td>
+                        <td style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs);">
+                          <Show when={!usageLoading()} fallback={<UsageShimmer width={48} />}>
+                            {connectionLastUsedAt(row.summary, row.connection)
+                              ? formatTimeAgo(connectionLastUsedAt(row.summary, row.connection)!)
+                              : '-'}
+                          </Show>
+                        </td>
+                        <td style="text-align: right;">
+                          <button
+                            class="btn btn--outline btn--sm"
+                            style="font-size: var(--font-size-xs); white-space: nowrap;"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/providers/connections/${row.connection.id}`);
+                            }}
+                          >
+                            View details
+                          </button>
+                        </td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <Show when={connectionsCollapsible()}>
+            <button
+              type="button"
+              class="connections-panel__toggle"
+              aria-expanded={connectionsExpanded()}
+              aria-controls="connected-connections"
+              onClick={() => setConnectionsExpanded((open) => !open)}
+            >
+              <Show
+                when={connectionsExpanded()}
+                fallback={`Show all ${connectedRows().length} connections`}
+              >
+                Show less
+              </Show>
+              <svg
+                class="connections-panel__chevron"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </Show>
         </div>
       </Show>
 
