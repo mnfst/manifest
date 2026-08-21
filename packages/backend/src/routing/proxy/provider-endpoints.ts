@@ -546,6 +546,17 @@ export const PROVIDER_ENDPOINTS: Record<string, ProviderEndpoint> = {
     buildPath: () => '/v1/messages',
     format: 'anthropic',
   },
+  // OpenCode Go's Responses-only models (Grok 4.5, GPT 5.6 Luna, Muse Spark)
+  // reject /v1/chat/completions — the docs Endpoints table sends them to
+  // /v1/responses instead.
+  'opencode-go-responses': {
+    baseUrl: OPENCODE_GO_BASE,
+    buildHeaders: openaiHeaders,
+    buildPath: () => '/v1/responses',
+    format: 'chatgpt',
+    forwardResponsesStream: true,
+    acceptsMaxOutputTokens: true,
+  },
   // OpenCode Zen's /v1/chat/completions is a unified OpenAI-compatible
   // endpoint that handles Claude, GPT, and the long tail of OpenAI-compatible
   // models (Qwen, GLM, Kimi, MiniMax, …) on a single Bearer-auth route.
