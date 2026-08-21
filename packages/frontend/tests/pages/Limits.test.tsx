@@ -696,8 +696,11 @@ describe("Limits page", () => {
     mockIsSelfHosted = true;
     mockProviderFetchFails = true;
     render(() => <Limits />);
+    // data-has-provider is also "false" while the fetch is still in flight, so
+    // wait for it to settle or the assertion passes on the pre-error render.
     await waitFor(() => {
       const section = screen.getByTestId("email-provider-section");
+      expect(section.getAttribute("data-loading")).toBe("false");
       expect(section.getAttribute("data-has-provider")).toBe("false");
     });
     expect(screen.getByText("Create rule")).toBeDefined();
