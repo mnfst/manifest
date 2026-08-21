@@ -879,37 +879,37 @@ describe('provider pages', () => {
     model_counts: {},
   });
 
-  it('leaves the connections list uncapped at ten connections', async () => {
-    mockGetGlobalProviders.mockResolvedValue(manyConnections(10));
+  it('leaves the connections list uncapped at six connections', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(6));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
     const { container } = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Key 10')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Key 6')).toBeDefined());
 
     expect(container.querySelector('.connections-panel--collapsed')).toBeNull();
     expect(screen.queryByText(/^Show all /)).toBeNull();
   });
 
-  it('caps the connections list past ten and names how many there are', async () => {
-    mockGetGlobalProviders.mockResolvedValue(manyConnections(14));
+  it('caps the connections list past six and names how many there are', async () => {
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(9));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
     const { container } = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Key 14')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Key 9')).toBeDefined());
 
     expect(container.querySelector('.connections-panel--collapsed')).not.toBeNull();
-    const toggle = screen.getByText('Show all 14 connections').closest('button')!;
+    const toggle = screen.getByText('Show all 9 connections').closest('button')!;
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     // Every row stays in the DOM: the card scrolls, it does not paginate.
     expect(screen.getByText('Key 1')).toBeDefined();
-    expect(screen.getByText('Key 14')).toBeDefined();
+    expect(screen.getByText('Key 9')).toBeDefined();
   });
 
   it('expands the connections list and collapses it again', async () => {
-    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(8));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
     const { container } = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Show all 8 connections')).toBeDefined());
 
-    const toggle = screen.getByText('Show all 12 connections').closest('button')!;
+    const toggle = screen.getByText('Show all 8 connections').closest('button')!;
     // The button points at the region it expands.
     expect(container.querySelector(`#${toggle.getAttribute('aria-controls')}`)).not.toBeNull();
 
@@ -924,16 +924,16 @@ describe('provider pages', () => {
 
     fireEvent.click(screen.getByText('Show less').closest('button')!);
     await waitFor(() => {
-      expect(screen.getByText('Show all 12 connections')).toBeDefined();
+      expect(screen.getByText('Show all 8 connections')).toBeDefined();
       expect(container.querySelector('.connections-panel--collapsed')).not.toBeNull();
     });
   });
 
   it('brings the bottom fade back after expanding and collapsing again', async () => {
-    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(8));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
     const { container } = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Show all 8 connections')).toBeDefined());
 
     const body = container.querySelector('.connections-panel__body') as HTMLElement;
     const viewport = container.querySelector('.connections-panel__viewport')!;
@@ -942,20 +942,20 @@ describe('provider pages', () => {
 
     // Expanding drops the scroll position, so the flag must not survive into
     // the next collapse and hide the fade at the top of the list.
-    fireEvent.click(screen.getByText('Show all 12 connections').closest('button')!);
+    fireEvent.click(screen.getByText('Show all 8 connections').closest('button')!);
     await waitFor(() => expect(screen.getByText('Show less')).toBeDefined());
     expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(false);
 
     fireEvent.click(screen.getByText('Show less').closest('button')!);
-    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Show all 8 connections')).toBeDefined());
     expect(viewport.classList.contains('scroll-panel--at-bottom')).toBe(false);
   });
 
   it('drops the bottom fade once the capped list is scrolled to the end', async () => {
-    mockGetGlobalProviders.mockResolvedValue(manyConnections(12));
+    mockGetGlobalProviders.mockResolvedValue(manyConnections(8));
     mockGetProviderUsage.mockResolvedValue({ providers: [] });
     const { container } = render(() => <Byok />);
-    await waitFor(() => expect(screen.getByText('Show all 12 connections')).toBeDefined());
+    await waitFor(() => expect(screen.getByText('Show all 8 connections')).toBeDefined());
 
     const body = container.querySelector('.connections-panel__body') as HTMLElement;
     const viewport = container.querySelector('.connections-panel__viewport')!;

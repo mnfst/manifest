@@ -117,7 +117,7 @@ const PAGE_COPY: Record<
   },
 };
 
-const CONNECTIONS_COLLAPSE_THRESHOLD = 10;
+const CONNECTIONS_COLLAPSE_THRESHOLD = 6;
 
 const providerListForKind = (kind: ProviderPageKind): ProviderDef[] => {
   if (kind === 'subscriptions')
