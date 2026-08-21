@@ -270,6 +270,35 @@ const MOCK_API_RESPONSE = {
       },
     },
   },
+  openrouter: {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    models: {
+      'qwen/qwen3-coder': {
+        id: 'qwen/qwen3-coder',
+        name: 'Qwen3 Coder',
+        tool_call: true,
+        cost: { input: 0.3, output: 1 },
+        limit: { context: 262144 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+      'google/gemini-3.5-flash': {
+        id: 'google/gemini-3.5-flash',
+        name: 'Gemini 3.5 Flash',
+        tool_call: true,
+        cost: { input: 0.3, output: 2.5 },
+        limit: { context: 1000000 },
+        modalities: { input: ['text', 'image'], output: ['text'] },
+      },
+      'google/gemma-3-4b-it': {
+        id: 'google/gemma-3-4b-it',
+        name: 'Gemma 3 4B',
+        tool_call: false,
+        cost: { input: 0.02, output: 0.04 },
+        modalities: { input: ['text'], output: ['text'] },
+      },
+    },
+  },
   nvidia: {
     id: 'nvidia',
     name: 'NVIDIA',
@@ -1517,6 +1546,90 @@ describe('ModelsDevSyncService', () => {
     it('should return null when provider or model is missing', () => {
       expect(service.lookupCustomProviderModel('Mammouth', 'openai/gpt-4o-mini')).toBeNull();
       expect(service.lookupCustomProviderModel('Kilo Gateway', 'missing-model')).toBeNull();
+    });
+  });
+
+  describe('lookupModelCapabilities', () => {
+    beforeEach(async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => MOCK_API_RESPONSE,
+      });
+      await service.refreshCache();
+    });
+
+    it('should prefer the native catalog', () => {
+      const model = service.lookupModelCapabilities('anthropic', 'claude-opus-4-6');
+      expect(model).not.toBeNull();
+      expect(model!.inputModalities).toEqual(['text', 'image']);
+    });
+
+    it('should resolve capability-only providers', () => {
+      // `kilo` is a first-class Manifest provider that models.dev may not
+      // price, so only the capability catalog resolves it.
+      expect(service.lookupModel('kilo', 'openai/gpt-4o-mini')).toBeNull();
+      const model = service.lookupModelCapabilities('kilo', 'openai/gpt-4o-mini');
+      expect(model).not.toBeNull();
+      expect(model!.name).toBe('GPT-4o mini');
+    });
+
+    it('should keep capability-only providers out of every pricing consumer', () => {
+      // getModelsForProvider feeds the shared pricing cache and the discovery
+      // fallback catalog. Kilo lists resold vendor models under the vendor's
+      // own ID, so its rates must not reach either.
+      expect(service.getModelsForProvider('kilo')).toEqual([]);
+      expect(service.isProviderSupported('kilo')).toBe(false);
+    });
+
+    it('should not count capability-only models as priced coverage', async () => {
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => MOCK_API_RESPONSE });
+      // Same total as refreshCache asserts: the kilo model is cached for
+      // capabilities but never counted or priced.
+      expect(await service.refreshCache()).toBe(32);
+    });
+
+    it('should declare tool support for OpenRouter models', () => {
+      // #2737: every OpenRouter model looked tool-incapable because OpenRouter
+      // reached neither map, so `tools` was never added.
+      expect(service.lookupModel('openrouter', 'qwen/qwen3-coder')).toBeNull();
+      const model = service.lookupModelCapabilities('openrouter', 'qwen/qwen3-coder');
+      expect(model).not.toBeNull();
+      expect(model!.capabilities).toContain('tools');
+      expect(
+        service.lookupModelCapabilities('openrouter', 'google/gemini-3.5-flash')!.inputModalities,
+      ).toEqual(['text', 'image']);
+    });
+
+    it('should keep OpenRouter models.dev rates out of the pricing cache', () => {
+      // OpenRouter's own /models feed prices its connections, including the
+      // `:free` and `:nitro` variants models.dev does not carry.
+      expect(service.getModelsForProvider('openrouter')).toEqual([]);
+      expect(service.isProviderSupported('openrouter')).toBe(false);
+    });
+
+    it('should resolve an OpenRouter variant suffix to its base model', () => {
+      // OpenRouter sells routing variants (`:batch`, `:free`, `:nitro`) that
+      // models.dev lists only under the base ID. Capabilities are the base
+      // model's either way.
+      const batch = service.lookupModelCapabilities('openrouter', 'qwen/qwen3-coder:batch');
+      expect(batch?.id).toBe('qwen/qwen3-coder');
+      expect(service.lookupModelCapabilities('openrouter', 'qwen/unknown-model:batch')).toBeNull();
+    });
+
+    it('should not strip a colon suffix for providers that use one in model IDs', () => {
+      // Ollama tags (`gpt-oss:120b`) and Bedrock versions (`-v1:0`) are part of
+      // the model ID, not a routing variant.
+      expect(service.lookupModelCapabilities('ollama-cloud', 'gpt-oss:120b')).not.toBeNull();
+      expect(service.lookupModelCapabilities('ollama-cloud', 'kimi-k3:8b')).toBeNull();
+    });
+
+    it('should not resolve local Ollama against the Ollama Cloud catalog', () => {
+      expect(service.lookupModelCapabilities('ollama', 'kimi-k3')).toBeNull();
+    });
+
+    it('should return null for providers on neither map', () => {
+      expect(service.lookupModelCapabilities('nous', 'some-model')).toBeNull();
+      expect(service.lookupModelCapabilities('kilo', 'missing-model')).toBeNull();
     });
   });
 

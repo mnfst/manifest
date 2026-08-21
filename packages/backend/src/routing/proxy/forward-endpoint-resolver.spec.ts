@@ -171,6 +171,48 @@ describe('resolveForwardEndpoint', () => {
     expect(out.customEndpoint?.buildPath(out.forwardModel)).toBe('/v1/chat/completions');
   });
 
+  it('leaves Vertex on the express base URL when no deployment is stored', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'vertex',
+      authType: 'api_key',
+      model: 'gemini-2.5-flash',
+      providerRegion: null,
+    });
+
+    // No override: the built-in express endpoint already resolves the project
+    // from the API key.
+    expect(out.customEndpoint).toBeUndefined();
+    expect(out.forwardModel).toBe('gemini-2.5-flash');
+  });
+
+  it('addresses Vertex by project and location when the region carries them', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'vertex',
+      authType: 'api_key',
+      model: 'gemini-2.5-flash',
+      providerRegion: 'my-project/europe-west4',
+    });
+
+    expect(out.customEndpoint?.baseUrl).toBe(
+      'https://europe-west4-aiplatform.googleapis.com/v1/projects/my-project/locations/europe-west4',
+    );
+    expect(out.customEndpoint?.buildPath(out.forwardModel)).toBe(
+      '/publishers/google/models/gemini-2.5-flash:generateContent',
+    );
+    expect(out.customEndpoint?.format).toBe('google');
+  });
+
+  it('falls back to express when the stored Vertex deployment is malformed', () => {
+    const out = resolveForwardEndpoint({
+      provider: 'vertex',
+      authType: 'api_key',
+      model: 'gemini-2.5-flash',
+      providerRegion: 'us-central1',
+    });
+
+    expect(out.customEndpoint).toBeUndefined();
+  });
+
   it('keeps the selected Bedrock region for OpenAI Responses models', () => {
     const out = resolveForwardEndpoint({
       provider: 'bedrock',
