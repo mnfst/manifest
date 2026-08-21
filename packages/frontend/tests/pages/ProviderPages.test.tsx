@@ -856,7 +856,7 @@ describe('provider pages', () => {
     });
   });
   // ── Collapsed connections list ──────────────────────────────────────────
-  // Past ten connections the list is capped inside its own card so the
+  // Past six connections the list is capped inside its own card so the
   // supported-provider catalog below stays reachable. Nothing is dropped: the
   // card scrolls, and the footer button expands it to full height.
   const manyConnections = (count: number) => ({
