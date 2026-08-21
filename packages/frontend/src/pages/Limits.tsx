@@ -40,12 +40,15 @@ const Limits: Component = () => {
   const [routingStatus] = createResource(() => agentName(), getRoutingStatus);
   const [isSelfHosted] = createResource(checkIsSelfHosted);
   const [emailConfigured] = createResource(checkEmailConfigured);
-  // Only fetch the provider config on self-hosted — cloud never renders it, and
-  // an errored resource read would take the whole page down with it.
+  // Only fetch the provider config on self-hosted: cloud never renders it.
   const [emailProvider, { refetch: refetchProvider }] = createResource(
     () => (isSelfHosted() === true ? true : undefined),
     getEmailProvider,
   );
+  // Solid re-throws when you read an errored resource, so every read below goes
+  // through this accessor. A failed initial fetch or a failed refresh after a
+  // successful delete reads as "no provider saved" instead of taking the page down.
+  const savedProvider = () => (emailProvider.error ? undefined : emailProvider());
   const session = authClient.useSession();
   const [showModal, setShowModal] = createSignal(false);
   const [showEditProvider, setShowEditProvider] = createSignal(false);
@@ -62,7 +65,7 @@ const Limits: Component = () => {
   // Cloud always has a sender. Self-hosted has one when the operator saved a
   // provider in the dashboard or set the EMAIL_* environment variables.
   const hasProvider = () =>
-    isSelfHosted() !== true || !!emailProvider() || emailConfigured() === true;
+    isSelfHosted() !== true || !!savedProvider() || emailConfigured() === true;
 
   const hasEmailRules = () => {
     const r = rules();
@@ -267,8 +270,8 @@ const Limits: Component = () => {
           }
         >
           <EmailProviderSection
-            emailProvider={emailProvider()}
-            loading={emailProvider.state === 'pending' || emailProvider.state === 'unresolved'}
+            emailProvider={savedProvider()}
+            loading={emailProvider.loading || emailProvider.state === 'unresolved'}
             onConfigured={refetchProvider}
             onEdit={() => setShowEditProvider(true)}
             onRemove={() => setShowRemoveProvider(true)}
@@ -339,11 +342,11 @@ const Limits: Component = () => {
 
       <EmailProviderModal
         open={showEditProvider()}
-        initialProvider={emailProvider()?.provider ?? 'resend'}
+        initialProvider={savedProvider()?.provider ?? 'resend'}
         editMode={true}
-        existingKeyPrefix={emailProvider()?.keyPrefix ?? null}
-        existingDomain={emailProvider()?.domain ?? null}
-        existingNotificationEmail={emailProvider()?.notificationEmail ?? null}
+        existingKeyPrefix={savedProvider()?.keyPrefix ?? null}
+        existingDomain={savedProvider()?.domain ?? null}
+        existingNotificationEmail={savedProvider()?.notificationEmail ?? null}
         onClose={() => setShowEditProvider(false)}
         onSaved={() => refetchProvider()}
       />

@@ -16,6 +16,7 @@ let mockRoutingStatus = { enabled: false };
 let mockIsSelfHosted = false;
 let mockEmailProvider: any = null;
 let mockRemoveFails = false;
+let mockProviderFetchFails = false;
 
 vi.mock("../../src/services/api.js", () => ({
   getNotificationRules: vi.fn(() => Promise.resolve(mockRules)),
@@ -23,7 +24,9 @@ vi.mock("../../src/services/api.js", () => ({
   createNotificationRule: vi.fn(() => Promise.resolve({})),
   updateNotificationRule: vi.fn(() => Promise.resolve({})),
   deleteNotificationRule: vi.fn(() => Promise.resolve({})),
-  getEmailProvider: vi.fn(() => Promise.resolve(mockEmailProvider)),
+  getEmailProvider: vi.fn(() =>
+    mockProviderFetchFails ? Promise.reject(new Error("fetch boom")) : Promise.resolve(mockEmailProvider),
+  ),
   removeEmailProvider: vi.fn(() => (mockRemoveFails ? Promise.reject(new Error("boom")) : Promise.resolve({}))),
   getRoutingStatus: vi.fn(() => Promise.resolve(mockRoutingStatus)),
 }));
@@ -99,6 +102,7 @@ describe("Limits page", () => {
     mockIsSelfHosted = false;
     mockEmailProvider = null;
     mockRemoveFails = false;
+    mockProviderFetchFails = false;
   });
 
   it("does not render a duplicate page heading", () => {
@@ -684,6 +688,46 @@ describe("Limits page", () => {
     fireEvent.click(screen.getByText("Cancel"));
     await waitFor(() => {
       expect(screen.queryByText("Remove provider")).toBeNull();
+    });
+  });
+  it("keeps the page up when the provider config fails to load", async () => {
+    // Reading an errored Solid resource re-throws. Every read goes through the
+    // guarded accessor, so a failed fetch reads as "no provider saved".
+    mockIsSelfHosted = true;
+    mockProviderFetchFails = true;
+    render(() => <Limits />);
+    await waitFor(() => {
+      const section = screen.getByTestId("email-provider-section");
+      expect(section.getAttribute("data-has-provider")).toBe("false");
+    });
+    expect(screen.getByText("Create rule")).toBeDefined();
+  });
+
+  it("stays up when the refresh after a successful removal fails", async () => {
+    mockIsSelfHosted = true;
+    mockEmailProvider = { provider: "resend", keyPrefix: "re_abc" };
+    render(() => <Limits />);
+    await waitFor(() => {
+      expect(screen.getByTestId("email-provider-section").getAttribute("data-has-provider")).toBe(
+        "true",
+      );
+    });
+    // The DELETE succeeds, the refetch behind it does not.
+    mockProviderFetchFails = true;
+    fireEvent.click(screen.getByTestId("section-remove"));
+    await waitFor(() => {
+      expect(screen.getByText("Remove provider")).toBeDefined();
+    });
+    fireEvent.click(screen.getByText("Remove"));
+    const { toast } = await import("../../src/services/toast-store.js");
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("Email provider removed");
+      expect(screen.queryByText("Remove provider")).toBeNull();
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("email-provider-section").getAttribute("data-has-provider")).toBe(
+        "false",
+      );
     });
   });
 });
