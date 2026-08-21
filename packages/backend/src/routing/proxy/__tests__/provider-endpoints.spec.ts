@@ -183,6 +183,7 @@ describe('resolveEndpointKey', () => {
     expect(known).toContain('kiro');
     expect(known).toContain('opencode-go');
     expect(known).toContain('opencode-go-anthropic');
+    expect(known).toContain('opencode-go-responses');
     expect(known).toContain('opencode-zen');
     expect(known).toContain('opencode-zen-google');
   });
@@ -723,6 +724,19 @@ describe('PROVIDER_ENDPOINTS', () => {
     expect(headers['Authorization']).toBeUndefined();
   });
 
+  it('opencode-go-responses targets /v1/responses with chatgpt format and Bearer auth', () => {
+    const ep = PROVIDER_ENDPOINTS['opencode-go-responses'];
+    expect(ep.baseUrl).toBe('https://opencode.ai/zen/go');
+    expect(ep.format).toBe('chatgpt');
+    expect(ep.buildPath('grok-4.5')).toBe('/v1/responses');
+    expect(ep.forwardResponsesStream).toBe(true);
+    expect(ep.acceptsMaxOutputTokens).toBe(true);
+    expect(ep.buildHeaders('og-token')).toEqual({
+      Authorization: 'Bearer og-token',
+      'Content-Type': 'application/json',
+    });
+  });
+
   it('opencode-zen uses OpenCode Zen base URL with OpenAI format', () => {
     const ep = PROVIDER_ENDPOINTS['opencode-zen'];
     expect(ep.baseUrl).toBe('https://opencode.ai/zen');
@@ -855,6 +869,7 @@ describe('PROVIDER_ENDPOINTS', () => {
       'minimax-subscription',
       'qwen-subscription-responses',
       'opencode-go-anthropic',
+      'opencode-go-responses',
       'opencode-zen-google',
     ];
 

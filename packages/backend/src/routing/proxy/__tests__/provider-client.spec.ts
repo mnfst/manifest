@@ -2904,6 +2904,91 @@ describe('ProviderClient', () => {
       expect(sentBody.model).toBe('future-model');
     });
 
+    it('routes catalog-declared Responses models to /v1/responses with chatgpt conversion', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const catalogClient = new ProviderClient({
+        getFormat: jest.fn().mockReturnValue(null),
+        resolveFormat: jest.fn().mockResolvedValue('responses'),
+      } as any);
+
+      const result = await catalogClient.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/grok-4.5',
+        body,
+        stream: false,
+        authType: 'subscription',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/go/v1/responses',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer og-token',
+            'Content-Type': 'application/json',
+          }),
+        }),
+      );
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('grok-4.5');
+      // Body is Responses-API shape (input/store), not Chat Completions.
+      expect(Array.isArray(sentBody.input)).toBe(true);
+      expect(sentBody.store).toBe(false);
+      expect(sentBody.messages).toBeUndefined();
+      expect(sentBody.stream).toBe(false);
+      expect(result.isChatGpt).toBe(true);
+      expect(result.isAnthropic).toBe(false);
+    });
+
+    it('maps max_tokens to max_output_tokens for OpenCode Go Responses models', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const catalogClient = new ProviderClient({
+        resolveFormat: jest.fn().mockResolvedValue('responses'),
+      } as any);
+
+      await catalogClient.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/gpt-5.6-luna',
+        body: { ...body, max_tokens: 1536 },
+        stream: false,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://opencode.ai/zen/go/v1/responses',
+        expect.any(Object),
+      );
+      expect(sentBody.max_output_tokens).toBe(1536);
+      expect(sentBody.max_tokens).toBeUndefined();
+    });
+
+    it('forwards native Responses requests for OpenCode Go Responses models', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const catalogClient = new ProviderClient({
+        resolveFormat: jest.fn().mockResolvedValue('responses'),
+      } as any);
+
+      const result = await catalogClient.forward({
+        provider: 'opencode-go',
+        apiKey: 'og-token',
+        model: 'opencode-go/grok-4.5',
+        body: { input: 'Hello', max_output_tokens: 50 },
+        stream: false,
+        authType: 'subscription',
+        apiMode: 'responses',
+      });
+
+      const url = mockFetch.mock.calls[0][0] as string;
+      expect(url).toBe('https://opencode.ai/zen/go/v1/responses');
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.model).toBe('grok-4.5');
+      expect(sentBody.input).toBe('Hello');
+      expect(sentBody.max_output_tokens).toBe(50);
+      expect(result.isResponses).toBe(true);
+    });
+
     it('uses catalog format over family fallback when available', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const catalogClient = new ProviderClient({

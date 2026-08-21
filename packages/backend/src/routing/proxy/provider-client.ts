@@ -502,10 +502,14 @@ export class ProviderClient {
     }
     if (resolved === 'opencode-go') {
       const bareOpenCodeModel = stripVendorPrefix(model).toLowerCase();
-      const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
       const catalogFormat = await this.resolveOpencodeGoFormat(bareOpenCodeModel);
-      if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
-        resolved = 'opencode-go-anthropic';
+      if (catalogFormat === 'responses') {
+        resolved = 'opencode-go-responses';
+      } else {
+        const knownAnthropicFamily = this.isKnownOpencodeGoAnthropicFamily(bareOpenCodeModel);
+        if (catalogFormat === 'anthropic' || (!catalogFormat && knownAnthropicFamily)) {
+          resolved = 'opencode-go-anthropic';
+        }
       }
     }
     if (resolved === 'commandcode') {
@@ -534,7 +538,9 @@ export class ProviderClient {
     return { endpoint: PROVIDER_ENDPOINTS[resolved], endpointKey: resolved };
   }
 
-  private async resolveOpencodeGoFormat(bareModel: string): Promise<'openai' | 'anthropic' | null> {
+  private async resolveOpencodeGoFormat(
+    bareModel: string,
+  ): Promise<'openai' | 'anthropic' | 'responses' | null> {
     if (!this.opencodeGoCatalog) return null;
     try {
       return await this.opencodeGoCatalog.resolveFormat(bareModel);
