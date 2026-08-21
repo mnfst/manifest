@@ -1,0 +1,23 @@
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_1330eca8ef806c::t_21267eb30602a9 143-144,146
+  s_1330eca8ef806c::t_d639e3c19858af 248-272
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_1330eca8ef806c::t_8abaa24a696255 272
+  s_1330eca8ef806c::t_aecdb20dbba35f 286-289,294-311,315-320
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0e4c4fd16343898f26c09dfc0071ea817ff23dae",
+  "prompts": {},
+  "sessions": {
+    "s_1330eca8ef806c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "57090c30-a0b8-45c1-91a2-59ce7bbe8fba",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

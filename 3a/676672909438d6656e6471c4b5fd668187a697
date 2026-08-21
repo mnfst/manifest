@@ -1,0 +1,27 @@
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_2a23f53bcd21d7::t_12fff9500306fe 462-481
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_2a23f53bcd21d7::t_f1e0f40356a43a 1162-1164
+  s_2a23f53bcd21d7::t_7d222ab6cbfc73 1139-1141
+packages/backend/src/common/utils/cost-calculator.ts
+  s_2a23f53bcd21d7::t_20c3ad4d3f9c08 54-56
+packages/backend/src/database/models-dev-sync.service.ts
+  s_2a23f53bcd21d7::t_3514ebf069003e 567
+  s_2a23f53bcd21d7::t_a56d3832af571f 579-582
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3a676672909438d6656e6471c4b5fd668187a697",
+  "prompts": {},
+  "sessions": {
+    "s_2a23f53bcd21d7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6d15cce2-097b-4df3-885a-8cfd737e654c",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

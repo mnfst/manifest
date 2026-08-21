@@ -1,0 +1,33 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_d501b238b14871::t_837df94848c006 329
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_d501b238b14871::t_837df94848c006 125-127,138-141
+packages/backend/src/routing/model.controller.spec.ts
+  s_d501b238b14871::t_b8c74bf61f7b35 80,387,408,416,433,457,463
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_d501b238b14871::t_ad185dcba05c3b 135
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_d501b238b14871::t_b8c74bf61f7b35 147,191,479,507
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_d501b238b14871::t_ad185dcba05c3b 16
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_d501b238b14871::t_3a6f9c1110c92e 1280-1310
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_d501b238b14871::t_d5127d7d3b6b99 56,60,65,147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0df26d91759a684b22f3963ca10893d2871092c1",
+  "prompts": {},
+  "sessions": {
+    "s_d501b238b14871": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "632a9e45-f2ca-453e-a25d-ee044ddf2a02",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

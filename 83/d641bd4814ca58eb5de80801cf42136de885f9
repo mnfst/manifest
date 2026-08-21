@@ -1,0 +1,27 @@
+.changeset/openrouter-tool-capabilities.md
+  s_2584d3261d14e7::t_45cd24fdb4d88f 1-5
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_2584d3261d14e7::t_71647a29178e4c 273-301
+  s_2584d3261d14e7::t_4b0a69a9a25b07 1591-1625
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_2584d3261d14e7::t_6c29de41ef2bcd 140-155
+packages/backend/src/database/models-dev-sync.service.ts
+  s_2584d3261d14e7::t_e022add3a01af0 63-67,221-227,506-510
+  s_2584d3261d14e7::t_f6c36f454c0f76 511-514
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "83d641bd4814ca58eb5de80801cf42136de885f9",
+  "prompts": {},
+  "sessions": {
+    "s_2584d3261d14e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8762e8d-dd30-4581-9086-e262699b9f29",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

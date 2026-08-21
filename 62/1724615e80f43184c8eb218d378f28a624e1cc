@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_42e0fc047eb6c5::t_497af450adc22a 174-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "621724615e80f43184c8eb218d378f28a624e1cc",
+  "prompts": {},
+  "sessions": {
+    "s_42e0fc047eb6c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d8459669-8327-4fa0-b7f8-f5aeea60800a",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
