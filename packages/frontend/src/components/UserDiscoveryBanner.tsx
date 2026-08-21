@@ -2,7 +2,7 @@ import { Show, createSignal, type Component } from 'solid-js';
 
 export const USER_DISCOVERY_BANNER_DISMISSED_KEY = 'manifest:user-discovery-banner-dismissed:v1';
 
-export const USER_DISCOVERY_BOOKING_URL = 'https://calendly.com/sebastien-manifest/15min';
+export const USER_DISCOVERY_BOOKING_URL = 'https://calendly.com/sebastien-manifest/30min';
 
 function readDismissed(): boolean {
   try {
