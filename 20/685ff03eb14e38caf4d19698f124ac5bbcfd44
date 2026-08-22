@@ -1,0 +1,27 @@
+packages/backend/src/database/migrations/1802000000000-SlimTenantAgentModelIndex.spec.ts
+  s_8dc524e2b43325::t_f54f077989315b 12
+  s_8dc524e2b43325::t_2d74871d9d3942 28-29,31,34-36,43-44,46,49-50
+  s_8dc524e2b43325::t_45fd3223619c0d 6,9,11,18
+  s_8dc524e2b43325::t_17420e8dd06bd5 45
+  s_8dc524e2b43325::t_4d753b99bc0d46 30
+packages/backend/src/database/migrations/1802000000000-SlimTenantAgentModelIndex.ts
+  s_8dc524e2b43325::t_01edb0941a205e 24-29
+  s_8dc524e2b43325::t_65df9c7b699195 40-42,51-53,59-66
+  s_8dc524e2b43325::t_40b7468e42a593 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "20685ff03eb14e38caf4d19698f124ac5bbcfd44",
+  "prompts": {},
+  "sessions": {
+    "s_8dc524e2b43325": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fd6c0d95dffeT1I3jSee1VmvSs",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
