@@ -36,6 +36,7 @@ export function overrideSpecificity(
   provider: string,
   authType?: AuthType,
   providerKeyLabel?: string,
+  skipWhenQuotaExhausted?: boolean,
 ) {
   const body: Record<string, unknown> = { model, provider };
   if (authType) {
@@ -43,6 +44,7 @@ export function overrideSpecificity(
     const route: ModelRoute = providerKeyLabel
       ? { provider, authType, model, keyLabel: providerKeyLabel }
       : { provider, authType, model };
+    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
     body.route = route;
   }
   if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;

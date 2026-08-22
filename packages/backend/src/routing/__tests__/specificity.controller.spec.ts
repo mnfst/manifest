@@ -72,8 +72,35 @@ describe('SpecificityController', () => {
         'openai',
         'api_key',
         undefined,
+        undefined,
       );
       expect(result).toBe(override);
+    });
+
+    it('should forward skipWhenQuotaExhausted from the structured route', async () => {
+      const body = {
+        model: 'claude',
+        route: {
+          provider: 'anthropic',
+          authType: 'subscription' as const,
+          model: 'claude',
+          skipWhenQuotaExhausted: true,
+        },
+      };
+      mockSpecificityService.setOverride.mockResolvedValue({ id: 'sa-1' });
+
+      await controller.setOverride(ctx, 'test-agent', 'coding', body);
+
+      expect(mockSpecificityService.setOverride).toHaveBeenCalledWith(
+        'agent-1',
+        'tenant-1',
+        'coding',
+        'claude',
+        'anthropic',
+        'subscription',
+        undefined,
+        true,
+      );
     });
 
     it('should throw BadRequestException for invalid category', async () => {

@@ -84,6 +84,7 @@ export class SpecificityService {
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ): Promise<SpecificityAssignment> {
     const explicit = explicitRoute(model, provider, authType, providerKeyLabel);
     const route =
@@ -100,6 +101,13 @@ export class SpecificityService {
       );
     }
     const existing = await this.repo.findOne({ where: { agent_id: agentId, category } });
+
+    // skipWhenQuotaExhausted: true sets the flag, explicit false clears it,
+    // and omitted (undefined) preserves the stored route's value.
+    const preserved =
+      skipWhenQuotaExhausted === undefined &&
+      existing?.override_route?.skipWhenQuotaExhausted === true;
+    if (skipWhenQuotaExhausted === true || preserved) route.skipWhenQuotaExhausted = true;
 
     if (existing) {
       assertStreamableResponseMode(
@@ -146,6 +154,7 @@ export class SpecificityService {
           provider,
           authType,
           providerKeyLabel,
+          skipWhenQuotaExhausted,
         );
       }
       throw err;

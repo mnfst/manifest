@@ -5,6 +5,8 @@ export interface ModelRoute {
   authType: AuthType;
   model: string;
   keyLabel?: string | null;
+  /** Skip this route while the backing subscription connection's quota is exhausted. */
+  skipWhenQuotaExhausted?: boolean;
 }
 
 export function routeEquals(
@@ -42,6 +44,12 @@ export function isModelRoute(value: unknown): value is ModelRoute {
     typeof v.keyLabel !== 'string'
   )
     return false;
+  if (
+    'skipWhenQuotaExhausted' in v &&
+    v.skipWhenQuotaExhausted !== undefined &&
+    typeof v.skipWhenQuotaExhausted !== 'boolean'
+  )
+    return false;
   return true;
 }
 
@@ -53,6 +61,7 @@ export interface LegacyOverrideTriple {
   model: string | null;
   provider: string | null;
   authType: AuthType | null;
+  skipWhenQuotaExhausted?: boolean | null;
 }
 
 /**
@@ -64,11 +73,15 @@ export interface LegacyOverrideTriple {
 export function legacyToRoute(triple: LegacyOverrideTriple): ModelRoute | null {
   if (!triple.model) return null;
   if (!triple.provider || !triple.authType) return null;
-  return {
+  const route: ModelRoute = {
     provider: triple.provider,
     authType: triple.authType,
     model: triple.model,
   };
+  if (triple.skipWhenQuotaExhausted != null) {
+    route.skipWhenQuotaExhausted = triple.skipWhenQuotaExhausted;
+  }
+  return route;
 }
 
 /**
@@ -77,9 +90,13 @@ export function legacyToRoute(triple: LegacyOverrideTriple): ModelRoute | null {
  */
 export function routeToLegacy(route: ModelRoute | null): LegacyOverrideTriple {
   if (!route) return { model: null, provider: null, authType: null };
-  return {
+  const triple: LegacyOverrideTriple = {
     model: route.model,
     provider: route.provider,
     authType: route.authType,
   };
+  if (route.skipWhenQuotaExhausted != null) {
+    triple.skipWhenQuotaExhausted = route.skipWhenQuotaExhausted;
+  }
+  return triple;
 }

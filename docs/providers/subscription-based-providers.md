@@ -33,6 +33,10 @@ If you already pay for one of the plans below, Manifest can route through that s
 
 Providers that support both API keys and subscriptions show both tabs. Subscription-only providers show only the subscription flow. In routing pickers, subscription rows appear only after a usable subscription credential is saved (`has_api_key=true`).
 
+## Skip on quota exhaustion
+
+For providers with a usage endpoint — Anthropic (Claude), Moonshot (Kimi Coding Plan), OpenAI (ChatGPT), MiniMax, and xAI (Grok) — each route in a tier's primary slot or fallback chain offers a "Skip on quota exhaustion" toggle (the gauge icon). When enabled, Manifest polls the provider's quota state and skips that route while the subscription is exhausted, falling through to the next route instead of burning a failed attempt. Off by default; the poll interval defaults to 60s (`SUBSCRIPTION_QUOTA_POLL_INTERVAL_MS`, minimum 30s).
+
 ## How auth works per provider
 
 ### OpenAI

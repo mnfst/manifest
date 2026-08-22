@@ -141,6 +141,7 @@ describe('HeaderTierController', () => {
       'OpenAI',
       'api_key',
       undefined,
+      undefined,
     );
   });
 
@@ -165,6 +166,32 @@ describe('HeaderTierController', () => {
       'openai',
       'api_key',
       'Personal',
+      undefined,
+    );
+  });
+
+  it('setOverride forwards route skipWhenQuotaExhausted when present', async () => {
+    const { controller, service } = makeController();
+    await controller.setOverride(ctx, 'my-agent', 'ht-1', {
+      model: 'claude',
+      provider: 'anthropic',
+      authType: 'subscription',
+      route: {
+        model: 'claude',
+        provider: 'anthropic',
+        authType: 'subscription',
+        skipWhenQuotaExhausted: true,
+      },
+    });
+    expect(service.setOverride).toHaveBeenCalledWith(
+      'agent-1',
+      'tenant-1',
+      'ht-1',
+      'claude',
+      'anthropic',
+      'subscription',
+      undefined,
+      true,
     );
   });
 

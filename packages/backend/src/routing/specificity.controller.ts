@@ -58,6 +58,7 @@ export class SpecificityController {
       provider,
       authType,
       providerKeyLabel,
+      body.route?.skipWhenQuotaExhausted,
     );
   }
 

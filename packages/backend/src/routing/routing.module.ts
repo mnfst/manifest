@@ -10,6 +10,7 @@ import { CustomProviderModule } from './custom-provider/custom-provider.module';
 import { ResolveModule } from './resolve/resolve.module';
 import { HeaderTiersModule } from './header-tiers/header-tiers.module';
 import { AutofixModule } from './autofix/autofix.module';
+import { SubscriptionQuotaModule } from './subscription-quota.module';
 import { ProviderController } from './provider.controller';
 import { TierController } from './tier.controller';
 import { ModelController } from './model.controller';
@@ -56,6 +57,7 @@ import { InstallMetadata } from '../entities/install-metadata.entity';
     ResolveModule,
     HeaderTiersModule,
     AutofixModule,
+    SubscriptionQuotaModule,
   ],
   controllers: [
     ProviderController,
@@ -69,6 +71,6 @@ import { InstallMetadata } from '../entities/install-metadata.entity';
     ManagedFreeProviderController,
   ],
   providers: [OllamaSyncService, ManagedFreeProviderService],
-  exports: [RoutingCoreModule, CustomProviderModule, OAuthModule],
+  exports: [RoutingCoreModule, CustomProviderModule, OAuthModule, SubscriptionQuotaModule],
 })
 export class RoutingModule {}

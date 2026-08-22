@@ -6,6 +6,7 @@ import {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
+  supportsQuotaCheck,
 } from '../src/subscription';
 
 describe('SUBSCRIPTION_PROVIDER_CONFIGS', () => {
@@ -648,5 +649,30 @@ describe('getSubscriptionCapabilities', () => {
 
   it('returns null for unsupported providers', () => {
     expect(getSubscriptionCapabilities('unknown')).toBeNull();
+  });
+});
+
+describe('supportsQuotaCheck', () => {
+  it('returns true for providers with a quota endpoint', () => {
+    expect(supportsQuotaCheck('anthropic')).toBe(true);
+    expect(supportsQuotaCheck('moonshot')).toBe(true);
+    expect(supportsQuotaCheck('openai')).toBe(true);
+    expect(supportsQuotaCheck('minimax')).toBe(true);
+    expect(supportsQuotaCheck('xai')).toBe(true);
+  });
+
+  it('is case-insensitive', () => {
+    expect(supportsQuotaCheck('Anthropic')).toBe(true);
+    expect(supportsQuotaCheck('MOONSHOT')).toBe(true);
+  });
+
+  it('returns false for subscription providers without a quota endpoint', () => {
+    expect(supportsQuotaCheck('gemini')).toBe(false);
+    expect(supportsQuotaCheck('zai')).toBe(false);
+  });
+
+  it('returns false for unsupported providers', () => {
+    expect(supportsQuotaCheck('unknown')).toBe(false);
+    expect(supportsQuotaCheck('')).toBe(false);
   });
 });

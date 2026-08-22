@@ -97,6 +97,7 @@ export class TierService {
     provider?: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ): Promise<TierAssignment> {
     const available = await this.discoveryService.getModelsForAgent(tenantId, agentId);
     const matches = available.filter((m) => m.id === model);
@@ -136,6 +137,14 @@ export class TierService {
     const existing = await this.tierRepo.findOne({
       where: { agent_id: agentId, tier },
     });
+
+    // skipWhenQuotaExhausted: true sets the flag, explicit false clears it,
+    // and omitted (undefined) preserves the stored route's value — a model
+    // change from the picker must not silently wipe the toggle.
+    const preserved =
+      skipWhenQuotaExhausted === undefined &&
+      existing?.override_route?.skipWhenQuotaExhausted === true;
+    if (skipWhenQuotaExhausted === true || preserved) route.skipWhenQuotaExhausted = true;
 
     if (existing) {
       existing.override_route = route;
@@ -187,6 +196,7 @@ export class TierService {
           provider,
           authType,
           providerKeyLabel,
+          skipWhenQuotaExhausted,
         );
       }
       throw err;

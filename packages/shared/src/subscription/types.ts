@@ -3,6 +3,8 @@ export interface SubscriptionCapabilities {
   modelContextWindows?: Readonly<Record<string, number>>;
   supportsPromptCaching: boolean;
   supportsBatching: boolean;
+  /** Provider exposes a usage/quota endpoint the router can poll. */
+  quotaCheck?: boolean;
 }
 
 export interface SubscriptionProviderConfig {

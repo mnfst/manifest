@@ -52,6 +52,7 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
       props.onFallbackUpdate,
       props.onAddFallback,
       props.onPinKey,
+      props.onQuotaSkipToggle,
       props.connectedProviders,
       props.persistFallbacks,
       props.persistClearFallbacks,
@@ -64,6 +65,14 @@ vi.mock('../../src/pages/RoutingTierCard.js', () => ({
     return (
       <div data-testid={`tier-card-${stage.id}`}>
         <span>{stage.label}</span>
+        <button
+          data-testid={`quota-toggle-${stage.id}`}
+          onClick={() =>
+            (props.onQuotaSkipToggle as (cat: string, enabled: boolean) => void)?.(stage.id, true)
+          }
+        >
+          quota-toggle
+        </button>
       </div>
     );
   },
@@ -147,6 +156,17 @@ describe('RoutingSpecificitySection', () => {
     ));
     expect(screen.getByTestId('tier-card-coding')).toBeDefined();
     expect(screen.queryByTestId('tier-card-trading')).toBeNull();
+  });
+
+  it('threads onQuotaSkipToggle into the tier cards', () => {
+    const onQuotaSkipToggle = vi.fn();
+    render(() => (
+      <RoutingSpecificitySection
+        {...makeProps({ assignments: () => [codingActiveWithRoute], onQuotaSkipToggle })}
+      />
+    ));
+    fireEvent.click(screen.getByTestId('quota-toggle-coding'));
+    expect(onQuotaSkipToggle).toHaveBeenCalledWith('coding', true);
   });
 
   it('renders the task-specific deprecation notice', () => {

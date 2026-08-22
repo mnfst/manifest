@@ -24,6 +24,7 @@ import { authBadgeFor } from './AuthBadge.js';
 import { providerIcon, customProviderLogo } from './ProviderIcon.js';
 import ModelParamsAffordance from './ModelParamsAffordance.jsx';
 import RouteKeyChip from './RouteKeyChip.js';
+import QuotaSkipToggle from './QuotaSkipToggle.js';
 import { modelParamsScopeForTier } from 'manifest-shared';
 
 interface FallbackListProps {
@@ -101,6 +102,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   const [removingIndex, setRemovingIndex] = createSignal<number | null>(null);
   const [dragIndex, setDragIndex] = createSignal<number | null>(null);
   const [dropSlot, setDropSlot] = createSignal<number | null>(null);
+  const [isMutating, setIsMutating] = createSignal(false);
   let listRef: HTMLDivElement | undefined;
 
   const modelLabel = (model: string): string => {
@@ -168,6 +170,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
    * keep optimistic-update parents that still consume `string[]` working.
    */
   const setLabelAt = async (index: number, newLabel: string | null) => {
+    if (isMutating()) return;
+    setIsMutating(true);
     const original = [...props.fallbacks];
     const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
     const updatedRoutes: ModelRoute[] | null = originalRoutes
@@ -186,6 +190,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       toast.success(newLabel ? `Fallback pinned to "${newLabel}"` : 'Fallback key pin cleared');
     } catch {
       props.onUpdate(original, originalRoutes);
+    } finally {
+      setIsMutating(false);
     }
   };
 
@@ -195,6 +201,32 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     const info = props.models.find((m) => m.model_name === model);
     if (info) return resolveProviderId(info.provider);
     return undefined;
+  };
+
+  /**
+   * Flip the quota-skip flag on a single fallback row. Mirrors setLabelAt:
+   * the structured routes are canonical, so the flag rides through the same
+   * persist call with optimistic update + revert on failure. A second click
+   * while the save is in flight is ignored so two rapid toggles can't submit
+   * stale state or land out of order.
+   */
+  const setQuotaSkipAt = async (index: number, enabled: boolean) => {
+    if (isMutating() || !props.fallbackRoutes) return;
+    setIsMutating(true);
+    const original = [...props.fallbacks];
+    const originalRoutes = [...props.fallbackRoutes];
+    const updatedRoutes = originalRoutes.map((r, i) =>
+      i === index ? ({ ...r, skipWhenQuotaExhausted: enabled } as ModelRoute) : r,
+    );
+    props.onUpdate(original, updatedRoutes);
+    try {
+      await persistSet(props.agentName, props.tier, original, updatedRoutes);
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch {
+      props.onUpdate(original, originalRoutes);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   const authTypeFor = (providerId: string | undefined, index: number): string | null => {
@@ -230,6 +262,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleRemove = async (index: number) => {
+    if (isMutating()) return;
+    setIsMutating(true);
     setRemovingIndex(index);
     const original = [...props.fallbacks];
     const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
@@ -249,6 +283,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       props.onUpdate(original, originalRoutes);
     } finally {
       setRemovingIndex(null);
+      setIsMutating(false);
     }
   };
 
@@ -314,6 +349,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
     setDragIndex(null);
     setDropSlot(null);
 
+    if (isMutating()) return;
+
     // Primary model dropped into fallback list
     if (props.primaryDragging && fromIndex === null && toSlot !== null) {
       props.onPrimaryDropAtSlot?.(toSlot);
@@ -324,6 +361,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
 
     const insertAt = toSlot > fromIndex ? toSlot - 1 : toSlot;
     if (insertAt === fromIndex) return;
+
+    setIsMutating(true);
 
     const original = [...props.fallbacks];
     const originalRoutes = props.fallbackRoutes ? [...props.fallbackRoutes] : null;
@@ -342,6 +381,8 @@ const FallbackList: Component<FallbackListProps> = (props) => {
       toast.success('Fallback order updated');
     } catch {
       props.onUpdate(original, originalRoutes);
+    } finally {
+      setIsMutating(false);
     }
   };
 
@@ -396,7 +437,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         ? 'Skipped while Stream mode is active'
                         : undefined
                     }
-                    draggable={true}
+                    draggable={!isMutating()}
                     onDragStart={(e) => handleDragStart(i(), e)}
                     // Bind dragend on the draggable row itself rather than
                     // only on the container. When a fallback row is dropped
@@ -486,6 +527,12 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                           onPick={(label) => setLabelAt(i(), label)}
                         />
                       </Show>
+                      <QuotaSkipToggle
+                        route={route()}
+                        modelLabel={modelLabel(model())}
+                        disabled={isMutating()}
+                        onToggle={(enabled) => void setQuotaSkipAt(i(), enabled)}
+                      />
                       <Show
                         when={
                           props.getModelParams &&
@@ -511,7 +558,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
                         onClick={() => handleRemove(i())}
                         title="Remove fallback"
                         aria-label={`Remove ${modelLabel(model())}`}
-                        disabled={removingIndex() !== null}
+                        disabled={isMutating()}
                       >
                         {removingIndex() === i() ? (
                           <span class="spinner" style="width: 10px; height: 10px;" />
@@ -576,7 +623,7 @@ const FallbackList: Component<FallbackListProps> = (props) => {
           <button
             class="btn btn--outline btn--sm fallback-list__add"
             onClick={props.onAddFallback}
-            disabled={props.adding || removingIndex() !== null}
+            disabled={props.adding || isMutating()}
           >
             {props.adding ? (
               <span class="spinner" />

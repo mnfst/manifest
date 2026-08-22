@@ -140,6 +140,44 @@ describe('isModelRoute', () => {
       false,
     );
   });
+
+  it('accepts a boolean skipWhenQuotaExhausted flag', () => {
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: true,
+      }),
+    ).toBe(true);
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects a non-boolean skipWhenQuotaExhausted', () => {
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: 'yes',
+      }),
+    ).toBe(false);
+    expect(
+      isModelRoute({
+        provider: 'anthropic',
+        authType: 'subscription',
+        model: 'm',
+        skipWhenQuotaExhausted: 1,
+      }),
+    ).toBe(false);
+  });
 });
 
 describe('isModelRouteArray', () => {
@@ -219,6 +257,30 @@ describe('legacyToRoute / routeToLegacy round-trip', () => {
       model: 'claude-opus',
     };
     const triple = routeToLegacy(route);
+    expect(legacyToRoute(triple)).toEqual(route);
+  });
+
+  it('preserves skipWhenQuotaExhausted: false through the round-trip', () => {
+    const route: ModelRoute = {
+      provider: 'anthropic',
+      authType: 'subscription',
+      model: 'claude-opus',
+      skipWhenQuotaExhausted: false,
+    };
+    const triple = routeToLegacy(route);
+    expect(triple.skipWhenQuotaExhausted).toBe(false);
+    expect(legacyToRoute(triple)).toEqual(route);
+  });
+
+  it('preserves skipWhenQuotaExhausted through the round-trip', () => {
+    const route: ModelRoute = {
+      provider: 'anthropic',
+      authType: 'subscription',
+      model: 'claude-opus',
+      skipWhenQuotaExhausted: true,
+    };
+    const triple = routeToLegacy(route);
+    expect(triple.skipWhenQuotaExhausted).toBe(true);
     expect(legacyToRoute(triple)).toEqual(route);
   });
 

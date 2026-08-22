@@ -482,4 +482,95 @@ describe("createRoutingActions", () => {
       expect(actions.getFallbacksFor("simple")).toEqual(["fb-1", "fb-2"]);
     });
   });
+
+  describe("handleQuotaSkipToggle", () => {
+    const tierWithSubOverride: TierAssignment = {
+      ...baseTier,
+      override_route: {
+        provider: "anthropic",
+        authType: "subscription",
+        model: "claude-opus",
+      },
+    };
+
+    it("re-sends the current override with skipWhenQuotaExhausted=true", async () => {
+      mockOverrideTier.mockResolvedValue({
+        ...tierWithSubOverride,
+        override_route: { ...tierWithSubOverride.override_route!, skipWhenQuotaExhausted: true },
+      });
+      const { actions } = setupActions([tierWithSubOverride]);
+      await actions.handleQuotaSkipToggle("simple", true);
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "claude-opus",
+        "anthropic",
+        "subscription",
+        undefined,
+        true,
+      );
+      expect(mockToastSuccess).toHaveBeenCalledWith("Route skipped on quota exhaustion");
+      expect(actions.getTier("simple")?.override_route?.skipWhenQuotaExhausted).toBe(true);
+    });
+
+    it("disables the flag with skipWhenQuotaExhausted=false and updates state from the response", async () => {
+      const flagged: TierAssignment = {
+        ...tierWithSubOverride,
+        override_route: { ...tierWithSubOverride.override_route!, skipWhenQuotaExhausted: true },
+      };
+      mockOverrideTier.mockResolvedValue(tierWithSubOverride);
+      const { actions } = setupActions([flagged]);
+      await actions.handleQuotaSkipToggle("simple", false);
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "claude-opus",
+        "anthropic",
+        "subscription",
+        undefined,
+        false,
+      );
+      expect(mockToastSuccess).toHaveBeenCalledWith("Quota skip disabled");
+      expect(actions.getTier("simple")?.override_route?.skipWhenQuotaExhausted).toBeUndefined();
+    });
+
+    it("threads the keyLabel pin through the re-sent override", async () => {
+      const pinned: TierAssignment = {
+        ...tierWithSubOverride,
+        override_route: { ...tierWithSubOverride.override_route!, keyLabel: "Work" },
+      };
+      mockOverrideTier.mockResolvedValue(pinned);
+      const { actions } = setupActions([pinned]);
+      await actions.handleQuotaSkipToggle("simple", true);
+      expect(mockOverrideTier).toHaveBeenCalledWith(
+        "demo",
+        "simple",
+        "claude-opus",
+        "anthropic",
+        "subscription",
+        "Work",
+        true,
+      );
+    });
+
+    it("returns silently when the tier has no override route", async () => {
+      const { actions } = setupActions();
+      await actions.handleQuotaSkipToggle("simple", true);
+      expect(mockOverrideTier).not.toHaveBeenCalled();
+    });
+
+    it("returns silently for unknown tier ids", async () => {
+      const { actions } = setupActions();
+      await actions.handleQuotaSkipToggle("unknown", true);
+      expect(mockOverrideTier).not.toHaveBeenCalled();
+    });
+
+    it("clears changingTier and skips the success toast when the override call rejects", async () => {
+      mockOverrideTier.mockRejectedValue(new Error("boom"));
+      const { actions } = setupActions([tierWithSubOverride]);
+      await actions.handleQuotaSkipToggle("simple", true);
+      expect(actions.changingTier()).toBeNull();
+      expect(mockToastSuccess).not.toHaveBeenCalled();
+    });
+  });
 });

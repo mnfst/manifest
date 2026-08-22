@@ -11,6 +11,7 @@ import type { RoutingCacheService } from '../../routing-core/routing-cache.servi
 import type { SpecificityService } from '../../routing-core/specificity.service';
 import type { SpecificityPenaltyService } from '../../routing-core/specificity-penalty.service';
 import type { HeaderTierService } from '../../header-tiers/header-tier.service';
+import type { SubscriptionQuotaService } from '../../subscription-quota.service';
 import type { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import type { ModelDiscoveryService } from '../../../model-discovery/model-discovery.service';
 
@@ -55,6 +56,7 @@ describe('ResolveService', () => {
       | 'getAuthType'
       | 'getDefaultKeyLabel'
       | 'hasRouteCredentials'
+      | 'getProviderKeyId'
     >
   >;
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
@@ -64,6 +66,7 @@ describe('ResolveService', () => {
   >;
   let penaltyService: jest.Mocked<Pick<SpecificityPenaltyService, 'getPenaltiesForAgent'>>;
   let headerTierService: jest.Mocked<Pick<HeaderTierService, 'list'>>;
+  let subscriptionQuota: jest.Mocked<Pick<SubscriptionQuotaService, 'isQuotaExhausted'>>;
   let agentRepo: { findOne: jest.Mock };
   let routingCache: { addInvalidationListener: jest.Mock };
   let svc: ResolveService;
@@ -81,6 +84,9 @@ describe('ResolveService', () => {
       // (no keyLabel) passing.
       getDefaultKeyLabel: jest.fn().mockResolvedValue(undefined),
       hasRouteCredentials: jest.fn().mockResolvedValue(true),
+      // Default: no quota-backed connection resolves, so quota filtering is a
+      // no-op unless a test wires specific ids.
+      getProviderKeyId: jest.fn().mockResolvedValue(null),
     };
     specificityService = { getActiveAssignments: jest.fn().mockResolvedValue([]) };
     pricingCache = { getByModel: jest.fn().mockReturnValue(undefined) };
@@ -91,6 +97,7 @@ describe('ResolveService', () => {
     };
     penaltyService = { getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()) };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
+    subscriptionQuota = { isQuotaExhausted: jest.fn().mockReturnValue(false) };
     agentRepo = {
       findOne: jest.fn().mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: true }),
     };
@@ -114,6 +121,7 @@ describe('ResolveService', () => {
       discoveryService as unknown as ModelDiscoveryService,
       penaltyService as unknown as SpecificityPenaltyService,
       headerTierService as unknown as HeaderTierService,
+      subscriptionQuota as unknown as SubscriptionQuotaService,
       agentRepo as unknown as Repository<Agent>,
       routingCache as unknown as RoutingCacheService,
     );
@@ -655,6 +663,342 @@ describe('ResolveService', () => {
 
       const result = await svc.resolve('agent-1', 'user-1', messages);
       expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
+      expect(result.fallback_routes).toBeNull();
+    });
+  });
+
+  describe('resolve — quota-aware route skipping', () => {
+    const flagged = (
+      provider: string,
+      authType: ModelRoute['authType'],
+      model: string,
+    ): ModelRoute => ({ ...route(provider, authType, model), skipWhenQuotaExhausted: true });
+
+    beforeEach(() => {
+      agentRepo.findOne.mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: false });
+      // Map each route's provider to a distinct tenant_providers row id.
+      providerKeyService.getProviderKeyId.mockImplementation(
+        async (_tenant: string, provider: string) => `tp-${provider}`,
+      );
+      // The anthropic connection is quota-exhausted; everything else is fine.
+      subscriptionQuota.isQuotaExhausted.mockImplementation((id: string) => id === 'tp-anthropic');
+    });
+
+    it('skips a flagged fallback whose connection is quota-exhausted during primary promotion', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [
+            flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+            route('openai', 'api_key', 'gpt-4o-mini'),
+          ],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('keeps an unflagged route even when its connection is quota-exhausted', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [route('anthropic', 'subscription', 'claude-opus-4-8')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('anthropic', 'subscription', 'claude-opus-4-8'));
+      // No flag anywhere — the quota lookup is never consulted.
+      expect(providerKeyService.getProviderKeyId).not.toHaveBeenCalled();
+    });
+
+    it('keeps a flagged route whose connection is not exhausted', async () => {
+      subscriptionQuota.isQuotaExhausted.mockReturnValue(false);
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [flagged('anthropic', 'subscription', 'claude-opus-4-8')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual({
+        ...route('anthropic', 'subscription', 'claude-opus-4-8'),
+        skipWhenQuotaExhausted: true,
+      });
+    });
+
+    it('keeps the original chain when quota filtering would remove every candidate', async () => {
+      subscriptionQuota.isQuotaExhausted.mockReturnValue(true);
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: [
+            flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+            flagged('moonshot', 'subscription', 'k3'),
+          ],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      // Never-empty rule: the unfiltered chain is used, first candidate wins.
+      expect(result.route).toEqual({
+        ...route('anthropic', 'subscription', 'claude-opus-4-8'),
+        skipWhenQuotaExhausted: true,
+      });
+      expect(result.fallback_routes).toEqual([
+        { ...route('moonshot', 'subscription', 'k3'), skipWhenQuotaExhausted: true },
+      ]);
+    });
+
+    it('drops quota-exhausted fallbacks when the override survives', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: route('openai', 'api_key', 'gpt-4o'),
+          auto_assigned_route: null,
+          fallback_routes: [
+            flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+            route('deepseek', 'api_key', 'deepseek-chat'),
+          ],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      expect(result.fallback_routes).toEqual([route('deepseek', 'api_key', 'deepseek-chat')]);
+    });
+
+    it('skips a flagged exhausted fallback when promoting a header-tier fallback', async () => {
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: route('openai', 'subscription', 'gpt-5.5'),
+        fallback_routes: [
+          flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+          route('deepseek', 'api_key', 'deepseek-chat'),
+        ],
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+      // The override is unavailable, so the tier promotes from its fallbacks.
+      providerKeyService.isRouteAvailable.mockImplementation(
+        async (_tenant: string, r: ModelRoute) => r.model !== 'gpt-5.5',
+      );
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+
+      expect(result.reason).toBe('header-match');
+      expect(result.route).toEqual(route('deepseek', 'api_key', 'deepseek-chat'));
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('drops quota-exhausted header-tier fallbacks when the override survives', async () => {
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: route('openai', 'api_key', 'gpt-4o'),
+        fallback_routes: [flagged('anthropic', 'subscription', 'claude-opus-4-8')],
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+
+      expect(result.reason).toBe('header-match');
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o'));
+      // The only fallback was flagged + exhausted; the primary survived, so
+      // the chain legitimately ends with no fallbacks.
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('skips a flagged exhausted override and promotes the first available fallback', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+          auto_assigned_route: null,
+          fallback_routes: [route('openai', 'api_key', 'gpt-4o-mini')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('openai', 'api_key', 'gpt-4o-mini'));
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('keeps a flagged exhausted override when the chain has no fallbacks (never-empty)', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual({
+        ...route('anthropic', 'subscription', 'claude-opus-4-8'),
+        skipWhenQuotaExhausted: true,
+      });
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('keeps the original chain when the override and every fallback are quota-exhausted', async () => {
+      subscriptionQuota.isQuotaExhausted.mockReturnValue(true);
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+          auto_assigned_route: null,
+          fallback_routes: [flagged('moonshot', 'subscription', 'k3')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      // Never-empty rule: the credential-available override stays primary.
+      expect(result.route).toEqual({
+        ...route('anthropic', 'subscription', 'claude-opus-4-8'),
+        skipWhenQuotaExhausted: true,
+      });
+      expect(result.fallback_routes).toEqual([
+        { ...route('moonshot', 'subscription', 'k3'), skipWhenQuotaExhausted: true },
+      ]);
+    });
+
+    it('keeps a flagged override whose connection is not exhausted', async () => {
+      subscriptionQuota.isQuotaExhausted.mockReturnValue(false);
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+          auto_assigned_route: null,
+          fallback_routes: [route('openai', 'api_key', 'gpt-4o-mini')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual({
+        ...route('anthropic', 'subscription', 'claude-opus-4-8'),
+        skipWhenQuotaExhausted: true,
+      });
+      expect(result.fallback_routes).toEqual([route('openai', 'api_key', 'gpt-4o-mini')]);
+    });
+
+    it('keeps an unflagged override even when its connection is quota-exhausted', async () => {
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: route('anthropic', 'subscription', 'claude-opus-4-8'),
+          auto_assigned_route: null,
+          fallback_routes: [route('openai', 'api_key', 'gpt-4o-mini')],
+        } as unknown as TierAssignment,
+      ]);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toEqual(route('anthropic', 'subscription', 'claude-opus-4-8'));
+      expect(result.fallback_routes).toEqual([route('openai', 'api_key', 'gpt-4o-mini')]);
+    });
+
+    it('skips a flagged exhausted header-tier override and promotes a fallback', async () => {
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+        fallback_routes: [route('deepseek', 'api_key', 'deepseek-chat')],
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+
+      expect(result.reason).toBe('header-match');
+      expect(result.route).toEqual(route('deepseek', 'api_key', 'deepseek-chat'));
+      expect(result.fallback_routes).toBeNull();
+    });
+
+    it('keeps a flagged exhausted header-tier override when the chain has no fallbacks', async () => {
+      const tier = {
+        id: 'h1',
+        name: 'Premium',
+        header_key: 'x-tier',
+        header_value: 'gold',
+        enabled: true,
+        badge_color: 'red',
+        override_route: flagged('anthropic', 'subscription', 'claude-opus-4-8'),
+        fallback_routes: null,
+      } as unknown as HeaderTier;
+      headerTierService.list.mockResolvedValue([tier]);
+
+      const result = await svc.resolve(
+        'agent-1',
+        'user-1',
+        messages,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        { 'x-tier': 'gold' },
+      );
+
+      expect(result.reason).toBe('header-match');
+      // Never-empty rule: the credential-available override stays primary.
+      expect(result.route).toEqual(route('anthropic', 'subscription', 'claude-opus-4-8'));
       expect(result.fallback_routes).toBeNull();
     });
   });

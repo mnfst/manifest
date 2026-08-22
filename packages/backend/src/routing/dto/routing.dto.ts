@@ -39,6 +39,13 @@ export class ModelRouteDto {
   @MaxLength(MAX_PROVIDER_KEY_LABEL_LENGTH)
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   keyLabel?: string;
+
+  // Opt-in per-route flag: the router skips this route while the backing
+  // subscription connection's quota is exhausted. Must be declared explicitly
+  // or the whitelist ValidationPipe strips it.
+  @IsOptional()
+  @IsBoolean()
+  skipWhenQuotaExhausted?: boolean;
 }
 
 export class AgentNameParamDto {

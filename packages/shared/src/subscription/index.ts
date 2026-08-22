@@ -6,4 +6,5 @@ export {
   getSubscriptionKnownModels,
   getSubscriptionKnownModelsMatch,
   getSubscriptionCapabilities,
+  supportsQuotaCheck,
 } from './helpers';

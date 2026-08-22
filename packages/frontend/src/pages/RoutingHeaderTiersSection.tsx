@@ -145,6 +145,42 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
     }
   };
 
+  // Which tiers currently have a quota-skip toggle save in flight.
+  const [quotaToggling, setQuotaToggling] = createSignal<Set<string>>(new Set());
+
+  /**
+   * Flip the quota-skip flag on a custom tier's override route by re-sending
+   * the current route with the new skipWhenQuotaExhausted value. A second
+   * click while the save is in flight is ignored so two rapid toggles can't
+   * submit stale state or land out of order.
+   */
+  const handleQuotaSkipToggle = async (tier: HeaderTier, enabled: boolean): Promise<void> => {
+    const route = tier.override_route;
+    if (!route || quotaToggling().has(tier.id)) return;
+    setQuotaToggling((prev) => new Set(prev).add(tier.id));
+    try {
+      await overrideHeaderTier(
+        props.agentName(),
+        tier.id,
+        route.model,
+        route.provider,
+        route.authType,
+        route.keyLabel ?? undefined,
+        enabled,
+      );
+      await refetch();
+      toast.success(enabled ? 'Route skipped on quota exhaustion' : 'Quota skip disabled');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update tier');
+    } finally {
+      setQuotaToggling((prev) => {
+        const next = new Set(prev);
+        next.delete(tier.id);
+        return next;
+      });
+    }
+  };
+
   const handleDelete = async (id: string): Promise<void> => {
     try {
       await deleteHeaderTier(props.agentName(), id);
@@ -381,6 +417,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
                 customProviders={props.customProviders()}
                 connectedProviders={props.connectedProviders()}
                 onOverride={(m, p, a, label) => handleOverride(tier.id, m, p, a, label)}
+                onQuotaSkipToggle={(enabled) => void handleQuotaSkipToggle(tier, enabled)}
+                quotaSkipPending={quotaToggling().has(tier.id)}
                 onFallbacksUpdate={(_fallbacks, updatedRoutes) =>
                   applyFallbackUpdate(tier.id, updatedRoutes)
                 }

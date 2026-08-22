@@ -42,3 +42,13 @@ export function getSubscriptionCapabilities(
   const config = getSubscriptionProviderConfig(providerId);
   return config?.subscriptionCapabilities ?? null;
 }
+
+/**
+ * Whether the provider exposes a usage/quota endpoint the backend can poll,
+ * so routes on its subscription connections can opt into being skipped while
+ * the quota is exhausted. Today: Anthropic, Moonshot (Kimi), OpenAI, MiniMax,
+ * and xAI (Grok).
+ */
+export function supportsQuotaCheck(providerId: string): boolean {
+  return getSubscriptionCapabilities(providerId)?.quotaCheck === true;
+}
