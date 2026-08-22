@@ -601,7 +601,7 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('agent-1');
 
       expect(mockComputeScore).toHaveBeenCalledWith({
-        model_name: 'custom:cp-1/scored-model',
+        model_name: 'scored-model',
         input_price_per_token: 15 / 1_000_000,
         output_price_per_token: 75 / 1_000_000,
         capability_reasoning: true,

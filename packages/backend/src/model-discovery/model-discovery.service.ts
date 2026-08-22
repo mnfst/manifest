@@ -236,7 +236,7 @@ export class ModelDiscoveryService {
           capabilityReasoning: capReasoning,
           capabilityCode: capCode,
           qualityScore: computeQualityScore({
-            model_name: modelKey,
+            model_name: m.model_name,
             input_price_per_token: inputPerToken,
             output_price_per_token: outputPerToken,
             capability_reasoning: capReasoning,
