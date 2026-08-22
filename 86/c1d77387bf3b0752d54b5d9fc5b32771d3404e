@@ -1,0 +1,26 @@
+packages/backend/src/database/migrations/1802000000000-SlimTenantAgentModelIndex.spec.ts
+  s_49195908ea3f88::t_56885611e59946 1-47
+packages/backend/src/entities/agent-message.entity.ts
+  s_49195908ea3f88::t_9da4d6c49e9ca2 15-19
+packages/backend/src/database/data-source-definitions.ts
+  s_49195908ea3f88::t_3039f7eab85e31 322
+  s_49195908ea3f88::t_0f7e3175a15525 43
+packages/backend/src/database/migrations/1802000000000-SlimTenantAgentModelIndex.ts
+  s_49195908ea3f88::t_52b1316b1ffbc8 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "86c1d77387bf3b0752d54b5d9fc5b32771d3404e",
+  "prompts": {},
+  "sessions": {
+    "s_49195908ea3f88": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fdc66261fffevS6zKSq5c408YR",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
