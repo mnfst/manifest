@@ -1,1 +1,2 @@
 npx lint-staged
+node design-system/generate-registry.mjs --check

@@ -3,9 +3,10 @@
 //
 // Scans the ADDED lines of the current diff for styling values that bypass
 // the design tokens (packages/frontend/src/styles/tokens.css): raw hex
-// colors, hsl()/rgb() literals not going through var(--token), and
-// font-family literals. Token definitions themselves (--foo: lines) are
-// exempt, so adding a new token never trips the check.
+// colors, hsl()/rgb() literals not going through var(--token), font-family
+// literals, font-size in px, z-index literals above local stacking, and
+// pill radii written as 99/999/9999px. Token definitions themselves
+// (--foo: lines) are exempt, so adding a new token never trips the check.
 //
 // Usage:  node scripts/check-design-tokens.mjs [base-ref]
 //   base-ref defaults to the merge-base with origin/main; the diff includes
@@ -55,6 +56,12 @@ const RGB_LITERAL = /rgba?\(\s*[\d.]/;
 // font-family literals are only allowed when they reference a token.
 const FONT_FAMILY = /font-family\s*:/;
 const FONT_OK = /font-family\s*:\s*(var\(--|inherit)/;
+// The font-size scale lives in tokens.css (--font-size-3xs … 4xl).
+const FONT_SIZE_PX = /font-size\s*:\s*[\d.]+px/;
+// z-index 0-2 is local in-component stacking; anything above takes a --z-* layer.
+const Z_INDEX = /z-index\s*:\s*(\d+)|zIndex\s*[:=]\s*['"]?(\d+)/;
+// Pill radii hand-written as 99px / 999px / 9999px.
+const PILL_RADIUS = /border-radius\s*:\s*9{2,4}px/;
 
 let diff;
 try {
@@ -99,6 +106,16 @@ for (const raw of diff.split('\n')) {
   }
   if (FONT_FAMILY.test(line) && !FONT_OK.test(line)) {
     findings.push({ file, lineNo, line: line.trim(), rule: 'font-family literal — use var(--font-*)' });
+  }
+  if (FONT_SIZE_PX.test(line)) {
+    findings.push({ file, lineNo, line: line.trim(), rule: 'font-size in px — use var(--font-size-*)' });
+  }
+  const z = line.match(Z_INDEX);
+  if (z && Number(z[1] ?? z[2]) > 2) {
+    findings.push({ file, lineNo, line: line.trim(), rule: 'z-index literal — use var(--z-*)' });
+  }
+  if (PILL_RADIUS.test(line)) {
+    findings.push({ file, lineNo, line: line.trim(), rule: 'pill radius literal — use var(--radius-pill)' });
   }
 }
 
