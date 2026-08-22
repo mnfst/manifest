@@ -24,6 +24,14 @@ export class TenantProvider {
   @Column('varchar', { nullable: true, default: null })
   api_key_encrypted!: string | null;
 
+  /**
+   * One-way hash (scrypt-based, see hashKey) of the raw provider key. Enables
+   * match-verify ("did the admin post the right key?") without ever returning
+   * the stored secret. Analogous to api_keys.key_hash. Null when no key is set.
+   */
+  @Column('varchar', { nullable: true, default: null })
+  key_hash!: string | null;
+
   @Column('varchar', { nullable: true, default: null })
   key_prefix!: string | null;
 

@@ -18,6 +18,7 @@ import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache
 import { RoutingCacheService } from './routing-cache.service';
 import { randomUUID } from 'crypto';
 import { encrypt, decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { hashKey } from '../../common/utils/hash.util';
 import {
   isManifestUsableProvider,
   isSupportedSubscriptionProvider,
@@ -331,7 +332,12 @@ export class ProviderService {
               .getRepository(TenantProvider)
               .update(
                 { id: row.id },
-                { api_key_encrypted: encrypted, key_prefix: keyPrefix, updated_at: updatedAt },
+                {
+                  api_key_encrypted: encrypted,
+                  key_prefix: keyPrefix,
+                  key_hash: hashKey(raw),
+                  updated_at: updatedAt,
+                },
               );
           });
           // Keep the in-memory row consistent for any subsequent readFreshRaw.
@@ -409,6 +415,7 @@ export class ProviderService {
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
         existing.key_prefix = keyPrefix;
+        existing.key_hash = apiKey ? hashKey(apiKey) : null;
       }
       existing.region = resolvedRegion;
       existing.is_active = true;
@@ -429,6 +436,7 @@ export class ProviderService {
       priority: 0,
       api_key_encrypted: apiKeyEncrypted,
       key_prefix: keyPrefix,
+      key_hash: apiKey ? hashKey(apiKey) : null,
       region: resolvedRegion,
       is_active: true,
       connected_at: new Date().toISOString(),
@@ -475,6 +483,7 @@ export class ProviderService {
       if (apiKeyEncrypted !== null) {
         existing.api_key_encrypted = apiKeyEncrypted;
         existing.key_prefix = keyPrefix;
+        existing.key_hash = apiKey ? hashKey(apiKey) : null;
       }
       existing.region = resolvedRegion;
       existing.is_active = true;
@@ -508,6 +517,10 @@ export class ProviderService {
         const wasInactive = !sameKey.is_active;
         sameKey.region = resolvedRegion;
         sameKey.is_active = true;
+        // Keep the one-way hash in sync even when the credential value is
+        // unchanged — rows predating the key_hash column arrive here with a
+        // NULL hash on first reattach.
+        if (apiKey) sameKey.key_hash = hashKey(apiKey);
         sameKey.updated_at = new Date().toISOString();
         await repo.save(sameKey);
         await this.fanOutIfReactivated(wasInactive, tenantId, sameKey.id, manager);
@@ -526,6 +539,7 @@ export class ProviderService {
       priority: this.nextPriority(existingRows),
       api_key_encrypted: apiKeyEncrypted,
       key_prefix: keyPrefix,
+      key_hash: apiKey ? hashKey(apiKey) : null,
       region: resolvedRegion,
       is_active: true,
       connected_at: new Date().toISOString(),

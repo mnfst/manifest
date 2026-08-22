@@ -33,6 +33,7 @@ import { FreeModelsModule } from './free-models/free-models.module';
 import { TelemetryModule } from './telemetry/telemetry.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { BillingModule } from './billing/billing.module';
+import { AdminModule } from './admin/admin.module';
 import { DebugSentryController } from './sentry/debug-sentry.controller';
 
 const frontendPath = resolveFrontendDir();
@@ -102,6 +103,7 @@ const sentryDebugControllers =
     BackfillModule,
     WaitlistModule,
     BillingModule,
+    AdminModule,
   ],
   providers: [
     ...sentryProviders,

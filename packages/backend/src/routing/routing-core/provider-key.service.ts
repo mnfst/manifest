@@ -9,6 +9,7 @@ import { ModelDiscoveryService } from '../../model-discovery/model-discovery.ser
 import { CachedProviderKey, RoutingCacheService } from './routing-cache.service';
 import { ProviderService } from './provider.service';
 import { decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import { hashKey, verifyKey } from '../../common/utils/hash.util';
 import {
   expandProviderNames,
   inferProviderFromModelName,
@@ -239,6 +240,55 @@ export class ProviderKeyService {
       agentId,
     );
     return records.some((r) => r.is_active && names.has(r.provider.toLowerCase()));
+  }
+
+  /**
+   * Admin match-verify: confirms whether a posted raw key equals the stored
+   * credential for (tenant, provider) WITHOUT ever returning the secret.
+   * Compares the one-way key_hash (written at connect/update time) against
+   * hashKey(postedKey). A tenant may have multiple keyed rows per provider
+   * (labels); returns true if ANY active row's hash matches.
+   */
+  async verifyKeyMatches(
+    tenantId: string,
+    provider: string,
+    rawKey: string,
+  ): Promise<{ match: boolean }> {
+    const names = expandProviderNames([provider]);
+    const rows = await this.providerRepo.find({
+      where: { tenant_id: tenantId, is_active: true },
+    });
+    // Only the one-way key_hash is consulted — the raw secret is never read
+    // from storage or returned. verifyKey() does salt-aware comparison
+    // (hashKey() salts per call, so a naive hash-equality check would never
+    // match).
+    //
+    // Rows connected before key_hash existed have NULL hash but a decryptable
+    // credential. Backfill lazily on first verify so upgraded tenants get
+    // working verification without a data-touching migration; decryption
+    // failures are left as-is (still unusable for verification, same as
+    // before this column existed).
+    const candidates = rows.filter(
+      (r) => names.has(r.provider.toLowerCase()) && (!!r.key_hash || !!r.api_key_encrypted),
+    );
+    if (candidates.length === 0) return { match: false };
+    let matched = false;
+    for (const row of candidates) {
+      if (!row.key_hash && row.api_key_encrypted) {
+        let raw: string | null = null;
+        try {
+          raw = decrypt(row.api_key_encrypted, getEncryptionSecret());
+        } catch {
+          raw = null;
+        }
+        if (raw) {
+          row.key_hash = hashKey(raw);
+          await this.providerRepo.update(row.id, { key_hash: row.key_hash });
+        }
+      }
+      if (row.key_hash && verifyKey(rawKey, row.key_hash)) matched = true;
+    }
+    return { match: matched };
   }
 
   async getProviderRegion(

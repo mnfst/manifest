@@ -27,6 +27,15 @@ export class ApiKey {
   @Column('varchar')
   name!: string;
 
+  /**
+   * Authorization scope for the key. `owner` (default) authorizes the full
+   * `/api/v1/*` surface via ApiKeyGuard; `ai_admin` authorizes only the
+   * scoped `/api/v1/admin` surface via AdminAiGuard. Additive: existing
+   * owner keys retain `owner` and resolve exactly as before.
+   */
+  @Column('varchar', { default: 'owner' })
+  scope!: string;
+
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 

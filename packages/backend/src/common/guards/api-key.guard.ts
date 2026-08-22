@@ -60,6 +60,10 @@ export class ApiKeyGuard implements CanActivate {
         tenantId: found.tenant_id,
         userId: found.created_by_user_id,
       };
+      // Stash the resolved key scope so scope-restricted guards (e.g.
+      // AdminAiGuard on /api/v1/admin) can authorize without re-querying.
+      const scope = (found as { scope?: string }).scope ?? 'owner';
+      (request as Request & { authScope?: string }).authScope = scope;
       if (found.created_by_user_id) {
         (request as Request & { user: { id: string } }).user = {
           id: String(found.created_by_user_id),
