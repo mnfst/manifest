@@ -25,6 +25,7 @@ import type { ProviderAttemptRef, ProviderAttemptStart, ProxyApiMode } from './p
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import type { ResponseCostContext } from './response-cost';
 import { extractManifestErrorCode, type ManifestErrorCode } from '../../common/errors/error-codes';
 import {
   MANIFEST_CODE_TO_REASON,
@@ -1270,6 +1271,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     await this.persistRequest(ctx, requestId, row, false, autofix);
     await this.persistAttempt(row, opts?.attempt);
     this.eventBus.emit(ctx.tenantId, 'message', ctx.userId);
+  }
+
+  /**
+   * Build the pricing context used to stamp `usage.cost` on proxy responses
+   * (same inputs as dashboard `cost_usd` recording).
+   */
+  async buildResponseCostContext(
+    model: string,
+    authType?: string | null,
+    provider?: string | null,
+  ): Promise<ResponseCostContext> {
+    return {
+      model,
+      authType,
+      pricing: this.pricingCache.getByModel(model) ?? undefined,
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
+    };
   }
 
   /**
