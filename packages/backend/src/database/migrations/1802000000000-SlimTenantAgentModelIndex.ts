@@ -21,6 +21,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Build-new-then-drop CONCURRENTLY so a usable index always exists and no
  * ACCESS EXCLUSIVE lock is taken against live writes. The new key is a strict
  * prefix of the old, so no query loses index coverage during the swap.
+ *
+ * A cancelled CONCURRENTLY build leaves an INVALID index shell behind. `CREATE
+ * ... IF NOT EXISTS` matches on name and would skip over it, so a retry would
+ * then drop the still-usable old index and leave the table with nothing valid.
+ * Both directions clear an INVALID leftover before creating, mirroring
+ * 1801200000000's `indexIsInvalid` guard.
  */
 export class SlimTenantAgentModelIndex1802000000000 implements MigrationInterface {
   name = 'SlimTenantAgentModelIndex1802000000000';
@@ -31,6 +37,9 @@ export class SlimTenantAgentModelIndex1802000000000 implements MigrationInterfac
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     const { OLD_INDEX, NEW_INDEX } = SlimTenantAgentModelIndex1802000000000;
+    if (await this.indexIsInvalid(queryRunner, NEW_INDEX)) {
+      await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "${NEW_INDEX}"`);
+    }
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "${NEW_INDEX}" ON "agent_messages" ("tenant_id", "agent_id", "model")`,
     );
@@ -39,9 +48,21 @@ export class SlimTenantAgentModelIndex1802000000000 implements MigrationInterfac
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const { OLD_INDEX, NEW_INDEX } = SlimTenantAgentModelIndex1802000000000;
+    if (await this.indexIsInvalid(queryRunner, OLD_INDEX)) {
+      await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "${OLD_INDEX}"`);
+    }
     await queryRunner.query(
       `CREATE INDEX CONCURRENTLY IF NOT EXISTS "${OLD_INDEX}" ON "agent_messages" ("tenant_id", "agent_id", "model", "status", "timestamp")`,
     );
     await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "${NEW_INDEX}"`);
+  }
+
+  /** True when an index of this name exists but is INVALID (interrupted build). */
+  private async indexIsInvalid(queryRunner: QueryRunner, indexName: string): Promise<boolean> {
+    const rows: unknown[] = await queryRunner.query(
+      `SELECT 1 FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = $1 AND NOT i.indisvalid`,
+      [indexName],
+    );
+    return rows.length > 0;
   }
 }
