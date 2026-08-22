@@ -1,0 +1,20 @@
+packages/backend/src/database/migrations/1802000000000-SlimTenantAgentModelIndex.spec.ts
+  s_8dc524e2b43325::t_2fc46b791cf571 7,13-15,23
+  s_8dc524e2b43325::t_c51b2f771505cc 59-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "0ebba2bc69ed65b094bf43731272d07f3b125562",
+  "prompts": {},
+  "sessions": {
+    "s_8dc524e2b43325": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fd6c0d95dffeT1I3jSee1VmvSs",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
