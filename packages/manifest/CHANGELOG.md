@@ -1,5 +1,32 @@
 # manifest
 
+## 6.19.0
+
+### Minor Changes
+
+- 44cb47b: Add Meta Model API support for Muse Spark 1.1, Muse Spark 1.2, and the Contributor route.
+- f83ba4f: Support the full Kimi Coding Plan model lineup for Moonshot subscriptions using the wire-format ids the api.kimi.com/coding endpoint expects: k3, k3-256k, kimi-for-coding, and kimi-for-coding-highspeed (the previous curated list sent kimi-k3, which the endpoint does not accept). Includes correct per-model context windows (1M for k3, 256k for the rest, with an explicit k3-256k entry so prefix matching cannot inherit the 1M window), curated input modalities (image+video for k3 and both kimi-for-coding variants, image-only for k3-256k), provider inference for the bare k3 ids, and quality-score overrides so the zero-priced k3 models are not mis-tiered as ultra-low in auto-routing.
+
+### Patch Changes
+
+- b27a578: Fix empty non-streaming responses for Bedrock GPT-5.x models (openai.gpt-5.6-luna/sol/terra, gpt-5.5, gpt-5.4). The non-streaming Responses handler assumed the upstream always returns SSE, but the Bedrock mantle /openai/v1/responses endpoint returns a plain JSON Responses object when stream:false, so content came back null with zero usage. The handler now detects the response shape and parses JSON Responses objects directly.
+- 87475e2: Route Bedrock GPT-5.4, GPT-5.5, and GPT-5.6 models through the namespaced OpenAI Responses API path.
+- 9b2704c: Keep OpenAI subscription requests streaming upstream when clients request buffered responses.
+- e821268: Bound dashboard query concurrency and reduce default PostgreSQL pool sizes.
+- 6b4bf29: Cap the provider connections list at six and a half rows so the supported-provider catalog below it stays reachable. The card scrolls, and a "Show all" button expands it to full height.
+- 2d5fb92: Bill DeepSeek V4 at its real peak/off-peak rates. Pricing entries can now carry time-of-day tiers (the models.dev `cost.tiers` time variant), cost calculation resolves them against the attempt timestamp, and a built-in seed supplies DeepSeek's schedule until the catalog carries it.
+- 061d351: Continue fallback routing when a non-streaming Chat Completions provider returns no output.
+- 633455b: Show the Meta logo anywhere the dashboard renders provider icons.
+- ab1a544: Keep model parameter specs current: the modelparams catalog now refreshes hourly from the modelparams.dev API (ETag-conditional, validated before swap, stale-on-error) instead of being frozen at the bundled package version, and the bundled fallback is bumped to modelparams 0.0.40.
+- 6b04574: Report modalities and capability flags for Ollama Cloud models. `ollama-cloud` was missing from the models.dev provider map, so every lookup missed and `GET /v1/models?capabilities=true` returned no `input_modalities`, `output_modalities`, or `features` for those models. Release tags that models.dev omits from its key (`:preview`, `:0813`) now fall back to the base model.
+- ca21b97: Route OpenCode Go Responses-only models (Grok 4.5, GPT 5.6 Luna, Muse Spark) to `/v1/responses` instead of `/v1/chat/completions`.
+- 7b09c5e: Report tool support and modalities for OpenRouter models. OpenRouter reached neither models.dev provider map, so all 323 published models declared only `stream` and never `tools`, and anything reasoning about capability — the dashboard picker, `/v1/models?capabilities=true`, agents choosing a remap target — treated every one of them as tool-incapable. OpenRouter now sits in the capability-only map, so its rates stay with its own live `/models` feed while models.dev supplies the modalities and tool-call flags that feed omits. Routing variants (`:free`, `:nitro`, `:batch`) resolve to their base model's capabilities.
+- 0d244d0: Fix Responses→chat-completions conversion emitting content-less `{"role":"user"}` messages for `reasoning`, `item_reference`, and other non-message input items, which strict OpenAI-compatible providers rejected with 400/422.
+- bf7876a: Restore the $25 Gemini credit user-discovery banner and modal on the Overview page
+- ecb3c8d: Spell Autofix without a hyphen across the dashboard, notifications, and emails.
+- 549bece: Stop advertising Gemini 3.1 Pro Preview and Gemini 3 Flash Preview for Google Code Assist subscriptions because the Code Assist API returns model-not-found responses for both routes.
+- 7b09c5e: Report modalities and capability flags for Kilo, Pioneer, Cline Pass and Xiaomi models. These providers publish no modality data on their own `/models` endpoints, and models.dev may not price them: they list resold vendor models under the vendor's own ID, so their rates would overwrite the real vendor price in the shared cache. A new capability-only provider map carries them, separate from the map that grants pricing authority.
+
 ## 6.18.0
 
 ### Minor Changes
