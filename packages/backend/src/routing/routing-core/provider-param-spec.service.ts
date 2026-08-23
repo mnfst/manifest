@@ -428,7 +428,13 @@ function freezeCatalog(catalog: ProviderParamSpecCatalog): ProviderParamSpecCata
 
 function parseModelParametersCatalog(raw: unknown): ProviderParamSpecCatalog | null {
   if (!isRecord(raw)) return null;
-  const models = (raw as ModelParametersApiResponse).models;
+  let models = (raw as ModelParametersApiResponse).models;
+  // The modelparams.dev API now nests the model list one level deeper
+  // ({ models: { models: [...] } }); the bundled package and older payloads
+  // still use the flat shape, so unwrap at most one extra layer.
+  if (isRecord(models)) {
+    models = (models as ModelParametersApiResponse).models;
+  }
   if (!Array.isArray(models)) return null;
 
   const catalog: ProviderModelParamSpec[] = [];

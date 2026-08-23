@@ -230,6 +230,16 @@ describe('ProviderParamSpecService API refresh', () => {
     expect((await service.getSpecs('openai', 'api_key', 'gpt-refreshed')).length).toBe(1);
   });
 
+  it('parses the nested models envelope the API now returns', async () => {
+    const nestedBody = JSON.stringify({ models: JSON.parse(CATALOG_BODY) });
+    fetchSpy.mockResolvedValue(jsonResponse(nestedBody));
+    const service = new ProviderParamSpecService();
+
+    await expect(service.refreshCatalog()).resolves.toBe(true);
+    const specs = await service.getSpecs('openai', 'api_key', 'gpt-refreshed');
+    expect(specs.map((spec) => spec.path)).toEqual(['max_tokens']);
+  });
+
   it('honors MODELPARAMS_API_URL and sends no conditional header on the first fetch', async () => {
     process.env.MODELPARAMS_API_URL = 'https://example.test/catalog.json';
     fetchSpy.mockResolvedValue(jsonResponse(CATALOG_BODY));
@@ -273,6 +283,11 @@ describe('ProviderParamSpecService API refresh', () => {
     [
       'a body that fails catalog validation',
       () => fetchSpy.mockResolvedValue(jsonResponse(JSON.stringify({ models: 'wat' }))),
+    ],
+    [
+      'a nested envelope that fails catalog validation',
+      () =>
+        fetchSpy.mockResolvedValue(jsonResponse(JSON.stringify({ models: { models: 'wat' } }))),
     ],
   ])('keeps the bundled catalog on %s', async (_label, arm) => {
     arm();
