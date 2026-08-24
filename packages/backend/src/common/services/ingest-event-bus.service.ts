@@ -1,6 +1,9 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, OnModuleDestroy, Optional } from '@nestjs/common';
+import type { Cache } from 'cache-manager';
 import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { agentListCacheKey } from '../constants/cache.constants';
 
 export type IngestEventKind = 'message' | 'agent' | 'routing';
 
@@ -17,6 +20,24 @@ export class IngestEventBusService implements OnModuleDestroy {
   private readonly debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly DEBOUNCE_MS = 250;
 
+  constructor(
+    @Optional()
+    @Inject(CACHE_MANAGER)
+    private readonly cacheManager?: Cache,
+  ) {}
+
+  private async publish(event: IngestEvent): Promise<void> {
+    if (event.kind === 'message' && this.cacheManager) {
+      // Agent-list responses include message_count. Clear both variants before
+      // subscribers refetch so the next response cannot reuse a stale count.
+      await Promise.allSettled([
+        this.cacheManager.del(agentListCacheKey(event.tenantId, false)),
+        this.cacheManager.del(agentListCacheKey(event.tenantId, true)),
+      ]);
+    }
+    this.subject.next(event);
+  }
+
   /**
    * Notify subscribers that the given tenant's data changed. The kind narrows
    * which dashboard surfaces should refetch — message-feed pages can ignore
@@ -32,7 +53,7 @@ export class IngestEventBusService implements OnModuleDestroy {
       debounceKey,
       setTimeout(() => {
         this.debounceTimers.delete(debounceKey);
-        this.subject.next({ tenantId, kind, userId });
+        void this.publish({ tenantId, kind, userId });
       }, this.DEBOUNCE_MS),
     );
   }

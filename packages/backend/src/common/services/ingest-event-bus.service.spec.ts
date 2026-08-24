@@ -1,3 +1,6 @@
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import { Test } from '@nestjs/testing';
+import type { Cache } from 'cache-manager';
 import { IngestEventBusService, IngestEvent } from './ingest-event-bus.service';
 
 describe('IngestEventBusService', () => {
@@ -124,5 +127,56 @@ describe('IngestEventBusService', () => {
     jest.advanceTimersByTime(2000);
 
     expect(received).toEqual([{ tenantId: 'COMPLETE', kind: 'message' }]);
+  });
+});
+
+describe('IngestEventBusService message cache invalidation', () => {
+  let service: IngestEventBusService;
+  let cacheManager: Cache;
+  let deleteSpy: jest.SpyInstance;
+
+  beforeEach(async () => {
+    jest.useFakeTimers();
+    const module = await Test.createTestingModule({
+      imports: [CacheModule.register()],
+      providers: [IngestEventBusService],
+    }).compile();
+
+    service = module.get(IngestEventBusService);
+    cacheManager = module.get(CACHE_MANAGER);
+    deleteSpy = jest.spyOn(cacheManager, 'del').mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    service.onModuleDestroy();
+    jest.useRealTimers();
+  });
+
+  it('clears both harness-list variants before publishing a message event', async () => {
+    const received: IngestEvent[] = [];
+    let finishDeletion!: () => void;
+    const deletionFinished = new Promise<boolean>((resolve) => {
+      finishDeletion = () => resolve(true);
+    });
+    deleteSpy.mockReturnValue(deletionFinished);
+    const eventPublished = new Promise<void>((resolve) => {
+      service.forTenant('tenant-1').subscribe((event) => {
+        received.push(event);
+        resolve();
+      });
+    });
+
+    service.emit('tenant-1', 'message');
+    await jest.advanceTimersByTimeAsync(250);
+
+    expect(deleteSpy).toHaveBeenCalledTimes(2);
+    expect(deleteSpy).toHaveBeenCalledWith('tenant-1:/api/v1/agents:playground=false');
+    expect(deleteSpy).toHaveBeenCalledWith('tenant-1:/api/v1/agents:playground=true');
+    expect(received).toEqual([]);
+
+    finishDeletion();
+    await eventPublished;
+
+    expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
   });
 });
