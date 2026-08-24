@@ -352,7 +352,7 @@ export function chatCompletionsResponseToMessages(body: JsonRecord, model: strin
       content.push({
         type: 'tool_use',
         id:
-          typeof call.id === 'string'
+          typeof call.id === 'string' && call.id !== ''
             ? sanitizeToolUseId(call.id)
             : `toolu_${randomUUID().replace(/-/g, '')}`,
         name: typeof call.function.name === 'string' ? call.function.name : '',
@@ -530,7 +530,7 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
         if (!entry) {
           entry = {
             id:
-              typeof call.id === 'string'
+              typeof call.id === 'string' && call.id !== ''
                 ? sanitizeToolUseId(call.id)
                 : `toolu_${randomUUID().replace(/-/g, '')}`,
             index: nextBlockIndex(state),

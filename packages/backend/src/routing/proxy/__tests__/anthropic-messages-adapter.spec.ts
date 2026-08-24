@@ -1213,3 +1213,40 @@ describe('tool-call id sanitation on /v1/messages responses', () => {
     expect(data.content_block.id).toBe('Edit_0');
   });
 });
+
+describe('empty upstream tool_call ids', () => {
+  it('mints a toolu_ id instead of emitting an empty one', () => {
+    const result = chatCompletionsResponseToMessages(
+      {
+        choices: [
+          {
+            message: {
+              content: '',
+              tool_calls: [{ id: '', type: 'function', function: { name: 'Read', arguments: '{}' } }],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      },
+      'kimi-k3',
+    );
+    const blocks = result.content as Array<Record<string, unknown>>;
+    expect(blocks[0].id).toMatch(/^toolu_[0-9a-f]{32}$/);
+  });
+
+  it('mints a toolu_ id in the stream transformer as well', () => {
+    const t = createMessagesStreamTransformer('kimi-k3');
+    const out =
+      [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"","function":{"name":"Read","arguments":""}}]}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+      ]
+        .map((c) => t.transform(c) ?? '')
+        .join('') + (t.finalize() ?? '');
+    const start = out
+      .split('\n\n')
+      .find((b) => b.startsWith('event: content_block_start') && b.includes('tool_use'))!;
+    const data = JSON.parse(start.split('\n')[1].replace('data: ', ''));
+    expect(data.content_block.id).toMatch(/^toolu_[0-9a-f]{32}$/);
+  });
+});
