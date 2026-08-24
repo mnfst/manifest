@@ -348,6 +348,106 @@ describe('computeTokenCost', () => {
     expect(result).toBeCloseTo(0.0075, 10);
   });
 
+  describe('cost source precedence', () => {
+    const catalogPricing: PricingEntry = {
+      model_name: 'deepseek-v4-pro',
+      provider: 'DeepSeek',
+      input_price_per_token: 0.66e-6,
+      output_price_per_token: 1.98e-6,
+      display_name: 'DeepSeek V4 Pro',
+    };
+    const base = {
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+      model: 'deepseek-v4-pro',
+      pricing: catalogPricing,
+    };
+
+    it('prefers a provider-reported cost over the catalogue for non-subscription usage', () => {
+      // The gateway said what it charged. That beats any estimate we can make,
+      // and before this it was read only for subscription providers.
+      expect(computeTokenCost({ ...base, reportedCostUsd: 0.42 })).toBe(0.42);
+    });
+
+    it('prefers a reported cost of zero over the catalogue', () => {
+      // Zero is a real answer, not a missing one — a free-tier request.
+      expect(computeTokenCost({ ...base, reportedCostUsd: 0 })).toBe(0);
+    });
+
+    it('ignores a negative reported cost and falls back to the catalogue', () => {
+      expect(computeTokenCost({ ...base, reportedCostUsd: -1 })).toBeCloseTo(0.66 + 1.98, 10);
+    });
+
+    it('prefers a reported cost over a matching peak tier', () => {
+      const tiered: PricingEntry = {
+        ...catalogPricing,
+        time_tiers: [
+          {
+            windows: ['01:00-04:00'],
+            input_price_per_token: 1.32e-6,
+            output_price_per_token: 3.96e-6,
+          },
+        ],
+      };
+      const cost = computeTokenCost({
+        ...base,
+        pricing: tiered,
+        reportedCostUsd: 0.1,
+        at: new Date('2026-08-21T02:00:00Z'),
+      });
+      expect(cost).toBe(0.1);
+    });
+
+    it('still prefers a reported cost for subscription usage', () => {
+      const cost = computeTokenCost({
+        ...base,
+        isSubscription: true,
+        reportedCostUsd: 0.07,
+        perRequestCostUsd: 0.05,
+      });
+      expect(cost).toBe(0.07);
+    });
+
+    it('ignores a reported cost too large for the cost_usd column', () => {
+      // `decimal(10, 6)` tops out at 9999.999999. A bigger number is a
+      // provider reporting credits or a session total, not a request price —
+      // and persisting it would throw and lose the whole telemetry row.
+      const cost = computeTokenCost({ ...base, reportedCostUsd: 25_000 });
+      expect(cost).toBeCloseTo(0.66 + 1.98, 10);
+    });
+
+    it('accepts a reported cost exactly at the column limit', () => {
+      expect(computeTokenCost({ ...base, reportedCostUsd: 9999.999999 })).toBe(9999.999999);
+    });
+
+    it('returns null for an unknown model even when a cost was reported', () => {
+      // "A cost for a model we cannot name" is not a row worth writing.
+      expect(computeTokenCost({ ...base, model: null, reportedCostUsd: 0.42 })).toBeNull();
+    });
+
+    it('records zero for local inference instead of an unknown null', () => {
+      // Ollama, llama.cpp and LM Studio run on the user's own hardware. There
+      // is no bill, and "free" is a different fact from "not known".
+      expect(computeTokenCost({ ...base, pricing: undefined, isLocalProvider: true })).toBe(0);
+    });
+
+    it('records zero for local inference even when no tokens were counted', () => {
+      expect(
+        computeTokenCost({
+          ...base,
+          inputTokens: 0,
+          outputTokens: 0,
+          pricing: undefined,
+          isLocalProvider: true,
+        }),
+      ).toBe(0);
+    });
+
+    it('returns null for a non-local provider with no pricing', () => {
+      expect(computeTokenCost({ ...base, pricing: undefined })).toBeNull();
+    });
+  });
+
   describe('time-of-day pricing tiers', () => {
     // DeepSeek V4 Flash shape: off-peak base, peak windows at double.
     const peakPricing: PricingEntry = {

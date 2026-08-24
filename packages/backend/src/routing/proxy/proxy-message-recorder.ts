@@ -25,6 +25,7 @@ import type { ProviderAttemptRef, ProviderAttemptStart, ProxyApiMode } from './p
 import { CustomProviderService } from '../custom-provider/custom-provider.service';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
+import { isLocalOnlyProvider } from '../../common/utils/provider-availability';
 import { extractManifestErrorCode, type ManifestErrorCode } from '../../common/errors/error-codes';
 import {
   MANIFEST_CODE_TO_REASON,
@@ -1060,14 +1061,23 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     const inputTokens = usage?.prompt_tokens ?? 0;
     const outputTokens = usage?.completion_tokens ?? 0;
 
+    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
+      ctx.tenantId,
+      provider,
+      model,
+    );
+
     const costUsd = computeTokenCost({
       inputTokens,
       outputTokens,
       cacheReadTokens: usage?.cache_read_tokens ?? 0,
       cacheCreationTokens: usage?.cache_creation_tokens ?? 0,
       model,
+      // Priced on the raw keys: a custom provider's rates are stored under
+      // `custom:<uuid>/<model>`, which is exactly what canonicalization strips.
       pricing: usage ? this.pricingCache.getByModel(model, provider) : undefined,
       isSubscription: authType === 'subscription',
+      isLocalProvider: isLocalOnlyProvider(canonical.provider ?? provider ?? ''),
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
       reportedCostUsd: usage?.reported_cost_usd,
       // Bill the hour the provider attempt actually ran: `timestamp` is the
@@ -1076,11 +1086,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       at: attempt ? new Date(attempt.startedAt) : timestamp ? new Date(timestamp) : undefined,
     });
 
-    const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
-      ctx.tenantId,
-      provider,
-      model,
-    );
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.tenantId,
       null,
@@ -1151,18 +1156,6 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     } = opts ?? {};
     const requestId = providedRequestId ?? uuid();
 
-    const costUsd = computeTokenCost({
-      inputTokens: usage.prompt_tokens,
-      outputTokens: usage.completion_tokens,
-      cacheReadTokens: usage.cache_read_tokens ?? 0,
-      cacheCreationTokens: usage.cache_creation_tokens ?? 0,
-      model,
-      pricing: this.pricingCache.getByModel(model, provider),
-      isSubscription: authType === 'subscription',
-      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
-      reportedCostUsd: usage.reported_cost_usd,
-    });
-
     // `model` is a required string, so the overload on
     // `canonicalizeAgentMessageKeys` keeps `canonical.model` non-null.
     const canonical = await this.customProviders.canonicalizeAgentMessageKeys(
@@ -1170,6 +1163,22 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       provider,
       model,
     );
+
+    const costUsd = computeTokenCost({
+      inputTokens: usage.prompt_tokens,
+      outputTokens: usage.completion_tokens,
+      cacheReadTokens: usage.cache_read_tokens ?? 0,
+      cacheCreationTokens: usage.cache_creation_tokens ?? 0,
+      model,
+      // Priced on the raw keys: a custom provider's rates are stored under
+      // `custom:<uuid>/<model>`, which is exactly what canonicalization strips.
+      pricing: this.pricingCache.getByModel(model, provider),
+      isSubscription: authType === 'subscription',
+      isLocalProvider: isLocalOnlyProvider(canonical.provider ?? provider ?? ''),
+      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
+      reportedCostUsd: usage.reported_cost_usd,
+    });
+
     const canonicalModel = canonical.model;
     const canonicalProvider = canonical.provider;
 
