@@ -442,8 +442,22 @@ describe('RoutingTierCard', () => {
   it('inserts the primary at slot 2 on drop, persisting both arrays', async () => {
     const onFallbackUpdate = vi.fn();
     const onOverride = vi.fn();
+    const tier: TierAssignment = {
+      ...baseTier,
+      fallback_routes: [
+        { ...baseTier.fallback_routes![0], skipWhenQuotaExhausted: false },
+        baseTier.fallback_routes![1],
+      ],
+    };
     const { getByTestId } = render(() => (
-      <RoutingTierCard {...makeProps({ onFallbackUpdate, onOverride })} />
+      <RoutingTierCard
+        {...makeProps({
+          tier: () => tier,
+          getFallbacksFor: () => tier.fallback_routes!.map((route) => route.model),
+          onFallbackUpdate,
+          onOverride,
+        })}
+      />
     ));
     // Slot 2 = end of list. The primary "gpt-4o" gets inserted at index 2,
     // then shifted out of position 0 → newFallbacks = ["claude", "gpt-4o"]
@@ -474,6 +488,7 @@ describe('RoutingTierCard', () => {
         'openai',
         'api_key',
         undefined,
+        false,
       );
     });
   });

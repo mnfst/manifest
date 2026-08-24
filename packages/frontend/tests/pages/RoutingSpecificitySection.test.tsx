@@ -170,7 +170,9 @@ describe('RoutingSpecificitySection', () => {
   });
 
   it('renders the task-specific deprecation notice', () => {
-    render(() => <RoutingSpecificitySection {...makeProps({ assignments: () => [codingActive] })} />);
+    render(() => (
+      <RoutingSpecificitySection {...makeProps({ assignments: () => [codingActive] })} />
+    ));
     expect(screen.getByText("We're deprecating rule-based routing.")).toBeDefined();
   });
 
@@ -343,6 +345,35 @@ describe('RoutingSpecificitySection', () => {
     expect(mockClearSpecificityFallbacks).toHaveBeenCalledWith('demo', 'coding');
   });
 
+  it('forwards an explicit quota-skip value from a promoted fallback to the parent', () => {
+    const onOverride = vi.fn();
+    render(() => (
+      <RoutingSpecificitySection
+        {...makeProps({ assignments: () => [codingActive], onOverride })}
+      />
+    ));
+    const cardProps = tierCardCalls[tierCardCalls.length - 1];
+    (
+      cardProps.onOverride as (
+        category: string,
+        model: string,
+        provider: string,
+        authType?: string,
+        keyLabel?: string,
+        skipWhenQuotaExhausted?: boolean,
+      ) => void
+    )('coding', 'claude-opus', 'anthropic', 'subscription', undefined, false);
+
+    expect(onOverride).toHaveBeenCalledWith(
+      'coding',
+      'claude-opus',
+      'anthropic',
+      'subscription',
+      undefined,
+      false,
+    );
+  });
+
   it("getFallbacksFor on the tier card returns the assignment's fallback model names", () => {
     const assignment: SpecificityAssignment = {
       ...codingActive,
@@ -448,8 +479,7 @@ describe('RoutingSpecificitySection', () => {
     ));
     const cardProps = tierCardCalls[tierCardCalls.length - 1];
     const tier = (cardProps.tier as () => unknown)?.() as
-      | { tier: string; category: string }
-      | undefined;
+      { tier: string; category: string } | undefined;
     expect(tier?.tier).toBe('coding');
     expect(tier?.category).toBe('coding');
   });

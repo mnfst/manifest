@@ -452,10 +452,30 @@ const Routing: Component = () => {
     provider: string,
     authType?: 'api_key' | 'subscription' | 'local',
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ) => {
     setChangingSpecificity(category);
     try {
-      await overrideSpecificity(agentName(), category, model, provider, authType, providerKeyLabel);
+      if (skipWhenQuotaExhausted === undefined) {
+        await overrideSpecificity(
+          agentName(),
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+        );
+      } else {
+        await overrideSpecificity(
+          agentName(),
+          category,
+          model,
+          provider,
+          authType,
+          providerKeyLabel,
+          skipWhenQuotaExhausted,
+        );
+      }
       await refetchSpecificity();
     } catch {
       toast.error('Failed to update specificity model');

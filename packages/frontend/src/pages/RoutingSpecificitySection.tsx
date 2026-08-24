@@ -149,7 +149,14 @@ export interface RoutingSpecificitySectionProps {
   resettingAll: () => boolean;
   addingFallback: () => string | null;
   onDropdownOpen: (category: string) => void;
-  onOverride: (category: string, model: string, provider: string, authType?: AuthType) => void;
+  onOverride: (
+    category: string,
+    model: string,
+    provider: string,
+    authType?: AuthType,
+    providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
+  ) => void;
   onPinKey?: (
     category: string,
     providerId: string,

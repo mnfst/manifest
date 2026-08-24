@@ -434,6 +434,14 @@ vi.mock('../../src/pages/RoutingSpecificitySection.js', () => ({
     onResponseModeChange?: (mode: 'stream' | 'buffered') => void;
     onPinKey?: (cat: string, provider: string, label: string | null, authType?: string) => void;
     onQuotaSkipToggle?: (cat: string, enabled: boolean) => void;
+    onOverride?: (
+      cat: string,
+      model: string,
+      provider: string,
+      authType?: string,
+      keyLabel?: string,
+      skipWhenQuotaExhausted?: boolean,
+    ) => void;
     setModelParams?: (
       scope: string,
       provider: string,
@@ -455,6 +463,14 @@ vi.mock('../../src/pages/RoutingSpecificitySection.js', () => ({
       </button>
       <button data-testid="spec-reset" onClick={() => props.onReset('coding')}>
         spec-reset
+      </button>
+      <button
+        data-testid="spec-override-quota-off"
+        onClick={() =>
+          props.onOverride?.('coding', 'claude', 'anthropic', 'subscription', undefined, false)
+        }
+      >
+        spec-override-quota-off
       </button>
       <button
         data-testid="spec-fb-update-add"
@@ -666,9 +682,10 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
         <button
           data-testid={`clean-fb-routes-${tier.id}`}
           onClick={() =>
-            (props.onFallbacksUpdate as (f: string[], r: unknown) => void)(['fb1'], [
-              { provider: 'openai', authType: 'api_key', model: 'fb1' },
-            ])
+            (props.onFallbacksUpdate as (f: string[], r: unknown) => void)(
+              ['fb1'],
+              [{ provider: 'openai', authType: 'api_key', model: 'fb1' }],
+            )
           }
         >
           fb-routes
@@ -681,7 +698,10 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
         >
           fb-noroutes
         </button>
-        <button data-testid={`clean-edit-${tier.id}`} onClick={() => (props.onEdit as () => void)()}>
+        <button
+          data-testid={`clean-edit-${tier.id}`}
+          onClick={() => (props.onEdit as () => void)()}
+        >
           edit
         </button>
         <button
@@ -704,12 +724,7 @@ vi.mock('../../src/components/HeaderTierCard.js', () => ({
 vi.mock('../../src/components/ResponseModeModal.js', () => ({
   default: (props: Record<string, unknown>) => {
     // Read every prop so JSX attribute lines 711-723 are covered.
-    const _read = [
-      props.responseMode,
-      props.disabled,
-      props.tiers,
-      props.models,
-    ];
+    const _read = [props.responseMode, props.disabled, props.tiers, props.models];
     void _read;
     return (
       <div data-testid="response-mode-modal">
@@ -891,7 +906,9 @@ describe('Routing page', () => {
       expect(screen.getByTestId('default-section')).toBeDefined();
     });
 
-    const pickerProviders = (lastModalsProps!.connectedProviders as () => (typeof baseProvider)[])();
+    const pickerProviders = (
+      lastModalsProps!.connectedProviders as () => (typeof baseProvider)[]
+    )();
     expect(pickerProviders.map((provider) => provider.id)).toEqual(['p1']);
   });
 
@@ -1181,6 +1198,26 @@ describe('Routing page', () => {
         'anthropic',
         'api_key',
         undefined,
+      );
+    });
+  });
+
+  it('forwards an explicit false quota-skip value from a specificity fallback promotion', async () => {
+    mockOverrideSpecificity.mockResolvedValue(undefined);
+    render(() => <Routing />);
+    await waitFor(() => {
+      expect(screen.getByTestId('spec-override-quota-off')).toBeDefined();
+    });
+    fireEvent.click(screen.getByTestId('spec-override-quota-off'));
+    await waitFor(() => {
+      expect(mockOverrideSpecificity).toHaveBeenCalledWith(
+        'demo',
+        'coding',
+        'claude',
+        'anthropic',
+        'subscription',
+        undefined,
+        false,
       );
     });
   });
@@ -1567,15 +1604,13 @@ describe('Routing page', () => {
   });
 
   it('keeps the routing page mounted when model refresh completes after a selection', async () => {
-    let resolveProviderRefresh!: (providers: typeof baseProvider[]) => void;
-    mockGetProviders
-      .mockResolvedValueOnce([baseProvider])
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveProviderRefresh = resolve;
-          }),
-      );
+    let resolveProviderRefresh!: (providers: (typeof baseProvider)[]) => void;
+    mockGetProviders.mockResolvedValueOnce([baseProvider]).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveProviderRefresh = resolve;
+        }),
+    );
 
     render(() => <Routing />);
     await waitFor(() => {
@@ -1870,9 +1905,9 @@ describe('Routing page', () => {
     // actions.getTier was consulted first with the category id.
     expect(mockActionGetTier).toHaveBeenCalledWith('coding');
     // Outer getTier maps the specificity row's category to tier and returns it.
-    const result = (lastModalsProps?.getTier as (id: string) => Record<string, unknown> | undefined)(
-      'coding',
-    );
+    const result = (
+      lastModalsProps?.getTier as (id: string) => Record<string, unknown> | undefined
+    )('coding');
     expect(result).toBeDefined();
     expect(result?.tier).toBe('coding');
     expect(result?.category).toBe('coding');
@@ -2146,7 +2181,7 @@ describe('Routing page', () => {
       fireEvent.click(screen.getByTestId('setup-done'));
       await waitFor(() => {
         expect(localStorage.getItem('setup_completed_demo')).toBe('1');
-        expect((lastSetupModalProps?.open as boolean)).toBe(false);
+        expect(lastSetupModalProps?.open as boolean).toBe(false);
       });
       expect(mockClearSetupPending).toHaveBeenCalledWith('demo');
       expect(screen.getByTestId('setup-modal').getAttribute('data-open')).toBe('false');
