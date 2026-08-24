@@ -1169,3 +1169,47 @@ describe('Anthropic Messages adapter', () => {
     });
   });
 });
+
+describe('tool-call id sanitation on /v1/messages responses', () => {
+  it('chatCompletionsResponseToMessages sanitizes upstream tool_call ids', () => {
+    const result = chatCompletionsResponseToMessages(
+      {
+        choices: [
+          {
+            message: {
+              content: '',
+              tool_calls: [
+                { id: 'Edit:0', type: 'function', function: { name: 'Edit', arguments: '{}' } },
+                {
+                  id: 'call_ok-1',
+                  type: 'function',
+                  function: { name: 'Read', arguments: '{}' },
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      },
+      'kimi-k3',
+    );
+    const blocks = result.content as Array<Record<string, unknown>>;
+    expect(blocks[0].id).toBe('Edit_0');
+    expect(blocks[1].id).toBe('call_ok-1');
+  });
+
+  it('createMessagesStreamTransformer sanitizes the streamed tool_use id', () => {
+    const t = createMessagesStreamTransformer('kimi-k3');
+    const out = [
+      'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"Edit:0","function":{"name":"Edit","arguments":""}}]}}]}\n\n',
+      'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+    ]
+      .map((c) => t.transform(c) ?? '')
+      .join('') + (t.finalize() ?? '');
+    const start = out
+      .split('\n\n')
+      .find((b) => b.startsWith('event: content_block_start') && b.includes('tool_use'))!;
+    const data = JSON.parse(start.split('\n')[1].replace('data: ', ''));
+    expect(data.content_block.id).toBe('Edit_0');
+  });
+});
