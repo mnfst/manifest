@@ -556,11 +556,19 @@ describe('parseXaiUsage', () => {
     const fields = grpcWebTrailerFields(data);
     expect(fields['grpc-status']).toBe('0');
     expect(() => validateGrpcStatusFields(fields)).not.toThrow();
-    // 4% used; the only future in-range reset varint sits at path [1,5,1].
-    expect(parseXaiUsage(data)).toEqual({
-      usedPercent: 4.0,
-      resetsAt: XAI_PROD_RESET_ISO,
-    });
+    // Keep the production capture deterministic: its recorded reset must be
+    // future relative to the parser's clock, not relative to the day this
+    // test happens to run.
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(Date.parse(XAI_PROD_RESET_ISO) - 1_000);
+    try {
+      // 4% used; the only future in-range reset varint sits at path [1,5,1].
+      expect(parseXaiUsage(data)).toEqual({
+        usedPercent: 4.0,
+        resetsAt: XAI_PROD_RESET_ISO,
+      });
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it.each([
