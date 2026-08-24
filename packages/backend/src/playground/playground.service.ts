@@ -333,7 +333,7 @@ export class PlaygroundService {
         cacheReadTokens,
         cacheCreationTokens,
         model: dto.model,
-        pricing: this.pricingCache.getByModel(dto.model),
+        pricing: this.pricingCache.getByModel(dto.model, dto.provider),
         isSubscription: authType === 'subscription',
       });
       const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
