@@ -1,0 +1,35 @@
+packages/backend/src/playground/playground.service.ts
+  s_d254164878e1f4::t_1954e2887bb38c 336
+packages/backend/src/model-prices/model-pricing-cache.provider-scope.spec.ts
+  s_d254164878e1f4::t_e9a65b07e98f06 43-50,73,220-223
+  s_d254164878e1f4::t_1954e2887bb38c 1-42,51-72,74-113,115-116,118-190,192,230-266
+  s_d254164878e1f4::t_6786a6f90b727b 191,194-219,224-229
+  s_d254164878e1f4::t_86d76497fa34eb 114,117
+  s_d254164878e1f4::t_5467d3d2a663b2 193
+packages/backend/src/public-stats/public-stats.service.ts
+  s_d254164878e1f4::t_6f25f0597d823a 254-257
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_d254164878e1f4::t_804a045bec9e69 5,76-95,164-169,224,227-249
+  s_d254164878e1f4::t_1954e2887bb38c 57-68,71-75,138,158-163,170-171,191-212,222-223,225-226,250-251,338-345
+  s_d254164878e1f4::t_6c02e4306e5248 346
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_1954e2887bb38c 1069,1160
+.changeset/provider-scoped-pricing.md
+  s_d254164878e1f4::t_08a64e077c099b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "7cb06335daad67c029acd304e8793f1559f43ae2",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": null
+    }
+  }
+}
