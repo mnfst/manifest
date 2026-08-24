@@ -17,6 +17,7 @@ import { normalizeProviderName } from 'manifest-shared';
 
 const DEEPSEEK_TIME_TIER = {
   windows: ['01:00-04:00', '06:00-10:00'],
+  days: [1, 2, 3, 4, 5],
   inputPricePerToken: 1.32 / 1_000_000,
   outputPricePerToken: 3.96 / 1_000_000,
   cacheReadPricePerToken: 0.044 / 1_000_000,
@@ -113,12 +114,12 @@ describe('ModelPricingCacheService — pricing scoped to the provider that serve
     expect(entry!.output_price_per_token).toBe(1.98 / 1_000_000);
   });
 
-  it("carries DeepSeek's peak-hour schedule on the scoped entry", async () => {
+  it("carries DeepSeek's weekday peak schedule on the scoped entry", async () => {
     await service.reload();
 
-    // The schedule belongs to the seller. Losing the entry loses the schedule.
     const tiers = service.getByModel('deepseek-v4-pro', 'deepseek')!.time_tiers;
     expect(tiers).toHaveLength(1);
+    expect(tiers![0].days).toEqual([1, 2, 3, 4, 5]);
     expect(tiers![0].input_price_per_token).toBe(1.32 / 1_000_000);
   });
 

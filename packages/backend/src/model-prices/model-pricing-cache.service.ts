@@ -29,6 +29,11 @@ const CUSTOM_PROVIDER_LABEL = 'Custom';
  */
 export interface PricingTimeTier {
   windows: readonly string[];
+  /**
+   * ISO weekdays (1 = Monday … 7 = Sunday) the windows apply on. Absent or
+   * empty means every day. DeepSeek's peak hours are Monday through Friday.
+   */
+  days?: readonly number[] | null;
   input_price_per_token: number | null;
   output_price_per_token: number | null;
   cache_read_price_per_token?: number | null;
@@ -349,6 +354,7 @@ export class ModelPricingCacheService implements OnApplicationBootstrap {
           cache_write_price_per_token: model.cacheWritePricePerToken ?? null,
           time_tiers: model.timeTiers?.map((tier) => ({
             windows: tier.windows,
+            days: tier.days ?? null,
             input_price_per_token: tier.inputPricePerToken,
             output_price_per_token: tier.outputPricePerToken,
             cache_read_price_per_token: tier.cacheReadPricePerToken,

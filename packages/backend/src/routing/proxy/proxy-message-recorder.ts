@@ -1177,6 +1177,11 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       isLocalProvider: isLocalOnlyProvider(canonical.provider ?? provider ?? ''),
       perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
       reportedCostUsd: usage.reported_cost_usd,
+      // Bill a peak/off-peak model on when the attempt started, not on when
+      // this row is written: a long stream that opens at 09:59 and records at
+      // 10:01 is a peak request, and the fallback path already reads it this
+      // way. Falls back to now when the caller tracked no attempt.
+      at: attempt ? new Date(attempt.startedAt) : undefined,
     });
 
     const canonicalModel = canonical.model;
