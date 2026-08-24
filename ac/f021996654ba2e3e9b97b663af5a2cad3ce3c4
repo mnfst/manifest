@@ -1,0 +1,51 @@
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_975598736201ac 1069,1071,1161,1163,1303-1310
+  s_d254164878e1f4::t_5fb00ef2c88018 1166-1170
+  s_d254164878e1f4::t_0a192265d99fd0 1311-1312
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_d254164878e1f4::t_4e4819f465447d 62-73,76-80,123,143-155,175-196,206-219,308-315
+  s_d254164878e1f4::t_3c4abd3d2c1716 31-35,297
+  s_d254164878e1f4::t_1803b28aab74eb 220,316
+packages/backend/src/playground/playground.service.ts
+  s_d254164878e1f4::t_4f1ad7b8281d19 336
+packages/backend/src/model-prices/model-pricing-cache.provider-scope.spec.ts
+  s_d254164878e1f4::t_14aa9fd3203356 44-51,65,172-183
+  s_d254164878e1f4::t_2bebcfb9b2c614 1-43,52-64,66-171,184-185,212-214,216,221-222
+  s_d254164878e1f4::t_f988464c4a1709 186-211,215,217-220
+.changeset/provider-scoped-cost.md
+  s_d254164878e1f4::t_31219ca92d034f 1-5
+.changeset/deepseek-weekend-offpeak.md
+  s_d254164878e1f4::t_9657faa414fca7 1-5
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d254164878e1f4::t_b3f25618ee135d 70
+  s_d254164878e1f4::t_8bbd05b98f2191 105
+  s_d254164878e1f4::t_89379ce2508374 25-32,35-40,119-133,136-138,146
+  s_d254164878e1f4::t_151fd1cd5e44e2 61-69,74-104,106-108,113
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d254164878e1f4::t_9f5e552c4a1561 470-549
+  s_d254164878e1f4::t_8594af51ddd511 351-434
+  s_d254164878e1f4::t_cee3ea60d2e0ca 550-566
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_d254164878e1f4::t_52f9133c20ad19 1111,1184,1230,1374
+  s_d254164878e1f4::t_e6ef4e1321ec26 1243-1343
+packages/backend/src/database/models-dev-sync.service.ts
+  s_d254164878e1f4::t_98985abcab24dd 89-94,121,162-164,176-177,205-214,663-679,699,736
+packages/backend/src/model-prices/model-pricing-cache.time-tiers.spec.ts
+  s_d254164878e1f4::t_a8f1b3d17100c7 17,84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "acf021996654ba2e3e9b97b663af5a2cad3ce3c4",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
