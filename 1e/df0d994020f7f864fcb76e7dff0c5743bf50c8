@@ -1,0 +1,18 @@
+.changeset/config.json
+  h_4314c622e2d856 10
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  h_4314c622e2d856 604
+packages/backend/src/model-discovery/model-discovery.service.ts
+  h_4314c622e2d856 239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "1edf0d994020f7f864fcb76e7dff0c5743bf50c8",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
