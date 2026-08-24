@@ -1,0 +1,26 @@
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d254164878e1f4::t_5040282cd0129b 25-32,35-40,86-100,103-105,113
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_5040282cd0129b 1071,1163,1298-1305
+  s_d254164878e1f4::t_9a8e59f9430308 1306-1307
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d254164878e1f4::t_d9b77bb9aa5218 351-433
+.changeset/cost-source-precedence.md
+  s_d254164878e1f4::t_c04b240971757c 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "9a285bd7467f1da8f3881d0159b75afec8062e35",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
