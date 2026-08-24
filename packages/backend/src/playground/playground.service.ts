@@ -15,6 +15,9 @@ import {
   resolveApiKey,
 } from '../routing/proxy/oauth-credentials';
 import { ProviderKeyService } from '../routing/routing-core/provider-key.service';
+import { isLocalOnlyProvider } from '../common/utils/provider-availability';
+import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog.service';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { PlaygroundAgentService } from './playground-agent.service';
 import { OpenaiOauthService } from '../routing/oauth/openai/openai-oauth.service';
 import { MinimaxOauthService } from '../routing/oauth/minimax/minimax-oauth.service';
@@ -57,6 +60,8 @@ export class PlaygroundService {
     private readonly messageRepo: Repository<AgentMessage>,
     @InjectRepository(CustomProvider)
     private readonly customProviderRepo: Repository<CustomProvider>,
+    private readonly customProviders: CustomProviderService,
+    private readonly opencodeGoCatalog: OpencodeGoCatalogService,
   ) {}
 
   /**
@@ -327,6 +332,15 @@ export class PlaygroundService {
       const outputTokens = usage?.completion_tokens ?? 0;
       const cacheReadTokens = usage?.cache_read_tokens ?? 0;
       const cacheCreationTokens = usage?.cache_creation_tokens ?? 0;
+      const { provider: canonicalProvider } =
+        // Tile-connected local runtimes arrive as `custom:<uuid>`; only the
+        // canonical provider says whether one is local. A tenant-less context
+        // has no custom providers to resolve, so it degrades to the raw name.
+        await this.customProviders.canonicalizeAgentMessageKeys(
+          ctx.tenantId ?? '',
+          dto.provider,
+          dto.model,
+        );
       const cost = computeTokenCost({
         inputTokens,
         outputTokens,
@@ -335,6 +349,20 @@ export class PlaygroundService {
         model: dto.model,
         pricing: this.pricingCache.getByModel(dto.model, dto.provider),
         isSubscription: authType === 'subscription',
+        // Same source order as the proxy recorder: a playground run against
+        // the same provider must not report a different cost. That parity is
+        // the whole point, so each input is resolved the way the recorder
+        // resolves it — the local check on the canonical provider, because a
+        // tile-connected llama.cpp arrives as `custom:<uuid>`, and the
+        // per-request rate from the OpenCode Go catalogue.
+        isLocalProvider: isLocalOnlyProvider(canonicalProvider ?? dto.provider),
+        perRequestCostUsd:
+          authType === 'subscription' &&
+          PROVIDER_BY_ID_OR_ALIAS.get((canonicalProvider ?? dto.provider).toLowerCase())?.id ===
+            'opencode-go'
+            ? await this.opencodeGoCatalog.resolveCostPerRequest(dto.model)
+            : null,
+        reportedCostUsd: usage?.reported_cost_usd,
       });
       const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
 
