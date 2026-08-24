@@ -8,6 +8,11 @@ import { randomUUID } from 'crypto';
 
 import { OpenAIMessage } from './proxy-types';
 
+// Anthropic rejects tool_use ids outside ^[a-zA-Z0-9_-]+$, but non-Anthropic
+// upstreams mint ids like `Edit:0`; passing one through poisons the client's
+// history and 400s every later turn routed to a real Anthropic upstream.
+const sanitizeToolUseId = (id: string): string => id.replace(/[^a-zA-Z0-9_-]/g, '_');
+
 type JsonRecord = Record<string, unknown>;
 
 const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
@@ -346,7 +351,10 @@ export function chatCompletionsResponseToMessages(body: JsonRecord, model: strin
       if (!isRecord(call) || !isRecord(call.function)) continue;
       content.push({
         type: 'tool_use',
-        id: typeof call.id === 'string' ? call.id : `toolu_${randomUUID().replace(/-/g, '')}`,
+        id:
+          typeof call.id === 'string' && call.id !== ''
+            ? sanitizeToolUseId(call.id)
+            : `toolu_${randomUUID().replace(/-/g, '')}`,
         name: typeof call.function.name === 'string' ? call.function.name : '',
         input: safeParseJson(call.function.arguments),
       });
@@ -521,7 +529,10 @@ function transformStreamChunk(chunk: string, state: StreamState): string | null 
         let entry = state.toolCalls.get(callIndex);
         if (!entry) {
           entry = {
-            id: typeof call.id === 'string' ? call.id : `toolu_${randomUUID().replace(/-/g, '')}`,
+            id:
+              typeof call.id === 'string' && call.id !== ''
+                ? sanitizeToolUseId(call.id)
+                : `toolu_${randomUUID().replace(/-/g, '')}`,
             index: nextBlockIndex(state),
             argBuffer: '',
             opened: false,
