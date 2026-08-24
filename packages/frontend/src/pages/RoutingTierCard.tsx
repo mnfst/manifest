@@ -84,6 +84,7 @@ export interface RoutingTierCardProps {
     providerId: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ) => void;
   onPinKey?: (
     tierId: string,
@@ -252,13 +253,25 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     }
     const provId = newPrimaryRoute?.provider ?? providerIdForModel(newPrimary, props.models());
     try {
-      await props.onOverride(
-        props.stage.id,
-        newPrimary,
-        provId ?? '',
-        newPrimaryRoute?.authType,
-        newPrimaryRoute?.keyLabel ?? undefined,
-      );
+      const skipWhenQuotaExhausted = newPrimaryRoute?.skipWhenQuotaExhausted;
+      if (skipWhenQuotaExhausted === undefined) {
+        await props.onOverride(
+          props.stage.id,
+          newPrimary,
+          provId ?? '',
+          newPrimaryRoute?.authType,
+          newPrimaryRoute?.keyLabel ?? undefined,
+        );
+      } else {
+        await props.onOverride(
+          props.stage.id,
+          newPrimary,
+          provId ?? '',
+          newPrimaryRoute?.authType,
+          newPrimaryRoute?.keyLabel ?? undefined,
+          skipWhenQuotaExhausted,
+        );
+      }
     } finally {
       setSwappingFbIndex(null);
     }
@@ -303,13 +316,25 @@ const RoutingTierCard: Component<RoutingTierCardProps> = (props) => {
     }
     const provId = fbRoute?.provider ?? providerIdForModel(fbModel, props.models());
     try {
-      await props.onOverride(
-        props.stage.id,
-        fbModel,
-        provId ?? '',
-        fbRoute?.authType,
-        fbRoute?.keyLabel ?? undefined,
-      );
+      const skipWhenQuotaExhausted = fbRoute?.skipWhenQuotaExhausted;
+      if (skipWhenQuotaExhausted === undefined) {
+        await props.onOverride(
+          props.stage.id,
+          fbModel,
+          provId ?? '',
+          fbRoute?.authType,
+          fbRoute?.keyLabel ?? undefined,
+        );
+      } else {
+        await props.onOverride(
+          props.stage.id,
+          fbModel,
+          provId ?? '',
+          fbRoute?.authType,
+          fbRoute?.keyLabel ?? undefined,
+          skipWhenQuotaExhausted,
+        );
+      }
     } finally {
       setSwappingFbIndex(null);
     }

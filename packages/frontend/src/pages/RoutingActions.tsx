@@ -40,17 +40,29 @@ export function createRoutingActions(input: RoutingActionsInput) {
     providerId: string,
     authType?: AuthType,
     providerKeyLabel?: string,
+    skipWhenQuotaExhausted?: boolean,
   ) => {
     setChangingTier(tierId);
     try {
-      const updated = await overrideTier(
-        input.agentName(),
-        tierId,
-        modelName,
-        providerId,
-        authType,
-        providerKeyLabel,
-      );
+      const updated =
+        skipWhenQuotaExhausted === undefined
+          ? await overrideTier(
+              input.agentName(),
+              tierId,
+              modelName,
+              providerId,
+              authType,
+              providerKeyLabel,
+            )
+          : await overrideTier(
+              input.agentName(),
+              tierId,
+              modelName,
+              providerId,
+              authType,
+              providerKeyLabel,
+              skipWhenQuotaExhausted,
+            );
       // Commit the primary update to local state immediately so the UI reflects
       // the new model even if the fallback cleanup below fails.
       input.mutateTiers((prev) => prev?.map((t) => (t.tier === tierId ? updated : t)));

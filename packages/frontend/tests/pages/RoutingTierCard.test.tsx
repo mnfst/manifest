@@ -501,7 +501,12 @@ describe('RoutingTierCard', () => {
       ...baseTier,
       fallback_routes: [
         { provider: 'anthropic', authType: 'subscription', model: 'claude' },
-        { provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' },
+        {
+          provider: 'openai',
+          authType: 'api_key',
+          model: 'gpt-4o-mini',
+          skipWhenQuotaExhausted: false,
+        },
       ],
     };
     const { container, getByTestId } = render(() => (
@@ -531,6 +536,7 @@ describe('RoutingTierCard', () => {
         'openai',
         'api_key',
         undefined,
+        false,
       );
     });
   });

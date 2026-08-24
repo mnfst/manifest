@@ -259,7 +259,11 @@ export function overrideTier(
     const route: ModelRoute = providerKeyLabel
       ? { provider, authType, model, keyLabel: providerKeyLabel }
       : { provider, authType, model };
-    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
+    // `false` is meaningful: it explicitly clears a saved quota-skip flag.
+    // Omitting it asks the backend to preserve the current route value.
+    if (skipWhenQuotaExhausted !== undefined) {
+      route.skipWhenQuotaExhausted = skipWhenQuotaExhausted;
+    }
     body.route = route;
   }
   if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;

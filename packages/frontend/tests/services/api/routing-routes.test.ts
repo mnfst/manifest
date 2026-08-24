@@ -53,6 +53,26 @@ describe('routing-routes dual-write API client', () => {
       });
     });
 
+    it('sends an explicit false quota-skip value so an existing flag can be cleared', async () => {
+      const fetchMock = setupFetch({});
+      await routing.overrideTier(
+        'my-agent',
+        'simple',
+        'gpt-4o',
+        'openai',
+        'api_key',
+        undefined,
+        false,
+      );
+
+      expect(lastBody(fetchMock).route).toEqual({
+        provider: 'openai',
+        authType: 'api_key',
+        model: 'gpt-4o',
+        skipWhenQuotaExhausted: false,
+      });
+    });
+
     it('omits the route key entirely when authType is not provided (legacy-only)', async () => {
       const fetchMock = setupFetch({});
       await routing.overrideTier('my-agent', 'simple', 'gpt-4o', 'openai');
@@ -96,9 +116,7 @@ describe('routing-routes dual-write API client', () => {
 
     it('drops `routes` defensively when length drifts from models', async () => {
       const fetchMock = setupFetch([]);
-      const routes: ModelRoute[] = [
-        { provider: 'openai', authType: 'api_key', model: 'm1' },
-      ];
+      const routes: ModelRoute[] = [{ provider: 'openai', authType: 'api_key', model: 'm1' }];
       await routing.setFallbacks('my-agent', 'simple', ['m1', 'm2'], routes);
 
       const body = lastBody(fetchMock);
@@ -138,6 +156,21 @@ describe('routing-routes dual-write API client', () => {
           model: 'claude-opus-4-6',
         },
       });
+    });
+
+    it('sends an explicit false quota-skip value so an existing flag can be cleared', async () => {
+      const fetchMock = setupFetch({});
+      await specificity.overrideSpecificity(
+        'my-agent',
+        'coding',
+        'claude-opus-4-6',
+        'anthropic',
+        'subscription',
+        undefined,
+        false,
+      );
+
+      expect(lastBody(fetchMock).route).toMatchObject({ skipWhenQuotaExhausted: false });
     });
 
     it('omits the route key entirely when authType is not provided', async () => {
@@ -209,6 +242,21 @@ describe('routing-routes dual-write API client', () => {
       });
     });
 
+    it('sends an explicit false quota-skip value so an existing flag can be cleared', async () => {
+      const fetchMock = setupFetch({});
+      await headerTiers.overrideHeaderTier(
+        'my-agent',
+        'ht-1',
+        'gpt-4o',
+        'OpenAI',
+        'api_key',
+        undefined,
+        false,
+      );
+
+      expect(lastBody(fetchMock).route).toMatchObject({ skipWhenQuotaExhausted: false });
+    });
+
     it('omits the route key entirely when authType is not provided', async () => {
       const fetchMock = setupFetch({});
       await headerTiers.overrideHeaderTier('my-agent', 'ht-1', 'gpt-4o', 'OpenAI');
@@ -220,7 +268,13 @@ describe('routing-routes dual-write API client', () => {
 
     it('PUTs to the header-tier override path with the encoded id', async () => {
       const fetchMock = setupFetch({});
-      await headerTiers.overrideHeaderTier('my-agent', 'ht with space', 'gpt-4o', 'OpenAI', 'api_key');
+      await headerTiers.overrideHeaderTier(
+        'my-agent',
+        'ht with space',
+        'gpt-4o',
+        'OpenAI',
+        'api_key',
+      );
       const [url, init] = fetchMock.mock.calls[0];
       // header-tier path uses /override suffix and encodes the id.
       expect(url).toContain('/routing/my-agent/header-tiers/ht%20with%20space/override');
@@ -252,9 +306,7 @@ describe('routing-routes dual-write API client', () => {
 
     it('drops `routes` defensively when lengths drift', async () => {
       const fetchMock = setupFetch([]);
-      const routes: ModelRoute[] = [
-        { provider: 'openai', authType: 'api_key', model: 'gpt-4o' },
-      ];
+      const routes: ModelRoute[] = [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o' }];
       await headerTiers.setHeaderTierFallbacks(
         'my-agent',
         'ht-1',

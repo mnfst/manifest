@@ -44,7 +44,11 @@ export function overrideSpecificity(
     const route: ModelRoute = providerKeyLabel
       ? { provider, authType, model, keyLabel: providerKeyLabel }
       : { provider, authType, model };
-    if (skipWhenQuotaExhausted) route.skipWhenQuotaExhausted = true;
+    // Preserve an omitted value, but send explicit false so a toggle can clear
+    // an existing quota-skip flag.
+    if (skipWhenQuotaExhausted !== undefined) {
+      route.skipWhenQuotaExhausted = skipWhenQuotaExhausted;
+    }
     body.route = route;
   }
   if (providerKeyLabel) body.providerKeyLabel = providerKeyLabel;
