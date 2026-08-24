@@ -1,0 +1,21 @@
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_e3840ab064e072::t_e46b153c717a2b 26
+  s_e3840ab064e072::t_b0198dab3e180a 41-59
+  s_e3840ab064e072::t_963d5391e1dbbd 136-137,139,147-152,175-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "25cc23e64b4a7d4fbfadf709da45d2b8d4b24b83",
+  "prompts": {},
+  "sessions": {
+    "s_e3840ab064e072": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fd6c05ec5ffeV2MFQGNKpx1JYU",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
