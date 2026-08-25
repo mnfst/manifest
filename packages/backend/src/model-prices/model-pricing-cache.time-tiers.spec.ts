@@ -14,6 +14,7 @@ import { ProviderModelRegistryService } from '../model-discovery/provider-model-
 
 const DEEPSEEK_TIME_TIER = {
   windows: ['01:00-04:00', '06:00-10:00'],
+  days: [1, 2, 3, 4, 5],
   inputPricePerToken: 0.44 / 1_000_000,
   outputPricePerToken: 1.32 / 1_000_000,
   cacheReadPricePerToken: 0.014 / 1_000_000,
@@ -80,6 +81,7 @@ describe('ModelPricingCacheService — time-of-day pricing tiers', () => {
     expect(entry!.time_tiers).toEqual([
       {
         windows: ['01:00-04:00', '06:00-10:00'],
+        days: [1, 2, 3, 4, 5],
         input_price_per_token: 0.44 / 1_000_000,
         output_price_per_token: 1.32 / 1_000_000,
         cache_read_price_per_token: 0.014 / 1_000_000,

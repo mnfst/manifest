@@ -26,10 +26,10 @@ export interface CostInput {
    * (`usage.cost`, as OpenRouter and other gateways emit).
    *
    * This is what the provider says it charged, so it outranks every catalogue
-   * estimate — no seller lookup, no stale rate. It is believed from any
-   * upstream that reports it, which includes user-defined OpenAI-compatible
-   * endpoints; the parser accepts only a non-negative finite number, and that
-   * is the whole of the validation.
+   * estimate — no seller lookup, no peak-hour arithmetic, no stale rate. It is
+   * believed from any upstream that reports it, which includes user-defined
+   * OpenAI-compatible endpoints; the parser accepts only a non-negative finite
+   * number, and that is the whole of the validation.
    */
   reportedCostUsd?: number | null;
   /**
@@ -50,34 +50,73 @@ export interface CostInput {
 /**
  * Minutes since UTC midnight for a "HH:MM" string, or null when malformed.
  * Tier windows are validated upstream, so null only guards corrupted data.
+ *
+ * The range check earns its place under the week-circle matching below. An
+ * out-of-range hour used to be harmless — "25:00" was simply a minute count no
+ * clock reached — but as an arc it opens a real band on the following day, so
+ * corrupt input would silently reprice a window nobody wrote.
  */
 function toUtcMinutes(time: string | undefined): number | null {
   if (!time) return null;
   const [hours, minutes] = time.split(':').map(Number);
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) return null;
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return hours * 60 + minutes;
 }
 
-/** True when `minutes` falls inside a "HH:MM-HH:MM" window (end exclusive, wraps midnight). */
-function windowMatches(window: string, minutes: number): boolean {
-  const [start, end] = window.split('-').map(toUtcMinutes);
-  if (start == null || end == null) return false;
-  // A zero-length window matches nothing. Without this, start === end falls
-  // into the wrap branch and matches the whole day, letting a malformed
-  // upstream band override the base rate around the clock.
-  if (start === end) return false;
-  return start < end ? minutes >= start && minutes < end : minutes >= start || minutes < end;
+const MINUTES_PER_DAY = 24 * 60;
+const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
+/** ISO weekdays, used when a tier names no `days` of its own. */
+const EVERY_DAY: readonly number[] = [1, 2, 3, 4, 5, 6, 7];
+
+/** Minutes since Monday 00:00 UTC (0 … 10079). */
+function weekMinutes(at: Date): number {
+  // getUTCDay() is 0-based on Sunday; ISO counts Monday as day 1.
+  const isoDay = (at.getUTCDay() + 6) % 7;
+  return isoDay * MINUTES_PER_DAY + at.getUTCHours() * 60 + at.getUTCMinutes();
 }
 
 /**
- * The time tier whose windows contain `at`, if any. A matching tier replaces
- * the base prices outright (tiers never compose with the base cost).
+ * True when `at` falls in one of the tier's windows.
+ *
+ * A window is an arc on the 10 080-minute week circle: it opens on each of the
+ * tier's `days` at the window's start minute and runs for its length. Framing
+ * it that way makes the two awkward cases definitional rather than special —
+ * a window whose end precedes its start simply runs past midnight into the
+ * next day, and it stays attributed to the day it opened on, so a Friday
+ * 23:00-02:00 band still bills at 00:30 on Saturday. A zero-length window is
+ * a zero-length arc, which contains nothing.
+ */
+function tierCovers(tier: PricingTimeTier, at: Date): boolean {
+  const now = weekMinutes(at);
+  const days = tier.days?.length ? tier.days : EVERY_DAY;
+  for (const window of tier.windows) {
+    const [start, end] = window.split('-').map(toUtcMinutes);
+    if (start == null || end == null) continue;
+    const length = (end - start + MINUTES_PER_DAY) % MINUTES_PER_DAY;
+    for (const day of days) {
+      const opensAt = ((day - 1) * MINUTES_PER_DAY + start) % MINUTES_PER_WEEK;
+      // Distance travelled around the circle since the window opened; inside
+      // the window exactly while that distance is short of its length, which
+      // makes the start inclusive and the end exclusive.
+      if ((now - opensAt + MINUTES_PER_WEEK) % MINUTES_PER_WEEK < length) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * The time tier covering `at`, if any. A matching tier replaces the base
+ * prices outright (tiers never compose with the base cost).
+ *
+ * A tier may narrow its windows to specific ISO weekdays (`days`, 1 = Monday
+ * … 7 = Sunday) — DeepSeek's peak hours are Monday through Friday, so the
+ * weekend is off-peak end to end. An absent or empty list means every day.
  */
 function resolveTimeTier(pricing: PricingEntry, at: Date): PricingTimeTier | undefined {
   const tiers = pricing.time_tiers;
   if (!tiers || tiers.length === 0) return undefined;
-  const minutes = at.getUTCHours() * 60 + at.getUTCMinutes();
-  return tiers.find((tier) => tier.windows.some((window) => windowMatches(window, minutes)));
+  return tiers.find((tier) => tierCovers(tier, at));
 }
 
 /**
