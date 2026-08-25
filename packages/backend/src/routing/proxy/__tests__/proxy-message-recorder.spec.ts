@@ -1653,6 +1653,55 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[1][0].cost_usd).toBeCloseTo(0.097802, 10);
     });
 
+    it('falls back to default Copilot prices when its long-context tier is invalid', async () => {
+      getProvidersMock.mockResolvedValue([
+        {
+          id: 'copilot-connection',
+          cached_models: [
+            {
+              id: 'copilot/gpt-5.6-terra',
+              inputPricePerToken: 1 / 1_000_000,
+              outputPricePerToken: 5 / 1_000_000,
+              longContextPricing: {
+                thresholdTokens: 100,
+                inputPricePerToken: 0,
+                outputPricePerToken: 0,
+              },
+            },
+          ],
+        },
+      ]);
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5.6-terra',
+        'default',
+        'default',
+        { prompt_tokens: 101, completion_tokens: 10 },
+        {
+          provider: 'copilot',
+          authType: 'subscription',
+          tenantProviderId: 'copilot-connection',
+        },
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBeCloseTo(0.000151, 10);
+    });
+
+    it('keeps Copilot at zero when no selected connection id is available', async () => {
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5-mini',
+        'default',
+        'default',
+        { prompt_tokens: 1000, completion_tokens: 100 },
+        { provider: 'copilot', authType: 'subscription' },
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBe(0);
+      expect(getProvidersMock).not.toHaveBeenCalled();
+    });
+
     it('keeps Copilot at zero when its selected connection has no token pricing', async () => {
       getProvidersMock.mockResolvedValue([
         {

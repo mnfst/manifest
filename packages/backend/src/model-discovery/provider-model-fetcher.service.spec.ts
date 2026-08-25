@@ -2723,6 +2723,34 @@ describe('ProviderModelFetcherService', () => {
       });
     });
 
+    it('should omit unavailable Copilot cache prices', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-5-mini',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
+                  default: { input_price: 25, output_price: 200 },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 0.25 / 1_000_000,
+        outputPricePerToken: 2 / 1_000_000,
+      });
+      expect(result[0]).not.toHaveProperty('cacheReadPricePerToken');
+      expect(result[0]).not.toHaveProperty('cacheWritePricePerToken');
+    });
+
     it('should keep subscription pricing at zero when Copilot billing is invalid', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
@@ -2733,6 +2761,15 @@ describe('ProviderModelFetcherService', () => {
               billing: {
                 token_prices: {
                   batch_size: 0,
+                  default: { input_price: 100, output_price: 500 },
+                },
+              },
+            },
+            {
+              id: 'gpt-4.1',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
                   default: { input_price: -1, output_price: Number.POSITIVE_INFINITY },
                 },
               },
@@ -2744,6 +2781,10 @@ describe('ProviderModelFetcherService', () => {
       const result = await service.fetch('copilot', 'tid=token');
 
       expect(result[0]).toMatchObject({
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+      expect(result[1]).toMatchObject({
         inputPricePerToken: 0,
         outputPricePerToken: 0,
       });
