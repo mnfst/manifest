@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ALL_TIERS, AUTH_TYPES, TIER_SLOTS } from 'manifest-shared';
+import { ALL_TIERS, AUTH_TYPES, ERROR_CLASSES, FAILED_STATUS, TIER_SLOTS } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import type { TelemetryPayloadV1 } from './dto/telemetry-payload';
 import { TELEMETRY_SCHEMA_VERSION } from './telemetry.config';
 
 const TIER_WHITELIST: ReadonlySet<string> = new Set<string>([...TIER_SLOTS, ...ALL_TIERS]);
 const AUTH_TYPE_WHITELIST: ReadonlySet<string> = new Set<string>(AUTH_TYPES);
+const ERROR_CLASS_WHITELIST: ReadonlySet<string> = new Set<string>(ERROR_CLASSES);
 
 interface ProviderAggregateRow {
   provider: string | null;
@@ -41,18 +43,30 @@ export class PayloadBuilderService {
     private readonly messages: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agents: Repository<Agent>,
+    @InjectRepository(ManifestRequest)
+    private readonly requests: Repository<ManifestRequest>,
   ) {}
 
   async build(installId: string, manifestVersion: string): Promise<TelemetryPayloadV1> {
-    const [providerRows, tierRows, authRows, totals, agentsTotal, agentPlatformRows] =
-      await Promise.all([
-        this.messagesByProvider(),
-        this.messagesByBucket('routing_tier'),
-        this.messagesByBucket('auth_type'),
-        this.totals(),
-        this.userAgentsCount(),
-        this.agentsByPlatform(),
-      ]);
+    const [
+      providerRows,
+      tierRows,
+      authRows,
+      totals,
+      agentsTotal,
+      agentPlatformRows,
+      requestCounts,
+      errorClassRows,
+    ] = await Promise.all([
+      this.messagesByProvider(),
+      this.messagesByBucket('routing_tier'),
+      this.messagesByBucket('auth_type'),
+      this.totals(),
+      this.userAgentsCount(),
+      this.agentsByPlatform(),
+      this.requestCounts(),
+      this.failedRequestsByClass(),
+    ]);
 
     return {
       schema_version: TELEMETRY_SCHEMA_VERSION,
@@ -70,6 +84,11 @@ export class PayloadBuilderService {
       tokens_output_total: Number(totals.output_tokens ?? 0),
       cost_usd_total: roundCents(Number(totals.cost ?? 0)),
       cost_usd_by_provider: this.collapseProviderCosts(providerRows),
+      requests_total: Number(requestCounts.total),
+      errors_total: Number(requestCounts.failed ?? 0),
+      // NULL error_class (unclassified failures) buckets under "unknown";
+      // anything outside the shared taxonomy collapses to "other".
+      errors_by_class: this.bucketsToRecord(errorClassRows, 'unknown', ERROR_CLASS_WHITELIST),
       agents_total: agentsTotal,
       agents_by_platform: this.bucketsToRecord(agentPlatformRows, 'unknown'),
       platform: process.platform,
@@ -140,6 +159,35 @@ export class PayloadBuilderService {
       .where('a.is_playground = false')
       .getRawOne<{ count: string }>();
     return Number(result?.count ?? 0);
+  }
+
+  /**
+   * Request-level counters over the same 24h window. `requests` is the
+   * request-first ledger (one row per caller call), so `total` never counts
+   * provider retries/fallbacks twice, and `failed` is the caller-visible
+   * failure count — including gateway rejections that never produced an
+   * attempt row in `agent_messages`.
+   */
+  private async requestCounts(): Promise<{ total: string; failed: string | null }> {
+    const row = await this.requests
+      .createQueryBuilder('r')
+      .select('COUNT(*)', 'total')
+      .addSelect(`SUM(CASE WHEN r.status = '${FAILED_STATUS}' THEN 1 ELSE 0 END)`, 'failed')
+      .where(`r.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .getRawOne<{ total: string; failed: string | null }>();
+    return row ?? { total: '0', failed: '0' };
+  }
+
+  /** Failed requests grouped by their shared-taxonomy `error_class`. */
+  private async failedRequestsByClass(): Promise<BucketRow[]> {
+    return this.requests
+      .createQueryBuilder('r')
+      .select('r.error_class', 'bucket')
+      .addSelect('COUNT(*)', 'count')
+      .where(`r.timestamp >= NOW() - INTERVAL '24 hours'`)
+      .andWhere(`r.status = '${FAILED_STATUS}'`)
+      .groupBy('r.error_class')
+      .getRawMany<BucketRow>();
   }
 
   private async totals(): Promise<TotalsRow> {
