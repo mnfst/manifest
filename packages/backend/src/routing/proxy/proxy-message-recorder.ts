@@ -484,8 +484,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     if (
       !cached ||
       !validPrice(cached.inputPricePerToken) ||
-      !validPrice(cached.outputPricePerToken) ||
-      (cached.inputPricePerToken === 0 && cached.outputPricePerToken === 0)
+      !validPrice(cached.outputPricePerToken)
     ) {
       return undefined;
     }
@@ -500,6 +499,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       validPrice(longContext.outputPricePerToken) &&
       (longContext.inputPricePerToken > 0 || longContext.outputPricePerToken > 0);
     const effective = useLongContext ? longContext : cached;
+    if (effective.inputPricePerToken === 0 && effective.outputPricePerToken === 0) {
+      return undefined;
+    }
 
     return {
       model_name: cached.id,

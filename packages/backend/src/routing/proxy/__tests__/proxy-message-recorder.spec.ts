@@ -1653,6 +1653,43 @@ describe('ProxyMessageRecorder', () => {
       expect(insertMock.mock.calls[1][0].cost_usd).toBeCloseTo(0.097802, 10);
     });
 
+    it('uses billable long-context prices when Copilot default prices are zero', async () => {
+      getProvidersMock.mockResolvedValue([
+        {
+          id: 'copilot-connection',
+          provider: 'copilot',
+          cached_models: [
+            {
+              id: 'copilot/gpt-5.6-terra',
+              displayName: 'gpt-5.6-terra',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+              longContextPricing: {
+                thresholdTokens: 100,
+                inputPricePerToken: 2 / 1_000_000,
+                outputPricePerToken: 8 / 1_000_000,
+              },
+            },
+          ],
+        },
+      ]);
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5.6-terra',
+        'default',
+        'default',
+        { prompt_tokens: 101, completion_tokens: 10 },
+        {
+          provider: 'copilot',
+          authType: 'subscription',
+          tenantProviderId: 'copilot-connection',
+        },
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBeCloseTo(0.000282, 10);
+    });
+
     it('falls back to default Copilot prices when its long-context tier is invalid', async () => {
       getProvidersMock.mockResolvedValue([
         {
