@@ -1,0 +1,35 @@
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 30,140,180-185
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 157-162
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 147,193,232,263-266,274-279,297-302
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 133
+packages/frontend/tests/components/HeaderTierModal.test.tsx
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 248-269
+packages/frontend/src/services/framework-snippets.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 436,440,442,446
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 365-368
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 400-413
+packages/frontend/src/components/HeaderTierModal.tsx
+  s_7888f3d031ea10::t_ed3bfa1a593ae1 307-313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "fa5c0443055195bb0e2e65214fdd8a30f134d251",
+  "prompts": {},
+  "sessions": {
+    "s_7888f3d031ea10": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03ad9-4883-7272-8a5f-36d7ecfb2f79",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
