@@ -14,6 +14,7 @@ import { ProviderModelRegistryService } from '../model-discovery/provider-model-
 
 const DEEPSEEK_TIME_TIER = {
   windows: ['01:00-04:00', '06:00-10:00'],
+  days: [1, 2, 3, 4, 5],
   inputPricePerToken: 0.44 / 1_000_000,
   outputPricePerToken: 1.32 / 1_000_000,
   cacheReadPricePerToken: 0.014 / 1_000_000,
@@ -80,6 +81,7 @@ describe('ModelPricingCacheService — time-of-day pricing tiers', () => {
     expect(entry!.time_tiers).toEqual([
       {
         windows: ['01:00-04:00', '06:00-10:00'],
+        days: [1, 2, 3, 4, 5],
         input_price_per_token: 0.44 / 1_000_000,
         output_price_per_token: 1.32 / 1_000_000,
         cache_read_price_per_token: 0.014 / 1_000_000,
@@ -93,6 +95,31 @@ describe('ModelPricingCacheService — time-of-day pricing tiers', () => {
     await service.reload();
 
     expect(service.getByModel('deepseek-chat')!.time_tiers).toBeUndefined();
+  });
+
+  it('carries a schedule with no weekdays through as null, meaning every day', async () => {
+    // `days` is optional upstream and an absent list means the windows apply
+    // on all seven days. That has to survive the mapping as an explicit null
+    // rather than vanishing, because the cost calculator reads the field to
+    // decide whether to narrow the window at all.
+    mockModelsDevSync.getModelsForProvider.mockImplementation((providerId: string) =>
+      providerId === 'deepseek'
+        ? [
+            {
+              id: 'deepseek-v4-flash',
+              name: 'DeepSeek V4 Flash',
+              inputPricePerToken: 0.22 / 1_000_000,
+              outputPricePerToken: 0.66 / 1_000_000,
+              cacheReadPricePerToken: 0.007 / 1_000_000,
+              timeTiers: [{ ...DEEPSEEK_TIME_TIER, days: null }],
+            },
+          ]
+        : [],
+    );
+
+    await service.reload();
+
+    expect(service.getByModel('deepseek-v4-flash')!.time_tiers![0].days).toBeNull();
   });
 
   it('keeps the OpenRouter entry on the prefixed key and only drops the tiers', async () => {

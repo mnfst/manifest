@@ -2272,6 +2272,34 @@ describe('ProxyMessageRecorder with real CustomProviderService', () => {
     }
   });
 
+  it('costs a tile-connected llama.cpp run at a known zero, not an unknown null', async () => {
+    // llama.cpp and LM Studio are `tileOnly`, so they reach the recorder as
+    // `custom:<uuid>` and only become `llamacpp` after canonicalization. A
+    // local-provider check run on the raw string misses them entirely and the
+    // row falls through to `null` — "we don't know" for inference that is
+    // free by construction.
+    const { recorder, insertMock } = wire({
+      id: 'cp-llamacpp',
+      name: 'llama.cpp',
+      agent_id: 'agent-1',
+    });
+    try {
+      await recorder.recordSuccessMessage(
+        ctx,
+        'custom:cp-llamacpp/qwen2.5-0.5b-q4.gguf',
+        'default',
+        'test',
+        { prompt_tokens: 1000, completion_tokens: 500 } as never,
+        { provider: 'custom:cp-llamacpp' },
+      );
+
+      expect(insertMock).toHaveBeenCalled();
+      expect(insertMock.mock.calls[0][0]).toMatchObject({ cost_usd: 0 });
+    } finally {
+      recorder.onModuleDestroy();
+    }
+  });
+
   it('leaves a user-defined custom provider unchanged (no tileOnly match)', async () => {
     const { recorder, insertMock } = wire({
       id: 'cp-my-groq',

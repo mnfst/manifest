@@ -1108,6 +1108,7 @@ describe('ModelsDevSyncService', () => {
       expect(model!.timeTiers).toEqual([
         {
           windows: ['01:00-04:00', '06:00-10:00'],
+          days: null,
           inputPricePerToken: 2.0 / 1_000_000,
           outputPricePerToken: 4.0 / 1_000_000,
           cacheReadPricePerToken: 0.2 / 1_000_000,
@@ -1180,6 +1181,7 @@ describe('ModelsDevSyncService', () => {
       expect(service.lookupModel('openai', 'mixed-windows')!.timeTiers).toEqual([
         {
           windows: ['01:00-04:00'],
+          days: null,
           inputPricePerToken: 2.0 / 1_000_000,
           outputPricePerToken: null,
           cacheReadPricePerToken: null,
@@ -1225,6 +1227,7 @@ describe('ModelsDevSyncService', () => {
       expect(flash!.timeTiers).toEqual([
         {
           windows: ['01:00-04:00', '06:00-10:00'],
+          days: [1, 2, 3, 4, 5],
           inputPricePerToken: 0.44 / 1_000_000,
           outputPricePerToken: 1.32 / 1_000_000,
           cacheReadPricePerToken: 0.014 / 1_000_000,
@@ -1235,6 +1238,107 @@ describe('ModelsDevSyncService', () => {
       const chat = service.lookupModel('deepseek', 'deepseek-chat');
       expect(chat!.inputPricePerToken).toBe(0.14 / 1_000_000);
       expect(chat!.timeTiers).toBeNull();
+    });
+
+    it('seeds the vision preview on the Flash card', async () => {
+      const response = {
+        deepseek: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          models: {
+            'deepseek-v4-flash-vision-exp': {
+              id: 'deepseek-v4-flash-vision-exp',
+              name: 'DeepSeek V4 Flash Vision',
+              cost: { input: 0.14, output: 0.28, cache_read: 0.0028 },
+              modalities: { input: ['text', 'image'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const vision = service.lookupModel('deepseek', 'deepseek-v4-flash-vision-exp');
+      expect(vision!.inputPricePerToken).toBe(0.22 / 1_000_000);
+      expect(vision!.outputPricePerToken).toBe(0.66 / 1_000_000);
+      expect(vision!.timeTiers![0].days).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it('carries a catalog day list through to the tier', async () => {
+      const response = {
+        openai: {
+          id: 'openai',
+          name: 'OpenAI',
+          models: {
+            'weekday-model': {
+              id: 'weekday-model',
+              name: 'Weekday',
+              cost: {
+                input: 1.0,
+                output: 2.0,
+                tiers: [
+                  {
+                    tier: { type: 'time', windows: ['01:00-04:00'], days: [1, 2, 3, 4, 5] },
+                    input: 2.0,
+                    output: 4.0,
+                  },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      expect(service.lookupModel('openai', 'weekday-model')!.timeTiers![0].days).toEqual([
+        1, 2, 3, 4, 5,
+      ]);
+    });
+
+    it.each([
+      ['a non-array', 'weekdays'],
+      ['an out-of-range weekday', [1, 2, 3, 4, 5, 8]],
+      ['a non-integer weekday', [1, 2.5]],
+      ['a non-numeric entry', [1, 2, 3, 4, 5, '6']],
+      ['an empty list', []],
+    ])('drops %s day list whole rather than salvaging part of it', async (_label, days) => {
+      // Filtering [1,2,3,4,5,'6'] down to [1..5] would read as a clean weekday
+      // rule and quietly discount a day the provider charges peak for.
+      const response = {
+        openai: {
+          id: 'openai',
+          name: 'OpenAI',
+          models: {
+            'bad-days': {
+              id: 'bad-days',
+              name: 'Bad Days',
+              cost: {
+                input: 1.0,
+                output: 2.0,
+                tiers: [
+                  {
+                    tier: { type: 'time', windows: ['01:00-04:00'], days },
+                    input: 2.0,
+                    output: 4.0,
+                  },
+                ],
+              },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const tiers = service.lookupModel('openai', 'bad-days')!.timeTiers;
+      expect(tiers).toHaveLength(1);
+      expect(tiers![0].days).toBeNull();
     });
 
     it('prefers catalog time tiers over the DeepSeek seed once models.dev has them', async () => {
@@ -1267,6 +1371,7 @@ describe('ModelsDevSyncService', () => {
       expect(flash!.timeTiers).toEqual([
         {
           windows: ['02:00-05:00'],
+          days: null,
           inputPricePerToken: 0.5 / 1_000_000,
           outputPricePerToken: 1.4 / 1_000_000,
           cacheReadPricePerToken: null,
