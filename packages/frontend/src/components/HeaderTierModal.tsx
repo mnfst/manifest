@@ -20,8 +20,21 @@ const RESERVED_KEYS = new Set([
   'x-api-key',
 ]);
 const HEADER_KEY_RE = /^[a-z0-9-]+$/;
+const MODEL_ALIAS_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_NAME_LEN = 32;
+const MAX_MODEL_ALIAS_LEN = 48;
 const MAX_HEADER_VALUE_LEN = 128;
+
+function suggestedModelAlias(name: string): string {
+  return name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, MAX_MODEL_ALIAS_LEN)
+    .replace(/-+$/g, '');
+}
 
 interface Props {
   agentName: string;
@@ -42,6 +55,8 @@ const HeaderTierModal: Component<Props> = (props) => {
   const editingTier = props.editing;
 
   const [name, setName] = createSignal(editingTier?.name ?? '');
+  const [modelAlias, setModelAlias] = createSignal(editingTier?.model_alias ?? '');
+  const [modelAliasTouched, setModelAliasTouched] = createSignal(editingTier !== undefined);
   const [headerKey, setHeaderKey] = createSignal(editingTier?.header_key ?? '');
   const [headerValue, setHeaderValue] = createSignal(editingTier?.header_value ?? '');
   const [badgeColor, setBadgeColor] = createSignal<TierColor>(
@@ -130,6 +145,22 @@ const HeaderTierModal: Component<Props> = (props) => {
     return undefined;
   };
 
+  const validateModelAlias = (raw: string): string | undefined => {
+    const alias = raw.trim();
+    if (!alias) return undefined;
+    if (alias.length > MAX_MODEL_ALIAS_LEN) {
+      return `Model alias must be ${MAX_MODEL_ALIAS_LEN} characters or fewer`;
+    }
+    if (alias === 'auto') return 'The model alias "auto" is reserved by Manifest';
+    if (!MODEL_ALIAS_RE.test(alias)) {
+      return 'Use lowercase letters, numbers, and single hyphens only';
+    }
+    if (otherTiers().some((tier) => tier.model_alias === alias)) {
+      return 'Another tier already uses this model alias';
+    }
+    return undefined;
+  };
+
   const validateValue = (rawValue: string, rawKey: string): string | undefined => {
     const v = rawValue.trim();
     if (!v) return 'Header value is required';
@@ -150,12 +181,15 @@ const HeaderTierModal: Component<Props> = (props) => {
   };
 
   const nameError = (): string | undefined => (triedSubmit() ? validateName(name()) : undefined);
+  const modelAliasError = (): string | undefined =>
+    triedSubmit() ? validateModelAlias(modelAlias()) : undefined;
   const keyError = (): string | undefined => (triedSubmit() ? validateKey(headerKey()) : undefined);
   const valueError = (): string | undefined =>
     triedSubmit() ? validateValue(headerValue(), headerKey()) : undefined;
 
   const isValid = (): boolean =>
     validateName(name()) === undefined &&
+    validateModelAlias(modelAlias()) === undefined &&
     validateKey(headerKey()) === undefined &&
     validateValue(headerValue(), headerKey()) === undefined;
 
@@ -166,6 +200,7 @@ const HeaderTierModal: Component<Props> = (props) => {
     try {
       const payload = {
         name: name().trim(),
+        model_alias: modelAlias().trim() || null,
         header_key: headerKey().trim().toLowerCase(),
         header_value: headerValue().trim(),
         badge_color: badgeColor(),
@@ -190,8 +225,8 @@ const HeaderTierModal: Component<Props> = (props) => {
 
   const titleText = editingTier ? 'Edit custom tier' : 'Create custom tier';
   const descText = editingTier
-    ? 'Update the header rule, name, or color for this tier. Model and fallbacks are managed on the card.'
-    : 'Custom routing lets you identify requests based on their headers and assign specific models to them.';
+    ? 'Update the model alias, header rule, name, or color for this tier. Model and fallbacks are managed on the card.'
+    : 'Custom routing lets you select a model chain with a stable model alias or a matching request header.';
   const submitLabel = (): string => {
     if (editingTier) return submitting() ? 'Saving…' : 'Save changes';
     return submitting() ? 'Creating…' : 'Create tier';
@@ -266,11 +301,45 @@ const HeaderTierModal: Component<Props> = (props) => {
           value={name()}
           placeholder="My custom tier"
           maxlength={MAX_NAME_LEN}
-          onInput={(e) => setName(e.currentTarget.value)}
+          onInput={(e) => {
+            const nextName = e.currentTarget.value;
+            setName(nextName);
+            if (!modelAliasTouched()) setModelAlias(suggestedModelAlias(nextName));
+          }}
         />
         <Show when={nameError()}>
           <div class="header-tier-modal__error">{nameError()}</div>
         </Show>
+
+        <label class="modal-card__field-label" for="header-tier-model-alias">
+          Model alias <span class="header-tier-modal__optional">Optional</span>
+        </label>
+        <input
+          id="header-tier-model-alias"
+          class="modal-card__input"
+          classList={{ 'modal-card__input--error': modelAliasError() !== undefined }}
+          type="text"
+          value={modelAlias()}
+          placeholder="free"
+          maxlength={MAX_MODEL_ALIAS_LEN}
+          onInput={(e) => {
+            setModelAliasTouched(true);
+            setModelAlias(e.currentTarget.value);
+          }}
+        />
+        <Show when={modelAliasError()}>
+          <div class="header-tier-modal__error">{modelAliasError()}</div>
+        </Show>
+        <p class="header-tier-modal__hint">
+          {modelAlias().trim() ? (
+            <>
+              Clients can select this tier with <code>model: "manifest/{modelAlias().trim()}"</code>
+              .
+            </>
+          ) : (
+            'Add an alias to select this tier through the request model field.'
+          )}
+        </p>
 
         <label class="modal-card__field-label" for="header-tier-key">
           Header key

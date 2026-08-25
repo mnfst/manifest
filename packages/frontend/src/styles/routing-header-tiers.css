@@ -141,8 +141,17 @@
   flex-shrink: 0;
 }
 
-/* Header rule chip (key:value), shown under the title row so the title row
+/* Model alias and header rule, shown under the title row so the title row
    can stay tidy in narrow card widths. */
+.header-tier-card__rules {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
 .header-tier-card__rule {
   display: inline-block;
   font-family: var(--font-mono);
@@ -150,7 +159,7 @@
   color: hsl(var(--muted-foreground));
   background: none;
   padding: 0;
-  margin-bottom: 8px;
+  margin: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -288,6 +297,19 @@
   font-size: var(--font-size-xs);
   color: hsl(var(--destructive));
   margin-top: 4px;
+}
+
+.header-tier-modal__optional {
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.header-tier-modal__hint {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+  margin: 5px 0 0;
 }
 
 /* ── Color swatches ───────────────────────────────── */

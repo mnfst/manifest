@@ -21,7 +21,7 @@ export function buildPipelineHelp(
     steps.push({
       num: n++,
       name: 'Custom routing',
-      desc: 'If a request header matches a custom tier rule, it is routed to the corresponding model.',
+      desc: 'A Manifest model alias or matching request header selects the corresponding custom model chain.',
     });
   }
 

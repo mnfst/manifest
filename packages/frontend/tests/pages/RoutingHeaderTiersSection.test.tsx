@@ -165,6 +165,7 @@ const tier1: HeaderTier = {
   id: 'ht-1',
   agent_id: 'a',
   name: 'Premium',
+  model_alias: 'premium',
   header_key: 'x-tier',
   header_value: 'premium',
   badge_color: 'indigo',
@@ -179,6 +180,7 @@ const tier2: HeaderTier = {
   ...tier1,
   id: 'ht-2',
   name: 'Free',
+  model_alias: null,
   header_value: 'free',
   enabled: false,
 };

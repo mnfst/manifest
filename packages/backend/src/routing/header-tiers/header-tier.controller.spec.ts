@@ -81,6 +81,7 @@ describe('HeaderTierController', () => {
     const { controller, service } = makeController({ tenant_id: 't1' });
     const body = {
       name: 'Premium',
+      model_alias: 'premium',
       header_key: 'x',
       header_value: 'y',
       badge_color: 'indigo' as const,
@@ -92,8 +93,14 @@ describe('HeaderTierController', () => {
 
   it('update calls service.update with the patch', async () => {
     const { controller, service } = makeController();
-    await controller.update(ctx, 'my-agent', 'ht-1', { name: 'Updated' });
-    expect(service.update).toHaveBeenCalledWith('agent-1', 'ht-1', { name: 'Updated' });
+    await controller.update(ctx, 'my-agent', 'ht-1', {
+      name: 'Updated',
+      model_alias: 'updated',
+    });
+    expect(service.update).toHaveBeenCalledWith('agent-1', 'ht-1', {
+      name: 'Updated',
+      model_alias: 'updated',
+    });
   });
 
   it('delete returns ok and calls service.delete', async () => {

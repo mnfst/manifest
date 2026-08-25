@@ -263,10 +263,35 @@ export class ResolveService {
     const match = tiers.find((t) => matchesHeaderRule(headers, t));
     if (!match) return null;
 
+    return this.resolveCustomTier(agentId, tenantId, match, 'header-match', 'header');
+  }
+
+  /** Resolve an explicit `manifest/<alias>` model to its custom tier. */
+  async resolveModelAlias(
+    agentId: string,
+    tenantId: string,
+    alias: string,
+  ): Promise<ResolveResponse | null> {
+    const tiers = await this.headerTierService.list(agentId);
+    const match = tiers.find((tier) => tier.enabled && tier.model_alias === alias);
+    if (!match) return null;
+
+    return this.resolveCustomTier(agentId, tenantId, match, 'model-alias', 'model alias');
+  }
+
+  private async resolveCustomTier(
+    agentId: string,
+    tenantId: string,
+    match: HeaderTier,
+    reason: 'header-match' | 'model-alias',
+    trigger: 'header' | 'model alias',
+  ): Promise<ResolveResponse | null> {
     const overrideRoute = readOverrideRoute(match);
     if (!overrideRoute) {
       this.logger.debug(
-        `Header tier "${match.name}" matched but has no model configured — falling through`,
+        reason === 'header-match'
+          ? `Header tier "${match.name}" matched but has no model configured — falling through`
+          : `Custom tier "${match.name}" selected by ${trigger} but has no model configured`,
       );
       return null;
     }
@@ -283,8 +308,11 @@ export class ResolveService {
       // An explicitly configured tier shouldn't die with its primary: promote
       // the first available fallback instead of abandoning the whole tier.
       this.logger.warn(
-        `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
-          `for agent=${agentId} — trying the tier's fallbacks`,
+        reason === 'header-match'
+          ? `Header tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
+              `for agent=${agentId} — trying the tier's fallbacks`
+          : `Custom tier "${match.name}" override ${overrideRoute.model} is unavailable ` +
+              `for agent=${agentId} — trying the tier's fallbacks`,
       );
       primaryOverride = null;
       const candidates = fallbackRoutes ?? [];
@@ -298,8 +326,11 @@ export class ResolveService {
       }
       if (!primaryOverride) {
         this.logger.warn(
-          `Header tier "${match.name}" has no available route ` +
-            `for agent=${agentId}; falling through to existing routing`,
+          reason === 'header-match'
+            ? `Header tier "${match.name}" has no available route ` +
+                `for agent=${agentId}; falling through to existing routing`
+            : `Custom tier "${match.name}" selected by ${trigger} has no available route ` +
+                `for agent=${agentId}`,
         );
         return null;
       }
@@ -329,7 +360,7 @@ export class ResolveService {
       response_mode: responseMode,
       confidence: 1,
       score: 0,
-      reason: 'header-match',
+      reason,
       header_tier_id: match.id,
       header_tier_name: match.name,
       header_tier_color: match.badge_color,

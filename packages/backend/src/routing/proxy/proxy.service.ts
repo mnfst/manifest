@@ -64,6 +64,8 @@ import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
 import {
   explicitModelRouteCandidate,
+  MANIFEST_MODEL_ID_PREFIX,
+  modelAliasFromManifestId,
   OPENAI_MODEL_ID_AUTO,
   routeForOpenAiModelId,
   SUBSCRIPTION_MODEL_SUFFIX,
@@ -897,22 +899,24 @@ export class ProxyService {
     apiMode: ProxyApiMode,
   ): Promise<ResolvedRouting> {
     const requestedModel = typeof body.model === 'string' ? body.model : undefined;
+    // `manifest/*` is a reserved routing namespace. Resolve it before header
+    // rules and provider-qualified IDs so explicit route intent wins, and an
+    // unknown alias cannot be mistaken for a provider named "manifest".
+    if (requestedModel?.startsWith(MANIFEST_MODEL_ID_PREFIX)) {
+      const alias = modelAliasFromManifestId(requestedModel);
+      const customRoute = alias
+        ? await this.resolveService.resolveModelAlias(agentId, tenantId, alias)
+        : null;
+      if (customRoute?.route) return customRoute;
+      return this.unavailableExplicitModel(requestedModel);
+    }
     // Every public proxy surface treats a concrete model as an explicit route.
     // The resolver accepts both provider-qualified /v1/models IDs and the
     // unambiguous provider-native IDs required by Anthropic clients.
     if (requestedModel && requestedModel !== OPENAI_MODEL_ID_AUTO) {
       const explicit = await this.resolveExplicitModel(agentId, tenantId, requestedModel, headers);
       if (explicit) return explicit;
-      return {
-        tier: 'default' as const,
-        route: null,
-        fallback_routes: null,
-        response_mode: DEFAULT_RESPONSE_MODE,
-        confidence: 0,
-        score: 0,
-        reason: 'default' as const,
-        explicit_model_unavailable: requestedModel,
-      };
+      return this.unavailableExplicitModel(requestedModel);
     }
 
     const isHeartbeat = this.detectHeartbeatBody(body, apiMode);
@@ -949,6 +953,19 @@ export class ProxyService {
         ));
 
     return baseResolved;
+  }
+
+  private unavailableExplicitModel(requestedModel: string): ResolvedRouting {
+    return {
+      tier: 'default',
+      route: null,
+      fallback_routes: null,
+      response_mode: DEFAULT_RESPONSE_MODE,
+      confidence: 0,
+      score: 0,
+      reason: 'default',
+      explicit_model_unavailable: requestedModel,
+    };
   }
 
   /**

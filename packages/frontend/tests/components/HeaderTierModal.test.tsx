@@ -60,6 +60,7 @@ const existingTier: HeaderTier = {
   id: "ht-1",
   agent_id: "agent-1",
   name: "Premium",
+  model_alias: "premium",
   header_key: "x-manifest-tier",
   header_value: "premium",
   badge_color: "indigo",
@@ -95,7 +96,9 @@ describe("HeaderTierModal", () => {
       expect(container.querySelector("#header-tier-modal-title")?.textContent).toBe(
         "Create custom tier",
       );
-      expect(container.textContent).toContain("Custom routing lets you identify");
+      expect(container.textContent).toContain(
+        "Custom routing lets you select a model chain with a stable model alias",
+      );
     });
 
     it("renders the close button when no onBack handler is provided", () => {
@@ -213,6 +216,7 @@ describe("HeaderTierModal", () => {
       await waitFor(() => {
         expect(mockCreateHeaderTier).toHaveBeenCalledWith("demo", {
           name: "Premium",
+          model_alias: "premium",
           header_key: "x-manifest-tier",
           header_value: "premium",
           badge_color: "indigo",
@@ -220,6 +224,68 @@ describe("HeaderTierModal", () => {
       });
       expect(onSaved).toHaveBeenCalled();
       expect(onClose).toHaveBeenCalled();
+    });
+
+    it("suggests a stable model alias from the tier name", () => {
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[]}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+
+      fireEvent.input(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        target: { value: "Crème brûlée Fast" },
+      });
+
+      expect(
+        (container.querySelector("#header-tier-model-alias") as HTMLInputElement).value,
+      ).toBe("creme-brulee-fast");
+    });
+
+    it("rejects reserved and duplicate model aliases", async () => {
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[existingTier]}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      fireEvent.input(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        target: { value: "Other" },
+      });
+      fireEvent.input(container.querySelector("#header-tier-model-alias") as HTMLInputElement, {
+        target: { value: "auto" },
+      });
+      fireEvent.input(container.querySelector("#header-tier-key") as HTMLInputElement, {
+        target: { value: "x-other" },
+      });
+      fireEvent.input(container.querySelector("#header-tier-value") as HTMLInputElement, {
+        target: { value: "other" },
+      });
+      const submit = () =>
+        fireEvent.click(
+          Array.from(container.querySelectorAll("button")).find((button) =>
+            button.textContent?.includes("Create tier"),
+          ) as HTMLButtonElement,
+        );
+
+      submit();
+      await waitFor(() => {
+        expect(container.textContent).toContain('The model alias "auto" is reserved');
+      });
+
+      fireEvent.input(container.querySelector("#header-tier-model-alias") as HTMLInputElement, {
+        target: { value: "premium" },
+      });
+      submit();
+      await waitFor(() => {
+        expect(container.textContent).toContain("Another tier already uses this model alias");
+      });
+      expect(mockCreateHeaderTier).not.toHaveBeenCalled();
     });
 
     it("shows a name error when the name is empty after a submission attempt", async () => {
@@ -482,10 +548,39 @@ describe("HeaderTierModal", () => {
       await waitFor(() => {
         expect(mockUpdateHeaderTier).toHaveBeenCalledWith("demo", existingTier.id, {
           name: "Premium",
+          model_alias: "premium",
           header_key: "x-manifest-tier",
           header_value: "premium",
           badge_color: "indigo",
         });
+      });
+    });
+
+    it("does not change the stable model alias when the display name changes", async () => {
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[existingTier]}
+          editing={existingTier}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+      fireEvent.input(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        target: { value: "Renamed tier" },
+      });
+      fireEvent.click(
+        Array.from(container.querySelectorAll("button")).find((button) =>
+          button.textContent?.includes("Save changes"),
+        ) as HTMLButtonElement,
+      );
+
+      await waitFor(() => {
+        expect(mockUpdateHeaderTier).toHaveBeenCalledWith(
+          "demo",
+          existingTier.id,
+          expect.objectContaining({ name: "Renamed tier", model_alias: "premium" }),
+        );
       });
     });
 

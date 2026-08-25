@@ -668,4 +668,20 @@ describe("customHeaders weaving", () => {
     const s = getSnippetForToolkit("curl", "https://api.local/v1", "k", "python", headers);
     expect(s.code).toContain("-H 'x-manifest-tier: premium'");
   });
+
+  it.each(["openai-sdk", "anthropic-sdk", "vercel-ai-sdk", "langchain", "curl"] as const)(
+    "getSnippetForToolkit renders a custom model id for %s",
+    (toolkit) => {
+      const s = getSnippetForToolkit(
+        toolkit,
+        "https://api.local/v1",
+        "k",
+        "python",
+        undefined,
+        "responses",
+        "manifest/free",
+      );
+      expect(s.code).toContain('"manifest/free"');
+    },
+  );
 });

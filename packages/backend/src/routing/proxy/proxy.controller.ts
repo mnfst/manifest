@@ -26,6 +26,7 @@ import { ThoughtSignatureCache } from './thought-signature-cache';
 import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
+import { HeaderTierService } from '../header-tiers/header-tier.service';
 import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
@@ -61,7 +62,7 @@ import type {
 } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
-import { openAiModelId } from './openai-model-id';
+import { manifestModelId, openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
@@ -134,6 +135,7 @@ export class ProxyController {
     private readonly thinkingCache: ThinkingBlockCache,
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelDiscovery: ModelDiscoveryService,
+    private readonly headerTierService: HeaderTierService,
     private readonly planService: PlanService,
     private readonly observationReporter: ObservationReporter,
     private readonly providerParamSpecs: ProviderParamSpecService,
@@ -152,10 +154,13 @@ export class ProxyController {
   ): Promise<OpenAiModelList> {
     const includeCapabilities = capabilities === 'true';
     const includeCost = cost === 'true';
-    const models = await this.modelDiscovery.getModelsForAgent(
-      req.ingestionContext.tenantId,
-      req.ingestionContext.agentId,
-    );
+    const [models, customTiers] = await Promise.all([
+      this.modelDiscovery.getModelsForAgent(
+        req.ingestionContext.tenantId,
+        req.ingestionContext.agentId,
+      ),
+      this.headerTierService.list(req.ingestionContext.agentId),
+    ]);
     // The synthetic `auto` route never carries metadata — it resolves to a
     // different concrete model per request, so any claim would be wrong.
     const data: OpenAiModelObject[] = [
@@ -167,6 +172,19 @@ export class ProxyController {
       },
     ];
     const seen = new Set(data.map((model) => model.id));
+
+    for (const tier of customTiers) {
+      if (!tier.enabled || !tier.model_alias || tier.override_route === null) continue;
+      const id = manifestModelId(tier.model_alias);
+      if (seen.has(id)) continue;
+      seen.add(id);
+      data.push({
+        id,
+        object: 'model',
+        created: MODEL_CREATED_UNKNOWN,
+        owned_by: 'manifest',
+      });
+    }
 
     for (const model of models) {
       const id = openAiModelId(model);

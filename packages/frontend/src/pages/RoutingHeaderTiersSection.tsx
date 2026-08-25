@@ -363,7 +363,8 @@ const RoutingHeaderTiersSection: Component<Props> = (props) => {
           <div class="routing-section__empty">
             <div class="routing-section__empty-title">No custom tiers activated</div>
             <div class="routing-section__empty-desc">
-              Create or activate custom tiers to route matching requests to the models you choose.
+              Create or activate custom tiers to route model aliases or matching request headers to
+              the models you choose.
             </div>
             <button type="button" class="btn btn--primary btn--sm" onClick={openCreateOrManage}>
               {tiers().length > 0 ? 'Manage custom routing' : 'Create custom tier'}

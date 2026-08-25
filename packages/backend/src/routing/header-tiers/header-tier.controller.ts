@@ -33,6 +33,7 @@ import { AUTH_TYPES, type TierColor } from 'manifest-shared';
 
 interface CreateHeaderTierBody {
   name: string;
+  model_alias?: string | null;
   header_key: string;
   header_value: string;
   badge_color: TierColor;
@@ -40,6 +41,7 @@ interface CreateHeaderTierBody {
 
 interface UpdateHeaderTierBody {
   name?: string;
+  model_alias?: string | null;
   header_key?: string;
   header_value?: string;
   badge_color?: TierColor;

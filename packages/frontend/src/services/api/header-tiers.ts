@@ -6,6 +6,7 @@ export interface HeaderTier {
   id: string;
   agent_id: string;
   name: string;
+  model_alias: string | null;
   header_key: string;
   header_value: string;
   badge_color: TierColor;
@@ -28,6 +29,7 @@ export interface SeenHeader {
 
 export interface CreateHeaderTierInput {
   name: string;
+  model_alias?: string | null;
   header_key: string;
   header_value: string;
   badge_color: TierColor;
