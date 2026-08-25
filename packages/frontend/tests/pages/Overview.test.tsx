@@ -354,6 +354,67 @@ describe('Overview', () => {
     expect(container.textContent).not.toContain('$3.50');
   });
 
+  it('keeps the skeleton until the new agent secondary metrics finish loading', async () => {
+    const firstAgentStats = {
+      success_rate: { value: 0.9, previous: 0.8 },
+      autofix_saves: { value: 777, previous: 5 },
+      fallback_saves: { value: 2, previous: 1 },
+      total_requests: { value: 100, previous: 90 },
+      errors_remaining: { value: 3, previous: 4 },
+      coverage: { rate: 0.7, previous_rate: 5 / 9 },
+    };
+    const secondAgentStats = {
+      ...firstAgentStats,
+      autofix_saves: { value: 888, previous: 6 },
+    };
+    const secondAgentOverview = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 9.99, trend_pct: 0 },
+      },
+    };
+    let overviewResolved = false;
+    let resolveSecondAgentStats!: (value: typeof secondAgentStats) => void;
+    const secondAgentStatsPromise = new Promise<typeof secondAgentStats>((resolve) => {
+      resolveSecondAgentStats = resolve;
+    });
+    mockGetOverview.mockImplementation((_range: string, agent: string) => {
+      if (agent !== 'other-agent') return Promise.resolve(overviewData);
+      return Promise.resolve(secondAgentOverview).then((value) => {
+        overviewResolved = true;
+        return value;
+      });
+    });
+    mockGetAutofixStats.mockImplementation((_range: string, agent: string) =>
+      agent === 'other-agent' ? secondAgentStatsPromise : Promise.resolve(firstAgentStats),
+    );
+
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+      expect(container.textContent).toContain('777');
+    });
+
+    agentNameBox.set('other-agent');
+    await vi.waitFor(() => {
+      expect(overviewResolved).toBe(true);
+    });
+    await Promise.resolve();
+
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(container.textContent).not.toContain('$9.99');
+    expect(container.textContent).not.toContain('777');
+
+    resolveSecondAgentStats(secondAgentStats);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$9.99');
+      expect(container.textContent).toContain('888');
+    });
+    expect(container.querySelectorAll('.skeleton').length).toBe(0);
+    expect(container.textContent).not.toContain('777');
+  });
+
   it('keeps showing data during a background ping refetch instead of skeletons', async () => {
     mockGetOverview.mockResolvedValue(overviewData);
     const { container } = render(() => <Overview />);
@@ -538,6 +599,7 @@ describe('Overview', () => {
 
     await vi.waitFor(() => {
       expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+      expect(container.querySelectorAll('.chart-card__stat--clickable').length).toBe(4);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
     fireEvent.click(stats[2]); // cost (Requests=0, Recovered=1, Cost=2, Token usage=3)

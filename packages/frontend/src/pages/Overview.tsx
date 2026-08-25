@@ -176,14 +176,6 @@ const Overview: Component = () => {
   // treat it as a change that should show the skeleton instead of stale data.
   const [loadedRange, setLoadedRange] = createSignal(effectiveRange());
   const [loadedAgent, setLoadedAgent] = createSignal(params.agentName);
-  createEffect(() => {
-    if (!data.loading && data() !== undefined) {
-      setLoadedRange(effectiveRange());
-      setLoadedAgent(params.agentName);
-    }
-  });
-  const rangeChanging = () => data.loading && loadedRange() !== effectiveRange();
-  const agentChanging = () => data.loading && loadedAgent() !== params.agentName;
 
   const showDashboard = () => {
     const d = data();
@@ -293,6 +285,27 @@ const Overview: Component = () => {
     }),
     (p) => getPerModelReliability(p.range, p.agent),
   );
+
+  const supportingDataLoading = () =>
+    providerTokenTs.loading ||
+    providerMessageTs.loading ||
+    providerCostTs.loading ||
+    autofixStats.loading ||
+    statusTimeseries.loading ||
+    modelReliability.loading;
+
+  createEffect(() => {
+    if (data.loading) return;
+    if (data.error === undefined) {
+      if (data() === undefined) return;
+      if (showDashboard() && supportingDataLoading()) return;
+    }
+    setLoadedRange(effectiveRange());
+    setLoadedAgent(params.agentName);
+  });
+  const scopeChanging = () =>
+    loadedRange() !== effectiveRange() || loadedAgent() !== params.agentName;
+
   const selfHealedTs = () => {
     const ts = statusTimeseries();
     if (!ts) return undefined;
@@ -402,7 +415,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={(data() !== undefined || !data.loading) && !rangeChanging() && !agentChanging()}
+        when={(data() !== undefined || !data.loading) && !scopeChanging()}
         fallback={<OverviewSkeleton />}
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
