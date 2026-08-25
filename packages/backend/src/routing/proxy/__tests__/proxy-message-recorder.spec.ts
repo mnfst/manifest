@@ -1591,6 +1591,68 @@ describe('ProxyMessageRecorder', () => {
       expect(getByModelMock).not.toHaveBeenCalled();
     });
 
+    it('switches Copilot pricing only above the long-context prompt threshold', async () => {
+      getProvidersMock.mockResolvedValue([
+        {
+          id: 'copilot-connection',
+          provider: 'copilot',
+          cached_models: [
+            {
+              id: 'copilot/gpt-5.6-terra',
+              displayName: 'gpt-5.6-terra',
+              inputPricePerToken: 1 / 1_000_000,
+              outputPricePerToken: 5 / 1_000_000,
+              cacheReadPricePerToken: 0.1 / 1_000_000,
+              cacheWritePricePerToken: 1.25 / 1_000_000,
+              longContextPricing: {
+                thresholdTokens: 100_000,
+                inputPricePerToken: 2 / 1_000_000,
+                outputPricePerToken: 8 / 1_000_000,
+                cacheReadPricePerToken: 0.2 / 1_000_000,
+                cacheWritePricePerToken: 2.5 / 1_000_000,
+              },
+            },
+          ],
+        },
+      ]);
+
+      const options = {
+        provider: 'copilot',
+        authType: 'subscription' as const,
+        tenantProviderId: 'copilot-connection',
+      };
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5.6-terra',
+        'default',
+        'default',
+        {
+          prompt_tokens: 100_000,
+          completion_tokens: 100,
+          cache_read_tokens: 60_000,
+          cache_creation_tokens: 10_000,
+        },
+        options,
+      );
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5.6-terra',
+        'default',
+        'default',
+        {
+          prompt_tokens: 100_001,
+          completion_tokens: 100,
+          cache_read_tokens: 60_000,
+          cache_creation_tokens: 10_000,
+        },
+        options,
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBeCloseTo(0.049, 10);
+      expect(insertMock.mock.calls[1][0].cost_usd).toBeCloseTo(0.097802, 10);
+    });
+
     it('keeps Copilot at zero when its selected connection has no token pricing', async () => {
       getProvidersMock.mockResolvedValue([
         {

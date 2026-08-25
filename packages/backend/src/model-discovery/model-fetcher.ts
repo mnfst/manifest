@@ -14,6 +14,15 @@ import type { AuthType, ModelCapability, ModelModality } from 'manifest-shared';
  */
 export const DEFAULT_CONTEXT_WINDOW = 128000;
 
+export interface LongContextPricing {
+  /** Default rates apply through this many prompt tokens; long-context rates apply above it. */
+  thresholdTokens: number;
+  inputPricePerToken: number;
+  outputPricePerToken: number;
+  cacheReadPricePerToken?: number;
+  cacheWritePricePerToken?: number;
+}
+
 export interface DiscoveredModel {
   id: string;
   displayName: string;
@@ -23,6 +32,7 @@ export interface DiscoveredModel {
   outputPricePerToken: number | null;
   cacheReadPricePerToken?: number;
   cacheWritePricePerToken?: number;
+  longContextPricing?: LongContextPricing;
   capabilityReasoning: boolean;
   capabilityCode: boolean;
   capabilities?: readonly ModelCapability[];

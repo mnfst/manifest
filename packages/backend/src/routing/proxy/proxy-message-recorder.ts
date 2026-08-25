@@ -461,6 +461,7 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     ctx: IngestionContext,
     tenantProviderId: string | null | undefined,
     model: string,
+    promptTokens: number,
   ): Promise<PricingEntry | undefined> {
     if (!tenantProviderId || !this.providerService) return undefined;
 
@@ -489,13 +490,24 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       return undefined;
     }
 
+    const longContext = cached.longContextPricing;
+    const useLongContext =
+      longContext != null &&
+      Number.isSafeInteger(longContext.thresholdTokens) &&
+      longContext.thresholdTokens > 0 &&
+      promptTokens > longContext.thresholdTokens &&
+      validPrice(longContext.inputPricePerToken) &&
+      validPrice(longContext.outputPricePerToken) &&
+      (longContext.inputPricePerToken > 0 || longContext.outputPricePerToken > 0);
+    const effective = useLongContext ? longContext : cached;
+
     return {
       model_name: cached.id,
       provider: connection?.provider ?? 'copilot',
-      input_price_per_token: cached.inputPricePerToken,
-      output_price_per_token: cached.outputPricePerToken,
-      cache_read_price_per_token: cached.cacheReadPricePerToken,
-      cache_write_price_per_token: cached.cacheWritePricePerToken,
+      input_price_per_token: effective.inputPricePerToken,
+      output_price_per_token: effective.outputPricePerToken,
+      cache_read_price_per_token: effective.cacheReadPricePerToken,
+      cache_write_price_per_token: effective.cacheWritePricePerToken,
       display_name: cached.displayName || null,
     };
   }
@@ -512,7 +524,9 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
   ): Promise<number | null> {
     const isCopilot = this.isCopilotSubscription(provider, authType);
     const copilotPricing =
-      isCopilot && usage ? await this.copilotTokenPricing(ctx, tenantProviderId, model) : undefined;
+      isCopilot && usage
+        ? await this.copilotTokenPricing(ctx, tenantProviderId, model, usage.prompt_tokens)
+        : undefined;
 
     return computeTokenCost({
       inputTokens: usage?.prompt_tokens ?? 0,

@@ -743,24 +743,63 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
 
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
+interface CopilotTokenPriceTier {
+  input_price?: unknown;
+  output_price?: unknown;
+  cache_price?: unknown;
+  cache_read_price?: unknown;
+  cache_write_price?: unknown;
+  context_max?: unknown;
+  max_prompt_tokens?: unknown;
+}
+
 interface CopilotModelEntry extends OpenAIModelEntry {
   billing?: {
     token_prices?: {
       batch_size?: unknown;
-      default?: {
-        input_price?: unknown;
-        output_price?: unknown;
-        cache_read_price?: unknown;
-        cache_write_price?: unknown;
-      };
+      default?: CopilotTokenPriceTier;
+      long_context?: CopilotTokenPriceTier;
     };
   };
 }
 
 function copilotUsdPerToken(price: unknown, batchSize: unknown): number | null {
   if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) return null;
-  if (typeof batchSize !== 'number' || !Number.isFinite(batchSize) || batchSize <= 0) return null;
-  return (price * COPILOT_AI_CREDIT_USD) / batchSize;
+  const tokenBatchSize = batchSize ?? 1_000_000;
+  if (
+    typeof tokenBatchSize !== 'number' ||
+    !Number.isFinite(tokenBatchSize) ||
+    tokenBatchSize <= 0
+  ) {
+    return null;
+  }
+  return (price * COPILOT_AI_CREDIT_USD) / tokenBatchSize;
+}
+
+function copilotContextMax(tier: CopilotTokenPriceTier | undefined): number | null {
+  const value = tier?.context_max ?? tier?.max_prompt_tokens;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
+function copilotPriceTier(
+  tier: CopilotTokenPriceTier | undefined,
+  batchSize: unknown,
+): Omit<NonNullable<DiscoveredModel['longContextPricing']>, 'thresholdTokens'> | null {
+  const inputPricePerToken = copilotUsdPerToken(tier?.input_price, batchSize);
+  const outputPricePerToken = copilotUsdPerToken(tier?.output_price, batchSize);
+  if (inputPricePerToken === null || outputPricePerToken === null) return null;
+
+  const cacheReadPricePerToken = copilotUsdPerToken(
+    tier?.cache_read_price ?? tier?.cache_price,
+    batchSize,
+  );
+  const cacheWritePricePerToken = copilotUsdPerToken(tier?.cache_write_price, batchSize);
+  return {
+    inputPricePerToken,
+    outputPricePerToken,
+    ...(cacheReadPricePerToken !== null ? { cacheReadPricePerToken } : {}),
+    ...(cacheWritePricePerToken !== null ? { cacheWritePricePerToken } : {}),
+  };
 }
 
 function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
@@ -772,23 +811,17 @@ function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
     if (typeof entry.id !== 'string' || entry.id.length === 0) return [];
 
     const tokenPrices = entry.billing?.token_prices;
-    const inputPrice = copilotUsdPerToken(
-      tokenPrices?.default?.input_price,
-      tokenPrices?.batch_size,
-    );
-    const outputPrice = copilotUsdPerToken(
-      tokenPrices?.default?.output_price,
-      tokenPrices?.batch_size,
-    );
-    const tokenPriced = inputPrice !== null && outputPrice !== null;
-    const cacheReadPrice = copilotUsdPerToken(
-      tokenPrices?.default?.cache_read_price,
-      tokenPrices?.batch_size,
-    );
-    const cacheWritePrice = copilotUsdPerToken(
-      tokenPrices?.default?.cache_write_price,
-      tokenPrices?.batch_size,
-    );
+    const defaultPricing = copilotPriceTier(tokenPrices?.default, tokenPrices?.batch_size);
+    const longContextThreshold = copilotContextMax(tokenPrices?.default);
+    const longContextTier = copilotPriceTier(tokenPrices?.long_context, tokenPrices?.batch_size);
+    const longContextPricing =
+      defaultPricing && longContextTier && longContextThreshold
+        ? { thresholdTokens: longContextThreshold, ...longContextTier }
+        : null;
+    const contextWindow =
+      copilotContextMax(tokenPrices?.long_context) ??
+      longContextThreshold ??
+      DEFAULT_CONTEXT_WINDOW;
     const supportedEndpoints = getStringArray(entry.supported_endpoints);
 
     return [
@@ -796,15 +829,16 @@ function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
         id: `copilot/${entry.id}`,
         displayName: entry.id,
         provider,
-        contextWindow: DEFAULT_CONTEXT_WINDOW,
-        inputPricePerToken: tokenPriced ? inputPrice : 0,
-        outputPricePerToken: tokenPriced ? outputPrice : 0,
-        ...(tokenPriced && cacheReadPrice !== null
-          ? { cacheReadPricePerToken: cacheReadPrice }
+        contextWindow,
+        inputPricePerToken: defaultPricing?.inputPricePerToken ?? 0,
+        outputPricePerToken: defaultPricing?.outputPricePerToken ?? 0,
+        ...(defaultPricing?.cacheReadPricePerToken !== undefined
+          ? { cacheReadPricePerToken: defaultPricing.cacheReadPricePerToken }
           : {}),
-        ...(tokenPriced && cacheWritePrice !== null
-          ? { cacheWritePricePerToken: cacheWritePrice }
+        ...(defaultPricing?.cacheWritePricePerToken !== undefined
+          ? { cacheWritePricePerToken: defaultPricing.cacheWritePricePerToken }
           : {}),
+        ...(longContextPricing ? { longContextPricing } : {}),
         capabilityReasoning: false,
         capabilityCode: false,
         ...(supportedEndpoints ? { supportedEndpoints } : {}),

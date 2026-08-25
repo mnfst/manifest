@@ -2642,6 +2642,14 @@ describe('ProviderModelFetcherService', () => {
                     output_price: 1500,
                     cache_read_price: 30,
                     cache_write_price: 375,
+                    max_prompt_tokens: 200_000,
+                  },
+                  long_context: {
+                    input_price: 600,
+                    output_price: 2250,
+                    cache_read_price: 60,
+                    cache_write_price: 750,
+                    max_prompt_tokens: 936_000,
                   },
                 },
               },
@@ -2657,6 +2665,61 @@ describe('ProviderModelFetcherService', () => {
         outputPricePerToken: 15 / 1_000_000,
         cacheReadPricePerToken: 0.3 / 1_000_000,
         cacheWritePricePerToken: 3.75 / 1_000_000,
+        longContextPricing: {
+          thresholdTokens: 200_000,
+          inputPricePerToken: 6 / 1_000_000,
+          outputPricePerToken: 22.5 / 1_000_000,
+          cacheReadPricePerToken: 0.6 / 1_000_000,
+          cacheWritePricePerToken: 7.5 / 1_000_000,
+        },
+      });
+    });
+
+    it('should preserve Copilot long-context prices and their prompt threshold', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-5.6-terra',
+              billing: {
+                token_prices: {
+                  default: {
+                    input_price: 200,
+                    output_price: 1200,
+                    cache_price: 20,
+                    cache_write_price: 250,
+                    context_max: 272_000,
+                  },
+                  long_context: {
+                    input_price: 400,
+                    output_price: 1800,
+                    cache_price: 40,
+                    cache_write_price: 500,
+                    context_max: 936_000,
+                  },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        contextWindow: 936_000,
+        inputPricePerToken: 2 / 1_000_000,
+        outputPricePerToken: 12 / 1_000_000,
+        cacheReadPricePerToken: 0.2 / 1_000_000,
+        cacheWritePricePerToken: 2.5 / 1_000_000,
+        longContextPricing: {
+          thresholdTokens: 272_000,
+          inputPricePerToken: 4 / 1_000_000,
+          outputPricePerToken: 18 / 1_000_000,
+          cacheReadPricePerToken: 0.4 / 1_000_000,
+          cacheWritePricePerToken: 5 / 1_000_000,
+        },
       });
     });
 
