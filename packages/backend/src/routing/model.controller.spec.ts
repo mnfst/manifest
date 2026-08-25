@@ -7,6 +7,7 @@ import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
+import { RoutingCacheService } from './routing-core/routing-cache.service';
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -41,6 +42,7 @@ describe('ModelController', () => {
   let mockProviderParamSpecs: Record<string, jest.Mock>;
   let mockModelsDevSync: Record<string, jest.Mock>;
   let mockOpencodeGoCatalog: Record<string, jest.Mock>;
+  let mockRoutingCache: Record<string, jest.Mock>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -82,6 +84,10 @@ describe('ModelController', () => {
     mockOpencodeGoCatalog = {
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     };
+    mockRoutingCache = {
+      invalidateAgent: jest.fn(),
+      invalidateTenant: jest.fn(),
+    };
 
     controller = new ModelController(
       mockDiscoveryService as unknown as ModelDiscoveryService,
@@ -92,6 +98,7 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
+      mockRoutingCache as unknown as RoutingCacheService,
     );
   });
 
@@ -188,6 +195,20 @@ describe('ModelController', () => {
       });
       expect(result).toEqual({ ok: true });
     });
+
+    it('invalidates the tenant-scoped routing cache so newly discovered models are visible immediately', async () => {
+      await controller.refreshModels(mockCtx, mockAgentName);
+
+      // discoverAllForAgent() writes straight to tenant_providers.cached_models,
+      // but ProviderService.getProviders() serves that table through
+      // RoutingCacheService's 2-minute cache. Without this invalidation a
+      // caller that re-fetches the provider list right after refreshing (the
+      // "Refresh models" button's own follow-up request) would keep observing
+      // the pre-refresh snapshot, including a model just added on the
+      // provider's end.
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockRoutingCache.invalidateTenant).toHaveBeenCalledWith(TEST_TENANT_ID);
+    });
   });
 
   /* ── refreshProviderModels ── */
@@ -239,6 +260,20 @@ describe('ModelController', () => {
 
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
+    });
+
+    it('invalidates the tenant-scoped routing cache so the refreshed model list is visible immediately', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: true,
+        model_count: 3,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+
+      await controller.refreshProviderModels(mockCtx, mockParams, {});
+
+      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
+      expect(mockRoutingCache.invalidateTenant).toHaveBeenCalledWith(TEST_TENANT_ID);
     });
   });
 
