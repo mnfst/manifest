@@ -9,8 +9,18 @@ const pingBox = vi.hoisted(() => ({ read: (): number => 0, set: (_: number) => {
 let mockAgentName = 'test-agent';
 let mockLocationState: any = null;
 const mockNavigate = vi.fn();
+// Reactive agent-name source for `useParams().agentName`. Solid's router
+// returns a reactive params store, so switching agents (e.g. via the sidebar)
+// updates `agentName` in place without remounting the route component — a
+// plain object here would miss that. The getter re-reads the signal on every
+// access, which is enough for Solid's tracking to pick it up as a dependency.
+const agentNameBox = vi.hoisted(() => ({ read: (): string => 'test-agent', set: (_: string) => {} }));
 vi.mock('@solidjs/router', () => ({
-  useParams: () => ({ agentName: mockAgentName }),
+  useParams: () => ({
+    get agentName() {
+      return agentNameBox.read();
+    },
+  }),
   useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: mockLocationState }),
   useNavigate: () => mockNavigate,
   A: (props: any) => (
@@ -266,6 +276,9 @@ describe('Overview', () => {
     mockIsSetupPending.mockReturnValue(false);
     mockAgentName = 'test-agent';
     mockLocationState = null;
+    const [agentName, setAgentName] = createSignal(mockAgentName);
+    agentNameBox.read = agentName;
+    agentNameBox.set = setAgentName;
     mockGetAutofixStats.mockResolvedValue({
       success_rate: { value: 0.9, previous: 0.8 },
       autofix_saves: { value: 7, previous: 5 },
@@ -319,6 +332,165 @@ describe('Overview', () => {
       expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
     });
     expect(container.textContent).not.toContain('$3.50');
+  });
+
+  it('shows the loading skeleton when switching to a different agent (issue #2267)', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+    });
+
+    // Switch agents (e.g. clicking a different agent in the sidebar). The
+    // route component stays mounted — only the reactive `agentName` param
+    // changes — and the new agent's fetch never resolves.
+    mockGetOverview.mockReturnValue(new Promise(() => {}));
+    agentNameBox.set('other-agent');
+
+    // The previous agent's stale data must not linger; the skeleton takes over.
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    });
+    expect(container.textContent).not.toContain('$3.50');
+  });
+
+  it('keeps the skeleton until the new agent secondary metrics finish loading', async () => {
+    const firstAgentStats = {
+      success_rate: { value: 0.9, previous: 0.8 },
+      autofix_saves: { value: 777, previous: 5 },
+      fallback_saves: { value: 2, previous: 1 },
+      total_requests: { value: 100, previous: 90 },
+      errors_remaining: { value: 3, previous: 4 },
+      coverage: { rate: 0.7, previous_rate: 5 / 9 },
+    };
+    const secondAgentStats = {
+      ...firstAgentStats,
+      autofix_saves: { value: 888, previous: 6 },
+    };
+    const secondAgentOverview = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 9.99, trend_pct: 0 },
+      },
+    };
+    let overviewResolved = false;
+    let resolveSecondAgentStats!: (value: typeof secondAgentStats) => void;
+    const secondAgentStatsPromise = new Promise<typeof secondAgentStats>((resolve) => {
+      resolveSecondAgentStats = resolve;
+    });
+    mockGetOverview.mockImplementation((_range: string, agent: string) => {
+      if (agent !== 'other-agent') return Promise.resolve(overviewData);
+      return Promise.resolve(secondAgentOverview).then((value) => {
+        overviewResolved = true;
+        return value;
+      });
+    });
+    mockGetAutofixStats.mockImplementation((_range: string, agent: string) =>
+      agent === 'other-agent' ? secondAgentStatsPromise : Promise.resolve(firstAgentStats),
+    );
+
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+      expect(container.textContent).toContain('777');
+    });
+
+    agentNameBox.set('other-agent');
+    await vi.waitFor(() => {
+      expect(overviewResolved).toBe(true);
+    });
+    await Promise.resolve();
+
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(container.textContent).not.toContain('$9.99');
+    expect(container.textContent).not.toContain('777');
+
+    resolveSecondAgentStats(secondAgentStats);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$9.99');
+      expect(container.textContent).toContain('888');
+    });
+    expect(container.querySelectorAll('.skeleton').length).toBe(0);
+    expect(container.textContent).not.toContain('777');
+  });
+
+  it('keeps the skeleton when switching back before secondary metrics finish', async () => {
+    const firstAgentStats = {
+      success_rate: { value: 0.9, previous: 0.8 },
+      autofix_saves: { value: 777, previous: 5 },
+      fallback_saves: { value: 2, previous: 1 },
+      total_requests: { value: 100, previous: 90 },
+      errors_remaining: { value: 3, previous: 4 },
+      coverage: { rate: 0.7, previous_rate: 5 / 9 },
+    };
+    const secondAgentStats = {
+      ...firstAgentStats,
+      autofix_saves: { value: 888, previous: 6 },
+    };
+    const returningAgentStats = {
+      ...firstAgentStats,
+      autofix_saves: { value: 999, previous: 7 },
+    };
+    const secondAgentOverview = {
+      ...overviewData,
+      summary: {
+        ...overviewData.summary,
+        cost_today: { value: 9.99, trend_pct: 0 },
+      },
+    };
+    let resolveSecondAgentStats!: (value: typeof secondAgentStats) => void;
+    let resolveReturningAgentStats!: (value: typeof returningAgentStats) => void;
+    const secondAgentStatsPromise = new Promise<typeof secondAgentStats>((resolve) => {
+      resolveSecondAgentStats = resolve;
+    });
+    const returningAgentStatsPromise = new Promise<typeof returningAgentStats>((resolve) => {
+      resolveReturningAgentStats = resolve;
+    });
+    let firstAgentStatsCalls = 0;
+    mockGetOverview.mockImplementation((_range: string, agent: string) =>
+      Promise.resolve(agent === 'other-agent' ? secondAgentOverview : overviewData),
+    );
+    mockGetAutofixStats.mockImplementation((_range: string, agent: string) => {
+      if (agent === 'other-agent') return secondAgentStatsPromise;
+      firstAgentStatsCalls += 1;
+      return firstAgentStatsCalls === 1
+        ? Promise.resolve(firstAgentStats)
+        : returningAgentStatsPromise;
+    });
+
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+      expect(container.textContent).toContain('777');
+    });
+
+    agentNameBox.set('other-agent');
+    await vi.waitFor(() => {
+      expect(mockGetOverview).toHaveBeenCalledWith('30d', 'other-agent');
+    });
+    agentNameBox.set('test-agent');
+    await vi.waitFor(() => {
+      expect(firstAgentStatsCalls).toBe(2);
+    });
+    await Promise.resolve();
+
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(container.textContent).not.toContain('$9.99');
+    expect(container.textContent).not.toContain('777');
+
+    resolveSecondAgentStats(secondAgentStats);
+    await Promise.resolve();
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    expect(container.textContent).not.toContain('888');
+
+    resolveReturningAgentStats(returningAgentStats);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+      expect(container.textContent).toContain('999');
+    });
+    expect(container.querySelectorAll('.skeleton').length).toBe(0);
+    expect(container.textContent).not.toContain('888');
   });
 
   it('keeps showing data during a background ping refetch instead of skeletons', async () => {
@@ -505,6 +677,7 @@ describe('Overview', () => {
 
     await vi.waitFor(() => {
       expect(mockPerProviderMessages).toHaveBeenCalledTimes(1);
+      expect(container.querySelectorAll('.chart-card__stat--clickable').length).toBe(4);
     });
     const stats = container.querySelectorAll('.chart-card__stat--clickable');
     fireEvent.click(stats[2]); // cost (Requests=0, Recovered=1, Cost=2, Token usage=3)
