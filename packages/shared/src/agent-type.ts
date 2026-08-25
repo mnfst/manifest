@@ -25,7 +25,7 @@ export function coerceAgentPlatform(value: string | null | undefined): AgentPlat
 }
 
 export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
-  personal: 'AI agents',
+  personal: 'AI agent',
   app: 'App AI SDK',
   coding: 'Coding Assistant',
 };

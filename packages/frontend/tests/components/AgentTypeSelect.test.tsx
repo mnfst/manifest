@@ -4,7 +4,7 @@ import { render, fireEvent } from "@solidjs/testing-library";
 vi.mock("manifest-shared", () => ({
   AGENT_CATEGORIES: ["personal", "app", "coding"],
   CATEGORY_LABELS: {
-    personal: "AI agents",
+    personal: "AI agent",
     app: "App AI SDK",
     coding: "Coding Assistant",
   },
@@ -79,7 +79,7 @@ describe("AgentTypeSelect", () => {
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const labels = container.querySelectorAll(".agent-type-select__group-label");
     expect(labels).toHaveLength(3);
-    expect(labels[0].textContent).toContain("AI agents");
+    expect(labels[0].textContent).toContain("AI agent");
     expect(labels[1].textContent).toContain("App AI SDK");
     expect(labels[2].textContent).toContain("Coding Assistant");
   });
