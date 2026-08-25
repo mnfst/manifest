@@ -22,11 +22,22 @@ export interface CostInput {
    */
   perRequestCostUsd?: number | null;
   /**
-   * USD cost reported by the upstream provider in the response usage block.
-   * Used for subscription providers that debit a quota/balance per request
-   * (for example NousResearch Portal) instead of being flat-fee unlimited.
+   * USD cost reported by the upstream provider in its response usage block
+   * (`usage.cost`, as OpenRouter and other gateways emit).
+   *
+   * This is what the provider says it charged, so it outranks every catalogue
+   * estimate — no seller lookup, no stale rate. It is believed from any
+   * upstream that reports it, which includes user-defined OpenAI-compatible
+   * endpoints; the parser accepts only a non-negative finite number, and that
+   * is the whole of the validation.
    */
   reportedCostUsd?: number | null;
+  /**
+   * True when the model ran on the user's own hardware (Ollama, llama.cpp,
+   * LM Studio — `localOnly` in the provider registry). Local inference has no
+   * per-token bill, so the cost is a known `0` rather than an unknown `null`.
+   */
+  isLocalProvider?: boolean;
   /**
    * Billing timestamp used to resolve time-of-day pricing tiers (peak/off-peak
    * providers like DeepSeek V4). Pass the request start when available;
@@ -70,29 +81,54 @@ function resolveTimeTier(pricing: PricingEntry, at: Date): PricingTimeTier | und
 }
 
 /**
+ * Widest value `agent_messages.cost_usd` can hold — `decimal(10, 6)`.
+ *
+ * A larger number is not an expensive request, it is a provider reporting
+ * something other than per-request USD (credits, cents, a running session
+ * total). Storing it is not an option: PostgreSQL raises `numeric field
+ * overflow`, the insert throws, and the recorder swallows it — costing the
+ * whole telemetry row, not just its price. Ignoring the report and estimating
+ * from the catalogue keeps the request visible.
+ */
+const MAX_RECORDABLE_COST_USD = 9999.999999;
+
+/** True when a provider-reported cost is usable and will survive the column. */
+function isRecordableReportedCost(reported: number | null | undefined): boolean {
+  return reported != null && reported >= 0 && reported <= MAX_RECORDABLE_COST_USD;
+}
+
+/**
  * Computes the USD cost for a set of tokens given a pricing entry.
  *
- * Returns:
- * - `reportedCostUsd` when subscription usage includes a provider-reported
- *   non-negative USD cost (NousResearch Portal pattern)
- * - `perRequestCostUsd` when the usage is subscription-based AND a positive
- *   per-request rate is provided (OpenCode Go pattern)
- * - `0` when the usage is subscription-based with no per-request rate
- *   (flat-fee subscriptions: Claude Max, ChatGPT Plus, GLM Coding, etc.)
- * - `null` when the model is unknown, tokens are zero, or pricing is unavailable
- * - the computed cost otherwise
+ * Sources are tried most-accurate first, because they are not equally good
+ * answers to "what did this request cost":
+ *
+ * 1. `reportedCostUsd` — what the provider says it charged. Exact, so it wins
+ *    outright, for any provider that reports it. Ignored above
+ *    `MAX_RECORDABLE_COST_USD`, which is not a real per-request price.
+ * 2. `perRequestCostUsd` — a published per-request rate on a subscription
+ *    (OpenCode Go pattern); `0` for a flat-fee plan with no such rate
+ *    (Claude Max, ChatGPT Plus, GLM Coding).
+ * 3. `0` for local inference — free, and known to be free.
+ * 4. The token maths below, from the caller's `pricing` entry. An estimate:
+ *    it is only as right as the catalogue, and the catalogue only holds the
+ *    correct seller's rates when the caller looked them up by provider.
+ *
+ * Returns `null` when the model is unknown, tokens are zero, or no pricing is
+ * available — meaning "not known", which is not the same as free.
  */
 export function computeTokenCost(input: CostInput): number | null {
   if (!input.model) return null;
+  if (isRecordableReportedCost(input.reportedCostUsd)) {
+    return input.reportedCostUsd as number;
+  }
   if (input.isSubscription) {
-    if (input.reportedCostUsd != null && input.reportedCostUsd >= 0) {
-      return input.reportedCostUsd;
-    }
     if (input.perRequestCostUsd != null && input.perRequestCostUsd > 0) {
       return input.perRequestCostUsd;
     }
     return 0;
   }
+  if (input.isLocalProvider) return 0;
   if (input.inputTokens === 0 && input.outputTokens === 0) return null;
 
   const pricing = input.pricing;
