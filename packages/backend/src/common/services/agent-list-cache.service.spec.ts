@@ -26,10 +26,18 @@ describe('AgentListCacheService', () => {
     expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g1');
   });
 
-  it('leaves other tenants on their own generation', async () => {
+  it('leaves a tenant that was never invalidated on generation 0', async () => {
     await service.invalidate('t1');
 
     expect(service.key('t2', false)).toBe('t2:/api/v1/agents:playground=false:g0');
+  });
+
+  it('draws generations from one counter, so no two tenants share one', async () => {
+    await service.invalidate('t1');
+    await service.invalidate('t2');
+
+    expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g1');
+    expect(service.key('t2', false)).toBe('t2:/api/v1/agents:playground=false:g2');
   });
 
   it('still retires the generation when the delete fails, and never rejects', async () => {
@@ -70,6 +78,25 @@ describe('AgentListCacheService', () => {
 
       jest.advanceTimersByTime(AGENT_LIST_CACHE_TTL_MS);
       expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g0');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('never puts a forgotten tenant back on a generation it already ran on', async () => {
+    jest.useFakeTimers();
+    try {
+      await service.invalidate('t1');
+      expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g1');
+
+      // Forgotten: reads fall back to generation 0, whose entries have expired.
+      jest.advanceTimersByTime(AGENT_LIST_CACHE_TTL_MS * 2);
+      expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g0');
+
+      // The next invalidation must not land back on g1, where an entry warmed
+      // during the first run could still be sitting.
+      await service.invalidate('t1');
+      expect(service.key('t1', false)).toBe('t1:/api/v1/agents:playground=false:g2');
     } finally {
       jest.useRealTimers();
     }

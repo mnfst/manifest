@@ -5,10 +5,11 @@ import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../constants/cache.c
 import { TtlCache } from '../utils/ttl-cache';
 
 /**
- * A retired generation must outlive every cache entry written under it, or
- * dropping the counter could send readers back to a key that still holds a
- * pre-invalidation list. Two TTLs is the margin: nothing writes the previous
- * generation once it is retired, so after one TTL those entries have expired.
+ * How long a tenant's generation is remembered. Forgetting one drops the tenant
+ * back to generation 0, so it is only safe once every entry written under
+ * generation 0 has expired. The last of those can be written by a request that
+ * was in flight across the invalidation that left generation 0, so two list TTLs
+ * is the margin.
  */
 const GENERATION_RESIDENCY_MS = AGENT_LIST_CACHE_TTL_MS * 2;
 /** Ceiling on tracked tenants; the least-recently-invalidated is dropped first. */
@@ -36,6 +37,14 @@ export class AgentListCacheService {
     maxSize: GENERATION_MAX_TENANTS,
     ttlMs: GENERATION_RESIDENCY_MS,
   });
+  /**
+   * Generations are drawn from one process-wide counter, never from a per-tenant
+   * one, so a tenant whose entry was dropped (idle past the residency, or
+   * evicted at the ceiling) never comes back on a number it used before. Reusing
+   * a number could hand readers an entry warmed under the earlier run of that
+   * same generation — the stale count this class exists to prevent.
+   */
+  private nextGeneration = 0;
 
   constructor(@Inject(CACHE_MANAGER) private readonly cache: Cache) {}
 
@@ -53,7 +62,7 @@ export class AgentListCacheService {
    */
   async invalidate(tenantId: string): Promise<void> {
     const retired = this.generations.get(tenantId) ?? 0;
-    this.generations.set(tenantId, retired + 1);
+    this.generations.set(tenantId, ++this.nextGeneration);
 
     await Promise.all(
       [false, true].map(async (includePlayground) => {
