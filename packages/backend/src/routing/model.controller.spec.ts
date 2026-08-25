@@ -42,7 +42,7 @@ describe('ModelController', () => {
   let mockProviderParamSpecs: Record<string, jest.Mock>;
   let mockModelsDevSync: Record<string, jest.Mock>;
   let mockOpencodeGoCatalog: Record<string, jest.Mock>;
-  let mockRoutingCache: Record<string, jest.Mock>;
+  let routingCache: RoutingCacheService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -84,10 +84,7 @@ describe('ModelController', () => {
     mockOpencodeGoCatalog = {
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     };
-    mockRoutingCache = {
-      invalidateAgent: jest.fn(),
-      invalidateTenant: jest.fn(),
-    };
+    routingCache = new RoutingCacheService();
 
     controller = new ModelController(
       mockDiscoveryService as unknown as ModelDiscoveryService,
@@ -98,7 +95,7 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
-      mockRoutingCache as unknown as RoutingCacheService,
+      routingCache,
     );
   });
 
@@ -196,18 +193,14 @@ describe('ModelController', () => {
       expect(result).toEqual({ ok: true });
     });
 
-    it('invalidates the tenant-scoped routing cache so newly discovered models are visible immediately', async () => {
+    it('clears agent and tenant caches after refreshing all providers', async () => {
+      routingCache.setModelParams(TEST_AGENT_ID, []);
+      routingCache.setProviders(TEST_TENANT_ID, []);
+
       await controller.refreshModels(mockCtx, mockAgentName);
 
-      // discoverAllForAgent() writes straight to tenant_providers.cached_models,
-      // but ProviderService.getProviders() serves that table through
-      // RoutingCacheService's 2-minute cache. Without this invalidation a
-      // caller that re-fetches the provider list right after refreshing (the
-      // "Refresh models" button's own follow-up request) would keep observing
-      // the pre-refresh snapshot, including a model just added on the
-      // provider's end.
-      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
-      expect(mockRoutingCache.invalidateTenant).toHaveBeenCalledWith(TEST_TENANT_ID);
+      expect(routingCache.getModelParams(TEST_AGENT_ID)).toBeNull();
+      expect(routingCache.getProviders(TEST_TENANT_ID)).toBeNull();
     });
   });
 
@@ -262,18 +255,20 @@ describe('ModelController', () => {
       expect(result.error).toBe('Provider returned no models');
     });
 
-    it('invalidates the tenant-scoped routing cache so the refreshed model list is visible immediately', async () => {
+    it('clears agent and tenant caches after refreshing one provider', async () => {
       mockDiscoveryService.refreshProvider.mockResolvedValue({
         ok: true,
         model_count: 3,
         last_fetched_at: '2026-04-12T12:00:00.000Z',
         error: null,
       });
+      routingCache.setModelParams(TEST_AGENT_ID, []);
+      routingCache.setProviders(TEST_TENANT_ID, []);
 
       await controller.refreshProviderModels(mockCtx, mockParams, {});
 
-      expect(mockRoutingCache.invalidateAgent).toHaveBeenCalledWith(TEST_AGENT_ID);
-      expect(mockRoutingCache.invalidateTenant).toHaveBeenCalledWith(TEST_TENANT_ID);
+      expect(routingCache.getModelParams(TEST_AGENT_ID)).toBeNull();
+      expect(routingCache.getProviders(TEST_TENANT_ID)).toBeNull();
     });
   });
 

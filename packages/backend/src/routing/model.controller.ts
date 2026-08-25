@@ -89,17 +89,7 @@ export class ModelController {
   async refreshModels(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     await this.discoveryService.discoverAllForAgent(agent.tenant_id, { forceRefresh: true });
-    // discoverAllForAgent() persists the freshly fetched model lists straight to
-    // tenant_providers.cached_models, but ProviderService.getProviders() serves
-    // that same table through RoutingCacheService's 2-minute tenant-scoped cache
-    // (see RoutingCacheService.getProviders/setProviders). Nothing on the
-    // discovery write path invalidates it, so a caller that re-fetches the
-    // provider list immediately after this call (exactly what the "Refresh
-    // models" button does) can keep observing the pre-refresh cached_models
-    // snapshot, including missing a newly-added local model, until the cache
-    // entry naturally expires. Every other provider mutation (connect,
-    // disconnect, rename, reorder in ProviderService) already invalidates
-    // both caches; do the same here so a refresh takes effect immediately.
+    // Discovery bypasses ProviderService, so clear its caches explicitly.
     this.routingCache.invalidateAgent(agent.id);
     this.routingCache.invalidateTenant(agent.tenant_id);
     return { ok: true };
@@ -117,9 +107,6 @@ export class ModelController {
       params.provider,
       query.authType,
     );
-    // See the comment in refreshModels() above: refreshProvider() writes
-    // cached_models directly but never touches RoutingCacheService, so the
-    // tenant-scoped provider-list cache must be invalidated here.
     this.routingCache.invalidateAgent(agent.id);
     this.routingCache.invalidateTenant(agent.tenant_id);
     return result;
