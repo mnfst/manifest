@@ -41,6 +41,28 @@ export interface TelemetryPayloadV1 {
    */
   cost_usd_by_provider?: Record<string, number>;
 
+  /**
+   * Caller requests over the 24h window (request-first model: one row per
+   * caller call; provider retries/fallbacks are attempts under it and are
+   * NOT counted here). Optional because older installs predate the field.
+   */
+  requests_total?: number;
+
+  /**
+   * Requests that ended `failed` over the same window. Together with
+   * `errors_by_class` this gives the receiver error visibility for installs
+   * whose failures never reach the Phoenix heal path.
+   */
+  errors_total?: number;
+
+  /**
+   * Per-`error_class` split of `errors_total`, using the shared taxonomy
+   * (`rate_limit`, `auth`, `invalid_request`, ...). Unknown values collapse
+   * to `"other"` and unclassified NULLs to `"unknown"` — same
+   * defense-in-depth as the tier map.
+   */
+  errors_by_class?: Record<string, number>;
+
   // Configuration
   agents_total: number;
   agents_by_platform: Record<string, number>;
