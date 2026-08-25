@@ -304,7 +304,13 @@ const HeaderTierModal: Component<Props> = (props) => {
           onInput={(e) => {
             const nextName = e.currentTarget.value;
             setName(nextName);
-            if (!modelAliasTouched()) setModelAlias(suggestedModelAlias(nextName));
+            if (!modelAliasTouched()) {
+              const suggestion = suggestedModelAlias(nextName);
+              const unavailable =
+                suggestion === 'auto' ||
+                otherTiers().some((tier) => tier.model_alias === suggestion);
+              setModelAlias(unavailable ? '' : suggestion);
+            }
           }}
         />
         <Show when={nameError()}>

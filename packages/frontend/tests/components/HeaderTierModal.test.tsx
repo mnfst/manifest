@@ -245,6 +245,28 @@ describe("HeaderTierModal", () => {
       ).toBe("creme-brulee-fast");
     });
 
+    it.each([
+      ["Auto", []],
+      ["Premium", [existingTier]],
+    ] as const)("does not suggest an unavailable alias for %s", (tierName, existingTiers) => {
+      const { container } = render(() => (
+        <HeaderTierModal
+          agentName="demo"
+          existingTiers={[...existingTiers]}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />
+      ));
+
+      fireEvent.input(container.querySelector("#header-tier-name") as HTMLInputElement, {
+        target: { value: tierName },
+      });
+
+      expect(
+        (container.querySelector("#header-tier-model-alias") as HTMLInputElement).value,
+      ).toBe("");
+    });
+
     it("rejects reserved and duplicate model aliases", async () => {
       const { container } = render(() => (
         <HeaderTierModal

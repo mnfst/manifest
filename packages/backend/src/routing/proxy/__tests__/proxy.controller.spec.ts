@@ -144,6 +144,7 @@ describe('ProxyController', () => {
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
   let headerTierService: { list: jest.Mock };
+  let resolveService: { resolveModelAlias: jest.Mock };
   let providerParamSpecs: { getCapabilities: jest.Mock };
   let modelsDevSync: { lookupModelCapabilities: jest.Mock };
   let recorder: ProxyMessageRecorder;
@@ -189,6 +190,7 @@ describe('ProxyController', () => {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
+    resolveService = { resolveModelAlias: jest.fn().mockResolvedValue({}) };
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModelCapabilities: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
@@ -227,6 +229,7 @@ describe('ProxyController', () => {
       new ReasoningContentCache(),
       modelDiscovery as never,
       headerTierService as never,
+      resolveService as never,
       planService as never,
       observationReporter as never,
       providerParamSpecs as never,
@@ -257,11 +260,21 @@ describe('ProxyController', () => {
   });
 
   it('should include enabled custom-tier aliases with a configured primary route', async () => {
+    resolveService.resolveModelAlias.mockImplementation(
+      async (_agentId: string, _tenantId: string, alias: string) =>
+        alias === 'free' ? { model: 'gpt-4o-mini' } : null,
+    );
     headerTierService.list.mockResolvedValue([
       {
         model_alias: 'free',
         enabled: true,
         override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' },
+        fallback_routes: null,
+      },
+      {
+        model_alias: 'unavailable',
+        enabled: true,
+        override_route: { provider: 'openai', authType: 'api_key', model: 'missing' },
         fallback_routes: null,
       },
       {
@@ -281,6 +294,12 @@ describe('ProxyController', () => {
       { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
       { id: 'manifest/free', object: 'model', created: 0, owned_by: 'manifest' },
     ]);
+    expect(resolveService.resolveModelAlias).toHaveBeenCalledWith('agent-1', 'tenant-1', 'free');
+    expect(resolveService.resolveModelAlias).toHaveBeenCalledWith(
+      'agent-1',
+      'tenant-1',
+      'unavailable',
+    );
   });
 
   it('should include authenticated agent models using provider-qualified ids', async () => {

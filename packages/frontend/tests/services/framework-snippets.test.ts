@@ -397,6 +397,20 @@ describe("getSnippetsForFramework", () => {
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("cURL");
   });
+
+  it.each(["python", "typescript", "curl"] as const)(
+    "forwards the selected model to %s snippets",
+    (framework) => {
+      const result = getSnippetsForFramework(
+        framework,
+        "http://x/v1",
+        "key",
+        undefined,
+        "manifest/free",
+      );
+      expect(result.every((snippet) => snippet.code.includes("manifest/free"))).toBe(true);
+    },
+  );
 });
 
 describe("getSnippetForToolkit", () => {

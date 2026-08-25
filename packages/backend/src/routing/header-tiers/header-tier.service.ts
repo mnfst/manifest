@@ -362,7 +362,10 @@ export class HeaderTierService {
     return name;
   }
 
-  private validateModelAlias(raw: string | null | undefined): string | null {
+  private validateModelAlias(raw: unknown): string | null {
+    if (raw !== null && raw !== undefined && typeof raw !== 'string') {
+      throw new BadRequestException('Model alias must be a string');
+    }
     const alias = (raw ?? '').trim();
     if (!alias) return null;
     if (alias.length > MAX_MODEL_ALIAS_LEN) {

@@ -154,6 +154,12 @@ describe('HeaderTierService', () => {
       ).rejects.toThrow(/48 characters/);
     });
 
+    it('rejects non-string model aliases', async () => {
+      await expect(
+        svc.create('agent-1', 'tenant-1', validInput({ model_alias: 42 as never })),
+      ).rejects.toThrow('Model alias must be a string');
+    });
+
     it('rejects a model alias used by a sibling tier', async () => {
       repo.find.mockResolvedValue([
         {

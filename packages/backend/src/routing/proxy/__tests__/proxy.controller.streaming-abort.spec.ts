@@ -130,6 +130,7 @@ describe('ProxyController streaming abort', () => {
       new ReasoningContentCache(),
       modelDiscovery as never,
       { list: jest.fn().mockResolvedValue([]) } as never,
+      { resolveModelAlias: jest.fn().mockResolvedValue(null) } as never,
       { assertWithinRequestLimit: jest.fn().mockResolvedValue(undefined) } as never,
       { report: jest.fn() } as never,
       { getCapabilities: jest.fn().mockResolvedValue(null) } as never,

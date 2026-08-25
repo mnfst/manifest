@@ -433,16 +433,17 @@ export function getSnippetsForFramework(
   baseUrl: string,
   apiKey: string,
   customHeaders?: CustomHeaders,
+  model = 'auto',
 ): Snippet[] {
   switch (id) {
     case 'python':
-      return getPythonSnippets(baseUrl, apiKey, customHeaders);
+      return getPythonSnippets(baseUrl, apiKey, customHeaders, model);
     case 'typescript':
-      return getTypeScriptSnippets(baseUrl, apiKey, customHeaders);
+      return getTypeScriptSnippets(baseUrl, apiKey, customHeaders, model);
     case 'openclaw':
       return [{ title: 'OpenClaw CLI', code: getOpenClawSnippet(baseUrl, apiKey) }];
     case 'curl':
-      return getCurlSnippet(baseUrl, apiKey, customHeaders);
+      return getCurlSnippet(baseUrl, apiKey, customHeaders, model);
   }
 }
 

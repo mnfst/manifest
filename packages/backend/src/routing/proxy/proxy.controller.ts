@@ -27,6 +27,7 @@ import { ThinkingBlockCache } from './thinking-block-cache';
 import { ReasoningContentCache } from './reasoning-content-cache';
 import { ModelDiscoveryService } from '../../model-discovery/model-discovery.service';
 import { HeaderTierService } from '../header-tiers/header-tier.service';
+import { ResolveService } from '../resolve/resolve.service';
 import { ModelsDevSyncService } from '../../database/models-dev-sync.service';
 import { ProviderParamSpecService } from '../routing-core/provider-param-spec.service';
 import { resolveModelCapabilityMetadata } from '../../model-discovery/model-capabilities';
@@ -136,6 +137,7 @@ export class ProxyController {
     private readonly reasoningCache: ReasoningContentCache,
     private readonly modelDiscovery: ModelDiscoveryService,
     private readonly headerTierService: HeaderTierService,
+    private readonly resolveService: ResolveService,
     private readonly planService: PlanService,
     private readonly observationReporter: ObservationReporter,
     private readonly providerParamSpecs: ProviderParamSpecService,
@@ -175,6 +177,12 @@ export class ProxyController {
 
     for (const tier of customTiers) {
       if (!tier.enabled || !tier.model_alias || tier.override_route === null) continue;
+      const resolved = await this.resolveService.resolveModelAlias(
+        req.ingestionContext.agentId,
+        req.ingestionContext.tenantId,
+        tier.model_alias,
+      );
+      if (!resolved) continue;
       const id = manifestModelId(tier.model_alias);
       if (seen.has(id)) continue;
       seen.add(id);
