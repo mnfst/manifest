@@ -384,6 +384,7 @@ describe('computeTokenCost', () => {
         time_tiers: [
           {
             windows: ['01:00-04:00'],
+            days: [1, 2, 3, 4, 5],
             input_price_per_token: 1.32e-6,
             output_price_per_token: 3.96e-6,
           },
@@ -481,6 +482,103 @@ describe('computeTokenCost', () => {
     it('bills the tier rate inside a peak window', () => {
       const cost = computeTokenCost({ ...base, at: new Date('2026-08-17T02:30:00Z') });
       expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('bills the base rate on a weekend hour inside a weekday-only window', () => {
+      // 2026-08-22 is a Saturday; 02:00 UTC sits inside 01:00-04:00, so only
+      // the day rule can move it off the peak rate.
+      const weekdayOnly: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], days: [1, 2, 3, 4, 5] }],
+      };
+      const cost = computeTokenCost({
+        ...base,
+        pricing: weekdayOnly,
+        at: new Date('2026-08-22T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('bills the tier rate on a weekday hour inside a weekday-only window', () => {
+      // 2026-08-21 is a Friday — same clock time as the Saturday case above.
+      const weekdayOnly: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], days: [1, 2, 3, 4, 5] }],
+      };
+      const cost = computeTokenCost({
+        ...base,
+        pricing: weekdayOnly,
+        at: new Date('2026-08-21T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('bills a Sunday at the tier rate when Sunday is listed', () => {
+      // ISO Sunday is 7, not 0 — getUTCDay() would say 0 and miss the match.
+      const sundayOnly: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], days: [7] }],
+      };
+      const cost = computeTokenCost({
+        ...base,
+        pricing: sundayOnly,
+        at: new Date('2026-08-23T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('treats an empty day list as every day', () => {
+      const everyDay: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], days: [] }],
+      };
+      const cost = computeTokenCost({
+        ...base,
+        pricing: everyDay,
+        at: new Date('2026-08-22T02:00:00Z'),
+      });
+      expect(cost).toBeCloseTo(0.44 + 1.32, 10);
+    });
+
+    it('credits a midnight-crossing window to the day it opened on', () => {
+      // 23:00-02:00 opens Friday and runs into Saturday. Saturday 00:30 is
+      // inside the Friday band; Saturday 23:30 opens a band Saturday does not
+      // have. Judging both by the wall-clock day would get one of them wrong.
+      const fridayNight: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], windows: ['23:00-02:00'], days: [5] }],
+      };
+      expect(
+        computeTokenCost({
+          ...base,
+          pricing: fridayNight,
+          at: new Date('2026-08-22T00:30:00Z'),
+        }),
+      ).toBeCloseTo(0.44 + 1.32, 10);
+      expect(
+        computeTokenCost({
+          ...base,
+          pricing: fridayNight,
+          at: new Date('2026-08-22T23:30:00Z'),
+        }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('bills a window that opens Sunday and runs into Monday on Sunday terms', () => {
+      // The week circle has a seam at Monday 00:00. A Sunday-only band that
+      // wraps past midnight has to cross it, so this pins that the seam is not
+      // a boundary: 2026-08-24 is a Monday, 00:30 of it belongs to Sunday's.
+      const sundayNight: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], windows: ['23:00-02:00'], days: [7] }],
+      };
+      expect(
+        computeTokenCost({
+          ...base,
+          pricing: sundayNight,
+          at: new Date('2026-08-24T00:30:00Z'),
+        }),
+      ).toBeCloseTo(0.44 + 1.32, 10);
     });
 
     it('treats window starts as inclusive and ends as exclusive', () => {
@@ -593,6 +691,29 @@ describe('computeTokenCost', () => {
       };
       expect(
         computeTokenCost({ ...base, pricing: malformed, at: new Date('2026-08-17T02:00:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('ignores an hour outside 00-23 instead of opening a band the next day', () => {
+      // As a plain minute count "25:00" was unreachable and harmless. As an arc
+      // it would open a real band on the following day, repricing a window
+      // nobody wrote. 2026-08-18 is a Tuesday, which is where 25:00 would land.
+      const corrupt: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], windows: ['25:00-26:00'], days: [] }],
+      };
+      expect(
+        computeTokenCost({ ...base, pricing: corrupt, at: new Date('2026-08-18T01:30:00Z') }),
+      ).toBeCloseTo(0.22 + 0.66, 10);
+    });
+
+    it('ignores a minute outside 00-59', () => {
+      const corrupt: PricingEntry = {
+        ...peakPricing,
+        time_tiers: [{ ...peakPricing.time_tiers![0], windows: ['01:75-02:00'], days: [] }],
+      };
+      expect(
+        computeTokenCost({ ...base, pricing: corrupt, at: new Date('2026-08-18T01:50:00Z') }),
       ).toBeCloseTo(0.22 + 0.66, 10);
     });
 

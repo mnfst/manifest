@@ -86,6 +86,12 @@ function resolveProviderId(providerId: string): string {
  */
 export interface ModelsDevTimeTier {
   windows: readonly string[];
+  /**
+   * ISO weekdays (1 = Monday … 7 = Sunday) the windows apply on. Null means
+   * every day — a tier with no schedule is unrestricted, as it was before this
+   * field existed.
+   */
+  days: readonly number[] | null;
   inputPricePerToken: number | null;
   outputPricePerToken: number | null;
   cacheReadPricePerToken: number | null;
@@ -112,7 +118,7 @@ export interface ModelsDevModelEntry {
 }
 
 interface RawModelsDevCostTier {
-  tier?: { type?: string; size?: number; windows?: string[] };
+  tier?: { type?: string; size?: number; windows?: string[]; days?: unknown };
   input?: number;
   output?: number;
   cache_read?: number;
@@ -153,8 +159,9 @@ const TIME_WINDOW_RE = /^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
  * DeepSeek V4 moved to peak/off-peak billing on 2026-08-16: peak hours are
- * 01:00-04:00 and 06:00-10:00 UTC, every other hour is off-peak at half the
- * peak rate. models.dev cannot express time-of-day pricing yet
+ * 01:00-04:00 and 06:00-10:00 UTC **Monday through Friday**, and every other
+ * hour — including all 48 weekend hours — is off-peak at half the peak rate.
+ * models.dev cannot express time-of-day pricing yet
  * (anomalyco/models.dev#4892 adds `cost.tiers[].tier.type = "time"`; #4891
  * corrects the flat numbers in the meantime), so until the catalog carries a
  * time tier for these models this seed replaces whatever flat rate the sync
@@ -166,6 +173,8 @@ const TIME_WINDOW_RE = /^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/;
  * https://api-docs.deepseek.com/quick_start/pricing/ (accessed 2026-08-17).
  */
 const DEEPSEEK_PEAK_WINDOWS: readonly string[] = ['01:00-04:00', '06:00-10:00'];
+/** Monday–Friday: DeepSeek's peak schedule does not run on weekends. */
+const DEEPSEEK_PEAK_DAYS: readonly number[] = [1, 2, 3, 4, 5];
 const DEEPSEEK_V4_PEAK_SEED: ReadonlyMap<
   string,
   {
@@ -191,6 +200,16 @@ const DEEPSEEK_V4_PEAK_SEED: ReadonlyMap<
       output: 1.98,
       cacheRead: 0.022,
       peak: { input: 1.32, output: 3.96, cacheRead: 0.044 },
+    },
+  ],
+  // The vision preview is billed on the Flash card, not a card of its own.
+  [
+    'deepseek-v4-flash-vision-exp',
+    {
+      input: 0.22,
+      output: 0.66,
+      cacheRead: 0.007,
+      peak: { input: 0.44, output: 1.32, cacheRead: 0.014 },
     },
   ],
 ]);
@@ -637,6 +656,23 @@ export class ModelsDevSyncService implements OnModuleInit {
   }
 
   /**
+   * ISO weekdays a time tier is restricted to, or null for "every day".
+   *
+   * A malformed list is dropped **whole**, never filtered entry by entry:
+   * salvaging `[1,2,3,4,5,'6']` down to `[1..5]` would read as a clean weekday
+   * rule and quietly discount a day the provider charges peak for. Dropping it
+   * falls back to the unrestricted tier, which is what the catalog meant
+   * before the field existed and never bills below the published rate.
+   */
+  private parseTierDays(days: unknown): readonly number[] | null {
+    if (!Array.isArray(days) || days.length === 0) return null;
+    const valid = days.every(
+      (day) => typeof day === 'number' && Number.isInteger(day) && day >= 1 && day <= 7,
+    );
+    return valid ? (days as number[]) : null;
+  }
+
+  /**
    * Extract time-of-day pricing tiers from a raw models.dev cost block.
    * Context-size tiers (`tier.type = "context"`) are ignored — Manifest does
    * not price by context band. Returns null when no valid time tier exists.
@@ -660,6 +696,7 @@ export class ModelsDevSyncService implements OnModuleInit {
       if (windows.length === 0) continue;
       parsed.push({
         windows,
+        days: this.parseTierDays(tier.tier.days),
         inputPricePerToken: tier.input != null ? tier.input / 1_000_000 : null,
         outputPricePerToken: tier.output != null ? tier.output / 1_000_000 : null,
         cacheReadPricePerToken: tier.cache_read != null ? tier.cache_read / 1_000_000 : null,
@@ -696,6 +733,7 @@ export class ModelsDevSyncService implements OnModuleInit {
         timeTiers = [
           {
             windows: DEEPSEEK_PEAK_WINDOWS,
+            days: DEEPSEEK_PEAK_DAYS,
             inputPricePerToken: seed.peak.input / 1_000_000,
             outputPricePerToken: seed.peak.output / 1_000_000,
             cacheReadPricePerToken: seed.peak.cacheRead / 1_000_000,
