@@ -304,7 +304,7 @@ describe('PublicStatsController', () => {
       {
         agent_category: 'personal',
         agent_platform: 'openclaw',
-        category_label: 'AI agents',
+        category_label: 'AI agent',
         platform_label: 'OpenClaw',
         total_tokens: 1100000,
         models: [
