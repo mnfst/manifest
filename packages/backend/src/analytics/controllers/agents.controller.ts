@@ -27,7 +27,8 @@ import { CreateAgentDto } from '../../common/dto/create-agent.dto';
 import { DuplicateAgentDto } from '../../common/dto/duplicate-agent.dto';
 import { RenameAgentDto } from '../../common/dto/rename-agent.dto';
 import { AgentListCacheInterceptor } from '../../common/interceptors/agent-list-cache.interceptor';
-import { AGENT_LIST_CACHE_TTL_MS, agentListCacheKey } from '../../common/constants/cache.constants';
+import { AGENT_LIST_CACHE_TTL_MS } from '../../common/constants/cache.constants';
+import { AgentListCacheService } from '../../common/services/agent-list-cache.service';
 import { slugify } from '../../common/utils/slugify';
 import { PLAYGROUND_AGENT_SLUG } from '../../common/constants/playground.constants';
 import { ProviderService } from '../../routing/routing-core/provider.service';
@@ -45,19 +46,17 @@ export class AgentsController {
     private readonly eventBus: IngestEventBusService,
     private readonly providerService: ProviderService,
     private readonly autofixStats: AutofixStatsService,
+    private readonly agentListCache: AgentListCacheService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   private async invalidateAgentListCache(tenantId: string | null): Promise<void> {
-    // GET /agents has exactly two canonical cache entries per tenant (playground agents
-    // included or not — see AgentListCacheInterceptor). Clear both so neither the
-    // Workspace list nor the Messages filter goes stale after a mutation. No
-    // tenant → nothing was ever cached.
+    // GET /agents has exactly two canonical cache entries per tenant (playground
+    // agents included or not — see AgentListCacheService). Retire both so
+    // neither the Workspace list nor the Messages filter goes stale after a
+    // mutation. No tenant → nothing was ever cached.
     if (!tenantId) return;
-    await Promise.all([
-      this.cacheManager.del(agentListCacheKey(tenantId, false)),
-      this.cacheManager.del(agentListCacheKey(tenantId, true)),
-    ]);
+    await this.agentListCache.invalidate(tenantId);
   }
 
   private async invalidateAutofixStatusCache(tenantId: string | null): Promise<void> {

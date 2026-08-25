@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { AgentListCacheInterceptor } from '../interceptors/agent-list-cache.interceptor';
+import { AgentListCacheService } from './agent-list-cache.service';
 
 export type IngestEventKind = 'message' | 'agent' | 'routing';
 
@@ -19,22 +19,22 @@ export class IngestEventBusService implements OnModuleDestroy {
   private readonly debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly DEBOUNCE_MS = 250;
 
-  constructor(private readonly agentListCache: AgentListCacheInterceptor) {}
+  constructor(private readonly agentListCache: AgentListCacheService) {}
 
   private async publish(event: IngestEvent): Promise<void> {
     if (event.kind === 'message') {
+      // Agent-list responses carry message_count, so retire them before
+      // subscribers refetch. Invalidation is generation-based and cannot leave a
+      // reader on a stale key, so a failure here is housekeeping noise: publish
+      // regardless, because swallowing the event would leave every dashboard
+      // waiting for a refresh that never comes.
       try {
         await this.agentListCache.invalidate(event.tenantId);
-      } catch (firstError) {
-        try {
-          await this.agentListCache.invalidate(event.tenantId);
-        } catch (retryError) {
-          this.logger.error(
-            `Failed to invalidate the agent-list cache for tenant ${event.tenantId}`,
-            retryError instanceof Error ? retryError.stack : String(retryError ?? firstError),
-          );
-          return;
-        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to invalidate the agent-list cache for tenant ${event.tenantId}`,
+          error instanceof Error ? error.stack : String(error),
+        );
       }
     }
     this.subject.next(event);

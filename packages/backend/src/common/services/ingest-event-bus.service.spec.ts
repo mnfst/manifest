@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { AgentListCacheInterceptor } from '../interceptors/agent-list-cache.interceptor';
+import { AgentListCacheService } from './agent-list-cache.service';
 import { IngestEventBusService, IngestEvent } from './ingest-event-bus.service';
 
 describe('IngestEventBusService', () => {
@@ -9,7 +9,7 @@ describe('IngestEventBusService', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     invalidate = jest.fn().mockResolvedValue(undefined);
-    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheInterceptor);
+    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheService);
   });
 
   afterEach(() => {
@@ -138,7 +138,7 @@ describe('IngestEventBusService message cache invalidation', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     invalidate = jest.fn().mockResolvedValue(undefined);
-    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheInterceptor);
+    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheService);
   });
 
   afterEach(() => {
@@ -172,7 +172,7 @@ describe('IngestEventBusService message cache invalidation', () => {
     expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
   });
 
-  it('retries a failed invalidation and does not publish when the retry fails', async () => {
+  it('publishes the event even when invalidation fails, so no dashboard is left waiting', async () => {
     const received: IngestEvent[] = [];
     const logger = jest.spyOn(Logger.prototype, 'error').mockImplementation();
     invalidate.mockRejectedValue(new Error('cache unavailable'));
@@ -181,12 +181,32 @@ describe('IngestEventBusService message cache invalidation', () => {
     service.emit('tenant-1', 'message');
     await jest.advanceTimersByTimeAsync(250);
 
-    expect(invalidate).toHaveBeenCalledTimes(2);
-    expect(received).toEqual([]);
+    expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
     expect(logger).toHaveBeenCalledWith(
       'Failed to invalidate the agent-list cache for tenant tenant-1',
       expect.any(String),
     );
     logger.mockRestore();
+  });
+
+  it('logs a non-Error invalidation failure', async () => {
+    const received: IngestEvent[] = [];
+    const logger = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    invalidate.mockRejectedValue('boom');
+    service.forTenant('tenant-1').subscribe((event) => received.push(event));
+
+    service.emit('tenant-1', 'message');
+    await jest.advanceTimersByTimeAsync(250);
+
+    expect(received).toHaveLength(1);
+    expect(logger).toHaveBeenCalledWith(expect.any(String), 'boom');
+    logger.mockRestore();
+  });
+
+  it('does not touch the agent-list cache for non-message events', async () => {
+    service.emit('tenant-1', 'agent');
+    await jest.advanceTimersByTimeAsync(250);
+
+    expect(invalidate).not.toHaveBeenCalled();
   });
 });

@@ -10,6 +10,7 @@ import { AgentCacheInterceptor } from './interceptors/agent-cache.interceptor';
 import { AgentRecordingCacheService } from './services/agent-recording-cache.service';
 import { RequestRecordingStorageService } from './services/request-recording-storage.service';
 import { AgentListCacheInterceptor } from './interceptors/agent-list-cache.interceptor';
+import { AgentListCacheService } from './services/agent-list-cache.service';
 
 @Global()
 @Module({
@@ -21,6 +22,7 @@ import { AgentListCacheInterceptor } from './interceptors/agent-list-cache.inter
     UserCacheInterceptor,
     AgentCacheInterceptor,
     AgentListCacheInterceptor,
+    AgentListCacheService,
     AgentRecordingCacheService,
     RequestRecordingStorageService,
   ],
@@ -31,6 +33,7 @@ import { AgentListCacheInterceptor } from './interceptors/agent-list-cache.inter
     UserCacheInterceptor,
     AgentCacheInterceptor,
     AgentListCacheInterceptor,
+    AgentListCacheService,
     AgentRecordingCacheService,
     RequestRecordingStorageService,
   ],

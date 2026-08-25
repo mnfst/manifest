@@ -2,40 +2,15 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
 import { CallHandler, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import type { Cache } from 'cache-manager';
-import { defer, finalize, lastValueFrom, mergeAll, Observable, shareReplay } from 'rxjs';
+import { defer, finalize, mergeAll, Observable, shareReplay } from 'rxjs';
 import { RequestWithTenantContext } from '../decorators/tenant-context.decorator';
 
 @Injectable()
 export class UserCacheInterceptor extends CacheInterceptor {
   private readonly inFlightResponses = new Map<string, Observable<unknown>>();
-  private readonly inFlightCacheWrites: Map<string, Promise<unknown>>;
 
   constructor(@Inject('CACHE_MANAGER') cacheManager: unknown, reflector: Reflector) {
-    const writes = new Map<string, Promise<unknown>>();
-    const cache = cacheManager as Cache;
-    const trackedCache = new Proxy(cache, {
-      get(target, property) {
-        if (property === 'set') {
-          return (...args: Parameters<Cache['set']>) => {
-            const [key] = args;
-            const write = target.set(...args);
-            writes.set(key, write);
-            const clear = () => {
-              if (writes.get(key) === write) writes.delete(key);
-            };
-            void write.then(clear, clear);
-            return write;
-          };
-        }
-
-        const value = Reflect.get(target, property, target) as unknown;
-        return typeof value === 'function' ? value.bind(target) : value;
-      },
-    });
-
-    super(trackedCache, reflector);
-    this.inFlightCacheWrites = writes;
+    super(cacheManager, reflector);
   }
 
   /**
@@ -59,15 +34,6 @@ export class UserCacheInterceptor extends CacheInterceptor {
     );
     this.inFlightResponses.set(key, response);
     return response;
-  }
-
-  /** Wait until an existing response and its cache write have both settled. */
-  protected async waitForCacheActivity(key: string): Promise<void> {
-    const response = this.inFlightResponses.get(key);
-    if (response) await lastValueFrom(response).catch(() => undefined);
-
-    const write = this.inFlightCacheWrites.get(key);
-    if (write) await write.catch(() => undefined);
   }
 
   /**

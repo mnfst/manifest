@@ -5,7 +5,7 @@ import { Reflector } from '@nestjs/core';
 import type { Cache } from 'cache-manager';
 import { Request } from 'express';
 import { UserCacheInterceptor } from './user-cache.interceptor';
-import { agentListCacheKey } from '../constants/cache.constants';
+import { AgentListCacheService } from '../services/agent-list-cache.service';
 
 /**
  * Cache interceptor for GET /agents. Unlike the generic URL-keyed
@@ -13,22 +13,17 @@ import { agentListCacheKey } from '../constants/cache.constants';
  * ?includePlayground=true, ?includePlayground=false, anything else) onto one of two
  * canonical keys based on the normalized `includePlayground` boolean. That keeps the
  * cached key set bounded to exactly two entries per tenant, so mutation handlers
- * can invalidate it exhaustively (see agentListCacheKey) without a stray URL
+ * can invalidate it exhaustively (see AgentListCacheService) without a stray URL
  * variant being left stale.
  */
 @Injectable()
 export class AgentListCacheInterceptor extends UserCacheInterceptor {
   constructor(
-    @Inject(CACHE_MANAGER) private readonly agentListCache: Cache,
+    @Inject(CACHE_MANAGER) agentListCache: Cache,
     reflector: Reflector,
+    private readonly keys: AgentListCacheService,
   ) {
     super(agentListCache, reflector);
-  }
-
-  async invalidate(tenantId: string): Promise<void> {
-    const keys = [agentListCacheKey(tenantId, false), agentListCacheKey(tenantId, true)];
-    await Promise.all(keys.map((key) => this.waitForCacheActivity(key)));
-    await Promise.all(keys.map((key) => this.agentListCache.del(key)));
   }
 
   protected trackBy(context: ExecutionContext): string | undefined {
@@ -38,6 +33,6 @@ export class AgentListCacheInterceptor extends UserCacheInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const includePlayground =
       (request.query as { includePlayground?: string } | undefined)?.includePlayground === 'true';
-    return agentListCacheKey(tenantId, includePlayground);
+    return this.keys.key(tenantId, includePlayground);
   }
 }
