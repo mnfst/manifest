@@ -144,7 +144,7 @@ describe('ProxyController', () => {
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
   let headerTierService: { list: jest.Mock };
-  let resolveService: { resolveModelAlias: jest.Mock };
+  let resolveService: { isCustomTierRoutable: jest.Mock };
   let providerParamSpecs: { getCapabilities: jest.Mock };
   let modelsDevSync: { lookupModelCapabilities: jest.Mock };
   let recorder: ProxyMessageRecorder;
@@ -190,7 +190,7 @@ describe('ProxyController', () => {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
-    resolveService = { resolveModelAlias: jest.fn().mockResolvedValue({}) };
+    resolveService = { isCustomTierRoutable: jest.fn().mockResolvedValue(true) };
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModelCapabilities: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
@@ -260,9 +260,9 @@ describe('ProxyController', () => {
   });
 
   it('should include enabled custom-tier aliases with a configured primary route', async () => {
-    resolveService.resolveModelAlias.mockImplementation(
-      async (_agentId: string, _tenantId: string, alias: string) =>
-        alias === 'free' ? { model: 'gpt-4o-mini' } : null,
+    resolveService.isCustomTierRoutable.mockImplementation(
+      async (_agentId: string, _tenantId: string, tier: { model_alias: string }) =>
+        tier.model_alias === 'free',
     );
     headerTierService.list.mockResolvedValue([
       {
@@ -294,11 +294,11 @@ describe('ProxyController', () => {
       { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
       { id: 'manifest/free', object: 'model', created: 0, owned_by: 'manifest' },
     ]);
-    expect(resolveService.resolveModelAlias).toHaveBeenCalledWith('agent-1', 'tenant-1', 'free');
-    expect(resolveService.resolveModelAlias).toHaveBeenCalledWith(
+    expect(resolveService.isCustomTierRoutable).toHaveBeenCalledTimes(4);
+    expect(resolveService.isCustomTierRoutable).toHaveBeenCalledWith(
       'agent-1',
       'tenant-1',
-      'unavailable',
+      expect.objectContaining({ model_alias: 'free' }),
     );
   });
 

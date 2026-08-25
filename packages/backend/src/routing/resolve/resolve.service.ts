@@ -279,6 +279,21 @@ export class ResolveService {
     return this.resolveCustomTier(agentId, tenantId, match, 'model-alias', 'model alias');
   }
 
+  /** Check whether a loaded custom tier has an available primary or fallback route. */
+  async isCustomTierRoutable(
+    agentId: string,
+    tenantId: string,
+    tier: HeaderTier,
+  ): Promise<boolean> {
+    const primary = readOverrideRoute(tier);
+    if (!primary) return false;
+    const routes = [primary, ...(readFallbackRoutes(tier) ?? [])];
+    for (const route of routes) {
+      if (await this.providerKeyService.isRouteAvailable(tenantId, route, agentId)) return true;
+    }
+    return false;
+  }
+
   private async resolveCustomTier(
     agentId: string,
     tenantId: string,

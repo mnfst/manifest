@@ -175,15 +175,20 @@ export class ProxyController {
     ];
     const seen = new Set(data.map((model) => model.id));
 
-    for (const tier of customTiers) {
-      if (!tier.enabled || !tier.model_alias || tier.override_route === null) continue;
-      const resolved = await this.resolveService.resolveModelAlias(
-        req.ingestionContext.agentId,
-        req.ingestionContext.tenantId,
-        tier.model_alias,
-      );
-      if (!resolved) continue;
-      const id = manifestModelId(tier.model_alias);
+    const aliasTiers = customTiers.filter((tier) => tier.enabled && tier.model_alias);
+    const routableAliases = await Promise.all(
+      aliasTiers.map((tier) =>
+        this.resolveService.isCustomTierRoutable(
+          req.ingestionContext.agentId,
+          req.ingestionContext.tenantId,
+          tier,
+        ),
+      ),
+    );
+    for (const [index, tier] of aliasTiers.entries()) {
+      const alias = tier.model_alias;
+      if (!alias || !routableAliases[index]) continue;
+      const id = manifestModelId(alias);
       if (seen.has(id)) continue;
       seen.add(id);
       data.push({

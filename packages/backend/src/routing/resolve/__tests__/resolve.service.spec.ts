@@ -488,6 +488,45 @@ describe('ResolveService', () => {
     });
   });
 
+  describe('isCustomTierRoutable', () => {
+    const primary = route('openai', 'api_key', 'gpt-4o-mini');
+    const fallback = route('anthropic', 'api_key', 'claude-haiku');
+
+    it('returns false without a configured primary route', async () => {
+      const tier = { override_route: null, fallback_routes: [fallback] } as HeaderTier;
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(false);
+      expect(providerKeyService.isRouteAvailable).not.toHaveBeenCalled();
+    });
+
+    it('returns true when the primary route is available', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(true);
+      expect(providerKeyService.isRouteAvailable).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks fallbacks until it finds an available route', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+      providerKeyService.isRouteAvailable.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(true);
+      expect(providerKeyService.isRouteAvailable).toHaveBeenNthCalledWith(
+        2,
+        'tenant-1',
+        fallback,
+        'agent-1',
+      );
+    });
+
+    it('returns false when every configured route is unavailable', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(false);
+    });
+  });
+
   describe('resolveProviderForModel paths (via header tier with bare model)', () => {
     // Provider field is empty (falsy) so resolveProviderForModel runs via the
     // `||` short-circuit. authType is a real value so the route can be built
