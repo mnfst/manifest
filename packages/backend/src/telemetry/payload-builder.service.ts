@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ALL_TIERS, AUTH_TYPES, ERROR_CLASSES, FAILED_STATUS, TIER_SLOTS } from 'manifest-shared';
+import { ALL_TIERS, AUTH_TYPES, ERROR_CLASSES, TIER_SLOTS } from 'manifest-shared';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../common/constants/providers';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
 import { ManifestRequest } from '../entities/request.entity';
+import { sqlIsFailedStatus } from '../analytics/services/query-helpers';
 import type { TelemetryPayloadV1 } from './dto/telemetry-payload';
 import { TELEMETRY_SCHEMA_VERSION } from './telemetry.config';
 
@@ -172,7 +173,11 @@ export class PayloadBuilderService {
     const row = await this.requests
       .createQueryBuilder('r')
       .select('COUNT(*)', 'total')
-      .addSelect(`SUM(CASE WHEN r.status = '${FAILED_STATUS}' THEN 1 ELSE 0 END)`, 'failed')
+      // Shared legacy-aware predicate: rows written by a not-yet-drained old
+      // replica (or pre-normalization backfill) say `error`/`rate_limited`/…
+      // rather than the canonical `failed`; a bare `= 'failed'` would
+      // undercount them.
+      .addSelect(`SUM(CASE WHEN ${sqlIsFailedStatus('r.status')} THEN 1 ELSE 0 END)`, 'failed')
       .where(`r.timestamp >= NOW() - INTERVAL '24 hours'`)
       .getRawOne<{ total: string; failed: string | null }>();
     return row ?? { total: '0', failed: '0' };
@@ -185,7 +190,7 @@ export class PayloadBuilderService {
       .select('r.error_class', 'bucket')
       .addSelect('COUNT(*)', 'count')
       .where(`r.timestamp >= NOW() - INTERVAL '24 hours'`)
-      .andWhere(`r.status = '${FAILED_STATUS}'`)
+      .andWhere(sqlIsFailedStatus('r.status'))
       .groupBy('r.error_class')
       .getRawMany<BucketRow>();
   }
