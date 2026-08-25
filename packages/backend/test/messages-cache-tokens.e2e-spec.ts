@@ -23,6 +23,7 @@ import {
 } from './helpers';
 import { encrypt, getEncryptionSecret } from '../src/common/utils/crypto.util';
 import { ModelPricingCacheService } from '../src/model-prices/model-pricing-cache.service';
+import { ModelsDevSyncService } from '../src/database/models-dev-sync.service';
 import { PricingSyncService } from '../src/database/pricing-sync.service';
 import { RoutingCacheService } from '../src/routing/routing-core/routing-cache.service';
 
@@ -37,6 +38,25 @@ let nextAnthropicUsage: {
 
 const MODEL = 'claude-haiku-4-5';
 const ANTHROPIC_HOST = 'api.anthropic.com';
+const MODELS_DEV_API_URL = 'https://models.dev/api.json';
+
+/**
+ * Deterministic models.dev fixture for `claude-haiku-4-5`. Cost is USD per 1M
+ * tokens: input $1.00, output $5.00, cache read $0.10, no cache write premium
+ * (so cache writes fall back to the input price). This keeps the `usage.cost`
+ * assertions stable instead of racing the fire-and-forget live models.dev fetch.
+ */
+const MODELS_DEV_FIXTURE = {
+  anthropic: {
+    id: 'anthropic',
+    models: {
+      'claude-haiku-4-5': {
+        name: 'Claude Haiku 4.5',
+        cost: { input: 1.0, output: 5.0, cache_read: 0.1 },
+      },
+    },
+  },
+};
 
 beforeAll(async () => {
   app = await createTestApp();
@@ -113,7 +133,10 @@ beforeAll(async () => {
 
   // Stub Anthropic upstream. Returns whatever `nextAnthropicUsage` says, so
   // each test case can dial in cache_creation vs cache_read independently.
+  // Also stub models.dev so cache pricing (and therefore `usage.cost`) is
+  // deterministic — the live fetch is fire-and-forget and races the reload.
   originalFetch = global.fetch;
+  const modelsDevSync = app.get(ModelsDevSyncService);
   global.fetch = (async (input, init) => {
     const url =
       typeof input === 'string'
@@ -121,6 +144,12 @@ beforeAll(async () => {
         : input instanceof URL
           ? input.toString()
           : input.url;
+    if (url === MODELS_DEV_API_URL) {
+      return new Response(JSON.stringify(MODELS_DEV_FIXTURE), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
     let hostname = '';
     try {
       hostname = new URL(url).hostname;
@@ -143,6 +172,12 @@ beforeAll(async () => {
     }
     return originalFetch!(input, init);
   }) as typeof fetch;
+
+  // Let the startup models.dev fetch settle so it can't overwrite the
+  // deterministic seed below, then rebuild the pricing cache from it.
+  await modelsDevSync.whenInitialized();
+  await modelsDevSync.refreshCache();
+  await app.get(ModelPricingCacheService).reload();
 }, 60000);
 
 afterAll(async () => {
@@ -199,12 +234,14 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       messages: [{ role: 'user', content: 'Say pong.' }],
     });
 
-    expect(res.body.usage).toEqual({
+    const { cost, ...usage } = res.body.usage;
+    expect(usage).toEqual({
       input_tokens: 7,
       output_tokens: 2,
       cache_creation_input_tokens: 3006,
       cache_read_input_tokens: 0,
     });
+    expect(cost).toBeCloseTo(0.003023, 10);
 
     const rows = await waitForRecordedMessage(ds);
     expect(rows).toHaveLength(1);
@@ -240,12 +277,14 @@ describe('/v1/messages cache token round-trip (#1871)', () => {
       messages: [{ role: 'user', content: 'Say pong.' }],
     });
 
-    expect(res.body.usage).toEqual({
+    const { cost, ...usage } = res.body.usage;
+    expect(usage).toEqual({
       input_tokens: 7,
       output_tokens: 2,
       cache_creation_input_tokens: 0,
       cache_read_input_tokens: 3006,
     });
+    expect(cost).toBeCloseTo(0.0003176, 10);
 
     const rows = await waitForRecordedMessage(ds);
     expect(rows).toHaveLength(1);

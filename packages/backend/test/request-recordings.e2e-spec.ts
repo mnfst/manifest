@@ -39,7 +39,7 @@ let mockPort: number;
 let filesystemRoot: string | null = null;
 let customProviderId: string;
 let jsonRecording: AttemptRecordingPointer;
-let jsonResponseBody: unknown;
+let jsonProviderResponseBody: unknown;
 let streamRecording: AttemptRecordingPointer;
 const providerRequestBodies: Record<string, unknown>[] = [];
 
@@ -90,7 +90,6 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
     const response = await agentAuth(api().post('/v1/chat/completions'))
       .send(requestBody)
       .expect(200);
-    jsonResponseBody = response.body;
     jsonRecording = await waitForLatestRecording();
     const providerRequestBody = providerRequestBodies.at(-1)!;
 
@@ -120,11 +119,12 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
 
     const objectBytes = await storage.get(jsonRecording.recording_key);
     expect([...objectBytes.subarray(0, 2)]).toEqual([0x1f, 0x8b]);
+    expect(response.body.usage.cost).toBe(0);
     await expect(decodeRequestRecording(objectBytes)).resolves.toEqual({
       version: 1,
       wire_format: 'openai_chat_completions',
       request_body: providerRequestBody,
-      response_body: { type: 'json', body: response.body },
+      response_body: { type: 'json', body: jsonProviderResponseBody },
     });
 
     const details = await dashboardAuth(
@@ -135,7 +135,7 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
     );
     expect(attempt.recording).toEqual({
       request_body: providerRequestBody,
-      response_body: { type: 'json', body: response.body },
+      response_body: { type: 'json', body: jsonProviderResponseBody },
       wire_format: 'openai_chat_completions',
     });
     expect(details.body.recording).toBeUndefined();
@@ -261,7 +261,7 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
     );
     expect(attempt.recording.response_body).toEqual({
       type: 'json',
-      body: jsonResponseBody,
+      body: jsonProviderResponseBody,
     });
     await expect(storage.get(jsonRecording.recording_key)).resolves.toBeInstanceOf(Buffer);
   });
@@ -421,22 +421,21 @@ async function startMockProvider(): Promise<void> {
         }
 
         outgoing.writeHead(200, { 'Content-Type': 'application/json' });
-        outgoing.end(
-          JSON.stringify({
-            id: 'chatcmpl-recording-json',
-            object: 'chat.completion',
-            created: 1,
-            model: body.model,
-            choices: [
-              {
-                index: 0,
-                message: { role: 'assistant', content: 'recorded JSON response' },
-                finish_reason: 'stop',
-              },
-            ],
-            usage: { prompt_tokens: 10, completion_tokens: 4, total_tokens: 14 },
-          }),
-        );
+        jsonProviderResponseBody = {
+          id: 'chatcmpl-recording-json',
+          object: 'chat.completion',
+          created: 1,
+          model: body.model,
+          choices: [
+            {
+              index: 0,
+              message: { role: 'assistant', content: 'recorded JSON response' },
+              finish_reason: 'stop',
+            },
+          ],
+          usage: { prompt_tokens: 10, completion_tokens: 4, total_tokens: 14 },
+        };
+        outgoing.end(JSON.stringify(jsonProviderResponseBody));
       });
     });
     mockServer.listen(0, '127.0.0.1', () => {
