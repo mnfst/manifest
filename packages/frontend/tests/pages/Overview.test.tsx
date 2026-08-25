@@ -9,8 +9,18 @@ const pingBox = vi.hoisted(() => ({ read: (): number => 0, set: (_: number) => {
 let mockAgentName = 'test-agent';
 let mockLocationState: any = null;
 const mockNavigate = vi.fn();
+// Reactive agent-name source for `useParams().agentName`. Solid's router
+// returns a reactive params store, so switching agents (e.g. via the sidebar)
+// updates `agentName` in place without remounting the route component — a
+// plain object here would miss that. The getter re-reads the signal on every
+// access, which is enough for Solid's tracking to pick it up as a dependency.
+const agentNameBox = vi.hoisted(() => ({ read: (): string => 'test-agent', set: (_: string) => {} }));
 vi.mock('@solidjs/router', () => ({
-  useParams: () => ({ agentName: mockAgentName }),
+  useParams: () => ({
+    get agentName() {
+      return agentNameBox.read();
+    },
+  }),
   useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: mockLocationState }),
   useNavigate: () => mockNavigate,
   A: (props: any) => (
@@ -266,6 +276,9 @@ describe('Overview', () => {
     mockIsSetupPending.mockReturnValue(false);
     mockAgentName = 'test-agent';
     mockLocationState = null;
+    const [agentName, setAgentName] = createSignal(mockAgentName);
+    agentNameBox.read = agentName;
+    agentNameBox.set = setAgentName;
     mockGetAutofixStats.mockResolvedValue({
       success_rate: { value: 0.9, previous: 0.8 },
       autofix_saves: { value: 7, previous: 5 },
@@ -315,6 +328,26 @@ describe('Overview', () => {
     await fireEvent.change(select, { target: { value: '24h' } });
 
     // Stale data is replaced by the skeleton while the new range loads.
+    await vi.waitFor(() => {
+      expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+    });
+    expect(container.textContent).not.toContain('$3.50');
+  });
+
+  it('shows the loading skeleton when switching to a different agent (issue #2267)', async () => {
+    mockGetOverview.mockResolvedValue(overviewData);
+    const { container } = render(() => <Overview />);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+    });
+
+    // Switch agents (e.g. clicking a different agent in the sidebar). The
+    // route component stays mounted — only the reactive `agentName` param
+    // changes — and the new agent's fetch never resolves.
+    mockGetOverview.mockReturnValue(new Promise(() => {}));
+    agentNameBox.set('other-agent');
+
+    // The previous agent's stale data must not linger; the skeleton takes over.
     await vi.waitFor(() => {
       expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
     });

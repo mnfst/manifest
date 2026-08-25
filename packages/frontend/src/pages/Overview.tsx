@@ -170,14 +170,20 @@ const Overview: Component = () => {
   );
 
   // The resource re-fetches on range, agent, and every SSE `_ping`. We only want
-  // the loading skeleton on a range change — not on the frequent background ping
-  // refetches (which should update in place). Track the range the visible data
-  // belongs to; while a newer range is loading, treat it as a range change.
+  // the loading skeleton on a range change or agent switch — not on the frequent
+  // background ping refetches (which should update in place). Track the range
+  // and agent the visible data belongs to; while a newer range/agent is loading,
+  // treat it as a change that should show the skeleton instead of stale data.
   const [loadedRange, setLoadedRange] = createSignal(effectiveRange());
+  const [loadedAgent, setLoadedAgent] = createSignal(params.agentName);
   createEffect(() => {
-    if (!data.loading && data() !== undefined) setLoadedRange(effectiveRange());
+    if (!data.loading && data() !== undefined) {
+      setLoadedRange(effectiveRange());
+      setLoadedAgent(params.agentName);
+    }
   });
   const rangeChanging = () => data.loading && loadedRange() !== effectiveRange();
+  const agentChanging = () => data.loading && loadedAgent() !== params.agentName;
 
   const showDashboard = () => {
     const d = data();
@@ -396,7 +402,7 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={(data() !== undefined || !data.loading) && !rangeChanging()}
+        when={(data() !== undefined || !data.loading) && !rangeChanging() && !agentChanging()}
         fallback={<OverviewSkeleton />}
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
