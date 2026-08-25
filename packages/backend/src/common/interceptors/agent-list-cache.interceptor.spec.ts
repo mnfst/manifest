@@ -1,5 +1,6 @@
-import { ExecutionContext } from '@nestjs/common';
+import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { firstValueFrom, ReplaySubject } from 'rxjs';
 import { AgentListCacheInterceptor } from './agent-list-cache.interceptor';
 
 function createMockContext(
@@ -24,10 +25,50 @@ function createMockContext(
 
 describe('AgentListCacheInterceptor', () => {
   let interceptor: AgentListCacheInterceptor;
+  let cacheManager: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
 
   beforeEach(() => {
-    const mockCacheManager = {} as never;
-    interceptor = new AgentListCacheInterceptor(mockCacheManager, new Reflector());
+    cacheManager = {
+      get: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(true),
+    };
+    interceptor = new AgentListCacheInterceptor(cacheManager as never, new Reflector());
+  });
+
+  it('waits for an older response cache write before deleting both variants', async () => {
+    const context = createMockContext({ tenantId: 't1' }, undefined);
+    const source = new ReplaySubject<{ agents: unknown[] }>(1);
+    const next: CallHandler = { handle: jest.fn(() => source) };
+    let finishWrite!: () => void;
+    const writeFinished = new Promise<void>((resolve) => {
+      finishWrite = resolve;
+    });
+    cacheManager.set.mockReturnValue(writeFinished);
+
+    const response = await interceptor.intercept(context, next);
+    const responseFinished = firstValueFrom(response);
+    const invalidation = interceptor.invalidate('t1');
+
+    await Promise.resolve();
+    expect(cacheManager.del).not.toHaveBeenCalled();
+
+    source.next({ agents: [] });
+    source.complete();
+    await responseFinished;
+    await Promise.resolve();
+
+    expect(cacheManager.set).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false', {
+      agents: [],
+    });
+    expect(cacheManager.del).not.toHaveBeenCalled();
+
+    finishWrite();
+    await invalidation;
+
+    expect(cacheManager.del).toHaveBeenCalledTimes(2);
+    expect(cacheManager.del).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
   });
 
   describe('trackBy', () => {

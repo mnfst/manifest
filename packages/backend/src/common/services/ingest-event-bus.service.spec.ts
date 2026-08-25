@@ -1,14 +1,15 @@
-import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
-import { Test } from '@nestjs/testing';
-import type { Cache } from 'cache-manager';
+import { Logger } from '@nestjs/common';
+import { AgentListCacheInterceptor } from '../interceptors/agent-list-cache.interceptor';
 import { IngestEventBusService, IngestEvent } from './ingest-event-bus.service';
 
 describe('IngestEventBusService', () => {
   let service: IngestEventBusService;
+  let invalidate: jest.Mock;
 
   beforeEach(() => {
     jest.useFakeTimers();
-    service = new IngestEventBusService();
+    invalidate = jest.fn().mockResolvedValue(undefined);
+    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheInterceptor);
   });
 
   afterEach(() => {
@@ -16,18 +17,18 @@ describe('IngestEventBusService', () => {
     jest.useRealTimers();
   });
 
-  it('emits to the correct tenant after debounce', () => {
+  it('emits to the correct tenant after debounce', async () => {
     const received: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => received.push(e));
 
     service.emit('tenant-1');
     expect(received).toHaveLength(0);
 
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
     expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
   });
 
-  it('debounces rapid emissions for the same tenant/kind', () => {
+  it('debounces rapid emissions for the same tenant/kind', async () => {
     const received: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => received.push(e));
 
@@ -40,27 +41,27 @@ describe('IngestEventBusService', () => {
 
     expect(received).toHaveLength(0);
 
-    jest.advanceTimersByTime(150);
+    await jest.advanceTimersByTimeAsync(150);
     expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
   });
 
-  it('forwards the optional userId attribution', () => {
+  it('forwards the optional userId attribution', async () => {
     const received: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => received.push(e));
 
     service.emit('tenant-1', 'message', 'user-9');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: 'user-9' }]);
   });
 
-  it('different kinds for the same tenant fire independently', () => {
+  it('different kinds for the same tenant fire independently', async () => {
     const received: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => received.push(e));
 
     service.emit('tenant-1', 'message');
     service.emit('tenant-1', 'agent');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(received).toEqual([
       { tenantId: 'tenant-1', kind: 'message', userId: undefined },
@@ -68,17 +69,17 @@ describe('IngestEventBusService', () => {
     ]);
   });
 
-  it('does not deliver events for other tenants', () => {
+  it('does not deliver events for other tenants', async () => {
     const received: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => received.push(e));
 
     service.emit('tenant-2');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(received).toHaveLength(0);
   });
 
-  it('emits independently for different tenants', () => {
+  it('emits independently for different tenants', async () => {
     const tenant1: IngestEvent[] = [];
     const tenant2: IngestEvent[] = [];
     service.forTenant('tenant-1').subscribe((e) => tenant1.push(e));
@@ -86,29 +87,29 @@ describe('IngestEventBusService', () => {
 
     service.emit('tenant-1');
     service.emit('tenant-2', 'routing');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(tenant1).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
     expect(tenant2).toEqual([{ tenantId: 'tenant-2', kind: 'routing', userId: undefined }]);
   });
 
-  it('null tenantId matches no events', () => {
+  it('null tenantId matches no events', async () => {
     const received: IngestEvent[] = [];
     service.forTenant(null).subscribe((e) => received.push(e));
 
     service.emit('tenant-1');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(received).toHaveLength(0);
   });
 
-  it('all() observes every event regardless of tenant', () => {
+  it('all() observes every event regardless of tenant', async () => {
     const received: IngestEvent[] = [];
     service.all().subscribe((e) => received.push(e));
 
     service.emit('a');
     service.emit('b', 'agent');
-    jest.advanceTimersByTime(250);
+    await jest.advanceTimersByTimeAsync(250);
 
     expect(received).toHaveLength(2);
     expect(received).toContainEqual({ tenantId: 'a', kind: 'message', userId: undefined });
@@ -132,19 +133,12 @@ describe('IngestEventBusService', () => {
 
 describe('IngestEventBusService message cache invalidation', () => {
   let service: IngestEventBusService;
-  let cacheManager: Cache;
-  let deleteSpy: jest.SpyInstance;
+  let invalidate: jest.Mock;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.useFakeTimers();
-    const module = await Test.createTestingModule({
-      imports: [CacheModule.register()],
-      providers: [IngestEventBusService],
-    }).compile();
-
-    service = module.get(IngestEventBusService);
-    cacheManager = module.get(CACHE_MANAGER);
-    deleteSpy = jest.spyOn(cacheManager, 'del').mockResolvedValue(true);
+    invalidate = jest.fn().mockResolvedValue(undefined);
+    service = new IngestEventBusService({ invalidate } as unknown as AgentListCacheInterceptor);
   });
 
   afterEach(() => {
@@ -152,13 +146,13 @@ describe('IngestEventBusService message cache invalidation', () => {
     jest.useRealTimers();
   });
 
-  it('clears both harness-list variants before publishing a message event', async () => {
+  it('waits for cache invalidation before publishing a message event', async () => {
     const received: IngestEvent[] = [];
-    let finishDeletion!: () => void;
-    const deletionFinished = new Promise<boolean>((resolve) => {
-      finishDeletion = () => resolve(true);
+    let finishInvalidation!: () => void;
+    const invalidationFinished = new Promise<void>((resolve) => {
+      finishInvalidation = resolve;
     });
-    deleteSpy.mockReturnValue(deletionFinished);
+    invalidate.mockReturnValue(invalidationFinished);
     const eventPublished = new Promise<void>((resolve) => {
       service.forTenant('tenant-1').subscribe((event) => {
         received.push(event);
@@ -169,14 +163,30 @@ describe('IngestEventBusService message cache invalidation', () => {
     service.emit('tenant-1', 'message');
     await jest.advanceTimersByTimeAsync(250);
 
-    expect(deleteSpy).toHaveBeenCalledTimes(2);
-    expect(deleteSpy).toHaveBeenCalledWith('tenant-1:/api/v1/agents:playground=false');
-    expect(deleteSpy).toHaveBeenCalledWith('tenant-1:/api/v1/agents:playground=true');
+    expect(invalidate).toHaveBeenCalledWith('tenant-1');
     expect(received).toEqual([]);
 
-    finishDeletion();
+    finishInvalidation();
     await eventPublished;
 
     expect(received).toEqual([{ tenantId: 'tenant-1', kind: 'message', userId: undefined }]);
+  });
+
+  it('retries a failed invalidation and does not publish when the retry fails', async () => {
+    const received: IngestEvent[] = [];
+    const logger = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    invalidate.mockRejectedValue(new Error('cache unavailable'));
+    service.forTenant('tenant-1').subscribe((event) => received.push(event));
+
+    service.emit('tenant-1', 'message');
+    await jest.advanceTimersByTimeAsync(250);
+
+    expect(invalidate).toHaveBeenCalledTimes(2);
+    expect(received).toEqual([]);
+    expect(logger).toHaveBeenCalledWith(
+      'Failed to invalidate the agent-list cache for tenant tenant-1',
+      expect.any(String),
+    );
+    logger.mockRestore();
   });
 });

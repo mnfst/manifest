@@ -1,4 +1,8 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import type { Cache } from 'cache-manager';
 import { Request } from 'express';
 import { UserCacheInterceptor } from './user-cache.interceptor';
 import { agentListCacheKey } from '../constants/cache.constants';
@@ -14,6 +18,19 @@ import { agentListCacheKey } from '../constants/cache.constants';
  */
 @Injectable()
 export class AgentListCacheInterceptor extends UserCacheInterceptor {
+  constructor(
+    @Inject(CACHE_MANAGER) private readonly agentListCache: Cache,
+    reflector: Reflector,
+  ) {
+    super(agentListCache, reflector);
+  }
+
+  async invalidate(tenantId: string): Promise<void> {
+    const keys = [agentListCacheKey(tenantId, false), agentListCacheKey(tenantId, true)];
+    await Promise.all(keys.map((key) => this.waitForCacheActivity(key)));
+    await Promise.all(keys.map((key) => this.agentListCache.del(key)));
+  }
+
   protected trackBy(context: ExecutionContext): string | undefined {
     const tenantId = this.resolveTenantId(context);
     if (!tenantId) return undefined;

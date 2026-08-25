@@ -1,9 +1,7 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, OnModuleDestroy, Optional } from '@nestjs/common';
-import type { Cache } from 'cache-manager';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Subject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { agentListCacheKey } from '../constants/cache.constants';
+import { AgentListCacheInterceptor } from '../interceptors/agent-list-cache.interceptor';
 
 export type IngestEventKind = 'message' | 'agent' | 'routing';
 
@@ -16,24 +14,28 @@ export interface IngestEvent {
 
 @Injectable()
 export class IngestEventBusService implements OnModuleDestroy {
+  private readonly logger = new Logger(IngestEventBusService.name);
   private readonly subject = new Subject<IngestEvent>();
   private readonly debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly DEBOUNCE_MS = 250;
 
-  constructor(
-    @Optional()
-    @Inject(CACHE_MANAGER)
-    private readonly cacheManager?: Cache,
-  ) {}
+  constructor(private readonly agentListCache: AgentListCacheInterceptor) {}
 
   private async publish(event: IngestEvent): Promise<void> {
-    if (event.kind === 'message' && this.cacheManager) {
-      // Agent-list responses include message_count. Clear both variants before
-      // subscribers refetch so the next response cannot reuse a stale count.
-      await Promise.allSettled([
-        this.cacheManager.del(agentListCacheKey(event.tenantId, false)),
-        this.cacheManager.del(agentListCacheKey(event.tenantId, true)),
-      ]);
+    if (event.kind === 'message') {
+      try {
+        await this.agentListCache.invalidate(event.tenantId);
+      } catch (firstError) {
+        try {
+          await this.agentListCache.invalidate(event.tenantId);
+        } catch (retryError) {
+          this.logger.error(
+            `Failed to invalidate the agent-list cache for tenant ${event.tenantId}`,
+            retryError instanceof Error ? retryError.stack : String(retryError ?? firstError),
+          );
+          return;
+        }
+      }
     }
     this.subject.next(event);
   }
