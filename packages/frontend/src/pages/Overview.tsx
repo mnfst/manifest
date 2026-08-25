@@ -164,18 +164,27 @@ const Overview: Component = () => {
 
   // Never waits on billing/status: the plan-hint lock resolves the range
   // synchronously, so this fetches exactly once at the right range.
-  const [data, { refetch }] = createResource(
-    () => ({ range: effectiveRange(), agentName: params.agentName, _ping: analyticsPing() }),
-    (p) => getOverview(p.range, p.agentName) as Promise<OverviewData>,
+  // The memo's identity changes on every range/agent transition (including
+  // A → B → A) but stays stable across same-scope SSE refreshes.
+  const overviewScope = createMemo(() => ({
+    range: effectiveRange(),
+    agentName: params.agentName,
+  }));
+  const [overviewResult, { refetch }] = createResource(
+    () => ({ scope: overviewScope(), _ping: analyticsPing() }),
+    async (p) => ({
+      scope: p.scope,
+      data: (await getOverview(p.scope.range, p.scope.agentName)) as OverviewData,
+    }),
   );
+  const data = () => overviewResult()?.data;
 
   // The resource re-fetches on range, agent, and every SSE `_ping`. We only want
   // the loading skeleton on a range change or agent switch — not on the frequent
   // background ping refetches (which should update in place). Track the range
   // and agent the visible data belongs to; while a newer range/agent is loading,
   // treat it as a change that should show the skeleton instead of stale data.
-  const [loadedRange, setLoadedRange] = createSignal(effectiveRange());
-  const [loadedAgent, setLoadedAgent] = createSignal(params.agentName);
+  const [loadedScope, setLoadedScope] = createSignal(overviewScope());
 
   const showDashboard = () => {
     const d = data();
@@ -295,16 +304,17 @@ const Overview: Component = () => {
     modelReliability.loading;
 
   createEffect(() => {
-    if (data.loading) return;
-    if (data.error === undefined) {
-      if (data() === undefined) return;
+    if (overviewResult.loading) return;
+    if (overviewResult.error === undefined) {
+      const result = overviewResult();
+      if (result === undefined || result.scope !== overviewScope()) return;
       if (showDashboard() && supportingDataLoading()) return;
+      setLoadedScope(result.scope);
+      return;
     }
-    setLoadedRange(effectiveRange());
-    setLoadedAgent(params.agentName);
+    setLoadedScope(overviewScope());
   });
-  const scopeChanging = () =>
-    loadedRange() !== effectiveRange() || loadedAgent() !== params.agentName;
+  const scopeChanging = () => loadedScope() !== overviewScope();
 
   const selfHealedTs = () => {
     const ts = statusTimeseries();
@@ -415,10 +425,13 @@ const Overview: Component = () => {
       </div>
 
       <Show
-        when={(data() !== undefined || !data.loading) && !scopeChanging()}
+        when={(data() !== undefined || !overviewResult.loading) && !scopeChanging()}
         fallback={<OverviewSkeleton />}
       >
-        <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>
+        <Show
+          when={!overviewResult.error}
+          fallback={<ErrorState error={overviewResult.error} onRetry={refetch} />}
+        >
           <Show when={showEmptyState()}>
             <Show
               when={setupCompleted()}
