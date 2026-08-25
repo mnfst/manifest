@@ -2627,6 +2627,169 @@ describe('ProviderModelFetcherService', () => {
       expect(result[1].id).toBe('copilot/gpt-4o');
     });
 
+    it('should convert Copilot AI-credit prices to USD per token', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'claude-sonnet-4.6',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
+                  default: {
+                    input_price: 300,
+                    output_price: 1500,
+                    cache_read_price: 30,
+                    cache_write_price: 375,
+                    max_prompt_tokens: 200_000,
+                  },
+                  long_context: {
+                    input_price: 600,
+                    output_price: 2250,
+                    cache_read_price: 60,
+                    cache_write_price: 750,
+                    max_prompt_tokens: 936_000,
+                  },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 3 / 1_000_000,
+        outputPricePerToken: 15 / 1_000_000,
+        cacheReadPricePerToken: 0.3 / 1_000_000,
+        cacheWritePricePerToken: 3.75 / 1_000_000,
+        longContextPricing: {
+          thresholdTokens: 200_000,
+          inputPricePerToken: 6 / 1_000_000,
+          outputPricePerToken: 22.5 / 1_000_000,
+          cacheReadPricePerToken: 0.6 / 1_000_000,
+          cacheWritePricePerToken: 7.5 / 1_000_000,
+        },
+      });
+    });
+
+    it('should preserve Copilot long-context prices and their prompt threshold', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-5.6-terra',
+              billing: {
+                token_prices: {
+                  default: {
+                    input_price: 200,
+                    output_price: 1200,
+                    cache_price: 20,
+                    cache_write_price: 250,
+                    context_max: 272_000,
+                  },
+                  long_context: {
+                    input_price: 400,
+                    output_price: 1800,
+                    cache_price: 40,
+                    cache_write_price: 500,
+                    context_max: 936_000,
+                  },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        contextWindow: 936_000,
+        inputPricePerToken: 2 / 1_000_000,
+        outputPricePerToken: 12 / 1_000_000,
+        cacheReadPricePerToken: 0.2 / 1_000_000,
+        cacheWritePricePerToken: 2.5 / 1_000_000,
+        longContextPricing: {
+          thresholdTokens: 272_000,
+          inputPricePerToken: 4 / 1_000_000,
+          outputPricePerToken: 18 / 1_000_000,
+          cacheReadPricePerToken: 0.4 / 1_000_000,
+          cacheWritePricePerToken: 5 / 1_000_000,
+        },
+      });
+    });
+
+    it('should omit unavailable Copilot cache prices', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-5-mini',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
+                  default: { input_price: 25, output_price: 200 },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 0.25 / 1_000_000,
+        outputPricePerToken: 2 / 1_000_000,
+      });
+      expect(result[0]).not.toHaveProperty('cacheReadPricePerToken');
+      expect(result[0]).not.toHaveProperty('cacheWritePricePerToken');
+    });
+
+    it('should keep subscription pricing at zero when Copilot billing is invalid', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-4o',
+              billing: {
+                token_prices: {
+                  batch_size: 0,
+                  default: { input_price: 100, output_price: 500 },
+                },
+              },
+            },
+            {
+              id: 'gpt-4.1',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
+                  default: { input_price: -1, output_price: Number.POSITIVE_INFINITY },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+      expect(result[1]).toMatchObject({
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+    });
+
     it('should send correct Copilot headers', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
