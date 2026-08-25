@@ -332,15 +332,18 @@ export class PlaygroundService {
       const outputTokens = usage?.completion_tokens ?? 0;
       const cacheReadTokens = usage?.cache_read_tokens ?? 0;
       const cacheCreationTokens = usage?.cache_creation_tokens ?? 0;
-      const { provider: canonicalProvider } =
-        // Tile-connected local runtimes arrive as `custom:<uuid>`; only the
-        // canonical provider says whether one is local. A tenant-less context
-        // has no custom providers to resolve, so it degrades to the raw name.
-        await this.customProviders.canonicalizeAgentMessageKeys(
-          ctx.tenantId ?? '',
-          dto.provider,
-          dto.model,
-        );
+      // Tile-connected local runtimes arrive as `custom:<uuid>`; only the
+      // canonical provider says whether one is local. A tenant-less context
+      // has no custom providers to resolve, so it degrades to the raw name.
+      //
+      // Best-effort by design: the answer has already been streamed to the
+      // client, so a metadata lookup that fails must not turn a delivered run
+      // into an error one. It only refines the cost inputs below, and the raw
+      // name is where the lookup starts from anyway.
+      const canonicalProvider = await this.customProviders
+        .canonicalizeAgentMessageKeys(ctx.tenantId ?? '', dto.provider, dto.model)
+        .then(({ provider }) => provider ?? dto.provider)
+        .catch(() => dto.provider);
       const cost = computeTokenCost({
         inputTokens,
         outputTokens,
@@ -355,14 +358,19 @@ export class PlaygroundService {
         // resolves it — the local check on the canonical provider, because a
         // tile-connected llama.cpp arrives as `custom:<uuid>`, and the
         // per-request rate from the OpenCode Go catalogue.
-        isLocalProvider: isLocalOnlyProvider(canonicalProvider ?? dto.provider),
+        isLocalProvider: isLocalOnlyProvider(canonicalProvider),
         perRequestCostUsd:
           authType === 'subscription' &&
-          PROVIDER_BY_ID_OR_ALIAS.get((canonicalProvider ?? dto.provider).toLowerCase())?.id ===
-            'opencode-go'
+          PROVIDER_BY_ID_OR_ALIAS.get(canonicalProvider.toLowerCase())?.id === 'opencode-go'
             ? await this.opencodeGoCatalog.resolveCostPerRequest(dto.model)
             : null,
         reportedCostUsd: usage?.reported_cost_usd,
+        // The request start, not the completion time. A stream that opens at
+        // 09:59 UTC and closes at 10:01 crossed out of a DeepSeek peak window
+        // mid-answer; the proxy recorder bills such a run from `startedAt`, so
+        // billing the playground from `Date.now()` would price the same run
+        // two different ways.
+        at: new Date(startedAt),
       });
       const tokensPerSec = outputTokens > 0 ? outputTokens / (Math.max(totalMs, 1) / 1000) : null;
 

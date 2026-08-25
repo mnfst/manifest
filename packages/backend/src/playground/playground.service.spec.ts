@@ -620,6 +620,135 @@ describe('PlaygroundService.runStream', () => {
     expect((done.metrics as Record<string, unknown>).cost).toBe(0);
   });
 
+  it('completes the run when the custom-provider lookup fails after the answer streamed', async () => {
+    // By this point the client already has its answer. A metadata lookup that
+    // throws must not retro-actively turn a delivered run into an error one;
+    // it only costs the local/subscription refinement, so the run falls back
+    // to the raw provider name and prices from the catalogue as usual.
+    const { service, mocks } = buildService();
+    mocks.customProviders.canonicalizeAgentMessageKeys.mockRejectedValue(new Error('db down'));
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream([
+        'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+        'data: {"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n',
+      ]),
+    );
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto({ provider: 'custom:cp-llamacpp' }), asRes(res));
+
+    const events = parseSse(res);
+    expect(events.some((e) => e.type === 'error')).toBe(false);
+    const done = events.find((e) => e.type === 'done') as Record<string, unknown>;
+    expect((done.metrics as Record<string, unknown>).cost).toBeCloseTo(0.000008, 10);
+  });
+
+  it('falls back to the request provider when canonicalization resolves no name', async () => {
+    // `canonicalizeAgentMessageKeys` returns a null provider for a row it
+    // cannot attribute. Passing that null on as the local check would read as
+    // "not local" by accident rather than by lookup, so the raw name stands in.
+    const { service, mocks } = buildService();
+    mocks.customProviders.canonicalizeAgentMessageKeys.mockResolvedValue({
+      provider: null,
+      model: null,
+    });
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream([
+        'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+        'data: {"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n',
+      ]),
+    );
+    const res = mockRes();
+
+    await service.runStream(CTX, makeDto({ provider: 'openai' }), asRes(res));
+
+    const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
+    expect((done.metrics as Record<string, unknown>).cost).toBeCloseTo(0.000008, 10);
+  });
+
+  it('resolves a tenant-less run against no tenant instead of crashing', async () => {
+    // A fresh account has no tenant until its first agent exists, and the
+    // Playground is reachable before that. There are no custom providers to
+    // resolve, so the lookup degrades to the raw name.
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream([
+        'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+        'data: {"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n',
+      ]),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      { tenantId: null, userId: 'user-1' } as TenantContext,
+      makeDto({ provider: 'openai' }),
+      asRes(res),
+    );
+
+    expect(mocks.customProviders.canonicalizeAgentMessageKeys).toHaveBeenCalledWith(
+      '',
+      'openai',
+      expect.any(String),
+    );
+    expect(parseSse(res).some((e) => e.type === 'error')).toBe(false);
+  });
+
+  it('bills a run that leaves a peak window mid-stream at the rate it started on', async () => {
+    // Only Date is faked: the stream reader still needs real timers to drain.
+    // The run opens at 09:59 UTC inside the peak band and closes at 10:01
+    // outside it. The proxy recorder bills such a run from its start, so
+    // pricing the Playground from the completion time would put two different
+    // numbers on the same request.
+    jest.useFakeTimers({
+      doNotFake: [
+        'setTimeout',
+        'setInterval',
+        'setImmediate',
+        'clearTimeout',
+        'clearInterval',
+        'clearImmediate',
+        'nextTick',
+        'queueMicrotask',
+        'performance',
+      ],
+    });
+    try {
+      // 2026-08-21 is a Friday, so the weekday-only band applies.
+      jest.setSystemTime(new Date('2026-08-21T09:59:00Z'));
+      const { service, mocks } = buildService();
+      mocks.pricingCache.getByModel.mockReturnValue({
+        input_price_per_token: 0.000001,
+        output_price_per_token: 0.000002,
+        time_tiers: [
+          {
+            windows: ['09:00-10:00'],
+            days: [1, 2, 3, 4, 5],
+            input_price_per_token: 0.00001,
+            output_price_per_token: 0.00002,
+            cache_read_price_per_token: null,
+            cache_write_price_per_token: null,
+          },
+        ],
+      });
+      mocks.providerClient.forward.mockImplementation(async () => {
+        jest.setSystemTime(new Date('2026-08-21T10:01:00Z'));
+        return okStream([
+          'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+          'data: {"usage":{"prompt_tokens":4,"completion_tokens":2}}\n\n',
+        ]);
+      });
+      const res = mockRes();
+
+      await service.runStream(CTX, makeDto({ provider: 'deepseek' }), asRes(res));
+
+      const done = parseSse(res).find((e) => e.type === 'done') as Record<string, unknown>;
+      // Peak: 4 x $0.00001 + 2 x $0.00002. Off-peak would be $0.000008.
+      expect((done.metrics as Record<string, unknown>).cost).toBeCloseTo(0.00008, 10);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('unwraps OpenAI OAuth blobs before forwarding subscription Playground requests', async () => {
     const oauthBlob = JSON.stringify({
       t: 'stored-access-token',
