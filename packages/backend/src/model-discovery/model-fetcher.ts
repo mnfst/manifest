@@ -21,6 +21,8 @@ export interface DiscoveredModel {
   contextWindow: number;
   inputPricePerToken: number | null;
   outputPricePerToken: number | null;
+  cacheReadPricePerToken?: number;
+  cacheWritePricePerToken?: number;
   capabilityReasoning: boolean;
   capabilityCode: boolean;
   capabilities?: readonly ModelCapability[];

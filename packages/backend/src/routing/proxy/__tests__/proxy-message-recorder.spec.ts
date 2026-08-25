@@ -41,12 +41,14 @@ describe('ProxyMessageRecorder', () => {
   let insertMock: jest.Mock;
   let updateMock: jest.Mock;
   let getByModelMock: jest.Mock;
+  let getProvidersMock: jest.Mock;
   let emitMock: jest.Mock;
 
   beforeEach(() => {
     insertMock = jest.fn();
     updateMock = jest.fn();
     getByModelMock = jest.fn().mockReturnValue(undefined);
+    getProvidersMock = jest.fn().mockResolvedValue([]);
     emitMock = jest.fn();
     const repo = {
       insert: insertMock,
@@ -71,12 +73,14 @@ describe('ProxyMessageRecorder', () => {
       getCostPerRequest: jest.fn().mockReturnValue(null),
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     } as never;
+    const providerService = { getProviders: getProvidersMock } as never;
     recorder = new ProxyMessageRecorder(
       repo,
       pricingCache,
       eventBus,
       customProviders,
       opencodeGoCatalog,
+      providerService,
     );
   });
 
@@ -1546,6 +1550,89 @@ describe('ProxyMessageRecorder', () => {
         output_tokens: 1,
         cost_usd: 0.00005,
       });
+    });
+
+    it('computes Copilot subscription cost from the selected connection token prices', async () => {
+      getProvidersMock.mockResolvedValue([
+        {
+          id: 'copilot-connection',
+          provider: 'copilot',
+          cached_models: [
+            {
+              id: 'copilot/gpt-5.6-terra',
+              displayName: 'gpt-5.6-terra',
+              inputPricePerToken: 1 / 1_000_000,
+              outputPricePerToken: 5 / 1_000_000,
+              cacheReadPricePerToken: 0.1 / 1_000_000,
+            },
+          ],
+        },
+      ]);
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-5.6-terra',
+        'default',
+        'default',
+        {
+          prompt_tokens: 80_200,
+          completion_tokens: 852,
+          cache_read_tokens: 72_300,
+          reported_cost_usd: 1,
+        },
+        {
+          provider: 'copilot',
+          authType: 'subscription',
+          tenantProviderId: 'copilot-connection',
+        },
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBeCloseTo(0.01939, 10);
+      expect(getByModelMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps Copilot at zero when its selected connection has no token pricing', async () => {
+      getProvidersMock.mockResolvedValue([
+        {
+          id: 'copilot-connection',
+          provider: 'copilot',
+          cached_models: [
+            {
+              id: 'copilot/gpt-4o',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            },
+          ],
+        },
+      ]);
+
+      await recorder.recordFallbackSuccess(ctx, 'gpt-4o', 'default', {
+        provider: 'copilot',
+        authType: 'subscription',
+        tenantProviderId: 'copilot-connection',
+        usage: { prompt_tokens: 1000, completion_tokens: 100 },
+      });
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBe(0);
+    });
+
+    it('keeps Copilot recording available when cached provider lookup fails', async () => {
+      getProvidersMock.mockRejectedValue(new Error('database unavailable'));
+
+      await recorder.recordSuccessMessage(
+        ctx,
+        'copilot/gpt-4o',
+        'default',
+        'default',
+        { prompt_tokens: 1000, completion_tokens: 100 },
+        {
+          provider: 'copilot',
+          authType: 'subscription',
+          tenantProviderId: 'copilot-connection',
+        },
+      );
+
+      expect(insertMock.mock.calls[0][0].cost_usd).toBe(0);
     });
 
     it('records message even when tokens are zero', async () => {

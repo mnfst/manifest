@@ -60,6 +60,7 @@ const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
 const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
 const META_MODELS_URL = 'https://api.meta.ai/v1/models';
+const COPILOT_AI_CREDIT_USD = 0.01;
 
 /* ── Generic parser factory ── */
 
@@ -742,15 +743,76 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
 
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
-const parseCopilot = createModelParser<OpenAIModelEntry>({
-  arrayKey: 'data',
-  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
-  getId: (entry) => `copilot/${entry.id}`,
-  getDisplayName: (entry) => entry.id,
-  inputPricePerToken: 0,
-  outputPricePerToken: 0,
-  supportedEndpoints: (entry) => getStringArray(entry.supported_endpoints),
-});
+interface CopilotModelEntry extends OpenAIModelEntry {
+  billing?: {
+    token_prices?: {
+      batch_size?: unknown;
+      default?: {
+        input_price?: unknown;
+        output_price?: unknown;
+        cache_read_price?: unknown;
+        cache_write_price?: unknown;
+      };
+    };
+  };
+}
+
+function copilotUsdPerToken(price: unknown, batchSize: unknown): number | null {
+  if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) return null;
+  if (typeof batchSize !== 'number' || !Number.isFinite(batchSize) || batchSize <= 0) return null;
+  return (price * COPILOT_AI_CREDIT_USD) / batchSize;
+}
+
+function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown })?.data;
+  if (!Array.isArray(data)) return [];
+
+  return data.flatMap((raw): DiscoveredModel[] => {
+    const entry = raw as CopilotModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) return [];
+
+    const tokenPrices = entry.billing?.token_prices;
+    const inputPrice = copilotUsdPerToken(
+      tokenPrices?.default?.input_price,
+      tokenPrices?.batch_size,
+    );
+    const outputPrice = copilotUsdPerToken(
+      tokenPrices?.default?.output_price,
+      tokenPrices?.batch_size,
+    );
+    const tokenPriced = inputPrice !== null && outputPrice !== null;
+    const cacheReadPrice = copilotUsdPerToken(
+      tokenPrices?.default?.cache_read_price,
+      tokenPrices?.batch_size,
+    );
+    const cacheWritePrice = copilotUsdPerToken(
+      tokenPrices?.default?.cache_write_price,
+      tokenPrices?.batch_size,
+    );
+    const supportedEndpoints = getStringArray(entry.supported_endpoints);
+
+    return [
+      {
+        id: `copilot/${entry.id}`,
+        displayName: entry.id,
+        provider,
+        contextWindow: DEFAULT_CONTEXT_WINDOW,
+        inputPricePerToken: tokenPriced ? inputPrice : 0,
+        outputPricePerToken: tokenPriced ? outputPrice : 0,
+        ...(tokenPriced && cacheReadPrice !== null
+          ? { cacheReadPricePerToken: cacheReadPrice }
+          : {}),
+        ...(tokenPriced && cacheWritePrice !== null
+          ? { cacheWritePricePerToken: cacheWritePrice }
+          : {}),
+        capabilityReasoning: false,
+        capabilityCode: false,
+        ...(supportedEndpoints ? { supportedEndpoints } : {}),
+        qualityScore: 3,
+      },
+    ];
+  });
+}
 
 /* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
 

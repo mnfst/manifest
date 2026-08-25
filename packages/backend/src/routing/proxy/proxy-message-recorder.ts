@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -13,7 +13,10 @@ import {
 } from 'manifest-shared';
 import { AgentMessage } from '../../entities/agent-message.entity';
 import { ManifestRequest } from '../../entities/request.entity';
-import { ModelPricingCacheService } from '../../model-prices/model-pricing-cache.service';
+import {
+  ModelPricingCacheService,
+  type PricingEntry,
+} from '../../model-prices/model-pricing-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { IngestionContext } from '../../otlp/interfaces/ingestion-context.interface';
 import { FailedFallback } from './proxy-fallback.service';
@@ -26,6 +29,7 @@ import { CustomProviderService } from '../custom-provider/custom-provider.servic
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 import { isLocalOnlyProvider } from '../../common/utils/provider-availability';
+import { ProviderService } from '../routing-core/provider.service';
 import { extractManifestErrorCode, type ManifestErrorCode } from '../../common/errors/error-codes';
 import {
   MANIFEST_CODE_TO_REASON,
@@ -435,6 +439,8 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
     private readonly eventBus: IngestEventBusService,
     private readonly customProviders: CustomProviderService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
+    @Optional()
+    private readonly providerService?: ProviderService,
   ) {
     this.cooldownCleanupTimer = setInterval(() => this.evictExpiredCooldowns(), 60_000);
     if (typeof this.cooldownCleanupTimer === 'object' && 'unref' in this.cooldownCleanupTimer) {
@@ -444,6 +450,90 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
 
   onModuleDestroy(): void {
     clearInterval(this.cooldownCleanupTimer);
+  }
+
+  private isCopilotSubscription(provider?: string, authType?: string): boolean {
+    if (authType !== 'subscription' || !provider) return false;
+    return PROVIDER_BY_ID_OR_ALIAS.get(provider.toLowerCase())?.id === 'copilot';
+  }
+
+  private async copilotTokenPricing(
+    ctx: IngestionContext,
+    tenantProviderId: string | null | undefined,
+    model: string,
+  ): Promise<PricingEntry | undefined> {
+    if (!tenantProviderId || !this.providerService) return undefined;
+
+    let providers;
+    try {
+      providers = await this.providerService.getProviders(ctx.tenantId);
+    } catch {
+      return undefined;
+    }
+
+    const connection = providers.find((candidate) => candidate.id === tenantProviderId);
+    const bareModel = model.toLowerCase().replace(/^copilot\//, '');
+    const cached = Array.isArray(connection?.cached_models)
+      ? connection.cached_models.find(
+          (candidate) => candidate.id.toLowerCase().replace(/^copilot\//, '') === bareModel,
+        )
+      : undefined;
+    const validPrice = (price: number | null): price is number =>
+      typeof price === 'number' && Number.isFinite(price) && price >= 0;
+    if (
+      !cached ||
+      !validPrice(cached.inputPricePerToken) ||
+      !validPrice(cached.outputPricePerToken) ||
+      (cached.inputPricePerToken === 0 && cached.outputPricePerToken === 0)
+    ) {
+      return undefined;
+    }
+
+    return {
+      model_name: cached.id,
+      provider: connection?.provider ?? 'copilot',
+      input_price_per_token: cached.inputPricePerToken,
+      output_price_per_token: cached.outputPricePerToken,
+      cache_read_price_per_token: cached.cacheReadPricePerToken,
+      cache_write_price_per_token: cached.cacheWritePricePerToken,
+      display_name: cached.displayName || null,
+    };
+  }
+
+  private async computeCost(
+    ctx: IngestionContext,
+    model: string,
+    provider: string | undefined,
+    authType: string | undefined,
+    usage: StreamUsage | undefined,
+    tenantProviderId?: string | null,
+    canonicalProvider?: string | null,
+    at?: Date,
+  ): Promise<number | null> {
+    const isCopilot = this.isCopilotSubscription(provider, authType);
+    const copilotPricing =
+      isCopilot && usage ? await this.copilotTokenPricing(ctx, tenantProviderId, model) : undefined;
+
+    return computeTokenCost({
+      inputTokens: usage?.prompt_tokens ?? 0,
+      outputTokens: usage?.completion_tokens ?? 0,
+      cacheReadTokens: usage?.cache_read_tokens ?? 0,
+      cacheCreationTokens: usage?.cache_creation_tokens ?? 0,
+      model,
+      // Priced on the raw keys: a custom provider's rates are stored under
+      // `custom:<uuid>/<model>`, which is exactly what canonicalization strips.
+      pricing:
+        copilotPricing ??
+        (!isCopilot && usage ? this.pricingCache.getByModel(model, provider) : undefined),
+      isSubscription: authType === 'subscription' && !copilotPricing,
+      isLocalProvider: isLocalOnlyProvider(canonicalProvider ?? provider ?? ''),
+      perRequestCostUsd: copilotPricing
+        ? null
+        : await this.perRequestSubscriptionCost(provider, authType, model),
+      // Copilot's usage.cost is a premium-request multiplier, not USD.
+      reportedCostUsd: isCopilot ? undefined : usage?.reported_cost_usd,
+      at,
+    });
   }
 
   /**
@@ -1067,24 +1157,19 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
     );
 
-    const costUsd = computeTokenCost({
-      inputTokens,
-      outputTokens,
-      cacheReadTokens: usage?.cache_read_tokens ?? 0,
-      cacheCreationTokens: usage?.cache_creation_tokens ?? 0,
+    const costUsd = await this.computeCost(
+      ctx,
       model,
-      // Priced on the raw keys: a custom provider's rates are stored under
-      // `custom:<uuid>/<model>`, which is exactly what canonicalization strips.
-      pricing: usage ? this.pricingCache.getByModel(model, provider) : undefined,
-      isSubscription: authType === 'subscription',
-      isLocalProvider: isLocalOnlyProvider(canonical.provider ?? provider ?? ''),
-      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
-      reportedCostUsd: usage?.reported_cost_usd,
+      provider,
+      authType,
+      usage,
+      tenantProviderId,
+      canonical.provider,
       // Bill the hour the provider attempt actually ran: `timestamp` is the
       // synthetic ordering stamp from recordFallbackFailures, not the attempt
       // start, so it can cross a peak boundary on delayed writes.
-      at: attempt ? new Date(attempt.startedAt) : timestamp ? new Date(timestamp) : undefined,
-    });
+      attempt ? new Date(attempt.startedAt) : timestamp ? new Date(timestamp) : undefined,
+    );
 
     const canonicalFallbackFrom = await this.customProviders.canonicalizeAgentMessageKeys(
       ctx.tenantId,
@@ -1164,25 +1249,20 @@ export class ProxyMessageRecorder implements OnModuleDestroy {
       model,
     );
 
-    const costUsd = computeTokenCost({
-      inputTokens: usage.prompt_tokens,
-      outputTokens: usage.completion_tokens,
-      cacheReadTokens: usage.cache_read_tokens ?? 0,
-      cacheCreationTokens: usage.cache_creation_tokens ?? 0,
+    const costUsd = await this.computeCost(
+      ctx,
       model,
-      // Priced on the raw keys: a custom provider's rates are stored under
-      // `custom:<uuid>/<model>`, which is exactly what canonicalization strips.
-      pricing: this.pricingCache.getByModel(model, provider),
-      isSubscription: authType === 'subscription',
-      isLocalProvider: isLocalOnlyProvider(canonical.provider ?? provider ?? ''),
-      perRequestCostUsd: await this.perRequestSubscriptionCost(provider, authType, model),
-      reportedCostUsd: usage.reported_cost_usd,
+      provider,
+      authType,
+      usage,
+      tenantProviderId,
+      canonical.provider,
       // Bill a peak/off-peak model on when the attempt started, not on when
       // this row is written: a long stream that opens at 09:59 and records at
       // 10:01 is a peak request, and the fallback path already reads it this
       // way. Falls back to now when the caller tracked no attempt.
-      at: attempt ? new Date(attempt.startedAt) : undefined,
-    });
+      attempt ? new Date(attempt.startedAt) : undefined,
+    );
 
     const canonicalModel = canonical.model;
     const canonicalProvider = canonical.provider;

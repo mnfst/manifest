@@ -2627,6 +2627,65 @@ describe('ProviderModelFetcherService', () => {
       expect(result[1].id).toBe('copilot/gpt-4o');
     });
 
+    it('should convert Copilot AI-credit prices to USD per token', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'claude-sonnet-4.6',
+              billing: {
+                token_prices: {
+                  batch_size: 1_000_000,
+                  default: {
+                    input_price: 300,
+                    output_price: 1500,
+                    cache_read_price: 30,
+                    cache_write_price: 375,
+                  },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 3 / 1_000_000,
+        outputPricePerToken: 15 / 1_000_000,
+        cacheReadPricePerToken: 0.3 / 1_000_000,
+        cacheWritePricePerToken: 3.75 / 1_000_000,
+      });
+    });
+
+    it('should keep subscription pricing at zero when Copilot billing is invalid', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'gpt-4o',
+              billing: {
+                token_prices: {
+                  batch_size: 0,
+                  default: { input_price: -1, output_price: Number.POSITIVE_INFINITY },
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('copilot', 'tid=token');
+
+      expect(result[0]).toMatchObject({
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+      });
+    });
+
     it('should send correct Copilot headers', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
