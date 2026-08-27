@@ -42,6 +42,7 @@ export class CustomProviderController {
         base_url: cp.base_url,
         api_kind: cp.api_kind,
         has_api_key: !!up?.api_key_encrypted,
+        stream_warmup_ms: up?.stream_warmup_ms ?? null,
         models: cp.models,
         created_at: cp.created_at,
       };
@@ -114,6 +115,7 @@ export class CustomProviderController {
       base_url: cp.base_url,
       api_kind: cp.api_kind,
       has_api_key: !!up?.api_key_encrypted,
+      stream_warmup_ms: up?.stream_warmup_ms ?? null,
       models: cp.models,
       created_at: cp.created_at,
     };
