@@ -39,6 +39,7 @@ describe('AgentKeyAuthGuard', () => {
   let mockCreateQueryBuilder: jest.Mock;
   let mockExecute: jest.Mock;
   let mockFindOne: jest.Mock;
+  let mockExistsBy: jest.Mock;
   let mockConfig: ConfigService;
 
   function buildMockRepo() {
@@ -73,9 +74,11 @@ describe('AgentKeyAuthGuard', () => {
       return alias ? mockSelectQb : mockUpdateQb;
     });
     mockFindOne = jest.fn().mockResolvedValue(null);
+    mockExistsBy = jest.fn().mockResolvedValue(true);
     return {
       createQueryBuilder: mockCreateQueryBuilder,
       findOne: mockFindOne,
+      existsBy: mockExistsBy,
     } as never;
   }
 
@@ -242,7 +245,7 @@ describe('AgentKeyAuthGuard', () => {
     await expect(guard.canActivate(ctx)).rejects.toThrow('API key expired');
   });
 
-  it('uses cached result on second call without querying DB again', async () => {
+  it('uses cached context after verifying that the key row is still active', async () => {
     const token = 'mnfst_cached-key-test';
     mockGetMany.mockResolvedValue([
       {
@@ -269,6 +272,32 @@ describe('AgentKeyAuthGuard', () => {
     await guard.canActivate(ctx2);
 
     expect(mockCreateQueryBuilder).not.toHaveBeenCalled();
+    expect(mockExistsBy).toHaveBeenCalledWith({ id: 'key-4', is_active: true });
+  });
+
+  it('rejects a cached key deactivated by another replica', async () => {
+    const token = 'mnfst_cross-replica-revocation';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-revoked',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { owner_user_id: 'user-1' },
+      },
+    ]);
+
+    const { ctx: first } = makeContext({ authorization: `Bearer ${token}` });
+    await expect(guard.canActivate(first)).resolves.toBe(true);
+
+    mockExistsBy.mockResolvedValue(false);
+    const { ctx: afterRevocation } = makeContext({ authorization: `Bearer ${token}` });
+    await expect(guard.canActivate(afterRevocation)).rejects.toThrow('Invalid API key');
+
+    const internalCache = (guard as unknown as { cache: Map<string, unknown> }).cache;
+    expect(internalCache.has(testCacheKey(token))).toBe(false);
   });
 
   it('stops authenticating from cache once the key own expiry passes within the cache TTL', async () => {
