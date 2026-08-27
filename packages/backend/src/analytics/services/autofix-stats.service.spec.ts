@@ -47,7 +47,6 @@ describe('AutofixStatsService', () => {
   const messageRepo = { createQueryBuilder: jest.fn() };
   const autofix = {
     resolveEnabled: jest.fn((stored: boolean | null) => stored ?? true),
-    invalidateTenantConfig: jest.fn(),
   };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),

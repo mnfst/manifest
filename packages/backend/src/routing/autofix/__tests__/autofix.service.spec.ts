@@ -1183,86 +1183,40 @@ describe('AutofixService', () => {
   });
 
   // -------------------------------------------------------------------------
-  // maybeHeal — per-agent config cache (M4)
+  // maybeHeal — per-agent config freshness
   // -------------------------------------------------------------------------
-  describe('maybeHeal config cache', () => {
-    it('caches the per-agent config so a second heal for the same agent skips the DB read', async () => {
+  describe('maybeHeal config freshness', () => {
+    it('observes toggles made by another replica without local invalidation', async () => {
       const client = makeHealingClient();
-      // Each maybeHeal needs a fresh failing forward; keep them from healing so
-      // the flow is simple — no_patch returns quickly without a reforward.
       client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
+      let enabled = false;
+      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: enabled }));
       const service = makeService({ client: client as unknown as HealingClient, repo });
 
-      // First heal: cold cache → one DB read.
+      // This replica first observes the agent as disabled.
       await service.maybeHeal(
         makeParams({ forward: makeForward('{"error":{"message":"a"}}', 400) }),
       );
       expect(findOne).toHaveBeenCalledTimes(1);
+      expect(client.heal).not.toHaveBeenCalled();
 
-      // Second heal for the SAME agent/tenant: warm cache → no additional read.
+      // Another replica enables the agent. The next failure must read the new
+      // value immediately instead of reusing this replica's previous value.
+      enabled = true;
       await service.maybeHeal(
         makeParams({ forward: makeForward('{"error":{"message":"b"}}', 400) }),
       );
-      expect(findOne).toHaveBeenCalledTimes(1);
+      expect(findOne).toHaveBeenCalledTimes(2);
+      expect(client.heal).toHaveBeenCalledTimes(1);
 
-      // Invalidating the entry forces the next heal to hit the DB again.
-      service.invalidateConfig('tenant-1', 'agent-1');
+      // Disabling is equally immediate because this flag controls consent to
+      // send the request body to Phoenix.
+      enabled = false;
       await service.maybeHeal(
         makeParams({ forward: makeForward('{"error":{"message":"c"}}', 400) }),
       );
-      expect(findOne).toHaveBeenCalledTimes(2);
-    });
-
-    it('caches per (tenant, agent) key so a different agent still reads the DB', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      await service.maybeHeal(
-        makeParams({
-          agentId: 'agent-A',
-          forward: makeForward('{"error":{"message":"a"}}', 400),
-        }),
-      );
-      // Different agent under the same tenant is a distinct cache key → new read.
-      await service.maybeHeal(
-        makeParams({
-          agentId: 'agent-B',
-          forward: makeForward('{"error":{"message":"b"}}', 400),
-        }),
-      );
-      expect(findOne).toHaveBeenCalledTimes(2);
-    });
-
-    it('clears the whole cache once it reaches the bound, then re-populates', async () => {
-      const client = makeHealingClient();
-      client.heal.mockResolvedValue({ status: 'no_patch', issueId: 'issue-x' });
-      const { repo, findOne } = makeAgentRepo(() => ({ autofix_enabled: true }));
-      const service = makeService({ client: client as unknown as HealingClient, repo });
-
-      // Pre-fill the bounded cache to exactly its cap (5000) with dummy entries
-      // so the next real load trips the `size >= CONFIG_CACHE_MAX` branch.
-      const cache = (service as unknown as { configCache: Map<string, unknown> }).configCache;
-      for (let i = 0; i < 5000; i += 1) {
-        cache.set(`filler-tenant:filler-agent-${i}`, {
-          value: { enabled: false },
-          expiresAt: Date.now() + 30_000,
-        });
-      }
-      expect(cache.size).toBe(5000);
-
-      // A fresh load with a full cache clears everything, then stores this one.
-      await service.maybeHeal(
-        makeParams({ forward: makeForward('{"error":{"message":"z"}}', 400) }),
-      );
-
-      // DB was still read (nothing for this key survived the clear) and the cache
-      // now holds only the single freshly-loaded entry.
-      expect(findOne).toHaveBeenCalledTimes(1);
-      expect(cache.size).toBe(1);
-      expect(cache.has('tenant-1:agent-1')).toBe(true);
+      expect(findOne).toHaveBeenCalledTimes(3);
+      expect(client.heal).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -35,8 +35,6 @@ describe('TierController', () => {
   };
   let agentRepo: jest.Mocked<Partial<Repository<Agent>>>;
   let autofixService: {
-    invalidateConfig: jest.Mock;
-    invalidateTenantConfig: jest.Mock;
     resolveEnabled: jest.Mock;
   };
   let controller: TierController;
@@ -69,8 +67,6 @@ describe('TierController', () => {
       update: jest.fn().mockResolvedValue(undefined),
     };
     autofixService = {
-      invalidateConfig: jest.fn(),
-      invalidateTenantConfig: jest.fn(),
       // Mirror the real resolver: explicit flag wins, NULL inherits a default.
       resolveEnabled: jest.fn((stored: boolean | null) => stored ?? false),
     };
@@ -198,12 +194,11 @@ describe('TierController', () => {
     expect(autofixService.resolveEnabled).toHaveBeenCalledWith(null);
   });
 
-  it('PATCH autofix updates the enabled flag and invalidates cache', async () => {
+  it('PATCH autofix updates the enabled flag and invalidates the agent lookup', async () => {
     const out = await controller.updateAutofix(ctx, 'demo', { enabled: true });
     expect(out).toEqual({ enabled: true, consented: true });
     expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { autofix_enabled: true });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
-    expect(autofixService.invalidateConfig).toHaveBeenCalledWith('tenant-1', 'agent-1');
     // Cloud: no consent to record, and no backfill requested.
     expect(installMetadataRepo.createQueryBuilder).not.toHaveBeenCalled();
     expect(resolveAgentService.invalidateTenant).not.toHaveBeenCalled();

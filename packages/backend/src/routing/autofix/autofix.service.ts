@@ -55,8 +55,6 @@ interface AgentAutofixConfig {
 }
 
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
-const CONFIG_CACHE_TTL_MS = 30_000;
-const CONFIG_CACHE_MAX = 5_000;
 
 // Circuit breaker for the healing service. After this many consecutive heal-call
 // transport failures (timeout / unreachable), stop calling Phoenix for the
@@ -125,10 +123,6 @@ export class AutofixService {
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
   private readonly repairableStatuses: Set<number>;
-  private readonly configCache = new Map<
-    string,
-    { value: AgentAutofixConfig; expiresAt: number }
-  >();
   // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
   // deadline; while it is in the future, heal calls are skipped.
   private healFailureStreak = 0;
@@ -166,19 +160,6 @@ export class AutofixService {
   /** Whether a status is one Autofix will try to heal. */
   isRepairable(status: number): boolean {
     return this.repairableStatuses.has(status);
-  }
-
-  /** Drop a cached per-agent config so a toggle change takes effect now. */
-  invalidateConfig(tenantId: string, agentId: string): void {
-    this.configCache.delete(`${tenantId}:${agentId}`);
-  }
-
-  /** Drop every cached config for a tenant (used after a workspace-wide backfill). */
-  invalidateTenantConfig(tenantId: string): void {
-    const prefix = `${tenantId}:`;
-    for (const key of this.configCache.keys()) {
-      if (key.startsWith(prefix)) this.configCache.delete(key);
-    }
   }
 
   /**
@@ -512,11 +493,9 @@ export class AutofixService {
   }
 
   private async loadAgentConfig(agentId: string, tenantId: string): Promise<AgentAutofixConfig> {
-    const key = `${tenantId}:${agentId}`;
-    const now = Date.now();
-    const cached = this.configCache.get(key);
-    if (cached && cached.expiresAt > now) return cached.value;
-
+    // Autofix enablement is the consent boundary for sending request bodies to
+    // Phoenix. Read it from the database on every repairable failure so a toggle
+    // handled by one replica takes effect immediately on every other replica.
     const agent = await this.agentRepo.findOne({
       where: { id: agentId, tenant_id: tenantId },
       // Select the PK alongside the flag. TypeORM's entity transformer treats a
@@ -529,16 +508,10 @@ export class AutofixService {
     });
     // Unknown agent → off. Known agent → its explicit flag, or the mode default
     // when unset (NULL).
-    const value: AgentAutofixConfig = {
+    return {
       enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
       harness: coerceAgentPlatform(agent?.agent_platform),
     };
-
-    // Only the failure path reaches here; caching keeps a 4xx storm from doing a
-    // DB read per failed request. Bounded + short TTL, invalidated on config change.
-    if (this.configCache.size >= CONFIG_CACHE_MAX) this.configCache.clear();
-    this.configCache.set(key, { value, expiresAt: now + CONFIG_CACHE_TTL_MS });
-    return value;
   }
 
   /** Fire-and-forget the learning signal so it never delays the client. */

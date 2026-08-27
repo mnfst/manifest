@@ -191,7 +191,6 @@ export class TierController {
     if (applied) {
       await this.agentRepo.update(agent.id, { autofix_enabled: body.enabled });
       this.resolveAgentService.invalidate(agent.tenant_id, agentName);
-      this.autofixService.invalidateConfig(agent.tenant_id, agent.id);
 
       if (body.enabled) {
         // Per-agent enable also records consent-once so the sidebar CTA doesn't
