@@ -1,16 +1,27 @@
 import { A, useLocation, useParams } from '@solidjs/router';
-import { type ParentComponent, Show } from 'solid-js';
+import { createResource, type ParentComponent, Show, For } from 'solid-js';
 import { Title } from '@solidjs/meta';
-import { agentPath } from '../services/routing.js';
+import { agentPath, projectPath, userPath } from '../services/routing.js';
 import { agentDisplayName } from '../services/agent-display-name.js';
 import { agentPlatformIcon } from '../services/agent-platform-store.js';
+import { getAgentTeam, type AgentRow } from '../services/api/teams.js';
+import { routingPing } from '../services/sse.js';
+import EntityTabs from '../components/EntityTabs.jsx';
+import AgentProjectsEditor from '../components/AgentProjectsEditor.jsx';
+
+type AgentTeam = Pick<AgentRow, 'owner' | 'projects' | 'archived_at'>;
 
 /**
  * AgentDetail — horizontal-tabbed shell for the agent detail view.
  *
- * Renders a header (back-link to /harnesses + platform icon + agent display name)
- * and a horizontal tab bar (Overview / Routing / Providers / Limits / Settings).
- * Child routes render in the body via props.children (SolidJS nested <Route>).
+ * Renders a header (platform icon + agent display name + owner chip + project
+ * tags) and a horizontal tab bar (Overview / Routing / Providers and models /
+ * Limits / Settings). Child routes render in the body via props.children.
+ *
+ * The owner chip is a link, not a picker: there is no owner reassignment.
+ * Past activity stays attributed to whoever owned the agent when it ran; to
+ * hand an agent over, archive it and create a fresh one for its new owner
+ * with "Copy settings from an agent".
  */
 const AgentDetail: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
@@ -18,6 +29,17 @@ const AgentDetail: ParentComponent = (props) => {
 
   const agentName = () => decodeURIComponent(params.agentName);
   const path = (sub: string) => agentPath(params.agentName, sub);
+
+  const [team, { mutate: mutateTeam }] = createResource(
+    () => ({ name: agentName(), _r: routingPing() }),
+    async ({ name }): Promise<AgentTeam> => {
+      try {
+        return await getAgentTeam(name);
+      } catch {
+        return { owner: null, projects: [], archived_at: null };
+      }
+    },
+  );
 
   const isActive = (sub: string) => {
     const p = path(sub);
@@ -34,73 +56,69 @@ const AgentDetail: ParentComponent = (props) => {
     <div class="container--lg">
       <Title>{agentDisplayName() ?? agentName()} | Manifest</Title>
 
-      <div style="margin-bottom: 8px;">
-        <A
-          href="/harnesses"
-          style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-decoration: none;"
-        >
-          ← Harnesses
-        </A>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0;">
+      <div class="entity-header">
         <Show when={agentPlatformIcon()}>
           <img src={agentPlatformIcon()!} alt="" width="28" height="28" style="flex-shrink: 0;" />
         </Show>
-        <h1 class="page-header__title" style="margin: 0;">
-          {agentDisplayName() ?? agentName()}
-        </h1>
+        <h1 class="page-header__title entity-header__title">{agentDisplayName() ?? agentName()}</h1>
+        <div class="entity-header__chips">
+          <Show when={team()?.archived_at}>
+            <span class="status-badge status-badge--neutral">Archived</span>
+          </Show>
+          <Show
+            when={team()?.owner}
+            fallback={
+              <span
+                class="chip"
+                title="This agent runs without an owner. No user budget applies to it."
+              >
+                <span class="chip__muted">Owner:</span> No owner
+              </span>
+            }
+          >
+            <A
+              href={userPath(team()!.owner!.id)}
+              class="chip chip--button"
+              style="text-decoration: none;"
+            >
+              <span class="chip__muted">Owner:</span> {team()!.owner!.name}
+            </A>
+          </Show>
+          <For each={team()?.projects ?? []}>
+            {(project) => (
+              <A
+                href={projectPath(project.id)}
+                class="project-tag"
+                classList={{ 'project-tag--archived': !!project.archived_at }}
+                style="text-decoration: none;"
+              >
+                {project.name}
+              </A>
+            )}
+          </For>
+          <Show when={team()}>
+            <AgentProjectsEditor
+              agentName={agentName()}
+              projects={team()!.projects}
+              onChange={(projects) => mutateTeam({ ...team()!, projects })}
+            />
+          </Show>
+        </div>
       </div>
 
-      {/* Horizontal tabs */}
-      <div class="panel__tabs" role="tablist" style="margin-top: 12px; margin-bottom: 0;">
-        <A
-          href={path('')}
-          role="tab"
-          aria-selected={isActive('/overview')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/overview') }}
-        >
-          Overview
-        </A>
-        <A
-          href={path('/routing')}
-          role="tab"
-          aria-selected={isActive('/routing')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/routing') }}
-        >
-          Routing
-        </A>
-        <A
-          href={path('/providers')}
-          role="tab"
-          aria-selected={isActive('/providers')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/providers') }}
-        >
-          Providers
-        </A>
-        <A
-          href={path('/guardrails')}
-          role="tab"
-          aria-selected={isActive('/guardrails')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/guardrails') }}
-        >
-          Limits
-        </A>
-        <A
-          href={path('/settings')}
-          role="tab"
-          aria-selected={isActive('/settings')}
-          class="panel__tab"
-          classList={{ 'panel__tab--active': isActive('/settings') }}
-        >
-          Settings
-        </A>
-      </div>
-      <hr style="border: none; border-top: 1px solid hsl(var(--border)); margin: 8px 0 24px;" />
+      <EntityTabs
+        tabs={[
+          { label: 'Overview', href: path(''), active: isActive('/overview') },
+          { label: 'Routing', href: path('/routing'), active: isActive('/routing') },
+          {
+            label: 'Providers and models',
+            href: path('/providers'),
+            active: isActive('/providers'),
+          },
+          { label: 'Limits', href: path('/guardrails'), active: isActive('/guardrails') },
+          { label: 'Settings', href: path('/settings'), active: isActive('/settings') },
+        ]}
+      />
 
       {/* Tab content from child routes */}
       {props.children}

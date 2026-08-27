@@ -458,7 +458,7 @@ describe('RoutingModals', () => {
     ));
     fireEvent.click(await findByTestId('picker-connect-simple'));
     expect(onDropdownClose).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('/harnesses/demo/providers');
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
   it('uses onOpenProviderModal instead of navigation when supplied', async () => {
@@ -488,7 +488,7 @@ describe('RoutingModals', () => {
     ));
     fireEvent.click(await findByTestId('picker-connect-simple'));
     expect(onFallbackPickerClose).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('/harnesses/demo/providers');
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
   it('navigates to the providers page when the specificity picker fires onConnectProviders', async () => {
@@ -503,7 +503,7 @@ describe('RoutingModals', () => {
     ));
     fireEvent.click(await findByTestId('picker-connect-coding'));
     expect(onSpecificityDropdownClose).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('/harnesses/demo/providers');
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/demo/providers');
   });
 
   it('calls onAddFallback when fallback picker selects a model', async () => {

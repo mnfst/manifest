@@ -13,7 +13,7 @@ const [routingPing, setRoutingPing] = createSignal(0);
 
 export { pingCount, messagePing, analyticsPing, agentPing, routingPing };
 
-/** Refresh views derived from the harness list after a local mutation. */
+/** Refresh views derived from the agent list after a local mutation. */
 export function refreshAgents(): void {
   invalidateGroup('agent');
   setAgentPing((n) => n + 1);

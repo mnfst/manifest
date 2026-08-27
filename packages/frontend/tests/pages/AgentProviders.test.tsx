@@ -29,8 +29,7 @@ vi.mock('../../src/services/api/providers.js', () => ({
 
 vi.mock('../../src/services/api.js', () => ({
   getEnabledProviders: (...args: unknown[]) => mockGetEnabledProviders(...args),
-  getAgentProviderDisableImpact: (...args: unknown[]) =>
-    mockGetAgentProviderDisableImpact(...args),
+  getAgentProviderDisableImpact: (...args: unknown[]) => mockGetAgentProviderDisableImpact(...args),
   enableProviderForAgent: (...args: unknown[]) => mockEnableEnabledProviders(...args),
   disableProviderForAgent: (...args: unknown[]) => mockDisableEnabledProviders(...args),
   getCustomProviders: (...args: unknown[]) => mockGetCustomProviders(...args),
@@ -58,6 +57,36 @@ vi.mock('../../src/services/toast-store.js', () => ({
     error: (...args: unknown[]) => mockToastError(...args),
     success: vi.fn(),
     warning: vi.fn(),
+  },
+}));
+
+const mockGetAgentModelAccess = vi.fn();
+vi.mock('../../src/services/api/teams.js', () => ({
+  getAgentModelAccess: (...args: unknown[]) => mockGetAgentModelAccess(...args),
+}));
+
+// The modal has its own test; here it only reports what it was opened with
+// and lets a test drive onSaved.
+const mockModalProps = vi.fn();
+vi.mock('../../src/components/ModelAccessModal.jsx', () => ({
+  default: (props: any) => {
+    mockModalProps(props);
+    return (
+      <div data-testid="model-access-modal">
+        {props.access.provider}
+        <button
+          type="button"
+          onClick={() =>
+            props.onSaved({ ...props.access, all_models: false, enabled_count: 1, total_count: 2 })
+          }
+        >
+          save-stub
+        </button>
+        <button type="button" onClick={props.onClose}>
+          close-stub
+        </button>
+      </div>
+    );
   },
 }));
 
@@ -148,6 +177,22 @@ describe('AgentProviders', () => {
     });
     mockEnableEnabledProviders.mockResolvedValue({ ok: true });
     mockDisableEnabledProviders.mockResolvedValue({ ok: true });
+    mockGetAgentModelAccess.mockResolvedValue([
+      {
+        user_provider_id: 'up-openai',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        provider_enabled: true,
+        all_models: false,
+        models: [
+          { id: 'gpt-4o', name: 'GPT-4o', enabled: true, in_routing: true },
+          { id: 'gpt-4o-mini', name: 'GPT-4o mini', enabled: false, in_routing: false },
+        ],
+        enabled_count: 1,
+        total_count: 2,
+      },
+    ]);
     mockGetCustomProviders.mockResolvedValue([
       {
         id: 'cp-1',
@@ -170,7 +215,7 @@ describe('AgentProviders', () => {
       expect(screen.getByText('Custom Gateway')).toBeDefined();
     });
 
-    expect(screen.getAllByText('API Key').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('API key').length).toBeGreaterThan(0);
     expect(screen.getByText('Subscription')).toBeDefined();
     expect(screen.getByLabelText('Disable OpenAI Work')).toBeDefined();
     expect(screen.getByLabelText('Enable Anthropic Max')).toBeDefined();
@@ -198,7 +243,7 @@ describe('AgentProviders', () => {
 
     expect(screen.getByTitle(longLabel).style.textOverflow).toBe('ellipsis');
     expect(screen.getByRole('columnheader', { name: 'Models' })).toBeDefined();
-    expect(screen.getByText('2')).toBeDefined();
+    expect(screen.getByText('1 of 2')).toBeDefined();
   });
 
   it('enables a provider with PUT', async () => {
@@ -304,6 +349,130 @@ describe('AgentProviders', () => {
       expect((screen.getByLabelText('Disable OpenAI Work') as HTMLButtonElement).disabled).toBe(
         false,
       );
+    });
+  });
+});
+
+describe('AgentProviders — models', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetGlobalProviders.mockResolvedValue(providersResponse);
+    mockGetEnabledProviders.mockResolvedValue({ enabled: ['up-openai', 'up-custom'] });
+    mockGetCustomProviders.mockResolvedValue([]);
+    mockGetAgentModelAccess.mockResolvedValue([
+      {
+        user_provider_id: 'up-openai',
+        provider: 'openai',
+        auth_type: 'api_key',
+        label: 'Work',
+        provider_enabled: true,
+        all_models: false,
+        models: [
+          { id: 'gpt-4o', name: 'GPT-4o', enabled: true, in_routing: true },
+          { id: 'gpt-4o-mini', name: 'GPT-4o mini', enabled: false, in_routing: false },
+        ],
+        enabled_count: 1,
+        total_count: 2,
+      },
+      {
+        user_provider_id: 'up-custom',
+        provider: 'custom:cp-1',
+        auth_type: 'api_key',
+        label: 'Gateway',
+        provider_enabled: true,
+        all_models: true,
+        models: [{ id: 'm', name: 'M', enabled: true, in_routing: false }],
+        enabled_count: 1,
+        total_count: 1,
+      },
+    ]);
+  });
+
+  it('labels the Models column: "x of y" for a partial selection, "All n" for the master switch, "Off" when the provider is off', async () => {
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeDefined();
+    });
+    expect(screen.getByText('All 1')).toBeDefined();
+    expect(screen.getByText('Off')).toBeDefined();
+    expect(screen.getByRole('columnheader', { name: 'Provider' })).toBeDefined();
+    // The Models button is disabled while the provider is off.
+    expect((screen.getByLabelText('Models for Anthropic Max') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect((screen.getByLabelText('Models for OpenAI Work') as HTMLButtonElement).disabled).toBe(
+      false,
+    );
+  });
+
+  it('falls back to the connection count ("All n") or "-" when model access has not loaded', async () => {
+    mockGetAgentModelAccess.mockResolvedValue([]);
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getByText('All 2')).toBeDefined();
+    });
+    mockGetAgentModelAccess.mockRejectedValue(new Error('nope'));
+    mockGetGlobalProviders.mockResolvedValue({
+      ...providersResponse,
+      providers: [
+        {
+          ...providersResponse.providers[0],
+          total_models: 0,
+          connections: [
+            { ...providersResponse.providers[0]!.connections[0], cached_model_count: 0 },
+          ],
+        },
+      ],
+    });
+    const second = render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(second.container.textContent).toContain('-');
+    });
+  });
+
+  it('opens the model list for a provider and merges the saved access back into the row', async () => {
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText('Models for OpenAI Work'));
+    await waitFor(() => {
+      expect(screen.getByTestId('model-access-modal')).toBeDefined();
+    });
+    expect(mockModalProps).toHaveBeenCalledWith(
+      expect.objectContaining({ agentName: 'demo-agent', open: true }),
+    );
+    expect(mockModalProps.mock.calls[0]![0].access.user_provider_id).toBe('up-openai');
+
+    fireEvent.click(screen.getByText('save-stub'));
+    fireEvent.click(screen.getByText('close-stub'));
+    await waitFor(() => {
+      expect(screen.queryByTestId('model-access-modal')).toBeNull();
+    });
+  });
+
+  it('opens an empty model list for a provider that has no access record yet', async () => {
+    mockGetAgentModelAccess.mockResolvedValue([]);
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getByLabelText('Models for OpenAI Work')).toBeDefined();
+    });
+    fireEvent.click(screen.getByLabelText('Models for OpenAI Work'));
+    await waitFor(() => {
+      expect(screen.getByTestId('model-access-modal')).toBeDefined();
+    });
+    const access = mockModalProps.mock.calls[0]![0].access;
+    expect(access).toMatchObject({
+      user_provider_id: 'up-openai',
+      provider: 'openai',
+      all_models: true,
+      models: [],
+      total_count: 0,
+    });
+    // Saving from the empty record adds the row rather than replacing one.
+    fireEvent.click(screen.getByText('save-stub'));
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeDefined();
     });
   });
 });

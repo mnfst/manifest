@@ -159,7 +159,7 @@ const NotificationBell: Component = () => {
                   const isRead = () => readSet().has(agent.name);
                   return (
                     <A
-                      href={`/harnesses/${encodeURIComponent(agent.name)}/settings?highlight=autofix`}
+                      href={`/agents/${encodeURIComponent(agent.name)}/settings?highlight=autofix`}
                       class="notif-dropdown__item"
                       classList={{ 'notif-dropdown__item--read': isRead() }}
                       onClick={() => handleClick(agent.name)}

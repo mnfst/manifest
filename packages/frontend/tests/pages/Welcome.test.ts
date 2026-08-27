@@ -72,7 +72,7 @@ describe('proposeChain', () => {
 });
 
 describe('onboarding activation helpers', () => {
-  it('resumes the newest zero-attempt harness when backend omits has_successful_message', () => {
+  it('resumes the newest zero-attempt agent when backend omits has_successful_message', () => {
     // The backend does not return has_successful_message; it only returns message_count.
     // An agent with message_count > 0 is treated as active regardless of success status.
     expect(

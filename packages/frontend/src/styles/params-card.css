@@ -1,8 +1,8 @@
 /* Shared "params card" pattern: a section label over a bordered card of rows,
    each row a title + hint on the left and a control on the right, split by
    hairline separators. Canonical consumer is the Model parameters dialog
-   (routing.css keeps its dialog-specific rules); the Connect Harness modal and
-   the Welcome first-harness form reuse it for their Autofix / logs toggles,
+   (routing.css keeps its dialog-specific rules); the Connect Agent modal and
+   the Welcome first-agent form reuse it for their Autofix / logs toggles,
    which is why these rules are global rather than in the Routing chunk. */
 
 .model-params__row {

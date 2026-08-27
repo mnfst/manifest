@@ -4,7 +4,7 @@ import { render } from '@solidjs/testing-library';
 let mockAgentName = 'test-agent';
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({ agentName: mockAgentName }),
-  useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: null }),
+  useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: null }),
   useNavigate: () => vi.fn(),
   A: (props: any) => (
     <a href={props.href} class={props.class}>
@@ -72,11 +72,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getPerProviderTimeseries: () => Promise.resolve({ agents: [], timeseries: [] }),
@@ -88,7 +88,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 0, previous: 0 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),

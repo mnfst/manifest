@@ -5,7 +5,9 @@ const mockNavigate = vi.fn();
 
 vi.mock('@solidjs/router', () => ({
   useNavigate: () => mockNavigate,
-  useSearchParams: () => [{ name: 'Groq', baseUrl: 'https://api.groq.com/v1', apiKey: 'sk-test', models: 'llama-3.1' }],
+  useSearchParams: () => [
+    { name: 'Groq', baseUrl: 'https://api.groq.com/v1', apiKey: 'sk-test', models: 'llama-3.1' },
+  ],
 }));
 
 const mockGetAgents = vi.fn();
@@ -34,7 +36,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/harnesses/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/routing?'),
         { replace: true },
       );
     });
@@ -59,7 +61,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/harnesses/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/routing?'),
         { replace: true },
       );
     });
@@ -76,7 +78,7 @@ describe('ConnectProvider', () => {
     render(() => <ConnectProvider />);
 
     await waitFor(() => {
-      expect(screen.getByText('Select a harness')).toBeDefined();
+      expect(screen.getByText('Select a agent')).toBeDefined();
     });
 
     expect(screen.getByText('Agent One')).toBeDefined();
@@ -99,10 +101,9 @@ describe('ConnectProvider', () => {
 
     fireEvent.click(screen.getByText('Agent Two'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.stringContaining('/harnesses/agent-2/routing?'),
-      { replace: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('/agents/agent-2/routing?'), {
+      replace: true,
+    });
   });
 
   it('shows spinner while loading', () => {
@@ -135,10 +136,7 @@ describe('ConnectProvider', () => {
 
   it('falls back to agent_name when display_name is missing', async () => {
     mockGetAgents.mockResolvedValue({
-      agents: [
-        { agent_name: 'raw-name-1' },
-        { agent_name: 'raw-name-2' },
-      ],
+      agents: [{ agent_name: 'raw-name-1' }, { agent_name: 'raw-name-2' }],
     });
 
     render(() => <ConnectProvider />);
@@ -157,7 +155,7 @@ describe('ConnectProvider', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/harnesses/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/routing?'),
         { replace: true },
       );
     });
@@ -191,7 +189,7 @@ describe('ConnectProvider with provider deep-link', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(
-        expect.stringContaining('/harnesses/my-agent/routing?'),
+        expect.stringContaining('/agents/my-agent/routing?'),
         { replace: true },
       );
     });
@@ -219,11 +217,11 @@ describe('ConnectProvider agent name URL encoding', () => {
 
     const url = mockNavigate.mock.calls[0][0] as string;
     // Verify each unsafe character is percent-encoded in the path segment
-    expect(url).toContain('/harnesses/test%2Fagent%3Fid%3D1%26x%3D2%23frag/routing?');
+    expect(url).toContain('/agents/test%2Fagent%3Fid%3D1%26x%3D2%23frag/routing?');
     // Raw unsafe characters must NOT appear in the path segment
-    expect(url).not.toContain('/harnesses/test/agent');
-    expect(url).not.toMatch(/\/harnesses\/[^/?]*\?id=1/);
-    expect(url).not.toMatch(/\/harnesses\/[^/?]*#frag/);
+    expect(url).not.toContain('/agents/test/agent');
+    expect(url).not.toMatch(/\/agents\/[^/?]*\?id=1/);
+    expect(url).not.toMatch(/\/agents\/[^/?]*#frag/);
   });
 
   it('URL-encodes unsafe characters in agent name when clicking picker button', async () => {
@@ -244,8 +242,8 @@ describe('ConnectProvider agent name URL encoding', () => {
     fireEvent.click(screen.getByText('Tricky'));
 
     const url = mockNavigate.mock.calls[0][0] as string;
-    expect(url).toContain('/harnesses/test%2Fagent%3Fid%3D1/routing?');
-    expect(url).not.toContain('/harnesses/test/agent');
+    expect(url).toContain('/agents/test%2Fagent%3Fid%3D1/routing?');
+    expect(url).not.toContain('/agents/test/agent');
   });
 
   it('URL-encodes unicode (emoji + non-Latin) agent names', async () => {
@@ -260,7 +258,7 @@ describe('ConnectProvider agent name URL encoding', () => {
 
     const url = mockNavigate.mock.calls[0][0] as string;
     // encodeURIComponent of '🤖' is '%F0%9F%A4%96', cyrillic 'а' is '%D0%B0'
-    expect(url).toContain('/harnesses/test-%F0%9F%A4%96-%D0%B0%D0%B3%D0%B5%D0%BD%D1%82/routing?');
+    expect(url).toContain('/agents/test-%F0%9F%A4%96-%D0%B0%D0%B3%D0%B5%D0%BD%D1%82/routing?');
     // Raw unicode should not appear in the encoded URL
     expect(url).not.toContain('🤖');
     expect(url).not.toContain('агент');
@@ -279,7 +277,7 @@ describe('ConnectProvider agent name URL encoding', () => {
     const url = mockNavigate.mock.calls[0][0] as string;
     // Parsing must recover the original agent name from the path segment
     const parsed = new URL(url, 'http://example.com');
-    const match = parsed.pathname.match(/^\/harnesses\/([^/]+)\/routing$/);
+    const match = parsed.pathname.match(/^\/agents\/([^/]+)\/routing$/);
     expect(match).not.toBeNull();
     expect(decodeURIComponent(match![1])).toBe(unsafeName);
   });

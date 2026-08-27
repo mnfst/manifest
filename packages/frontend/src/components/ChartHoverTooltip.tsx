@@ -4,7 +4,7 @@ import '../styles/agent-chart-tooltip.css';
 
 /**
  * Shared column-hover tooltip for the stacked bar charts (Cost / Tokens /
- * Requests by provider-harness via MultiAgentTokenChart, and Requests by
+ * Requests by provider-agent via MultiAgentTokenChart, and Requests by
  * status / Healed requests via ReliabilityChart). One implementation so the
  * hover reads the same everywhere: snapped cursor, date header, one row per
  * series (swatch, name, value), underlined Total.

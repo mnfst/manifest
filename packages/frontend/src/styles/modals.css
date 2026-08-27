@@ -1012,7 +1012,7 @@
   color: hsl(var(--foreground));
 }
 
-/* Create-harness toggles (Connect Harness modal + Welcome first-harness form):
+/* Create-agent toggles (Connect Agent modal + Welcome first-agent form):
    they reuse the Model-parameters group-card design (.model-params__* from
    routing.css); this wrapper only spaces the group from the fields above. */
 .add-agent-toggles {

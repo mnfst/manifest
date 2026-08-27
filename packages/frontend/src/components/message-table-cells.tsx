@@ -92,7 +92,7 @@ const HEADER_LABELS: Record<MessageColumnKey, string> = {
   status: 'Status',
   attempts: 'Attempts',
   selfheal: 'Recovery attempts',
-  agent: 'Harness',
+  agent: 'Agent',
 };
 
 const TOOLTIP_TEXT: Partial<Record<MessageColumnKey, string>> = {
@@ -433,7 +433,7 @@ export function StatusCell(item: MessageRow, _agentName: string | undefined): JS
           href={
             planLimit
               ? '/upgrade?reason=requests'
-              : `/harnesses/${encodeURIComponent(pill.limitAgent)}/limits`
+              : `/agents/${encodeURIComponent(pill.limitAgent)}/limits`
           }
           title={
             planLimit

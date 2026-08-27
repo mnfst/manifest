@@ -18,7 +18,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   // short-circuit to off (the switch stays disabled via busy() below). Also gate
   // on `config.loading`: Solid keeps the previous agent's value during a refetch,
   // so without this the switch would briefly show the prior agent's state when
-  // you switch harnesses.
+  // you switch agents.
   const enabled = () => (!config.loading && !config.error ? (config()?.enabled ?? false) : false);
   // Also disabled after a failed read: without a known current state a click
   // would blindly write a value the user never saw.
@@ -27,7 +27,7 @@ const SettingsAutofixSection: Component<{ agentName: () => string }> = (props) =
   // No busy() guard needed: the switch is the only caller and it is disabled
   // while busy, so a re-entrant click cannot dispatch.
   const saveEnabled = async (nextEnabled: boolean) => {
-    // Pin the agent this click targets. If the user switches harnesses before
+    // Pin the agent this click targets. If the user switches agents before
     // the save resolves, don't mutate the (now different) agent's resource.
     const agentName = props.agentName();
     setSaving(true);

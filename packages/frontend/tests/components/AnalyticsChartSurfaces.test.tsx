@@ -416,7 +416,7 @@ describe('analytics chart surface components', () => {
     expect(routerNavigate).toHaveBeenCalledTimes(navigationCount);
   });
 
-  it('describes global KPI links as covering all harnesses', () => {
+  it('describes global KPI links as covering all agents', () => {
     render(() => (
       <AutofixKpiCards
         stats={{
@@ -434,10 +434,10 @@ describe('analytics chart surface components', () => {
 
     expect(
       screen.getByText('Recovered requests').closest('.overview-stat-card')?.getAttribute('title'),
-    ).toBe('View recovered requests across all harnesses');
+    ).toBe('View recovered requests across all agents');
     expect(
       screen.getByText('Failed requests').closest('.overview-stat-card')?.getAttribute('title'),
-    ).toBe('View failed requests across all harnesses');
+    ).toBe('View failed requests across all agents');
   });
 
   it('renders and sorts error classes, then renders the empty state', async () => {

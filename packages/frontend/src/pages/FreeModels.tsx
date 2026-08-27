@@ -104,9 +104,9 @@ const ConnectButton: Component<{ provider: FreeProviderDto }> = (props) => {
   const href = () => {
     const b = builtin();
     if (b) {
-      return `/harnesses/${encodeURIComponent(agentName())}/routing?provider=${b.id}`;
+      return `/agents/${encodeURIComponent(agentName())}/routing?provider=${b.id}`;
     }
-    const base = `/harnesses/${encodeURIComponent(agentName())}/routing?provider=custom&name=${encodeURIComponent(props.provider.name)}&baseUrl=${encodeURIComponent(props.provider.base_url!)}`;
+    const base = `/agents/${encodeURIComponent(agentName())}/routing?provider=custom&name=${encodeURIComponent(props.provider.name)}&baseUrl=${encodeURIComponent(props.provider.base_url!)}`;
     const m = models();
     return m ? `${base}&models=${encodeURIComponent(m)}` : base;
   };
@@ -150,7 +150,7 @@ const FreeModels: Component = () => {
         <div>
           <h1>Free Models</h1>
           <span class="breadcrumb">
-            Cloud providers offering free API access for {agentDisplayName() ?? 'your harness'}
+            Cloud providers offering free API access for {agentDisplayName() ?? 'your agent'}
           </span>
         </div>
       </div>

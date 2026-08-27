@@ -3,7 +3,7 @@
  *
  * Hosts the class blocks that the ported GlobalOverview / ConnectionDetail
  * analytics surfaces depend on but that are not already defined in the base
- * stylesheets: the multi-harness chart tooltip, the harness filter
+ * stylesheets: the multi-agent chart tooltip, the agent filter
  * multi-select, the summary stat cards, the scrollable panels, and the
  * page-header title/subtitle. Imported by the analytics pages only.
  */

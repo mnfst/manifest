@@ -108,11 +108,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getPerProviderReliability: () => Promise.resolve([]),

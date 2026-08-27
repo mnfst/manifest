@@ -14,14 +14,17 @@ const mockNavigate = vi.fn();
 // updates `agentName` in place without remounting the route component — a
 // plain object here would miss that. The getter re-reads the signal on every
 // access, which is enough for Solid's tracking to pick it up as a dependency.
-const agentNameBox = vi.hoisted(() => ({ read: (): string => 'test-agent', set: (_: string) => {} }));
+const agentNameBox = vi.hoisted(() => ({
+  read: (): string => 'test-agent',
+  set: (_: string) => {},
+}));
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({
     get agentName() {
       return agentNameBox.read();
     },
   }),
-  useLocation: () => ({ pathname: `/harnesses/${mockAgentName}`, state: mockLocationState }),
+  useLocation: () => ({ pathname: `/agents/${mockAgentName}`, state: mockLocationState }),
   useNavigate: () => mockNavigate,
   A: (props: any) => (
     <a href={props.href} class={props.class}>
@@ -100,11 +103,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getPerProviderTimeseries: (...a: unknown[]) => mockPerProviderTokens(...a),
@@ -116,7 +119,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 5, previous: 4 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: (...a: unknown[]) => mockGetAutofixStats(...a),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -747,7 +751,7 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       const link = container.querySelector('a.view-more-link') as HTMLAnchorElement;
       expect(link).not.toBeNull();
-      expect(link.getAttribute('href')).toBe('/harnesses/test-agent/messages');
+      expect(link.getAttribute('href')).toBe('/agents/test-agent/messages');
     });
   });
 
@@ -1006,16 +1010,16 @@ describe('Overview', () => {
     });
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
-    expect(mockNavigate).toHaveBeenCalledWith('/harnesses/test-agent/routing', {
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/test-agent/routing', {
       state: { openProviders: true },
     });
   });
 
-  it('shows Set up harness button when not setupCompleted and no providers', async () => {
+  it('shows Set up agent button when not setupCompleted and no providers', async () => {
     mockGetOverview.mockResolvedValue(emptyOverviewData);
     const { container } = render(() => <Overview />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Set up harness');
+      expect(container.textContent).toContain('Set up agent');
       expect(container.textContent).not.toContain('Enable routing');
       expect(container.textContent).not.toContain('Connect provider');
     });
@@ -1051,7 +1055,7 @@ describe('Overview', () => {
         expect(screen.getByTestId('setup-go-routing')).toBeDefined();
       });
       fireEvent.click(screen.getByTestId('setup-go-routing'));
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/test-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/test-agent/routing', {
         state: { openProviders: true },
       });
     });
@@ -1357,7 +1361,7 @@ describe('Overview', () => {
     // No inline accordion: the click deep-links into the Requests page drawer.
     expect(container.querySelector('.msg-row--expanded')).toBeNull();
     expect(mockNavigate).toHaveBeenCalledWith(
-      expect.stringMatching(/^\/harnesses\/test-agent\/messages\?request=/),
+      expect.stringMatching(/^\/agents\/test-agent\/messages\?request=/),
     );
   });
 });

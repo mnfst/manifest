@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 
@@ -14,8 +14,18 @@ vi.mock('../../src/services/api.js', () => ({
   getGlobalProviders: (...args: unknown[]) => mockGetGlobalProviders(...args),
 }));
 
-vi.mock('../../src/services/toast-store.js', () => ({
-  toast: { error: vi.fn(), success: vi.fn(), warning: vi.fn() },
+const mockToast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn(), warning: vi.fn() }));
+vi.mock('../../src/services/toast-store.js', () => ({ toast: mockToast }));
+
+const mockGetUsers = vi.fn();
+const mockGetProjects = vi.fn();
+const mockCheckAgentName = vi.fn();
+const mockAssignNewAgent = vi.fn();
+vi.mock('../../src/services/api/teams.js', () => ({
+  getUsers: (...args: unknown[]) => mockGetUsers(...args),
+  getProjects: (...args: unknown[]) => mockGetProjects(...args),
+  checkAgentName: (...args: unknown[]) => mockCheckAgentName(...args),
+  assignNewAgent: (...args: unknown[]) => mockAssignNewAgent(...args),
 }));
 
 const mockMarkAgentCreated = vi.fn();
@@ -78,6 +88,20 @@ describe('AddAgentModal', () => {
     mockIsSelfHosted = false;
     mockCreateAgent.mockResolvedValue({ agent: { name: 'new-agent' }, apiKey: 'key-1' });
     mockGetGlobalProviders.mockResolvedValue({ providers: [{ provider: 'openai' }] });
+    mockGetUsers.mockResolvedValue({
+      users: [
+        { id: 'u-maya', name: 'Maya Okonkwo' },
+        { id: 'u-tom', name: 'Tom Reyes' },
+      ],
+    });
+    mockGetProjects.mockResolvedValue({
+      projects: [
+        { id: 'p-atlas', name: 'Atlas' },
+        { id: 'p-hsbc', name: 'HSBC' },
+      ],
+    });
+    mockCheckAgentName.mockResolvedValue({ available: true, suggestion: null });
+    mockAssignNewAgent.mockResolvedValue(undefined);
   });
 
   it('renders nothing when closed', () => {
@@ -87,8 +111,163 @@ describe('AddAgentModal', () => {
 
   it('renders the dialog title and description when open', () => {
     const { container } = renderOpen();
-    expect(container.textContent).toContain('Connect Harness');
-    expect(container.textContent).toContain('Name your harness to start tracking');
+    expect(container.textContent).toContain('New agent');
+    expect(container.textContent).toContain('Name your agent to start tracking');
+    expect(container.textContent).toContain("The owner's name never goes inside the agent name.");
+  });
+
+  describe('owner, projects and name uniqueness', () => {
+    const openOwnerSelect = async () => {
+      await vi.waitFor(() => expect(mockGetUsers).toHaveBeenCalled());
+      fireEvent.click(screen.getByLabelText('Owner'));
+      await vi.waitFor(() => expect(screen.queryByText('Maya Okonkwo')).not.toBeNull());
+    };
+
+    it('defaults to no owner and no projects, and sends them after a create', async () => {
+      const { input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'unowned' } });
+      fireEvent.click(createBtn);
+      await vi.waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      expect(mockAssignNewAgent).toHaveBeenCalledWith('new-agent', null, []);
+    });
+
+    it('lets the owner and projects be chosen and sends them after a create', async () => {
+      const { input, createBtn } = renderOpen();
+      await openOwnerSelect();
+      fireEvent.click(screen.getByText('Maya Okonkwo'));
+      await vi.waitFor(() => expect(mockGetProjects).toHaveBeenCalled());
+      fireEvent.click(screen.getByLabelText('Projects'));
+      await vi.waitFor(() => expect(screen.queryByText('Atlas')).not.toBeNull());
+      fireEvent.click(screen.getByText('Atlas'));
+      fireEvent.input(input, { target: { value: 'claude-code' } });
+      fireEvent.click(createBtn);
+      await vi.waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      expect(mockAssignNewAgent).toHaveBeenCalledWith('new-agent', 'u-maya', ['p-atlas']);
+    });
+
+    it('pre-fills the owner and projects from props and restores them on reset', async () => {
+      const onClose = vi.fn();
+      const { container } = render(() => (
+        <AddAgentModal
+          open={true}
+          onClose={onClose}
+          defaultOwnerId="u-tom"
+          defaultProjectIds={['p-hsbc']}
+        />
+      ));
+      await vi.waitFor(() => expect(container.textContent).toContain('Tom Reyes'));
+      expect(container.textContent).toContain('HSBC');
+      fireEvent.keyDown(container.querySelector('.modal-card')!, { key: 'Escape' });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('warns but still navigates when attaching owner and projects fails', async () => {
+      mockAssignNewAgent.mockRejectedValue(new Error('boom'));
+      const { input, createBtn } = renderOpen();
+      fireEvent.input(input, { target: { value: 'x' } });
+      fireEvent.click(createBtn);
+      await vi.waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+      expect(mockToast.warning).toHaveBeenCalledWith(
+        expect.stringContaining('owner and projects could not be saved'),
+      );
+    });
+
+    it('falls back to an empty list when users or projects fail to load', async () => {
+      mockGetUsers.mockRejectedValue(new Error('boom'));
+      mockGetProjects.mockRejectedValue(new Error('boom'));
+      renderOpen();
+      await vi.waitFor(() => expect(mockGetProjects).toHaveBeenCalled());
+      fireEvent.click(screen.getByLabelText('Owner'));
+      // Trigger label + the single option.
+      expect(screen.getAllByText('No owner').length).toBe(2);
+      expect(screen.queryByText('Maya Okonkwo')).toBeNull();
+    });
+
+    it('does not load users or projects while closed', () => {
+      render(() => <AddAgentModal open={false} onClose={() => {}} />);
+      expect(mockGetUsers).not.toHaveBeenCalled();
+      expect(mockGetProjects).not.toHaveBeenCalled();
+    });
+
+    describe('debounced name check', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('flags a taken name with a suggestion, blocks Create, and fills the suggestion', async () => {
+        mockCheckAgentName.mockResolvedValue({ available: false, suggestion: 'claude-code-2' });
+        const { container, input, createBtn } = renderOpen();
+        fireEvent.input(input, { target: { value: 'claude-cod' } });
+        fireEvent.input(input, { target: { value: 'claude-code' } });
+        expect(mockCheckAgentName).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(300);
+        await vi.waitFor(() => expect(mockCheckAgentName).toHaveBeenCalledTimes(1));
+        expect(mockCheckAgentName).toHaveBeenCalledWith('claude-code', null);
+        await vi.waitFor(() =>
+          expect(container.textContent).toContain('claude-code is already taken for this owner.'),
+        );
+        expect((createBtn as HTMLButtonElement).disabled).toBe(true);
+        expect(input.getAttribute('aria-invalid')).toBe('true');
+        fireEvent.click(createBtn);
+        expect(mockCreateAgent).not.toHaveBeenCalled();
+        fireEvent.keyDown(input, { key: 'Enter' });
+        expect(mockCreateAgent).not.toHaveBeenCalled();
+
+        mockCheckAgentName.mockResolvedValue({ available: true, suggestion: null });
+        fireEvent.click(screen.getByText('Use claude-code-2'));
+        expect(input.value).toBe('claude-code-2');
+        await vi.advanceTimersByTimeAsync(300);
+        await vi.waitFor(() => expect((createBtn as HTMLButtonElement).disabled).toBe(false));
+      });
+
+      it('re-checks against the chosen owner and shows no suggestion button when none is offered', async () => {
+        mockCheckAgentName.mockResolvedValue({ available: false, suggestion: null });
+        const { container, input } = renderOpen();
+        await vi.advanceTimersByTimeAsync(0);
+        fireEvent.click(screen.getByLabelText('Owner'));
+        await vi.waitFor(() => expect(screen.queryByText('Tom Reyes')).not.toBeNull());
+        fireEvent.click(screen.getByText('Tom Reyes'));
+        fireEvent.input(input, { target: { value: 'claude-code' } });
+        await vi.advanceTimersByTimeAsync(300);
+        await vi.waitFor(() =>
+          expect(mockCheckAgentName).toHaveBeenCalledWith('claude-code', 'u-tom'),
+        );
+        await vi.waitFor(() => expect(container.textContent).toContain('already taken'));
+        expect(container.querySelector('.field__suggestion')).toBeNull();
+      });
+
+      it('treats a failed check as available and ignores a stale result', async () => {
+        let resolveFirst: (v: unknown) => void = () => {};
+        mockCheckAgentName
+          .mockReturnValueOnce(new Promise((r) => (resolveFirst = r)))
+          .mockRejectedValueOnce(new Error('boom'));
+        const { container, input, createBtn } = renderOpen();
+        fireEvent.input(input, { target: { value: 'first' } });
+        await vi.advanceTimersByTimeAsync(300);
+        fireEvent.input(input, { target: { value: 'second' } });
+        await vi.advanceTimersByTimeAsync(300);
+        resolveFirst({ available: false, suggestion: 'first-2' });
+        await vi.waitFor(() => expect(mockCheckAgentName).toHaveBeenCalledTimes(2));
+        await vi.advanceTimersByTimeAsync(0);
+        expect(container.textContent).not.toContain('already taken');
+        expect((createBtn as HTMLButtonElement).disabled).toBe(false);
+      });
+
+      it('clears the check when the name is emptied', async () => {
+        mockCheckAgentName.mockResolvedValue({ available: false, suggestion: 'x-2' });
+        const { container, input } = renderOpen();
+        fireEvent.input(input, { target: { value: 'x' } });
+        await vi.advanceTimersByTimeAsync(300);
+        await vi.waitFor(() => expect(container.textContent).toContain('already taken'));
+        fireEvent.input(input, { target: { value: '' } });
+        expect(container.textContent).not.toContain('already taken');
+        await vi.advanceTimersByTimeAsync(300);
+        expect(mockCheckAgentName).toHaveBeenCalledTimes(1);
+      });
+    });
   });
 
   it('creates directly with the legal line as the consent act (no dialog)', async () => {
@@ -134,11 +313,11 @@ describe('AddAgentModal', () => {
       expect(mockCreateAgent).toHaveBeenCalledTimes(1);
     });
 
-    it('does not navigate to the created harness if the modal is reopened mid-provider-lookup', async () => {
+    it('does not navigate to the created agent if the modal is reopened mid-provider-lookup', async () => {
       // Models the real parent: <AddAgentModal open={signal()} onClose={...}>,
       // where closing does not unmount. The success path closes the modal and
       // *then* awaits getGlobalProviders, so a user who reopens to add a second
-      // harness used to get redirected to the first one when that lookup landed.
+      // agent used to get redirected to the first one when that lookup landed.
       let resolveProviders!: (v: { providers: unknown[] }) => void;
       mockGetGlobalProviders.mockReturnValue(
         new Promise<{ providers: unknown[] }>((r) => (resolveProviders = r)),
@@ -148,18 +327,17 @@ describe('AddAgentModal', () => {
         <AddAgentModal open={open()} onClose={() => setOpen(false)} />
       ));
       const input = container.querySelector('.modal-card__input') as HTMLInputElement;
-      fireEvent.input(input, { target: { value: 'first-harness' } });
+      fireEvent.input(input, { target: { value: 'first-agent' } });
       fireEvent.click(screen.getByText('Create'));
 
       await vi.waitFor(() => expect(open()).toBe(false));
-      setOpen(true); // user reopens to add another harness
+      setOpen(true); // user reopens to add another agent
       resolveProviders({ providers: [] });
       await Promise.resolve();
       await Promise.resolve();
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });
-
   });
 
   it('keeps Create disabled until a non-blank name is entered', () => {
@@ -184,7 +362,7 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'agent-a' } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/new-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/new-agent/routing', {
         state: { newApiKey: 'key-1' },
       });
     });
@@ -194,7 +372,7 @@ describe('AddAgentModal', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('refreshes the harness list as soon as creation succeeds', async () => {
+  it('refreshes the agent list as soon as creation succeeds', async () => {
     const { input, createBtn } = renderOpen();
     fireEvent.input(input, { target: { value: 'agent-a' } });
     fireEvent.click(createBtn);
@@ -210,7 +388,7 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'agent-b' } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/new-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/new-agent/routing', {
         state: { newApiKey: 'key-1', openProviders: true },
       });
     });
@@ -222,7 +400,7 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'agent-c' } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/new-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/new-agent/routing', {
         state: { newApiKey: 'key-1', openProviders: true },
       });
     });
@@ -234,7 +412,7 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'agent-d' } });
     fireEvent.click(createBtn);
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/new-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/new-agent/routing', {
         state: { newApiKey: 'key-1', openProviders: true },
       });
     });
@@ -249,7 +427,7 @@ describe('AddAgentModal', () => {
       expect(mockMarkAgentCreated).toHaveBeenCalledWith('Typed Name');
       expect(mockMarkSetupPending).toHaveBeenCalledWith('Typed Name');
       expect(mockNavigate).toHaveBeenCalledWith(
-        `/harnesses/${encodeURIComponent('Typed Name')}/routing`,
+        `/agents/${encodeURIComponent('Typed Name')}/routing`,
         expect.anything(),
       );
     });
@@ -422,7 +600,7 @@ describe('AddAgentModal', () => {
     fireEvent.input(input, { target: { value: 'clean' } });
     fireEvent.click(screen.getByText('Create'));
     await vi.waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/harnesses/new-agent/routing', {
+      expect(mockNavigate).toHaveBeenCalledWith('/agents/new-agent/routing', {
         state: { newApiKey: 'key-1' },
       });
     });

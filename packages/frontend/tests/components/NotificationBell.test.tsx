@@ -26,11 +26,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getWorkspaceAutofixStatus: (...args: unknown[]) => mockGetStatus(...args),
@@ -71,7 +71,7 @@ describe('NotificationBell', () => {
     await waitFor(() => expect(screen.getByLabelText('Notifications')).toBeDefined());
     fireEvent.click(screen.getByLabelText('Notifications'));
     const link = screen.getByText(/Autofix is inactive on/).closest('a')!;
-    expect(link.getAttribute('href')).toBe('/harnesses/demo/settings?highlight=autofix');
+    expect(link.getAttribute('href')).toBe('/agents/demo/settings?highlight=autofix');
     fireEvent.click(link);
     expect(localStorage.getItem('manifest_notif_read')).toContain('demo');
     expect(screen.queryByText(/Autofix is inactive on/)).toBeNull();

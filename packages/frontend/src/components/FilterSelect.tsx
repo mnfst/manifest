@@ -2,7 +2,7 @@ import { createSignal, For, Show, onCleanup, type Component } from 'solid-js';
 import '../styles/filter-select.css';
 
 interface FilterSelectProps {
-  /** Plural noun for the trigger label, e.g. "providers" or "harnesses". */
+  /** Plural noun for the trigger label, e.g. "providers" or "agents". */
   noun: string;
   /** All selectable item keys, in display order. */
   items: string[];
@@ -19,7 +19,7 @@ interface FilterSelectProps {
 
 /**
  * Multi-select dropdown used to filter chart series (providers on the agent
- * Overview / ConnectionDetail, harnesses on the global Overview). Owns its
+ * Overview / ConnectionDetail, agents on the global Overview). Owns its
  * open state, outside-click/Escape dismissal, and stylesheet.
  */
 const FilterSelect: Component<FilterSelectProps> = (props) => {

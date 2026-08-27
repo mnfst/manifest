@@ -90,11 +90,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   getOverview: (...args: unknown[]) => apiMocks.getOverview(...args),
@@ -114,7 +114,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -792,12 +793,12 @@ afterEach(() => {
 });
 
 describe('GlobalOverview (analytics)', () => {
-  it('renders the dashboard with harness and provider data', async () => {
+  it('renders the dashboard with agent and provider data', async () => {
     const { container } = render(() => <GlobalOverview />);
 
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
     expect(screen.getByText('Overview')).toBeDefined();
-    expect(screen.getByText('All your harnesses and providers')).toBeDefined();
+    expect(screen.getByText('All your agents and providers')).toBeDefined();
     expect(screen.getAllByText('Demo Agent').length).toBeGreaterThan(0);
     expect(screen.getAllByText('OpenAI').length).toBeGreaterThan(0);
     // The shared MessageTable renders a binary status: the ok row is "Success"
@@ -831,7 +832,7 @@ describe('GlobalOverview (analytics)', () => {
     }
   });
 
-  it('navigates to harness and connection detail on row click', async () => {
+  it('navigates to agent and connection detail on row click', async () => {
     render(() => <GlobalOverview />);
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
 
@@ -843,13 +844,13 @@ describe('GlobalOverview (analytics)', () => {
     fireEvent.click(providerCell!);
     expect(routerState.navigate).toHaveBeenCalledWith('/providers/connections/conn-openai');
 
-    // harness row → harness detail
-    const harnessRow = screen
+    // agent row → agent detail
+    const agentRow = screen
       .getAllByText('Worker Agent')
       .map((el) => el.closest('tr'))
       .find((tr) => tr);
-    fireEvent.click(harnessRow!);
-    expect(routerState.navigate).toHaveBeenCalledWith('/harnesses/worker-agent');
+    fireEvent.click(agentRow!);
+    expect(routerState.navigate).toHaveBeenCalledWith('/agents/worker-agent');
   });
 
   it('limits Free users to 7-day dashboard ranges and labels longer ranges as Pro-only', async () => {
@@ -860,7 +861,10 @@ describe('GlobalOverview (analytics)', () => {
 
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
     await waitFor(() => expect(localStorage.getItem('manifest_global_range')).toBe('7d'));
-    expect(apiMocks.getOverview).toHaveBeenCalledWith('7d');
+    expect(apiMocks.getOverview).toHaveBeenCalledWith('7d', undefined, {
+      owners: [],
+      projects: [],
+    });
 
     const rangeSelect = screen.getByRole('combobox') as HTMLSelectElement;
     const lockedOptions = Array.from(rangeSelect.options).filter((option) =>
@@ -914,16 +918,16 @@ describe('GlobalOverview (analytics)', () => {
     expect(screen.getByText('qwen-2.5')).toBeDefined();
   });
 
-  it('shows the empty state when there are no harnesses and no providers', async () => {
+  it('shows the empty state when there are no agents and no providers', async () => {
     apiMocks.getAgents.mockResolvedValue({ agents: [] });
     apiMocks.getGlobalProviders.mockResolvedValue({ providers: [] });
 
     render(() => <GlobalOverview />);
     await waitFor(() => expect(screen.getByText('No activity yet')).toBeDefined());
-    expect(screen.getByText('Set up harness')).toBeDefined();
+    expect(screen.getByText('Set up agent')).toBeDefined();
 
-    // The Add Harness modal opens from the empty-state CTA.
-    fireEvent.click(screen.getByText('Set up harness'));
+    // The Add Agent modal opens from the empty-state CTA.
+    fireEvent.click(screen.getByText('Set up agent'));
     await waitFor(() => expect(screen.getByTestId('add-agent-modal')).toBeDefined());
     fireEvent.click(screen.getByText('Dismiss add agent'));
     await waitFor(() => expect(screen.queryByTestId('add-agent-modal')).toBeNull());
@@ -935,7 +939,7 @@ describe('GlobalOverview (analytics)', () => {
 
     render(() => <GlobalOverview />);
     await waitFor(() => expect(screen.getByText('No activity yet')).toBeDefined());
-    fireEvent.click(screen.getByText('Set up harness'));
+    fireEvent.click(screen.getByText('Set up agent'));
     await waitFor(() => expect(screen.getByTestId('add-agent-modal')).toBeDefined());
 
     const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
@@ -946,7 +950,7 @@ describe('GlobalOverview (analytics)', () => {
     setItem.mockRestore();
   });
 
-  it('shows the no-providers state when harnesses exist without providers', async () => {
+  it('shows the no-providers state when agents exist without providers', async () => {
     apiMocks.getGlobalProviders.mockResolvedValue({ providers: [] });
 
     render(() => <GlobalOverview />);
@@ -975,15 +979,13 @@ describe('GlobalOverview (analytics)', () => {
 });
 
 describe('ConnectionDetail (analytics)', () => {
-  it('renders connection analytics, models, and harness breakdown', async () => {
+  it('renders connection analytics, models, and agent breakdown', async () => {
     const { container } = render(() => <ConnectionDetail />);
 
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
-    expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Agents').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
-    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
-      'autofixed attempts',
-    );
+    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain('autofixed attempts');
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
@@ -1023,14 +1025,14 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getByText('Requests chart'));
 
     // Grouping buttons, in order: HTTP status (default), attempt status,
-    // harness. No provider grouping and no request notion here.
+    // agent. No provider grouping and no request notion here.
     await waitFor(() => expect(screen.getByText('By HTTP status')).toBeDefined());
     expect(screen.getByText('By HTTP status').className).toContain('--active');
     const buttons = screen
       .getAllByRole('button')
       .map((b) => b.textContent?.trim())
       .filter((t) => t?.startsWith('By '));
-    expect(buttons).toEqual(['By HTTP status', 'By attempt status', 'By harness']);
+    expect(buttons).toEqual(['By HTTP status', 'By attempt status', 'By agent']);
 
     // Default view feeds the HTTP-status series.
     await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe('200,429'));
@@ -1052,13 +1054,13 @@ describe('ConnectionDetail (analytics)', () => {
       'conn-openai',
     );
 
-    // Switching to By harness hands the chart the attempts-per-agent series.
-    fireEvent.click(screen.getByText('By harness'));
+    // Switching to By agent hands the chart the attempts-per-agent series.
+    fireEvent.click(screen.getByText('By agent'));
     await waitFor(() => expect(screen.getByTestId('status-keys').textContent).toBe(''));
     expect(screen.getByTestId('msg-agents').textContent).toBe('demo-agent');
   });
 
-  it('applies the harness selection to the attempts-by-harness series', async () => {
+  it('applies the agent selection to the attempts-by-agent series', async () => {
     const emptySeries = { agents: [], timeseries: [] };
     apiMocks.getPerAgentTimeseries.mockResolvedValue(emptySeries);
     apiMocks.getPerAgentMessageTimeseries.mockResolvedValue(emptySeries);
@@ -1071,10 +1073,10 @@ describe('ConnectionDetail (analytics)', () => {
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     fireEvent.click(screen.getByText('Requests chart'));
-    fireEvent.click(screen.getByText('By harness'));
+    fireEvent.click(screen.getByText('By agent'));
     await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha,beta'));
 
-    fireEvent.click(screen.getAllByText('All harnesses (2)').at(-1)!);
+    fireEvent.click(screen.getAllByText('All agents (2)').at(-1)!);
     fireEvent.click(screen.getByText('beta'));
     await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha'));
   });
@@ -1189,7 +1191,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(screen.getByText('Inactive')).toBeDefined();
     expect(screen.getByText('No requests yet.')).toBeDefined();
     expect(screen.getByText('No model usage data yet.')).toBeDefined();
-    expect(screen.getByText('No harnesses have used this provider yet.')).toBeDefined();
+    expect(screen.getByText('No agents have used this provider yet.')).toBeDefined();
     // Manage button is present even for inactive connections.
     expect(screen.getByText('Manage')).toBeDefined();
     // back link points to subscriptions for subscription auth type
@@ -1419,20 +1421,20 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Custom key').length).toBeGreaterThan(0));
   });
 
-  it('falls back to no providers when the harness list cannot load', async () => {
+  it('falls back to no providers when the agent list cannot load', async () => {
     apiMocks.getAgents.mockRejectedValue(new Error('agents down'));
 
     render(() => <ConnectionDetail />);
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
 
-    // Manage still opens the inline modal even when harness list fails.
+    // Manage still opens the inline modal even when agent list fails.
     fireEvent.click(screen.getByText('Manage'));
     expect(screen.getByText('Connection name')).toBeDefined();
     fireEvent.click(screen.getByText('Done'));
   });
 
   it('falls back to an empty provider list when the routing call rejects', async () => {
-    // Harness list loads, but the per-harness provider fetch rejects → the
+    // Agent list loads, but the per-agent provider fetch rejects → the
     // inline manage modal still opens normally.
     apiMocks.getAgentProviders.mockRejectedValue(new Error('providers down'));
 
@@ -1460,7 +1462,7 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getByText('Requests chart'));
 
     // filter persistence (toggle / select all) all throw + swallow
-    fireEvent.click(screen.getByText('All harnesses (2)'));
+    fireEvent.click(screen.getByText('All agents (2)'));
     const toggle = screen
       .getAllByText('demo-agent')
       .find((el) => el.closest('.agent-filter-select'));
@@ -1551,7 +1553,7 @@ describe('ConnectionDetail (analytics)', () => {
     expect(apiMocks.renameProviderKey).not.toHaveBeenCalled();
   });
 
-  it('blocks renaming with a toast when there is no harness yet', async () => {
+  it('blocks renaming with a toast when there is no agent yet', async () => {
     apiMocks.getAgents.mockResolvedValue({ agents: [] });
     render(() => <ConnectionDetail />);
     const input = await openManageModal();
@@ -1560,7 +1562,7 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getByText('Save'));
 
     await waitFor(() =>
-      expect(toastMock.error).toHaveBeenCalledWith('Create at least one harness first.'),
+      expect(toastMock.error).toHaveBeenCalledWith('Create at least one agent first.'),
     );
     expect(apiMocks.renameProviderKey).not.toHaveBeenCalled();
   });
@@ -1605,7 +1607,7 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith('Failed to disconnect'));
   });
 
-  it('blocks disconnecting with a toast when there is no harness yet', async () => {
+  it('blocks disconnecting with a toast when there is no agent yet', async () => {
     apiMocks.getAgents.mockResolvedValue({ agents: [] });
     render(() => <ConnectionDetail />);
     await openManageModal();
@@ -1614,7 +1616,7 @@ describe('ConnectionDetail (analytics)', () => {
 
     await waitFor(() =>
       expect(toastMock.error).toHaveBeenCalledWith(
-        'Create at least one harness before disconnecting a provider.',
+        'Create at least one agent before disconnecting a provider.',
       ),
     );
     expect(apiMocks.disconnectProvider).not.toHaveBeenCalled();
@@ -1641,7 +1643,7 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(toastMock.error).toHaveBeenCalledWith('Failed to refresh models'));
   });
 
-  it('blocks refreshing models with a toast when there is no harness yet', async () => {
+  it('blocks refreshing models with a toast when there is no agent yet', async () => {
     apiMocks.getAgents.mockResolvedValue({ agents: [] });
     render(() => <ConnectionDetail />);
     await openManageModal();
@@ -1649,7 +1651,7 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getByText('Refresh models'));
 
     await waitFor(() =>
-      expect(toastMock.error).toHaveBeenCalledWith('Create at least one harness first.'),
+      expect(toastMock.error).toHaveBeenCalledWith('Create at least one agent first.'),
     );
     expect(apiMocks.refreshModels).not.toHaveBeenCalled();
   });

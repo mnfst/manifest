@@ -114,3 +114,26 @@ describe('MultiSelect', () => {
     removeSpy.mockRestore();
   });
 });
+
+describe('MultiSelect — separator', () => {
+  it('draws a divider above an option flagged separatorBefore', async () => {
+    const { container } = render(() => (
+      <MultiSelect
+        values={[]}
+        onChange={() => {}}
+        placeholder="All owners"
+        options={[
+          { label: 'Maya', value: 'u1' },
+          { label: 'Without an owner', value: 'none', separatorBefore: true },
+        ]}
+      />
+    ));
+    fireEvent.click(container.querySelector('button')!);
+    const listbox = container.querySelector('[role="listbox"]')!;
+    const hr = listbox.querySelector('hr.custom-select__separator');
+    expect(hr).not.toBeNull();
+    // The divider sits right before the flagged option.
+    expect(hr!.nextElementSibling?.textContent).toContain('Without an owner');
+    expect(listbox.querySelectorAll('hr').length).toBe(1);
+  });
+});
