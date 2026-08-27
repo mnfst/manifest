@@ -190,6 +190,7 @@ export const KEYWORD_WEIGHTS: Record<string, number> = {
   'regulated file': 3,
 
   // ── Financial / retirement account documents ──
+  'my 401k': 3,
   '401k statement': 3,
   '401 k statement': 3,
   '401(k) statement': 3,
@@ -222,6 +223,7 @@ export const KEYWORD_WEIGHTS: Record<string, number> = {
   'irs notice': 3,
   'irs letter': 3,
   'credit score report': 3,
+  'credit report': 3,
 
   // ── Document actions ──
   'summarize this document': 3,
