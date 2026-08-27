@@ -266,6 +266,52 @@ describe('specificity false-positive regression', () => {
     });
   });
 
+  describe('private_docs does not fire on bare coding/science vocabulary collisions', () => {
+    /**
+     * Regression for the review finding on private-docs.ts:32. These prompts
+     * use bare tokens (phi, sox, msa, nda, soc2, confidential, diagnosis,
+     * prescription, testimony) in ordinary coding / science senses. Each
+     * demoted token is a single sub-threshold signal and must NOT route the
+     * request to the privacy-preserving provider on its own.
+     */
+    const CODING_SCIENCE_COLLISIONS = [
+      'compute the phi coefficient for this contingency table',
+      'write a sox script to normalize audio volume',
+      'use math.phi to compute the golden ratio in python',
+      'align the sequences and run msa with biopython',
+      'generate a soc2-style badge component in react',
+      'add an nda field to the network dynamic affinity model',
+      'this document is confidential, do not share it',
+      'what is the diagnosis code for this icd mapping',
+      'the prescription pattern in this react hook is wrong',
+      'witness testimony in the mock trial object',
+    ];
+
+    it('no single bare-token collision routes to private_docs', () => {
+      const report = measureFalsePositives(CODING_SCIENCE_COLLISIONS, 'private_docs');
+      if (report.failures.length > 0) {
+        console.log(
+          `\nprivate_docs bare-token false positives (${report.failures.length}/${report.total}):`,
+        );
+        for (const f of report.failures) console.log(`  "${f.prompt}"`);
+      }
+      expect(report.failures.length).toBe(0);
+    });
+
+    it('a demoted token paired with a private anchor still routes to private_docs', () => {
+      // Positive control: demotion must not break detection when a genuine
+      // private signal is present alongside the bare token.
+      expect(scan('redact the diagnosis from this medical history file')?.category).toBe(
+        'private_docs',
+      );
+      expect(scan('read the patient record and redact phi before sharing')?.category).toBe(
+        'private_docs',
+      );
+      // Unambiguous acronyms stay decisive on their own.
+      expect(scan('extract pii from this csv export')?.category).toBe('private_docs');
+    });
+  });
+
   describe('private_docs does not fire on general knowledge questions about financial topics', () => {
     /**
      * Paired with the private_docs coverage prompts: these are the SAME
@@ -296,15 +342,10 @@ describe('specificity false-positive regression', () => {
     ];
 
     it('does not trigger private_docs on general knowledge financial questions', () => {
-      const report = measureFalsePositives(
-        GENERAL_KNOWLEDGE_ABOUT_PRIVATE_TOPICS,
-        'private_docs',
-      );
+      const report = measureFalsePositives(GENERAL_KNOWLEDGE_ABOUT_PRIVATE_TOPICS, 'private_docs');
 
       if (report.failures.length > 0) {
-        console.log(
-          `\nprivate_docs false positives (${report.failures.length}/${report.total}):`,
-        );
+        console.log(`\nprivate_docs false positives (${report.failures.length}/${report.total}):`);
         for (const f of report.failures) console.log(`  "${f.prompt}"`);
       }
 
