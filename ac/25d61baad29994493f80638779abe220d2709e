@@ -1,0 +1,25 @@
+CLAUDE.md
+  s_60e687e1253b34::t_8d44af8139ac00 570
+packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
+  s_60e687e1253b34::t_8d44af8139ac00 42,77,81,248,275-300
+.changeset/fix-agent-key-revocation-consistency.md
+  s_60e687e1253b34::t_8d44af8139ac00 1-5
+packages/backend/src/otlp/guards/agent-key-auth.guard.ts
+  s_60e687e1253b34::t_8d44af8139ac00 30,50-52,194-202,292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "ac25d61baad29994493f80638779abe220d2709e",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
