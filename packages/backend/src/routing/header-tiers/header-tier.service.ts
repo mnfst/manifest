@@ -141,7 +141,9 @@ export class HeaderTierService {
     if (streamWarmupMs !== null) {
       const n = Math.round(streamWarmupMs);
       if (!Number.isFinite(n) || n < 1000 || n > 120000) {
-        throw new BadRequestException('stream_warmup_ms must be between 1000 and 120000, or null to clear');
+        throw new BadRequestException(
+          'stream_warmup_ms must be between 1000 and 120000, or null to clear',
+        );
       }
       row.stream_warmup_ms = n;
     } else {

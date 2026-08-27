@@ -187,8 +187,13 @@ const HeaderTierModal: Component<Props> = (props) => {
       // persist stream warmup override if changed
       const warmupRaw = streamWarmup().trim();
       const warmupVal = warmupRaw === '' ? null : Number(warmupRaw);
-      if (warmupRaw !== '' && (!Number.isFinite(warmupVal) || warmupVal < 1000 || warmupVal > 120000)) {
-        throw new Error('Stream timeout must be between 1,000 and 120,000 ms, or left blank to inherit.');
+      if (
+        warmupRaw !== '' &&
+        (!Number.isFinite(warmupVal) || warmupVal < 1000 || warmupVal > 120000)
+      ) {
+        throw new Error(
+          'Stream timeout must be between 1,000 and 120,000 ms, or left blank to inherit.',
+        );
       }
       const existingWarmup = saved.stream_warmup_ms ?? null;
       if (warmupVal !== existingWarmup) {
@@ -388,7 +393,11 @@ const HeaderTierModal: Component<Props> = (props) => {
           </div>
         </Show>
 
-        <label class="modal-card__field-label" for="header-tier-warmup" style="margin-top: 16px; display: block;">
+        <label
+          class="modal-card__field-label"
+          for="header-tier-warmup"
+          style="margin-top: 16px; display: block;"
+        >
           Stream timeout (ms)
         </label>
         <input
