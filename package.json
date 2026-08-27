@@ -71,6 +71,7 @@
     "@changesets/cli": "^2.31.1",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.56.0",
+    "ajv": "8.20.0",
     "eslint": "^10.9.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
