@@ -195,6 +195,12 @@ describe('weightFor', () => {
       ['webpage', 2],
       ['website', 1.5],
       ['web page', 1.5],
+      // private_docs anchors
+      ['hipaa', 3],
+      ['phi', 3],
+      ['confidential', 3],
+      ['medical record', 3],
+      ['attorney-client privilege', 3],
     ];
 
     it.each(anchorSamples)('weightFor(%j) === %s', (keyword, expectedWeight) => {
@@ -217,6 +223,7 @@ describe('ACTIVATION_THRESHOLDS', () => {
     expect(ACTIVATION_THRESHOLDS.email_management).toBe(1);
     expect(ACTIVATION_THRESHOLDS.calendar_management).toBe(1);
     expect(ACTIVATION_THRESHOLDS.trading).toBe(1);
+    expect(ACTIVATION_THRESHOLDS.private_docs).toBe(1);
   });
 
   it('web_browsing threshold is the highest of all categories', () => {
@@ -247,6 +254,7 @@ describe('ACTIVATION_THRESHOLDS', () => {
       'email_management',
       'calendar_management',
       'trading',
+      'private_docs',
     ];
     for (const key of expected) {
       expect(ACTIVATION_THRESHOLDS).toHaveProperty(key);

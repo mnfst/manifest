@@ -252,6 +252,20 @@ describe('specificity false-positive regression', () => {
     });
   });
 
+  describe('private_docs false-positive regression on coding prompts', () => {
+    it('does not trigger private_docs on frontend/web-app coding vocabulary', () => {
+      const report = measureFalsePositives(FRONTEND_CODING_PROMPTS, 'private_docs');
+      // The private_docs keyword list avoids bare terms that overlap with
+      // common coding vocabulary. Zero false positives on frontend/coding prompts.
+      expect(report.failures.length).toBe(0);
+    });
+
+    it('does not trigger private_docs on session-simulation coding turns', () => {
+      const report = measureFalsePositives(SESSION_CODING_TURNS, 'private_docs');
+      expect(report.failures.length).toBe(0);
+    });
+  });
+
   describe('coding prompts with actual URLs are the only strong web_browsing signal', () => {
     it('detects web_browsing when a real URL is present alongside browse intent', () => {
       const r = scan('visit https://example.com and summarize the article');
