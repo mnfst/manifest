@@ -123,6 +123,7 @@ export class AutofixService {
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
   private readonly repairableStatuses: Set<number>;
+  private readonly configLoads = new Map<string, Promise<AgentAutofixConfig>>();
   // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
   // deadline; while it is in the future, heal calls are skipped.
   private healFailureStreak = 0;
@@ -496,22 +497,36 @@ export class AutofixService {
     // Autofix enablement is the consent boundary for sending request bodies to
     // Phoenix. Read it from the database on every repairable failure so a toggle
     // handled by one replica takes effect immediately on every other replica.
-    const agent = await this.agentRepo.findOne({
-      where: { id: agentId, tenant_id: tenantId },
-      // Select the PK alongside the flag. TypeORM's entity transformer treats a
-      // row whose only selected column is NULL as "no entity" and returns null,
-      // so `select: ['autofix_enabled']` alone makes every NULL-flag agent (the
-      // default "inherit the mode default" state) look not-found — which then
-      // resolves to `enabled: false` below and silently disables Autofix for it.
-      // The always-present `id` keeps the row materialized so the NULL flag is read.
-      select: ['id', 'autofix_enabled', 'agent_platform'],
-    });
-    // Unknown agent → off. Known agent → its explicit flag, or the mode default
-    // when unset (NULL).
-    return {
-      enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
-      harness: coerceAgentPlatform(agent?.agent_platform),
-    };
+    // Concurrent failures for the same agent share one in-flight read. This does
+    // not cache the result, so the next request still observes a later toggle.
+    const key = `${tenantId}:${agentId}`;
+    const existing = this.configLoads.get(key);
+    if (existing) return existing;
+
+    const load = (async (): Promise<AgentAutofixConfig> => {
+      const agent = await this.agentRepo.findOne({
+        where: { id: agentId, tenant_id: tenantId },
+        // Select the PK alongside the flag. TypeORM's entity transformer treats a
+        // row whose only selected column is NULL as "no entity" and returns null,
+        // so `select: ['autofix_enabled']` alone makes every NULL-flag agent (the
+        // default "inherit the mode default" state) look not-found — which then
+        // resolves to `enabled: false` below and silently disables Autofix for it.
+        // The always-present `id` keeps the row materialized so the NULL flag is read.
+        select: ['id', 'autofix_enabled', 'agent_platform'],
+      });
+      // Unknown agent → off. Known agent → its explicit flag, or the mode default
+      // when unset (NULL).
+      return {
+        enabled: agent ? this.resolveEnabled(agent.autofix_enabled) : false,
+        harness: coerceAgentPlatform(agent?.agent_platform),
+      };
+    })();
+    this.configLoads.set(key, load);
+    try {
+      return await load;
+    } finally {
+      if (this.configLoads.get(key) === load) this.configLoads.delete(key);
+    }
   }
 
   /** Fire-and-forget the learning signal so it never delays the client. */

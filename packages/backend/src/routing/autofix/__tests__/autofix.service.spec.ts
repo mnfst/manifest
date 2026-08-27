@@ -1218,6 +1218,30 @@ describe('AutofixService', () => {
       expect(findOne).toHaveBeenCalledTimes(3);
       expect(client.heal).toHaveBeenCalledTimes(1);
     });
+
+    it('coalesces concurrent consent reads without caching their result', async () => {
+      let resolveLoad!: (agent: Partial<Agent>) => void;
+      const findOne = jest.fn(
+        () =>
+          new Promise<Partial<Agent>>((resolve) => {
+            resolveLoad = resolve;
+          }),
+      );
+      const service = makeService({
+        repo: { findOne } as unknown as Repository<Agent>,
+      });
+
+      const first = service.isActiveFor('tenant-1', 'agent-1');
+      const second = service.isActiveFor('tenant-1', 'agent-1');
+      expect(findOne).toHaveBeenCalledTimes(1);
+
+      resolveLoad({ id: 'agent-1', autofix_enabled: true });
+      await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
+
+      findOne.mockResolvedValue({ id: 'agent-1', autofix_enabled: false });
+      await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
+      expect(findOne).toHaveBeenCalledTimes(2);
+    });
   });
 });
 
