@@ -146,6 +146,33 @@ describe('LimitCheckService', () => {
     expect(result!.ruleId).toBe('r2');
   });
 
+  it('reuses consumption for rules with the same metric and period within one request', async () => {
+    mockGetActiveBlockRules.mockResolvedValue([
+      {
+        id: 'r1',
+        tenant_id: 't',
+        agent_name: 'a',
+        metric_type: 'tokens',
+        threshold: 100000,
+        period: 'day',
+      },
+      {
+        id: 'r2',
+        tenant_id: 't',
+        agent_name: 'a',
+        metric_type: 'tokens',
+        threshold: 50000,
+        period: 'day',
+      },
+    ]);
+    mockGetConsumption.mockResolvedValue(75000);
+
+    await expect(service.checkLimits('t', 'a')).resolves.toEqual(
+      expect.objectContaining({ ruleId: 'r2', actual: 75000 }),
+    );
+    expect(mockGetConsumption).toHaveBeenCalledTimes(1);
+  });
+
   it('enforces a block rule created through another replica on the next request', async () => {
     await expect(service.checkLimits('tenant-1', 'my-agent')).resolves.toBeNull();
 

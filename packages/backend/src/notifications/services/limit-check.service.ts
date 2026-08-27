@@ -42,15 +42,21 @@ export class LimitCheckService {
     const rules = await this.rulesService.getActiveBlockRules(tenantId, agentName);
     if (rules.length === 0) return null;
 
+    const consumptionByMetricAndPeriod = new Map<string, number>();
     for (const rule of rules) {
       const { periodStart, periodEnd } = computePeriodBoundaries(rule.period);
-      const actual = await this.rulesService.getConsumption(
-        tenantId,
-        agentName,
-        rule.metric_type,
-        periodStart,
-        periodEnd,
-      );
+      const consumptionKey = `${rule.metric_type}:${periodStart}:${periodEnd}`;
+      let actual = consumptionByMetricAndPeriod.get(consumptionKey);
+      if (actual === undefined) {
+        actual = await this.rulesService.getConsumption(
+          tenantId,
+          agentName,
+          rule.metric_type,
+          periodStart,
+          periodEnd,
+        );
+        consumptionByMetricAndPeriod.set(consumptionKey, actual);
+      }
 
       if (actual >= rule.threshold) {
         this.notifyLimitExceeded(rule, actual, periodStart, periodEnd).catch((err) => {
