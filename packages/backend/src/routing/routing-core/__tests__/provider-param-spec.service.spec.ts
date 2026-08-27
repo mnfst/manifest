@@ -120,10 +120,33 @@ describe('ProviderParamSpecService', () => {
   });
 
   it.each([
-    ['k3', ['max_completion_tokens', 'thinking.type', 'response_format.type']],
-    ['k3-256k', ['max_completion_tokens', 'thinking.type', 'response_format.type']],
-    ['kimi-for-coding', ['max_completion_tokens', 'response_format.type']],
-    ['kimi-for-coding-highspeed', ['max_completion_tokens', 'response_format.type']],
+    [
+      'k3',
+      [
+        'max_completion_tokens',
+        'stop',
+        'reasoning_effort',
+        'thinking.type',
+        'tool_choice',
+        'response_format.type',
+      ],
+    ],
+    [
+      'k3-256k',
+      [
+        'max_completion_tokens',
+        'stop',
+        'reasoning_effort',
+        'thinking.type',
+        'tool_choice',
+        'response_format.type',
+      ],
+    ],
+    ['kimi-for-coding', ['max_completion_tokens', 'thinking.type', 'response_format.type']],
+    [
+      'kimi-for-coding-highspeed',
+      ['max_completion_tokens', 'thinking.type', 'response_format.type'],
+    ],
   ])('resolves Moonshot wire id %s through its metadata model', async (model, paths) => {
     const service = new ProviderParamSpecService();
 
