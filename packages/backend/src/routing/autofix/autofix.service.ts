@@ -54,6 +54,11 @@ interface AgentAutofixConfig {
   harness: AgentPlatform;
 }
 
+interface AgentConfigLoad {
+  generation: number;
+  promise: Promise<AgentAutofixConfig>;
+}
+
 const DEFAULT_REPAIRABLE_STATUSES = '400,404,422';
 
 // Circuit breaker for the healing service. After this many consecutive heal-call
@@ -123,7 +128,8 @@ export class AutofixService {
   // ON in cloud, OFF in self-hosted. Computed once at boot.
   private readonly defaultAgentEnabled: boolean;
   private readonly repairableStatuses: Set<number>;
-  private readonly configLoads = new Map<string, Promise<AgentAutofixConfig>>();
+  private readonly configLoads = new Map<string, AgentConfigLoad>();
+  private configLoadGeneration = 0;
   // Circuit-breaker state (process-local). `breakerOpenUntil` is an epoch-ms
   // deadline; while it is in the future, heal calls are skipped.
   private healFailureStreak = 0;
@@ -497,13 +503,37 @@ export class AutofixService {
     // Autofix enablement is the consent boundary for sending request bodies to
     // Phoenix. Read it from the database on every repairable failure so a toggle
     // handled by one replica takes effect immediately on every other replica.
-    // Concurrent failures for the same agent share one in-flight read. This does
-    // not cache the result, so the next request still observes a later toggle.
     const key = `${tenantId}:${agentId}`;
     const existing = this.configLoads.get(key);
-    if (existing) return existing;
+    // A request that arrives during an older read waits for the next generation.
+    // This prevents a post-toggle request from joining a query that began before
+    // the toggle, while all requests queued behind that query share one new read.
+    const minimumGeneration = existing ? existing.generation + 1 : 0;
+    return this.loadAgentConfigGeneration(agentId, tenantId, key, minimumGeneration);
+  }
 
-    const load = (async (): Promise<AgentAutofixConfig> => {
+  private async loadAgentConfigGeneration(
+    agentId: string,
+    tenantId: string,
+    key: string,
+    minimumGeneration: number,
+  ): Promise<AgentAutofixConfig> {
+    const existing = this.configLoads.get(key);
+    if (existing) {
+      if (existing.generation >= minimumGeneration) return existing.promise;
+
+      // The caller arrived after this generation started. Wait for it to leave
+      // the slot, then create or join the next generation. Its result is ignored.
+      try {
+        await existing.promise;
+      } catch {
+        // A fresh generation below gets its own database result or error.
+      }
+      if (this.configLoads.get(key) === existing) this.configLoads.delete(key);
+      return this.loadAgentConfigGeneration(agentId, tenantId, key, minimumGeneration);
+    }
+
+    const promise = (async (): Promise<AgentAutofixConfig> => {
       const agent = await this.agentRepo.findOne({
         where: { id: agentId, tenant_id: tenantId },
         // Select the PK alongside the flag. TypeORM's entity transformer treats a
@@ -521,9 +551,10 @@ export class AutofixService {
         harness: coerceAgentPlatform(agent?.agent_platform),
       };
     })();
+    const load = { generation: ++this.configLoadGeneration, promise };
     this.configLoads.set(key, load);
     try {
-      return await load;
+      return await promise;
     } finally {
       if (this.configLoads.get(key) === load) this.configLoads.delete(key);
     }

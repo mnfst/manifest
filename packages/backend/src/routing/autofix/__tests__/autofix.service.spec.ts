@@ -1219,12 +1219,12 @@ describe('AutofixService', () => {
       expect(client.heal).toHaveBeenCalledTimes(1);
     });
 
-    it('coalesces concurrent consent reads without caching their result', async () => {
-      let resolveLoad!: (agent: Partial<Agent>) => void;
+    it('queues a fresh shared consent read for requests that arrive during an older read', async () => {
+      const resolveLoads: Array<(agent: Partial<Agent>) => void> = [];
       const findOne = jest.fn(
         () =>
           new Promise<Partial<Agent>>((resolve) => {
-            resolveLoad = resolve;
+            resolveLoads.push(resolve);
           }),
       );
       const service = makeService({
@@ -1233,14 +1233,22 @@ describe('AutofixService', () => {
 
       const first = service.isActiveFor('tenant-1', 'agent-1');
       const second = service.isActiveFor('tenant-1', 'agent-1');
+      const third = service.isActiveFor('tenant-1', 'agent-1');
       expect(findOne).toHaveBeenCalledTimes(1);
 
-      resolveLoad({ id: 'agent-1', autofix_enabled: true });
-      await expect(Promise.all([first, second])).resolves.toEqual([true, true]);
+      // The first result can predate a toggle. Later callers ignore it and share
+      // a generation that begins only after this read has completed.
+      resolveLoads[0]({ id: 'agent-1', autofix_enabled: false });
+      await expect(first).resolves.toBe(false);
+      await Promise.resolve();
+      expect(findOne).toHaveBeenCalledTimes(2);
+
+      resolveLoads[1]({ id: 'agent-1', autofix_enabled: true });
+      await expect(Promise.all([second, third])).resolves.toEqual([true, true]);
 
       findOne.mockResolvedValue({ id: 'agent-1', autofix_enabled: false });
       await expect(service.isActiveFor('tenant-1', 'agent-1')).resolves.toBe(false);
-      expect(findOne).toHaveBeenCalledTimes(2);
+      expect(findOne).toHaveBeenCalledTimes(3);
     });
   });
 });
