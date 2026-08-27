@@ -270,10 +270,10 @@ export const KEYWORD_WEIGHTS: Record<string, number> = {
   'confidential container': 3,
 
   // ── Regulated industry document contexts ──
-  'client data': 3,
-  'customer data': 3,
-  'protected data': 3,
-  'regulated data': 3,
+  'client data': 1,
+  'customer data': 1,
+  'protected data': 1,
+  'regulated data': 1,
 };
 
 /**
