@@ -231,10 +231,11 @@ describe('Anthropic Messages adapter', () => {
     });
 
     it('exposes Anthropic server tools to the scorer by function.name (issue #1886)', () => {
-      // chatBody is only consumed by the routing/scoring layer in messages
-      // mode — the wire body goes through applyAnthropicMessagesMutations
-      // direct from the inbound body, so server-tool `type` tags are
-      // preserved upstream. Scoring just needs tool count + function.name.
+      // chatBody is consumed by the routing/scoring layer in messages mode —
+      // the scorer reads tool count + function.name. When the resolved
+      // provider is Anthropic, the wire body goes through
+      // applyAnthropicMessagesMutations direct from the inbound body instead
+      // of this translation, so server-tool `type` tags are preserved there.
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
         tools: [
@@ -256,6 +257,48 @@ describe('Anthropic Messages adapter', () => {
         'mcp',
         'my_custom',
         'explicit_custom',
+      ]);
+    });
+
+    it('gives Anthropic server tools a safe empty schema so strict chat-completions providers accept them (issue #2754)', () => {
+      // chatBody.tools is also the literal wire payload forwarded to
+      // non-Anthropic providers reached via the chat-completions wire format
+      // (ProviderClient.forward's needsChatBody path). Anthropic server
+      // tools (web_search, bash, computer, etc.) carry no `input_schema`;
+      // some strict providers (e.g. MiniMax) reject any function tool with
+      // no `parameters` field at all, so omitting it 400s the request even
+      // though Manifest itself never executes the tool.
+      const result = messagesToChatCompletionsRequest({
+        messages: [{ role: 'user', content: 'x' }],
+        tools: [
+          { type: 'web_search_20250305', name: 'web_search' },
+          { type: 'bash_20250124', name: 'bash' },
+          { type: 'mcp_toolset', name: 'mcp' },
+        ],
+      });
+
+      expect(result.tools).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'web_search',
+            parameters: { type: 'object', properties: {}, additionalProperties: false },
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'bash',
+            parameters: { type: 'object', properties: {}, additionalProperties: false },
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'mcp',
+            parameters: { type: 'object', properties: {}, additionalProperties: false },
+          },
+        },
       ]);
     });
 

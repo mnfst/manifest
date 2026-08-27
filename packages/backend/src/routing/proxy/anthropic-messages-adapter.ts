@@ -21,28 +21,8 @@ const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-const ANTHROPIC_SERVER_TOOL_PREFIXES = [
-  'bash_',
-  'code_execution_',
-  'computer_',
-  'memory_',
-  'text_editor_',
-  'tool_search_tool_',
-  'web_fetch_',
-  'web_search_',
-] as const;
-
-const ANTHROPIC_SERVER_TOOL_TYPES = ['mcp_toolset'] as const;
-
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
-}
-
-function isAnthropicServerToolType(type: string): boolean {
-  return (
-    ANTHROPIC_SERVER_TOOL_TYPES.includes(type as (typeof ANTHROPIC_SERVER_TOOL_TYPES)[number]) ||
-    ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix))
-  );
 }
 
 function normalizeOpenAiFunctionSchema(schema: unknown): unknown {
@@ -191,7 +171,19 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
 // and array length, nothing else. The Anthropic wire body is emitted by
 // `applyAnthropicMessagesMutations` directly from the inbound body, so this
 // translation can lose Anthropic-only tool fields (e.g. server-tool `type`
-// tags, omitted input_schema) without affecting upstream behavior.
+// tags, omitted input_schema) without affecting upstream behavior *when the
+// resolved provider is Anthropic*.
+//
+// But `chatBody.tools` is also the literal wire payload forwarded to
+// non-Anthropic providers reached via the chat-completions wire format (see
+// `ProviderClient.forward`'s `needsChatBody` path) — those providers never
+// see the native Anthropic body. Anthropic server tools (`web_search_*`,
+// `bash_*`, `computer_*`, etc.) have no `input_schema`, and some strict
+// chat-completions providers (e.g. MiniMax) reject any function tool whose
+// `parameters` field is missing entirely — even though the tool itself can't
+// run there regardless. Emitting the same safe empty-object schema used for
+// unrecognized tool types (issue #1897) keeps the request well-formed
+// without pretending the schema is meaningful (fixes #2754).
 function toChatTools(tools: unknown[]): JsonRecord[] {
   return tools.filter(isRecord).map((tool) => ({
     type: 'function',
@@ -200,9 +192,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
       ...(typeof tool.description === 'string' && { description: tool.description }),
       ...(tool.input_schema !== undefined
         ? { parameters: normalizeOpenAiFunctionSchema(tool.input_schema) }
-        : typeof tool.type === 'string' &&
-            tool.type !== 'custom' &&
-            !isAnthropicServerToolType(tool.type)
+        : typeof tool.type === 'string' && tool.type !== 'custom'
           ? { parameters: DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA }
           : {}),
     },
