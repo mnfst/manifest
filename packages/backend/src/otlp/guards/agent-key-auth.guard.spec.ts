@@ -300,6 +300,32 @@ describe('AgentKeyAuthGuard', () => {
     expect(internalCache.has(testCacheKey(token))).toBe(false);
   });
 
+  it('fails closed when the cached-key activity recheck cannot reach the database', async () => {
+    const token = 'mnfst_cached-key-db-error';
+    mockGetMany.mockResolvedValue([
+      {
+        id: 'key-db-error',
+        tenant_id: 'tenant-1',
+        agent_id: 'agent-1',
+        key_hash: hashKey(token),
+        expires_at: null,
+        agent: { name: 'test-agent' },
+        tenant: { owner_user_id: 'user-1' },
+      },
+    ]);
+
+    const { ctx: first } = makeContext({ authorization: `Bearer ${token}` });
+    await expect(guard.canActivate(first)).resolves.toBe(true);
+
+    mockExistsBy.mockRejectedValueOnce(new Error('database unavailable'));
+    const { ctx: duringOutage } = makeContext({ authorization: `Bearer ${token}` });
+    await expect(guard.canActivate(duringOutage)).rejects.toThrow(UnauthorizedException);
+    await expect(guard.canActivate(duringOutage)).resolves.toBe(true);
+
+    expect(mockGetMany).toHaveBeenCalledTimes(1);
+    expect(mockExistsBy).toHaveBeenCalledTimes(2);
+  });
+
   it('stops authenticating from cache once the key own expiry passes within the cache TTL', async () => {
     // A key that expires (or is set to expire) while still cached must not keep
     // authenticating until the 5-min cache TTL lapses. The fast path reads the

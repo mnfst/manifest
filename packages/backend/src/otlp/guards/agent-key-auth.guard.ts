@@ -191,10 +191,16 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     if (cached && cached.keyExpiresAt !== null && cached.keyExpiresAt <= now) {
       this.cache.delete(hashed);
     } else if (cached && cached.expiresAt > now) {
-      const stillActive = await this.keyRepo.existsBy({
-        id: cached.keyId,
-        is_active: true,
-      });
+      let stillActive: boolean;
+      try {
+        stillActive = await this.keyRepo.existsBy({
+          id: cached.keyId,
+          is_active: true,
+        });
+      } catch (err) {
+        this.logger.warn(`Agent-key activity recheck failed: ${(err as Error).message}`);
+        throw new UnauthorizedException('Invalid API key');
+      }
       if (!stillActive) {
         this.cache.delete(hashed);
         this.rememberInvalid(hashed);
