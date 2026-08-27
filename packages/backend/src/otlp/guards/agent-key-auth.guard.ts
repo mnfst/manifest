@@ -27,6 +27,7 @@ function cacheKey(token: string): string {
 }
 
 interface CachedKey {
+  keyId: string;
   tenantId: string;
   agentId: string;
   agentName: string;
@@ -46,9 +47,9 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
   private readonly logger = new Logger(AgentKeyAuthGuard.name);
   private cache = new Map<string, CachedKey>();
   private devContext: { context: IngestionContext; expiresAt: number } | null = null;
-  // 5 min TTL keeps revoked-key staleness bounded while still amortizing the
-  // DB lookup across hot ingest bursts. Mutations call invalidateCache()
-  // directly when keys rotate or deactivate.
+  // 5 min TTL amortizes the expensive prefix lookup and hash verification.
+  // Cache hits still verify the key row is active, so rotation and deletion
+  // take effect across replicas without waiting for this TTL.
   private readonly CACHE_TTL_MS = 5 * 60 * 1000;
   private readonly MAX_CACHE_SIZE = 10_000;
   // Maps a rejected token's hash to when its rejection stops being trusted.
@@ -190,6 +191,21 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     if (cached && cached.keyExpiresAt !== null && cached.keyExpiresAt <= now) {
       this.cache.delete(hashed);
     } else if (cached && cached.expiresAt > now) {
+      let stillActive: boolean;
+      try {
+        stillActive = await this.keyRepo.existsBy({
+          id: cached.keyId,
+          is_active: true,
+        });
+      } catch (err) {
+        this.logger.warn(`Agent-key activity recheck failed: ${(err as Error).message}`);
+        throw new UnauthorizedException('Invalid API key');
+      }
+      if (!stillActive) {
+        this.cache.delete(hashed);
+        this.rememberInvalid(hashed);
+        throw new UnauthorizedException('Invalid API key');
+      }
       // LRU touch — re-insert to move to tail of insertion order
       this.cache.delete(hashed);
       this.cache.set(hashed, cached);
@@ -279,6 +295,7 @@ export class AgentKeyAuthGuard implements CanActivate, OnModuleInit, OnModuleDes
     }
 
     this.cache.set(hashed, {
+      keyId: keyRecord.id,
       tenantId: keyRecord.tenant_id,
       agentId: keyRecord.agent_id,
       agentName: keyRecord.agent.name,

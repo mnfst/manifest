@@ -567,7 +567,7 @@ configuration simply leaves it unset by default.
 - **Better Auth database**: Uses a `pg.Pool` instance passed directly to `betterAuth({ database: pool })`. See `packages/backend/src/auth/auth.instance.ts`.
 - **PostgreSQL container**: `docker run -d --name postgres_db -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432 postgres:16`
 - **Validation**: Global `ValidationPipe` with `whitelist: true`, `forbidNonWhitelisted: true`. Explicit `@Type()` decorators on numeric DTO fields.
-- **Agent key auth caching**: `AgentKeyAuthGuard` caches valid API keys in-memory for 5 minutes to avoid repeated DB lookups.
+- **Agent key auth caching**: `AgentKeyAuthGuard` caches verified API-key context in-memory for 5 minutes, but checks that the key row is still active on every request so rotation and deletion apply across replicas immediately.
 - **Database migrations**: TypeORM migrations are version-controlled in `src/database/migrations/`. `synchronize` is permanently `false`. Migrations auto-run on boot by default, gated by `RUN_MIGRATIONS_ON_BOOT` (default `true`; disable for multi-replica deploys). `migrationsTransactionMode` is `'each'` (one transaction per migration, not one for the whole run) because some `agent_messages` index migrations run `CONCURRENTLY`, which PostgreSQL forbids inside a shared transaction. The CLI DataSource is at `src/database/datasource.ts`. Better Auth manages its own tables separately via `ctx.runMigrations()`.
 - **SSE**: `SseController` provides `/api/v1/events` for real-time dashboard updates.
 - **Notifications**: Cron-based threshold checking, supports Mailgun + Resend + SendGrid email providers.
