@@ -148,7 +148,7 @@ describe('ProxyController', () => {
   let recorder: ProxyMessageRecorder;
   let planService: { assertWithinRequestLimit: jest.Mock };
   let observationReporter: { report: jest.Mock };
-  let recordingCache: { isRecording: jest.Mock };
+  let recordingConfig: { isRecording: jest.Mock };
   let attemptRecording: { available: boolean; save: jest.Mock };
 
   beforeEach(() => {
@@ -190,7 +190,7 @@ describe('ProxyController', () => {
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModelCapabilities: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
-    recordingCache = { isRecording: jest.fn().mockResolvedValue(false) };
+    recordingConfig = { isRecording: jest.fn().mockResolvedValue(false) };
     attemptRecording = {
       available: true,
       save: jest.fn().mockResolvedValue(undefined),
@@ -228,7 +228,7 @@ describe('ProxyController', () => {
       observationReporter as never,
       providerParamSpecs as never,
       modelsDevSync as never,
-      recordingCache as never,
+      recordingConfig as never,
       attemptRecording as never,
     );
   });
@@ -610,7 +610,7 @@ describe('ProxyController', () => {
   );
 
   it('records the exact provider request and response on its Provider Attempt', async () => {
-    recordingCache.isRecording.mockResolvedValue(true);
+    recordingConfig.isRecording.mockResolvedValue(true);
     const responseBody = {
       choices: [{ message: { role: 'assistant', content: 'recorded reply' } }],
     };
@@ -656,7 +656,7 @@ describe('ProxyController', () => {
 
     await controller.chatCompletions(mockRequest(callerBody) as never, res as never);
 
-    expect(recordingCache.isRecording).toHaveBeenCalledWith('agent-1');
+    expect(recordingConfig.isRecording).toHaveBeenCalledWith('agent-1');
     expect(attemptRecording.save).toHaveBeenCalledWith(
       'tenant-1',
       expect.any(String),
@@ -733,7 +733,7 @@ describe('ProxyController', () => {
   });
 
   it('keeps Autofix original and retry payloads on separate Provider Attempts', async () => {
-    recordingCache.isRecording.mockResolvedValue(true);
+    recordingConfig.isRecording.mockResolvedValue(true);
     const originalBody = { model: 'gpt-4o', messages: [], unsupported: true };
     const retryBody = { model: 'gpt-4o', messages: [] };
     const originalResponse = { error: { message: 'unsupported parameter' } };
@@ -809,7 +809,7 @@ describe('ProxyController', () => {
   });
 
   it('keeps routing when the recording config lookup fails', async () => {
-    recordingCache.isRecording.mockRejectedValueOnce(new Error('recording unavailable'));
+    recordingConfig.isRecording.mockRejectedValueOnce(new Error('recording unavailable'));
     proxyService.proxyRequest.mockRejectedValueOnce(new HttpException('Too many requests', 429));
     const { res } = mockResponse();
 
@@ -820,7 +820,7 @@ describe('ProxyController', () => {
   });
 
   it('keeps serving a captured response when saving its recording fails', async () => {
-    recordingCache.isRecording.mockResolvedValue(true);
+    recordingConfig.isRecording.mockResolvedValue(true);
     attemptRecording.save.mockRejectedValueOnce(new Error('recording unavailable'));
     const responseBody = { choices: [{ message: { content: 'still served' } }] };
     proxyService.proxyRequest.mockImplementation(

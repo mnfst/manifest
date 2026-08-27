@@ -32,7 +32,7 @@ import { Agent } from '../entities/agent.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { AutofixService } from './autofix/autofix.service';
-import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
+import { AgentRecordingConfigService } from '../common/services/agent-recording-config.service';
 
 @Controller('api/v1/routing')
 export class TierController {
@@ -44,7 +44,7 @@ export class TierController {
     @InjectRepository(InstallMetadata)
     private readonly installMetadataRepo: Repository<InstallMetadata>,
     private readonly autofixService: AutofixService,
-    private readonly recordingCache: AgentRecordingCacheService,
+    private readonly recordingConfig: AgentRecordingConfigService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -240,7 +240,7 @@ export class TierController {
   @Get(':agentName/recording')
   async getRecording(@TenantCtx() ctx: TenantContext, @Param('agentName') agentName: string) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
-    return { enabled: agent.record_messages === true };
+    return { enabled: await this.recordingConfig.isRecording(agent.id) };
   }
 
   @Patch(':agentName/recording')
@@ -251,12 +251,11 @@ export class TierController {
   ) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, agentName);
     if (typeof body.enabled !== 'boolean') {
-      return { enabled: agent.record_messages === true };
+      return { enabled: await this.recordingConfig.isRecording(agent.id) };
     }
 
     await this.agentRepo.update(agent.id, { record_messages: body.enabled });
     this.resolveAgentService.invalidate(agent.tenant_id, agentName);
-    this.recordingCache.invalidate(agent.id);
     return { enabled: body.enabled };
   }
 
