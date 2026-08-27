@@ -277,12 +277,11 @@ describe('chatgpt-adapter streaming: finish_reason with empty response.completed
   });
 
   it('keeps finish_reason tool_calls when completed payload still contains the function call', () => {
-    // Pre-existing behavior (completed WITH output listing the function_call)
-    // must not regress.
+    // Isolate the completed-payload path: without a preceding streamed tool
+    // call, this assertion specifically guards hasFunctionCalls.
     const stream = createChatGptStreamTransformer('gpt-5');
     const seen: string[] = [];
     for (const chunk of [
-      'event: response.output_item.added\ndata: {"output_index":0,"item":{"type":"function_call","call_id":"c1","name":"foo"}}',
       'event: response.completed\ndata: {"response":{"output":[{"type":"function_call"}]}}',
     ]) {
       const out = stream(chunk);
