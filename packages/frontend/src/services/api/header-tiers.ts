@@ -15,7 +15,7 @@ export interface HeaderTier {
   fallback_routes: ModelRoute[] | null;
   output_modality?: OutputModality;
   response_mode?: ResponseMode;
-  /** per-tier stream warmup override (ms). null/absent => provider/global default. */
+  /** Per-tier stream warmup override (ms). null/absent => provider/global default. */
   stream_warmup_ms?: number | null;
   created_at: string;
   updated_at: string;

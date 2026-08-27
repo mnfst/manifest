@@ -52,7 +52,7 @@ const HeaderTierModal: Component<Props> = (props) => {
     editingTier?.response_mode === 'stream',
   );
 
-  // stream warmup override (ms). Empty string = inherit (provider -> global 15s default).
+  // Stream warmup override (ms). Empty string = inherit (provider -> global 15s default).
   const [streamWarmup, setStreamWarmup] = createSignal<string>(
     editingTier?.stream_warmup_ms != null ? String(editingTier.stream_warmup_ms) : '',
   );
@@ -184,7 +184,7 @@ const HeaderTierModal: Component<Props> = (props) => {
       if (saved.response_mode !== newMode) {
         saved = await setHeaderTierResponseMode(props.agentName, saved.id, newMode);
       }
-      // persist stream warmup override if changed
+      // Persist stream warmup override if changed
       const warmupRaw = streamWarmup().trim();
       const warmupVal = warmupRaw === '' ? null : Number(warmupRaw);
       if (

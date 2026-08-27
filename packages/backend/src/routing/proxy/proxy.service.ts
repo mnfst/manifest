@@ -206,7 +206,7 @@ interface HealedReforwardContext {
   tenantProviderId: string | null;
 }
 
-// --- per-tier/per-provider stream warmup overrides ---
+// --- Per-tier/per-provider stream warmup overrides ---
 const warmupCache = new Map<string, number | null>();
 const WARMUP_CACHE_TTL_MS = 60_000;
 
