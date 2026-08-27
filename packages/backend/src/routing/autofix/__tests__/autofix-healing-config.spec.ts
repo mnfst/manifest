@@ -15,10 +15,11 @@ describe('resolveHealingUrl', () => {
     expect(resolveHealingUrl(undefined)).toBeUndefined();
   });
 
-  it('pins the hosted healer origin', () => {
+  it('pins the only production healer origin', () => {
     // The URL is a constant with no override, so this literal is the whole
-    // contract — a change here changes where every install sends failures.
+    // contract. Demo and Railway-generated hostnames are not valid here.
     expect(AUTOFIX_URL).toBe('https://autofix.manifest.build');
+    expect(new URL(AUTOFIX_URL).hostname).toBe('autofix.manifest.build');
     expect(new URL(AUTOFIX_URL).pathname).toBe('/');
   });
 });

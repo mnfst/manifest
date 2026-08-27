@@ -19,9 +19,8 @@ const MAX_QUEUE = 500;
 /**
  * Ceiling on consent checks awaiting a verdict. Each one retains a request body,
  * and {@link MAX_QUEUE} only bounds what has already cleared the gate — so a slow
- * gate (a cache miss storm against a struggling DB) would otherwise let bodies
- * pile up behind it, unbounded. The gate is cached per tenant and per agent, so
- * in steady state almost nothing is ever in flight.
+ * gate against a struggling DB would otherwise let bodies pile up behind it,
+ * unbounded. Concurrent gates for the same agent share one in-flight DB read.
  */
 const MAX_IN_FLIGHT_GATES = 100;
 
@@ -78,7 +77,8 @@ export class ObservationReporter implements OnModuleDestroy {
    * Queue a failed forward for reporting, if the agent has Autofix on.
    * Synchronous and non-throwing by contract — the caller is on the request path
    * and must never wait on, or fail because of, evidence collection. The consent
-   * gate is async (cached, an occasional DB read), so it runs detached.
+   * gate is async (a fresh DB read, coalesced per agent while in flight), so it
+   * runs detached.
    */
   report(input: ObservationInput): void {
     if (!this.enabled) return;
