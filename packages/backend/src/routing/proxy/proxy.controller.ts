@@ -65,7 +65,7 @@ import { openAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
-import { AgentRecordingCacheService } from '../../common/services/agent-recording-cache.service';
+import { AgentRecordingConfigService } from '../../common/services/agent-recording-config.service';
 import { AttemptRecordingService } from './attempt-recording.service';
 import {
   createAttemptRecordingCapture,
@@ -139,7 +139,7 @@ export class ProxyController {
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
     @Optional()
-    private readonly recordingCache?: AgentRecordingCacheService,
+    private readonly recordingConfig?: AgentRecordingConfigService,
     @Optional()
     private readonly attemptRecording?: AttemptRecordingService,
   ) {}
@@ -267,11 +267,11 @@ export class ProxyController {
       })
       .catch((e) => this.logger.warn(`Failed to record pending Request: ${e}`));
 
-    if (this.recordingCache && this.attemptRecording) {
+    if (this.recordingConfig && this.attemptRecording) {
       try {
         recordingEnabled =
           this.attemptRecording.available &&
-          (await this.recordingCache.isRecording(req.ingestionContext.agentId));
+          (await this.recordingConfig.isRecording(req.ingestionContext.agentId));
       } catch (e) {
         recordingEnabled = false;
         this.logger.warn(`Failed to resolve attempt recording config: ${e}`);

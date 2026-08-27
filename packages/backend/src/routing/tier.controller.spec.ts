@@ -7,7 +7,7 @@ import { Agent } from '../entities/agent.entity';
 import { InstallMetadata } from '../entities/install-metadata.entity';
 import { AutofixService } from './autofix/autofix.service';
 import type { TenantContext } from '../common/decorators/tenant-context.decorator';
-import { AgentRecordingCacheService } from '../common/services/agent-recording-cache.service';
+import { AgentRecordingConfigService } from '../common/services/agent-recording-config.service';
 import type { Cache } from 'cache-manager';
 
 const ORIGINAL_MANIFEST_MODE = process.env.MANIFEST_MODE;
@@ -41,7 +41,7 @@ describe('TierController', () => {
   };
   let controller: TierController;
   let cacheDel: jest.Mock;
-  let recordingCache: { invalidate: jest.Mock };
+  let recordingConfig: { isRecording: jest.Mock };
   let installMetadataRepo: {
     findOne: jest.Mock;
     createQueryBuilder: jest.Mock;
@@ -74,7 +74,7 @@ describe('TierController', () => {
       // Mirror the real resolver: explicit flag wins, NULL inherits a default.
       resolveEnabled: jest.fn((stored: boolean | null) => stored ?? false),
     };
-    recordingCache = { invalidate: jest.fn() };
+    recordingConfig = { isRecording: jest.fn().mockResolvedValue(false) };
     installMetadataRepo = {
       findOne: jest.fn().mockResolvedValue(null),
       createQueryBuilder: jest.fn().mockReturnValue({
@@ -93,7 +93,7 @@ describe('TierController', () => {
       agentRepo as unknown as Repository<Agent>,
       installMetadataRepo as unknown as Repository<InstallMetadata>,
       autofixService as unknown as AutofixService,
-      recordingCache as unknown as AgentRecordingCacheService,
+      recordingConfig as unknown as AgentRecordingConfigService,
       cacheManager as unknown as Cache,
     );
   });
@@ -297,21 +297,21 @@ describe('TierController', () => {
 
   it('GET recording returns the per-agent opt-in flag', async () => {
     expect(await controller.getRecording(ctx, 'demo')).toEqual({ enabled: false });
+    expect(recordingConfig.isRecording).toHaveBeenCalledWith('agent-1');
   });
 
-  it('PATCH recording updates the flag and invalidates both agent caches', async () => {
+  it('PATCH recording updates the flag and invalidates the agent lookup', async () => {
     expect(await controller.updateRecording(ctx, 'demo', { enabled: true })).toEqual({
       enabled: true,
     });
     expect(agentRepo.update).toHaveBeenCalledWith('agent-1', { record_messages: true });
     expect(resolveAgentService.invalidate).toHaveBeenCalledWith('tenant-1', 'demo');
-    expect(recordingCache.invalidate).toHaveBeenCalledWith('agent-1');
   });
 
   it('PATCH recording with no boolean is a no-op', async () => {
     expect(await controller.updateRecording(ctx, 'demo', {})).toEqual({ enabled: false });
     expect(agentRepo.update).not.toHaveBeenCalled();
-    expect(recordingCache.invalidate).not.toHaveBeenCalled();
+    expect(recordingConfig.isRecording).toHaveBeenCalledWith('agent-1');
   });
 
   it('PATCH response-mode sets the mode for a valid tier', async () => {
