@@ -266,6 +266,54 @@ describe('specificity false-positive regression', () => {
     });
   });
 
+  describe('private_docs does not fire on general knowledge questions about financial topics', () => {
+    /**
+     * Paired with the private_docs coverage prompts: these are the SAME
+     * financial / medical terms but in a general-knowledge question context.
+     * They should NOT be routed to a privacy-preserving provider.
+     */
+    const GENERAL_KNOWLEDGE_ABOUT_PRIVATE_TOPICS = [
+      'explain Roth IRA income limits',
+      'how does a 529 plan work',
+      'when are 1099s due',
+      'what is a W-2',
+      'what does a CBC measure',
+      'what bloodwork is normally done annually',
+      'what are the HSA contribution limits',
+      'what is a 401k rollover',
+      'how do I open a brokerage account',
+      'what is the difference between a traditional and roth ira',
+      'how is mortgage interest calculated',
+      'what is the current federal tax rate',
+      'how does social security work',
+      'what is a credit score range',
+      'what is the difference between a traditional ira and roth ira',
+      'how to read a bank statement',
+      'what is an fsA',
+      'what does ssn stand for',
+      'what is the difference between medicare and medicaid',
+      'how to prepare for a blood test',
+    ];
+
+    it('does not trigger private_docs on general knowledge financial questions', () => {
+      const report = measureFalsePositives(
+        GENERAL_KNOWLEDGE_ABOUT_PRIVATE_TOPICS,
+        'private_docs',
+      );
+
+      if (report.failures.length > 0) {
+        console.log(
+          `\nprivate_docs false positives (${report.failures.length}/${report.total}):`,
+        );
+        for (const f of report.failures) console.log(`  "${f.prompt}"`);
+      }
+
+      // Every general-knowledge question about financial/medical topics should
+      // route to null or data_analysis — never to private_docs.
+      expect(report.failures.length).toBe(0);
+    });
+  });
+
   describe('coding prompts with actual URLs are the only strong web_browsing signal', () => {
     it('detects web_browsing when a real URL is present alongside browse intent', () => {
       const r = scan('visit https://example.com and summarize the article');

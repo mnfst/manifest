@@ -907,6 +907,27 @@ const PRIVATE_DOCS_PROMPTS = [
   'summarize this confidential computing analysis of health records',
   'read the deposition transcript and identify key quotes',
   'analyze this discovery document set for privileged content',
+
+  // ── Personal financial / privacy document pairs (2026-08) ──
+  // Private → route to private_docs
+  'summarize my Roth IRA statement',
+  'review this 529 plan statement',
+  'extract income from my 1099',
+  'check the withholding on my W-2',
+  'explain the results in my lab report',
+  'review my bloodwork results',
+  'summarize my HSA statement',
+  'redact my SSN from this tax return',
+  'analyze my credit report for discrepancies',
+  'read my mortgage statement and summarize the escrow',
+  'review my brokerage account statement',
+  'summarize my bank statement for this month',
+  'check the contributions on my 401k statement',
+  'review my FSA statement and unused balance',
+  'summarize my employment agreement termination clause',
+  'redact my medical history from this clinical report',
+  'analyze my insurance claim payout',
+  'summarize my investment portfolio statement',
 ];
 
 // ── TRADING ──
