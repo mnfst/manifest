@@ -1,0 +1,35 @@
+packages/backend/src/common/common.module.ts
+  s_60e687e1253b34::t_ccfad02cb9501f 10,26,37
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_60e687e1253b34::t_2cebf2811c09d1 151,193,231,613,659,736,812,823
+packages/backend/src/routing/tier.controller.ts
+  s_60e687e1253b34::t_ccfad02cb9501f 35,47,244,255
+packages/backend/src/common/services/agent-recording-config.service.ts
+  s_60e687e1253b34::t_ccfad02cb9501f 7,15-19,21
+packages/backend/src/routing/tier.controller.spec.ts
+  s_60e687e1253b34::t_2cebf2811c09d1 44,77,96,300,314
+  s_60e687e1253b34::t_219c3726161689 303
+  s_60e687e1253b34::t_ccfad02cb9501f 10
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_60e687e1253b34::t_ccfad02cb9501f 68,142,270,274
+.changeset/fix-recording-toggle-consistency.md
+  s_60e687e1253b34::t_219c3726161689 1-5
+packages/backend/src/common/services/agent-recording-config.service.spec.ts
+  s_60e687e1253b34::t_ccfad02cb9501f 4,6,8,14,18,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "0d1b2119e844b878cba65cad49640e8b6edbf93d",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
