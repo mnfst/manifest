@@ -1,5 +1,15 @@
 # manifest
 
+## 6.19.1
+
+### Patch Changes
+
+- 196f3b9: Stop accepting rotated or deleted agent API keys immediately across backend replicas.
+- 810319e: Make Auto-fix setting changes take effect immediately across all backend replicas.
+- 2fac033: Apply hard-limit rule and usage changes immediately across backend replicas.
+- f9eecad: Apply message-recording setting changes immediately across backend replicas.
+- 94e3f9f: Fix the harness sidebar rendering after creation in Safari.
+
 ## 6.19.0
 
 ### Minor Changes
