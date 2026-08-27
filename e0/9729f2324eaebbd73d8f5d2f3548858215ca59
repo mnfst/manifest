@@ -1,0 +1,21 @@
+package.json
+  s_9cb6aa6a1475d1::t_9edfb1c5ee5644 74
+package-lock.json
+  s_9cb6aa6a1475d1::t_efb57a42de4897 19,122-151,3751-3780,6474-6476,16531
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "e09729f2324eaebbd73d8f5d2f3548858215ca59",
+  "prompts": {},
+  "sessions": {
+    "s_9cb6aa6a1475d1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04353-e988-7750-8b00-a2223a6f05ba",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
