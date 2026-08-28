@@ -35,38 +35,7 @@ interface AnthropicTool {
 
 const CACHE = { type: 'ephemeral' } as const;
 const MAX_CACHE_CONTROL_BLOCKS = 4;
-const ANTHROPIC_PREFIX = 'anthropic/';
 const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
-
-function bareAnthropicModel(model: string): string {
-  return model.startsWith(ANTHROPIC_PREFIX) ? model.slice(ANTHROPIC_PREFIX.length) : model;
-}
-
-function isClaudeHaikuModel(model: string): boolean {
-  const bare = bareAnthropicModel(model).replace(/\./g, '-');
-  return bare.startsWith('claude-haiku-');
-}
-
-function shouldForwardAnthropicThinking(thinking: unknown, model: string): boolean {
-  if (
-    thinking &&
-    typeof thinking === 'object' &&
-    !Array.isArray(thinking) &&
-    (thinking as Record<string, unknown>).type === 'adaptive'
-  ) {
-    return !isClaudeHaikuModel(model);
-  }
-  return true;
-}
-
-function normalizeAnthropicThinking(thinking: unknown): unknown {
-  if (!isObjectRecord(thinking) || thinking.type !== 'adaptive' || !('budget_tokens' in thinking)) {
-    return thinking;
-  }
-  const normalized = { ...thinking };
-  delete normalized.budget_tokens;
-  return normalized;
-}
 
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
@@ -128,17 +97,6 @@ export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown
   // explicit cache plan instead of risking a provider-side 400.
   if (hasOneHourCacheControl(body)) return;
   body.cache_control = CACHE;
-}
-
-function isClaudeSonnetModel(model: string | undefined): boolean {
-  if (!model) return false;
-  return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
-}
-
-function normalizeOutputConfigForModel(outputConfig: unknown, model: string | undefined): unknown {
-  if (!isObjectRecord(outputConfig)) return outputConfig;
-  if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
-  return { ...outputConfig, effort: 'high' };
 }
 
 function hasReplayableThinkingSignature(block: ContentBlock): boolean {
@@ -351,8 +309,6 @@ export interface AnthropicRequestOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Route context for replaying only compatible cached thinking blocks. */
   thinkingRouteContext?: ThinkingBlockRouteContext;
-  /** Resolved Anthropic upstream model, used for model-specific body normalization. */
-  targetModel?: string;
 }
 
 export function toAnthropicRequest(
@@ -396,10 +352,7 @@ export function toAnthropicRequest(
 
   const outputConfig = toAnthropicOutputConfig(body.response_format, body.output_config);
   if (outputConfig) {
-    result.output_config = normalizeOutputConfigForModel(
-      outputConfig,
-      options?.targetModel ?? _model,
-    );
+    result.output_config = outputConfig;
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
@@ -407,9 +360,10 @@ export function toAnthropicRequest(
   if (body.top_k !== undefined) result.top_k = body.top_k;
   // Anthropic-native fields forwarded when the inbound request originated as
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
-  // set these, so this is a no-op for the OpenAI-compat path.
-  if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
-    result.thinking = normalizeAnthropicThinking(body.thinking);
+  // set these, so this is a no-op for the OpenAI-compat path. Model-specific
+  // rejection fixes belong in Autofix, not in this protocol adapter.
+  if (body.thinking !== undefined) {
+    result.thinking = body.thinking;
   }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
@@ -473,9 +427,6 @@ export function applyAnthropicMessagesMutations(
   const result: Record<string, unknown> = { ...body };
   result.max_tokens = resolveAnthropicMaxTokens(body);
   delete result.max_completion_tokens;
-  if (body.thinking !== undefined) {
-    result.thinking = normalizeAnthropicThinking(body.thinking);
-  }
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
   };
@@ -512,13 +463,6 @@ export function applyAnthropicMessagesMutations(
     const tools = (body.tools as Array<Record<string, unknown>>).map((t) => ({ ...t }));
     tryAddCacheControl(tools[tools.length - 1], cacheBudget);
     result.tools = tools;
-  }
-
-  if (result.output_config !== undefined) {
-    result.output_config = normalizeOutputConfigForModel(
-      result.output_config,
-      options?.targetModel,
-    );
   }
 
   const thinkingLookup = options?.thinkingLookup;

@@ -154,15 +154,19 @@ describe('Anthropic Adapter', () => {
       expect(result.stop_sequences).toEqual(['STOP', 'END']);
     });
 
-    it('strips adaptive thinking when routing to Claude Haiku 4.5', () => {
+    it('preserves adaptive thinking for model-specific Autofix', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
         thinking: { type: 'adaptive' },
       };
 
-      expect(toAnthropicRequest(body, 'claude-haiku-4-5-20251001').thinking).toBeUndefined();
-      expect(toAnthropicRequest(body, 'anthropic/claude-haiku-4.5').thinking).toBeUndefined();
-      expect(toAnthropicRequest(body, 'claude-haiku-4').thinking).toBeUndefined();
+      expect(toAnthropicRequest(body, 'claude-haiku-4-5-20251001').thinking).toEqual({
+        type: 'adaptive',
+      });
+      expect(toAnthropicRequest(body, 'anthropic/claude-haiku-4.5').thinking).toEqual({
+        type: 'adaptive',
+      });
+      expect(toAnthropicRequest(body, 'claude-haiku-4').thinking).toEqual({ type: 'adaptive' });
     });
 
     it('preserves extended thinking for Claude Haiku 4.5', () => {
@@ -189,7 +193,7 @@ describe('Anthropic Adapter', () => {
       });
     });
 
-    it('drops the manual budget when forwarding adaptive thinking', () => {
+    it('preserves the manual budget for adaptive-thinking Autofix', () => {
       const thinking = { type: 'adaptive', budget_tokens: 8192, display: 'omitted' };
 
       const result = toAnthropicRequest(
@@ -197,7 +201,7 @@ describe('Anthropic Adapter', () => {
         'claude-opus-4-8',
       );
 
-      expect(result.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
+      expect(result.thinking).toBe(thinking);
       expect(thinking).toEqual({
         type: 'adaptive',
         budget_tokens: 8192,
@@ -2220,7 +2224,7 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
-    it('drops the manual budget from native adaptive thinking without mutating the body', () => {
+    it('preserves the manual budget in native adaptive thinking', () => {
       const inbound = {
         messages: [{ role: 'user', content: 'hi' }],
         thinking: { type: 'adaptive', budget_tokens: 8192, display: 'omitted' },
@@ -2228,7 +2232,7 @@ describe('Anthropic Adapter', () => {
 
       const result = applyAnthropicMessagesMutations(inbound);
 
-      expect(result.thinking).toEqual({ type: 'adaptive', display: 'omitted' });
+      expect(result.thinking).toBe(inbound.thinking);
       expect(inbound.thinking).toEqual({
         type: 'adaptive',
         budget_tokens: 8192,
@@ -2782,26 +2786,20 @@ describe('Anthropic Adapter', () => {
       });
     });
 
-    it('downgrades Opus/Fable xhigh effort when Manifest resolves the request to Sonnet', () => {
-      const result = applyAnthropicMessagesMutations(
-        {
-          messages: [{ role: 'user', content: 'hi' }],
-          output_config: { effort: 'xhigh', style: 'unchanged' },
-        },
-        { targetModel: 'claude-sonnet-4-6' },
-      );
+    it('preserves xhigh effort when Manifest resolves the request to Sonnet', () => {
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        output_config: { effort: 'xhigh', style: 'unchanged' },
+      });
 
-      expect(result.output_config).toEqual({ effort: 'high', style: 'unchanged' });
+      expect(result.output_config).toEqual({ effort: 'xhigh', style: 'unchanged' });
     });
 
     it('keeps xhigh effort when the resolved Anthropic model supports it', () => {
-      const result = applyAnthropicMessagesMutations(
-        {
-          messages: [{ role: 'user', content: 'hi' }],
-          output_config: { effort: 'xhigh' },
-        },
-        { targetModel: 'claude-opus-4-8' },
-      );
+      const result = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        output_config: { effort: 'xhigh' },
+      });
 
       expect(result.output_config).toEqual({ effort: 'xhigh' });
     });
