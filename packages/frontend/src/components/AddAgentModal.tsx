@@ -307,59 +307,56 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
                 disabled={creating()}
                 aria-invalid={nameTaken()}
               />
-              <Show
-                when={nameTaken()}
-                fallback={
-                  <span class="field__hint">
-                    Unique per owner. The owner's name never goes inside the agent name.
-                  </span>
-                }
-              >
-                <span class="field__error" role="alert">
-                  {name().trim()} is already taken for this owner.{' '}
-                  <Show when={nameCheck()?.suggestion}>
-                    <button
-                      type="button"
-                      class="field__suggestion"
-                      onClick={() => setName(nameCheck()!.suggestion!)}
-                    >
-                      Use {nameCheck()!.suggestion}
-                    </button>
-                  </Show>
-                </span>
-              </Show>
             </div>
           </div>
-
-          <div class="field__row" style="margin-top: var(--gap-md);">
-            <div class="field">
-              <label class="modal-card__field-label">Owner</label>
-              <Select
-                value={ownerId()}
-                onChange={setOwnerId}
-                label="Owner"
-                disabled={creating()}
-                options={[
-                  { label: 'No owner', value: '' },
-                  ...(users() ?? []).map((u) => ({ label: u.name, value: u.id })),
-                ]}
-              />
-              <span class="field__hint">
-                An agent has one owner at most. Agents running unattended inside an application
-                normally have none. There is no reassignment later: archive and create a fresh agent
-                instead.
+          {/* Below the Type + name row, so the hint never shifts the two columns. */}
+          <div class="field" style="margin-top: var(--gap-xs);">
+            <Show
+              when={nameTaken()}
+              fallback={
+                <span class="field__hint">
+                  Unique per owner. The owner's name never goes inside the agent name.
+                </span>
+              }
+            >
+              <span class="field__error" role="alert">
+                {name().trim()} is already taken for this owner.{' '}
+                <Show when={nameCheck()?.suggestion}>
+                  <button
+                    type="button"
+                    class="field__suggestion"
+                    onClick={() => setName(nameCheck()!.suggestion!)}
+                  >
+                    Use {nameCheck()!.suggestion}
+                  </button>
+                </Show>
               </span>
-            </div>
-            <div class="field">
-              <label class="modal-card__field-label">Projects</label>
-              <MultiSelect
-                values={projectIds()}
-                onChange={setProjectIds}
-                placeholder="No projects"
-                label="Projects"
-                options={(projects() ?? []).map((p) => ({ label: p.name, value: p.id }))}
-              />
-            </div>
+            </Show>
+          </div>
+
+          <div class="field">
+            <label class="modal-card__field-label">Owner</label>
+            <Select
+              value={ownerId()}
+              onChange={setOwnerId}
+              label="Owner"
+              disabled={creating()}
+              options={[
+                { label: 'No owner', value: '' },
+                ...(users() ?? []).map((u) => ({ label: u.name, value: u.id })),
+              ]}
+            />
+            <span class="field__hint">Optional. It can't be changed once set.</span>
+          </div>
+          <div class="field">
+            <label class="modal-card__field-label">Projects</label>
+            <MultiSelect
+              values={projectIds()}
+              onChange={setProjectIds}
+              placeholder="No projects"
+              label="Projects"
+              options={(projects() ?? []).map((p) => ({ label: p.name, value: p.id }))}
+            />
           </div>
 
           <div class="add-agent-toggles">
