@@ -92,8 +92,10 @@ export const compatTeamsApi: TeamsApi = {
   async checkAgentName(name) {
     // Today's backend enforces tenant-wide uniqueness on create; report the
     // same scope here so the modal does not promise a name the create refuses.
-    const all = await rows();
     const slug = slugify(name);
+    // A name with no slug-valid character cannot become an agent key.
+    if (!slug) return { available: false, suggestion: null };
+    const all = await rows();
     const taken = all.some((r) => slugify(r.agent_name) === slug);
     return { available: !taken, suggestion: taken ? `${slug}-2` : null };
   },

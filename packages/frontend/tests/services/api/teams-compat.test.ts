@@ -279,3 +279,24 @@ describe('compat transport — second review round', () => {
     expect(access[1]!.models.every((m) => !m.in_routing)).toBe(true);
   });
 });
+
+describe('compat transport — third review round', () => {
+  it('mirrors the backend slug rule and rejects an empty slug', async () => {
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'foobar' }, { agent_name: 'a-b' }] });
+    // `foo.bar` slugs to `foobar` on the backend (punctuation is dropped).
+    expect(await api.checkAgentName('foo.bar', null)).toEqual({
+      available: false,
+      suggestion: 'foobar-2',
+    });
+    expect(await api.checkAgentName('  A _ B  ', null)).toEqual({
+      available: false,
+      suggestion: 'a-b-2',
+    });
+    expect(await api.checkAgentName('foo--bar', null)).toEqual({
+      available: true,
+      suggestion: null,
+    });
+    expect(await api.checkAgentName('!!!', null)).toEqual({ available: false, suggestion: null });
+    expect(mockGetAgents).toHaveBeenCalledTimes(3);
+  });
+});

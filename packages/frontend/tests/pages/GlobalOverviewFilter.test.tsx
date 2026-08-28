@@ -674,3 +674,27 @@ describe('GlobalOverview provider grouping under a team filter', () => {
     await waitFor(() => expect(filterSelectProps?.items).toEqual(['demo-agent']));
   });
 });
+
+describe('GlobalOverview series selection under a team filter', () => {
+  it('keeps the provider selection apart from the agent fallback selection', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
+    sessionStorage.setItem('global-agent-filter:provider', '["openai"]');
+    teamsMocks.getOverviewGroupedUsage.mockResolvedValue({
+      tokenUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+      messageUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+      costUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+    });
+    const { container, getByTestId } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    const costTab = [...container.querySelectorAll('.chart-card__stat')].find((el) =>
+      el.textContent?.includes('Cost'),
+    ) as HTMLElement;
+    fireEvent.click(costTab);
+    fireEvent.click(getByTestId('pick-owner'));
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['demo-agent', 'other']));
+    fireEvent.click(getByTestId('filter-unselect-all'));
+    expect(sessionStorage.getItem('global-agent-filter:agent')).toBe('[]');
+    // The provider selection made before the filter is untouched.
+    expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('["openai"]');
+  });
+});

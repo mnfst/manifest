@@ -378,3 +378,27 @@ describe('AgentDetail team lookup states', () => {
     expect(mockGetAgentTeam.mock.calls.length).toBeGreaterThan(1);
   });
 });
+
+describe('AgentDetail retry state', () => {
+  it('shows the busy marker while a retry is in flight', async () => {
+    mockGetAgentTeam.mockRejectedValueOnce(new Error('boom'));
+    let resolveRetry!: (team: Team) => void;
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Unavailable');
+    });
+    mockGetAgentTeam.mockReturnValueOnce(new Promise<Team>((res) => (resolveRetry = res)));
+    const retry = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Retry',
+    ) as HTMLButtonElement;
+    retry.click();
+    await vi.waitFor(() => {
+      expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+    });
+    expect(container.textContent).not.toContain('Unavailable');
+    resolveRetry({ owner: null, projects: [], archived_at: null });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('No owner');
+    });
+  });
+});

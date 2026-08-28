@@ -74,7 +74,7 @@ const AgentDetail: ParentComponent = (props) => {
                 when={team() != null}
                 fallback={
                   <Show
-                    when={team() === null}
+                    when={team() === null && !team.loading}
                     fallback={
                       <span class="chip" aria-busy="true">
                         <span class="chip__muted">Owner:</span> …

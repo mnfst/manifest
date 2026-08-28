@@ -186,7 +186,15 @@ function load(): MockState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<MockState>;
-      state = { ...freshState(), ...parsed };
+      // Older snapshots predate some fields; never let a missing array crash a read.
+      state = {
+        ...freshState(),
+        ...parsed,
+        agents: parsed.agents ?? {},
+        modelAccess: parsed.modelAccess ?? {},
+        seededAgents: parsed.seededAgents ?? [],
+        deletedAgents: parsed.deletedAgents ?? [],
+      };
       return state;
     }
   } catch {
@@ -492,6 +500,7 @@ export const mockTeamsApi: TeamsApi = {
 
   async removeAgentFromUser(userId, agentName) {
     const s = load();
+    assertLive(s, agentName);
     const a = assignmentFor(s, agentName);
     if (a.owner_id === userId) a.owner_id = null;
     save();
@@ -660,6 +669,8 @@ export const mockTeamsApi: TeamsApi = {
     const s = load();
     const rows = await allRows(s);
     const slug = slugify(name);
+    // A name with no slug-valid character cannot become an agent key.
+    if (!slug) return { available: false, suggestion: null };
     const taken = new Set(
       rows.filter((r) => (r.owner?.id ?? null) === ownerId).map((r) => slugify(r.agent_name)),
     );
@@ -678,6 +689,8 @@ export const mockTeamsApi: TeamsApi = {
     };
     if (!s.seededAgents.includes(agentName)) s.seededAgents.push(agentName);
     s.deletedAgents = s.deletedAgents.filter((n) => n !== agentName);
+    // A fresh agent under a deleted name starts without the old one's counts.
+    delete modelTotals[agentName];
     save();
   },
 
@@ -772,11 +785,16 @@ export const mockTeamsApi: TeamsApi = {
 
   async applyModelAccessToAgents(agentName, userProviderId, targetAgentNames) {
     const s = load();
+    assertLive(s, agentName);
     const source = s.modelAccess[agentName]?.[userProviderId] ?? { all_models: true, enabled: [] };
     const result: BulkResult = { applied: [], failed: [] };
     for (const target of targetAgentNames) {
       if (target === agentName) {
         result.failed.push({ agent_name: target, reason: 'Source agent skipped' });
+        continue;
+      }
+      if (s.deletedAgents.includes(target)) {
+        result.failed.push({ agent_name: target, reason: 'Agent not found' });
         continue;
       }
       s.modelAccess[target] = {

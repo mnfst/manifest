@@ -496,7 +496,9 @@ const GlobalOverview: Component = () => {
   // would carry agent names into provider mode (and vice versa), filtering
   // out every series and blanking the chart. A per-grouping key keeps each
   // mode's selection independent.
-  const storageKey = () => `global-agent-filter:${groupBy()}`;
+  // Keyed by the effective group: the agent fallback that replaces a provider
+  // grouping under a team filter must not share the provider selection.
+  const storageKey = () => `global-agent-filter:${effectiveGroup()}`;
   const loadSavedAgents = (key: string): Set<string> => {
     try {
       const saved = sessionStorage.getItem(key);
@@ -513,7 +515,7 @@ const GlobalOverview: Component = () => {
   // (defaulting to "all selected" when none was saved for it).
   createEffect(
     on(
-      () => groupBy(),
+      () => effectiveGroup(),
       () => setSelectedAgents(loadSavedAgents(storageKey())),
       { defer: true },
     ),

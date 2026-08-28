@@ -30,11 +30,20 @@ export interface RealAgent {
   sparkline?: number[];
 }
 
-/** The slug the create endpoint derives from a display name. */
+/**
+ * The slug the create endpoint derives from a display name. Mirrors
+ * `packages/backend/src/common/utils/slugify.ts` exactly: trim, lowercase,
+ * spaces and underscores to hyphens, drop every other invalid character,
+ * collapse runs of hyphens, strip leading and trailing ones. `foo.bar` is
+ * `foobar`, not `foo-bar`.
+ */
 export const slugify = (value: string): string =>
   value
+    .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-{2,}/g, '-')
     .replace(/^-+|-+$/g, '');
 
 /** Unwrap `{ agents }` or a bare array, tolerating null. */

@@ -678,3 +678,44 @@ describe('deleted agents are gone from every endpoint', () => {
     expect((await api.listAgents()).agents.some((a) => a.agent_name === 'windsurf')).toBe(true);
   });
 });
+
+describe('third review round', () => {
+  it('tolerates a persisted snapshot that predates newer fields', async () => {
+    localStorage.setItem(
+      'manifest-teams-mock',
+      JSON.stringify({ users: [], projects: [], agents: {}, modelAccess: {}, seededAgents: [] }),
+    );
+    resetMockTeamsKeepStorage();
+    expect((await api.listAgents()).total).toBe(6);
+    localStorage.setItem('manifest-teams-mock', JSON.stringify({ users: [] }));
+    resetMockTeamsKeepStorage();
+    expect((await api.getUsers()).total).toBe(0);
+    expect((await api.listAgents()).total).toBe(6);
+  });
+
+  it('rejects an empty slug and keeps deleted agents out of the remaining endpoints', async () => {
+    expect(await api.checkAgentName('...', 'u-maya')).toEqual({
+      available: false,
+      suggestion: null,
+    });
+    await api.listAgents();
+    await api.getAgentModelAccess('windsurf');
+    await api.deleteUser('u-tom', { agents: 'delete' });
+    await expect(api.removeAgentFromUser('u-tom', 'windsurf')).rejects.toThrow('Agent not found');
+    await expect(
+      api.applyModelAccessToAgents('windsurf', 'up-ant', ['claude-code']),
+    ).rejects.toThrow('Agent not found');
+    const result = await api.applyModelAccessToAgents('claude-code', 'up-ant', [
+      'windsurf',
+      'zeta',
+    ]);
+    expect(result).toEqual({
+      applied: ['zeta'],
+      failed: [{ agent_name: 'windsurf', reason: 'Agent not found' }],
+    });
+    // Recreating the name starts without the old agent's cached model totals.
+    await api.assignNewAgent('windsurf', null, []);
+    const row = (await api.listAgents({ search: 'windsurf' })).agents[0]!;
+    expect(row.models_total).toBe(40);
+  });
+});
