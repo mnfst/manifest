@@ -178,50 +178,34 @@
   flex-shrink: 0;
 }
 
-/* Budget meter */
-.budget-meter {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 120px;
-}
-
-.budget-meter__label {
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
-  color: hsl(var(--foreground));
-}
-
-.budget-meter--over .budget-meter__label {
-  color: hsl(var(--destructive));
-}
-
-.budget-meter__track {
-  height: 5px;
-  border-radius: 9999px;
-  background: hsl(var(--muted));
+/* One-line cell: the full text lives in the title tooltip */
+.cell-truncate {
+  display: inline-block;
+  max-width: 260px;
   overflow: hidden;
-}
-
-.budget-meter__fill {
-  display: block;
-  height: 100%;
-  border-radius: 9999px;
-  background: hsl(var(--chart-1));
-  transition: width var(--transition-base);
-}
-
-.budget-meter--warn .budget-meter__fill {
-  background: hsl(var(--chart-5));
-}
-
-.budget-meter--over .budget-meter__fill {
-  background: hsl(var(--destructive));
-}
-
-.budget-meter__none {
-  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
   color: hsl(var(--muted-foreground));
+}
+
+/* Column header with an info icon carrying a tooltip */
+.th-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.th-info {
+  font-size: 14px;
+  color: hsl(var(--muted-foreground));
+  cursor: help;
+}
+
+/* Inline bar chart in a table cell */
+.mini-bars {
+  display: block;
+  color: hsl(var(--primary));
 }
 
 /* Project tag and plain pill */
@@ -506,15 +490,19 @@
   font-size: var(--font-size-sm);
 }
 
-/* Model access modal rows */
+/* Model access modal: a plain table, separators between rows only */
 .model-access__provider {
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
-  padding: 12px var(--gap-md);
-  background: hsl(var(--muted) / 0.5);
-  border-radius: var(--radius);
-  margin-bottom: 4px;
+  padding: var(--gap-sm) 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.model-access__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .model-access__grow {
@@ -532,15 +520,13 @@
 .model-access__list {
   max-height: 320px;
   overflow-y: auto;
-  border: 1px solid hsl(var(--border));
-  border-radius: var(--radius);
 }
 
 .model-access__row {
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
-  padding: 8px var(--gap-md);
+  padding: var(--gap-sm) 0;
   border-bottom: 1px solid hsl(var(--border));
   font-size: var(--font-size-sm);
 }
@@ -576,25 +562,6 @@
   .overview-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-/* Budget alert banner on a user page */
-.budget-alert {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-sm);
-  padding: 10px var(--gap-md);
-  margin-bottom: var(--gap-md);
-  border-radius: var(--radius);
-  border: 1px solid hsl(var(--chart-5));
-  background: hsl(var(--chart-5) / 0.1);
-  font-size: var(--font-size-sm);
-  color: hsl(var(--foreground));
-}
-
-.budget-alert--over {
-  border-color: hsl(var(--destructive));
-  background: hsl(var(--destructive) / 0.08);
 }
 
 /* Field group used by the create/edit modals */

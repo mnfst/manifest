@@ -113,13 +113,13 @@ describe('AddAgentModal', () => {
     const { container } = renderOpen();
     expect(container.textContent).toContain('New agent');
     expect(container.textContent).toContain('Name your agent to start tracking');
-    expect(container.textContent).toContain("The owner's name never goes inside the agent name.");
+    expect(container.textContent).toContain("The user's name never goes inside the agent name.");
   });
 
   describe('owner, projects and name uniqueness', () => {
     const openOwnerSelect = async () => {
       await vi.waitFor(() => expect(mockGetUsers).toHaveBeenCalled());
-      fireEvent.click(screen.getByLabelText('Owner'));
+      fireEvent.click(screen.getByLabelText('User'));
       await vi.waitFor(() => expect(screen.queryByText('Maya Okonkwo')).not.toBeNull());
     };
 
@@ -168,7 +168,7 @@ describe('AddAgentModal', () => {
       fireEvent.click(createBtn);
       await vi.waitFor(() => expect(mockNavigate).toHaveBeenCalled());
       expect(mockToast.warning).toHaveBeenCalledWith(
-        expect.stringContaining('owner and projects could not be saved'),
+        expect.stringContaining('user and projects could not be saved'),
       );
     });
 
@@ -177,9 +177,9 @@ describe('AddAgentModal', () => {
       mockGetProjects.mockRejectedValue(new Error('boom'));
       renderOpen();
       await vi.waitFor(() => expect(mockGetProjects).toHaveBeenCalled());
-      fireEvent.click(screen.getByLabelText('Owner'));
+      fireEvent.click(screen.getByLabelText('User'));
       // Trigger label + the single option.
-      expect(screen.getAllByText('No owner').length).toBe(2);
+      expect(screen.getAllByText('No user').length).toBe(2);
       expect(screen.queryByText('Maya Okonkwo')).toBeNull();
     });
 
@@ -227,7 +227,7 @@ describe('AddAgentModal', () => {
         mockCheckAgentName.mockResolvedValue({ available: false, suggestion: null });
         const { container, input } = renderOpen();
         await vi.advanceTimersByTimeAsync(0);
-        fireEvent.click(screen.getByLabelText('Owner'));
+        fireEvent.click(screen.getByLabelText('User'));
         await vi.waitFor(() => expect(screen.queryByText('Tom Reyes')).not.toBeNull());
         fireEvent.click(screen.getByText('Tom Reyes'));
         fireEvent.input(input, { target: { value: 'claude-code' } });

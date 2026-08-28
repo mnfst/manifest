@@ -55,7 +55,7 @@ export function unwrapAgents(data: unknown): RealAgent[] {
 /** Team fields an agent row needs on top of the real agent. */
 export type TeamFields = Pick<
   AgentRow,
-  'owner' | 'projects' | 'archived_at' | 'models_enabled' | 'models_total'
+  'owner' | 'projects' | 'archived_at' | 'models_enabled' | 'models_total' | 'spend_365d_usd'
 >;
 
 export function agentRow(agent: RealAgent, team: TeamFields): AgentRow {
@@ -69,6 +69,7 @@ export function agentRow(agent: RealAgent, team: TeamFields): AgentRow {
     models_enabled: team.models_enabled,
     models_total: team.models_total,
     spend_30d_usd: Number(agent.total_cost ?? 0),
+    spend_365d_usd: team.spend_365d_usd,
     request_count: Number(agent.message_count ?? 0),
     last_used_at: agent.last_active ?? null,
     archived_at: team.archived_at,
@@ -112,6 +113,8 @@ export function sortRows(rows: AgentRow[], q: AgentListQuery): AgentRow[] {
         return r.models_enabled;
       case 'spend_30d':
         return r.spend_30d_usd;
+      case 'spend_365d':
+        return r.spend_365d_usd ?? -1;
       case 'last_used':
         return r.last_used_at ?? '';
       default:
@@ -249,7 +252,7 @@ export function regroupUsage(
   const groupsOf = (name: string): string[] => {
     const row = lookup(name);
     if (groupBy === 'agent') return [name];
-    if (groupBy === 'owner') return [row?.owner?.name ?? 'No owner'];
+    if (groupBy === 'owner') return [row?.owner?.name ?? 'No user'];
     const projects = row?.projects ?? [];
     return projects.length ? projects.map((p) => p.name) : ['No project'];
   };

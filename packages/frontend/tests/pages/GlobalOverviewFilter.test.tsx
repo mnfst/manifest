@@ -517,8 +517,8 @@ vi.mock('../../src/components/OwnerProjectFilters.jsx', () => ({
 
 describe('GlobalOverview owner/project filters and grouping', () => {
   const groupedSeries = {
-    agents: ['Maya Okonkwo', 'No owner'],
-    timeseries: [{ hour: '2026-06-04 10:00:00', 'Maya Okonkwo': 5, 'No owner': 2 }],
+    agents: ['Maya Okonkwo', 'No user'],
+    timeseries: [{ hour: '2026-06-04 10:00:00', 'Maya Okonkwo': 5, 'No user': 2 }],
   };
   beforeEach(() => {
     ownerProjectProps = null;
@@ -573,7 +573,7 @@ describe('GlobalOverview owner/project filters and grouping', () => {
     await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
 
     // Requests tab: status is the default; owner and project join agent.
-    fireEvent.click(groupButton(container, 'By owner'));
+    fireEvent.click(groupButton(container, 'By user'));
     await waitFor(() =>
       expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenLastCalledWith('7d', 'owner', {
         owners: [],
@@ -582,9 +582,9 @@ describe('GlobalOverview owner/project filters and grouping', () => {
     );
     expect(localStorage.getItem('manifest_global_group')).toBe('owner');
     expect(
-      groupButton(container, 'By owner').classList.contains('chart-card__filter-btn--active'),
+      groupButton(container, 'By user').classList.contains('chart-card__filter-btn--active'),
     ).toBe(true);
-    await waitFor(() => expect(filterSelectProps?.items).toEqual(['Maya Okonkwo', 'No owner']));
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['Maya Okonkwo', 'No user']));
 
     fireEvent.click(groupButton(container, 'By project'));
     await waitFor(() =>
@@ -605,10 +605,10 @@ describe('GlobalOverview owner/project filters and grouping', () => {
     expect(
       groupButton(container, 'By project').classList.contains('chart-card__filter-btn--active'),
     ).toBe(true);
-    fireEvent.click(groupButton(container, 'By owner'));
+    fireEvent.click(groupButton(container, 'By user'));
     await waitFor(() =>
       expect(
-        groupButton(container, 'By owner').classList.contains('chart-card__filter-btn--active'),
+        groupButton(container, 'By user').classList.contains('chart-card__filter-btn--active'),
       ).toBe(true),
     );
     fireEvent.click(groupButton(container, 'By provider'));

@@ -42,13 +42,14 @@ async function rows(): Promise<AgentRow[]> {
       archived_at: null,
       models_enabled: 0,
       models_total: 0,
+      spend_365d_usd: null,
     }),
   );
 }
 
 export const compatTeamsApi: TeamsApi = {
   async getUsers() {
-    return { users: [], total: 0, spend_month_usd_total: 0, budget_month_usd_total: 0 };
+    return { users: [], total: 0, spend_30d_usd_total: 0, spend_365d_usd_total: 0 };
   },
   async getUser() {
     return null;

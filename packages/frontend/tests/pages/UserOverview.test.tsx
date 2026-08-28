@@ -65,9 +65,9 @@ const agents = [
 ];
 
 const overview = {
-  cost_month_usd: 186.2,
+  cost_30d_usd: 186.2,
   cost_trend_pct: 22,
-  budget_usd: 200,
+  cost_365d_usd: 1420.5,
   requests: 21406,
   tokens: 48_200_000,
   cost_series: [
@@ -101,15 +101,18 @@ describe('UserOverview', () => {
     expect(mockRefetchOverview).toHaveBeenCalled();
   });
 
-  it('renders the stat cards, the chart against the budget and the agents', () => {
+  it('renders the stat cards, the 30-day cost chart and the agents', () => {
     setMockOverview(overview);
     const { container } = render(() => <UserOverview />);
     expect(container.textContent).toContain('$186.20');
     expect(container.textContent).toContain('+22%');
-    expect(container.textContent).toContain('$13.80 left');
+    expect(container.textContent).toContain('Cost (30d)');
+    expect(container.textContent).toContain('Cost (365d)');
+    expect(container.textContent).toContain('$1,420.50');
     expect(container.textContent).toContain('21.4k');
     expect(container.textContent).toContain('48.2M');
-    expect(container.textContent).toContain('Against a $200 monthly budget');
+    expect(container.textContent).toContain('Last 30 days');
+    expect(container.textContent).not.toMatch(/budget/i);
     expect(container.querySelector('.bar-chart__svg')).toBeTruthy();
     expect(container.textContent).toContain('1 Aug');
     expect(container.textContent).toContain('Atlas');
@@ -127,20 +130,11 @@ describe('UserOverview', () => {
     });
   });
 
-  it('colours the budget card amber near the cap and red over it', () => {
-    setMockOverview({ ...overview, cost_month_usd: 208.4 });
-    const { container } = render(() => <UserOverview />);
-    expect(container.textContent).toContain('$8.40 over');
-    const cards = container.querySelectorAll('.overview-stat-card__value');
-    expect((cards[1] as HTMLElement).style.color).toContain('destructive');
-  });
-
-  it('handles a user without a budget and without agents', () => {
-    setMockOverview({ ...overview, budget_usd: null, agents: [], cost_series: [] });
+  it('handles a user without agents and without data', () => {
+    setMockOverview({ ...overview, agents: [], cost_series: [] });
     setMockUser(undefined);
     const { container } = render(() => <UserOverview />);
-    expect(container.textContent).toContain('No budget');
-    expect(container.textContent).toContain('This month');
+    expect(container.textContent).toContain('Last 30 days');
     expect(container.textContent).toContain('No agents yet');
     expect(container.textContent).toContain('No data for this period yet.');
   });

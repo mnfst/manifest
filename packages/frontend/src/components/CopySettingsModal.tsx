@@ -132,7 +132,7 @@ const CopySettingsModal: Component<CopySettingsModalProps> = (props) => {
                 options={(agents() ?? []).map((a) => ({
                   label: a.display_name,
                   value: a.agent_name,
-                  description: a.owner ? a.owner.name : 'No owner',
+                  description: a.owner ? a.owner.name : 'No user',
                 }))}
               />
               <span class="field__hint">

@@ -6,7 +6,6 @@ export interface StatCardItem {
   value: string;
   /** Percentage change versus the previous period; omitted when unknown. */
   trendPct?: number;
-  tone?: 'warn' | 'over';
 }
 
 interface StatCardsProps {
@@ -26,19 +25,7 @@ const StatCards: Component<StatCardsProps> = (props) => (
         <div class="overview-stat-card">
           <span class="overview-stat-card__label">{item.label}</span>
           <span class="overview-stat-card__value-row">
-            <span
-              class="overview-stat-card__value"
-              style={{
-                color:
-                  item.tone === 'over'
-                    ? 'hsl(var(--destructive))'
-                    : item.tone === 'warn'
-                      ? 'hsl(var(--chart-5))'
-                      : undefined,
-              }}
-            >
-              {item.value}
-            </span>
+            <span class="overview-stat-card__value">{item.value}</span>
             <Show when={item.trendPct != null && Math.round(item.trendPct) !== 0}>
               <span class="trend trend--neutral">{trendLabel(item.trendPct!)}</span>
             </Show>

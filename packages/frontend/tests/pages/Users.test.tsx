@@ -57,11 +57,11 @@ const maya = {
   name: 'Maya Okonkwo',
   email: null,
   role: 'Engineering',
-  monthly_budget_usd: 200,
   archived_at: null,
   created_at: '2026-08-01T00:00:00Z',
   agent_count: 4,
-  spend_month_usd: 186.2,
+  spend_30d_usd: 186.2,
+  spend_365d_usd: 1420.5,
   last_active_at: null,
 };
 const sara = {
@@ -69,17 +69,17 @@ const sara = {
   id: 'u-sara',
   name: 'Sara Lindqvist',
   role: null,
-  monthly_budget_usd: null,
   archived_at: '2026-08-10T00:00:00Z',
   agent_count: 1,
-  spend_month_usd: 58.4,
+  spend_30d_usd: 58.4,
+  spend_365d_usd: 58.4,
 };
 
 const response = {
   users: [maya, sara],
   total: 2,
-  spend_month_usd_total: 244.6,
-  budget_month_usd_total: 200,
+  spend_30d_usd_total: 244.6,
+  spend_365d_usd_total: 1478.9,
 };
 
 describe('Users page', () => {
@@ -108,23 +108,35 @@ describe('Users page', () => {
     mockGetUsers.mockResolvedValue({ ...response, users: [], total: 0 });
     const { container, getByText, getByTestId } = render(() => <Users />);
     await vi.waitFor(() => expect(container.textContent).toContain('No users yet'));
-    expect(container.textContent).toContain('every existing agent has no owner');
+    expect(container.textContent).toContain('every existing agent has no user');
     expect(getByText('Go to Agents').getAttribute('href')).toBe('/agents');
     fireEvent.click(container.querySelector('.empty-state button')!);
     expect(getByTestId('add-user-modal').getAttribute('data-open')).toBe('true');
   });
 
-  it('lists users with role, budget, archive badge and meter', async () => {
+  it('lists users with a role column, agents, spend over 30 and 365 days', async () => {
     const { container } = render(() => <Users />);
     await vi.waitFor(() => expect(container.textContent).toContain('Sara Lindqvist'));
     expect(container.textContent).toContain('2 users');
-    expect(container.textContent).toContain('$244.60 spent this month of $200.00 budgeted');
-    expect(container.textContent).toContain('Engineering');
-    expect(container.textContent).toContain('$200');
-    expect(container.textContent).toContain('—');
+    expect(container.textContent).toContain('$244.60 spent in the last 30 days');
+    expect(container.textContent).not.toMatch(/budget/i);
+    const headers = Array.from(container.querySelectorAll('thead th')).map((th) => th.textContent);
+    expect(headers[0]).toBe('User');
+    expect(headers[1]).toBe('Role');
+    expect(headers[2]).toBe('Agents');
+    expect(headers[3]).toContain('Spend (30d)');
+    expect(headers[4]).toContain('Spend (365d)');
+    const rows = container.querySelectorAll('tbody tr');
+    const cells = (i: number) =>
+      Array.from(rows[i]!.querySelectorAll('td')).map((td) => td.textContent);
+    expect(cells(0)[1]).toBe('Engineering');
+    expect(cells(0)[2]).toBe('4');
+    expect(cells(0)[3]).toBe('$186.20');
+    expect(cells(0)[4]).toBe('$1420.50');
+    // No role reads as a dash in its own column, never as a subline under the name.
+    expect(cells(1)[1]).toBe('—');
+    expect(container.querySelector('.who__sub')).toBeNull();
     expect(container.textContent).toContain('Archived');
-    expect(container.textContent).toContain('$13.80 left');
-    expect(container.textContent).toContain('No budget');
     expect(container.querySelector('a[href="/users/u-maya"]')).toBeTruthy();
   });
 
@@ -166,38 +178,38 @@ describe('Users page', () => {
     expect(mockSetSearchParams).toHaveBeenCalledWith({ archived: undefined }, { replace: true });
   });
 
-  it('sorts by spend and by budget left, flipping direction on a second click', async () => {
+  it('sorts by spend over 30 and 365 days, flipping direction on a second click', async () => {
     const { container, getByText } = render(() => <Users />);
     await vi.waitFor(() => expect(container.textContent).toContain('Maya Okonkwo'));
-    fireEvent.click(getByText('Spend'));
+    fireEvent.click(getByText('Spend (30d)'));
     expect(mockSetSearchParams).toHaveBeenCalledWith(
-      { sort: 'spend', dir: 'desc' },
+      { sort: 'spend_30d', dir: 'desc' },
       { replace: true },
     );
     await vi.waitFor(() =>
       expect(mockGetUsers).toHaveBeenLastCalledWith(
-        expect.objectContaining({ sort: 'spend', dir: 'desc' }),
+        expect.objectContaining({ sort: 'spend_30d', dir: 'desc' }),
       ),
     );
-    fireEvent.click(getByText('Spend'));
+    fireEvent.click(getByText('Spend (30d)'));
     expect(mockSetSearchParams).toHaveBeenCalledWith(
-      { sort: 'spend', dir: 'asc' },
+      { sort: 'spend_30d', dir: 'asc' },
       { replace: true },
     );
-    fireEvent.click(getByText('Left this month'));
+    fireEvent.click(getByText('Spend (365d)'));
     expect(mockSetSearchParams).toHaveBeenCalledWith(
-      { sort: 'budget_left', dir: 'asc' },
+      { sort: 'spend_365d', dir: 'desc' },
       { replace: true },
     );
-    expect(container.querySelector('th[aria-sort="ascending"]')).toBeTruthy();
+    expect(container.querySelector('th[aria-sort="descending"]')).toBeTruthy();
   });
 
   it('seeds sort and direction from the URL', async () => {
-    mockSearchParams = { sort: 'budget_left', dir: 'desc' };
+    mockSearchParams = { sort: 'spend_365d', dir: 'desc' };
     render(() => <Users />);
     await vi.waitFor(() =>
       expect(mockGetUsers).toHaveBeenCalledWith(
-        expect.objectContaining({ sort: 'budget_left', dir: 'desc' }),
+        expect.objectContaining({ sort: 'spend_365d', dir: 'desc' }),
       ),
     );
   });

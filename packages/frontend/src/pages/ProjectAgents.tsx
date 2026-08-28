@@ -88,9 +88,10 @@ const ProjectAgents: Component = () => {
                 <thead>
                   <tr>
                     <th>Agent</th>
-                    <th>Owner</th>
+                    <th>User</th>
                     <th>Models</th>
-                    <th>Spend 30d</th>
+                    <th>Spend (30d)</th>
+                    <th>Spend (365d)</th>
                     <th>Last used</th>
                     <th />
                   </tr>
@@ -119,7 +120,7 @@ const ProjectAgents: Component = () => {
                         <td>
                           <Show
                             when={agent.owner}
-                            fallback={<span class="pill-muted">No owner</span>}
+                            fallback={<span class="pill-muted">No user</span>}
                           >
                             <span class="who">
                               <Avatar name={agent.owner!.name} size="sm" />
@@ -131,6 +132,11 @@ const ProjectAgents: Component = () => {
                           {agent.models_enabled} of {agent.models_total}
                         </td>
                         <td class="num">{formatCost(agent.spend_30d_usd) ?? '-'}</td>
+                        <td class="num">
+                          {agent.spend_365d_usd == null
+                            ? '—'
+                            : (formatCost(agent.spend_365d_usd) ?? '-')}
+                        </td>
                         <td class="num--muted">{lastUsedLabel(agent.last_used_at)}</td>
                         <td style="text-align: right;">
                           <button

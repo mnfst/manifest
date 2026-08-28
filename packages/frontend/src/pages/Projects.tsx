@@ -4,7 +4,7 @@ import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import FilterCheckbox from '../components/FilterCheckbox.jsx';
 import AvatarStack from '../components/AvatarStack.jsx';
-import Sparkline from '../components/Sparkline.jsx';
+import MiniBars from '../components/MiniBars.jsx';
 import ProjectModal from '../components/ProjectModal.jsx';
 import { getProjects, type ProjectRow } from '../services/api/teams.js';
 import { formatNumber } from '../services/formatters.js';
@@ -18,13 +18,19 @@ import { projectPath } from '../services/routing.js';
 import { analyticsPing } from '../services/sse.js';
 import '../styles/model-filter.css';
 
-const SHARED_TITLE =
-  'At least one agent on this project also carries another project. Its cost is counted in each project it carries; no split is invented.';
+/**
+ * How spend reaches a project. A request comes from one agent, so it never
+ * spans two projects. An agent, on the other hand, can carry several projects,
+ * and then its full cost shows up in each of them. The workspace total still
+ * counts it once.
+ */
+const SPEND_TITLE =
+  'The spend of every agent on the project. An agent that carries several projects is counted in full in each of them, so this column can add up to more than the workspace total.';
 
 /**
- * Projects list: one row per project with agents, users (a stack of avatars
- * ordered by most recent activity), a 7-day request sparkline, spend this
- * month and last month. Export CSV for finance.
+ * Projects list: one row per project with its description, agents, users (a
+ * stack of avatars ordered by most recent activity), requests per day over
+ * the last 7 days, spend this month and last month. Export CSV for finance.
  */
 const Projects: Component = () => {
   const [searchParams, setSearchParams] = useSearchParams<{ q?: string; archived?: string }>();
@@ -63,10 +69,10 @@ const Projects: Component = () => {
         'Description',
         'Agents',
         'Users',
-        'Requests 7d',
+        'Requests (7d)',
         'Spend this month',
         'Last month',
-        'Cost counted in each project',
+        'Agents shared with other projects',
       ],
       rows().map((row) => [
         row.name,
@@ -82,8 +88,8 @@ const Projects: Component = () => {
     downloadTextFile(`projects-${new Date().toISOString().slice(0, 7)}.csv`, csv);
   };
 
-  const sparkLabels = (row: ProjectRow) =>
-    `${formatNumber(row.requests_7d_total)} requests in the last 7 days`;
+  const requestsLabel = (row: ProjectRow) =>
+    `${formatNumber(row.requests_7d_total)} requests in the last 7 days, one bar per day`;
 
   return (
     <div class="container--lg">
@@ -212,10 +218,21 @@ const Projects: Component = () => {
                   <thead>
                     <tr>
                       <th>Project</th>
+                      <th>Description</th>
                       <th>Agents</th>
                       <th>Users</th>
-                      <th>Last 7 days</th>
-                      <th>Spend this month</th>
+                      <th>Requests (7d)</th>
+                      <th>
+                        <span class="th-with-info">
+                          Spend this month
+                          <i
+                            class="bxd bx-info-circle th-info"
+                            role="img"
+                            aria-label={SPEND_TITLE}
+                            title={SPEND_TITLE}
+                          />
+                        </span>
+                      </th>
                       <th>Last month</th>
                     </tr>
                   </thead>
@@ -225,22 +242,24 @@ const Projects: Component = () => {
                         <tr>
                           <td>
                             <span class="who">
-                              <span class="who__text">
-                                <A
-                                  href={projectPath(row.id)}
-                                  class="who__name"
-                                  style="text-decoration: none;"
-                                >
-                                  {row.name}
-                                </A>
-                                <Show when={row.description}>
-                                  <span class="who__sub">{row.description}</span>
-                                </Show>
-                              </span>
+                              <A
+                                href={projectPath(row.id)}
+                                class="who__name"
+                                style="text-decoration: none;"
+                              >
+                                {row.name}
+                              </A>
                               <Show when={row.archived_at}>
                                 <span class="status-badge status-badge--neutral">Archived</span>
                               </Show>
                             </span>
+                          </td>
+                          <td>
+                            <Show when={row.description}>
+                              <span class="cell-truncate" title={row.description!}>
+                                {row.description}
+                              </span>
+                            </Show>
                           </td>
                           <td class="num">{row.agent_count}</td>
                           <td>
@@ -249,9 +268,9 @@ const Projects: Component = () => {
                           <td>
                             <span
                               style="display: inline-flex; align-items: center; gap: var(--gap-sm);"
-                              title={sparkLabels(row)}
+                              title={requestsLabel(row)}
                             >
-                              <Sparkline data={row.requests_7d} width={74} height={22} />
+                              <MiniBars data={row.requests_7d} />
                               <span class="num num--muted">
                                 {formatNumber(row.requests_7d_total)}
                               </span>
@@ -259,12 +278,6 @@ const Projects: Component = () => {
                           </td>
                           <td class="num">
                             <strong>{formatMoney(row.spend_month_usd)}</strong>
-                            <Show when={row.spend_shared}>
-                              {' '}
-                              <span class="project-tag project-tag--muted" title={SHARED_TITLE}>
-                                counted in each project
-                              </span>
-                            </Show>
                           </td>
                           <td class="num num--muted">{formatMoney(row.spend_last_month_usd)}</td>
                         </tr>

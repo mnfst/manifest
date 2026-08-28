@@ -144,11 +144,11 @@ describe('UserAgents', () => {
     const { container, getAllByText, getByText } = render(() => <UserAgents />);
     fireEvent.click(getAllByText('Remove from this user')[0]!);
     expect(container.textContent).toContain('Remove claude-code from Maya Okonkwo?');
-    expect(container.textContent).toContain('will keep running with no owner');
+    expect(container.textContent).toContain('will keep running with no user');
     fireEvent.click(getByText('Remove from this user', { selector: '.modal-card button' }));
     await vi.waitFor(() => expect(mockRemove).toHaveBeenCalledWith('u-maya', 'claude-code'));
     await vi.waitFor(() => expect(container.querySelector('.modal-card')).toBeNull());
-    expect(mockToast.success).toHaveBeenCalledWith('claude-code no longer has an owner');
+    expect(mockToast.success).toHaveBeenCalledWith('claude-code no longer has a user');
     expect(mockRefetchOverview).toHaveBeenCalled();
   });
 

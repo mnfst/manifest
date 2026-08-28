@@ -51,6 +51,7 @@ const SORT_KEYS: AgentSortKey[] = [
   'projects',
   'models',
   'spend_30d',
+  'spend_365d',
   'last_used',
 ];
 
@@ -344,7 +345,7 @@ const Agents: Component = () => {
           <span class="breadcrumb">
             <Show when={loaded()} fallback="Every agent that routes through Manifest">
               {total().toLocaleString('en-US')} agent{total() === 1 ? '' : 's'} ·{' '}
-              {(loaded()!.unowned_total ?? 0).toLocaleString('en-US')} without an owner
+              {(loaded()!.unowned_total ?? 0).toLocaleString('en-US')} without a user
             </Show>
           </span>
         </div>
@@ -445,10 +446,11 @@ const Agents: Component = () => {
                 <tr>
                   <th />
                   <th>Agent</th>
-                  <th>Owner</th>
+                  <th>User</th>
                   <th>Projects</th>
                   <th>Models</th>
-                  <th>Spend 30d</th>
+                  <th>Spend (30d)</th>
+                  <th>Spend (365d)</th>
                   <th>Last used</th>
                 </tr>
               </thead>
@@ -541,7 +543,7 @@ const Agents: Component = () => {
                         {...sortProps}
                       />
                       <SortableTh
-                        label="Owner"
+                        label="User"
                         sortKey="owner"
                         activeKey={sortKey()}
                         dir={sortDir()}
@@ -562,8 +564,16 @@ const Agents: Component = () => {
                         {...sortProps}
                       />
                       <SortableTh
-                        label="Spend 30d"
+                        label="Spend (30d)"
                         sortKey="spend_30d"
+                        activeKey={sortKey()}
+                        dir={sortDir()}
+                        defaultDir="desc"
+                        {...sortProps}
+                      />
+                      <SortableTh
+                        label="Spend (365d)"
+                        sortKey="spend_365d"
                         activeKey={sortKey()}
                         dir={sortDir()}
                         defaultDir="desc"
@@ -584,10 +594,6 @@ const Agents: Component = () => {
                     <For each={rows()}>
                       {(row) => {
                         const icon = () => platformIcon(row.agent_platform, row.agent_category);
-                        const typeLabel = () =>
-                          row.agent_platform && Object.hasOwn(PLATFORM_LABELS, row.agent_platform)
-                            ? PLATFORM_LABELS[row.agent_platform as keyof typeof PLATFORM_LABELS]
-                            : 'Agent';
                         const hidden = () => row.projects.slice(2);
                         return (
                           <tr>
@@ -618,14 +624,13 @@ const Agents: Component = () => {
                                       </span>
                                     </Show>
                                   </A>
-                                  <span class="who__sub">{typeLabel()}</span>
                                 </span>
                               </span>
                             </td>
                             <td>
                               <Show
                                 when={row.owner}
-                                fallback={<span class="pill-muted">No owner</span>}
+                                fallback={<span class="pill-muted">No user</span>}
                               >
                                 <span class="who">
                                   <Avatar name={row.owner!.name} size="sm" />
@@ -657,6 +662,11 @@ const Agents: Component = () => {
                             </td>
                             <td class="num">{modelsLabel(row)}</td>
                             <td class="num">{formatCost(row.spend_30d_usd) ?? '-'}</td>
+                            <td class="num">
+                              {row.spend_365d_usd == null
+                                ? '—'
+                                : (formatCost(row.spend_365d_usd) ?? '-')}
+                            </td>
                             <td class="num num--muted">
                               {row.last_used_at
                                 ? (formatTimeAgo(row.last_used_at) ?? 'Never')

@@ -94,7 +94,7 @@ const ProjectOverview: Component = () => {
 
         <div class="detail-grid">
           <div class="panel">
-            <div class="panel__title">Cost by owner</div>
+            <div class="panel__title">Cost by user</div>
             <span class="who__sub">The breakdown behind an invoice line.</span>
             <Show
               when={loaded()!.cost_by_owner.length > 0}
@@ -110,10 +110,7 @@ const ProjectOverview: Component = () => {
                     {(row) => (
                       <tr>
                         <td>
-                          <Show
-                            when={row.owner}
-                            fallback={<span class="pill-muted">No owner</span>}
-                          >
+                          <Show when={row.owner} fallback={<span class="pill-muted">No user</span>}>
                             <span class="who">
                               <Avatar name={row.owner!.name} size="sm" />
                               <span>{row.owner!.name}</span>

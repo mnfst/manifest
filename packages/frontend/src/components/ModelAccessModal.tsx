@@ -174,7 +174,9 @@ const ModelAccessModal: Component<ModelAccessModalProps> = (props) => {
 
           <div class="model-access__provider">
             <span class="model-access__grow">
-              <strong>All {providerLabel(props.access.provider)} models</strong>
+              <span class="model-access__title">
+                All {providerLabel(props.access.provider)} models
+              </span>
               <span class="model-access__count">
                 {enabledCount()} of {props.access.models.length} enabled
               </span>

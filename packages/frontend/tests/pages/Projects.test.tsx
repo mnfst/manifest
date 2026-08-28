@@ -89,7 +89,7 @@ describe('Projects page', () => {
     expect(container.querySelector('title')?.textContent).toBe('Projects - Manifest');
   });
 
-  it('renders rows with the users stack, sparkline and spend', async () => {
+  it('renders rows with the description, users stack, daily bars and spend', async () => {
     mockGetProjects.mockResolvedValue({
       projects: [
         row(),
@@ -108,13 +108,27 @@ describe('Projects page', () => {
     await vi.waitFor(() => expect(container.textContent).toContain('HSBC'));
     expect(container.textContent).toContain('2 projects ·');
     expect(container.querySelector('a[href="/projects/p-hsbc"]')?.textContent).toBe('HSBC');
-    expect(container.textContent).toContain('Client engagement');
+    // The description sits in its own one-line column with the full text on hover.
+    const description = container.querySelector('.cell-truncate')!;
+    expect(description.textContent).toBe('Client engagement');
+    expect(description.getAttribute('title')).toBe('Client engagement');
+    expect(container.querySelectorAll('.cell-truncate').length).toBe(1);
+    expect(container.querySelector('.who__sub')).toBeNull();
     expect(container.querySelector('.avatar-stack__more')?.textContent).toBe('+1');
+    // Requests per day as bars, one per day, with the 7-day total beside them.
+    expect(container.textContent).toContain('Requests (7d)');
+    expect(container.querySelectorAll('.mini-bars').length).toBe(2);
+    expect(container.querySelectorAll('.mini-bars rect').length).toBe(14);
+    expect(container.querySelector('[title*="requests in the last 7 days"]')).not.toBeNull();
     expect(container.textContent).toContain('12.4k');
     expect(container.textContent).toContain('$1,204.80');
     expect(container.textContent).toContain('$980.15');
-    expect(container.querySelectorAll('.project-tag--muted').length).toBe(1);
-    expect(container.textContent).toContain('counted in each project');
+    // Shared cost is explained once, on the column header, not tagged per row.
+    expect(container.querySelector('.project-tag--muted')).toBeNull();
+    expect(container.textContent).not.toContain('counted in each project');
+    expect(container.querySelector('.th-info')?.getAttribute('title')).toContain(
+      'counted in full in each of them',
+    );
     expect(container.textContent).toContain('Archived');
     expect(container.textContent).toContain('No users');
     expect(mockGetProjects).toHaveBeenCalledWith({ search: '', include_archived: false });
@@ -203,7 +217,7 @@ describe('Projects page', () => {
     expect(filename).toMatch(/^projects-\d{4}-\d{2}\.csv$/);
     const lines = csv.split('\n');
     expect(lines[0]).toBe(
-      'Project,Description,Agents,Users,Requests 7d,Spend this month,Last month,Cost counted in each project',
+      'Project,Description,Agents,Users,Requests (7d),Spend this month,Last month,Agents shared with other projects',
     );
     expect(lines[1]).toBe('HSBC,Client engagement,14,4,12400,1204.80,980.15,no');
     expect(lines[2]).toBe('"Atlas, Inc",,14,4,12400,1204.80,980.15,yes');

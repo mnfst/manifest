@@ -59,7 +59,6 @@ const maya = {
   name: 'Maya Okonkwo',
   email: 'maya@x.com',
   role: 'Engineering',
-  monthly_budget_usd: 200,
   archived_at: null,
   created_at: '2026-08-01T00:00:00Z',
 };
@@ -82,50 +81,40 @@ describe('UserSettings', () => {
   });
 
   it('prefills the profile and saves it', async () => {
-    const { getByLabelText, getByText } = render(() => <UserSettings />);
+    const { getByLabelText, getByText, container } = render(() => <UserSettings />);
     expect((getByLabelText('Name') as HTMLInputElement).value).toBe('Maya Okonkwo');
     expect((getByLabelText('Email') as HTMLInputElement).value).toBe('maya@x.com');
     expect((getByLabelText('Role') as HTMLInputElement).value).toBe('Engineering');
-    expect((getByLabelText('Monthly budget') as HTMLInputElement).value).toBe('200');
+    expect(container.textContent).not.toMatch(/budget/i);
+    expect(container.querySelector('input[type="number"]')).toBeNull();
     fireEvent.input(getByLabelText('Name'), { target: { value: ' Maya O. ' } });
     fireEvent.input(getByLabelText('Email'), { target: { value: '' } });
     fireEvent.input(getByLabelText('Role'), { target: { value: '' } });
-    fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '' } });
     fireEvent.click(getByText('Save'));
     await vi.waitFor(() =>
       expect(mockUpdateUser).toHaveBeenCalledWith('u-maya', {
         name: 'Maya O.',
         email: null,
         role: null,
-        monthly_budget_usd: null,
       }),
     );
     expect(mockToast.success).toHaveBeenCalledWith('User updated');
     expect(mockRefetchUser).toHaveBeenCalled();
-    // The budget meter and chart read the overview, so it refetches too.
-    expect(mockRefetchOverview).toHaveBeenCalled();
   });
 
   it('prefills empty optional fields for a sparse user', () => {
-    setMockUser({ ...maya, email: null, role: null, monthly_budget_usd: null });
+    setMockUser({ ...maya, email: null, role: null });
     const { getByLabelText } = render(() => <UserSettings />);
     expect((getByLabelText('Email') as HTMLInputElement).value).toBe('');
-    expect((getByLabelText('Monthly budget') as HTMLInputElement).value).toBe('');
+    expect((getByLabelText('Role') as HTMLInputElement).value).toBe('');
   });
 
-  it('blocks saving with an empty name or an invalid budget', () => {
-    const { getByLabelText, getByText, container } = render(() => <UserSettings />);
-    fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '-3' } });
-    expect(container.textContent).toContain(
-      'Enter a positive amount, or leave empty for no budget',
-    );
-    fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '0' } });
+  it('blocks saving with an empty name', () => {
+    const { getByLabelText, getByText } = render(() => <UserSettings />);
+    fireEvent.input(getByLabelText('Name'), { target: { value: '   ' } });
     expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(getByText('Save'));
     expect(mockUpdateUser).not.toHaveBeenCalled();
-    fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '5' } });
-    fireEvent.input(getByLabelText('Name'), { target: { value: '   ' } });
-    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('reports a failed save', async () => {

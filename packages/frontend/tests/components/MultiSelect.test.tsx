@@ -121,10 +121,10 @@ describe('MultiSelect — separator', () => {
       <MultiSelect
         values={[]}
         onChange={() => {}}
-        placeholder="All owners"
+        placeholder="All users"
         options={[
           { label: 'Maya', value: 'u1' },
-          { label: 'Without an owner', value: 'none', separatorBefore: true },
+          { label: 'Without a user', value: 'none', separatorBefore: true },
         ]}
       />
     ));
@@ -133,7 +133,7 @@ describe('MultiSelect — separator', () => {
     const hr = listbox.querySelector('hr.custom-select__separator');
     expect(hr).not.toBeNull();
     // The divider sits right before the flagged option.
-    expect(hr!.nextElementSibling?.textContent).toContain('Without an owner');
+    expect(hr!.nextElementSibling?.textContent).toContain('Without a user');
     expect(listbox.querySelectorAll('hr').length).toBe(1);
   });
 });

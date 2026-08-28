@@ -26,11 +26,11 @@ const users = [
     name: 'Maya Okonkwo',
     email: null,
     role: 'Engineering',
-    monthly_budget_usd: 200,
     archived_at: null,
     created_at: '',
     agent_count: 4,
-    spend_month_usd: 186.2,
+    spend_30d_usd: 186.2,
+    spend_365d_usd: 1420.5,
     last_active_at: null,
   },
   {
@@ -38,11 +38,11 @@ const users = [
     name: 'Deniz Kaya',
     email: null,
     role: null,
-    monthly_budget_usd: null,
     archived_at: null,
     created_at: '',
     agent_count: 1,
-    spend_month_usd: -1,
+    spend_30d_usd: -1,
+    spend_365d_usd: -1,
     last_active_at: null,
   },
 ];
@@ -67,17 +67,20 @@ describe('ProjectUsers', () => {
     mockCtx = makeCtx({ users, agents });
   });
 
-  it('lists users with agent counts, spend and budget meters', () => {
+  it('lists users with agent counts, spend over 30 and 365 days', () => {
     const { container } = render(() => <ProjectUsers />);
     expect(container.querySelector('a[href="/users/u1"]')?.textContent).toContain('Maya Okonkwo');
     expect(container.textContent).toContain('Engineering');
+    expect(container.textContent).toContain('Spend (30d)');
+    expect(container.textContent).toContain('Spend (365d)');
+    expect(container.textContent).not.toMatch(/budget/i);
     const rows = container.querySelectorAll('tbody tr');
     expect(rows[0]!.querySelectorAll('td')[1]!.textContent).toBe('2');
     expect(rows[1]!.querySelectorAll('td')[1]!.textContent).toBe('0');
-    expect(container.textContent).toContain('$186.20');
-    expect(container.textContent).toContain('$13.80 left');
-    expect(container.textContent).toContain('No budget');
+    expect(rows[0]!.querySelectorAll('td')[2]!.textContent).toBe('$186.20');
+    expect(rows[0]!.querySelectorAll('td')[3]!.textContent).toBe('$1420.50');
     expect(rows[1]!.querySelectorAll('td')[2]!.textContent).toBe('-');
+    expect(rows[1]!.querySelectorAll('td')[3]!.textContent).toBe('-');
   });
 
   it('shows the empty state and the loading skeleton', () => {

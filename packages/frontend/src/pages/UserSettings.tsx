@@ -2,7 +2,6 @@ import { useNavigate } from '@solidjs/router';
 import { createEffect, createSignal, Show, type Component } from 'solid-js';
 import DeleteUserModal from '../components/DeleteUserModal.jsx';
 import { archiveUser, unarchiveUser, updateUser } from '../services/api/teams.js';
-import { parseBudgetInput } from '../services/teams-utils.js';
 import { toast } from '../services/toast-store.js';
 import { useUserDetail } from './UserDetail.jsx';
 
@@ -11,13 +10,12 @@ import { useUserDetail } from './UserDetail.jsx';
  * history stays), and the delete flow that decides what happens to their agents.
  */
 const UserSettings: Component = () => {
-  const { user, overview, userId, refetchUser, refetchOverview } = useUserDetail();
+  const { user, overview, userId, refetchUser } = useUserDetail();
   const navigate = useNavigate();
 
   const [name, setName] = createSignal('');
   const [email, setEmail] = createSignal('');
   const [role, setRole] = createSignal('');
-  const [budget, setBudget] = createSignal('');
   const [saving, setSaving] = createSignal(false);
   const [archiving, setArchiving] = createSignal(false);
   const [deleteOpen, setDeleteOpen] = createSignal(false);
@@ -28,7 +26,6 @@ const UserSettings: Component = () => {
     setName(u.name);
     setEmail(u.email ?? '');
     setRole(u.role ?? '');
-    setBudget(u.monthly_budget_usd == null ? '' : String(u.monthly_budget_usd));
   });
 
   /**
@@ -41,10 +38,7 @@ const UserSettings: Component = () => {
     return overview()!.agents.filter((a) => !a.archived_at).length;
   };
 
-  const budgetValue = () => parseBudgetInput(budget());
-  // parseBudgetInput already rejects zero, negatives and out-of-range values.
-  const budgetInvalid = () => budgetValue() === undefined;
-  const canSave = () => name().trim().length > 0 && !budgetInvalid() && !saving();
+  const canSave = () => name().trim().length > 0 && !saving();
 
   const save = async () => {
     if (!canSave()) return;
@@ -54,12 +48,9 @@ const UserSettings: Component = () => {
         name: name().trim(),
         email: email().trim() || null,
         role: role().trim() || null,
-        monthly_budget_usd: budgetValue() ?? null,
       });
       toast.success('User updated');
       refetchUser();
-      // The overview carries the budget the meter and chart read.
-      refetchOverview();
     } catch {
       toast.error("Couldn't save these changes. Please try again.");
     } finally {
@@ -112,9 +103,7 @@ const UserSettings: Component = () => {
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Email</span>
-            <span class="settings-card__label-desc">
-              Optional. Only needed if they should receive their own budget alerts.
-            </span>
+            <span class="settings-card__label-desc">Optional.</span>
           </div>
           <div class="settings-card__control">
             <input
@@ -130,7 +119,7 @@ const UserSettings: Component = () => {
         <div class="settings-card__row">
           <div class="settings-card__label">
             <span class="settings-card__label-title">Role</span>
-            <span class="settings-card__label-desc">Shown under their name.</span>
+            <span class="settings-card__label-desc">Shown next to their name.</span>
           </div>
           <div class="settings-card__control">
             <input
@@ -139,32 +128,6 @@ const UserSettings: Component = () => {
               aria-label="Role"
               value={role()}
               onInput={(e) => setRole(e.currentTarget.value)}
-              disabled={saving()}
-            />
-          </div>
-        </div>
-        <div class="settings-card__row">
-          <div class="settings-card__label">
-            <span class="settings-card__label-title">Monthly budget (USD)</span>
-            <span class="settings-card__label-desc">
-              Shows spend and raises an alert as it is approached or exceeded. Nothing is blocked.
-              Changing it mid-month recomputes the meter from the first of the month.
-            </span>
-            <Show when={budgetInvalid()}>
-              <span class="field__error">
-                Enter a positive amount, or leave empty for no budget
-              </span>
-            </Show>
-          </div>
-          <div class="settings-card__control">
-            <input
-              class="settings-card__input"
-              type="number"
-              min="0"
-              step="0.01"
-              aria-label="Monthly budget"
-              value={budget()}
-              onInput={(e) => setBudget(e.currentTarget.value)}
               disabled={saving()}
             />
           </div>

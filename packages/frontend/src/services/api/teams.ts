@@ -15,9 +15,10 @@
  *   DEV branch, so Vite drops it from production bundles.
  *
  * Vocabulary (matches the spec):
- * - A "user" is a person in the company with a monthly budget. Not a login.
- *   The login is the "account".
- * - The user attached to an agent is its "owner". An agent has one owner or none.
+ * - A "user" is a person in the company. Not a login. The login is the
+ *   "account". Limits stay on agents: a user carries no budget.
+ * - The user attached to an agent is its "owner" in this contract. The UI
+ *   only ever says "user". An agent has one user or none.
  * - A "project" is a tag an agent carries. Many-to-many with agents.
  */
 import { fetchJson, fetchMutate } from './core.js';
@@ -45,16 +46,16 @@ export interface TeamUser {
   name: string;
   email: string | null;
   role: string | null;
-  /** Monthly budget in USD. `null` means no budget. */
-  monthly_budget_usd: number | null;
   archived_at: string | null;
   created_at: string;
 }
 
 export interface TeamUserRow extends TeamUser {
   agent_count: number;
-  /** Spend since the first of the current month, USD. */
-  spend_month_usd: number;
+  /** Spend over the last 30 days, USD (the dashboard's rolling window). */
+  spend_30d_usd: number;
+  /** Spend over the last 365 days, USD. */
+  spend_365d_usd: number;
   last_active_at: string | null;
 }
 
@@ -93,12 +94,15 @@ export interface AgentRow {
   models_enabled: number;
   models_total: number;
   spend_30d_usd: number;
+  /** Spend over the last 365 days, USD; null when the transport cannot know it. */
+  spend_365d_usd: number | null;
   request_count: number;
   last_used_at: string | null;
   archived_at: string | null;
 }
 
-export type AgentSortKey = 'agent' | 'owner' | 'projects' | 'models' | 'spend_30d' | 'last_used';
+export type AgentSortKey =
+  'agent' | 'owner' | 'projects' | 'models' | 'spend_30d' | 'spend_365d' | 'last_used';
 
 export interface AgentListQuery {
   search?: string;
@@ -177,12 +181,15 @@ export interface ProviderModelAccess {
 }
 
 export interface UserOverview {
-  cost_month_usd: number;
+  /** Spend over the last 30 days, USD. */
+  cost_30d_usd: number;
+  /** Change versus the previous 30 days, percent. */
   cost_trend_pct: number;
-  budget_usd: number | null;
+  /** Spend over the last 365 days, USD. */
+  cost_365d_usd: number;
   requests: number;
   tokens: number;
-  /** Daily cost since the first of the month, oldest first. */
+  /** Daily cost over the last 30 days, oldest first. */
   cost_series: Array<{ date: string; cost_usd: number }>;
   agents: AgentRow[];
 }
@@ -206,15 +213,15 @@ export interface ProjectOverview {
 export interface UserListQuery {
   search?: string;
   include_archived?: boolean;
-  sort?: 'name' | 'spend' | 'budget_left';
+  sort?: 'name' | 'spend_30d' | 'spend_365d';
   dir?: 'asc' | 'desc';
 }
 
 export interface UserListResponse {
   users: TeamUserRow[];
   total: number;
-  spend_month_usd_total: number;
-  budget_month_usd_total: number;
+  spend_30d_usd_total: number;
+  spend_365d_usd_total: number;
 }
 
 export interface ProjectListQuery {
@@ -231,7 +238,6 @@ export interface CreateUserParams {
   name: string;
   email?: string | null;
   role?: string | null;
-  monthly_budget_usd?: number | null;
 }
 
 export type UpdateUserParams = Partial<CreateUserParams>;
@@ -383,7 +389,7 @@ export const httpTeamsApi: TeamsApi = {
     }),
   // GET /api/v1/users/:id → { user: TeamUser | null }
   getUser: (id) => fetchJson<{ user: TeamUser | null }>(userId(id)).then((r) => r?.user ?? null),
-  // POST /api/v1/users { name, email?, role?, monthly_budget_usd? }
+  // POST /api/v1/users { name, email?, role? }
   createUser: (params) => fetchMutate<TeamUser>('/users', json(params)),
   // PATCH /api/v1/users/:id
   updateUser: (id, params) => fetchMutate<TeamUser>(userId(id), patch(params)),

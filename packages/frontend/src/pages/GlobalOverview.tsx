@@ -807,7 +807,7 @@ const GlobalOverview: Component = () => {
               case 'provider':
                 return 'providers';
               case 'owner':
-                return 'owners';
+                return 'users';
               case 'project':
                 return 'projects';
               default:
@@ -872,7 +872,7 @@ const GlobalOverview: Component = () => {
                       classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'owner' }}
                       onClick={() => setGroupBy('owner')}
                     >
-                      By owner
+                      By user
                     </button>
                     <button
                       class="chart-card__filter-btn"
@@ -893,7 +893,7 @@ const GlobalOverview: Component = () => {
                       disabled={hasTeamFilter()}
                       title={
                         hasTeamFilter()
-                          ? 'Provider series cannot be filtered by owner or project'
+                          ? 'Provider series cannot be filtered by user or project'
                           : undefined
                       }
                       onClick={() => setGroupBy('provider')}
@@ -912,7 +912,7 @@ const GlobalOverview: Component = () => {
                       classList={{ 'chart-card__filter-btn--active': usageGroup() === 'owner' }}
                       onClick={() => setGroupBy('owner')}
                     >
-                      By owner
+                      By user
                     </button>
                     <button
                       class="chart-card__filter-btn"
@@ -925,7 +925,7 @@ const GlobalOverview: Component = () => {
                   <Show when={hasTeamFilter()}>
                     <span
                       class="field__hint"
-                      title="Recovery and request-status series come from endpoints that do not take the owner and project filters yet."
+                      title="Recovery and request-status series come from endpoints that do not take the user and project filters yet."
                     >
                       Recovery and status series show all agents
                     </span>

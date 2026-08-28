@@ -17,7 +17,6 @@ const created = {
   name: 'Maya Okonkwo',
   email: null,
   role: null,
-  monthly_budget_usd: null,
   archived_at: null,
   created_at: '2026-08-28T00:00:00Z',
 };

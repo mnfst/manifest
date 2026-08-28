@@ -68,7 +68,7 @@ describe('ProjectOverview', () => {
     ).not.toBeNull();
     expect(container.textContent).toContain('Maya Okonkwo');
     expect(container.textContent).toContain('$412.60');
-    expect(container.querySelector('.pill-muted')?.textContent).toBe('No owner');
+    expect(container.querySelector('.pill-muted')?.textContent).toBe('No user');
     expect(container.textContent).toContain('$112.15');
     expect(container.textContent).not.toContain('counted in each project');
     expect(container.textContent).toContain('1 Aug');

@@ -34,7 +34,7 @@ const UserAgents: Component = () => {
     setBusy(true);
     try {
       await removeAgentFromUser(userId(), target.agent_name);
-      toast.success(`${target.display_name} no longer has an owner`);
+      toast.success(`${target.display_name} no longer has a user`);
       setRemoving(null);
       refetchOverview();
     } catch {
@@ -73,7 +73,7 @@ const UserAgents: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No agents yet</div>
-              <p>Create an agent for {user()?.name}. The owner is filled in for you.</p>
+              <p>Create an agent for {user()?.name}. The user is filled in for you.</p>
               <button
                 class="btn btn--primary btn--sm"
                 style="margin-top: var(--gap-md);"
@@ -92,7 +92,8 @@ const UserAgents: Component = () => {
                     <th>Agent</th>
                     <th>Type</th>
                     <th>Projects</th>
-                    <th>Spend 30d</th>
+                    <th>Spend (30d)</th>
+                    <th>Spend (365d)</th>
                     <th>Last used</th>
                     <th />
                   </tr>
@@ -137,6 +138,9 @@ const UserAgents: Component = () => {
                           </span>
                         </td>
                         <td class="num">{formatCost(agent.spend_30d_usd)}</td>
+                        <td class="num">
+                          {agent.spend_365d_usd == null ? '—' : formatCost(agent.spend_365d_usd)}
+                        </td>
                         <td class="who__sub">{formatTimeAgo(agent.last_used_at) ?? 'Never'}</td>
                         <td style="text-align: right;">
                           <button
@@ -194,7 +198,7 @@ const UserAgents: Component = () => {
               Remove {removing()!.display_name} from {user()?.name}?
             </h2>
             <p class="modal-card__desc">
-              {removing()!.display_name} will keep running with no owner. Its history stays under{' '}
+              {removing()!.display_name} will keep running with no user. Its history stays under{' '}
               {user()?.name}. No user budget applies to it from now on.
             </p>
             <div class="modal-card__footer">

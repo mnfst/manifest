@@ -5,7 +5,7 @@ import StatCards from '../components/StatCards.jsx';
 import CostBarChart from '../components/CostBarChart.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import { formatCost, formatNumber } from '../services/formatters.js';
-import { budgetLabel, budgetState, formatMoney } from '../services/teams-utils.js';
+import { formatMoney } from '../services/teams-utils.js';
 import { agentPath, userPath } from '../services/routing.js';
 import { useUserDetail } from './UserDetail.jsx';
 
@@ -22,18 +22,13 @@ export function axisLabels(dates: string[]): string[] {
 }
 
 /**
- * A user's overview, built like an agent overview: cost this month, budget
- * left, requests and token usage, a cost chart against the budget, then their
- * agents.
+ * A user's overview, built like an agent overview: cost over the last 30 and
+ * 365 days, requests and token usage, a daily cost chart, then their agents.
  */
 const UserOverview: Component = () => {
   const { user, overview, userId, refetchOverview } = useUserDetail();
 
   // Reading an errored resource throws; the error branch below never reads it.
-  const loaded = () => (overview.error ? undefined : overview());
-  const budget = () => loaded()?.budget_usd ?? null;
-  const spend = () => loaded()?.cost_month_usd ?? 0;
-  const state = () => budgetState(spend(), budget());
   const via = () => [
     { label: 'Users', href: '/users' },
     { label: user()?.name ?? '', href: userPath(userId()) },
@@ -68,15 +63,11 @@ const UserOverview: Component = () => {
         <StatCards
           items={[
             {
-              label: 'Cost this month',
-              value: formatMoney(overview()!.cost_month_usd),
+              label: 'Cost (30d)',
+              value: formatMoney(overview()!.cost_30d_usd),
               trendPct: overview()!.cost_trend_pct,
             },
-            {
-              label: 'Budget left',
-              value: budgetLabel(spend(), budget()) ?? 'No budget',
-              tone: state().tone === 'over' ? 'over' : state().tone === 'warn' ? 'warn' : undefined,
-            },
+            { label: 'Cost (365d)', value: formatMoney(overview()!.cost_365d_usd) },
             { label: 'Requests', value: formatNumber(overview()!.requests) },
             { label: 'Token usage', value: formatNumber(overview()!.tokens) },
           ]}
@@ -84,15 +75,12 @@ const UserOverview: Component = () => {
 
         <div class="panel">
           <div class="panel__title">Cost</div>
-          <span class="who__sub">
-            {budget() != null ? `Against a $${budget()} monthly budget` : 'This month'}
-          </span>
+          <span class="who__sub">Last 30 days</span>
           <CostBarChart
             values={overview()!.cost_series.map((p) => p.cost_usd)}
             labels={axisLabels(overview()!.cost_series.map((p) => p.date))}
-            budget={budget()}
             format={formatMoney}
-            ariaLabel="Daily cost this month"
+            ariaLabel="Daily cost over the last 30 days"
           />
         </div>
 

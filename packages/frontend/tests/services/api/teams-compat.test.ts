@@ -62,8 +62,8 @@ describe('compat transport (teams backend absent)', () => {
     expect(await api.getUsers()).toEqual({
       users: [],
       total: 0,
-      spend_month_usd_total: 0,
-      budget_month_usd_total: 0,
+      spend_30d_usd_total: 0,
+      spend_365d_usd_total: 0,
     });
     expect(await api.getUser('x')).toBeNull();
     expect(await api.getProjects()).toEqual({ projects: [], total: 0 });
@@ -128,8 +128,8 @@ describe('compat transport (teams backend absent)', () => {
   it('regroups usage by agent, owner and project without a team layer', async () => {
     const byOwner = await api.getOverviewGroupedUsage('7d', 'owner');
     expect(byOwner.tokenUsage).toEqual({
-      agents: ['No owner'],
-      timeseries: [{ date: 'd', 'No owner': 3 }],
+      agents: ['No user'],
+      timeseries: [{ date: 'd', 'No user': 3 }],
     });
     const byProject = await api.getOverviewGroupedUsage('7d', 'project');
     expect(byProject.tokenUsage.agents).toEqual(['No project']);

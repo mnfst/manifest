@@ -87,12 +87,13 @@ const ProjectDetail: ParentComponent = (props) => {
     const o = loadedOverview();
     if (!p || !o) return;
     const csv = toCsv(
-      ['Agent', 'Owner', 'Requests', 'Spend 30d', 'Last used'],
+      ['Agent', 'User', 'Requests', 'Spend (30d)', 'Spend (365d)', 'Last used'],
       o.agents.map((a) => [
         a.display_name,
-        a.owner?.name ?? 'No owner',
+        a.owner?.name ?? 'No user',
         a.request_count,
         a.spend_30d_usd.toFixed(2),
+        a.spend_365d_usd == null ? '' : a.spend_365d_usd.toFixed(2),
         a.last_used_at ?? '',
       ]),
     );

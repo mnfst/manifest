@@ -61,15 +61,14 @@ const maya = {
   name: 'Maya Okonkwo',
   email: 'maya@x.com',
   role: 'Engineering',
-  monthly_budget_usd: 200,
   archived_at: null,
   created_at: '2026-08-01T00:00:00Z',
 };
 
 const overview = {
-  cost_month_usd: 100,
+  cost_30d_usd: 100,
   cost_trend_pct: 5,
-  budget_usd: 200,
+  cost_365d_usd: 900,
   requests: 10,
   tokens: 100,
   cost_series: [],
@@ -80,7 +79,7 @@ const Child = () => {
   const ctx = useUserDetail();
   return (
     <div data-testid="child">
-      {ctx.userId()}|{ctx.user()?.name}|{String(ctx.overview()?.cost_month_usd)}
+      {ctx.userId()}|{ctx.user()?.name}|{String(ctx.overview()?.cost_30d_usd)}
       <button onClick={() => ctx.refetchUser()}>refetch-user</button>
       <button onClick={() => ctx.refetchOverview()}>refetch-overview</button>
     </div>
@@ -108,7 +107,7 @@ describe('UserDetail', () => {
       label: 'Maya Okonkwo',
     });
     expect(container.textContent).toContain('Engineering');
-    expect(container.textContent).toContain('Budget $200 / month');
+    expect(container.textContent).not.toMatch(/budget/i);
     await vi.waitFor(() =>
       expect(getByTestId('child').textContent).toContain('u-maya|Maya Okonkwo|100'),
     );
@@ -145,17 +144,15 @@ describe('UserDetail', () => {
     expect(mockSetBreadcrumb).not.toHaveBeenCalled();
   });
 
-  it('shows placeholders for a user without role or budget, and the archived badge', async () => {
+  it('shows a role placeholder for a user without a role, and the archived badge', async () => {
     mockGetUser.mockResolvedValue({
       ...maya,
       role: null,
-      monthly_budget_usd: null,
       archived_at: '2026-08-10T00:00:00Z',
     });
     mockGetUserOverview.mockRejectedValue(new Error('boom'));
     const { container } = render(() => <UserDetail />);
     await vi.waitFor(() => expect(container.textContent).toContain('Add a role'));
-    expect(container.textContent).toContain('No budget');
     expect(container.textContent).toContain('Archived');
     expect(container.querySelector('.budget-alert')).toBeNull();
   });
@@ -192,58 +189,27 @@ describe('UserDetail', () => {
     await vi.waitFor(() => expect(mockUpdateUser).toHaveBeenCalledWith('u-maya', { role: null }));
   });
 
-  it('edits the budget in place and validates it', async () => {
-    const { container, getByLabelText, getByText } = render(() => <UserDetail />);
-    await vi.waitFor(() => expect(container.textContent).toContain('Budget $200 / month'));
-    const chip = getByText('Budget $200 / month');
-    fireEvent.click(chip);
-    expect((getByLabelText('Monthly budget in USD') as HTMLInputElement).value).toBe('200');
-    expect(container.textContent).toContain('recomputes the meter from the first');
-    fireEvent.input(getByLabelText('Monthly budget in USD'), { target: { value: '-1' } });
-    expect(container.textContent).toContain('Enter a positive amount');
-    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(getByText('Save'));
-    expect(mockUpdateUser).not.toHaveBeenCalled();
-    fireEvent.input(getByLabelText('Monthly budget in USD'), { target: { value: '250' } });
-    fireEvent.click(getByText('Save'));
-    await vi.waitFor(() =>
-      expect(mockUpdateUser).toHaveBeenCalledWith('u-maya', { monthly_budget_usd: 250 }),
-    );
-    expect(mockToast.success).toHaveBeenCalledWith('Budget updated');
-    fireEvent.click(chip);
-    fireEvent.click(chip);
-    expect(container.querySelector('[aria-label="Edit budget"]')).toBeNull();
-  });
-
-  it('saves an empty budget as null and reports a failed save', async () => {
-    mockGetUser.mockResolvedValue({ ...maya, monthly_budget_usd: null });
+  it('reports a failed role save and closes the popover on a second click', async () => {
     mockUpdateUser.mockRejectedValue(new Error('nope'));
     const { container, getByLabelText, getByText } = render(() => <UserDetail />);
-    await vi.waitFor(() => expect(container.textContent).toContain('No budget'));
-    fireEvent.click(getByText('No budget'));
-    expect((getByLabelText('Monthly budget in USD') as HTMLInputElement).value).toBe('');
+    await vi.waitFor(() => expect(container.textContent).toContain('Engineering'));
+    const chip = getByText('Engineering');
+    fireEvent.click(chip);
+    fireEvent.input(getByLabelText('Role'), { target: { value: 'Ops' } });
     fireEvent.click(getByText('Save'));
-    await vi.waitFor(() =>
-      expect(mockUpdateUser).toHaveBeenCalledWith('u-maya', { monthly_budget_usd: null }),
-    );
     await vi.waitFor(() => expect(mockToast.error).toHaveBeenCalled());
+    expect(container.querySelector('[aria-label="Edit role"]')).not.toBeNull();
+    fireEvent.click(chip);
+    expect(container.querySelector('[aria-label="Edit role"]')).toBeNull();
   });
 
-  it('raises a warning banner near the budget and a red one over it', async () => {
-    mockGetUserOverview.mockResolvedValue({ ...overview, cost_month_usd: 186.2 });
+  it('never shows a budget chip, editor or alert, whatever the spend', async () => {
+    mockGetUserOverview.mockResolvedValue({ ...overview, cost_30d_usd: 208.4 });
     const { container } = render(() => <UserDetail />);
-    await vi.waitFor(() => expect(container.querySelector('.budget-alert')).toBeTruthy());
-    expect(container.textContent).toContain('close to their budget');
-    expect(container.textContent).toContain('$13.80 left');
-    expect(container.querySelector('.budget-alert--over')).toBeNull();
-  });
-
-  it('shows the over-budget banner', async () => {
-    mockGetUserOverview.mockResolvedValue({ ...overview, cost_month_usd: 208.4 });
-    const { container } = render(() => <UserDetail />);
-    await vi.waitFor(() => expect(container.querySelector('.budget-alert--over')).toBeTruthy());
-    expect(container.textContent).toContain('over budget by $8.40');
-    expect(container.textContent).toContain('nothing is blocked');
+    await vi.waitFor(() => expect(container.textContent).toContain('Maya Okonkwo'));
+    expect(container.textContent).not.toMatch(/budget/i);
+    expect(container.querySelector('.budget-alert')).toBeNull();
+    expect(container.querySelectorAll('.inline-edit').length).toBe(1);
   });
 });
 
@@ -287,19 +253,7 @@ describe('UserDetail — failures and validation', () => {
       </UserDetail>
     ));
     await vi.waitFor(() => expect(getByTestId('probe').textContent).toBe('nope|false'));
-    // The shell itself still renders the header; no budget alert without a spend.
+    // The shell itself still renders the header.
     expect(container.textContent).toContain('Maya Okonkwo');
-    expect(container.querySelector('.budget-alert')).toBeNull();
-  });
-
-  it('rejects a zero budget in the inline edit', async () => {
-    const { container, getByLabelText, getByText } = render(() => <UserDetail />);
-    await vi.waitFor(() => expect(container.textContent).toContain('Budget $200 / month'));
-    fireEvent.click(getByText('Budget $200 / month'));
-    fireEvent.input(getByLabelText('Monthly budget in USD'), { target: { value: '0' } });
-    expect(container.textContent).toContain(
-      'Enter a positive amount, or leave empty for no budget',
-    );
-    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
   });
 });

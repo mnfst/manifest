@@ -16,7 +16,7 @@ interface DeleteUserModalProps {
 
 /**
  * Deleting a user is blocked while they still own agents, unless the caller
- * says what happens to those agents: leave them with no owner (default) or
+ * says what happens to those agents: leave them with no user (default) or
  * delete them. While the agent count is unknown the confirm stays disabled,
  * so an unfinished lookup never silently defaults to "unassign".
  *
@@ -118,7 +118,7 @@ const DeleteUserModal: Component<DeleteUserModalProps> = (props) => {
                     onChange={() => setChoice('unassign')}
                   />
                   <span>
-                    Leave their agents with no owner
+                    Leave their agents with no user
                     <br />
                     <span class="choice-list__desc">
                       They keep running. Their history stays under {props.user.name}.

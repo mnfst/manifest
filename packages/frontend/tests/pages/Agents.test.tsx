@@ -167,6 +167,7 @@ const row = (overrides: Record<string, unknown> = {}) => ({
   models_enabled: 12,
   models_total: 40,
   spend_30d_usd: 121.3,
+  spend_365d_usd: 1450.2,
   request_count: 12880,
   last_used_at: new Date(Date.now() - 120_000).toISOString(),
   archived_at: null,
@@ -189,6 +190,7 @@ const rows = [
     models_enabled: 40,
     models_total: 40,
     spend_30d_usd: 88.1,
+    spend_365d_usd: null,
     last_used_at: null,
   }),
   row({
@@ -288,16 +290,18 @@ describe('Agents page', () => {
   it('renders the rows, counts, owners, projects, models and last-used values', async () => {
     const { container } = renderPage();
     await waitForRows();
-    expect(container.textContent).toContain('3 agents · 1 without an owner');
+    expect(container.textContent).toContain('3 agents · 1 without a user');
     expect(container.textContent).toContain('Maya Okonkwo');
-    expect(container.textContent).toContain('No owner');
+    expect(container.textContent).toContain('No user');
     expect(container.textContent).toContain('12 of 40');
     expect(container.textContent).toContain('All 40');
     expect(container.textContent).toContain('$121.30');
     expect(container.textContent).toContain('2m ago');
     expect(container.textContent).toContain('Never');
-    expect(container.textContent).toContain('Claude Code');
-    expect(container.textContent).toContain('OpenAI SDK');
+    // The platform icon says the type; no subline under the name.
+    expect(container.querySelector('tbody .who__sub')).toBeNull();
+    expect(container.textContent).toContain('$1450.20');
+    expect(container.textContent).toContain('—');
     expect(container.textContent).toContain('Archived');
     expect(container.querySelector('a[href="/agents/claude-code"]')).not.toBeNull();
     const plus = container.querySelector('.project-tag--muted[title]');
@@ -378,17 +382,17 @@ describe('Agents page', () => {
   it('sorts by a column, flips direction on a second click, and defaults spend to descending', async () => {
     renderPage();
     await waitForRows();
-    fireEvent.click(screen.getByText('Owner'));
+    fireEvent.click(screen.getByText('User'));
     expect(mockSetSearchParams).toHaveBeenLastCalledWith(
       { sort: 'owner', dir: 'asc', page: undefined },
       { replace: true },
     );
-    fireEvent.click(screen.getByText('Owner'));
+    fireEvent.click(screen.getByText('User'));
     expect(mockSetSearchParams).toHaveBeenLastCalledWith(
       { sort: 'owner', dir: 'desc', page: undefined },
       { replace: true },
     );
-    fireEvent.click(screen.getByText('Spend 30d'));
+    fireEvent.click(screen.getByText('Spend (30d)'));
     expect(mockSetSearchParams).toHaveBeenLastCalledWith(
       { sort: 'spend_30d', dir: 'desc', page: undefined },
       { replace: true },
@@ -515,7 +519,7 @@ describe('Agents page', () => {
     await waitForRows();
     fireEvent.click(screen.getByLabelText('Select claude-code'));
     expect(screen.getByText('1 selected')).toBeTruthy();
-    fireEvent.click(screen.getByText('Owner'));
+    fireEvent.click(screen.getByText('User'));
     await vi.waitFor(() => expect(screen.queryByText('1 selected')).toBeNull());
   });
 
@@ -657,6 +661,6 @@ describe('Agents page', () => {
   it('uses the singular for one agent', async () => {
     mockListAgents.mockResolvedValue(response({ agents: [rows[0]], total: 1, unowned_total: 0 }));
     const { container } = renderPage();
-    await vi.waitFor(() => expect(container.textContent).toContain('1 agent · 0 without an owner'));
+    await vi.waitFor(() => expect(container.textContent).toContain('1 agent · 0 without a user'));
   });
 });

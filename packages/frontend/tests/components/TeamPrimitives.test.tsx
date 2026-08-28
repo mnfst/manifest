@@ -23,7 +23,6 @@ vi.mock('@solidjs/router', () => ({
 
 import Avatar from '../../src/components/Avatar';
 import AvatarStack from '../../src/components/AvatarStack';
-import BudgetMeter from '../../src/components/BudgetMeter';
 import FilterCheckbox from '../../src/components/FilterCheckbox';
 import SortableTh from '../../src/components/SortableTh';
 import StatCards from '../../src/components/StatCards';
@@ -80,35 +79,6 @@ describe('AvatarStack', () => {
   it('renders an empty label without users', () => {
     const { container } = render(() => <AvatarStack users={[]} />);
     expect(container.textContent).toBe('No users');
-  });
-});
-
-describe('BudgetMeter', () => {
-  it('shows "No budget" without a budget', () => {
-    const { container } = render(() => <BudgetMeter spend={10} budget={null} />);
-    expect(container.textContent).toBe('No budget');
-  });
-  it('is teal under the cap, amber near it, red over it', () => {
-    const ok = render(() => <BudgetMeter spend={74.05} budget={200} />);
-    expect(ok.container.querySelector('.budget-meter--warn')).toBeNull();
-    expect(ok.container.textContent).toContain('$125.95 left');
-    expect(ok.container.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')).toBe(
-      '37',
-    );
-    expect((ok.container.querySelector('.budget-meter__fill') as HTMLElement).style.width).toBe(
-      '37%',
-    );
-    ok.unmount();
-    const warn = render(() => <BudgetMeter spend={186.2} budget={200} />);
-    expect(warn.container.querySelector('.budget-meter--warn')).not.toBeNull();
-    expect(warn.container.textContent).toContain('$13.80 left');
-    warn.unmount();
-    const over = render(() => <BudgetMeter spend={58.4} budget={50} />);
-    expect(over.container.querySelector('.budget-meter--over')).not.toBeNull();
-    expect(over.container.textContent).toContain('$8.40 over');
-    expect((over.container.querySelector('.budget-meter__fill') as HTMLElement).style.width).toBe(
-      '100%',
-    );
   });
 });
 
@@ -221,8 +191,8 @@ describe('StatCards', () => {
       <StatCards
         items={[
           { label: 'Cost this month', value: '$186.20', trendPct: 22.4 },
-          { label: 'Budget left', value: '$13.80', tone: 'warn' },
-          { label: 'Over', value: '$8.40', tone: 'over', trendPct: -1500 },
+          { label: 'Cost (365d)', value: '$13.80' },
+          { label: 'Over', value: '$8.40', trendPct: -1500 },
           { label: 'Requests', value: '21,406', trendPct: 0.2 },
         ]}
       />
@@ -231,12 +201,7 @@ describe('StatCards', () => {
     expect(cards.length).toBe(4);
     expect(cards[0]!.textContent).toContain('Cost this month');
     expect(cards[0]!.querySelector('.trend')?.textContent).toBe('+22%');
-    expect((cards[1]!.querySelector('.overview-stat-card__value') as HTMLElement).style.color).toBe(
-      'hsl(var(--chart-5))',
-    );
-    expect((cards[2]!.querySelector('.overview-stat-card__value') as HTMLElement).style.color).toBe(
-      'hsl(var(--destructive))',
-    );
+    expect(cards[1]!.querySelector('.trend')).toBeNull();
     expect(cards[2]!.querySelector('.trend')?.textContent).toBe('-999%');
     // A rounded-to-zero trend is not shown.
     expect(cards[3]!.querySelector('.trend')).toBeNull();

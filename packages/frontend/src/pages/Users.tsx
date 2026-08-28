@@ -3,7 +3,6 @@ import { A, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import ErrorState from '../components/ErrorState.jsx';
 import Avatar from '../components/Avatar.jsx';
-import BudgetMeter from '../components/BudgetMeter.jsx';
 import FilterCheckbox from '../components/FilterCheckbox.jsx';
 import SortableTh from '../components/SortableTh.jsx';
 import AddUserModal from '../components/AddUserModal.jsx';
@@ -17,11 +16,11 @@ type SortKey = NonNullable<UserListQuery['sort']>;
 type SortDir = 'asc' | 'desc';
 
 const isSortKey = (value: unknown): value is SortKey =>
-  value === 'name' || value === 'spend' || value === 'budget_left';
+  value === 'name' || value === 'spend_30d' || value === 'spend_365d';
 
 /**
  * Users: one row per person the company tracks spend for. They do not log in.
- * Sortable by spend or by budget left; archived users are hidden unless
+ * Sortable by spend over the last 30 or 365 days; archived users are hidden unless
  * "Include archived" is on.
  */
 const Users: Component = () => {
@@ -79,7 +78,10 @@ const Users: Component = () => {
   return (
     <div class="container--lg">
       <Title>Users - Manifest</Title>
-      <Meta name="description" content="People in your company, their agents, spend and budgets." />
+      <Meta
+        name="description"
+        content="People in your company, their agents and what they spend."
+      />
 
       <div class="page-header">
         <div>
@@ -87,8 +89,7 @@ const Users: Component = () => {
           <span class="breadcrumb">
             <Show when={loaded()} fallback="People in your company and what their agents cost.">
               {loaded()!.total} user{loaded()!.total === 1 ? '' : 's'} ·{' '}
-              {formatMoney(loaded()!.spend_month_usd_total)} spent this month of{' '}
-              {formatMoney(loaded()!.budget_month_usd_total)} budgeted
+              {formatMoney(loaded()!.spend_30d_usd_total)} spent in the last 30 days
             </Show>
           </span>
         </div>
@@ -138,10 +139,10 @@ const Users: Component = () => {
               <thead>
                 <tr>
                   <th>User</th>
+                  <th>Role</th>
                   <th>Agents</th>
-                  <th>Spend</th>
-                  <th>Budget</th>
-                  <th>Left this month</th>
+                  <th>Spend (30d)</th>
+                  <th>Spend (365d)</th>
                 </tr>
               </thead>
               <tbody>
@@ -195,22 +196,22 @@ const Users: Component = () => {
                     <thead>
                       <tr>
                         <th>User</th>
+                        <th>Role</th>
                         <th>Agents</th>
                         <SortableTh
-                          label="Spend"
-                          sortKey="spend"
+                          label="Spend (30d)"
+                          sortKey="spend_30d"
                           activeKey={sort()}
                           dir={dir()}
                           defaultDir="desc"
                           onSort={setSort}
                         />
-                        <th>Budget</th>
                         <SortableTh
-                          label="Left this month"
-                          sortKey="budget_left"
+                          label="Spend (365d)"
+                          sortKey="spend_365d"
                           activeKey={sort()}
                           dir={dir()}
-                          defaultDir="asc"
+                          defaultDir="desc"
                           onSort={setSort}
                         />
                       </tr>
@@ -222,41 +223,22 @@ const Users: Component = () => {
                             <td>
                               <span class="who">
                                 <Avatar name={user.name} />
-                                <span class="who__text">
-                                  <span>
-                                    <A
-                                      href={userPath(user.id)}
-                                      class="who__name"
-                                      style="text-decoration: none;"
-                                    >
-                                      {user.name}
-                                    </A>
-                                    <Show when={user.archived_at}>
-                                      {' '}
-                                      <span class="status-badge status-badge--neutral">
-                                        Archived
-                                      </span>
-                                    </Show>
-                                  </span>
-                                  <Show when={user.role}>
-                                    <span class="who__sub">{user.role}</span>
-                                  </Show>
-                                </span>
+                                <A
+                                  href={userPath(user.id)}
+                                  class="who__name"
+                                  style="text-decoration: none;"
+                                >
+                                  {user.name}
+                                </A>
+                                <Show when={user.archived_at}>
+                                  <span class="status-badge status-badge--neutral">Archived</span>
+                                </Show>
                               </span>
                             </td>
+                            <td>{user.role || '—'}</td>
                             <td class="num">{user.agent_count}</td>
-                            <td class="num">{formatCost(user.spend_month_usd)}</td>
-                            <td class="num">
-                              {user.monthly_budget_usd == null
-                                ? '—'
-                                : `$${user.monthly_budget_usd}`}
-                            </td>
-                            <td>
-                              <BudgetMeter
-                                spend={user.spend_month_usd}
-                                budget={user.monthly_budget_usd}
-                              />
-                            </td>
+                            <td class="num">{formatCost(user.spend_30d_usd)}</td>
+                            <td class="num">{formatCost(user.spend_365d_usd)}</td>
                           </tr>
                         )}
                       </For>
@@ -270,8 +252,8 @@ const Users: Component = () => {
             <div class="empty-state">
               <div class="empty-state__title">No users yet</div>
               <p>
-                On day one every existing agent has no owner. Add a user, or pick agents to give
-                them an owner.
+                On day one every existing agent has no user. Add a user, or pick agents to give them
+                one.
               </p>
               <div style="display: inline-flex; gap: var(--gap-sm); margin-top: var(--gap-md);">
                 <button class="btn btn--primary btn--sm" onClick={() => setAddOpen(true)}>

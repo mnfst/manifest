@@ -28,7 +28,7 @@ describe('OwnerProjectFilters', () => {
     });
   });
 
-  it('lists users (archived included) with "Without an owner" under a separator', async () => {
+  it('lists users (archived included) with "Without a user" under a separator', async () => {
     const onOwners = vi.fn();
     render(() => (
       <OwnerProjectFilters
@@ -40,7 +40,7 @@ describe('OwnerProjectFilters', () => {
     ));
     expect(mockGetUsers).toHaveBeenCalledWith({ include_archived: true });
     expect(mockGetProjects).toHaveBeenCalledWith({ include_archived: true });
-    fireEvent.click(screen.getByLabelText('Owner filter'));
+    fireEvent.click(screen.getByLabelText('User filter'));
     await waitFor(() => {
       expect(screen.getByText('Maya Okonkwo')).toBeDefined();
     });
@@ -51,8 +51,8 @@ describe('OwnerProjectFilters', () => {
     const options = Array.from(listbox.querySelectorAll('[role="option"]')).map(
       (o) => o.textContent,
     );
-    expect(options[options.length - 1]).toContain('Without an owner');
-    fireEvent.click(screen.getByText('Without an owner'));
+    expect(options[options.length - 1]).toContain('Without a user');
+    fireEvent.click(screen.getByText('Without a user'));
     expect(onOwners).toHaveBeenCalledWith(['none']);
   });
 
@@ -65,7 +65,7 @@ describe('OwnerProjectFilters', () => {
         onProjectsChange={() => {}}
       />
     ));
-    fireEvent.click(screen.getByLabelText('Owner filter'));
+    fireEvent.click(screen.getByLabelText('User filter'));
     await waitFor(() => {
       expect(screen.getByText('Deleted user (u-deleted)')).toBeDefined();
     });

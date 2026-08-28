@@ -24,7 +24,6 @@ import {
 } from '../services/api/teams.js';
 import { clearBreadcrumb, setBreadcrumb } from '../services/breadcrumb-store.js';
 import { userPath } from '../services/routing.js';
-import { budgetLabel, budgetState, parseBudgetInput } from '../services/teams-utils.js';
 import { toast } from '../services/toast-store.js';
 
 export interface UserDetailContextValue {
@@ -50,7 +49,7 @@ export function useUserDetail(): UserDetailContextValue {
 
 /**
  * UserDetail — tabbed shell for a user's page, built like an agent's page:
- * header (name, role, budget, editable in place), tabs, then the child route.
+ * header (name, role editable in place), tabs, then the child route.
  */
 const UserDetail: ParentComponent = (props) => {
   const params = useParams<{ userId: string }>();
@@ -67,9 +66,8 @@ const UserDetail: ParentComponent = (props) => {
     (id) => getUserOverview(id),
   );
 
-  // Errored resources throw on read; these accessors read only when safe.
+  // An errored resource throws on read; this accessor reads only when safe.
   const loadedUser = () => (user.error ? undefined : user());
-  const loadedOverview = () => (overview.error ? undefined : overview());
 
   createEffect(() => {
     const u = loadedUser();
@@ -84,52 +82,31 @@ const UserDetail: ParentComponent = (props) => {
     return location.pathname.startsWith(path(sub));
   };
 
-  // ── Inline edits (role, budget) ────────────────────────────────────
-  const [editing, setEditing] = createSignal<'role' | 'budget' | null>(null);
+  // ── Inline edit (role) ─────────────────────────────────────────────
+  const [editing, setEditing] = createSignal<'role' | null>(null);
   const [draft, setDraft] = createSignal('');
   const [saving, setSaving] = createSignal(false);
 
-  const openEdit = (field: 'role' | 'budget') => {
-    const u = loadedUser();
-    setDraft(
-      field === 'role'
-        ? (u?.role ?? '')
-        : u?.monthly_budget_usd == null
-          ? ''
-          : String(u.monthly_budget_usd),
-    );
+  const openEdit = (field: 'role') => {
+    setDraft(loadedUser()?.role ?? '');
     setEditing(field);
   };
 
-  const draftBudget = () => parseBudgetInput(draft());
-  // A zero budget would display as "$0" while every meter treats it as no budget.
-  const draftInvalid = () => editing() === 'budget' && draftBudget() === undefined;
-
   const saveEdit = async () => {
     const field = editing();
-    if (!field || draftInvalid()) return;
+    if (!field) return;
     setSaving(true);
     try {
-      await updateUser(
-        userId(),
-        field === 'role'
-          ? { role: draft().trim() || null }
-          : { monthly_budget_usd: draftBudget() ?? null },
-      );
-      toast.success(field === 'role' ? 'Role updated' : 'Budget updated');
+      await updateUser(userId(), { role: draft().trim() || null });
+      toast.success('Role updated');
       setEditing(null);
       refetchUser();
-      refetchOverview();
     } catch {
       toast.error("Couldn't save this change. Please try again.");
     } finally {
       setSaving(false);
     }
   };
-
-  const budget = () => loadedUser()?.monthly_budget_usd ?? null;
-  const spend = () => loadedOverview()?.cost_month_usd ?? 0;
-  const alertTone = () => budgetState(spend(), budget()).tone;
 
   const ctx: UserDetailContextValue = {
     userId,
@@ -212,99 +189,8 @@ const UserDetail: ParentComponent = (props) => {
                       </div>
                     </Show>
                   </div>
-
-                  <div class="inline-edit">
-                    <button
-                      type="button"
-                      class="chip chip--button"
-                      aria-haspopup="dialog"
-                      aria-expanded={editing() === 'budget'}
-                      onClick={() =>
-                        editing() === 'budget' ? setEditing(null) : openEdit('budget')
-                      }
-                    >
-                      <Show
-                        when={budget() != null}
-                        fallback={<span class="chip__muted">No budget</span>}
-                      >
-                        Budget ${budget()} / month
-                      </Show>
-                    </button>
-                    <Show when={editing() === 'budget'}>
-                      <div class="inline-edit__popover" role="dialog" aria-label="Edit budget">
-                        <label class="modal-card__field-label" for="user-budget-edit">
-                          Monthly budget in USD
-                        </label>
-                        <input
-                          id="user-budget-edit"
-                          class="modal-card__input"
-                          classList={{ 'modal-card__input--error': draftInvalid() }}
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={draft()}
-                          onInput={(e) => setDraft(e.currentTarget.value)}
-                          disabled={saving()}
-                        />
-                        <Show
-                          when={draftInvalid()}
-                          fallback={
-                            <span class="field__hint">
-                              Changing a budget mid-month recomputes the meter from the first of the
-                              month. Leave empty for no budget.
-                            </span>
-                          }
-                        >
-                          <span class="field__error">
-                            Enter a positive amount, or leave empty for no budget
-                          </span>
-                        </Show>
-                        <div class="inline-edit__actions">
-                          <button
-                            type="button"
-                            class="btn btn--ghost btn--sm"
-                            onClick={() => setEditing(null)}
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            type="button"
-                            class="btn btn--primary btn--sm"
-                            disabled={saving() || draftInvalid()}
-                            onClick={() => void saveEdit()}
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </div>
-                    </Show>
-                  </div>
                 </div>
               </div>
-
-              <Show when={alertTone() === 'warn' || alertTone() === 'over'}>
-                <div
-                  class="budget-alert"
-                  classList={{ 'budget-alert--over': alertTone() === 'over' }}
-                  role="status"
-                >
-                  <Show
-                    when={alertTone() === 'over'}
-                    fallback={
-                      <span>
-                        {user()!.name} is close to their budget: {budgetLabel(spend(), budget())}{' '}
-                        this month. Nothing is blocked.
-                      </span>
-                    }
-                  >
-                    <span>
-                      {user()!.name} is over budget by{' '}
-                      {budgetLabel(spend(), budget())!.replace(' over', '')} this month. Their
-                      agents keep working; nothing is blocked.
-                    </span>
-                  </Show>
-                </div>
-              </Show>
 
               <EntityTabs
                 tabs={[

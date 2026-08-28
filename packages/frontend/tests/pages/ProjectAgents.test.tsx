@@ -95,7 +95,7 @@ describe('ProjectAgents', () => {
     expect(link.querySelector('img.who__icon')).not.toBeNull();
     expect(container.querySelector('a[href="/agents/daily-report"] img')).toBeNull();
     expect(container.textContent).toContain('Maya Okonkwo');
-    expect(container.querySelector('.pill-muted')?.textContent).toBe('No owner');
+    expect(container.querySelector('.pill-muted')?.textContent).toBe('No user');
     expect(container.textContent).toContain('12 of 40');
     expect(container.textContent).toContain('$121.30');
     expect(container.textContent).toContain('Never');

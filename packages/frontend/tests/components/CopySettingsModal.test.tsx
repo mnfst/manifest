@@ -174,7 +174,7 @@ describe('CopySettingsModal', () => {
     const { container } = renderOpen();
     await vi.waitFor(() => expect(mockListAgents).toHaveBeenCalled());
     fireEvent.click(screen.getByLabelText('Source agent'));
-    await vi.waitFor(() => expect(screen.queryByText('No owner')).not.toBeNull());
+    await vi.waitFor(() => expect(screen.queryByText('No user')).not.toBeNull());
     fireEvent.click(screen.getByText('daily-report'));
     fireEvent.click(next());
     fireEvent.click(next());

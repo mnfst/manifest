@@ -13,7 +13,7 @@ interface OwnerProjectFiltersProps {
  * The owner and project filters shared by Overview, Requests and Agents.
  *
  * The owner list includes archived users so an old report still resolves the
- * person it refers to, and carries "Without an owner" under a separator so
+ * person it refers to, and carries "Without a user" under a separator so
  * unowned agents can be included or excluded. A selected id that no longer
  * exists (deleted user or project) stays selectable as "Deleted …" instead of
  * silently dropping out of the filter.
@@ -46,7 +46,7 @@ const OwnerProjectFilters: Component<OwnerProjectFiltersProps> = (props) => {
         options.push({ value: id, label: `Deleted user (${id})` });
       }
     }
-    options.push({ value: NO_OWNER, label: 'Without an owner', separatorBefore: true });
+    options.push({ value: NO_OWNER, label: 'Without a user', separatorBefore: true });
     return options;
   });
 
@@ -71,8 +71,8 @@ const OwnerProjectFilters: Component<OwnerProjectFiltersProps> = (props) => {
         values={props.owners}
         onChange={props.onOwnersChange}
         options={ownerOptions()}
-        placeholder="All owners"
-        label="Owner filter"
+        placeholder="All users"
+        label="User filter"
       />
       <MultiSelect
         values={props.projects}

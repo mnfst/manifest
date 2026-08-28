@@ -77,12 +77,12 @@ const AgentDetail: ParentComponent = (props) => {
                     when={team() === null && !team.loading}
                     fallback={
                       <span class="chip" aria-busy="true">
-                        <span class="chip__muted">Owner:</span> …
+                        <span class="chip__muted">User:</span> …
                       </span>
                     }
                   >
-                    <span class="chip" title="The owner and projects could not be loaded.">
-                      <span class="chip__muted">Owner:</span> Unavailable
+                    <span class="chip" title="The user and projects could not be loaded.">
+                      <span class="chip__muted">User:</span> Unavailable
                       <button
                         type="button"
                         class="field__suggestion"
@@ -94,11 +94,8 @@ const AgentDetail: ParentComponent = (props) => {
                   </Show>
                 }
               >
-                <span
-                  class="chip"
-                  title="This agent runs without an owner. No user budget applies to it."
-                >
-                  <span class="chip__muted">Owner:</span> No owner
+                <span class="chip" title="This agent runs on its own, with no user attached.">
+                  <span class="chip__muted">User:</span> No user
                 </span>
               </Show>
             }
@@ -108,7 +105,7 @@ const AgentDetail: ParentComponent = (props) => {
               class="chip chip--button"
               style="text-decoration: none;"
             >
-              <span class="chip__muted">Owner:</span> {team()!.owner!.name}
+              <span class="chip__muted">User:</span> {team()!.owner!.name}
             </A>
           </Show>
           <For each={team()?.projects ?? []}>

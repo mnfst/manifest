@@ -99,11 +99,11 @@ const overview = {
       name: 'Maya Okonkwo',
       email: null,
       role: 'Engineering',
-      monthly_budget_usd: 200,
       archived_at: null,
       created_at: '2026-08-01T00:00:00Z',
       agent_count: 1,
-      spend_month_usd: 121.3,
+      spend_30d_usd: 121.3,
+      spend_365d_usd: 121.3,
       last_active_at: null,
     },
   ],
@@ -211,9 +211,9 @@ describe('ProjectDetail', () => {
     const [filename, csv] = mockDownload.mock.calls[0] as [string, string];
     expect(filename).toMatch(/^project-HSBC-\d{4}-\d{2}\.csv$/);
     expect(csv.split('\n')).toEqual([
-      'Agent,Owner,Requests,Spend 30d,Last used',
-      'Daily report,No owner,120,88.10,2026-08-27T10:00:00Z',
-      'Claude Code,Maya Okonkwo,500,121.30,',
+      'Agent,User,Requests,Spend (30d),Spend (365d),Last used',
+      'Daily report,No user,120,88.10,,2026-08-27T10:00:00Z',
+      'Claude Code,Maya Okonkwo,500,121.30,,',
     ]);
     expect(container.textContent).toContain('HSBC');
   });

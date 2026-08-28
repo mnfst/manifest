@@ -190,7 +190,7 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
       try {
         await assignNewAgent(slug, owner, chosenProjects);
       } catch {
-        toast.warning(`Agent "${slug}" was created but its owner and projects could not be saved.`);
+        toast.warning(`Agent "${slug}" was created but its user and projects could not be saved.`);
       }
       // Local creates do not wait for the asynchronous server-sent event. This
       // immediately reruns every agent-list resource with fresh data.
@@ -315,7 +315,7 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
               when={nameTaken()}
               fallback={
                 <span class="field__hint">
-                  Unique per owner. The owner's name never goes inside the agent name.
+                  Unique per user. The user's name never goes inside the agent name.
                 </span>
               }
             >
@@ -335,14 +335,14 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
           </div>
 
           <div class="field">
-            <label class="modal-card__field-label">Owner</label>
+            <label class="modal-card__field-label">User</label>
             <Select
               value={ownerId()}
               onChange={setOwnerId}
-              label="Owner"
+              label="User"
               disabled={creating()}
               options={[
-                { label: 'No owner', value: '' },
+                { label: 'No user', value: '' },
                 ...(users() ?? []).map((u) => ({ label: u.name, value: u.id })),
               ]}
             />

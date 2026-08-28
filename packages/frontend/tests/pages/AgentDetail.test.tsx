@@ -120,10 +120,10 @@ describe('AgentDetail', () => {
     expect(container.querySelector('[data-testid="agent-projects-editor"]')).not.toBeNull();
   });
 
-  it("shows 'No owner' when the agent has no owner, and no owner picker", async () => {
+  it("shows 'No user' when the agent has no user, and no owner picker", async () => {
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No owner');
+      expect(container.textContent).toContain('No user');
     });
     expect(container.querySelector('a[href^="/users/"]')).toBeNull();
     expect(container.querySelector('select')).toBeNull();
@@ -135,7 +135,7 @@ describe('AgentDetail', () => {
     await vi.waitFor(() => {
       expect(container.textContent).toContain('Unavailable');
     });
-    expect(container.textContent).not.toContain('No owner');
+    expect(container.textContent).not.toContain('No user');
     expect(container.querySelector('[data-testid="agent-projects-editor"]')).toBeNull();
   });
 
@@ -354,10 +354,10 @@ describe('AgentDetail team lookup states', () => {
     mockGetAgentTeam.mockReturnValueOnce(new Promise<Team>((res) => (resolveTeam = res)));
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
-    expect(container.textContent).not.toContain('No owner');
+    expect(container.textContent).not.toContain('No user');
     resolveTeam({ owner: null, projects: [], archived_at: null });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No owner');
+      expect(container.textContent).toContain('No user');
     });
     expect(container.querySelector('[aria-busy="true"]')).toBeNull();
   });
@@ -373,7 +373,7 @@ describe('AgentDetail team lookup states', () => {
     ) as HTMLButtonElement;
     retry.click();
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No owner');
+      expect(container.textContent).toContain('No user');
     });
     expect(mockGetAgentTeam.mock.calls.length).toBeGreaterThan(1);
   });
@@ -398,7 +398,7 @@ describe('AgentDetail retry state', () => {
     expect(container.textContent).not.toContain('Unavailable');
     resolveRetry({ owner: null, projects: [], archived_at: null });
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No owner');
+      expect(container.textContent).toContain('No user');
     });
   });
 });

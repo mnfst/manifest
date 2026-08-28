@@ -1,7 +1,6 @@
 import { A } from '@solidjs/router';
 import { For, Show, type Component } from 'solid-js';
 import Avatar from '../components/Avatar.jsx';
-import BudgetMeter from '../components/BudgetMeter.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import { formatCost } from '../services/formatters.js';
 import { userPath } from '../services/routing.js';
@@ -57,7 +56,7 @@ const ProjectUsers: Component = () => {
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No users on this project</div>
-              <p>Its agents have no owner.</p>
+              <p>Its agents have no user.</p>
             </div>
           }
         >
@@ -68,8 +67,8 @@ const ProjectUsers: Component = () => {
                   <tr>
                     <th>User</th>
                     <th>Agents on this project</th>
-                    <th>Spend this month</th>
-                    <th>Budget left</th>
+                    <th>Spend (30d)</th>
+                    <th>Spend (365d)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -88,13 +87,8 @@ const ProjectUsers: Component = () => {
                           </A>
                         </td>
                         <td class="num">{agentsOwnedBy(user.id)}</td>
-                        <td class="num">{formatCost(user.spend_month_usd) ?? '-'}</td>
-                        <td>
-                          <BudgetMeter
-                            spend={user.spend_month_usd}
-                            budget={user.monthly_budget_usd}
-                          />
-                        </td>
+                        <td class="num">{formatCost(user.spend_30d_usd) ?? '-'}</td>
+                        <td class="num">{formatCost(user.spend_365d_usd) ?? '-'}</td>
                       </tr>
                     )}
                   </For>

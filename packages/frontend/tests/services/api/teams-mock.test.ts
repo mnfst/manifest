@@ -198,19 +198,17 @@ describe('users', () => {
     ]);
     const maya = byName.users.find((u) => u.name === 'Maya Okonkwo')!;
     expect(maya.agent_count).toBe(1);
-    expect(maya.spend_month_usd).toBe(121.3);
+    expect(maya.spend_30d_usd).toBe(121.3);
     expect(maya.last_active_at).toBe('2026-08-27T10:00:00Z');
-    expect(byName.budget_month_usd_total).toBe(500);
-    expect(byName.spend_month_usd_total).toBeCloseTo(121.3 + 41.75 + 58.4 + 24.05, 2);
+    expect(byName.spend_30d_usd_total).toBeCloseTo(121.3 + 41.75 + 58.4 + 24.05, 2);
+    expect(byName.spend_365d_usd_total).toBeGreaterThan(byName.spend_30d_usd_total);
+    expect(maya.spend_365d_usd).toBeGreaterThan(maya.spend_30d_usd);
     expect(byName.users.find((u) => u.name === 'Deniz Kaya')!.last_active_at).toBeNull();
 
-    const bySpend = await api.getUsers({ sort: 'spend', dir: 'desc' });
+    const bySpend = await api.getUsers({ sort: 'spend_30d', dir: 'desc' });
     expect(bySpend.users[0]!.name).toBe('Maya Okonkwo');
-    const byLeft = await api.getUsers({ sort: 'budget_left', dir: 'asc' });
-    expect(byLeft.users[0]!.name).toBe('Sara Lindqvist');
-    await api.updateUser('u-tom', { monthly_budget_usd: null });
-    const noBudgetLast = await api.getUsers({ sort: 'budget_left' });
-    expect(noBudgetLast.users.at(-1)!.name).toBe('Tom Reyes');
+    const byYear = await api.getUsers({ sort: 'spend_365d', dir: 'asc' });
+    expect(byYear.users[0]!.spend_365d_usd).toBeLessThanOrEqual(byYear.users[1]!.spend_365d_usd);
     const descName = await api.getUsers({ dir: 'desc' });
     expect(descName.users[0]!.name).toBe('Tom Reyes');
 
@@ -223,27 +221,12 @@ describe('users', () => {
   });
 
   it('creates, reads, updates and deletes a user', async () => {
-    const user = await api.createUser({
-      name: '  Ana  ',
-      email: ' ana@x.io ',
-      role: '',
-      monthly_budget_usd: 75,
-    });
-    expect(user).toMatchObject({
-      name: 'Ana',
-      email: 'ana@x.io',
-      role: null,
-      monthly_budget_usd: 75,
-    });
+    const user = await api.createUser({ name: '  Ana  ', email: ' ana@x.io ', role: '' });
+    expect(user).toMatchObject({ name: 'Ana', email: 'ana@x.io', role: null });
     expect(await api.getUser(user.id)).toEqual(user);
     expect(await api.getUser('nope')).toBeNull();
     const updated = await api.updateUser(user.id, { name: 'Ana R', email: '', role: 'Ops' });
-    expect(updated).toMatchObject({
-      name: 'Ana R',
-      email: null,
-      role: 'Ops',
-      monthly_budget_usd: 75,
-    });
+    expect(updated).toMatchObject({ name: 'Ana R', email: null, role: 'Ops' });
     await expect(api.updateUser('nope', {})).rejects.toThrow('User not found');
     await expect(api.archiveUser('nope')).rejects.toThrow('User not found');
     await expect(api.unarchiveUser('nope')).rejects.toThrow('User not found');
@@ -270,12 +253,12 @@ describe('users', () => {
 
   it('builds a user overview and removes an agent from a user', async () => {
     const overview = await api.getUserOverview('u-maya');
-    expect(overview.budget_usd).toBe(200);
-    expect(overview.cost_month_usd).toBe(121.3);
+    expect(overview.cost_30d_usd).toBe(121.3);
+    expect(overview.cost_365d_usd).toBeGreaterThan(121.3);
     expect(overview.requests).toBe(100);
     expect(overview.tokens).toBe(180000);
     expect(overview.agents.map((a) => a.agent_name)).toEqual(['claude-code']);
-    expect(overview.cost_series.length).toBe(new Date().getDate());
+    expect(overview.cost_series.length).toBe(30);
     const sum = overview.cost_series.reduce((s, d) => s + d.cost_usd, 0);
     expect(sum).toBeCloseTo(121.3, 0);
     await expect(api.getUserOverview('nope')).rejects.toThrow('User not found');
@@ -558,12 +541,12 @@ describe('model access', () => {
 describe('grouped overview usage', () => {
   it('groups by owner, project and agent, applies filters, and keeps unknown agents unfiltered', async () => {
     const byOwner = await api.getOverviewGroupedUsage('7d', 'owner');
-    expect(byOwner.tokenUsage.agents).toEqual(['Maya Okonkwo', 'No owner', 'Tom Reyes']);
+    expect(byOwner.tokenUsage.agents).toEqual(['Maya Okonkwo', 'No user', 'Tom Reyes']);
     expect(byOwner.tokenUsage.timeseries[0]).toEqual({
       date: '2026-08-27',
       'Maya Okonkwo': 10,
       'Tom Reyes': 5,
-      'No owner': 3,
+      'No user': 3,
     });
     expect(byOwner.messageUsage.timeseries[0]).toEqual({ hour: '10', 'Maya Okonkwo': 4 });
 
@@ -581,7 +564,7 @@ describe('grouped overview usage', () => {
     const noOwner = await api.getOverviewGroupedUsage('7d', 'agent', { owners: [NO_OWNER] });
     expect(noOwner.tokenUsage.agents).toEqual(['daily-report']);
     const project = await api.getOverviewGroupedUsage('7d', 'owner', { projects: ['p-hsbc'] });
-    expect(project.tokenUsage.agents).toEqual(['No owner', 'Tom Reyes']);
+    expect(project.tokenUsage.agents).toEqual(['No user', 'Tom Reyes']);
     const both = await api.getOverviewGroupedUsage('7d', 'agent', {
       owners: ['u-tom'],
       projects: ['p-atlas'],

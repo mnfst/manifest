@@ -17,7 +17,7 @@
  *   the Users page is empty.
  * - Model lists come from the real `available-models` endpoint; the
  *   "in routing" lock reads the real tier assignments.
- * - Daily series (user cost vs budget, project cost/tokens, 7-day requests)
+ * - Daily series (user cost, project cost/tokens, 7-day requests)
  *   are deterministic pseudo-random curves scaled to the real totals.
  */
 import { getAgents } from './agents.js';
@@ -88,7 +88,6 @@ const SEED_USERS: TeamUser[] = [
     name: 'Maya Okonkwo',
     email: 'maya@example.com',
     role: 'Engineering',
-    monthly_budget_usd: 200,
     archived_at: null,
     created_at: SEED_AT,
   },
@@ -97,7 +96,6 @@ const SEED_USERS: TeamUser[] = [
     name: 'Tom Reyes',
     email: null,
     role: 'Engineering',
-    monthly_budget_usd: 200,
     archived_at: null,
     created_at: SEED_AT,
   },
@@ -106,7 +104,6 @@ const SEED_USERS: TeamUser[] = [
     name: 'Sara Lindqvist',
     email: 'sara@example.com',
     role: 'Support',
-    monthly_budget_usd: 50,
     archived_at: null,
     created_at: SEED_AT,
   },
@@ -115,7 +112,6 @@ const SEED_USERS: TeamUser[] = [
     name: 'Deniz Kaya',
     email: null,
     role: 'Marketing',
-    monthly_budget_usd: 50,
     archived_at: null,
     created_at: SEED_AT,
   },
@@ -253,6 +249,26 @@ function dailySeries(seed: string, total: number, days: string[]): number[] {
   return weights.map((w) => Math.round((w / sum) * total * 100) / 100);
 }
 
+/**
+ * Trailing 365-day spend. The real endpoints only expose a 30-day window, so
+ * the mock adds a deterministic amount for the other eleven months; the real
+ * endpoint returns the aggregate over the last 365 days.
+ */
+function trailing365(seed: string, last30: number): number {
+  return Math.round((last30 + last30 * 11 * (0.4 + noise(seed, 3))) * 100) / 100;
+}
+
+/** The last N calendar days, oldest first, as YYYY-MM-DD. */
+function lastDays(n: number): string[] {
+  const days: string[] = [];
+  const today = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - i));
+    days.push(d.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
 function userRef(u: TeamUser): UserRef {
   return { id: u.id, name: u.name, archived_at: u.archived_at };
 }
@@ -309,6 +325,7 @@ function toRow(
     models_enabled: enabled,
     models_total: total,
     spend_30d_usd: Number(agent.total_cost ?? 0),
+    spend_365d_usd: trailing365(agent.agent_name, Number(agent.total_cost ?? 0)),
     request_count: Number(agent.message_count ?? 0),
     last_used_at: agent.last_active ?? null,
     archived_at: a.archived_at,
@@ -379,31 +396,30 @@ export const mockTeamsApi: TeamsApi = {
           .filter((v): v is string => !!v)
           .sort()
           .at(-1);
+        const month = monthSpend(owned);
         return {
           ...u,
           agent_count: owned.length,
-          spend_month_usd: monthSpend(owned),
+          spend_30d_usd: month,
+          spend_365d_usd: trailing365(u.id, month),
           last_active_at: last ?? null,
         };
       });
     const dir = query.dir === 'desc' ? -1 : 1;
-    if (query.sort === 'spend') {
-      users = users.sort((a, b) => (a.spend_month_usd - b.spend_month_usd) * dir);
-    } else if (query.sort === 'budget_left') {
-      const left = (u: TeamUserRow) =>
-        u.monthly_budget_usd == null
-          ? Number.POSITIVE_INFINITY
-          : u.monthly_budget_usd - u.spend_month_usd;
-      users = users.sort((a, b) => (left(a) - left(b)) * dir);
+    if (query.sort === 'spend_30d') {
+      users = users.sort((a, b) => (a.spend_30d_usd - b.spend_30d_usd) * dir);
+    } else if (query.sort === 'spend_365d') {
+      users = users.sort((a, b) => (a.spend_365d_usd - b.spend_365d_usd) * dir);
     } else {
       users = users.sort((a, b) => a.name.localeCompare(b.name) * dir);
     }
-    const active = s.users.filter((u) => !u.archived_at);
+    const ownedRows = rows.filter((r) => r.owner && !r.archived_at);
+    const monthTotal = monthSpend(ownedRows);
     return {
       users,
       total: users.length,
-      spend_month_usd_total: monthSpend(rows.filter((r) => r.owner && !r.archived_at)),
-      budget_month_usd_total: active.reduce((sum, u) => sum + (u.monthly_budget_usd ?? 0), 0),
+      spend_30d_usd_total: monthTotal,
+      spend_365d_usd_total: trailing365('all-users', monthTotal),
     };
   },
 
@@ -418,7 +434,6 @@ export const mockTeamsApi: TeamsApi = {
       name: params.name.trim(),
       email: params.email?.trim() || null,
       role: params.role?.trim() || null,
-      monthly_budget_usd: params.monthly_budget_usd ?? null,
       archived_at: null,
       created_at: now(),
     };
@@ -434,8 +449,6 @@ export const mockTeamsApi: TeamsApi = {
     if (params.name !== undefined) user.name = params.name.trim();
     if (params.email !== undefined) user.email = params.email?.trim() || null;
     if (params.role !== undefined) user.role = params.role?.trim() || null;
-    if (params.monthly_budget_usd !== undefined)
-      user.monthly_budget_usd = params.monthly_budget_usd;
     save();
     return user;
   },
@@ -485,12 +498,12 @@ export const mockTeamsApi: TeamsApi = {
     const rows = await allRows(s);
     const owned = rows.filter((r) => r.owner?.id === id && !r.archived_at);
     const cost = monthSpend(owned);
-    const days = daysThisMonth();
+    const days = lastDays(30);
     const series = dailySeries(id, cost, days);
     return {
-      cost_month_usd: cost,
+      cost_30d_usd: cost,
       cost_trend_pct: Math.round((noise(id, 99) - 0.3) * 60),
-      budget_usd: user.monthly_budget_usd,
+      cost_365d_usd: trailing365(user.id, cost),
       requests: owned.reduce((sum, r) => sum + r.request_count, 0),
       tokens: Math.round(owned.reduce((sum, r) => sum + r.request_count, 0) * 1800),
       cost_series: days.map((date, i) => ({ date, cost_usd: series[i]! })),
