@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent } from '@solidjs/testing-library';
+import { fireEvent, render, waitFor } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 
 const mockCreateUser = vi.fn();
@@ -7,149 +7,143 @@ vi.mock('../../src/services/api/teams.js', () => ({
   createUser: (...args: unknown[]) => mockCreateUser(...args),
 }));
 
-const mockToast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
+const mockToast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn(), warning: vi.fn() }));
 vi.mock('../../src/services/toast-store.js', () => ({ toast: mockToast }));
 
 import AddUserModal from '../../src/components/AddUserModal';
 
-const user = {
-  id: 'u-1',
+const created = {
+  id: 'u-new',
   name: 'Maya Okonkwo',
   email: null,
   role: null,
-  monthly_budget_usd: 200,
+  monthly_budget_usd: null,
   archived_at: null,
-  created_at: '2026-08-01T00:00:00Z',
+  created_at: '2026-08-28T00:00:00Z',
 };
 
 describe('AddUserModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCreateUser.mockResolvedValue(user);
+    mockCreateUser.mockResolvedValue(created);
   });
 
   it('renders nothing when closed', () => {
     const { container } = render(() => <AddUserModal open={false} onClose={() => {}} />);
-    expect(container.querySelector('.modal-card')).toBeNull();
+    expect(container.textContent).toBe('');
   });
 
-  it('keeps the submit disabled until a name is typed', () => {
-    const { getByLabelText, getByText } = render(() => (
-      <AddUserModal open={true} onClose={() => {}} />
+  it('asks for a name, an optional email and an optional role, and nothing about budgets', () => {
+    const { getByLabelText, container, getByText } = render(() => (
+      <AddUserModal open onClose={() => {}} />
     ));
-    const submit = getByText('Add user', { selector: 'button' }) as HTMLButtonElement;
-    expect(submit.disabled).toBe(true);
-    fireEvent.input(getByLabelText('Name'), { target: { value: 'Maya' } });
-    expect(submit.disabled).toBe(false);
-  });
-
-  it('flags an invalid budget and blocks the submit', () => {
-    const { getByLabelText, getByText, container } = render(() => (
-      <AddUserModal open={true} onClose={() => {}} />
-    ));
-    fireEvent.input(getByLabelText('Name'), { target: { value: 'Maya' } });
-    fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
-      target: { value: '-5' },
-    });
-    expect(container.textContent).toContain(
-      'Enter a positive amount, or leave empty for no budget',
-    );
-    // Zero is not a budget either: it would read "-e" while the meters say "No budget".
-    fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
-      target: { value: '0' },
-    });
-    expect(container.textContent).toContain('Enter a positive amount');
+    expect(getByLabelText('Name')).toBeDefined();
+    expect(getByLabelText('Email (optional)')).toBeDefined();
+    expect(getByLabelText('Role (optional)')).toBeDefined();
+    expect(container.querySelector('input[type="number"]')).toBeNull();
+    expect(container.textContent).not.toMatch(/budget/i);
+    expect(container.textContent).not.toMatch(/alert/i);
     expect((getByText('Add user', { selector: 'button' }) as HTMLButtonElement).disabled).toBe(
       true,
     );
-    expect((getByText('Add user', { selector: 'button' }) as HTMLButtonElement).disabled).toBe(
-      true,
-    );
-    fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
-      target: { value: '200' },
-    });
-    expect(container.textContent).not.toContain('Enter a positive amount');
-    expect(container.textContent).toContain('Nothing is blocked');
   });
 
-  it('creates the user with trimmed fields and reports back', async () => {
+  it('creates the user with trimmed values, empty fields as null, then closes', async () => {
     const onClose = vi.fn();
     const onCreated = vi.fn();
     const { getByLabelText, getByText } = render(() => (
-      <AddUserModal open={true} onClose={onClose} onCreated={onCreated} />
+      <AddUserModal open onClose={onClose} onCreated={onCreated} />
     ));
     fireEvent.input(getByLabelText('Name'), { target: { value: '  Maya Okonkwo ' } });
-    fireEvent.input(getByLabelText('Email (optional)'), { target: { value: ' maya@x.com ' } });
-    fireEvent.input(getByLabelText('Role (optional)'), { target: { value: 'Engineering' } });
-    fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
-      target: { value: '200' },
+    fireEvent.input(getByLabelText('Email (optional)'), { target: { value: '  ' } });
+    fireEvent.input(getByLabelText('Role (optional)'), { target: { value: ' Engineering ' } });
+    const submit = getByText('Add user', { selector: 'button' }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(false);
+    fireEvent.click(submit);
+    await waitFor(() => {
+      expect(mockCreateUser).toHaveBeenCalledWith({
+        name: 'Maya Okonkwo',
+        email: null,
+        role: 'Engineering',
+      });
     });
-    fireEvent.click(getByText('Add user', { selector: 'button' }));
-    await vi.waitFor(() => expect(onCreated).toHaveBeenCalledWith(user));
-    expect(mockCreateUser).toHaveBeenCalledWith({
-      name: 'Maya Okonkwo',
-      email: 'maya@x.com',
-      role: 'Engineering',
-      monthly_budget_usd: 200,
-    });
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(onCreated).toHaveBeenCalledWith(created);
     expect(mockToast.success).toHaveBeenCalledWith('User "Maya Okonkwo" added');
+  });
+
+  it('submits on Enter inside a field and closes on Escape', async () => {
+    const onClose = vi.fn();
+    const { getByLabelText } = render(() => <AddUserModal open onClose={onClose} />);
+    fireEvent.input(getByLabelText('Name'), { target: { value: 'Tom' } });
+    fireEvent.keyDown(getByLabelText('Name'), { key: 'Enter' });
+    await waitFor(() => expect(mockCreateUser).toHaveBeenCalled());
+    fireEvent.keyDown(getByLabelText('Name'), { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('sends nulls for empty optional fields and submits on Enter', async () => {
-    const { getByLabelText } = render(() => <AddUserModal open={true} onClose={() => {}} />);
-    const name = getByLabelText('Name');
-    fireEvent.input(name, { target: { value: 'Tom' } });
-    fireEvent.keyDown(name, { key: 'Enter' });
-    await vi.waitFor(() =>
-      expect(mockCreateUser).toHaveBeenCalledWith({
-        name: 'Tom',
-        email: null,
-        role: null,
-        monthly_budget_usd: null,
-      }),
-    );
+  it('closes on an overlay click, not on a click inside the card', () => {
+    const onClose = vi.fn();
+    const { container, getByText } = render(() => <AddUserModal open onClose={onClose} />);
+    fireEvent.click(container.querySelector('.modal-card')!);
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(container.querySelector('.modal-overlay')!);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    fireEvent.click(getByText('Cancel'));
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it('ignores Enter before the form is valid', () => {
-    const { getByLabelText } = render(() => <AddUserModal open={true} onClose={() => {}} />);
+  it('ignores a submit while the name is empty or a create is in flight', async () => {
+    let resolveCreate!: (v: unknown) => void;
+    mockCreateUser.mockReturnValue(new Promise((res) => (resolveCreate = res)));
+    const { getByLabelText, getByText, container } = render(() => (
+      <AddUserModal open onClose={() => {}} />
+    ));
     fireEvent.keyDown(getByLabelText('Name'), { key: 'Enter' });
     expect(mockCreateUser).not.toHaveBeenCalled();
-  });
-
-  it('shows an error toast when the create fails', async () => {
-    mockCreateUser.mockRejectedValue(new Error('nope'));
-    const onClose = vi.fn();
-    const { getByLabelText, getByText } = render(() => (
-      <AddUserModal open={true} onClose={onClose} />
-    ));
     fireEvent.input(getByLabelText('Name'), { target: { value: 'Tom' } });
     fireEvent.click(getByText('Add user', { selector: 'button' }));
-    await vi.waitFor(() => expect(mockToast.error).toHaveBeenCalled());
-    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.keyDown(getByLabelText('Name'), { key: 'Enter' });
+    expect(mockCreateUser).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('.spinner')).not.toBeNull();
+    resolveCreate(created);
+    await waitFor(() => expect(container.querySelector('.spinner')).toBeNull());
   });
 
-  it('closes on Escape, overlay click and Cancel, but not on inner clicks', () => {
+  it('surfaces the reason when the create fails, with a plain fallback', async () => {
+    mockCreateUser.mockRejectedValueOnce(
+      new Error('This needs the teams backend, which is not deployed yet.'),
+    );
     const onClose = vi.fn();
-    const { container, getByLabelText, getByText } = render(() => (
-      <AddUserModal open={true} onClose={onClose} />
-    ));
-    fireEvent.keyDown(getByLabelText('Name'), { key: 'Escape' });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    fireEvent.click(container.querySelector('.modal-card')!);
-    expect(onClose).toHaveBeenCalledTimes(1);
-    fireEvent.click(container.querySelector('.modal-overlay')!);
-    expect(onClose).toHaveBeenCalledTimes(2);
-    fireEvent.click(getByText('Cancel'));
-    expect(onClose).toHaveBeenCalledTimes(3);
+    const { getByLabelText, getByText } = render(() => <AddUserModal open onClose={onClose} />);
+    fireEvent.input(getByLabelText('Name'), { target: { value: 'Tom' } });
+    fireEvent.click(getByText('Add user', { selector: 'button' }));
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Couldn't add this user: This needs the teams backend, which is not deployed yet.",
+      );
+    });
+    expect(onClose).not.toHaveBeenCalled();
+
+    mockCreateUser.mockRejectedValueOnce('boom');
+    fireEvent.click(getByText('Add user', { selector: 'button' }));
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenLastCalledWith("Couldn't add this user.");
+    });
   });
 
-  it('resets the form when reopened', () => {
+  it('resets the form when it closes and reopens', async () => {
     const [open, setOpen] = createSignal(true);
-    const { getByLabelText } = render(() => <AddUserModal open={open()} onClose={() => {}} />);
+    const { getByLabelText } = render(() => (
+      <AddUserModal open={open()} onClose={() => setOpen(false)} />
+    ));
     fireEvent.input(getByLabelText('Name'), { target: { value: 'Tom' } });
+    fireEvent.input(getByLabelText('Role (optional)'), { target: { value: 'Ops' } });
     setOpen(false);
     setOpen(true);
-    expect((getByLabelText('Name') as HTMLInputElement).value).toBe('');
+    await waitFor(() => {
+      expect((getByLabelText('Name') as HTMLInputElement).value).toBe('');
+    });
+    expect((getByLabelText('Role (optional)') as HTMLInputElement).value).toBe('');
   });
 });

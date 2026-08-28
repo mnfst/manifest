@@ -1,6 +1,5 @@
 import { createEffect, createSignal, Show, type Component } from 'solid-js';
 import { createUser, type TeamUser } from '../services/api/teams.js';
-import { parseBudgetInput } from '../services/teams-utils.js';
 import { toast } from '../services/toast-store.js';
 
 interface AddUserModalProps {
@@ -10,27 +9,23 @@ interface AddUserModalProps {
 }
 
 /**
- * "Add user": a person in the company with a monthly budget. They do not log
- * in, so there is no invitation and no password. Name required, email optional.
+ * "Add user": a person in the company. They do not log in, so there is no
+ * invitation and no password. Name required, email and role optional. The
+ * monthly budget is set later from the user's page, not here.
  */
 const AddUserModal: Component<AddUserModalProps> = (props) => {
   const [name, setName] = createSignal('');
   const [email, setEmail] = createSignal('');
   const [role, setRole] = createSignal('');
-  const [budget, setBudget] = createSignal('');
   const [creating, setCreating] = createSignal(false);
 
-  const budgetValue = () => parseBudgetInput(budget());
-  // parseBudgetInput already rejects zero, negatives and out-of-range values.
-  const budgetInvalid = () => budgetValue() === undefined;
-  const canSubmit = () => name().trim().length > 0 && !budgetInvalid() && !creating();
+  const canSubmit = () => name().trim().length > 0 && !creating();
 
   createEffect(() => {
     if (!props.open) {
       setName('');
       setEmail('');
       setRole('');
-      setBudget('');
       setCreating(false);
     }
   });
@@ -43,13 +38,15 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
         name: name().trim(),
         email: email().trim() || null,
         role: role().trim() || null,
-        monthly_budget_usd: budgetValue() ?? null,
       });
       toast.success(`User "${user.name}" added`);
       props.onCreated?.(user);
       props.onClose();
-    } catch {
-      toast.error("Couldn't add this user. Please try again.");
+    } catch (error) {
+      // Say why: "the teams backend is not deployed" is actionable, a generic
+      // retry prompt is not.
+      const reason = error instanceof Error && error.message ? error.message : null;
+      toast.error(reason ? `Couldn't add this user: ${reason}` : "Couldn't add this user.");
     } finally {
       setCreating(false);
     }
@@ -81,7 +78,7 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
             Add user
           </h2>
           <p class="modal-card__desc">
-            A person in the company whose agents share a monthly budget. They do not log in.
+            A person in the company whose agents you want to track together. They do not log in.
           </p>
 
           <div class="field">
@@ -114,9 +111,6 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
                 onInput={(e) => setEmail(e.currentTarget.value)}
                 disabled={creating()}
               />
-              <span class="field__hint">
-                Only needed if they should receive their own budget alerts.
-              </span>
             </div>
             <div class="field">
               <label class="modal-card__field-label" for="add-user-role">
@@ -132,37 +126,6 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
                 disabled={creating()}
               />
             </div>
-          </div>
-
-          <div class="field">
-            <label class="modal-card__field-label" for="add-user-budget">
-              Monthly budget in USD (optional)
-            </label>
-            <input
-              id="add-user-budget"
-              class="modal-card__input"
-              classList={{ 'modal-card__input--error': budgetInvalid() }}
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="e.g. 200"
-              value={budget()}
-              onInput={(e) => setBudget(e.currentTarget.value)}
-              disabled={creating()}
-            />
-            <Show
-              when={budgetInvalid()}
-              fallback={
-                <span class="field__hint">
-                  Shows spend and raises an alert as it is approached or exceeded. Nothing is
-                  blocked.
-                </span>
-              }
-            >
-              <span class="field__error">
-                Enter a positive amount, or leave empty for no budget
-              </span>
-            </Show>
           </div>
 
           <div class="modal-card__footer">
