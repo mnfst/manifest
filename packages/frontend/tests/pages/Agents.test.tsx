@@ -485,9 +485,22 @@ describe('Agents page', () => {
       },
     );
     expect((screen.getByLabelText('Select old-bot') as HTMLInputElement).checked).toBe(true);
-    // Touching a single row narrows back to an explicit selection.
+    // Touching a single row narrows back to a page selection minus that row,
+    // and says so.
     fireEvent.click(screen.getByLabelText('Select old-bot'));
     expect(container.querySelector('.bulk-bar__count')?.textContent).toBe('2 selected');
+    expect(mockToast.warning).toHaveBeenCalledWith('Selection reduced to this page');
+    expect((screen.getByLabelText('Select claude-code') as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByLabelText('Select old-bot') as HTMLInputElement).checked).toBe(false);
+    expect(JSON.parse(screen.getByTestId('bulk-projects').getAttribute('data-selection')!)).toEqual(
+      { kind: 'names', agent_names: ['claude-code', 'daily-report'] },
+    );
+    // A plain row toggle outside select-all does not warn.
+    mockToast.warning.mockClear();
+    fireEvent.click(screen.getByLabelText('Select old-bot'));
+    expect(mockToast.warning).not.toHaveBeenCalled();
+    expect(container.querySelector('.bulk-bar__count')?.textContent).toBe('3 selected');
+    fireEvent.click(screen.getByLabelText('Select old-bot'));
     fireEvent.click(header);
     expect(container.querySelector('.bulk-bar__count')?.textContent).toBe('3 selected');
     fireEvent.click(header);

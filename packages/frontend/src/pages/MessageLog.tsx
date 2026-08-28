@@ -18,6 +18,7 @@ import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
 import MultiSelect, { type MultiSelectOption } from '../components/MultiSelect.jsx';
 import OwnerProjectFilters from '../components/OwnerProjectFilters.jsx';
+import { teamsBackendAvailable } from '../services/api/teams.js';
 import { getProviders as getProviderConnections } from '../services/api/providers.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -224,6 +225,22 @@ const MessageLog: Component = () => {
     setProjectsFilterValue(values);
     setSearchParams({ projects: values.length ? values.join(',') : undefined }, { replace: true });
   };
+  // Browser history or a deep link can change the URL while the log stays
+  // mounted; mirror the params back into the signals like the other filters.
+  createEffect(
+    on(
+      () => searchParams.owners,
+      (owners) => setOwnersFilterValue(splitParam(owners)),
+      { defer: true },
+    ),
+  );
+  createEffect(
+    on(
+      () => searchParams.projects,
+      (projects) => setProjectsFilterValue(splitParam(projects)),
+      { defer: true },
+    ),
+  );
   const [connectionConfig] = createResource(async () => {
     try {
       return await getProviderConnections();
@@ -396,6 +413,25 @@ const MessageLog: Component = () => {
     ),
   );
 
+  // The existing /messages endpoint runs a strict DTO: `owners` / `projects`
+  // are only sent once the teams backend answers (it whitelists them). The dev
+  // mock and the compatibility transport cannot filter the log, so they are
+  // dropped there and the log stays unfiltered on those two axes.
+  // Resolved once; until it is known the params are withheld. The resources
+  // below only read it while an owner or project filter is set, so an
+  // unfiltered log never refetches when the answer arrives.
+  const [teamsBackend, setTeamsBackend] = createSignal(false);
+  void teamsBackendAvailable()
+    .then(setTeamsBackend)
+    .catch(() => setTeamsBackend(false));
+  const teamFilterAllowed = () =>
+    (ownersFilter().length > 0 || projectsFilter().length > 0) && teamsBackend();
+  const withTeamFilter = (q: Record<string, string>, allowed: boolean): Record<string, string> => {
+    if (allowed) return { ...q };
+    const { owners: _owners, projects: _projects, ...rest } = q;
+    return rest;
+  };
+
   const messageFilters = () => {
     const q: Record<string, string> = {};
     const connections = connectionsFilter();
@@ -441,9 +477,10 @@ const MessageLog: Component = () => {
       _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
+      teams: teamFilterAllowed(),
     }),
     (p) => {
-      const q = { ...p.filters };
+      const q = withTeamFilter(p.filters, p.teams);
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
       // Live message events refresh only the bounded page. Exact totals have
@@ -457,10 +494,12 @@ const MessageLog: Component = () => {
 
   const countQueryKey = () => JSON.stringify(messageFilters());
   const [messageCount] = createResource(
-    () => ({ key: countQueryKey(), _ping: analyticsPing() }),
+    () => ({ key: countQueryKey(), teams: teamFilterAllowed(), _ping: analyticsPing() }),
     async (source) => ({
       key: source.key,
-      data: (await getMessageCount(JSON.parse(source.key))) as MessagesData,
+      data: (await getMessageCount(
+        withTeamFilter(JSON.parse(source.key), source.teams),
+      )) as MessagesData,
     }),
   );
 

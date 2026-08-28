@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@solidjs/testing-library';
+import { render, fireEvent } from '@solidjs/testing-library';
 
 vi.mock('@solidjs/router', () => ({
   A: (props: any) => (
@@ -17,8 +17,8 @@ vi.mock('../../src/pages/ProjectDetail.jsx', () => ({
 
 import ProjectUsers from '../../src/pages/ProjectUsers';
 
-const resource = <T,>(value: T) =>
-  Object.assign(() => value, { loading: false, error: undefined, state: 'ready' });
+const resource = <T,>(value: T, extra: { loading?: boolean; error?: unknown } = {}) =>
+  Object.assign(() => value, { loading: false, error: undefined, state: 'ready', ...extra });
 
 const users = [
   {
@@ -53,11 +53,11 @@ const agents = [
   { agent_name: 'c', owner: null },
 ];
 
-const makeCtx = (ov: unknown): Ctx =>
+const makeCtx = (ov: unknown, extra: { loading?: boolean; error?: unknown } = {}): Ctx =>
   ({
     projectId: () => 'p-1',
     project: resource(null),
-    overview: resource(ov),
+    overview: resource(ov, extra),
     refetchProject: vi.fn(),
     refetchOverview: vi.fn(),
   }) as unknown as Ctx;
@@ -85,8 +85,25 @@ describe('ProjectUsers', () => {
     const empty = render(() => <ProjectUsers />);
     expect(empty.container.textContent).toContain('No users on this project');
     empty.unmount();
-    mockCtx = makeCtx(undefined);
+    mockCtx = makeCtx(undefined, { loading: true });
     const { container } = render(() => <ProjectUsers />);
     expect(container.querySelector('.skeleton')).not.toBeNull();
+  });
+
+  it('shows an unavailable state with retry once loading ends without data', () => {
+    mockCtx = makeCtx(undefined);
+    const { container, getByText } = render(() => <ProjectUsers />);
+    expect(container.querySelector('.skeleton')).toBeNull();
+    expect(container.textContent).toContain('Overview unavailable');
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    mockCtx = makeCtx(undefined, { error: new Error('boom') });
+    const { container, getByText } = render(() => <ProjectUsers />);
+    expect(container.textContent).toContain("Couldn't load this project's users");
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
   });
 });

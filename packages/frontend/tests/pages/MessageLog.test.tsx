@@ -2005,6 +2005,10 @@ let ownerProjectProps: {
   onOwnersChange: (v: string[]) => void;
   onProjectsChange: (v: string[]) => void;
 } | null = null;
+let mockTeamsBackend = true;
+vi.mock('../../src/services/api/teams.js', () => ({
+  teamsBackendAvailable: () => Promise.resolve(mockTeamsBackend),
+}));
 vi.mock('../../src/components/OwnerProjectFilters.jsx', () => ({
   default: (props: NonNullable<typeof ownerProjectProps>) => {
     ownerProjectProps = props;
@@ -2083,5 +2087,24 @@ describe('MessageLog owner/project filters', () => {
     await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
     expect(queryByTestId('owner-project-filters')).toBeNull();
     expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+  });
+});
+
+describe('MessageLog team filter gate', () => {
+  it('withholds the team params while the backend check fails', async () => {
+    mockTeamsBackend = true;
+    const teams = await import('../../src/services/api/teams.js');
+    const spy = vi.spyOn(teams, 'teamsBackendAvailable').mockRejectedValueOnce(new Error('boom'));
+    mockAgentName = '';
+    mockSearchParams = { owners: 'u-maya' };
+    mockGetMessages.mockClear();
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+    mockGetMessageCount.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+    mockGetRoutingStatus.mockResolvedValue({ enabled: true, reason: null });
+    render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+    await Promise.resolve();
+    expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+    spy.mockRestore();
   });
 });

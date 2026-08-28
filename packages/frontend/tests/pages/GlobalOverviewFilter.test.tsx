@@ -494,6 +494,9 @@ let ownerProjectProps: {
 
 vi.mock('../../src/services/api/teams.js', () => ({
   getOverviewGroupedUsage: (...args: unknown[]) => teamsMocks.getOverviewGroupedUsage(...args),
+  NO_OWNER: 'none',
+  teamFilterParams: (filter: unknown) => Promise.resolve(filter),
+  teamsBackendAvailable: () => Promise.resolve(true),
 }));
 
 vi.mock('../../src/components/OwnerProjectFilters.jsx', () => ({
@@ -534,10 +537,8 @@ describe('GlobalOverview owner/project filters and grouping', () => {
   it('sends the owner and project filters to the summary and persists them for the session', async () => {
     const { container, getByTestId } = render(() => <GlobalOverview />);
     await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
-    expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {
-      owners: [],
-      projects: [],
-    });
+    // Unfiltered: the summary carries no team params at all.
+    expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {});
     expect(ownerProjectProps?.owners).toEqual([]);
 
     fireEvent.click(getByTestId('pick-owner'));
@@ -625,5 +626,20 @@ describe('GlobalOverview owner/project filters and grouping', () => {
       owners: [],
       projects: [],
     });
+  });
+});
+
+describe('GlobalOverview team filter gate', () => {
+  it('keeps the summary unfiltered when the transport check fails', async () => {
+    const original = teamsMocks.getOverviewGroupedUsage;
+    void original;
+    const teams = await import('../../src/services/api/teams.js');
+    const spy = vi.spyOn(teams, 'teamFilterParams').mockRejectedValueOnce(new Error('boom'));
+    sessionStorage.setItem('global-owner-filter', '["u-maya"]');
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalled());
+    await Promise.resolve();
+    expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {});
+    spy.mockRestore();
   });
 });

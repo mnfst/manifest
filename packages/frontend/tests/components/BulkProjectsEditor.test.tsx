@@ -179,3 +179,72 @@ describe('BulkProjectsEditor', () => {
     expect(screen.getByText('Apply to 1 agent')).toBeTruthy();
   });
 });
+
+describe('BulkProjectsEditor — errors and archived projects', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetProjects.mockResolvedValue({ projects, total: projects.length });
+    mockGetSelectionProjects.mockResolvedValue({ 'p-atlas': 3, 'p-support': 1 });
+    mockBulkUpdateProjects.mockResolvedValue({ applied: ['a', 'b', 'c'], failed: [] });
+  });
+
+  it('asks for archived projects too', async () => {
+    const { container } = renderOpen();
+    await vi.waitFor(() => expect(container.querySelector('.tri-list')).not.toBeNull());
+    expect(mockGetProjects).toHaveBeenCalledWith({ include_archived: true });
+  });
+
+  it('shows a carried archived project with a badge, removable, but never offers it as a new choice', async () => {
+    const archived = {
+      id: 'p-old',
+      name: 'Old client',
+      description: null,
+      archived_at: '2026-07-01T00:00:00Z',
+      created_at: '',
+    };
+    const unrelatedArchived = { ...archived, id: 'p-gone', name: 'Gone' };
+    mockGetProjects.mockResolvedValue({
+      projects: [...projects, archived, unrelatedArchived],
+      total: 6,
+    });
+    mockGetSelectionProjects.mockResolvedValue({ 'p-atlas': 3, 'p-old': 2 });
+    const { container, onApplied } = renderOpen();
+    await vi.waitFor(() => expect(container.querySelector('.tri-list')).not.toBeNull());
+    const rows = [...container.querySelectorAll('.tri-list__row')].map((r) => r.textContent);
+    expect(rows.some((r) => r?.includes('Old client') && r.includes('Archived'))).toBe(true);
+    expect(rows.some((r) => r?.includes('Gone'))).toBe(false);
+    expect(checkbox('Old client').indeterminate).toBe(true);
+    fireEvent.click(checkbox('Old client'));
+    expect(checkbox('Old client').checked).toBe(true);
+    fireEvent.click(checkbox('Old client'));
+    expect(checkbox('Old client').checked).toBe(false);
+    fireEvent.click(applyButton());
+    await vi.waitFor(() => expect(onApplied).toHaveBeenCalled());
+    expect(mockBulkUpdateProjects).toHaveBeenCalledWith(selection, {
+      add: [],
+      remove: ['p-old'],
+    });
+  });
+
+  it('shows an error state with retry when a lookup fails, then loads on retry', async () => {
+    mockGetSelectionProjects
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce({ 'p-atlas': 3 });
+    const { container } = renderOpen();
+    await vi.waitFor(() => expect(container.querySelector('[role="alert"]')).not.toBeNull());
+    expect(container.textContent).toContain("Couldn't load the projects");
+    expect(container.querySelector('.tri-list')).toBeNull();
+    expect(applyButton().disabled).toBe(true);
+    fireEvent.click(screen.getByText('Try again'));
+    await vi.waitFor(() => expect(container.querySelector('.tri-list')).not.toBeNull());
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(mockGetSelectionProjects).toHaveBeenCalledTimes(2);
+    expect(checkbox('Atlas').checked).toBe(true);
+  });
+
+  it('shows the error state when the project list itself fails', async () => {
+    mockGetProjects.mockRejectedValue(new Error('nope'));
+    const { container } = renderOpen();
+    await vi.waitFor(() => expect(container.querySelector('[role="alert"]')).not.toBeNull());
+  });
+});

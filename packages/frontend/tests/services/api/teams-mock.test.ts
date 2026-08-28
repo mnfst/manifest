@@ -113,9 +113,11 @@ beforeEach(() => {
   mockTiers.mockResolvedValue([
     {
       tier: 'default',
-      override_route: { provider: 'anthropic', model: 'claude-opus-5' },
+      override_route: { provider: 'anthropic', authType: 'subscription', model: 'claude-opus-5' },
       auto_assigned_route: null,
-      fallback_routes: [{ provider: 'openai', model: 'gpt-5' }],
+      fallback_routes: [
+        { provider: 'openai', authType: 'api_key', keyLabel: 'Work', model: 'gpt-5' },
+      ],
     },
     { tier: 'simple', override_route: null, auto_assigned_route: null, fallback_routes: null },
   ]);
@@ -256,9 +258,14 @@ describe('users', () => {
     expect(team.owner).toBeNull();
     expect(team.archived_at).toBeNull();
     await api.deleteUser('u-tom', { agents: 'delete' });
-    team = await api.getAgentTeam('windsurf');
-    expect(team.owner).toBeNull();
-    expect(team.archived_at).not.toBeNull();
+    // Deleted agents are gone everywhere, not archived: the real GET /agents
+    // still returns them, so the mock hides them and drops their access.
+    const remaining = await api.listAgents({ include_archived: true });
+    expect(remaining.agents.some((a) => a.agent_name === 'windsurf')).toBe(false);
+    expect((await api.getUsers()).users.find((u) => u.id === 'u-sara')!.agent_count).toBe(1);
+    // The deletion survives a reload of the persisted store.
+    resetMockTeamsKeepStorage();
+    expect((await api.listAgents()).agents.some((a) => a.agent_name === 'windsurf')).toBe(false);
   });
 
   it('builds a user overview and removes an agent from a user', async () => {
@@ -514,8 +521,10 @@ describe('model access', () => {
     expect(updated.all_models).toBe(false);
     expect(updated.enabled_count).toBe(1);
     expect(updated.models.find((m) => m.id === 'claude-haiku')!.enabled).toBe(false);
+    // Anthropic restricted to 1 of 2, OpenAI still on all models (1): 2 of 3.
     const row = (await api.listAgents({ search: 'claude-code' })).agents[0]!;
-    expect(row.models_enabled).toBe(1);
+    expect(row.models_enabled).toBe(2);
+    expect(row.models_total).toBe(3);
     await expect(
       api.updateAgentModelAccess('claude-code', 'nope', {
         all_models: true,
@@ -587,3 +596,66 @@ function resetMockTeamsKeepStorage() {
   resetMockTeams();
   if (saved) localStorage.setItem('manifest-teams-mock', saved);
 }
+
+describe('review follow-ups', () => {
+  it('refuses a query selection whose result set moved', async () => {
+    await api.listAgents();
+    await expect(
+      api.bulkUpdateProjects(
+        { kind: 'query', query: { projects: ['p-atlas'] }, expected_total: 5 },
+        { add: ['p-tools'], remove: [] },
+      ),
+    ).rejects.toThrow(/selection changed/);
+    await expect(
+      api.countSelection({ kind: 'query', query: {}, expected_total: 1 }),
+    ).rejects.toThrow(/selection changed/);
+  });
+
+  it('locks a routed model only on the connection that routes it', async () => {
+    mockGetProviders.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          connections: [
+            { id: 'up-work', label: 'Work', is_active: true },
+            { id: 'up-personal', label: 'Personal', is_active: true },
+          ],
+        },
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          connections: [{ id: 'up-sub', label: 'Plus', is_active: true }],
+        },
+      ],
+    });
+    mockModels.mockResolvedValue([
+      { model_name: 'gpt-5', provider: 'openai', display_name: 'GPT-5' },
+    ]);
+    mockTiers.mockResolvedValue([
+      {
+        tier: 'default',
+        override_route: {
+          provider: 'openai',
+          authType: 'api_key',
+          keyLabel: 'Work',
+          model: 'gpt-5',
+        },
+        auto_assigned_route: {
+          provider: 'openai',
+          authType: 'api_key',
+          keyLabel: 'Default',
+          model: 'gpt-5',
+        },
+        fallback_routes: null,
+      },
+    ]);
+    const access = await api.getAgentModelAccess('claude-code');
+    const locked = Object.fromEntries(
+      access.map((p) => [p.user_provider_id, p.models[0]!.in_routing]),
+    );
+    // "Default" (the legacy single-key label) locks every key of that auth type;
+    // the subscription connection is a different auth route and stays free.
+    expect(locked).toEqual({ 'up-work': true, 'up-personal': true, 'up-sub': false });
+  });
+});

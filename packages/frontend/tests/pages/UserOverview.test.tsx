@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@solidjs/testing-library';
+import { render, fireEvent } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
 
 vi.mock('@solidjs/router', () => ({
@@ -11,14 +11,21 @@ vi.mock('@solidjs/router', () => ({
 }));
 
 const [mockOverview, setMockOverview] = createSignal<any>(undefined);
+const [mockOverviewError, setMockOverviewError] = createSignal<unknown>(undefined);
 const [mockUser, setMockUser] = createSignal<any>(undefined);
+const mockRefetchOverview = vi.fn();
+// A resource look-alike: the value is the accessor, error/loading are getters.
+const overviewResource = Object.defineProperties(() => mockOverview(), {
+  error: { get: () => mockOverviewError() },
+  loading: { get: () => false },
+});
 vi.mock('../../src/pages/UserDetail.jsx', () => ({
   useUserDetail: () => ({
     userId: () => 'u-maya',
     user: mockUser,
-    overview: mockOverview,
+    overview: overviewResource,
     refetchUser: vi.fn(),
-    refetchOverview: vi.fn(),
+    refetchOverview: mockRefetchOverview,
   }),
 }));
 
@@ -73,13 +80,25 @@ const overview = {
 
 describe('UserOverview', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     setMockUser(maya);
     setMockOverview(undefined);
+    setMockOverviewError(undefined);
   });
 
   it('shows a skeleton until the overview loads', () => {
     const { container } = render(() => <UserOverview />);
     expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    setMockOverviewError(new Error('boom'));
+    const { container, getByText } = render(() => <UserOverview />);
+    expect(container.textContent).toContain("Couldn't load this overview");
+    expect(container.textContent).toContain('boom');
+    expect(container.querySelector('.skeleton')).toBeNull();
+    fireEvent.click(getByText('Try again'));
+    expect(mockRefetchOverview).toHaveBeenCalled();
   });
 
   it('renders the stat cards, the chart against the budget and the agents', () => {

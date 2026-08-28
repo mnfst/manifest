@@ -229,3 +229,44 @@ describe('ProjectDetail', () => {
     expect(lastUsedLabel(new Date().toISOString())).toBe('Just now');
   });
 });
+
+describe('ProjectDetail — failures', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPathname = '/projects/p-1';
+    mockParams.projectId = 'p-1';
+    mockGetProject.mockResolvedValue(project);
+    mockGetProjectOverview.mockResolvedValue(overview);
+  });
+
+  it('shows an error state with retry when the project lookup fails', async () => {
+    mockGetProject.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce(project);
+    const { container, getByText } = render(() => <ProjectDetail>{null}</ProjectDetail>);
+    await vi.waitFor(() => expect(container.textContent).toContain("Couldn't load this project"));
+    expect(container.textContent).toContain('boom');
+    expect(container.textContent).not.toContain('Project not found');
+    expect(container.querySelector('title')?.textContent).toBe('Project | Manifest');
+    expect(mockSetBreadcrumb).not.toHaveBeenCalled();
+    fireEvent.click(getByText('Try again'));
+    await vi.waitFor(() => expect(container.querySelector('h1')?.textContent).toBe('HSBC'));
+  });
+
+  it('hands the overview error to the tabs instead of swallowing it', async () => {
+    mockGetProjectOverview.mockRejectedValue(new Error('nope'));
+    const ErrProbe = () => {
+      const ctx = useProjectDetail();
+      return (
+        <span data-testid="err-probe">
+          {String((ctx.overview.error as Error | undefined)?.message)}
+        </span>
+      );
+    };
+    const { getByTestId, container } = render(() => (
+      <ProjectDetail>
+        <ErrProbe />
+      </ProjectDetail>
+    ));
+    await vi.waitFor(() => expect(getByTestId('err-probe').textContent).toBe('nope'));
+    expect(container.textContent).not.toContain('agents ·');
+  });
+});

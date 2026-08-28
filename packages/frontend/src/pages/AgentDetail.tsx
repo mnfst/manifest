@@ -32,11 +32,13 @@ const AgentDetail: ParentComponent = (props) => {
 
   const [team, { mutate: mutateTeam }] = createResource(
     () => ({ name: agentName(), _r: routingPing() }),
-    async ({ name }): Promise<AgentTeam> => {
+    async ({ name }): Promise<AgentTeam | null> => {
       try {
         return await getAgentTeam(name);
       } catch {
-        return { owner: null, projects: [], archived_at: null };
+        // Unknown, not empty: an empty team would let the projects editor
+        // save a list that silently drops every real association.
+        return null;
       }
     },
   );
@@ -68,12 +70,21 @@ const AgentDetail: ParentComponent = (props) => {
           <Show
             when={team()?.owner}
             fallback={
-              <span
-                class="chip"
-                title="This agent runs without an owner. No user budget applies to it."
+              <Show
+                when={team() !== null}
+                fallback={
+                  <span class="chip" title="The owner and projects could not be loaded.">
+                    <span class="chip__muted">Owner:</span> Unavailable
+                  </span>
+                }
               >
-                <span class="chip__muted">Owner:</span> No owner
-              </span>
+                <span
+                  class="chip"
+                  title="This agent runs without an owner. No user budget applies to it."
+                >
+                  <span class="chip__muted">Owner:</span> No owner
+                </span>
+              </Show>
             }
           >
             <A
@@ -100,7 +111,12 @@ const AgentDetail: ParentComponent = (props) => {
             <AgentProjectsEditor
               agentName={agentName()}
               projects={team()!.projects}
-              onChange={(projects) => mutateTeam({ ...team()!, projects })}
+              onChange={(projects, forAgent) => {
+                // A save that resolves after the route moved to another agent
+                // must not overwrite that agent's projects.
+                if (forAgent !== agentName()) return;
+                mutateTeam((current) => (current ? { ...current, projects } : current));
+              }}
             />
           </Show>
         </div>

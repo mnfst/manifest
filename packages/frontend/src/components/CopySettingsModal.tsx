@@ -66,16 +66,13 @@ const CopySettingsModal: Component<CopySettingsModalProps> = (props) => {
     },
   );
 
-  const [count] = createResource(
+  // The count is the number stated in the Apply button, so a failed count is
+  // shown as such with a retry rather than guessed from the page selection.
+  const [count, { refetch: recount }] = createResource(
     () => (props.open && step() === 3 ? props.selection : null),
-    async (selection) => {
-      try {
-        return await countSelection(selection);
-      } catch {
-        return props.selectedCount;
-      }
-    },
+    (selection) => countSelection(selection),
   );
+  const countValue = () => (count.error ? undefined : count());
 
   const anyCopy = () => COPY_CHOICES.some((c) => copy()[c.key]);
   const copied = () => COPY_CHOICES.filter((c) => copy()[c.key]);
@@ -193,27 +190,43 @@ const CopySettingsModal: Component<CopySettingsModalProps> = (props) => {
               </span>
             </div>
             <Show
-              when={!count.loading}
+              when={!count.error}
               fallback={
-                <div class="confirm-box">
-                  <span class="spinner" /> Counting agents…
+                <div class="confirm-box" role="alert">
+                  Couldn't count the selected agents.{' '}
+                  <button
+                    type="button"
+                    class="btn btn--outline btn--sm"
+                    onClick={() => void recount()}
+                  >
+                    Retry
+                  </button>
                 </div>
               }
             >
-              <div class="confirm-box">
-                <b class="confirm-box__strong">
-                  {count() ?? props.selectedCount} agent
-                  {(count() ?? props.selectedCount) === 1 ? '' : 's'} will change.
-                </b>{' '}
-                Their current {listNames(copied())} settings will be replaced.
-                <Show when={untouched().length > 0}>
-                  {' '}
-                  {untouched()
-                    .map((c) => c.label)
-                    .join(' and ')}{' '}
-                  left untouched.
-                </Show>
-              </div>
+              <Show
+                when={!count.loading}
+                fallback={
+                  <div class="confirm-box">
+                    <span class="spinner" /> Counting agents…
+                  </div>
+                }
+              >
+                <div class="confirm-box">
+                  <b class="confirm-box__strong">
+                    {countValue() ?? props.selectedCount} agent
+                    {(countValue() ?? props.selectedCount) === 1 ? '' : 's'} will change.
+                  </b>{' '}
+                  Their current {listNames(copied())} settings will be replaced.
+                  <Show when={untouched().length > 0}>
+                    {' '}
+                    {untouched()
+                      .map((c) => c.label)
+                      .join(' and ')}{' '}
+                    left untouched.
+                  </Show>
+                </div>
+              </Show>
             </Show>
           </Show>
 
@@ -241,13 +254,13 @@ const CopySettingsModal: Component<CopySettingsModalProps> = (props) => {
                 <button
                   type="button"
                   class="btn btn--primary btn--sm"
-                  disabled={applying() || count.loading}
+                  disabled={applying() || count.loading || !!count.error}
                   onClick={() => void apply()}
                 >
                   {applying() ? (
                     <span class="spinner" />
                   ) : (
-                    `Apply to ${count() ?? props.selectedCount} agent${(count() ?? props.selectedCount) === 1 ? '' : 's'}`
+                    `Apply to ${countValue() ?? props.selectedCount} agent${(countValue() ?? props.selectedCount) === 1 ? '' : 's'}`
                   )}
                 </button>
               }

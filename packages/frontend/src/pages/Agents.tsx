@@ -238,8 +238,14 @@ const Agents: Component = () => {
     else setSelected(new Set(pageNames()));
   };
   const toggleRow = (name: string) => {
-    setSelectAllMatching(false);
-    const next = new Set(selected());
+    // Touching one row while every matching agent is selected drops back to a
+    // page selection: every row on this page stays selected except the one
+    // toggled, and the person is told the selection shrank.
+    const next = selectAllMatching() ? new Set(pageNames()) : new Set(selected());
+    if (selectAllMatching()) {
+      setSelectAllMatching(false);
+      toast.warning('Selection reduced to this page');
+    }
     if (next.has(name)) next.delete(name);
     else next.add(name);
     setSelected(next);

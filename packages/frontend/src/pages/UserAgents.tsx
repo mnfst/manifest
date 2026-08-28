@@ -2,6 +2,7 @@ import { A } from '@solidjs/router';
 import { createSignal, For, Show, type Component } from 'solid-js';
 import { PLATFORM_LABELS, coerceAgentPlatform, platformIcon } from 'manifest-shared';
 import AddAgentModal from '../components/AddAgentModal.jsx';
+import ErrorState from '../components/ErrorState.jsx';
 import { removeAgentFromUser, type AgentRow } from '../services/api/teams.js';
 import { formatCost, formatTimeAgo } from '../services/formatters.js';
 import { agentPath, userPath } from '../services/routing.js';
@@ -18,6 +19,9 @@ const UserAgents: Component = () => {
   const [addOpen, setAddOpen] = createSignal(false);
   const [removing, setRemoving] = createSignal<AgentRow | null>(null);
   const [busy, setBusy] = createSignal(false);
+
+  // Reading an errored resource throws; the error branch below never reads it.
+  const loaded = () => (overview.error ? undefined : overview());
 
   const via = () => [
     { label: 'Users', href: '/users' },
@@ -44,8 +48,8 @@ const UserAgents: Component = () => {
     <div>
       <div class="list-toolbar">
         <span class="who__sub">
-          <Show when={overview()} fallback="Loading agents…">
-            {overview()!.agents.length} agent{overview()!.agents.length === 1 ? '' : 's'} owned by{' '}
+          <Show when={loaded()} fallback={overview.error ? '' : 'Loading agents…'}>
+            {loaded()!.agents.length} agent{loaded()!.agents.length === 1 ? '' : 's'} owned by{' '}
             {user()?.name}
           </Show>
         </span>
@@ -55,9 +59,17 @@ const UserAgents: Component = () => {
         </button>
       </div>
 
-      <Show when={overview()}>
+      <Show when={overview.error}>
+        <ErrorState
+          error={overview.error}
+          title="Couldn't load their agents"
+          onRetry={refetchOverview}
+        />
+      </Show>
+
+      <Show when={loaded()}>
         <Show
-          when={overview()!.agents.length > 0}
+          when={loaded()!.agents.length > 0}
           fallback={
             <div class="empty-state">
               <div class="empty-state__title">No agents yet</div>
@@ -86,7 +98,7 @@ const UserAgents: Component = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <For each={overview()!.agents}>
+                  <For each={loaded()!.agents}>
                     {(agent) => (
                       <tr>
                         <td>
@@ -145,14 +157,20 @@ const UserAgents: Component = () => {
         </Show>
       </Show>
 
-      <AddAgentModal
-        open={addOpen()}
-        onClose={() => {
-          setAddOpen(false);
-          refetchOverview();
-        }}
-        defaultOwnerId={userId()}
-      />
+      {/* Keyed on the user so the modal remounts (and its owner default
+          resets) when the route switches straight to another user. */}
+      <Show when={userId()} keyed>
+        {(ownerId) => (
+          <AddAgentModal
+            open={addOpen()}
+            onClose={() => {
+              setAddOpen(false);
+              refetchOverview();
+            }}
+            defaultOwnerId={ownerId}
+          />
+        )}
+      </Show>
 
       <Show when={removing()}>
         <div

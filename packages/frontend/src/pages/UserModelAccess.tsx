@@ -36,13 +36,18 @@ export const modelsLabel = (access: ProviderModelAccess): string =>
  * user's agents.
  */
 const UserModelAccess: Component = () => {
-  const { user, overview } = useUserDetail();
+  const { user, overview, refetchOverview } = useUserDetail();
   const [editing, setEditing] = createSignal<AccessRow | null>(null);
+  // Set when a save or an apply went through while the modal was open, so
+  // closing it refetches every row: an apply changes other agents too.
+  const [dirty, setDirty] = createSignal(false);
 
-  const agents = () => overview()?.agents ?? [];
+  // Reading an errored resource throws; the error branch below never reads it.
+  const loaded = () => (overview.error ? undefined : overview());
+  const agents = () => loaded()?.agents ?? [];
 
   const [rows, { refetch, mutate }] = createResource(
-    () => (overview() ? agents().map((a) => a.agent_name) : null),
+    () => (loaded() ? agents().map((a) => a.agent_name) : null),
     async (): Promise<AccessRow[]> => {
       const lists = await Promise.all(
         agents().map((agent) => getAgentModelAccess(agent.agent_name)),
@@ -54,6 +59,7 @@ const UserModelAccess: Component = () => {
   const handleSaved = (updated: ProviderModelAccess) => {
     const current = editing();
     if (!current) return;
+    setDirty(true);
     mutate((list) =>
       (list ?? []).map((row) =>
         row.agent.agent_name === current.agent.agent_name &&
@@ -71,7 +77,15 @@ const UserModelAccess: Component = () => {
         routing cannot be turned off.
       </p>
 
-      <Show when={overview()}>
+      <Show when={overview.error}>
+        <ErrorState
+          error={overview.error}
+          title="Couldn't load their agents"
+          onRetry={refetchOverview}
+        />
+      </Show>
+
+      <Show when={loaded()}>
         <Show
           when={agents().length > 0}
           fallback={
@@ -185,7 +199,13 @@ const UserModelAccess: Component = () => {
           open={editing() !== null}
           agentName={editing()!.agent.agent_name}
           access={editing()!.access}
-          onClose={() => setEditing(null)}
+          onClose={() => {
+            setEditing(null);
+            if (dirty()) {
+              setDirty(false);
+              void refetch();
+            }
+          }}
           onSaved={handleSaved}
           applyTargets={agents()}
         />

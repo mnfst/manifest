@@ -10,16 +10,20 @@ vi.mock('@solidjs/router', () => ({
   ),
 }));
 
+const mockModalMounts = vi.hoisted(() => ({ count: 0 }));
 vi.mock('../../src/components/AddAgentModal.jsx', () => ({
-  default: (props: any) => (
-    <div
-      data-testid="add-agent-modal"
-      data-open={String(props.open)}
-      data-owner={props.defaultOwnerId}
-    >
-      <button onClick={() => props.onClose()}>close-add</button>
-    </div>
-  ),
+  default: (props: any) => {
+    mockModalMounts.count += 1;
+    return (
+      <div
+        data-testid="add-agent-modal"
+        data-open={String(props.open)}
+        data-owner={props.defaultOwnerId}
+      >
+        <button onClick={() => props.onClose()}>close-add</button>
+      </div>
+    );
+  },
 }));
 
 const mockRemove = vi.fn();
@@ -31,12 +35,18 @@ const mockToast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('../../src/services/toast-store.js', () => ({ toast: mockToast }));
 
 const [mockOverview, setMockOverview] = createSignal<any>(undefined);
+const [mockOverviewError, setMockOverviewError] = createSignal<unknown>(undefined);
+const [mockUserId, setMockUserId] = createSignal('u-maya');
 const mockRefetchOverview = vi.fn();
+const overviewResource = Object.defineProperties(() => mockOverview(), {
+  error: { get: () => mockOverviewError() },
+  loading: { get: () => false },
+});
 vi.mock('../../src/pages/UserDetail.jsx', () => ({
   useUserDetail: () => ({
-    userId: () => 'u-maya',
-    user: () => ({ id: 'u-maya', name: 'Maya Okonkwo' }),
-    overview: mockOverview,
+    userId: mockUserId,
+    user: () => ({ id: mockUserId(), name: 'Maya Okonkwo' }),
+    overview: overviewResource,
     refetchUser: vi.fn(),
     refetchOverview: mockRefetchOverview,
   }),
@@ -79,6 +89,9 @@ describe('UserAgents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setMockOverview(undefined);
+    setMockOverviewError(undefined);
+    setMockUserId('u-maya');
+    mockModalMounts.count = 0;
     mockRemove.mockResolvedValue(undefined);
   });
 
@@ -172,5 +185,35 @@ describe('UserAgents', () => {
     const { getByTestId, getByText } = render(() => <UserAgents />);
     fireEvent.click(getByText('New agent'));
     expect(getByTestId('add-agent-modal').getAttribute('data-open')).toBe('true');
+  });
+});
+
+describe('UserAgents — failures and user switches', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setMockOverview(undefined);
+    setMockOverviewError(undefined);
+    setMockUserId('u-maya');
+    mockModalMounts.count = 0;
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    setMockOverviewError(new Error('boom'));
+    const { container, getByText } = render(() => <UserAgents />);
+    expect(container.textContent).toContain("Couldn't load their agents");
+    expect(container.textContent).not.toContain('Loading agents…');
+    expect(container.querySelector('table')).toBeNull();
+    fireEvent.click(getByText('Try again'));
+    expect(mockRefetchOverview).toHaveBeenCalled();
+  });
+
+  it('remounts the New agent modal with the new owner when the route switches user', () => {
+    setMockOverview({ agents: [] });
+    const { getByTestId } = render(() => <UserAgents />);
+    expect(getByTestId('add-agent-modal').getAttribute('data-owner')).toBe('u-maya');
+    expect(mockModalMounts.count).toBe(1);
+    setMockUserId('u-tom');
+    expect(getByTestId('add-agent-modal').getAttribute('data-owner')).toBe('u-tom');
+    expect(mockModalMounts.count).toBe(2);
   });
 });

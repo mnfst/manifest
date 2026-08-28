@@ -33,13 +33,19 @@ vi.mock('../../src/components/ModelAccessModal.jsx', () => ({
 }));
 
 const [mockOverview, setMockOverview] = createSignal<any>(undefined);
+const [mockOverviewError, setMockOverviewError] = createSignal<unknown>(undefined);
+const mockRefetchOverview = vi.fn();
+const overviewResource = Object.defineProperties(() => mockOverview(), {
+  error: { get: () => mockOverviewError() },
+  loading: { get: () => false },
+});
 vi.mock('../../src/pages/UserDetail.jsx', () => ({
   useUserDetail: () => ({
     userId: () => 'u-maya',
     user: () => ({ id: 'u-maya', name: 'Maya Okonkwo' }),
-    overview: mockOverview,
+    overview: overviewResource,
     refetchUser: vi.fn(),
-    refetchOverview: vi.fn(),
+    refetchOverview: mockRefetchOverview,
   }),
 }));
 
@@ -101,6 +107,7 @@ describe('UserModelAccess', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setMockOverview(undefined);
+    setMockOverviewError(undefined);
     mockGetAccess.mockImplementation(async (name: string) =>
       name === 'claude-code' ? [anthropic, custom] : [],
     );
@@ -160,10 +167,13 @@ describe('UserModelAccess', () => {
     expect(modal.getAttribute('data-agent')).toBe('claude-code');
     expect(modal.getAttribute('data-provider')).toBe('conn-1');
     expect(modal.getAttribute('data-targets')).toBe('2');
+    const callsBefore = mockGetAccess.mock.calls.length;
     fireEvent.click(getByText('save-modal'));
     await vi.waitFor(() => expect(container.textContent).toContain('3 of 18'));
     fireEvent.click(getByText('close-modal'));
     expect(container.querySelector('[data-testid="model-access-modal"]')).toBeNull();
+    // A save (or an apply, which saves first) may have changed other agents: refetch.
+    await vi.waitFor(() => expect(mockGetAccess.mock.calls.length).toBeGreaterThan(callsBefore));
   });
 
   it('exposes label helpers', () => {
@@ -171,5 +181,36 @@ describe('UserModelAccess', () => {
     expect(providerLabel('custom:x')).toBe('custom:x');
     expect(modelsLabel(anthropic)).toBe('All 18');
     expect(modelsLabel(custom)).toBe('6 of 14');
+  });
+});
+
+describe('UserModelAccess — failures and refetch', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setMockOverview(undefined);
+    setMockOverviewError(undefined);
+    mockGetAccess.mockImplementation(async (name: string) =>
+      name === 'claude-code' ? [anthropic, custom] : [],
+    );
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    setMockOverviewError(new Error('boom'));
+    const { container, getByText } = render(() => <UserModelAccess />);
+    expect(container.textContent).toContain("Couldn't load their agents");
+    expect(mockGetAccess).not.toHaveBeenCalled();
+    fireEvent.click(getByText('Try again'));
+    expect(mockRefetchOverview).toHaveBeenCalled();
+  });
+
+  it('does not refetch the rows when the modal closes without a save', async () => {
+    setMockOverview({ agents });
+    const { container, getAllByText, getByText } = render(() => <UserModelAccess />);
+    await vi.waitFor(() => expect(container.textContent).toContain('Anthropic'));
+    const callsBefore = mockGetAccess.mock.calls.length;
+    fireEvent.click(getAllByText('Models', { selector: 'button' })[0]!);
+    fireEvent.click(getByText('close-modal'));
+    await Promise.resolve();
+    expect(mockGetAccess.mock.calls.length).toBe(callsBefore);
   });
 });

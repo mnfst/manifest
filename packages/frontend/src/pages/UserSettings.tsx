@@ -11,7 +11,7 @@ import { useUserDetail } from './UserDetail.jsx';
  * history stays), and the delete flow that decides what happens to their agents.
  */
 const UserSettings: Component = () => {
-  const { user, overview, userId, refetchUser } = useUserDetail();
+  const { user, overview, userId, refetchUser, refetchOverview } = useUserDetail();
   const navigate = useNavigate();
 
   const [name, setName] = createSignal('');
@@ -31,14 +31,19 @@ const UserSettings: Component = () => {
     setBudget(u.monthly_budget_usd == null ? '' : String(u.monthly_budget_usd));
   });
 
-  /** Live (non-archived) agents still owned by this user, for the delete flow. */
-  const liveAgentCount = () => {
-    const list = overview()?.agents ?? [];
-    return list.filter((a) => !a.archived_at).length;
+  /**
+   * Live (non-archived) agents still owned by this user, for the delete flow.
+   * `null` while the overview is loading or failed: the modal waits rather
+   * than assuming zero.
+   */
+  const liveAgentCount = (): number | null => {
+    if (overview.error || overview() === undefined) return null;
+    return overview()!.agents.filter((a) => !a.archived_at).length;
   };
 
   const budgetValue = () => parseBudgetInput(budget());
-  const budgetInvalid = () => budgetValue() === undefined;
+  // A zero budget would display as "$0" while every meter treats it as no budget.
+  const budgetInvalid = () => budgetValue() === undefined || budgetValue() === 0;
   const canSave = () => name().trim().length > 0 && !budgetInvalid() && !saving();
 
   const save = async () => {
@@ -53,6 +58,8 @@ const UserSettings: Component = () => {
       });
       toast.success('User updated');
       refetchUser();
+      // The overview carries the budget the meter and chart read.
+      refetchOverview();
     } catch {
       toast.error("Couldn't save these changes. Please try again.");
     } finally {
@@ -144,7 +151,9 @@ const UserSettings: Component = () => {
               Changing it mid-month recomputes the meter from the first of the month.
             </span>
             <Show when={budgetInvalid()}>
-              <span class="field__error">Enter a positive amount</span>
+              <span class="field__error">
+                Enter a positive amount, or leave empty for no budget
+              </span>
             </Show>
           </div>
           <div class="settings-card__control">

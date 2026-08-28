@@ -21,7 +21,7 @@ vi.mock('../../src/components/DeleteUserModal.jsx', () => ({
     <div
       data-testid="delete-user-modal"
       data-open={String(props.open)}
-      data-count={props.agentCount}
+      data-count={String(props.agentCount)}
       data-user={props.user.name}
     >
       <button onClick={() => props.onDeleted()}>deleted</button>
@@ -35,14 +35,20 @@ vi.mock('../../src/services/toast-store.js', () => ({ toast: mockToast }));
 
 const [mockUser, setMockUser] = createSignal<any>(undefined);
 const [mockOverview, setMockOverview] = createSignal<any>(undefined);
+const [mockOverviewError, setMockOverviewError] = createSignal<unknown>(undefined);
 const mockRefetchUser = vi.fn();
+const mockRefetchOverview = vi.fn();
+const overviewResource = Object.defineProperties(() => mockOverview(), {
+  error: { get: () => mockOverviewError() },
+  loading: { get: () => false },
+});
 vi.mock('../../src/pages/UserDetail.jsx', () => ({
   useUserDetail: () => ({
     userId: () => 'u-maya',
     user: mockUser,
-    overview: mockOverview,
+    overview: overviewResource,
     refetchUser: mockRefetchUser,
-    refetchOverview: vi.fn(),
+    refetchOverview: mockRefetchOverview,
   }),
 }));
 
@@ -62,6 +68,7 @@ describe('UserSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setMockUser(maya);
+    setMockOverviewError(undefined);
     setMockOverview({ agents: [{ archived_at: null }, { archived_at: '2026-08-01' }] });
     mockUpdateUser.mockResolvedValue(maya);
     mockArchiveUser.mockResolvedValue(maya);
@@ -95,6 +102,8 @@ describe('UserSettings', () => {
     );
     expect(mockToast.success).toHaveBeenCalledWith('User updated');
     expect(mockRefetchUser).toHaveBeenCalled();
+    // The budget meter and chart read the overview, so it refetches too.
+    expect(mockRefetchOverview).toHaveBeenCalled();
   });
 
   it('prefills empty optional fields for a sparse user', () => {
@@ -107,7 +116,11 @@ describe('UserSettings', () => {
   it('blocks saving with an empty name or an invalid budget', () => {
     const { getByLabelText, getByText, container } = render(() => <UserSettings />);
     fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '-3' } });
-    expect(container.textContent).toContain('Enter a positive amount');
+    expect(container.textContent).toContain(
+      'Enter a positive amount, or leave empty for no budget',
+    );
+    fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '0' } });
+    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
     expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(getByText('Save'));
     expect(mockUpdateUser).not.toHaveBeenCalled();
@@ -160,9 +173,13 @@ describe('UserSettings', () => {
     expect(modal.getAttribute('data-open')).toBe('false');
   });
 
-  it('passes a zero agent count when the overview has not loaded', () => {
+  it('passes an unknown agent count while the overview is loading or failed', () => {
     setMockOverview(undefined);
-    const { getByTestId } = render(() => <UserSettings />);
-    expect(getByTestId('delete-user-modal').getAttribute('data-count')).toBe('0');
+    const loading = render(() => <UserSettings />);
+    expect(loading.getByTestId('delete-user-modal').getAttribute('data-count')).toBe('null');
+    loading.unmount();
+    setMockOverviewError(new Error('boom'));
+    const failed = render(() => <UserSettings />);
+    expect(failed.getByTestId('delete-user-modal').getAttribute('data-count')).toBe('null');
   });
 });

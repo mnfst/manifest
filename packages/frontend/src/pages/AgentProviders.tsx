@@ -60,16 +60,19 @@ const AgentProviders: Component = () => {
     },
   );
 
-  const [modelAccess, { mutate: mutateModelAccess }] = createResource(
+  // `null` means the lookup failed. It is not an empty list: showing every
+  // model as allowed would let a Save replace the real selection.
+  const [modelAccess, { mutate: mutateModelAccess, refetch: refetchModelAccess }] = createResource(
     () => agentName(),
-    async (name): Promise<ProviderModelAccess[]> => {
+    async (name): Promise<ProviderModelAccess[] | null> => {
       try {
         return await getAgentModelAccess(name);
       } catch {
-        return [];
+        return null;
       }
     },
   );
+  const modelAccessFailed = () => modelAccess() === null;
 
   const [customProviders] = createResource(
     () => agentName(),
@@ -102,6 +105,7 @@ const AgentProviders: Component = () => {
 
   const modelsLabel = (connection: AgentProviderConnection): string => {
     if (!isEnabled(connection.userProviderId)) return 'Off';
+    if (modelAccessFailed()) return 'Unavailable';
     const a = accessFor(connection.userProviderId);
     if (!a) return connection.models ? `All ${connection.models}` : '-';
     if (a.all_models) return `All ${a.total_count}`;
@@ -197,6 +201,22 @@ const AgentProviders: Component = () => {
 
   return (
     <div>
+      <Show when={modelAccessFailed()}>
+        <div class="bulk-result bulk-result--failed" role="alert">
+          <div style="display: flex; align-items: center; gap: var(--gap-sm);">
+            <span style="flex: 1;">
+              Model access couldn't be loaded, so the per-model switches are disabled until it does.
+            </span>
+            <button
+              type="button"
+              class="btn btn--outline btn--sm"
+              onClick={() => void refetchModelAccess()}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </Show>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
         Enable the provider connections this agent may use, then choose its models provider by
         provider. A provider can't be turned off while its models are assigned to this agent's
@@ -298,7 +318,12 @@ const AgentProviders: Component = () => {
                           <button
                             type="button"
                             class="btn btn--outline btn--sm"
-                            disabled={!enabled()}
+                            disabled={!enabled() || modelAccessFailed()}
+                            title={
+                              modelAccessFailed()
+                                ? 'Model access could not be loaded. Retry above.'
+                                : undefined
+                            }
                             aria-label={`Models for ${name()} ${connection.label}`}
                             onClick={() => openModels(connection)}
                           >

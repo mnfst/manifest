@@ -59,14 +59,25 @@ vi.mock('../../src/services/sse.js', () => ({
 // The editor is exercised in its own test; here it only reports a change.
 vi.mock('../../src/components/AgentProjectsEditor.jsx', () => ({
   default: (props: any) => (
-    <button
-      type="button"
-      data-testid="agent-projects-editor"
-      data-agent={props.agentName}
-      onClick={() => props.onChange([...props.projects, { id: 'p-new', name: 'New' }])}
-    >
-      + Project
-    </button>
+    <>
+      <button
+        type="button"
+        data-testid="agent-projects-editor"
+        data-agent={props.agentName}
+        onClick={() =>
+          props.onChange([...props.projects, { id: 'p-new', name: 'New' }], props.agentName)
+        }
+      >
+        + Project
+      </button>
+      <button
+        type="button"
+        data-testid="agent-projects-editor-stale"
+        onClick={() => props.onChange([{ id: 'p-stale', name: 'Stale' }], 'someone-else')}
+      >
+        stale
+      </button>
+    </>
   ),
 }));
 
@@ -118,12 +129,26 @@ describe('AgentDetail', () => {
     expect(container.querySelector('select')).toBeNull();
   });
 
-  it('falls back to no owner when the team lookup fails', async () => {
+  it('shows the team as unavailable and hides the projects editor when the lookup fails', async () => {
     mockGetAgentTeam.mockRejectedValueOnce(new Error('boom'));
     const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('No owner');
+      expect(container.textContent).toContain('Unavailable');
     });
+    expect(container.textContent).not.toContain('No owner');
+    expect(container.querySelector('[data-testid="agent-projects-editor"]')).toBeNull();
+  });
+
+  it('ignores a project save that resolves for another agent', async () => {
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    await vi.waitFor(() => {
+      expect(container.querySelector('[data-testid="agent-projects-editor-stale"]')).not.toBeNull();
+    });
+    (
+      container.querySelector('[data-testid="agent-projects-editor-stale"]') as HTMLButtonElement
+    ).click();
+    await Promise.resolve();
+    expect(container.querySelector('a[href="/projects/p-stale"]')).toBeNull();
   });
 
   it('updates the project tags when the editor reports a change', async () => {

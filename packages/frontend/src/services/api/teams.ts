@@ -501,14 +501,56 @@ export const httpTeamsApi: TeamsApi = {
 
 let transportPromise: Promise<TeamsApi> | null = null;
 
+/** A NestJS 404 body: `{"message":"Cannot GET /api/v1/users","error":"Not Found","statusCode":404}`. */
+function isNotFound(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /"statusCode":\s*404|Not Found|Cannot GET/i.test(message);
+}
+
+/**
+ * Production: probe `GET /users` once per page load. A 404 means the teams
+ * endpoints are not deployed, so the compatibility transport serves the
+ * screens their day-one state from the endpoints that exist (every agent
+ * without an owner, no users, no projects). Any other outcome, including a
+ * transient failure, keeps the real HTTP transport.
+ */
+async function pickHttpTransport(): Promise<TeamsApi> {
+  try {
+    await fetchJson('/users', undefined, { cache: false });
+    return httpTeamsApi;
+  } catch (error) {
+    if (isNotFound(error)) {
+      const { compatTeamsApi } = await import('./teams-compat.js');
+      return compatTeamsApi;
+    }
+    return httpTeamsApi;
+  }
+}
+
 export function teamsApi(): Promise<TeamsApi> {
   if (!transportPromise) {
     transportPromise =
       import.meta.env.DEV && import.meta.env.VITE_TEAMS_API !== 'http'
         ? import('./teams-mock.js').then((m) => m.mockTeamsApi)
-        : Promise.resolve(httpTeamsApi);
+        : pickHttpTransport();
   }
   return transportPromise;
+}
+
+/** True once the transport resolved to the real teams backend. */
+export async function teamsBackendAvailable(): Promise<boolean> {
+  return (await teamsApi()) === httpTeamsApi;
+}
+
+/**
+ * Owner/project params for the EXISTING analytics endpoints (`/overview`,
+ * `/messages`). Those DTOs run with `forbidNonWhitelisted`, so the params are
+ * only sent when the teams backend answered (it whitelists `owners` and
+ * `projects` on them). The dev mock and the compatibility transport cannot
+ * filter those endpoints, so they get nothing and the summary stays unfiltered.
+ */
+export async function teamFilterParams(filter: OwnerProjectFilter): Promise<OwnerProjectFilter> {
+  return (await teamsBackendAvailable()) ? filter : {};
 }
 
 /** Test hook: forget the resolved transport so env stubs take effect. */

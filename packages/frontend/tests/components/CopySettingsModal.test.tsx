@@ -169,8 +169,8 @@ describe('CopySettingsModal', () => {
     expect(next().disabled).toBe(true);
   });
 
-  it('falls back to the selected count when counting fails and shows the owner-less source', async () => {
-    mockCountSelection.mockRejectedValue(new Error('boom'));
+  it('shows an error with Retry when counting fails, then counts again; shows the owner-less source', async () => {
+    mockCountSelection.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce(7);
     const { container } = renderOpen();
     await vi.waitFor(() => expect(mockListAgents).toHaveBeenCalled());
     fireEvent.click(screen.getByLabelText('Source agent'));
@@ -178,8 +178,17 @@ describe('CopySettingsModal', () => {
     fireEvent.click(screen.getByText('daily-report'));
     fireEvent.click(next());
     fireEvent.click(next());
-    await vi.waitFor(() => expect(container.textContent).toContain('12 agents will change.'));
+    await vi.waitFor(() =>
+      expect(container.textContent).toContain("Couldn't count the selected agents."),
+    );
     expect(container.textContent).toContain("Apply daily-report's setup");
+    expect(container.textContent).not.toContain('will change.');
+    // Apply is not offered on a guessed number.
+    expect((screen.getByText('Apply to 12 agents') as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(screen.getByText('Retry'));
+    await vi.waitFor(() => expect(container.textContent).toContain('7 agents will change.'));
+    expect(mockCountSelection).toHaveBeenCalledTimes(2);
+    expect((screen.getByText('Apply to 7 agents') as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('does not load agents while closed', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 
 vi.mock('@solidjs/router', () => ({
   A: (props: any) => (
@@ -108,6 +109,79 @@ describe('DeleteUserModal', () => {
       />
     ));
     expect(container.textContent).toContain('still owns 1 agent.');
+  });
+
+  it('waits for the agent count before allowing the delete', () => {
+    const [count, setCount] = createSignal<number | null>(null);
+    const { container, getByText } = render(() => (
+      <DeleteUserModal
+        open={true}
+        user={user}
+        agentCount={count()}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    ));
+    expect(container.textContent).toContain('Checking their agents…');
+    expect(container.querySelector('.choice-list')).toBeNull();
+    const confirm = getByText('Delete user') as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+    fireEvent.click(confirm);
+    expect(mockDeleteUser).not.toHaveBeenCalled();
+    setCount(2);
+    expect(container.textContent).toContain('still owns 2 agents');
+    expect(confirm.disabled).toBe(false);
+  });
+
+  it('keeps the chosen action when the count changes while open, and resets on reopen', () => {
+    const [count, setCount] = createSignal<number | null>(3);
+    const [open, setOpen] = createSignal(true);
+    const { container } = render(() => (
+      <DeleteUserModal
+        open={open()}
+        user={user}
+        agentCount={count()}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    ));
+    const del = () => container.querySelector('input[value="delete"]') as HTMLInputElement;
+    fireEvent.change(del(), { target: { checked: true } });
+    expect(del().checked).toBe(true);
+    setCount(4);
+    expect(container.textContent).toContain('still owns 4 agents');
+    expect(del().checked).toBe(true);
+    setOpen(false);
+    setOpen(true);
+    expect(del().checked).toBe(false);
+    expect((container.querySelector('input[value="unassign"]') as HTMLInputElement).checked).toBe(
+      true,
+    );
+  });
+
+  it('keeps the button disabled during an in-flight delete even if the count changes', async () => {
+    let resolveDelete!: () => void;
+    mockDeleteUser.mockReturnValue(new Promise<void>((res) => (resolveDelete = res)));
+    const [count, setCount] = createSignal<number | null>(0);
+    const onDeleted = vi.fn();
+    const { getByText } = render(() => (
+      <DeleteUserModal
+        open={true}
+        user={user}
+        agentCount={count()}
+        onClose={() => {}}
+        onDeleted={onDeleted}
+      />
+    ));
+    const confirm = () => getByText('Cancel').nextElementSibling as HTMLButtonElement;
+    fireEvent.click(confirm());
+    expect(confirm().disabled).toBe(true);
+    setCount(1);
+    expect(confirm().disabled).toBe(true);
+    fireEvent.click(confirm());
+    expect(mockDeleteUser).toHaveBeenCalledTimes(1);
+    resolveDelete();
+    await vi.waitFor(() => expect(onDeleted).toHaveBeenCalled());
   });
 
   it('reports a failed delete', async () => {

@@ -48,7 +48,12 @@ import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
 import OwnerProjectFilters from '../components/OwnerProjectFilters.jsx';
-import { getOverviewGroupedUsage, type OwnerProjectFilter } from '../services/api/teams.js';
+import {
+  getOverviewGroupedUsage,
+  NO_OWNER,
+  teamFilterParams,
+  type OwnerProjectFilter,
+} from '../services/api/teams.js';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
@@ -280,8 +285,23 @@ const GlobalOverview: Component = () => {
   });
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
+  // The existing summary endpoint only receives the owner/project params once
+  // the teams backend can accept them (see teamFilterParams). Resolved once;
+  // the summary re-runs when the answer arrives.
+  const [teamsBackend, setTeamsBackend] = createSignal(false);
+  void teamFilterParams({ owners: [NO_OWNER] })
+    .then((allowed) => setTeamsBackend((allowed.owners?.length ?? 0) > 0))
+    .catch(() => setTeamsBackend(false));
+  // Only read teamsBackend() while a team filter is set, so an unfiltered
+  // summary never refetches when the answer arrives.
+  const summaryFilter = (): OwnerProjectFilter =>
+    hasTeamFilter() && teamsBackend() ? teamFilter() : {};
   const [overview] = createResource(
-    () => ({ range: effectiveChartRange(), filter: teamFilter(), _ping: analyticsPing() }),
+    () => ({
+      range: effectiveChartRange(),
+      filter: summaryFilter(),
+      _ping: analyticsPing(),
+    }),
     (p) => getOverview(p.range, undefined, p.filter) as Promise<OverviewResponse>,
   );
 
@@ -770,8 +790,13 @@ const GlobalOverview: Component = () => {
           // by provider or agent. One stored groupBy, coerced per tab.
           const requestsGroup = () =>
             groupBy() === 'agent' || isTeamGroup(groupBy()) ? groupBy() : 'status';
+          // The provider aggregation cannot be narrowed by owner or project,
+          // so while a team filter is active the usage tabs fall back to the
+          // agent grouping and the provider button is disabled.
           const usageGroup = () =>
-            groupBy() === 'provider' || isTeamGroup(groupBy()) ? groupBy() : 'agent';
+            (groupBy() === 'provider' && !hasTeamFilter()) || isTeamGroup(groupBy())
+              ? groupBy()
+              : 'agent';
           const groupNoun = (): string => {
             switch (groupBy()) {
               case 'provider':
@@ -860,6 +885,12 @@ const GlobalOverview: Component = () => {
                       classList={{
                         'chart-card__filter-btn--active': usageGroup() === 'provider',
                       }}
+                      disabled={hasTeamFilter()}
+                      title={
+                        hasTeamFilter()
+                          ? 'Provider series cannot be filtered by owner or project'
+                          : undefined
+                      }
                       onClick={() => setGroupBy('provider')}
                     >
                       By provider
@@ -885,6 +916,14 @@ const GlobalOverview: Component = () => {
                     >
                       By project
                     </button>
+                  </Show>
+                  <Show when={hasTeamFilter()}>
+                    <span
+                      class="field__hint"
+                      title="Recovery and request-status series come from endpoints that do not take the owner and project filters yet."
+                    >
+                      Recovery and status series show all agents
+                    </span>
                   </Show>
                   <Show when={chartView() !== 'requests' || requestsGroup() !== 'status'}>
                     <div style="min-width: 140px;">

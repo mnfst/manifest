@@ -1,5 +1,5 @@
 import { A } from '@solidjs/router';
-import { createEffect, createSignal, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, on, Show, type Component } from 'solid-js';
 import { deleteUser, type TeamUser } from '../services/api/teams.js';
 import { toast } from '../services/toast-store.js';
 
@@ -8,7 +8,8 @@ type AgentChoice = 'unassign' | 'delete';
 interface DeleteUserModalProps {
   open: boolean;
   user: TeamUser;
-  agentCount: number;
+  /** Live agents the user still owns; `null` while that is not known yet. */
+  agentCount: number | null;
   onClose: () => void;
   onDeleted: () => void;
 }
@@ -16,7 +17,8 @@ interface DeleteUserModalProps {
 /**
  * Deleting a user is blocked while they still own agents, unless the caller
  * says what happens to those agents: leave them with no owner (default) or
- * delete them.
+ * delete them. While the agent count is unknown the confirm stays disabled,
+ * so an unfinished lookup never silently defaults to "unassign".
  *
  * There is deliberately NO "reassign to another user" option. Past activity
  * has to stay attributed to whoever owned the agent when it ran, and a live
@@ -25,23 +27,32 @@ interface DeleteUserModalProps {
  * "Copy settings from an agent".
  */
 const DeleteUserModal: Component<DeleteUserModalProps> = (props) => {
-  const [choice, setChoice] = createSignal<AgentChoice | null>(null);
+  const [choice, setChoice] = createSignal<AgentChoice>('unassign');
   const [deleting, setDeleting] = createSignal(false);
 
-  createEffect(() => {
-    if (props.open) {
-      setChoice(props.agentCount > 0 ? 'unassign' : null);
-      setDeleting(false);
-    }
-  });
+  // Reset only when the modal goes from closed to open: a count that arrives
+  // or changes while it is open must not undo the person's choice, and must
+  // never re-enable the button during an in-flight delete.
+  createEffect(
+    on(
+      () => props.open,
+      (open, wasOpen) => {
+        if (open && !wasOpen) {
+          setChoice('unassign');
+          setDeleting(false);
+        }
+      },
+    ),
+  );
 
-  const canConfirm = () => !deleting() && (props.agentCount === 0 || choice() !== null);
+  const known = () => props.agentCount !== null;
+  const canConfirm = () => !deleting() && known();
 
   const handleDelete = async () => {
     if (!canConfirm()) return;
     setDeleting(true);
     try {
-      await deleteUser(props.user.id, { agents: choice() ?? 'unassign' });
+      await deleteUser(props.user.id, { agents: choice() });
       toast.success(`User "${props.user.name}" deleted`);
       props.onDeleted();
     } catch {
@@ -74,64 +85,73 @@ const DeleteUserModal: Component<DeleteUserModalProps> = (props) => {
             Delete {props.user.name}
           </h2>
           <Show
-            when={props.agentCount > 0}
+            when={known()}
             fallback={
-              <p class="modal-card__desc">
-                {props.user.name} owns no agents. Past activity keeps their name, so old reports
-                stay readable.
+              <p class="modal-card__desc" role="status">
+                <span class="spinner" /> Checking their agents…
               </p>
             }
           >
-            <p class="modal-card__desc">
-              {props.user.name} still owns {props.agentCount} agent
-              {props.agentCount === 1 ? '' : 's'}. Choose what happens to them.
-            </p>
-            <div class="choice-list" role="radiogroup" aria-label="What happens to their agents">
-              <label
-                class="choice-list__item"
-                classList={{ 'choice-list__item--on': choice() === 'unassign' }}
-              >
-                <input
-                  type="radio"
-                  name="delete-user-agents"
-                  value="unassign"
-                  checked={choice() === 'unassign'}
-                  onChange={() => setChoice('unassign')}
-                />
-                <span>
-                  Leave their agents with no owner
-                  <br />
-                  <span class="choice-list__desc">
-                    They keep running. Their history stays under {props.user.name}.
+            <Show
+              when={props.agentCount! > 0}
+              fallback={
+                <p class="modal-card__desc">
+                  {props.user.name} owns no agents. Past activity keeps their name, so old reports
+                  stay readable.
+                </p>
+              }
+            >
+              <p class="modal-card__desc">
+                {props.user.name} still owns {props.agentCount} agent
+                {props.agentCount === 1 ? '' : 's'}. Choose what happens to them.
+              </p>
+              <div class="choice-list" role="radiogroup" aria-label="What happens to their agents">
+                <label
+                  class="choice-list__item"
+                  classList={{ 'choice-list__item--on': choice() === 'unassign' }}
+                >
+                  <input
+                    type="radio"
+                    name="delete-user-agents"
+                    value="unassign"
+                    checked={choice() === 'unassign'}
+                    onChange={() => setChoice('unassign')}
+                  />
+                  <span>
+                    Leave their agents with no owner
+                    <br />
+                    <span class="choice-list__desc">
+                      They keep running. Their history stays under {props.user.name}.
+                    </span>
                   </span>
-                </span>
-              </label>
-              <label
-                class="choice-list__item"
-                classList={{ 'choice-list__item--on': choice() === 'delete' }}
-              >
-                <input
-                  type="radio"
-                  name="delete-user-agents"
-                  value="delete"
-                  checked={choice() === 'delete'}
-                  onChange={() => setChoice('delete')}
-                />
-                <span>
-                  Delete the agents
-                  <br />
-                  <span class="choice-list__desc">
-                    Their API keys stop working and their history is deleted.
+                </label>
+                <label
+                  class="choice-list__item"
+                  classList={{ 'choice-list__item--on': choice() === 'delete' }}
+                >
+                  <input
+                    type="radio"
+                    name="delete-user-agents"
+                    value="delete"
+                    checked={choice() === 'delete'}
+                    onChange={() => setChoice('delete')}
+                  />
+                  <span>
+                    Delete the agents
+                    <br />
+                    <span class="choice-list__desc">
+                      Their API keys stop working and their history is deleted.
+                    </span>
                   </span>
-                </span>
-              </label>
-            </div>
-            <p class="field__hint" style="margin-bottom: var(--gap-md);">
-              Or manage them on the Agents page first:{' '}
-              <A href={`/agents?owners=${encodeURIComponent(props.user.id)}`}>
-                Open Agents filtered by {props.user.name}
-              </A>
-            </p>
+                </label>
+              </div>
+              <p class="field__hint" style="margin-bottom: var(--gap-md);">
+                Or manage them on the Agents page first:{' '}
+                <A href={`/agents?owners=${encodeURIComponent(props.user.id)}`}>
+                  Open Agents filtered by {props.user.name}
+                </A>
+              </p>
+            </Show>
           </Show>
 
           <div class="modal-card__footer">

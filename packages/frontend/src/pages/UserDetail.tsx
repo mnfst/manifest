@@ -9,10 +9,12 @@ import {
   useContext,
   type Accessor,
   type ParentComponent,
+  type Resource,
 } from 'solid-js';
 import { Title } from '@solidjs/meta';
 import Avatar from '../components/Avatar.jsx';
 import EntityTabs from '../components/EntityTabs.jsx';
+import ErrorState from '../components/ErrorState.jsx';
 import {
   getUser,
   getUserOverview,
@@ -27,8 +29,13 @@ import { toast } from '../services/toast-store.js';
 
 export interface UserDetailContextValue {
   userId: Accessor<string>;
-  user: Accessor<TeamUser | null | undefined>;
-  overview: Accessor<UserOverview | undefined>;
+  user: Resource<TeamUser | null | undefined>;
+  /**
+   * The overview resource itself, so tabs can tell loading from failure:
+   * `overview.loading`, `overview.error`, and `overview()` once ready. Reading
+   * `overview()` while it is errored throws, so check `overview.error` first.
+   */
+  overview: Resource<UserOverview | undefined>;
   refetchUser: () => void;
   refetchOverview: () => void;
 }
@@ -57,17 +64,15 @@ const UserDetail: ParentComponent = (props) => {
   );
   const [overview, { refetch: refetchOverview }] = createResource(
     () => userId(),
-    async (id) => {
-      try {
-        return await getUserOverview(id);
-      } catch {
-        return undefined;
-      }
-    },
+    (id) => getUserOverview(id),
   );
 
+  // Errored resources throw on read; these accessors read only when safe.
+  const loadedUser = () => (user.error ? undefined : user());
+  const loadedOverview = () => (overview.error ? undefined : overview());
+
   createEffect(() => {
-    const u = user();
+    const u = loadedUser();
     if (u) setBreadcrumb([{ label: 'Users', href: '/users' }], { label: u.name });
   });
   onCleanup(() => clearBreadcrumb());
@@ -85,7 +90,7 @@ const UserDetail: ParentComponent = (props) => {
   const [saving, setSaving] = createSignal(false);
 
   const openEdit = (field: 'role' | 'budget') => {
-    const u = user();
+    const u = loadedUser();
     setDraft(
       field === 'role'
         ? (u?.role ?? '')
@@ -97,7 +102,9 @@ const UserDetail: ParentComponent = (props) => {
   };
 
   const draftBudget = () => parseBudgetInput(draft());
-  const draftInvalid = () => editing() === 'budget' && draftBudget() === undefined;
+  // A zero budget would display as "$0" while every meter treats it as no budget.
+  const draftInvalid = () =>
+    editing() === 'budget' && (draftBudget() === undefined || draftBudget() === 0);
 
   const saveEdit = async () => {
     const field = editing();
@@ -121,8 +128,8 @@ const UserDetail: ParentComponent = (props) => {
     }
   };
 
-  const budget = () => user()?.monthly_budget_usd ?? null;
-  const spend = () => overview()?.cost_month_usd ?? 0;
+  const budget = () => loadedUser()?.monthly_budget_usd ?? null;
+  const spend = () => loadedOverview()?.cost_month_usd ?? 0;
   const alertTone = () => budgetState(spend(), budget()).tone;
 
   const ctx: UserDetailContextValue = {
@@ -136,185 +143,200 @@ const UserDetail: ParentComponent = (props) => {
   return (
     <UserDetailContext.Provider value={ctx}>
       <div class="container--lg">
-        <Title>{user()?.name ?? 'User'} | Manifest</Title>
+        <Title>{loadedUser()?.name ?? 'User'} | Manifest</Title>
 
-        <Show when={!(user.state === 'ready' && user() === null)}>
-          <Show when={user()}>
-            <div class="entity-header">
-              <Avatar name={user()!.name} size="lg" />
-              <h1 class="page-header__title entity-header__title">{user()!.name}</h1>
-              <div class="entity-header__chips">
-                <Show when={user()!.archived_at}>
-                  <span class="status-badge status-badge--neutral">Archived</span>
-                </Show>
-
-                <div class="inline-edit">
-                  <button
-                    type="button"
-                    class="chip chip--button"
-                    aria-haspopup="dialog"
-                    aria-expanded={editing() === 'role'}
-                    onClick={() => (editing() === 'role' ? setEditing(null) : openEdit('role'))}
-                  >
-                    <Show
-                      when={user()!.role}
-                      fallback={<span class="chip__muted">Add a role</span>}
-                    >
-                      {user()!.role}
-                    </Show>
-                  </button>
-                  <Show when={editing() === 'role'}>
-                    <div class="inline-edit__popover" role="dialog" aria-label="Edit role">
-                      <label class="modal-card__field-label" for="user-role-edit">
-                        Role
-                      </label>
-                      <input
-                        id="user-role-edit"
-                        class="modal-card__input"
-                        type="text"
-                        value={draft()}
-                        onInput={(e) => setDraft(e.currentTarget.value)}
-                        disabled={saving()}
-                      />
-                      <div class="inline-edit__actions">
-                        <button
-                          type="button"
-                          class="btn btn--ghost btn--sm"
-                          onClick={() => setEditing(null)}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn--primary btn--sm"
-                          disabled={saving()}
-                          onClick={() => void saveEdit()}
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-                  </Show>
-                </div>
-
-                <div class="inline-edit">
-                  <button
-                    type="button"
-                    class="chip chip--button"
-                    aria-haspopup="dialog"
-                    aria-expanded={editing() === 'budget'}
-                    onClick={() => (editing() === 'budget' ? setEditing(null) : openEdit('budget'))}
-                  >
-                    <Show
-                      when={budget() != null}
-                      fallback={<span class="chip__muted">No budget</span>}
-                    >
-                      Budget ${budget()} / month
-                    </Show>
-                  </button>
-                  <Show when={editing() === 'budget'}>
-                    <div class="inline-edit__popover" role="dialog" aria-label="Edit budget">
-                      <label class="modal-card__field-label" for="user-budget-edit">
-                        Monthly budget in USD
-                      </label>
-                      <input
-                        id="user-budget-edit"
-                        class="modal-card__input"
-                        classList={{ 'modal-card__input--error': draftInvalid() }}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={draft()}
-                        onInput={(e) => setDraft(e.currentTarget.value)}
-                        disabled={saving()}
-                      />
-                      <Show
-                        when={draftInvalid()}
-                        fallback={
-                          <span class="field__hint">
-                            Changing a budget mid-month recomputes the meter from the first of the
-                            month. Leave empty for no budget.
-                          </span>
-                        }
-                      >
-                        <span class="field__error">Enter a positive amount</span>
-                      </Show>
-                      <div class="inline-edit__actions">
-                        <button
-                          type="button"
-                          class="btn btn--ghost btn--sm"
-                          onClick={() => setEditing(null)}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          class="btn btn--primary btn--sm"
-                          disabled={saving() || draftInvalid()}
-                          onClick={() => void saveEdit()}
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-                  </Show>
-                </div>
-              </div>
-            </div>
-
-            <Show when={alertTone() === 'warn' || alertTone() === 'over'}>
-              <div
-                class="budget-alert"
-                classList={{ 'budget-alert--over': alertTone() === 'over' }}
-                role="status"
-              >
-                <Show
-                  when={alertTone() === 'over'}
-                  fallback={
-                    <span>
-                      {user()!.name} is close to their budget: {budgetLabel(spend(), budget())} this
-                      month. Nothing is blocked.
-                    </span>
-                  }
-                >
-                  <span>
-                    {user()!.name} is over budget by{' '}
-                    {budgetLabel(spend(), budget())!.replace(' over', '')} this month. Their agents
-                    keep working; nothing is blocked.
-                  </span>
-                </Show>
-              </div>
-            </Show>
-
-            <EntityTabs
-              tabs={[
-                { label: 'Overview', href: path(''), active: isActive('/overview') },
-                { label: 'Agents', href: path('/agents'), active: isActive('/agents') },
-                {
-                  label: 'Model access',
-                  href: path('/model-access'),
-                  active: isActive('/model-access'),
-                },
-                { label: 'Settings', href: path('/settings'), active: isActive('/settings') },
-              ]}
+        <Show
+          when={!user.error}
+          fallback={
+            <ErrorState
+              error={user.error}
+              title="Couldn't load this user"
+              onRetry={() => void refetchUser()}
             />
+          }
+        >
+          <Show when={!(user.state === 'ready' && user() === null)}>
+            <Show when={user()}>
+              <div class="entity-header">
+                <Avatar name={user()!.name} size="lg" />
+                <h1 class="page-header__title entity-header__title">{user()!.name}</h1>
+                <div class="entity-header__chips">
+                  <Show when={user()!.archived_at}>
+                    <span class="status-badge status-badge--neutral">Archived</span>
+                  </Show>
 
-            {props.children}
+                  <div class="inline-edit">
+                    <button
+                      type="button"
+                      class="chip chip--button"
+                      aria-haspopup="dialog"
+                      aria-expanded={editing() === 'role'}
+                      onClick={() => (editing() === 'role' ? setEditing(null) : openEdit('role'))}
+                    >
+                      <Show
+                        when={user()!.role}
+                        fallback={<span class="chip__muted">Add a role</span>}
+                      >
+                        {user()!.role}
+                      </Show>
+                    </button>
+                    <Show when={editing() === 'role'}>
+                      <div class="inline-edit__popover" role="dialog" aria-label="Edit role">
+                        <label class="modal-card__field-label" for="user-role-edit">
+                          Role
+                        </label>
+                        <input
+                          id="user-role-edit"
+                          class="modal-card__input"
+                          type="text"
+                          value={draft()}
+                          onInput={(e) => setDraft(e.currentTarget.value)}
+                          disabled={saving()}
+                        />
+                        <div class="inline-edit__actions">
+                          <button
+                            type="button"
+                            class="btn btn--ghost btn--sm"
+                            onClick={() => setEditing(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn--primary btn--sm"
+                            disabled={saving()}
+                            onClick={() => void saveEdit()}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </Show>
+                  </div>
+
+                  <div class="inline-edit">
+                    <button
+                      type="button"
+                      class="chip chip--button"
+                      aria-haspopup="dialog"
+                      aria-expanded={editing() === 'budget'}
+                      onClick={() =>
+                        editing() === 'budget' ? setEditing(null) : openEdit('budget')
+                      }
+                    >
+                      <Show
+                        when={budget() != null}
+                        fallback={<span class="chip__muted">No budget</span>}
+                      >
+                        Budget ${budget()} / month
+                      </Show>
+                    </button>
+                    <Show when={editing() === 'budget'}>
+                      <div class="inline-edit__popover" role="dialog" aria-label="Edit budget">
+                        <label class="modal-card__field-label" for="user-budget-edit">
+                          Monthly budget in USD
+                        </label>
+                        <input
+                          id="user-budget-edit"
+                          class="modal-card__input"
+                          classList={{ 'modal-card__input--error': draftInvalid() }}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={draft()}
+                          onInput={(e) => setDraft(e.currentTarget.value)}
+                          disabled={saving()}
+                        />
+                        <Show
+                          when={draftInvalid()}
+                          fallback={
+                            <span class="field__hint">
+                              Changing a budget mid-month recomputes the meter from the first of the
+                              month. Leave empty for no budget.
+                            </span>
+                          }
+                        >
+                          <span class="field__error">
+                            Enter a positive amount, or leave empty for no budget
+                          </span>
+                        </Show>
+                        <div class="inline-edit__actions">
+                          <button
+                            type="button"
+                            class="btn btn--ghost btn--sm"
+                            onClick={() => setEditing(null)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn--primary btn--sm"
+                            disabled={saving() || draftInvalid()}
+                            onClick={() => void saveEdit()}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </Show>
+                  </div>
+                </div>
+              </div>
+
+              <Show when={alertTone() === 'warn' || alertTone() === 'over'}>
+                <div
+                  class="budget-alert"
+                  classList={{ 'budget-alert--over': alertTone() === 'over' }}
+                  role="status"
+                >
+                  <Show
+                    when={alertTone() === 'over'}
+                    fallback={
+                      <span>
+                        {user()!.name} is close to their budget: {budgetLabel(spend(), budget())}{' '}
+                        this month. Nothing is blocked.
+                      </span>
+                    }
+                  >
+                    <span>
+                      {user()!.name} is over budget by{' '}
+                      {budgetLabel(spend(), budget())!.replace(' over', '')} this month. Their
+                      agents keep working; nothing is blocked.
+                    </span>
+                  </Show>
+                </div>
+              </Show>
+
+              <EntityTabs
+                tabs={[
+                  { label: 'Overview', href: path(''), active: isActive('/overview') },
+                  { label: 'Agents', href: path('/agents'), active: isActive('/agents') },
+                  {
+                    label: 'Model access',
+                    href: path('/model-access'),
+                    active: isActive('/model-access'),
+                  },
+                  { label: 'Settings', href: path('/settings'), active: isActive('/settings') },
+                ]}
+              />
+
+              {props.children}
+            </Show>
           </Show>
-        </Show>
 
-        <Show when={user.state === 'ready' && user() === null}>
-          <div class="empty-state">
-            <div class="empty-state__title">User not found</div>
-            <p>This user may have been deleted. Old reports still resolve their name.</p>
-            <A
-              href="/users"
-              class="btn btn--outline btn--sm"
-              style="margin-top: var(--gap-md); text-decoration: none;"
-            >
-              Back to Users
-            </A>
-          </div>
+          <Show when={user.state === 'ready' && user() === null}>
+            <div class="empty-state">
+              <div class="empty-state__title">User not found</div>
+              <p>This user may have been deleted. Old reports still resolve their name.</p>
+              <A
+                href="/users"
+                class="btn btn--outline btn--sm"
+                style="margin-top: var(--gap-md); text-decoration: none;"
+              >
+                Back to Users
+              </A>
+            </div>
+          </Show>
         </Show>
       </div>
     </UserDetailContext.Provider>

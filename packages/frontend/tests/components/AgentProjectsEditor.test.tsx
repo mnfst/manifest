@@ -67,10 +67,13 @@ describe('AgentProjectsEditor', () => {
       expect(mockSetAgentProjects).toHaveBeenCalledWith('a', ['p-atlas', 'p-hsbc']);
     });
     await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith([
-        { id: 'p-atlas', name: 'Atlas' },
-        { id: 'p-hsbc', name: 'HSBC' },
-      ]);
+      expect(onChange).toHaveBeenCalledWith(
+        [
+          { id: 'p-atlas', name: 'Atlas' },
+          { id: 'p-hsbc', name: 'HSBC' },
+        ],
+        'a',
+      );
     });
     fireEvent.click(boxes()[0]!);
     await waitFor(() => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@solidjs/testing-library';
+import { render, fireEvent } from '@solidjs/testing-library';
 
 type Ctx = ReturnType<(typeof import('../../src/pages/ProjectDetail'))['useProjectDetail']>;
 let mockCtx: Ctx;
@@ -9,10 +9,10 @@ vi.mock('../../src/pages/ProjectDetail.jsx', () => ({
 
 import ProjectOverview, { axisLabels, dayLabel } from '../../src/pages/ProjectOverview';
 
-const resource = <T,>(value: T, loading = false) =>
+const resource = <T,>(value: T, loading = false, error: unknown = undefined) =>
   Object.assign(() => value, {
     loading,
-    error: undefined,
+    error,
     state: 'ready',
   }) as unknown as Ctx['overview'];
 
@@ -40,11 +40,11 @@ const overview = {
   spend_shared: false,
 };
 
-const makeCtx = (ov: unknown, loading = false): Ctx =>
+const makeCtx = (ov: unknown, loading = false, error: unknown = undefined): Ctx =>
   ({
     projectId: () => 'p-1',
     project: resource(null) as never,
-    overview: resource(ov, loading),
+    overview: resource(ov, loading, error),
     refetchProject: vi.fn(),
     refetchOverview: vi.fn(),
   }) as unknown as Ctx;
@@ -88,8 +88,20 @@ describe('ProjectOverview', () => {
     expect(loading.container.querySelector('.skeleton')).not.toBeNull();
     loading.unmount();
     mockCtx = makeCtx(null, false);
-    const { container } = render(() => <ProjectOverview />);
+    const { container, getByText } = render(() => <ProjectOverview />);
     expect(container.textContent).toContain('Overview unavailable for this project.');
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    mockCtx = makeCtx(undefined, false, new Error('boom'));
+    const { container, getByText } = render(() => <ProjectOverview />);
+    expect(container.textContent).toContain("Couldn't load this overview");
+    expect(container.textContent).toContain('boom');
+    expect(container.querySelector('.overview-stat-card')).toBeNull();
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
   });
 
   it('builds axis labels', () => {

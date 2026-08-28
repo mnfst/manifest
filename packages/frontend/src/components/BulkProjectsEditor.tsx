@@ -8,6 +8,7 @@ import {
   type Project,
 } from '../services/api/teams.js';
 import { toast } from '../services/toast-store.js';
+import ErrorState from './ErrorState.jsx';
 import TriStateCheckbox, { type TriState } from './TriStateCheckbox.jsx';
 
 interface BulkProjectsEditorProps {
@@ -29,21 +30,24 @@ const BulkProjectsEditor: Component<BulkProjectsEditorProps> = (props) => {
   const [remove, setRemove] = createSignal<Set<string>>(new Set<string>());
   const [applying, setApplying] = createSignal(false);
 
-  const [data] = createResource(
+  // Archived projects are included so an association a selected agent still
+  // carries can be shown and removed; they never appear as new choices.
+  const [data, { refetch }] = createResource(
     () => (props.open ? props.selection : null),
     async (selection) => {
       setAdd(new Set<string>());
       setRemove(new Set<string>());
       const [projects, counts] = await Promise.all([
-        getProjects().then((r) => r.projects),
+        getProjects({ include_archived: true }).then((r) => r.projects),
         getSelectionProjects(selection),
       ]);
       return { projects, counts };
     },
   );
+  const loaded = () => (data.error ? undefined : data());
 
   const originalState = (project: Project): TriState => {
-    const count = data()?.counts[project.id] ?? 0;
+    const count = loaded()?.counts[project.id] ?? 0;
     if (count <= 0) return 'none';
     return count >= props.selectedCount ? 'all' : 'some';
   };
@@ -72,8 +76,9 @@ const BulkProjectsEditor: Component<BulkProjectsEditorProps> = (props) => {
     setRemove(nextRemove);
   };
 
-  const carried = () => (data()?.projects ?? []).filter((p) => originalState(p) !== 'none');
-  const untouched = () => (data()?.projects ?? []).filter((p) => originalState(p) === 'none');
+  const carried = () => (loaded()?.projects ?? []).filter((p) => originalState(p) !== 'none');
+  const untouched = () =>
+    (loaded()?.projects ?? []).filter((p) => originalState(p) === 'none' && !p.archived_at);
   const dirty = () => add().size + remove().size > 0;
 
   const apply = async () => {
@@ -99,9 +104,12 @@ const BulkProjectsEditor: Component<BulkProjectsEditorProps> = (props) => {
         label={project.name}
       />
       {project.name}
+      <Show when={project.archived_at}>
+        <span class="status-badge status-badge--neutral">Archived</span>
+      </Show>
       <Show when={originalState(project) !== 'none'}>
         <span class="tri-list__count">
-          {data()?.counts[project.id] ?? 0} of {props.selectedCount}
+          {loaded()?.counts[project.id] ?? 0} of {props.selectedCount}
         </span>
       </Show>
     </label>
@@ -136,22 +144,33 @@ const BulkProjectsEditor: Component<BulkProjectsEditorProps> = (props) => {
           </p>
 
           <Show
-            when={data()}
-            fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 120px;" />}
+            when={!data.error}
+            fallback={
+              <ErrorState
+                title="Couldn't load the projects"
+                message="The project list or the selection summary did not load."
+                onRetry={() => void refetch()}
+              />
+            }
           >
             <Show
-              when={(data()?.projects.length ?? 0) > 0}
-              fallback={
-                <p class="field__hint">No projects yet. Create one on the Projects page.</p>
-              }
+              when={loaded()}
+              fallback={<div class="skeleton skeleton--rect" style="width: 100%; height: 120px;" />}
             >
-              <div class="tri-list">
-                <For each={carried()}>{row}</For>
-                <Show when={carried().length > 0 && untouched().length > 0}>
-                  <hr class="custom-select__separator" />
-                </Show>
-                <For each={untouched()}>{row}</For>
-              </div>
+              <Show
+                when={carried().length + untouched().length > 0}
+                fallback={
+                  <p class="field__hint">No projects yet. Create one on the Projects page.</p>
+                }
+              >
+                <div class="tri-list">
+                  <For each={carried()}>{row}</For>
+                  <Show when={carried().length > 0 && untouched().length > 0}>
+                    <hr class="custom-select__separator" />
+                  </Show>
+                  <For each={untouched()}>{row}</For>
+                </div>
+              </Show>
             </Show>
           </Show>
 

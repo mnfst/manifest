@@ -449,7 +449,7 @@
   background: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.08);
+  box-shadow: var(--card-shadow-hover);
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);

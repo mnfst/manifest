@@ -411,7 +411,6 @@ describe('AgentProviders — models', () => {
     await waitFor(() => {
       expect(screen.getByText('All 2')).toBeDefined();
     });
-    mockGetAgentModelAccess.mockRejectedValue(new Error('nope'));
     mockGetGlobalProviders.mockResolvedValue({
       ...providersResponse,
       providers: [
@@ -428,6 +427,25 @@ describe('AgentProviders — models', () => {
     await waitFor(() => {
       expect(second.container.textContent).toContain('-');
     });
+  });
+
+  it('disables the model switches and offers a retry when model access fails to load', async () => {
+    mockGetAgentModelAccess.mockRejectedValueOnce(new Error('nope'));
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getAllByText('Unavailable').length).toBeGreaterThan(0);
+    });
+    expect((screen.getByLabelText('Models for OpenAI Work') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(screen.getByRole('alert').textContent).toContain("Model access couldn't be loaded");
+    fireEvent.click(screen.getByText('Retry'));
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeDefined();
+    });
+    expect((screen.getByLabelText('Models for OpenAI Work') as HTMLButtonElement).disabled).toBe(
+      false,
+    );
   });
 
   it('opens the model list for a provider and merges the saved access back into the row', async () => {

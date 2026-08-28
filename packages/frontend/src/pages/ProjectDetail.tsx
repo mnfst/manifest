@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 import { Title } from '@solidjs/meta';
 import EntityTabs from '../components/EntityTabs.jsx';
+import ErrorState from '../components/ErrorState.jsx';
 import {
   getProject,
   getProjectOverview,
@@ -26,8 +27,13 @@ import { useLocation } from '@solidjs/router';
 
 export interface ProjectDetailContext {
   projectId: () => string;
-  project: Resource<Project | null>;
-  overview: Resource<ProjectOverview | null>;
+  project: Resource<Project | null | undefined>;
+  /**
+   * The overview resource itself: tabs read `overview.loading` and
+   * `overview.error` to tell a slow load from a failure. Reading `overview()`
+   * while errored throws, so check `overview.error` first.
+   */
+  overview: Resource<ProjectOverview | null | undefined>;
   refetchProject: () => void;
   refetchOverview: () => void;
 }
@@ -55,17 +61,15 @@ const ProjectDetail: ParentComponent = (props) => {
   );
   const [overview, { refetch: refetchOverview }] = createResource(
     () => ({ id: projectId(), _p: analyticsPing() }),
-    async ({ id }): Promise<ProjectOverview | null> => {
-      try {
-        return await getProjectOverview(id);
-      } catch {
-        return null;
-      }
-    },
+    ({ id }) => getProjectOverview(id),
   );
 
+  // Errored resources throw on read; these accessors read only when safe.
+  const loadedProject = () => (project.error ? undefined : project());
+  const loadedOverview = () => (overview.error ? undefined : overview());
+
   createEffect(() => {
-    const p = project();
+    const p = loadedProject();
     if (p) setBreadcrumb([{ label: 'Projects', href: '/projects' }], { label: p.name });
   });
   onCleanup(() => clearBreadcrumb());
@@ -79,8 +83,8 @@ const ProjectDetail: ParentComponent = (props) => {
   };
 
   const exportCsv = () => {
-    const p = project();
-    const o = overview();
+    const p = loadedProject();
+    const o = loadedOverview();
     if (!p || !o) return;
     const csv = toCsv(
       ['Agent', 'Owner', 'Requests', 'Spend 30d', 'Last used'],
@@ -105,58 +109,71 @@ const ProjectDetail: ParentComponent = (props) => {
 
   return (
     <div class="container--lg">
-      <Title>{project()?.name ?? 'Project'} | Manifest</Title>
+      <Title>{loadedProject()?.name ?? 'Project'} | Manifest</Title>
       <Show
-        when={project.loading || project()}
+        when={!project.error}
         fallback={
-          <div class="empty-state">
-            <div class="empty-state__title">Project not found</div>
-            <p>It may have been deleted, or the link is out of date.</p>
-            <A
-              href="/projects"
-              class="btn btn--primary btn--sm"
-              style="margin-top: var(--gap-md); text-decoration: none;"
-            >
-              Back to Projects
-            </A>
-          </div>
+          <ErrorState
+            error={project.error}
+            title="Couldn't load this project"
+            onRetry={() => void refetchProject()}
+          />
         }
       >
-        <Show when={project()}>
-          <div class="entity-header">
-            <h1 class="page-header__title entity-header__title">{project()!.name}</h1>
-            <div class="entity-header__chips">
-              <Show when={project()!.archived_at}>
-                <span class="status-badge status-badge--neutral">Archived</span>
-              </Show>
-              <Show when={project()!.description}>
-                <span class="chip">{project()!.description}</span>
-              </Show>
-              <Show when={overview()}>
-                <span class="chip">
-                  {overview()!.agents.length} agent{overview()!.agents.length === 1 ? '' : 's'} ·{' '}
-                  {overview()!.users.length} user{overview()!.users.length === 1 ? '' : 's'}
-                </span>
-              </Show>
-              <button
-                type="button"
-                class="btn btn--outline btn--sm"
-                onClick={exportCsv}
-                disabled={!overview()}
+        <Show
+          when={project.loading || project()}
+          fallback={
+            <div class="empty-state">
+              <div class="empty-state__title">Project not found</div>
+              <p>It may have been deleted, or the link is out of date.</p>
+              <A
+                href="/projects"
+                class="btn btn--primary btn--sm"
+                style="margin-top: var(--gap-md); text-decoration: none;"
               >
-                Export CSV
-              </button>
+                Back to Projects
+              </A>
             </div>
-          </div>
-          <EntityTabs
-            tabs={[
-              { label: 'Overview', href: path(''), active: isActive('') },
-              { label: 'Agents', href: path('/agents'), active: isActive('/agents') },
-              { label: 'Users', href: path('/users'), active: isActive('/users') },
-              { label: 'Settings', href: path('/settings'), active: isActive('/settings') },
-            ]}
-          />
-          <Ctx.Provider value={ctx}>{props.children}</Ctx.Provider>
+          }
+        >
+          <Show when={project()}>
+            <div class="entity-header">
+              <h1 class="page-header__title entity-header__title">{project()!.name}</h1>
+              <div class="entity-header__chips">
+                <Show when={project()!.archived_at}>
+                  <span class="status-badge status-badge--neutral">Archived</span>
+                </Show>
+                <Show when={project()!.description}>
+                  <span class="chip">{project()!.description}</span>
+                </Show>
+                <Show when={loadedOverview()}>
+                  <span class="chip">
+                    {loadedOverview()!.agents.length} agent
+                    {loadedOverview()!.agents.length === 1 ? '' : 's'} ·{' '}
+                    {loadedOverview()!.users.length} user
+                    {loadedOverview()!.users.length === 1 ? '' : 's'}
+                  </span>
+                </Show>
+                <button
+                  type="button"
+                  class="btn btn--outline btn--sm"
+                  onClick={exportCsv}
+                  disabled={!loadedOverview()}
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <EntityTabs
+              tabs={[
+                { label: 'Overview', href: path(''), active: isActive('') },
+                { label: 'Agents', href: path('/agents'), active: isActive('/agents') },
+                { label: 'Users', href: path('/users'), active: isActive('/users') },
+                { label: 'Settings', href: path('/settings'), active: isActive('/settings') },
+              ]}
+            />
+            <Ctx.Provider value={ctx}>{props.children}</Ctx.Provider>
+          </Show>
         </Show>
       </Show>
     </div>

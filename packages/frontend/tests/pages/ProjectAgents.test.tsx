@@ -26,8 +26,8 @@ vi.mock('../../src/pages/ProjectDetail.jsx', async (importOriginal) => ({
 
 import ProjectAgents from '../../src/pages/ProjectAgents';
 
-const resource = <T,>(value: T) =>
-  Object.assign(() => value, { loading: false, error: undefined, state: 'ready' });
+const resource = <T,>(value: T, extra: { loading?: boolean; error?: unknown } = {}) =>
+  Object.assign(() => value, { loading: false, error: undefined, state: 'ready', ...extra });
 
 const agents = [
   {
@@ -63,11 +63,15 @@ const agents = [
   },
 ];
 
-const makeCtx = (list: unknown, project: unknown = { id: 'p-1', name: 'HSBC' }): Ctx =>
+const makeCtx = (
+  list: unknown,
+  project: unknown = { id: 'p-1', name: 'HSBC' },
+  extra: { loading?: boolean; error?: unknown } = {},
+): Ctx =>
   ({
     projectId: () => 'p-1',
     project: resource(project),
-    overview: resource(list === undefined ? undefined : { agents: list }),
+    overview: resource(list === undefined ? undefined : { agents: list }, extra),
     refetchProject: vi.fn(),
     refetchOverview: vi.fn(),
   }) as unknown as Ctx;
@@ -128,8 +132,26 @@ describe('ProjectAgents', () => {
     const empty = render(() => <ProjectAgents />);
     expect(empty.container.textContent).toContain('No agents on this project yet');
     empty.unmount();
-    mockCtx = makeCtx(undefined);
+    mockCtx = makeCtx(undefined, undefined, { loading: true });
     const { container } = render(() => <ProjectAgents />);
     expect(container.querySelector('.skeleton')).not.toBeNull();
+  });
+
+  it('shows an unavailable state with retry once loading ends without data', () => {
+    mockCtx = makeCtx(undefined);
+    const { container, getByText } = render(() => <ProjectAgents />);
+    expect(container.querySelector('.skeleton')).toBeNull();
+    expect(container.textContent).toContain('Overview unavailable');
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
+  });
+
+  it('shows an error state with retry when the overview failed', () => {
+    mockCtx = makeCtx(undefined, undefined, { error: new Error('boom') });
+    const { container, getByText } = render(() => <ProjectAgents />);
+    expect(container.textContent).toContain("Couldn't load this project's agents");
+    expect(container.textContent).toContain('boom');
+    fireEvent.click(getByText('Try again'));
+    expect(mockCtx.refetchOverview).toHaveBeenCalled();
   });
 });

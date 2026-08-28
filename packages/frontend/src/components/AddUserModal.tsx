@@ -21,7 +21,8 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
   const [creating, setCreating] = createSignal(false);
 
   const budgetValue = () => parseBudgetInput(budget());
-  const budgetInvalid = () => budgetValue() === undefined;
+  // A zero budget would display as "$0" while every meter treats it as no budget.
+  const budgetInvalid = () => budgetValue() === undefined || budgetValue() === 0;
   const canSubmit = () => name().trim().length > 0 && !budgetInvalid() && !creating();
 
   createEffect(() => {
@@ -158,7 +159,9 @@ const AddUserModal: Component<AddUserModalProps> = (props) => {
                 </span>
               }
             >
-              <span class="field__error">Enter a positive amount</span>
+              <span class="field__error">
+                Enter a positive amount, or leave empty for no budget
+              </span>
             </Show>
           </div>
 

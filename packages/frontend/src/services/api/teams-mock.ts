@@ -25,12 +25,19 @@ import { getOverviewAgentUsage } from './analytics.js';
 import { getProviders } from './providers.js';
 import { getAvailableModels, getTierAssignments } from './routing.js';
 import {
-  NO_OWNER,
-  type AgentListQuery,
+  buildModelAccess,
+  enabledModelCount,
+  matchesQuery,
+  paginate,
+  regroupUsage,
+  sortRows,
+  unwrapAgents,
+  type RealAgent,
+} from './teams-derive.js';
+import {
   type AgentRow,
   type BulkResult,
   type BulkSelection,
-  type GroupedSeries,
   type GroupedUsageTimeseries,
   type Project,
   type ProjectRef,
@@ -62,18 +69,12 @@ interface MockState {
   modelAccess: Record<string, Record<string, ModelAccessState>>;
   /** Agent names seeded so far; a new real agent arrives with no owner. */
   seededAgents: string[];
-}
-
-interface RealAgent {
-  agent_name: string;
-  display_name?: string;
-  agent_category?: string | null;
-  agent_platform?: string | null;
-  message_count?: number;
-  last_active?: string | null;
-  total_cost?: number;
-  total_tokens?: number;
-  sparkline?: number[];
+  /**
+   * Agents "deleted" through the mock (a user deletion with `agents: 'delete'`).
+   * The real `GET /agents` still returns them, so the mock hides them
+   * everywhere instead; on a real backend the rows, keys and history are gone.
+   */
+  deletedAgents: string[];
 }
 
 /* ── Seed ──────────────────────────────────────────────────────────── */
@@ -173,6 +174,7 @@ const freshState = (): MockState => ({
   agents: {},
   modelAccess: {},
   seededAgents: [],
+  deletedAgents: [],
 });
 
 let state: MockState | null = null;
@@ -257,9 +259,7 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, '');
 
 async function realAgents(): Promise<RealAgent[]> {
-  const data = (await getAgents()) as { agents?: RealAgent[] } | RealAgent[] | null;
-  if (Array.isArray(data)) return data;
-  return data?.agents ?? [];
+  return unwrapAgents(await getAgents());
 }
 
 /** Ensure every real agent has an assignment; seed the first ones round-robin. */
@@ -290,7 +290,7 @@ function toRow(
     .filter((p): p is Project => !!p)
     .map(projectRef);
   const total = models?.total ?? modelTotalFor(s, agent.agent_name);
-  const enabled = models?.enabled ?? enabledModelCount(s, agent.agent_name, total);
+  const enabled = models?.enabled ?? enabledModelCountFor(s, agent.agent_name, total);
   return {
     agent_name: agent.agent_name,
     display_name: agent.display_name || agent.agent_name,
@@ -307,83 +307,31 @@ function toRow(
   };
 }
 
-// Model counts are only known after a model-access read; keep the last seen
-// totals so list rows can show "12 of 40" without a per-row round trip.
-const modelTotals: Record<string, number> = {};
+// Model counts per connection are only known after a model-access read; keep
+// the last seen totals so list rows can show "12 of 40" without a per-row
+// round trip. Keyed by agent, then by connection id.
+const modelTotals: Record<string, Record<string, number>> = {};
 
 /** 40 is a placeholder total until a model-access read reports the real one. */
 function modelTotalFor(_s: MockState, name: string): number {
-  return modelTotals[name] ?? 40;
+  const perConnection = modelTotals[name];
+  if (!perConnection) return 40;
+  return Object.values(perConnection).reduce((sum, n) => sum + n, 0);
 }
 
-function enabledModelCount(s: MockState, name: string, total: number): number {
-  const access = s.modelAccess[name];
-  if (!access) return total;
-  let enabled = 0;
-  let known = 0;
-  for (const st of Object.values(access)) {
-    if (st.all_models) continue;
-    known += 1;
-    enabled += st.enabled.length;
-  }
-  return known === 0 ? total : Math.min(total, enabled);
+/**
+ * Enabled models across every connection: a connection on "all models" (or
+ * one without a record) counts its whole total, a restricted one counts its
+ * selection. Without per-connection totals the answer is the total.
+ */
+function enabledModelCountFor(s: MockState, name: string, total: number): number {
+  return enabledModelCount(s.modelAccess[name], modelTotals[name], total);
 }
 
 async function allRows(s: MockState): Promise<AgentRow[]> {
   const agents = await realAgents();
-  return agents.map((a) => toRow(s, a));
-}
-
-function matchesQuery(row: AgentRow, q: AgentListQuery): boolean {
-  if (!q.include_archived && row.archived_at) return false;
-  if (q.search) {
-    const needle = q.search.toLowerCase();
-    if (
-      !row.agent_name.toLowerCase().includes(needle) &&
-      !row.display_name.toLowerCase().includes(needle)
-    ) {
-      return false;
-    }
-  }
-  if (q.owners && q.owners.length) {
-    const ownerId = row.owner?.id ?? NO_OWNER;
-    if (!q.owners.includes(ownerId)) return false;
-  }
-  if (q.projects && q.projects.length) {
-    if (!row.projects.some((p) => q.projects!.includes(p.id))) return false;
-  }
-  if (q.types && q.types.length) {
-    if (!q.types.includes(row.agent_platform ?? 'other')) return false;
-  }
-  return true;
-}
-
-function sortRows(rows: AgentRow[], q: AgentListQuery): AgentRow[] {
-  const dir = q.dir === 'desc' ? -1 : 1;
-  const key = q.sort ?? 'agent';
-  const value = (r: AgentRow): string | number => {
-    switch (key) {
-      case 'owner':
-        return r.owner?.name ?? '';
-      case 'projects':
-        return r.projects.map((p) => p.name).join(',');
-      case 'models':
-        return r.models_enabled;
-      case 'spend_30d':
-        return r.spend_30d_usd;
-      case 'last_used':
-        return r.last_used_at ?? '';
-      default:
-        return r.display_name.toLowerCase();
-    }
-  };
-  return [...rows].sort((a, b) => {
-    const va = value(a);
-    const vb = value(b);
-    if (va < vb) return -1 * dir;
-    if (va > vb) return 1 * dir;
-    return 0;
-  });
+  const deleted = new Set(s.deletedAgents);
+  return agents.filter((a) => !deleted.has(a.agent_name)).map((a) => toRow(s, a));
 }
 
 async function resolveSelection(s: MockState, selection: BulkSelection): Promise<AgentRow[]> {
@@ -392,7 +340,15 @@ async function resolveSelection(s: MockState, selection: BulkSelection): Promise
     const wanted = new Set(selection.agent_names);
     return rows.filter((r) => wanted.has(r.agent_name));
   }
-  return rows.filter((r) => matchesQuery(r, selection.query));
+  const matching = rows.filter((r) => matchesQuery(r, selection.query));
+  // "Select all 1,148" was made against a result set; if it moved under the
+  // user, refuse rather than act on agents they never saw.
+  if (matching.length !== selection.expected_total) {
+    throw new Error(
+      `The selection changed: ${matching.length} agents match now, ${selection.expected_total} were selected. Select again.`,
+    );
+  }
+  return matching;
 }
 
 function monthSpend(rows: AgentRow[]): number {
@@ -499,9 +455,13 @@ export const mockTeamsApi: TeamsApi = {
     for (const [name, a] of Object.entries(s.agents)) {
       if (a.owner_id !== id) continue;
       if (options.agents === 'delete') {
-        // The real backend deletes the agent rows; the mock only drops the
-        // assignment and archives so the real GET /agents stays untouched.
-        a.archived_at = now();
+        // The real backend deletes the agent rows, keys and history. The mock
+        // cannot touch the real GET /agents, so it hides the agent everywhere
+        // and drops its assignment and model access.
+        if (!s.deletedAgents.includes(name)) s.deletedAgents.push(name);
+        delete s.agents[name];
+        delete s.modelAccess[name];
+        continue;
       }
       a.owner_id = null;
       s.agents[name] = a;
@@ -649,15 +609,13 @@ export const mockTeamsApi: TeamsApi = {
       rows.filter((r) => matchesQuery(r, query)),
       query,
     );
-    const page = Math.max(1, query.page ?? 1);
-    const pageSize = Math.max(1, query.page_size ?? 50);
-    const start = (page - 1) * pageSize;
+    const { page, page_size, items } = paginate(filtered, query);
     return {
-      agents: filtered.slice(start, start + pageSize),
+      agents: items,
       total: filtered.length,
       unowned_total: rows.filter((r) => !r.owner && !r.archived_at).length,
       page,
-      page_size: pageSize,
+      page_size,
     };
   },
 
@@ -782,46 +740,14 @@ export const mockTeamsApi: TeamsApi = {
       getAvailableModels(agentName).catch(() => []),
       getTierAssignments(agentName).catch(() => []),
     ]);
-    const inRouting = new Set<string>();
-    for (const tier of tiers) {
-      for (const route of [
-        tier.override_route,
-        tier.auto_assigned_route,
-        ...(tier.fallback_routes ?? []),
-      ]) {
-        if (route) inRouting.add(`${route.provider}:${route.model}`);
-      }
-    }
-    const access = s.modelAccess[agentName] ?? {};
-    const out: ProviderModelAccess[] = [];
-    let total = 0;
-    for (const group of providers) {
-      for (const connection of group.connections) {
-        if (!connection.is_active) continue;
-        const list = models.filter((m) => m.provider === group.provider);
-        const st = access[connection.id] ?? { all_models: true, enabled: [] };
-        const rows = list.map((m) => ({
-          id: m.model_name,
-          name: m.display_name || m.model_name,
-          enabled: st.all_models || st.enabled.includes(m.model_name),
-          in_routing: inRouting.has(`${m.provider}:${m.model_name}`),
-        }));
-        total += rows.length;
-        out.push({
-          user_provider_id: connection.id,
-          provider: group.provider,
-          auth_type: group.auth_type,
-          label: connection.label,
-          provider_enabled: true,
-          all_models: st.all_models,
-          models: rows,
-          enabled_count: rows.filter((r) => r.enabled).length,
-          total_count: rows.length,
-        });
-      }
-    }
-    modelTotals[agentName] = total;
-    return out;
+    const { access, totals } = buildModelAccess(
+      providers,
+      models,
+      tiers,
+      s.modelAccess[agentName] ?? {},
+    );
+    modelTotals[agentName] = totals;
+    return access;
   },
 
   async updateAgentModelAccess(agentName, userProviderId, change) {
@@ -861,45 +787,7 @@ export const mockTeamsApi: TeamsApi = {
     const rows = await allRows(s);
     const usage = (await getOverviewAgentUsage(range)) as GroupedUsageTimeseries;
     const byAgent = new Map(rows.map((r) => [r.agent_name, r]));
-    const keep = (name: string): boolean => {
-      const row = byAgent.get(name);
-      if (!row) return !filter.owners?.length && !filter.projects?.length;
-      if (filter.owners?.length && !filter.owners.includes(row.owner?.id ?? NO_OWNER)) return false;
-      if (filter.projects?.length && !row.projects.some((p) => filter.projects!.includes(p.id)))
-        return false;
-      return true;
-    };
-    const groupsOf = (name: string): string[] => {
-      const row = byAgent.get(name);
-      if (groupBy === 'agent') return [name];
-      if (groupBy === 'owner') return [row?.owner?.name ?? 'No owner'];
-      const projects = row?.projects ?? [];
-      return projects.length ? projects.map((p) => p.name) : ['No project'];
-    };
-    const regroup = (series: GroupedSeries): GroupedSeries => {
-      const keys = new Set<string>();
-      const timeseries = series.timeseries.map((bucket) => {
-        const out: Record<string, number | string> = {};
-        for (const [k, v] of Object.entries(bucket)) {
-          if (k === 'hour' || k === 'date') {
-            out[k] = v;
-            continue;
-          }
-          if (!keep(k)) continue;
-          for (const g of groupsOf(k)) {
-            keys.add(g);
-            out[g] = Number(out[g] ?? 0) + Number(v ?? 0);
-          }
-        }
-        return out;
-      });
-      return { agents: [...keys].sort(), timeseries };
-    };
-    return {
-      tokenUsage: regroup(usage.tokenUsage),
-      messageUsage: regroup(usage.messageUsage),
-      costUsage: regroup(usage.costUsage),
-    };
+    return regroupUsage(usage, groupBy, filter, (name) => byAgent.get(name));
   },
 };
 

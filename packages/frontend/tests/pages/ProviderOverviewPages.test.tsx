@@ -861,10 +861,7 @@ describe('GlobalOverview (analytics)', () => {
 
     await waitFor(() => expect(screen.getByTestId('provider-chart-card')).toBeDefined());
     await waitFor(() => expect(localStorage.getItem('manifest_global_range')).toBe('7d'));
-    expect(apiMocks.getOverview).toHaveBeenCalledWith('7d', undefined, {
-      owners: [],
-      projects: [],
-    });
+    expect(apiMocks.getOverview).toHaveBeenCalledWith('7d', undefined, {});
 
     const rangeSelect = screen.getByRole('combobox') as HTMLSelectElement;
     const lockedOptions = Array.from(rangeSelect.options).filter((option) =>

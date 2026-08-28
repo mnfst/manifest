@@ -9,6 +9,8 @@ vi.mock('../../../src/services/api/core.js', () => ({
 
 const mockApi = { getUsers: vi.fn(), listAgents: vi.fn() };
 vi.mock('../../../src/services/api/teams-mock.js', () => ({ mockTeamsApi: mockApi }));
+const compatApi = { getUsers: vi.fn(), listAgents: vi.fn() };
+vi.mock('../../../src/services/api/teams-compat.js', () => ({ compatTeamsApi: compatApi }));
 
 import {
   agentListParams,
@@ -18,6 +20,8 @@ import {
   getUsers,
   listAgents,
   NO_OWNER,
+  teamFilterParams,
+  teamsBackendAvailable,
 } from '../../../src/services/api/teams';
 
 const body = (call: unknown[]) => JSON.parse((call[1] as RequestInit).body as string);
@@ -294,9 +298,13 @@ describe('transport switch', () => {
     expect(mockApi.getUsers).toHaveBeenCalledWith({ search: 'x' });
   });
 
-  it('uses HTTP in production builds', async () => {
+  it('uses HTTP in production builds once the probe answers, and passes the team filters through', async () => {
     vi.stubEnv('DEV', false);
+    mockFetchJson.mockResolvedValueOnce({ users: [] });
     expect(await teamsApi()).toBe(httpTeamsApi);
+    expect(mockFetchJson).toHaveBeenCalledWith('/users', undefined, { cache: false });
+    expect(await teamsBackendAvailable()).toBe(true);
+    expect(await teamFilterParams({ owners: ['u1'] })).toEqual({ owners: ['u1'] });
     mockFetchJson.mockResolvedValue({ agents: [], total: 0 });
     await listAgents({ page: 1 });
     expect(mockFetchJson).toHaveBeenCalledWith('/agents/list', agentListParams({ page: 1 }));
@@ -306,5 +314,40 @@ describe('transport switch', () => {
     vi.stubEnv('DEV', true);
     vi.stubEnv('VITE_TEAMS_API', 'http');
     expect(await teamsApi()).toBe(httpTeamsApi);
+  });
+});
+
+describe('transport switch — teams backend absent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetTeamsTransport();
+    vi.stubEnv('DEV', false);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    resetTeamsTransport();
+  });
+
+  it('falls back to the compatibility transport on a 404 and strips the team filters', async () => {
+    mockFetchJson.mockRejectedValueOnce(
+      new Error('{"message":"Cannot GET /api/v1/users","error":"Not Found","statusCode":404}'),
+    );
+    expect(await teamsApi()).toBe(compatApi);
+    expect(await teamsBackendAvailable()).toBe(false);
+    expect(await teamFilterParams({ owners: ['u1'], projects: ['p1'] })).toEqual({});
+  });
+
+  it('keeps the HTTP transport on any other probe failure', async () => {
+    mockFetchJson.mockRejectedValueOnce(new Error('API error: 503 Service Unavailable'));
+    expect(await teamsApi()).toBe(httpTeamsApi);
+    resetTeamsTransport();
+    mockFetchJson.mockRejectedValueOnce('boom');
+    expect(await teamsApi()).toBe(httpTeamsApi);
+  });
+
+  it('strips the team filters in dev, where the mock cannot filter the existing endpoints', async () => {
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('VITE_TEAMS_API', '');
+    expect(await teamFilterParams({ owners: ['u1'] })).toEqual({});
   });
 });

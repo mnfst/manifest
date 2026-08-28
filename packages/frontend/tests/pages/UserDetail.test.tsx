@@ -246,3 +246,60 @@ describe('UserDetail', () => {
     expect(container.textContent).toContain('nothing is blocked');
   });
 });
+
+describe('UserDetail — failures and validation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUserId = 'u-maya';
+    mockPathname = '/users/u-maya';
+    mockGetUser.mockResolvedValue(maya);
+    mockGetUserOverview.mockResolvedValue(overview);
+    mockUpdateUser.mockResolvedValue(maya);
+  });
+
+  it('shows an error state with retry when the user lookup fails', async () => {
+    mockGetUser.mockRejectedValueOnce(new Error('boom')).mockResolvedValueOnce(maya);
+    const { container, getByText } = render(() => <UserDetail />);
+    await vi.waitFor(() => expect(container.textContent).toContain("Couldn't load this user"));
+    expect(container.textContent).toContain('boom');
+    expect(container.querySelector('title')?.textContent).toBe('User | Manifest');
+    expect(container.textContent).not.toContain('User not found');
+    expect(mockSetBreadcrumb).not.toHaveBeenCalled();
+    fireEvent.click(getByText('Try again'));
+    await vi.waitFor(() => expect(container.textContent).toContain('Maya Okonkwo'));
+    expect(mockGetUser).toHaveBeenCalledTimes(2);
+  });
+
+  it('hands the overview error to the tabs instead of swallowing it', async () => {
+    mockGetUserOverview.mockRejectedValue(new Error('nope'));
+    const Probe = () => {
+      const ctx = useUserDetail();
+      return (
+        <span data-testid="probe">
+          {String((ctx.overview.error as Error | undefined)?.message)}|
+          {String(ctx.overview.loading)}
+        </span>
+      );
+    };
+    const { getByTestId, container } = render(() => (
+      <UserDetail>
+        <Probe />
+      </UserDetail>
+    ));
+    await vi.waitFor(() => expect(getByTestId('probe').textContent).toBe('nope|false'));
+    // The shell itself still renders the header; no budget alert without a spend.
+    expect(container.textContent).toContain('Maya Okonkwo');
+    expect(container.querySelector('.budget-alert')).toBeNull();
+  });
+
+  it('rejects a zero budget in the inline edit', async () => {
+    const { container, getByLabelText, getByText } = render(() => <UserDetail />);
+    await vi.waitFor(() => expect(container.textContent).toContain('Budget $200 / month'));
+    fireEvent.click(getByText('Budget $200 / month'));
+    fireEvent.input(getByLabelText('Monthly budget in USD'), { target: { value: '0' } });
+    expect(container.textContent).toContain(
+      'Enter a positive amount, or leave empty for no budget',
+    );
+    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
+  });
+});

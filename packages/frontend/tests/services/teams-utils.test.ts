@@ -9,6 +9,7 @@ import {
   downloadTextFile,
   formatMoney,
   initials,
+  MAX_BUDGET_USD,
   parseBudgetInput,
   toCsv,
 } from '../../src/services/teams-utils';
@@ -75,6 +76,12 @@ describe('csv helpers', () => {
     expect(csvEscape(null)).toBe('');
     expect(csvEscape(undefined)).toBe('');
     expect(csvEscape(3)).toBe('3');
+    // Formula-like cells are neutralised so a hostile name cannot run in a spreadsheet.
+    expect(csvEscape('=SUM(A1)')).toBe("'=SUM(A1)");
+    expect(csvEscape('+1')).toBe("'+1");
+    expect(csvEscape('-x')).toBe("'-x");
+    expect(csvEscape('@cmd, x')).toBe('"\'@cmd, x"');
+    expect(csvEscape(-3)).toBe('-3');
   });
   it('joins headers and rows', () => {
     expect(
@@ -121,6 +128,10 @@ describe('parseBudgetInput', () => {
     expect(parseBudgetInput('  ')).toBeNull();
     expect(parseBudgetInput('abc')).toBeUndefined();
     expect(parseBudgetInput('-1')).toBeUndefined();
+    expect(parseBudgetInput('0')).toBeUndefined();
+    expect(parseBudgetInput('1e308')).toBeUndefined();
+    expect(parseBudgetInput(String(MAX_BUDGET_USD + 1))).toBeUndefined();
+    expect(parseBudgetInput('0.001')).toBeUndefined();
     expect(parseBudgetInput('200')).toBe(200);
     expect(parseBudgetInput('12.345')).toBe(12.35);
   });

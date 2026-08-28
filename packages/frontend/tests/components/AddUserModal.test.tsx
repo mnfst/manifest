@@ -51,7 +51,17 @@ describe('AddUserModal', () => {
     fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
       target: { value: '-5' },
     });
+    expect(container.textContent).toContain(
+      'Enter a positive amount, or leave empty for no budget',
+    );
+    // Zero is not a budget either: it would read "-e" while the meters say "No budget".
+    fireEvent.input(getByLabelText('Monthly budget in USD (optional)'), {
+      target: { value: '0' },
+    });
     expect(container.textContent).toContain('Enter a positive amount');
+    expect((getByText('Add user', { selector: 'button' }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     expect((getByText('Add user', { selector: 'button' }) as HTMLButtonElement).disabled).toBe(
       true,
     );

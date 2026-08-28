@@ -137,7 +137,14 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
   // second agent would otherwise be yanked to the first one the moment that
   // lookup lands, mid-typing.
   createEffect(() => {
-    if (props.open) attemptToken++;
+    if (props.open) {
+      attemptToken++;
+      // Follow the caller's defaults on every open: a user's Agents tab that
+      // stays mounted while the route switches to another user must not keep
+      // the previous owner.
+      setOwnerId(props.defaultOwnerId ?? '');
+      setProjectIds(props.defaultProjectIds ?? []);
+    }
   });
   // If the component unmounts mid-request, treat it like a dismissal so we never
   // navigate from a disposed modal.
@@ -175,8 +182,18 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
         autofix_enabled: autofixChoice,
         record_messages: recordingEnabled(),
       });
+      const slug = result?.agent?.name ?? agentName;
+      // Attach owner and projects BEFORE anything refetches the agent lists, so
+      // a user's Agents tab sees the new agent under its owner on the first
+      // refresh. The agent already exists at this point, so a failure here is
+      // a warning, not a failed create.
+      try {
+        await assignNewAgent(slug, owner, chosenProjects);
+      } catch {
+        toast.warning(`Agent "${slug}" was created but its owner and projects could not be saved.`);
+      }
       // Local creates do not wait for the asynchronous server-sent event. This
-      // immediately reruns the sidebar's agent-list resource with fresh data.
+      // immediately reruns every agent-list resource with fresh data.
       refreshAgents();
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
@@ -184,14 +201,6 @@ const AddAgentModal: Component<AddAgentModalProps> = (props) => {
       toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       resetForm();
-      const slug = result?.agent?.name ?? agentName;
-      // Attach owner and projects. The agent already exists at this point, so a
-      // failure here is a warning, not a failed create.
-      try {
-        await assignNewAgent(slug, owner, chosenProjects);
-      } catch {
-        toast.warning(`Agent "${slug}" was created but its owner and projects could not be saved.`);
-      }
       markAgentCreated(slug);
       // Persistent flag so the setup modal reopens after a page refresh until
       // the user dismisses or completes it (the in-memory mark above is dropped

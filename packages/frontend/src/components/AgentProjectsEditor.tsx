@@ -5,7 +5,8 @@ import { toast } from '../services/toast-store.js';
 interface AgentProjectsEditorProps {
   agentName: string;
   projects: ProjectRef[];
-  onChange: (projects: ProjectRef[]) => void;
+  /** Called with the saved projects and the agent they were saved for. */
+  onChange: (projects: ProjectRef[], agentName: string) => void;
 }
 
 /**
@@ -46,6 +47,8 @@ const AgentProjectsEditor: Component<AgentProjectsEditorProps> = (props) => {
 
   const toggle = async (project: ProjectRef) => {
     if (saving()) return;
+    // Pinned now: the route can move to another agent while the save is in flight.
+    const forAgent = props.agentName;
     const next = has(project.id)
       ? props.projects.filter((p) => p.id !== project.id)
       : [...props.projects, project];
@@ -55,7 +58,7 @@ const AgentProjectsEditor: Component<AgentProjectsEditorProps> = (props) => {
         props.agentName,
         next.map((p) => p.id),
       );
-      props.onChange(next);
+      props.onChange(next, forAgent);
     } catch {
       toast.error("Couldn't update this agent's projects.");
     } finally {

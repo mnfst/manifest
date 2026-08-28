@@ -58,8 +58,13 @@ export function currentMonthLabel(date = new Date()): string {
   return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
+/**
+ * A cell that starts like a spreadsheet formula (`=`, `+`, `-`, `@`, tab, CR)
+ * is prefixed with an apostrophe so a hostile name cannot execute on open.
+ */
 export function csvEscape(value: string | number | null | undefined): string {
-  const text = value == null ? '' : String(value);
+  let text = value == null ? '' : String(value);
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
@@ -84,11 +89,19 @@ export function downloadTextFile(filename: string, content: string, type = 'text
   URL.revokeObjectURL(url);
 }
 
-/** Parse a budget field: empty → null, invalid → undefined. */
+/** Largest budget the UI accepts, so cents rounding can never overflow. */
+export const MAX_BUDGET_USD = 1_000_000_000;
+
+/**
+ * Parse a budget field: empty → null (no budget), invalid → undefined.
+ * Zero is invalid: a $0 budget would read as "over" on every meter while the
+ * rest of the UI treats no budget as unlimited, so it has to be one or the other.
+ */
 export function parseBudgetInput(raw: string): number | null | undefined {
   const trimmed = raw.trim();
   if (trimmed === '') return null;
   const n = Number(trimmed);
-  if (!Number.isFinite(n) || n < 0) return undefined;
-  return Math.round(n * 100) / 100;
+  if (!Number.isFinite(n) || n <= 0 || n > MAX_BUDGET_USD) return undefined;
+  const cents = Math.round(n * 100) / 100;
+  return Number.isFinite(cents) && cents > 0 ? cents : undefined;
 }
