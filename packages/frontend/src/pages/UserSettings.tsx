@@ -37,13 +37,13 @@ const UserSettings: Component = () => {
    * than assuming zero.
    */
   const liveAgentCount = (): number | null => {
-    if (overview.error || overview() === undefined) return null;
+    if (overview.error || overview.loading || overview() === undefined) return null;
     return overview()!.agents.filter((a) => !a.archived_at).length;
   };
 
   const budgetValue = () => parseBudgetInput(budget());
-  // A zero budget would display as "$0" while every meter treats it as no budget.
-  const budgetInvalid = () => budgetValue() === undefined || budgetValue() === 0;
+  // parseBudgetInput already rejects zero, negatives and out-of-range values.
+  const budgetInvalid = () => budgetValue() === undefined;
   const canSave = () => name().trim().length > 0 && !budgetInvalid() && !saving();
 
   const save = async () => {

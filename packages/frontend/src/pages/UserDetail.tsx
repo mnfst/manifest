@@ -103,8 +103,7 @@ const UserDetail: ParentComponent = (props) => {
 
   const draftBudget = () => parseBudgetInput(draft());
   // A zero budget would display as "$0" while every meter treats it as no budget.
-  const draftInvalid = () =>
-    editing() === 'budget' && (draftBudget() === undefined || draftBudget() === 0);
+  const draftInvalid = () => editing() === 'budget' && draftBudget() === undefined;
 
   const saveEdit = async () => {
     const field = editing();

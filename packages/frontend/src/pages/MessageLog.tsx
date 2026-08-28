@@ -492,15 +492,22 @@ const MessageLog: Component = () => {
     },
   );
 
-  const countQueryKey = () => JSON.stringify(messageFilters());
+  // The identity carries the backend gate: rows fetched before the gate opened
+  // are never presented as the filtered result.
+  const countQueryKey = () =>
+    JSON.stringify({ filters: messageFilters(), teams: teamFilterAllowed() });
   const [messageCount] = createResource(
-    () => ({ key: countQueryKey(), teams: teamFilterAllowed(), _ping: analyticsPing() }),
-    async (source) => ({
-      key: source.key,
-      data: (await getMessageCount(
-        withTeamFilter(JSON.parse(source.key), source.teams),
-      )) as MessagesData,
-    }),
+    () => ({ key: countQueryKey(), _ping: analyticsPing() }),
+    async (source) => {
+      const { filters, teams } = JSON.parse(source.key) as {
+        filters: Record<string, string>;
+        teams: boolean;
+      };
+      return {
+        key: source.key,
+        data: (await getMessageCount(withTeamFilter(filters, teams))) as MessagesData,
+      };
+    },
   );
 
   // The resource retains its previous value during refetches. Show the table
@@ -509,6 +516,7 @@ const MessageLog: Component = () => {
   const messageQueryKey = () =>
     JSON.stringify({
       filters: messageFilters(),
+      teams: teamFilterAllowed(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
     });

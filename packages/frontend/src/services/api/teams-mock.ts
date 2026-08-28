@@ -30,6 +30,7 @@ import {
   matchesQuery,
   paginate,
   regroupUsage,
+  slugify,
   sortRows,
   unwrapAgents,
   type RealAgent,
@@ -252,14 +253,13 @@ function projectRef(p: Project): ProjectRef {
   return { id: p.id, name: p.name, archived_at: p.archived_at };
 }
 
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
 async function realAgents(): Promise<RealAgent[]> {
   return unwrapAgents(await getAgents());
+}
+
+/** Agent-specific reads and writes refuse an agent the mock deleted. */
+function assertLive(s: MockState, name: string): void {
+  if (s.deletedAgents.includes(name)) throw new Error('Agent not found');
 }
 
 /** Ensure every real agent has an assignment; seed the first ones round-robin. */
@@ -621,6 +621,7 @@ export const mockTeamsApi: TeamsApi = {
 
   async getAgentTeam(agentName) {
     const s = load();
+    assertLive(s, agentName);
     const a = assignmentFor(s, agentName);
     const owner = s.users.find((u) => u.id === a.owner_id);
     return {
@@ -635,6 +636,7 @@ export const mockTeamsApi: TeamsApi = {
 
   async setAgentProjects(agentName, projectIds) {
     const s = load();
+    assertLive(s, agentName);
     const a = assignmentFor(s, agentName);
     a.project_ids = projectIds.filter((id) => s.projects.some((p) => p.id === id));
     save();
@@ -642,12 +644,14 @@ export const mockTeamsApi: TeamsApi = {
 
   async archiveAgent(agentName) {
     const s = load();
+    assertLive(s, agentName);
     assignmentFor(s, agentName).archived_at = now();
     save();
   },
 
   async unarchiveAgent(agentName) {
     const s = load();
+    assertLive(s, agentName);
     assignmentFor(s, agentName).archived_at = null;
     save();
   },
@@ -673,6 +677,7 @@ export const mockTeamsApi: TeamsApi = {
       archived_at: null,
     };
     if (!s.seededAgents.includes(agentName)) s.seededAgents.push(agentName);
+    s.deletedAgents = s.deletedAgents.filter((n) => n !== agentName);
     save();
   },
 
@@ -733,6 +738,7 @@ export const mockTeamsApi: TeamsApi = {
 
   async getAgentModelAccess(agentName) {
     const s = load();
+    assertLive(s, agentName);
     const [providers, models, tiers] = await Promise.all([
       getProviders()
         .then((r) => r.providers)
@@ -752,6 +758,7 @@ export const mockTeamsApi: TeamsApi = {
 
   async updateAgentModelAccess(agentName, userProviderId, change) {
     const s = load();
+    assertLive(s, agentName);
     s.modelAccess[agentName] = {
       ...(s.modelAccess[agentName] ?? {}),
       [userProviderId]: { all_models: change.all_models, enabled: [...change.enabled_model_ids] },

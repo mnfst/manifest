@@ -21,6 +21,7 @@ import {
   matchesQuery,
   paginate,
   regroupUsage,
+  slugify,
   sortRows,
   unwrapAgents,
 } from './teams-derive.js';
@@ -92,8 +93,8 @@ export const compatTeamsApi: TeamsApi = {
     // Today's backend enforces tenant-wide uniqueness on create; report the
     // same scope here so the modal does not promise a name the create refuses.
     const all = await rows();
-    const slug = name.trim().toLowerCase();
-    const taken = all.some((r) => r.agent_name.toLowerCase() === slug);
+    const slug = slugify(name);
+    const taken = all.some((r) => slugify(r.agent_name) === slug);
     return { available: !taken, suggestion: taken ? `${slug}-2` : null };
   },
   async assignNewAgent(_agentName, ownerId, projectIds) {
@@ -127,9 +128,9 @@ export const compatTeamsApi: TeamsApi = {
   updateAgentModelAccess: unavailable,
   applyModelAccessToAgents: unavailable,
 
-  async getOverviewGroupedUsage(range, groupBy) {
+  async getOverviewGroupedUsage(range, groupBy, filter = {}) {
     const usage = (await getOverviewAgentUsage(range)) as GroupedUsageTimeseries;
     const byName = new Map((await rows()).map((r) => [r.agent_name, r]));
-    return regroupUsage(usage, groupBy, {}, (name) => byName.get(name));
+    return regroupUsage(usage, groupBy, filter, (name) => byName.get(name));
   },
 };

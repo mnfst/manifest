@@ -501,10 +501,14 @@ export const httpTeamsApi: TeamsApi = {
 
 let transportPromise: Promise<TeamsApi> | null = null;
 
-/** A NestJS 404 body: `{"message":"Cannot GET /api/v1/users","error":"Not Found","statusCode":404}`. */
+/**
+ * True only for a real 404: the NestJS body `{"statusCode":404,...}` or the
+ * bare `API error: 404 ...` fetchJson raises when the body is empty. Any
+ * other failure, even one mentioning "Not Found", keeps the HTTP transport.
+ */
 function isNotFound(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
-  return /"statusCode":\s*404|Not Found|Cannot GET/i.test(message);
+  return /"statusCode":\s*404\b/.test(message) || /^API error: 404\b/.test(message);
 }
 
 /**

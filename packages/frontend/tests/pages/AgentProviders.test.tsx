@@ -494,3 +494,28 @@ describe('AgentProviders — models', () => {
     });
   });
 });
+
+describe('AgentProviders — model access loading', () => {
+  it('keeps the Models buttons disabled until model access has loaded', async () => {
+    vi.clearAllMocks();
+    mockGetGlobalProviders.mockResolvedValue(providersResponse);
+    mockGetEnabledProviders.mockResolvedValue({ enabled: ['up-openai'] });
+    mockGetCustomProviders.mockResolvedValue([]);
+    let resolveAccess!: (v: unknown) => void;
+    mockGetAgentModelAccess.mockReturnValue(new Promise((res) => (resolveAccess = res)));
+    render(() => <AgentProviders />);
+    await waitFor(() => {
+      expect(screen.getByLabelText('Models for OpenAI Work')).toBeDefined();
+    });
+    expect((screen.getByLabelText('Models for OpenAI Work') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+    expect(screen.getByText('…')).toBeDefined();
+    resolveAccess([]);
+    await waitFor(() => {
+      expect((screen.getByLabelText('Models for OpenAI Work') as HTMLButtonElement).disabled).toBe(
+        false,
+      );
+    });
+  });
+});

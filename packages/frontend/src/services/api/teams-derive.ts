@@ -30,6 +30,13 @@ export interface RealAgent {
   sparkline?: number[];
 }
 
+/** The slug the create endpoint derives from a display name. */
+export const slugify = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
 /** Unwrap `{ agents }` or a bare array, tolerating null. */
 export function unwrapAgents(data: unknown): RealAgent[] {
   if (Array.isArray(data)) return data as RealAgent[];
@@ -143,14 +150,16 @@ export function buildModelAccess(
       (route): route is NonNullable<typeof route> => !!route,
     ),
   );
+  const same = (a: string | null | undefined, b: string) =>
+    (a ?? '').toLowerCase() === b.toLowerCase();
   const routedOn = (group: { provider: string; auth_type: string }, label: string) =>
     new Set(
       routes
         .filter(
           (route) =>
-            route.provider === group.provider &&
-            route.authType === group.auth_type &&
-            (!route.keyLabel || route.keyLabel === 'Default' || route.keyLabel === label),
+            same(route.provider, group.provider) &&
+            same(route.authType, group.auth_type) &&
+            (!route.keyLabel || same(route.keyLabel, 'Default') || same(route.keyLabel, label)),
         )
         .map((route) => route.model),
     );
@@ -159,7 +168,11 @@ export function buildModelAccess(
   for (const group of providers) {
     for (const connection of group.connections) {
       if (!connection.is_active) continue;
-      const list = models.filter((m) => m.provider === group.provider);
+      // A provider can be connected under several auth types; a model discovered
+      // for one of them is not available to the other.
+      const list = models.filter(
+        (m) => m.provider === group.provider && (!m.auth_type || m.auth_type === group.auth_type),
+      );
       const st = access[connection.id] ?? { all_models: true, enabled: [] };
       const locked = routedOn(group, connection.label);
       const rows = list.map((m) => ({

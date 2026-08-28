@@ -318,10 +318,14 @@ const Agents: Component = () => {
     AGENT_PLATFORMS.map((p) => ({ value: p, label: PLATFORM_LABELS[p] })),
   );
 
+  // A zero total means the count is not known for this row (for instance on
+  // the day-one compatibility transport), not that the agent has no models.
   const modelsLabel = (row: AgentRow) =>
-    row.models_total > 0 && row.models_enabled === row.models_total
-      ? `All ${row.models_total}`
-      : `${row.models_enabled} of ${row.models_total}`;
+    row.models_total === 0
+      ? '—'
+      : row.models_enabled === row.models_total
+        ? `All ${row.models_total}`
+        : `${row.models_enabled} of ${row.models_total}`;
 
   const sortProps = {
     onSort: (key: string, dir: 'asc' | 'desc') => setFilter({ sort: key, dir }),

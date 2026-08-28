@@ -121,7 +121,6 @@ describe('UserSettings', () => {
     );
     fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '0' } });
     expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
-    expect((getByText('Save') as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(getByText('Save'));
     expect(mockUpdateUser).not.toHaveBeenCalled();
     fireEvent.input(getByLabelText('Monthly budget'), { target: { value: '5' } });

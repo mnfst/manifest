@@ -214,3 +214,68 @@ describe('teams-derive helpers', () => {
     ).toEqual([]);
   });
 });
+
+describe('compat transport — second review round', () => {
+  it('slugifies the name before checking it', async () => {
+    expect(await api.checkAgentName('Alpha!', null)).toEqual({
+      available: false,
+      suggestion: 'alpha-2',
+    });
+    expect(await api.checkAgentName('Al pha', null)).toEqual({ available: true, suggestion: null });
+    mockGetAgents.mockResolvedValue({ agents: [{ agent_name: 'al-pha' }] });
+    expect(await api.checkAgentName('AL PHA', null)).toEqual({
+      available: false,
+      suggestion: 'al-pha-2',
+    });
+  });
+
+  it('applies the owner filter to the grouped usage (nothing matches without a team layer)', async () => {
+    const filtered = await api.getOverviewGroupedUsage('7d', 'agent', { owners: ['u-1'] });
+    expect(filtered.tokenUsage.agents).toEqual([]);
+    const unowned = await api.getOverviewGroupedUsage('7d', 'agent', { owners: ['none'] });
+    expect(unowned.tokenUsage.agents).toEqual(['alpha']);
+  });
+
+  it('only offers models discovered for the connection auth type', async () => {
+    mockGetProviders.mockResolvedValue({
+      providers: [
+        {
+          provider: 'openai',
+          auth_type: 'api_key',
+          connections: [{ id: 'up-key', label: 'Default', is_active: true }],
+        },
+        {
+          provider: 'openai',
+          auth_type: 'subscription',
+          connections: [{ id: 'up-sub', label: 'Plus', is_active: true }],
+        },
+      ],
+    });
+    mockModels.mockResolvedValue([
+      { model_name: 'gpt-5', provider: 'openai', auth_type: 'api_key', display_name: null },
+      { model_name: 'codex', provider: 'openai', auth_type: 'subscription', display_name: null },
+      { model_name: 'shared', provider: 'openai', display_name: null },
+    ]);
+    mockTiers.mockResolvedValue([
+      {
+        tier: 'default',
+        override_route: {
+          provider: 'OpenAI',
+          authType: 'API_KEY',
+          keyLabel: 'default',
+          model: 'gpt-5',
+        },
+        auto_assigned_route: null,
+        fallback_routes: null,
+      },
+    ]);
+    const access = await api.getAgentModelAccess('alpha');
+    expect(access.map((p) => [p.user_provider_id, p.models.map((m) => m.id)])).toEqual([
+      ['up-key', ['gpt-5', 'shared']],
+      ['up-sub', ['codex', 'shared']],
+    ]);
+    // The routing lock ignores case on provider, auth type and key label.
+    expect(access[0]!.models[0]!.in_routing).toBe(true);
+    expect(access[1]!.models.every((m) => !m.in_routing)).toBe(true);
+  });
+});

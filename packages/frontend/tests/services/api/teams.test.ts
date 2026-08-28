@@ -351,3 +351,28 @@ describe('transport switch — teams backend absent', () => {
     expect(await teamFilterParams({ owners: ['u1'] })).toEqual({});
   });
 });
+
+describe('transport switch — 404 detection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    resetTeamsTransport();
+    vi.stubEnv('DEV', false);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    resetTeamsTransport();
+  });
+
+  it('treats the bare fetchJson 404 as absent, and a body merely mentioning Not Found as present', async () => {
+    mockFetchJson.mockRejectedValueOnce(new Error('API error: 404 Not Found'));
+    expect(await teamsApi()).toBe(compatApi);
+    resetTeamsTransport();
+    mockFetchJson.mockRejectedValueOnce(
+      new Error('{"message":"Tenant Not Found","error":"Forbidden","statusCode":403}'),
+    );
+    expect(await teamsApi()).toBe(httpTeamsApi);
+    resetTeamsTransport();
+    mockFetchJson.mockRejectedValueOnce(new Error('Cannot GET the upstream'));
+    expect(await teamsApi()).toBe(httpTeamsApi);
+  });
+});

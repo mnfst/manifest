@@ -643,3 +643,34 @@ describe('GlobalOverview team filter gate', () => {
     spy.mockRestore();
   });
 });
+
+describe('GlobalOverview provider grouping under a team filter', () => {
+  it('fetches per agent, not per provider, while an owner filter is active', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
+    sessionStorage.setItem('global-owner-filter', '["u-maya"]');
+    teamsMocks.getOverviewGroupedUsage.mockResolvedValue({
+      tokenUsage: { agents: ['demo-agent'], timeseries: [] },
+      messageUsage: { agents: ['demo-agent'], timeseries: [] },
+      costUsage: { agents: ['demo-agent'], timeseries: [] },
+    });
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() =>
+      expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenCalledWith('7d', 'agent', {
+        owners: ['u-maya'],
+        projects: [],
+      }),
+    );
+    expect(apiMocks.getOverviewProviderUsage).not.toHaveBeenCalled();
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    const costTab = [...container.querySelectorAll('.chart-card__stat')].find((el) =>
+      el.textContent?.includes('Cost'),
+    ) as HTMLElement;
+    fireEvent.click(costTab);
+    const provider = [...container.querySelectorAll('button.chart-card__filter-btn')].find(
+      (b) => b.textContent === 'By provider',
+    ) as HTMLButtonElement;
+    expect(provider.disabled).toBe(true);
+    expect(container.textContent).toContain('Recovery and status series show all agents');
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['demo-agent']));
+  });
+});

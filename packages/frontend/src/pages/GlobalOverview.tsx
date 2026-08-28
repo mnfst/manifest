@@ -227,6 +227,9 @@ const GlobalOverview: Component = () => {
     }
   };
   const isTeamGroup = (v: string) => v === 'owner' || v === 'project';
+  // The provider aggregation cannot be narrowed by owner or project: while a
+  // team filter is active a persisted provider grouping fetches per agent.
+  const effectiveGroup = () => (hasTeamFilter() && groupBy() === 'provider' ? 'agent' : groupBy());
 
   // ── Owner / project filters (sessionStorage) ─────────────────────────
   // They join the agent and provider filters. `owners` carries user ids and
@@ -454,7 +457,7 @@ const GlobalOverview: Component = () => {
   const [usageTimeseries] = createResource(
     () => ({
       range: effectiveChartRange(),
-      group: groupBy(),
+      group: effectiveGroup(),
       filter: teamFilter(),
       filtered: hasTeamFilter(),
       _ping: analyticsPing(),
@@ -798,7 +801,7 @@ const GlobalOverview: Component = () => {
               ? groupBy()
               : 'agent';
           const groupNoun = (): string => {
-            switch (groupBy()) {
+            switch (effectiveGroup()) {
               case 'provider':
                 return 'providers';
               case 'owner':

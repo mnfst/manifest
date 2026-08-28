@@ -659,3 +659,22 @@ describe('review follow-ups', () => {
     expect(locked).toEqual({ 'up-work': true, 'up-personal': true, 'up-sub': false });
   });
 });
+
+describe('deleted agents are gone from every endpoint', () => {
+  it('refuses agent-specific reads and writes for a deleted agent, and revives it on re-creation', async () => {
+    await api.listAgents();
+    await api.deleteUser('u-tom', { agents: 'delete' });
+    await expect(api.getAgentTeam('windsurf')).rejects.toThrow('Agent not found');
+    await expect(api.setAgentProjects('windsurf', [])).rejects.toThrow('Agent not found');
+    await expect(api.archiveAgent('windsurf')).rejects.toThrow('Agent not found');
+    await expect(api.unarchiveAgent('windsurf')).rejects.toThrow('Agent not found');
+    await expect(api.getAgentModelAccess('windsurf')).rejects.toThrow('Agent not found');
+    await expect(
+      api.updateAgentModelAccess('windsurf', 'up-ant', { all_models: true, enabled_model_ids: [] }),
+    ).rejects.toThrow('Agent not found');
+    // A fresh agent created under the same name is a new agent.
+    await api.assignNewAgent('windsurf', null, []);
+    expect((await api.getAgentTeam('windsurf')).owner).toBeNull();
+    expect((await api.listAgents()).agents.some((a) => a.agent_name === 'windsurf')).toBe(true);
+  });
+});

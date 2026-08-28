@@ -347,3 +347,34 @@ describe('AgentDetail with platform icon', () => {
     expect(container.querySelector('h1')?.textContent?.trim()).toBe('my-agent');
   });
 });
+
+describe('AgentDetail team lookup states', () => {
+  it('shows a pending marker while the team loads, then the owner state', async () => {
+    let resolveTeam!: (team: Team) => void;
+    mockGetAgentTeam.mockReturnValueOnce(new Promise<Team>((res) => (resolveTeam = res)));
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    expect(container.querySelector('[aria-busy="true"]')).not.toBeNull();
+    expect(container.textContent).not.toContain('No owner');
+    resolveTeam({ owner: null, projects: [], archived_at: null });
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('No owner');
+    });
+    expect(container.querySelector('[aria-busy="true"]')).toBeNull();
+  });
+
+  it('offers a retry after a failed lookup and recovers', async () => {
+    mockGetAgentTeam.mockRejectedValueOnce(new Error('boom'));
+    const { container } = render(() => <AgentDetail>{null}</AgentDetail>);
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Unavailable');
+    });
+    const retry = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Retry',
+    ) as HTMLButtonElement;
+    retry.click();
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('No owner');
+    });
+    expect(mockGetAgentTeam.mock.calls.length).toBeGreaterThan(1);
+  });
+});

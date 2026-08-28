@@ -51,7 +51,7 @@ const UserOverview: Component = () => {
       }
     >
       <Show
-        when={overview()}
+        when={!overview.error && overview()}
         fallback={
           <div class="overview-stats">
             <For each={[1, 2, 3, 4]}>

@@ -30,7 +30,7 @@ const AgentDetail: ParentComponent = (props) => {
   const agentName = () => decodeURIComponent(params.agentName);
   const path = (sub: string) => agentPath(params.agentName, sub);
 
-  const [team, { mutate: mutateTeam }] = createResource(
+  const [team, { mutate: mutateTeam, refetch: refetchTeam }] = createResource(
     () => ({ name: agentName(), _r: routingPing() }),
     async ({ name }): Promise<AgentTeam | null> => {
       try {
@@ -71,11 +71,27 @@ const AgentDetail: ParentComponent = (props) => {
             when={team()?.owner}
             fallback={
               <Show
-                when={team() !== null}
+                when={team() != null}
                 fallback={
-                  <span class="chip" title="The owner and projects could not be loaded.">
-                    <span class="chip__muted">Owner:</span> Unavailable
-                  </span>
+                  <Show
+                    when={team() === null}
+                    fallback={
+                      <span class="chip" aria-busy="true">
+                        <span class="chip__muted">Owner:</span> …
+                      </span>
+                    }
+                  >
+                    <span class="chip" title="The owner and projects could not be loaded.">
+                      <span class="chip__muted">Owner:</span> Unavailable
+                      <button
+                        type="button"
+                        class="field__suggestion"
+                        onClick={() => void refetchTeam()}
+                      >
+                        Retry
+                      </button>
+                    </span>
+                  </Show>
                 }
               >
                 <span

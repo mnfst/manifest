@@ -73,6 +73,9 @@ const AgentProviders: Component = () => {
     },
   );
   const modelAccessFailed = () => modelAccess() === null;
+  // The editor stays closed until the lookup resolved: opening it on an
+  // unknown record would let an early Save replace the real selection.
+  const modelAccessReady = () => !modelAccess.loading && modelAccess() != null;
 
   const [customProviders] = createResource(
     () => agentName(),
@@ -106,6 +109,7 @@ const AgentProviders: Component = () => {
   const modelsLabel = (connection: AgentProviderConnection): string => {
     if (!isEnabled(connection.userProviderId)) return 'Off';
     if (modelAccessFailed()) return 'Unavailable';
+    if (!modelAccessReady()) return '…';
     const a = accessFor(connection.userProviderId);
     if (!a) return connection.models ? `All ${connection.models}` : '-';
     if (a.all_models) return `All ${a.total_count}`;
@@ -318,7 +322,7 @@ const AgentProviders: Component = () => {
                           <button
                             type="button"
                             class="btn btn--outline btn--sm"
-                            disabled={!enabled() || modelAccessFailed()}
+                            disabled={!enabled() || !modelAccessReady()}
                             title={
                               modelAccessFailed()
                                 ? 'Model access could not be loaded. Retry above.'
