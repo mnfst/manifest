@@ -341,14 +341,21 @@ Expected: the same container ID and `manifest_pgdata` recorded in Step 1.
 
 - [ ] **Step 7: Run final source and deployment verification**
 
-Run:
+For a published-image deployment, run:
 
 ```powershell
 npm test --workspace=manifest-backend -- --runInBand src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
 npm run lint --workspace=manifest-backend
-docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> config --quiet
-docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> ps
+docker compose --env-file docker/.env -f docker/docker-compose.yml config --quiet
+docker compose --env-file docker/.env -f docker/docker-compose.yml ps
 git status --short
 ```
 
-Expected: all limiter tests pass, lint exits 0, Compose validates, both services are healthy, and Git shows no uncommitted source changes other than local `.codegraph` metadata.
+For a local-image deployment, replace the two Compose commands above with:
+
+```powershell
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> config --quiet
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> ps
+```
+
+Expected: all limiter tests pass, lint exits 0, the deployment's selected Compose form validates, both services are healthy, and Git shows no uncommitted source changes other than local `.codegraph` metadata.
