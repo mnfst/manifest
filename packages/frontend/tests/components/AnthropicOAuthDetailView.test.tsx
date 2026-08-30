@@ -608,6 +608,31 @@ describe('AnthropicOAuthDetailView — addKeyOpen effect', () => {
     });
   });
 
+  it('does not navigate a popup closed while the OAuth start request is pending', async () => {
+    let resolveStart: (value: { url: string; state: string }) => void = () => {};
+    mockStartAnthropicOAuth.mockReturnValue(
+      new Promise<{ url: string; state: string }>((resolve) => {
+        resolveStart = resolve;
+      }),
+    );
+    const { popup, replace, close } = mockOpenPopup();
+
+    renderViewWithAddKeyOpen();
+    await waitFor(() => {
+      expect(mockStartAnthropicOAuth).toHaveBeenCalledWith('test-agent');
+    });
+
+    Object.defineProperty(popup, 'closed', { value: true });
+    resolveStart({ url: 'https://x', state: 'abc' });
+
+    await waitFor(() => {
+      expect(screen.getByText('Sign in with Claude')).toBeDefined();
+    });
+    expect(replace).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Anthropic authorization code')).toBeDefined();
+  });
+
   it('cancels a connected add-account Claude OAuth flow', async () => {
     mockStartAnthropicOAuth.mockResolvedValue({ url: 'https://x', state: 'abc' });
     mockOpenPopup();

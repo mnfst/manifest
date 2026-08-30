@@ -95,7 +95,7 @@ const AnthropicOAuthDetailView: Component<Props> = (props) => {
     try {
       const { url, state: authState } = await startAnthropicOAuth(props.agentName);
       setState(authState);
-      popup.location.replace(url);
+      if (!popup.closed) popup.location.replace(url);
     } catch {
       popup.close();
       if (props.connected()) setAddingAccount(false);
