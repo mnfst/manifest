@@ -353,6 +353,15 @@ describe('buildSubscriptionFallbackModels', () => {
       'MiniMax-M2',
     ]);
   });
+
+  it('uses the ChatGPT Codex context limit for GPT-5.6 Sol subscription', () => {
+    const model = buildSubscriptionFallbackModels('openai').find(
+      (candidate) => candidate.id === 'gpt-5.6-sol',
+    );
+
+    expect(model).toBeDefined();
+    expect(model!.contextWindow).toBe(272000);
+  });
 });
 
 describe('supplementWithKnownModels', () => {

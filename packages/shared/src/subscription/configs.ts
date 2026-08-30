@@ -72,7 +72,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionCapabilities: Object.freeze({
       maxContextWindow: 200000,
       modelContextWindows: Object.freeze({
-        'gpt-5.6-sol': 1050000,
+        'gpt-5.6-sol': 272000,
         'gpt-5.6-terra': 1050000,
         'gpt-5.6-luna': 1050000,
       }),
