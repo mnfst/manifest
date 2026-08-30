@@ -700,15 +700,41 @@ describe('FallbackList', () => {
       });
     });
 
-    // Create a drop indicator
-    fireEvent.dragOver(list, {
-      clientY: 50,
-      dataTransfer: { dropEffect: '' },
-      preventDefault: vi.fn(),
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      bottom: 100,
+      height: 100,
+      left: 0,
+      right: 200,
+      width: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
     });
 
-    // DragLeave with relatedTarget outside the list
-    fireEvent.dragLeave(list, { relatedTarget: null });
+    // Create a drop indicator after the final card
+    list.dispatchEvent(
+      new MouseEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 100,
+        clientY: 90,
+      }),
+    );
+
+    expect(
+      container.querySelectorAll('.fallback-list__drop-indicator--active').length,
+    ).toBeGreaterThan(0);
+
+    // DragLeave with no related target and a cursor outside the list
+    list.dispatchEvent(
+      new MouseEvent('dragleave', {
+        bubbles: true,
+        clientX: 100,
+        clientY: 120,
+        relatedTarget: null,
+      }),
+    );
 
     // No active indicators
     const activeIndicators = container.querySelectorAll('.fallback-list__drop-indicator--active');
@@ -745,6 +771,78 @@ describe('FallbackList', () => {
     // Indicator should still be active
     const activeIndicators = container.querySelectorAll('.fallback-list__drop-indicator--active');
     expect(activeIndicators.length).toBeGreaterThan(0);
+  });
+
+  it('reorders the second fallback after a null-related dragLeave inside the list', async () => {
+    mockSetFallbacks.mockResolvedValueOnce(undefined);
+    const onUpdate = vi.fn();
+    const { container } = render(() => (
+      <FallbackList
+        {...defaultProps}
+        fallbacks={['model-a', 'model-b', 'model-c', 'model-d']}
+        onUpdate={onUpdate}
+      />
+    ));
+
+    const list = container.querySelector<HTMLElement>('.fallback-list__items')!;
+    const cards = list.querySelectorAll<HTMLElement>('.fallback-list__card');
+
+    fireEvent.dragStart(cards[1]!, {
+      dataTransfer: { effectAllowed: '', setData: vi.fn() },
+    });
+
+    cards.forEach((card, i) => {
+      vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({
+        top: i * 40,
+        bottom: (i + 1) * 40,
+        height: 40,
+        left: 0,
+        right: 200,
+        width: 200,
+        x: 0,
+        y: i * 40,
+        toJSON: () => {},
+      });
+    });
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue({
+      top: 0,
+      bottom: 160,
+      height: 160,
+      left: 0,
+      right: 200,
+      width: 200,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    list.dispatchEvent(
+      new MouseEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 100,
+        clientY: 110,
+      }),
+    );
+    list.dispatchEvent(
+      new MouseEvent('dragleave', {
+        bubbles: true,
+        clientX: 100,
+        clientY: 110,
+        relatedTarget: null,
+      }),
+    );
+    fireEvent.drop(list, { preventDefault: vi.fn() });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledWith(['model-a', 'model-c', 'model-b', 'model-d'], null);
+      expect(mockSetFallbacks).toHaveBeenCalledWith(
+        'test-agent',
+        'tier-1',
+        ['model-a', 'model-c', 'model-b', 'model-d'],
+        undefined,
+      );
+    });
   });
 
   it('reorders fallbacks on drop and calls setFallbacks', async () => {
