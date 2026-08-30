@@ -1,0 +1,29 @@
+packages/frontend/tests/components/ProviderSelectModal.test.tsx
+  s_9bce0c4dab801a::t_36df95069e139e 649-654,674-679
+.changeset/anthropic-popup-timing.md
+  s_9bce0c4dab801a::t_557d52109b12ac 1-5
+packages/frontend/src/components/AnthropicOAuthDetailView.tsx
+  s_9bce0c4dab801a::t_7805ac8e31b5e1 84,86
+  s_9bce0c4dab801a::t_52e308b36ae455 82-83,85,87-94,98,100
+packages/frontend/tests/components/AnthropicOAuthDetailView.test.tsx
+  s_9bce0c4dab801a::t_52e308b36ae455 73-85,98,107,113,122-123,130,235,253,576,593,613
+  s_9bce0c4dab801a::t_557d52109b12ac 366,370
+  s_9bce0c4dab801a::t_dbbb0bb16e8ead 586-592,594-597,599-610
+  s_9bce0c4dab801a::t_7805ac8e31b5e1 121,598
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "80193fc438528cd38bd56d98fc23bb3425070256",
+  "prompts": {},
+  "sessions": {
+    "s_9bce0c4dab801a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a054a0-801b-7a73-969d-616e1115349b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
