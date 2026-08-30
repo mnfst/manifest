@@ -300,9 +300,20 @@ const FallbackList: Component<FallbackListProps> = (props) => {
   };
 
   const handleContainerDragLeave = (e: DragEvent) => {
-    // Only clear when leaving the container entirely
-    const related = e.relatedTarget as Node | null;
-    if (!related || !listRef?.contains(related)) {
+    // DragEvent.relatedTarget can be null while crossing children. Fall back
+    // to the pointer coordinates so an internal transition does not erase the
+    // pending drop slot before the browser dispatches drop.
+    const related = e.relatedTarget;
+    if (related instanceof Node && listRef?.contains(related)) return;
+
+    const bounds = listRef?.getBoundingClientRect();
+    const pointerIsOutside =
+      !bounds ||
+      e.clientX < bounds.left ||
+      e.clientX > bounds.right ||
+      e.clientY < bounds.top ||
+      e.clientY > bounds.bottom;
+    if (related instanceof Node || pointerIsOutside) {
       setDropSlot(null);
     }
   };
