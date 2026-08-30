@@ -281,19 +281,27 @@ describe('ProxyRateLimiter', () => {
       expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
     });
 
-    it.each(['', '0', '-1', '1.5', 'not-a-number', '9007199254740992'])(
-      'falls back to 10 when MANIFEST_CONCURRENCY_MAX is %p',
-      (configuredValue) => {
-        limiter.onModuleDestroy();
-        process.env.MANIFEST_CONCURRENCY_MAX = configuredValue;
-        limiter = new ProxyRateLimiter();
+    it.each([
+      '',
+      '0',
+      '-1',
+      '1.5',
+      'not-a-number',
+      '9007199254740992',
+      '0x10',
+      '0b101',
+      '2e1',
+      ' 40 ',
+    ])('falls back to 10 when MANIFEST_CONCURRENCY_MAX is %p', (configuredValue) => {
+      limiter.onModuleDestroy();
+      process.env.MANIFEST_CONCURRENCY_MAX = configuredValue;
+      limiter = new ProxyRateLimiter();
 
-        for (let i = 0; i < 10; i++) {
-          expect(() => limiter.acquireSlot('user-1')).not.toThrow();
-        }
-        expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
-      },
-    );
+      for (let i = 0; i < 10; i++) {
+        expect(() => limiter.acquireSlot('user-1')).not.toThrow();
+      }
+      expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
+    });
 
     it('allows up to 10 concurrent slots', () => {
       for (let i = 0; i < 10; i++) {

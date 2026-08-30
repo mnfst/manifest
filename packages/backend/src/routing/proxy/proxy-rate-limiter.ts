@@ -9,8 +9,11 @@ const DEFAULT_CONCURRENCY_MAX = 10;
 const CLEANUP_INTERVAL_MS = 60_000;
 
 function readConcurrencyMax(): number {
-  const configured = Number(process.env.MANIFEST_CONCURRENCY_MAX);
-  return Number.isSafeInteger(configured) && configured > 0 ? configured : DEFAULT_CONCURRENCY_MAX;
+  const raw = process.env.MANIFEST_CONCURRENCY_MAX;
+  if (!raw || !/^[1-9]\d*$/.test(raw)) return DEFAULT_CONCURRENCY_MAX;
+
+  const configured = Number(raw);
+  return Number.isSafeInteger(configured) ? configured : DEFAULT_CONCURRENCY_MAX;
 }
 
 interface RateEntry {

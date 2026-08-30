@@ -14,11 +14,11 @@ The deployed Manifest image is revision
 self-hosted instance recorded 1,360 M203 rejections in the six hours examined,
 so the existing guard is constraining the intended parallel workload.
 
-The live Compose directory at `C:\Users\diego\manifest` is not a Git
-repository and uses the prebuilt `manifestdotbuild/manifest:latest` image.
-The custom source is therefore isolated in
-`C:\Users\diego\manifest-custom-src` on branch
-`codex/manifest-concurrency-env`, based exactly on the deployed revision.
+The repository's reproducible self-hosted deployment template lives at
+`docker/docker-compose.yml`, with optional settings documented in
+`docker/.env.example`. Deployment-specific `.env` files and image overrides
+remain untracked so machine paths and local tags do not enter the template.
+The change was developed from the exact deployed revision before integration.
 
 ## Selected Approach
 
@@ -30,9 +30,9 @@ The application will read `MANIFEST_CONCURRENCY_MAX` when a
 `ProxyRateLimiter` instance is constructed:
 
 - an unset variable preserves the upstream default of 10;
-- a positive safe integer sets the per-agent concurrency limit;
-- an empty, fractional, zero, negative, non-numeric, or unsafe value falls
-  back to 10.
+- a plain decimal positive safe integer sets the per-agent concurrency limit;
+- an empty, padded, prefixed, exponent-form, fractional, zero, negative,
+  non-numeric, or unsafe value falls back to 10.
 
 The deployment will set `MANIFEST_CONCURRENCY_MAX=40`, pass it into the
 Manifest container through Compose, and use a locally tagged image built from
@@ -69,20 +69,20 @@ changed.
 
 ### Deployment
 
-`C:\Users\diego\manifest\docker-compose.yml` will:
+`docker/docker-compose.yml` will pass `MANIFEST_CONCURRENCY_MAX` to the
+application container with a default of 10. `docker/.env.example` will document
+the optional setting and its plain-positive-integer contract.
 
-- replace the upstream image reference with the pinned local custom tag;
-- pass `MANIFEST_CONCURRENCY_MAX` to the application container with a default
-  of 10.
-
-`C:\Users\diego\manifest\.env` will set:
+A deployment that needs a higher limit will set it in its untracked `.env`:
 
 ```dotenv
 MANIFEST_CONCURRENCY_MAX=40
 ```
 
-The PostgreSQL service, volume, credentials, provider configuration, ports,
-and other runtime settings will not change.
+A locally built image can be selected through an untracked Compose override;
+the repository template will not contain a machine-specific image tag. The
+PostgreSQL service, volume, credentials, provider configuration, ports, and
+other runtime settings will not change.
 
 ## Build and Rollout
 

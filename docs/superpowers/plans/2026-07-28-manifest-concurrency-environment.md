@@ -4,7 +4,7 @@
 
 **Goal:** Make Manifest's per-agent in-flight request limit configurable and deploy the pinned custom image with `MANIFEST_CONCURRENCY_MAX=40`.
 
-**Architecture:** Read and validate the environment variable when each `ProxyRateLimiter` instance is constructed, preserving 10 as the safe default. Build the existing production Dockerfile from the exact deployed upstream revision, then point the existing Compose deployment at that local image while leaving PostgreSQL untouched.
+**Architecture:** Read and validate the environment variable when each `ProxyRateLimiter` instance is constructed, preserving 10 as the safe default. Build the existing production Dockerfile from the exact deployed upstream revision, then configure the repository's Compose template to pass the setting while leaving PostgreSQL untouched. A deployment can select a locally built image through the existing `MANIFEST_VERSION` substitution or a deployment-specific override.
 
 **Tech Stack:** TypeScript, NestJS, Jest, npm workspaces, Docker BuildKit, Docker Compose, PowerShell
 
@@ -14,8 +14,9 @@
 
 - `packages/backend/src/routing/proxy/proxy-rate-limiter.ts`: parse the environment variable and enforce the configured instance limit.
 - `packages/backend/src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts`: prove default, configured, and invalid-value boundaries.
-- `C:\Users\diego\manifest\docker-compose.yml`: select the pinned local image and pass the environment variable.
-- `C:\Users\diego\manifest\.env`: set the live value to 40.
+- `docker/docker-compose.yml`: pass the environment variable into the Manifest service.
+- `docker/.env.example`: document the optional value for self-hosted deployments.
+- A deployment-local `.env` or Compose override: set the live value and, when needed, select a local image without committing machine-specific paths or tags.
 
 ### Task 1: Add failing configuration-boundary tests
 
@@ -62,7 +63,18 @@ it('uses MANIFEST_CONCURRENCY_MAX when it is a positive integer', () => {
   expect(() => limiter.acquireSlot('user-1')).toThrow(HttpException);
 });
 
-it.each(['', '0', '-1', '1.5', 'not-a-number', '9007199254740992'])(
+it.each([
+  '',
+  '0',
+  '-1',
+  '1.5',
+  'not-a-number',
+  '9007199254740992',
+  '0x10',
+  '0b101',
+  '2e1',
+  ' 40 ',
+])(
   'falls back to 10 when MANIFEST_CONCURRENCY_MAX is %p',
   (configuredValue) => {
     limiter.onModuleDestroy();
@@ -100,10 +112,11 @@ Replace `const CONCURRENCY_MAX = 10;` with:
 const DEFAULT_CONCURRENCY_MAX = 10;
 
 function readConcurrencyMax(): number {
-  const configured = Number(process.env.MANIFEST_CONCURRENCY_MAX);
-  return Number.isSafeInteger(configured) && configured > 0
-    ? configured
-    : DEFAULT_CONCURRENCY_MAX;
+  const raw = process.env.MANIFEST_CONCURRENCY_MAX;
+  if (!raw || !/^[1-9]\d*$/.test(raw)) return DEFAULT_CONCURRENCY_MAX;
+
+  const configured = Number(raw);
+  return Number.isSafeInteger(configured) ? configured : DEFAULT_CONCURRENCY_MAX;
 }
 ```
 
@@ -131,7 +144,7 @@ Run:
 npm test --workspace=manifest-backend -- --runInBand src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
 ```
 
-Expected: 35 tests pass, including the configured limit of 40 and six invalid-value cases.
+Expected: 39 tests pass, including the configured limit of 40 and ten invalid-value cases.
 
 - [ ] **Step 4: Run backend lint and production build**
 
@@ -181,48 +194,46 @@ docker image inspect manifest-local:097c8f1a-concurrency-env --format '{{.Id}} {
 
 Expected: an image ID, the non-root runtime user, and `packages/backend/dist/main.js`.
 
-### Task 4: Configure the live Compose deployment
+### Task 4: Configure the Compose deployment
 
 **Files:**
-- Modify: `C:\Users\diego\manifest\docker-compose.yml`
-- Modify: `C:\Users\diego\manifest\.env`
+- Modify: `docker/docker-compose.yml`
+- Modify: `docker/.env.example`
+- Configure locally: `docker/.env` or a deployment-specific Compose override (untracked)
 
-- [ ] **Step 1: Select the custom image**
+- [ ] **Step 1: Pass the concurrency setting**
 
-Change the Manifest service image from:
-
-```yaml
-image: manifestdotbuild/manifest:latest
-```
-
-to:
-
-```yaml
-image: manifest-local:097c8f1a-concurrency-env
-```
-
-- [ ] **Step 2: Pass the concurrency setting**
-
-Add beside the existing proxy timeout variables:
+Add beside the existing proxy timeout variables in `docker/docker-compose.yml`:
 
 ```yaml
 - MANIFEST_CONCURRENCY_MAX=${MANIFEST_CONCURRENCY_MAX:-10}
 ```
 
-- [ ] **Step 3: Set the live value**
+- [ ] **Step 2: Document the optional setting**
 
-Add to `C:\Users\diego\manifest\.env`:
+Add to `docker/.env.example`:
+
+```dotenv
+# Per-agent concurrent in-flight request limit. Must be a plain positive integer.
+# MANIFEST_CONCURRENCY_MAX=10
+```
+
+- [ ] **Step 3: Configure the deployment-local value**
+
+Set the live value in the untracked `docker/.env` used by the deployment:
 
 ```dotenv
 MANIFEST_CONCURRENCY_MAX=40
 ```
 
+When validating the locally built image rather than the published image, select it with an untracked Compose override. Do not commit a machine-specific image tag to `docker/docker-compose.yml`.
+
 - [ ] **Step 4: Validate Compose without exposing resolved secrets**
 
-Run:
+From the repository root, run:
 
 ```powershell
-docker compose config --quiet
+docker compose --env-file docker/.env -f docker/docker-compose.yml config --quiet
 ```
 
 Expected: exit 0 and no output.
@@ -230,8 +241,8 @@ Expected: exit 0 and no output.
 ### Task 5: Deploy and verify
 
 **Files:**
-- Verify: `C:\Users\diego\manifest\docker-compose.yml`
-- Verify: `C:\Users\diego\manifest\.env`
+- Verify: `docker/docker-compose.yml`
+- Verify locally: `docker/.env` and any deployment-specific override
 
 - [ ] **Step 1: Record the PostgreSQL container and volume identity**
 
@@ -245,10 +256,10 @@ Expected: the current PostgreSQL container ID and `manifest_pgdata`.
 
 - [ ] **Step 2: Recreate only the Manifest service**
 
-Run:
+Run from the repository root (include the deployment-specific override when one selects the local image):
 
 ```powershell
-docker compose up -d --no-deps --force-recreate manifest
+docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --no-deps --force-recreate manifest
 ```
 
 Expected: only `mnfst-manifest-1` is recreated.
@@ -319,7 +330,7 @@ Run:
 ```powershell
 npm test --workspace=manifest-backend -- --runInBand src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
 npm run lint --workspace=manifest-backend
-docker compose config --quiet
+docker compose --env-file docker/.env -f docker/docker-compose.yml config --quiet
 docker compose ps
 git status --short
 ```
