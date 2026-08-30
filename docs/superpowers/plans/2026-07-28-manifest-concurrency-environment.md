@@ -4,7 +4,7 @@
 
 **Goal:** Make Manifest's per-agent in-flight request limit configurable and deploy the pinned custom image with `MANIFEST_CONCURRENCY_MAX=40`.
 
-**Architecture:** Read and validate the environment variable when each `ProxyRateLimiter` instance is constructed, preserving 10 as the safe default. Build the existing production Dockerfile from the exact deployed upstream revision, then configure the repository's Compose template to pass the setting while leaving PostgreSQL untouched. A deployment can select a locally built image through the existing `MANIFEST_VERSION` substitution or a deployment-specific override.
+**Architecture:** Read and validate the environment variable when each `ProxyRateLimiter` instance is constructed, preserving 10 as the safe default. Build the existing production Dockerfile from the exact deployed upstream revision, then configure the repository's Compose template to pass the setting while leaving PostgreSQL untouched. The template fixes the published `manifestdotbuild/manifest` repository, so `MANIFEST_VERSION` selects only a tag from that repository; a locally built image must be selected with a deployment-specific Compose override.
 
 **Tech Stack:** TypeScript, NestJS, Jest, npm workspaces, Docker BuildKit, Docker Compose, PowerShell
 
@@ -226,14 +226,28 @@ Set the live value in the untracked `docker/.env` used by the deployment:
 MANIFEST_CONCURRENCY_MAX=40
 ```
 
-When validating the locally built image rather than the published image, select it with an untracked Compose override. Do not commit a machine-specific image tag to `docker/docker-compose.yml`.
+`MANIFEST_VERSION` changes only the tag in the fixed `manifestdotbuild/manifest` image reference; it cannot select `manifest-local`. When validating the locally built image rather than the published image, select it with an untracked Compose override such as:
+
+```yaml
+services:
+  manifest:
+    image: manifest-local:097c8f1a-concurrency-env
+```
+
+Pass that override to every validation and deployment command with `-f <override-file>`. Do not commit the override or a machine-specific image tag to `docker/docker-compose.yml`.
 
 - [ ] **Step 4: Validate Compose without exposing resolved secrets**
 
-From the repository root, run:
+From the repository root, run the published-image configuration with:
 
 ```powershell
 docker compose --env-file docker/.env -f docker/docker-compose.yml config --quiet
+```
+
+For a local image, append the untracked override selected in Step 3:
+
+```powershell
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> config --quiet
 ```
 
 Expected: exit 0 and no output.
@@ -256,11 +270,13 @@ Expected: the current PostgreSQL container ID and `manifest_pgdata`.
 
 - [ ] **Step 2: Recreate only the Manifest service**
 
-Run from the repository root (include the deployment-specific override when one selects the local image):
+Run from the repository root. For the locally built image, include the deployment-specific override explicitly:
 
 ```powershell
-docker compose --env-file docker/.env -f docker/docker-compose.yml up -d --no-deps --force-recreate manifest
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> up -d --no-deps --force-recreate manifest
 ```
+
+Omit the second `-f` only when deploying the published `manifestdotbuild/manifest:${MANIFEST_VERSION}` image.
 
 Expected: only `mnfst-manifest-1` is recreated.
 
@@ -330,8 +346,8 @@ Run:
 ```powershell
 npm test --workspace=manifest-backend -- --runInBand src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
 npm run lint --workspace=manifest-backend
-docker compose --env-file docker/.env -f docker/docker-compose.yml config --quiet
-docker compose ps
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> config --quiet
+docker compose --env-file docker/.env -f docker/docker-compose.yml -f <override-file> ps
 git status --short
 ```
 
