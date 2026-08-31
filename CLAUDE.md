@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-08-31
 
 ## What Manifest Is
 
@@ -84,19 +84,22 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (24 files)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
 │   │   │   └── ...                          # request, agent-message (provider attempt), tenant-provider, tier-assignment, header-tier, etc.
 │   │   ├── common/
+│   │   │   ├── cache/                       # dashboard-cache factory
 │   │   │   ├── guards/api-key.guard.ts      # X-API-Key header auth (timing-safe)
 │   │   │   ├── decorators/public.decorator.ts
 │   │   │   ├── dto/                         # create-agent, range-query, rename-agent DTOs
+│   │   │   ├── errors/                      # error-codes.ts (M### registry), manifest-error.ts
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
+│   │   │   ├── middleware/                  # body-parser-limits, http-error-logger, rate-limit-log
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
-│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
+│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache, agent-list-cache, agent-recording-config, request-recording-storage
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
@@ -112,7 +115,8 @@ packages/
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
 │   │   │   ├── custom-provider/             # Custom provider CRUD
 │   │   │   ├── header-tiers/               # Header-based tier overrides
-│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Kiro, MiniMax)
+│   │   │   ├── managed-free-provider/       # Managed free-provider virtual key provisioning
+│   │   │   ├── oauth/                       # OAuth flows (Gemini, OpenAI, Anthropic, xAI, Kiro, MiniMax, Copilot)
 │   │   │   └── specificity.controller.ts   # Specificity routing CRUD endpoints
 │   │   ├── scoring/                         # Request complexity scoring engine
 │   │   │   ├── keywords.ts                 # Keyword lists for all dimensions (complexity + specificity)
@@ -209,7 +213,7 @@ cd packages/backend && NODE_OPTIONS='-r dotenv/config' npx nest start --watch
 cd packages/frontend && npx vite
 ```
 
-**Note:** `npm run dev` (turbo) starts the frontend but NOT the backend, because the backend's script is `start:dev` not `dev`. Start the backend separately as shown above.
+**Note:** `npm run dev` runs `turbo dev --filter=manifest-frontend` — it starts only the frontend, by design. Start the backend separately as shown above.
 
 ### Seeding Dev Data
 
@@ -366,8 +370,9 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST                      | `/api/v1/waitlist/autofix/claim`                | Public                              | Deprecated no-op compatibility route for older self-hosted versions                                         |
 | GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
+| POST                      | `/api/v1/providers/:providerId/ensure`          | Session/API Key                     | Managed free-provider virtual key provisioning                                                              |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
-| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, recording, etc.) |
 | POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
 | GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
 | POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
@@ -404,7 +409,13 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
 - `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `10`
+- `DB_TUNE_SESSION` — Set `false` to skip applying PgBouncer-safe planner defaults (jit off, larger `work_mem`, SSD-tuned `random_page_cost`) as role-level defaults at boot. Default: `true`.
+- `MIGRATION_DATABASE_URL` / `BACKFILL_DATABASE_URL` — Cloud-only direct (non-PgBouncer) database URLs for migrations and the request-backfill scripts.
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
+- `SHUTDOWN_DRAIN_MS` — Graceful-shutdown drain window (ms): on SIGTERM in production, the health probe reports 503 but the server keeps accepting traffic for this long so the platform edge deregisters the replica first. Default: `10000`.
+- `REQUEST_RECORDING_RETENTION_DAYS` / `REQUEST_RECORDING_STORAGE` — Full request/response body recording: retention override (defaults follow the Cloud plan — Free 7 days, Pro 365 days; self-hosted 365 days) and storage backend (`auto` | `s3` | `filesystem` | `disabled`; `auto` prefers S3 when `REQUEST_RECORDING_S3_*` credentials are complete, else the self-hosted filesystem mount at `REQUEST_RECORDING_FILESYSTEM_PATH`). See `.env.example` for the individual S3 variables.
+- `ERROR_PAGE_PUSH_SECRET` — Shared secret the Peacock CMS sends as `x-internal-secret` to the internal error-page push endpoint (`/api/v1/internal/error-pages`). Empty by default, which rejects all writes.
+- `CREDITS_BASE_URL` / `CREDITS_MASTER_KEY` — Managed-free-provider gateway (e.g. Gemini Free) for automatic virtual-key provisioning; without a master key, users paste their own virtual key via the provider's "Get API key" link.
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
 - `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS` — Timeout (ms) to wait for deliverable ChatGPT Codex text or tool output. Default: `60000`
