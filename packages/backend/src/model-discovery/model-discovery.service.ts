@@ -319,7 +319,9 @@ export class ModelDiscoveryService {
       authType,
     }));
     if (provider.auth_type === 'subscription') {
-      enriched = applySubscriptionContextWindows(enriched, provider.provider);
+      enriched = applySubscriptionContextWindows(enriched, provider.provider).map((model) =>
+        this.computeScore(model),
+      );
     }
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
@@ -781,7 +783,7 @@ export class ModelDiscoveryService {
     };
   }
 
-  private computeScore(model: DiscoveredModel): DiscoveredModel {
+  private computeScore<T extends DiscoveredModel>(model: T): T {
     const score = computeQualityScore({
       model_name: model.id,
       input_price_per_token: model.inputPricePerToken,
