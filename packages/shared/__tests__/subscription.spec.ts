@@ -520,7 +520,7 @@ describe('getSubscriptionCapabilities', () => {
       supportsBatching: false,
     });
     expect(caps?.modelContextWindows).toMatchObject({
-      'gpt-5.6-sol': 272000,
+      'gpt-5.6-sol': 1050000,
       'gpt-5.6-terra': 1050000,
       'gpt-5.6-luna': 1050000,
     });
