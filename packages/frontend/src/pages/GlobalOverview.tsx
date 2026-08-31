@@ -1184,6 +1184,7 @@ const GlobalOverview: Component = () => {
                                 alt=""
                                 width="20"
                                 height="20"
+                                class="platform-icon"
                                 style="flex-shrink: 0;"
                               />
                             </Show>

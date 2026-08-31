@@ -1173,6 +1173,7 @@ const ConnectionDetail: Component = () => {
                                       alt=""
                                       width="16"
                                       height="16"
+                                      class="platform-icon"
                                       style="border-radius: 3px;"
                                     />
                                   </Show>

@@ -99,6 +99,7 @@
 .dark .agent-card__platform-icon[src*='anthropic'],
 .dark .agent-card__platform-icon[src*='vercel'],
 .dark .agent-card__platform-icon[src*='opencode'],
+.dark .agent-card__platform-icon[src*='hermes'],
 .dark .agent-card__platform-icon[src*='other'] {
   filter: invert(1);
 }
@@ -843,6 +844,7 @@
 .dark .overview__platform-icon[src*='anthropic'],
 .dark .overview__platform-icon[src*='vercel'],
 .dark .overview__platform-icon[src*='opencode'],
+.dark .overview__platform-icon[src*='hermes'],
 .dark .overview__platform-icon[src*='other'] {
   filter: invert(1);
 }
