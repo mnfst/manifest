@@ -277,6 +277,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionLabel: 'Grok subscription',
     subscriptionAuthMode: 'popup_oauth' as const,
     knownModels: Object.freeze([
+      'grok-4.6',
       'grok-4.5',
       'grok-4.3',
       'grok-4.20-0309-reasoning',

@@ -245,6 +245,7 @@ describe('getSubscriptionProviderConfig', () => {
   it('publishes the curated xai subscription models', () => {
     const config = getSubscriptionProviderConfig('xai');
     expect(config?.knownModels).toEqual([
+      'grok-4.6',
       'grok-4.5',
       'grok-4.3',
       'grok-4.20-0309-reasoning',
@@ -440,6 +441,7 @@ describe('getSubscriptionKnownModels', () => {
   it('returns known models for xai', () => {
     const models = getSubscriptionKnownModels('xai');
     expect(models).toEqual([
+      'grok-4.6',
       'grok-4.5',
       'grok-4.3',
       'grok-4.20-0309-reasoning',
