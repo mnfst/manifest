@@ -1073,6 +1073,7 @@ describe('ProviderClient', () => {
           { role: 'user', content: 'hi' },
         ],
         model: 'o1-pro',
+        metadata: { user_id: 'anthropic-responses-user' },
       });
 
       await client.forward({
@@ -1085,6 +1086,7 @@ describe('ProviderClient', () => {
           model: 'o1-pro',
           system: 'be brief',
           messages: [{ role: 'user', content: 'hi' }],
+          metadata: { user_id: 'anthropic-responses-user' },
         },
         resolveChatBody,
         stream: false,
@@ -1096,6 +1098,8 @@ describe('ProviderClient', () => {
       // messages, proving the lazy conversion, not the raw Anthropic body, was forwarded.
       expect(sentBody.instructions).toBe('be brief');
       expect(sentBody.system).toBeUndefined();
+      expect(sentBody.metadata).toBeUndefined();
+      expect(sentBody.safety_identifier).toBe('anthropic-responses-user');
       expect(resolveChatBody).toHaveBeenCalledTimes(1);
     });
 
