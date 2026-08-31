@@ -304,6 +304,18 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
   }));
 }
 
+export function applySubscriptionContextWindows<T extends DiscoveredModel>(
+  models: T[],
+  providerId: string,
+): T[] {
+  const capabilities = getSubscriptionCapabilities(providerId);
+  if (!capabilities) return models;
+  return models.map((model) => ({
+    ...model,
+    contextWindow: resolveSubscriptionContextWindow(model.id, model.contextWindow, capabilities),
+  }));
+}
+
 /**
  * Supplement discovered models with knownModels from subscription-capabilities.
  * Ensures subscription users always have the known models available as selectable options,
