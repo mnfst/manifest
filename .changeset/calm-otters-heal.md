@@ -2,4 +2,4 @@
 'manifest': patch
 ---
 
-Leave provider- and model-specific request corrections to Autofix.
+Leave conditional provider corrections to Autofix while preserving protocol translations.
