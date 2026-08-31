@@ -300,6 +300,16 @@ describe("Sidebar — harness switcher list", () => {
     expect(beta?.querySelector("img.sidebar__agent-icon")).toBeNull();
   });
 
+  it("applies the platform-icon theming class to the platform icon", async () => {
+    const { container } = render(() => <Sidebar />);
+    await waitFor(() => {
+      expect(container.querySelectorAll("a.sidebar__agent-item").length).toBe(2);
+    });
+    const alpha = container.querySelector('a[href="/harnesses/alpha"]');
+    const icon = alpha?.querySelector("img.sidebar__agent-icon");
+    expect(icon?.classList.contains("platform-icon")).toBe(true);
+  });
+
   it("marks the current /harnesses/:name route active", async () => {
     mockPathname = "/harnesses/alpha";
     const { container } = render(() => <Sidebar />);

@@ -311,7 +311,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
                   onClick={handleNav}
                 >
                   <Show when={icon()}>
-                    <img src={icon()} alt="" class="sidebar__agent-icon" />
+                    <img src={icon()} alt="" class="platform-icon sidebar__agent-icon" />
                   </Show>
                   <span class="sidebar__agent-item-name">{display()}</span>
                 </A>
