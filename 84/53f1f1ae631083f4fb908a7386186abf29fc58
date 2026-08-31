@@ -1,0 +1,50 @@
+.changeset/native-subscription-autofix.md
+  s_9d3be92b46a911::t_7c3d5799bbe80b 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_9d3be92b46a911::t_4de52dbf698ebd 536-568,570-573,618-654
+  s_9d3be92b46a911::t_3068408da681f6 569
+  s_9d3be92b46a911::t_c931d4f5e0be51 574-617
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_9d3be92b46a911::t_cae1e11ae16fe0 64,599
+  s_9d3be92b46a911::t_28937bb37f21e3 84-85,154,158,185-188,390,587-598,600-602
+  s_51fabf5e0e734b::t_afb2b5fddd00a6 603-604
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_9d3be92b46a911::t_4de52dbf698ebd 6,41-50
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_9d3be92b46a911::t_4de52dbf698ebd 70,719-729
+  s_9d3be92b46a911::t_3068408da681f6 730,744,750-753,757-758
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_9d3be92b46a911::t_4de52dbf698ebd 14-27,34-36
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_9d3be92b46a911::t_e4eaade02733a1 115
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_9d3be92b46a911::t_9cc978f818d76e 324-350,607-642
+  s_9d3be92b46a911::t_5e9d4e07862304 643-644
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_9d3be92b46a911::t_e4eaade02733a1 82,92,180
+  s_9d3be92b46a911::t_cae1e11ae16fe0 84,233,300
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8453f1f1ae631083f4fb908a7386186abf29fc58",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_9d3be92b46a911": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05719-b3d9-7983-a95f-cceb66494c63",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
