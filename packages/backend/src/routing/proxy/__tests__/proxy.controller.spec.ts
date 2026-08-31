@@ -321,6 +321,33 @@ describe('ProxyController', () => {
     });
   });
 
+  it('should expose provider-native route metadata when requested', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({
+        id: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        authType: 'subscription',
+      }),
+    ]);
+
+    await expect(
+      controller.models(mockRequest({}) as never, undefined, undefined, 'true'),
+    ).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        {
+          id: 'opencode-go/glm-5.1-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'opencode-go',
+          provider_model_id: 'opencode-go/glm-5.1',
+          auth_type: 'subscription',
+        },
+      ],
+    });
+  });
+
   it('should expose capability metadata when ?capabilities=true, preserving subscription ids', async () => {
     modelDiscovery.getModelsForAgent.mockResolvedValue([
       makeDiscoveredModel({
@@ -575,6 +602,44 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('routes a native Phoenix replay through the requested subscription connection', async () => {
+    const responseBody = { choices: [{ message: { content: 'hello' } }] };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response(JSON.stringify(responseBody), { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'direct',
+        model: 'gpt-5.5',
+        provider: 'openai',
+        auth_type: 'subscription',
+        confidence: 1,
+        reason: 'direct',
+      },
+    });
+    const body = { model: 'gpt-5.5', messages: [{ role: 'user', content: 'hi' }] };
+    const req = mockRequest(body, 'user-1', {
+      'x-manifest-provider': 'openai',
+      'x-manifest-auth-type': 'subscription',
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body,
+        routingBody: {
+          model: 'openai/gpt-5.5-subscription',
+          messages: [{ role: 'user', content: 'hi' }],
+        },
+      }),
+    );
   });
 
   it.each([

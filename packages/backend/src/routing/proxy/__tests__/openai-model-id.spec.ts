@@ -3,6 +3,7 @@ import {
   explicitModelRouteCandidate,
   openAiModelId,
   routeForOpenAiModelId,
+  subscriptionOpenAiModelId,
 } from '../openai-model-id';
 
 function model(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
@@ -34,6 +35,16 @@ describe('OpenAI model ids', () => {
     );
     expect(openAiModelId(model({ id: 'gpt-5.5-subscription', authType: 'subscription' }))).toBe(
       'openai/gpt-5.5-subscription',
+    );
+  });
+
+  it('encodes native subscription models idempotently', () => {
+    expect(subscriptionOpenAiModelId('openai', 'gpt-5.5')).toBe('openai/gpt-5.5-subscription');
+    expect(subscriptionOpenAiModelId('openai', 'openai/gpt-5.5-subscription')).toBe(
+      'openai/gpt-5.5-subscription',
+    );
+    expect(subscriptionOpenAiModelId('opencode-go', 'opencode-go/glm-5.1')).toBe(
+      'opencode-go/glm-5.1-subscription',
     );
   });
 

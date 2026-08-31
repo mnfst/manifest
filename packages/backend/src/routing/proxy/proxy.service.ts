@@ -67,6 +67,7 @@ import {
   OPENAI_MODEL_ID_AUTO,
   routeForOpenAiModelId,
   SUBSCRIPTION_MODEL_SUFFIX,
+  subscriptionOpenAiModelId,
 } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
@@ -715,7 +716,18 @@ export class ProxyService {
     const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
     if (healedModel && healedModel !== originalModel) {
-      return this.forwardResolvedHealed(healedBody, originalForward, ctx);
+      // Phoenix speaks in provider-native model ids. Manifest owns the public
+      // `-subscription` route syntax, so add it only while resolving the healed
+      // retry. The helper is idempotent for older Phoenix patches that already
+      // carry the legacy route id.
+      const routingBody =
+        ctx.authType === 'subscription'
+          ? {
+              ...healedBody,
+              model: subscriptionOpenAiModelId(ctx.provider, healedModel),
+            }
+          : healedBody;
+      return this.forwardResolvedHealed(routingBody, healedBody, originalForward, ctx);
     }
     return this.fallbackService.retryWireBody(originalForward, healedBody, {
       provider: ctx.provider,
@@ -729,16 +741,21 @@ export class ProxyService {
   }
 
   private async forwardResolvedHealed(
+    routingBody: Record<string, unknown>,
     healedBody: Record<string, unknown>,
     originalForward: ForwardResult,
     ctx: HealedReforwardContext,
   ): Promise<ForwardResult> {
     const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
+    const resolveRoutingChatBody =
+      routingBody === healedBody
+        ? resolveChatBody
+        : this.createChatBodyResolver(ctx.apiMode, routingBody);
     const resolved = await this.resolveRouting(
       ctx.agentId,
       ctx.tenantId,
-      healedBody,
-      resolveChatBody,
+      routingBody,
+      resolveRoutingChatBody,
       ctx.sessionMomentumKey,
       ctx.specificityOverride,
       ctx.headers,

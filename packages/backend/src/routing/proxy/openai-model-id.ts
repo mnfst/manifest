@@ -11,16 +11,29 @@ export interface ExplicitModelRouteCandidate {
   providerQualified: boolean;
 }
 
+/** Encode a provider-native model for Manifest's public subscription route. */
+export function subscriptionOpenAiModelId(provider: string, modelId: string): string {
+  const normalizedProvider = provider.toLowerCase();
+  if (normalizedProvider.startsWith('custom:')) return modelId;
+
+  const prefix = `${normalizedProvider}/`;
+  const routeId = modelId.toLowerCase().startsWith(prefix)
+    ? modelId
+    : `${normalizedProvider}/${modelId}`;
+  return routeId.endsWith(SUBSCRIPTION_MODEL_SUFFIX)
+    ? routeId
+    : `${routeId}${SUBSCRIPTION_MODEL_SUFFIX}`;
+}
+
 export function openAiModelId(model: DiscoveredModel): string {
   const provider = model.provider.toLowerCase();
   if (provider.startsWith('custom:')) return model.id;
 
   const prefix = `${provider}/`;
   const routeId = model.id.toLowerCase().startsWith(prefix) ? model.id : `${provider}/${model.id}`;
-  if (model.authType !== 'subscription' || routeId.endsWith(SUBSCRIPTION_MODEL_SUFFIX)) {
-    return routeId;
-  }
-  return `${routeId}${SUBSCRIPTION_MODEL_SUFFIX}`;
+  return model.authType === 'subscription'
+    ? subscriptionOpenAiModelId(provider, model.id)
+    : routeId;
 }
 
 /**

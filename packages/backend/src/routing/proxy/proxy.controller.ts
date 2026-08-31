@@ -61,7 +61,7 @@ import type {
 } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
-import { openAiModelId } from './openai-model-id';
+import { openAiModelId, subscriptionOpenAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
 import { StreamFailure } from './stream-writer';
@@ -81,6 +81,8 @@ interface OpenAiModelObject {
   object: 'model';
   created: number;
   owned_by: string;
+  provider_model_id?: string;
+  auth_type?: string;
   capabilities?: OpenAiModelCapabilities;
   cost?: OpenAiModelCost;
 }
@@ -149,9 +151,11 @@ export class ProxyController {
     @Req() req: Request & { ingestionContext: IngestionContext },
     @Query('capabilities') capabilities?: string,
     @Query('cost') cost?: string,
+    @Query('route_metadata') routeMetadata?: string,
   ): Promise<OpenAiModelList> {
     const includeCapabilities = capabilities === 'true';
     const includeCost = cost === 'true';
+    const includeRouteMetadata = routeMetadata === 'true';
     const models = await this.modelDiscovery.getModelsForAgent(
       req.ingestionContext.tenantId,
       req.ingestionContext.agentId,
@@ -178,6 +182,10 @@ export class ProxyController {
         created: MODEL_CREATED_UNKNOWN,
         owned_by: model.provider,
       };
+      if (includeRouteMetadata) {
+        entry.provider_model_id = model.id;
+        entry.auth_type = model.authType;
+      }
       if (includeCapabilities) {
         // Same resolution as the dashboard's model picker, so agents and the
         // routing UI report identical capability facts.
@@ -379,7 +387,7 @@ export class ProxyController {
       this.rateLimiter.checkIpLimit(req.ip ?? '');
       this.rateLimiter.acquireSlot(tenantId);
       slotAcquired = true;
-      routingBody = redactInlineImageDataUrls(body);
+      routingBody = redactInlineImageDataUrls(this.routingBody(body, req));
       const specificityOverride = req.headers['x-manifest-specificity'] as string | undefined;
       const { forward, meta, failedFallbacks, autofix } = await this.proxyService.proxyRequest({
         agentId: req.ingestionContext.agentId,
@@ -574,6 +582,24 @@ export class ProxyController {
     } finally {
       if (slotAcquired) this.rateLimiter.releaseSlot(tenantId);
     }
+  }
+
+  /**
+   * Phoenix replays a provider-native model while naming the original route in
+   * headers. Keep Manifest's public `-subscription` syntax inside Manifest: the
+   * original body remains provider-native and only the routing view is encoded.
+   */
+  private routingBody(
+    body: Record<string, unknown>,
+    req: Request & { ingestionContext: IngestionContext },
+  ): Record<string, unknown> {
+    const provider = req.headers['x-manifest-provider'];
+    const authType = req.headers['x-manifest-auth-type'];
+    const model = body.model;
+    if (typeof provider !== 'string' || authType !== 'subscription' || typeof model !== 'string') {
+      return body;
+    }
+    return { ...body, model: subscriptionOpenAiModelId(provider, model) };
   }
 
   /**
