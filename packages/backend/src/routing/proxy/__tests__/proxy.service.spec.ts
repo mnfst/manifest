@@ -577,14 +577,6 @@ describe('ProxyService — orchestration', () => {
       fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
       fallbackService.retryWireBody.mockResolvedValueOnce(healed);
       modelDiscovery.getModelsForAgent.mockResolvedValue([]);
-      resolveService.resolve.mockResolvedValue({
-        tier: 'standard',
-        route: null,
-        fallback_routes: null,
-        confidence: 0.9,
-        score: 5,
-        reason: 'scored',
-      });
       resolveService.resolve.mockResolvedValueOnce({
         tier: 'standard',
         route: route('openai', 'subscription', 'gpt-5.4'),

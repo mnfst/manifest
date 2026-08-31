@@ -39,6 +39,7 @@ describe('OpenAI model ids', () => {
   });
 
   it('encodes native subscription models idempotently', () => {
+    expect(subscriptionOpenAiModelId('openai', 'auto')).toBe('auto');
     expect(subscriptionOpenAiModelId('openai', 'gpt-5.5')).toBe('openai/gpt-5.5-subscription');
     expect(subscriptionOpenAiModelId('openai', 'openai/gpt-5.5-subscription')).toBe(
       'openai/gpt-5.5-subscription',

@@ -14,7 +14,7 @@ export interface ExplicitModelRouteCandidate {
 /** Encode a provider-native model for Manifest's public subscription route. */
 export function subscriptionOpenAiModelId(provider: string, modelId: string): string {
   const normalizedProvider = provider.toLowerCase();
-  if (normalizedProvider.startsWith('custom:')) return modelId;
+  if (modelId === OPENAI_MODEL_ID_AUTO || normalizedProvider.startsWith('custom:')) return modelId;
 
   const prefix = `${normalizedProvider}/`;
   const routeId = modelId.toLowerCase().startsWith(prefix)
