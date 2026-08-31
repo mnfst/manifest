@@ -611,12 +611,13 @@ export function buildResponsesSseError(data: Record<string, unknown>): Responses
 }
 
 function statusFromResponsesError(code: string | undefined, type: string | undefined): number {
-  const value = (code ?? type ?? '').toLowerCase();
+  const value = `${code ?? ''} ${type ?? ''}`.toLowerCase();
   if (value.includes('model_not_found') || value.includes('not_found')) return 404;
   if (value.includes('rate_limit')) return 429;
-  if (value.includes('invalid') || value.includes('bad_request')) return 400;
   if (value.includes('unauthorized') || value.includes('authentication')) return 401;
   if (value.includes('forbidden') || value.includes('permission')) return 403;
   if (value.includes('server')) return 500;
+  if (value.includes('context_length_exceeded')) return 400;
+  if (value.includes('invalid') || value.includes('bad_request')) return 400;
   return 502;
 }

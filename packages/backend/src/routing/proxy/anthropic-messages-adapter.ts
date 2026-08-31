@@ -139,6 +139,29 @@ function buildAssistantMessage(content: unknown): OpenAIMessage[] {
   return [message];
 }
 
+function splitToolResultContent(content: unknown): {
+  toolContent: string;
+  imageParts: JsonRecord[];
+} {
+  // Tool messages are text-only in chat_completions, so a nested image block
+  // would otherwise ride inside the stringified tool output as raw base64 —
+  // which downstream providers tokenize as TEXT at roughly 1.5 chars/token
+  // (a single screenshot becomes 100K+ input tokens). Pull images out for a
+  // follow-up user message and leave a short placeholder in the tool output.
+  if (!Array.isArray(content)) {
+    return { toolContent: safeJsonStringify(content), imageParts: [] };
+  }
+  const imageParts: JsonRecord[] = [];
+  const sanitized = content.map((block) => {
+    if (!isRecord(block) || block.type !== 'image') return block;
+    const part = imageBlockToImagePart(block);
+    if (!part) return block;
+    imageParts.push(part);
+    return { type: 'text', text: '[image attached below]' };
+  });
+  return { toolContent: safeJsonStringify(sanitized), imageParts };
+}
+
 function buildUserMessages(content: unknown): OpenAIMessage[] {
   // Walk Anthropic content blocks in input order and emit chat_completions
   // messages without reshuffling. Each `tool_result` becomes a standalone
@@ -170,11 +193,21 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
     if (!isRecord(block)) continue;
     if (block.type === 'tool_result') {
       flushPendingUser();
+      const { toolContent, imageParts } = splitToolResultContent(block.content);
       messages.push({
         role: 'tool',
         tool_call_id: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
-        content: safeJsonStringify(block.content),
+        content: toolContent,
       });
+      if (imageParts.length > 0) {
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            ...imageParts,
+          ],
+        });
+      }
     } else if (block.type === 'text' && typeof block.text === 'string') {
       pendingParts.push({ type: 'text', text: block.text });
     } else if (block.type === 'image') {
