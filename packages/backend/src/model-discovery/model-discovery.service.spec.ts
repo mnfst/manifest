@@ -172,7 +172,7 @@ describe('ModelDiscoveryService', () => {
     });
 
     it('should decrypt key, fetch, enrich, and cache models', async () => {
-      const models = [makeModel({ id: 'gpt-4' })];
+      const models = [makeModel({ id: 'gpt-4', contextWindowSource: 'provider' })];
       fetcher.fetch.mockResolvedValue(models);
 
       const provider = makeProvider();
@@ -183,6 +183,7 @@ describe('ModelDiscoveryService', () => {
       expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined);
       expect(result).toHaveLength(1);
       expect(provider.cached_models).toEqual(result);
+      expect(result[0]).toMatchObject({ contextWindowSource: 'provider' });
       expect(provider.models_fetched_at).toBeDefined();
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
     });
@@ -793,6 +794,61 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].id).toBe('custom:cp-1/custom-llm');
       expect(result[1].provider).toBe('custom:cp-1');
       expect(result[1].displayName).toBe('custom-llm');
+    });
+
+    it('should reconcile a legacy supplemented subscription context window', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'gpt-5.6-sol',
+              displayName: 'gpt-5.6-sol',
+              provider: 'openai',
+              authType: 'subscription',
+              contextWindow: 272_000,
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('tenant-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].contextWindow).toBe(1_050_000);
+      expect(result[0].contextWindowSource).toBe('subscription_config');
+    });
+
+    it('should preserve a provider-native subscription context window', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'gpt-5.6-sol',
+              displayName: 'gpt-5.6-sol',
+              provider: 'openai',
+              authType: 'subscription',
+              contextWindow: 640_000,
+              contextWindowSource: 'provider',
+              inputPricePerToken: 0,
+              outputPricePerToken: 0,
+            }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('tenant-1');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].contextWindow).toBe(640_000);
+      expect(result[0].contextWindowSource).toBe('provider');
     });
 
     it('should filter stale unsupported OpenAI subscription cached models', async () => {

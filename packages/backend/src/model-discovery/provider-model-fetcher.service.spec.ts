@@ -2464,6 +2464,7 @@ describe('ProviderModelFetcherService', () => {
           displayName: 'GPT-5.5',
           provider: 'openai',
           contextWindow: 192000,
+          contextWindowSource: 'provider',
           inputPricePerToken: 0,
           outputPricePerToken: 0,
           capabilityCode: true,

@@ -2,6 +2,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -353,9 +354,130 @@ describe('buildSubscriptionFallbackModels', () => {
       'MiniMax-M2',
     ]);
   });
+
+  it('uses the route-specific configured context windows for GPT-5.6 subscriptions', () => {
+    const models = buildSubscriptionFallbackModels('openai');
+
+    expect(
+      models
+        .filter((candidate) => candidate.id.startsWith('gpt-5.6-'))
+        .map((candidate) => [candidate.id, candidate.contextWindow]),
+    ).toEqual([
+      ['gpt-5.6-sol', 1050000],
+      ['gpt-5.6-terra', 1050000],
+      ['gpt-5.6-luna', 1050000],
+    ]);
+  });
+});
+
+describe('reconcileCachedSubscriptionContextWindow', () => {
+  // A stale curated row as a 272K-era refresh would have persisted it; the
+  // current configuration restores the documented 1.05M window.
+  const cachedModel = {
+    id: 'gpt-5.6-sol',
+    displayName: 'gpt-5.6-sol',
+    provider: 'openai',
+    contextWindow: 272000,
+    inputPricePerToken: 0,
+    outputPricePerToken: 0,
+    capabilityReasoning: false,
+    capabilityCode: false,
+    qualityScore: 3,
+  };
+
+  it('corrects a legacy curated model using the current subscription configuration', () => {
+    expect(reconcileCachedSubscriptionContextWindow(cachedModel, 'openai')).toMatchObject({
+      contextWindow: 1050000,
+      contextWindowSource: 'subscription_config',
+    });
+  });
+
+  it('preserves provider-native context metadata', () => {
+    const providerModel = {
+      ...cachedModel,
+      contextWindow: 640000,
+      contextWindowSource: 'provider' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(providerModel, 'openai')).toBe(providerModel);
+  });
+
+  it('preserves models for providers without a curated catalog', () => {
+    expect(reconcileCachedSubscriptionContextWindow(cachedModel, 'unknown-provider')).toBe(
+      cachedModel,
+    );
+  });
+
+  it('preserves models outside the curated catalog', () => {
+    const unknownModel = { ...cachedModel, id: 'unlisted-model', displayName: 'unlisted-model' };
+
+    expect(reconcileCachedSubscriptionContextWindow(unknownModel, 'openai')).toBe(unknownModel);
+  });
+
+  it('does not infer provenance for provider-shaped legacy rows', () => {
+    const providerShapedModel = {
+      ...cachedModel,
+      contextWindow: 640000,
+      displayName: 'GPT-5.6 Sol',
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(providerShapedModel, 'openai')).toBe(
+      providerShapedModel,
+    );
+  });
+
+  it('does not infer legacy provenance for other subscription providers', () => {
+    const ambiguousMoonshotModel = {
+      ...cachedModel,
+      id: 'k3',
+      displayName: 'k3',
+      provider: 'moonshot',
+      contextWindow: 640000,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(ambiguousMoonshotModel, 'moonshot')).toBe(
+      ambiguousMoonshotModel,
+    );
+  });
+
+  it('reconciles explicitly tagged subscription configuration for other providers', () => {
+    const configuredMoonshotModel = {
+      ...cachedModel,
+      id: 'k3',
+      displayName: 'k3',
+      provider: 'moonshot',
+      contextWindow: 640000,
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(
+      reconcileCachedSubscriptionContextWindow(configuredMoonshotModel, 'moonshot'),
+    ).toMatchObject({
+      contextWindow: 1048576,
+      contextWindowSource: 'subscription_config',
+    });
+  });
+
+  it('keeps an already-current configured row unchanged', () => {
+    const currentModel = {
+      ...cachedModel,
+      contextWindow: 1050000,
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(currentModel, 'openai')).toBe(currentModel);
+  });
 });
 
 describe('supplementWithKnownModels', () => {
+  it('tags supplemented models with subscription configuration provenance', () => {
+    const result = supplementWithKnownModels([], 'openai');
+
+    expect(result.find((model) => model.id === 'gpt-5.6-sol')).toMatchObject({
+      contextWindowSource: 'subscription_config',
+    });
+  });
+
   it('should return raw list unchanged for providers with no known models', () => {
     const raw = [
       {

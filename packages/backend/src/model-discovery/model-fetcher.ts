@@ -28,6 +28,8 @@ export interface DiscoveredModel {
   displayName: string;
   provider: string;
   contextWindow: number;
+  /** Origin of the context limit, retained in cached_models for safe reconciliation. */
+  contextWindowSource?: 'provider' | 'subscription_config';
   inputPricePerToken: number | null;
   outputPricePerToken: number | null;
   cacheReadPricePerToken?: number;

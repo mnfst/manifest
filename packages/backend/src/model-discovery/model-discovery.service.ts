@@ -38,6 +38,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
@@ -551,7 +552,11 @@ export class ModelDiscoveryService {
       const providerId = p.provider.toLowerCase();
       const filterKey = nonChatFilterKey(providerId, providerAuthType);
       const cached = filterNonChatModels(rawCached, filterKey);
-      for (const m of cached) {
+      for (const cachedModel of cached) {
+        const m =
+          providerAuthType === 'subscription'
+            ? reconcileCachedSubscriptionContextWindow(cachedModel, p.provider)
+            : cachedModel;
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by the routable tuple, not just model ID. Multiple
         // providers can expose the same native model name, and the picker must

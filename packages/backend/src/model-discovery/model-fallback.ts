@@ -296,6 +296,7 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
     displayName: modelId,
     provider: providerId,
     contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
+    contextWindowSource: 'subscription_config',
     inputPricePerToken: 0,
     outputPricePerToken: 0,
     capabilityReasoning: false,
@@ -305,9 +306,64 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
 }
 
 /**
- * Supplement discovered models with knownModels from subscription-capabilities.
- * Ensures subscription users always have the known models available as selectable options,
- * even if the live provider API did not return them.
+ * Reconcile persisted subscription-config context windows without overriding
+ * context metadata returned by the provider's native model catalog.
+ */
+export function reconcileCachedSubscriptionContextWindow(
+  model: DiscoveredModel,
+  providerId: string,
+): DiscoveredModel {
+  if (model.contextWindowSource === 'provider') return model;
+
+  const knownModels = getSubscriptionKnownModels(providerId);
+  if (!knownModels) return model;
+  const matchMode = getSubscriptionKnownModelsMatch(providerId);
+  const normalizedModelId = model.id.toLowerCase();
+  const isKnownModel = knownModels.some((knownModel) => {
+    const normalizedKnownModel = knownModel.toLowerCase();
+    if (normalizedKnownModel === normalizedModelId) return true;
+    return matchMode !== 'exact' && normalizedModelId.startsWith(`${normalizedKnownModel}-`);
+  });
+  if (!isKnownModel) return model;
+
+  const capabilities = getSubscriptionCapabilities(providerId);
+  const hasExplicitContextWindow = Object.keys(capabilities?.modelContextWindows ?? {}).some(
+    (configuredModelId) => {
+      const normalizedConfiguredModelId = configuredModelId.toLowerCase();
+      return (
+        normalizedModelId === normalizedConfiguredModelId ||
+        normalizedModelId.startsWith(`${normalizedConfiguredModelId}-`)
+      );
+    },
+  );
+  const expectedContextWindow = resolveSubscriptionContextWindow(
+    model.id,
+    capabilities?.maxContextWindow ?? 200000,
+    capabilities,
+  );
+  const isLegacySupplementedModel =
+    providerId.toLowerCase() === 'openai' &&
+    model.contextWindowSource === undefined &&
+    hasExplicitContextWindow &&
+    model.displayName === model.id &&
+    model.inputPricePerToken === 0 &&
+    model.outputPricePerToken === 0;
+
+  if (model.contextWindowSource !== 'subscription_config' && !isLegacySupplementedModel) {
+    return model;
+  }
+  if (model.contextWindow === expectedContextWindow) return model;
+
+  return {
+    ...model,
+    contextWindow: expectedContextWindow,
+    contextWindowSource: 'subscription_config',
+  };
+}
+
+/**
+ * Supplement discovered models with knownModels from subscription capabilities.
+ * Ensures subscription users can select known models omitted by the live provider API.
  */
 export function supplementWithKnownModels(
   raw: DiscoveredModel[],
@@ -335,6 +391,7 @@ export function supplementWithKnownModels(
       displayName: modelId,
       provider: providerId,
       contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
+      contextWindowSource: 'subscription_config',
       inputPricePerToken: 0,
       outputPricePerToken: 0,
       capabilityReasoning: false,
