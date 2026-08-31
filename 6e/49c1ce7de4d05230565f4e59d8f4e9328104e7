@@ -1,0 +1,28 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_51fabf5e0e734b::t_6c89b7d31728c2 1699-1730,1732-1734,1736-1738
+  s_51fabf5e0e734b::t_c7e3841f450a5d 1731
+  s_51fabf5e0e734b::t_74a90c1711ea75 1735
+  s_51fabf5e0e734b::t_b839948b00d03e 1739-1740
+.changeset/subscription-context-windows.md
+  s_51fabf5e0e734b::t_6c89b7d31728c2 1-5
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_51fabf5e0e734b::t_e6aefec3de370f 41,317,321-325,786
+packages/backend/src/model-discovery/model-fallback.ts
+  s_51fabf5e0e734b::t_d90f67d367d248 307-318
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "6e49c1ce7de4d05230565f4e59d8f4e9328104e7",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
