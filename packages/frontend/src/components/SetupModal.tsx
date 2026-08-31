@@ -57,7 +57,7 @@ const SetupModal: Component<{
                   alt=""
                   width="28"
                   height="28"
-                  class="setup-modal__platform-icon"
+                  class="platform-icon setup-modal__platform-icon"
                 />
               </Show>
               <span class="setup-modal__title-text">

@@ -84,15 +84,6 @@
   flex-shrink: 0;
 }
 
-.dark .setup-modal__platform-icon[src*='openai'],
-.dark .setup-modal__platform-icon[src*='anthropic'],
-.dark .setup-modal__platform-icon[src*='vercel'],
-.dark .setup-modal__platform-icon[src*='opencode'],
-.dark .setup-modal__platform-icon[src*='hermes'],
-.dark .setup-modal__platform-icon[src*='other'] {
-  filter: invert(1);
-}
-
 .setup-modal__nav {
   display: flex;
   justify-content: flex-end;
