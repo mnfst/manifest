@@ -244,14 +244,7 @@ describe('getSubscriptionProviderConfig', () => {
 
   it('publishes the curated xai subscription models', () => {
     const config = getSubscriptionProviderConfig('xai');
-    expect(config?.knownModels).toEqual([
-      'grok-4.6',
-      'grok-4.5',
-      'grok-4.3',
-      'grok-4.20-0309-reasoning',
-      'grok-4.20-0309-non-reasoning',
-      'grok-build-0.1',
-    ]);
+    expect(config?.knownModels).toEqual(['grok-4.6', 'grok-4.5']);
   });
 
   it('returns config for gemini', () => {
@@ -440,14 +433,7 @@ describe('getSubscriptionKnownModels', () => {
 
   it('returns known models for xai', () => {
     const models = getSubscriptionKnownModels('xai');
-    expect(models).toEqual([
-      'grok-4.6',
-      'grok-4.5',
-      'grok-4.3',
-      'grok-4.20-0309-reasoning',
-      'grok-4.20-0309-non-reasoning',
-      'grok-build-0.1',
-    ]);
+    expect(models).toEqual(['grok-4.6', 'grok-4.5']);
   });
 
   it('returns null for unsupported providers', () => {
@@ -615,7 +601,7 @@ describe('getSubscriptionCapabilities', () => {
   it('returns capabilities for xai', () => {
     const caps = getSubscriptionCapabilities('xai');
     expect(caps).toMatchObject({
-      maxContextWindow: 128000,
+      maxContextWindow: 500000,
       supportsPromptCaching: true,
       supportsBatching: false,
     });
