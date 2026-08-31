@@ -233,6 +233,19 @@ function applyHashedPromptCacheKey(
   body.prompt_cache_key = buildPromptCacheKey(trimmedCacheKey);
 }
 
+// Anthropic metadata.user_id identifies the caller. OpenAI metadata instead
+// annotates stored completions, so the equivalent OpenAI field is safety_identifier.
+function applyAnthropicUserIdForOpenAi(body: Record<string, unknown>): void {
+  const metadata = isRecord(body.metadata) ? body.metadata : undefined;
+  delete body.metadata;
+
+  const userId = metadata?.user_id;
+  if (typeof userId !== 'string' || !userId) return;
+
+  body.safety_identifier =
+    userId.length <= 64 ? userId : createHash('sha256').update(userId).digest('hex');
+}
+
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
   const normalized = model.toLowerCase().replace(/^~/, '');
   if (normalized.startsWith('anthropic/')) return 'anthropic';
@@ -767,6 +780,7 @@ export class ProviderClient {
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'openai') {
+      if (ctx.apiMode === 'messages') applyAnthropicUserIdForOpenAi(requestBody);
       applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'mistral') {

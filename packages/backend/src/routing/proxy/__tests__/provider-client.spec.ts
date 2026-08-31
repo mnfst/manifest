@@ -1099,6 +1099,65 @@ describe('ProviderClient', () => {
       expect(resolveChatBody).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      ['keeps a short identifier', 'user-123', 'user-123'],
+      [
+        'hashes an identifier longer than OpenAI allows',
+        'anthropic-user-id-that-is-longer-than-the-openai-sixty-four-character-limit',
+        '6415270ed2d8147603f504ee756f5d658dfdb277685889ddd9c09d5a64579699',
+      ],
+    ])('%s when translating Anthropic metadata to OpenAI', async (_label, userId, expected) => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const resolveChatBody = jest.fn().mockResolvedValue({
+        messages: [{ role: 'user', content: 'hi' }],
+        metadata: { user_id: userId },
+      });
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: {
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: 'hi' }],
+          metadata: { user_id: userId },
+        },
+        resolveChatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.safety_identifier).toBe(expected);
+      expect(sentBody.metadata).toBeUndefined();
+      expect(sentBody.store).toBeUndefined();
+    });
+
+    it('drops Anthropic metadata that has no usable OpenAI safety identifier', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: {
+          model: 'gpt-4o',
+          messages: [{ role: 'user', content: 'hi' }],
+          metadata: { user_id: '' },
+        },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'hi' }],
+          metadata: { user_id: '' },
+        }),
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.metadata).toBeUndefined();
+      expect(sentBody.safety_identifier).toBeUndefined();
+    });
+
     it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1112,6 +1171,7 @@ describe('ProviderClient', () => {
           { name: 'my_custom', input_schema: { type: 'object' } },
         ],
         top_k: 40,
+        metadata: { user_id: 'anthropic-user' },
       };
       // This is what the routing layer would derive. Pass it as a resolver to
       // prove the native wire path never asks for it.
@@ -1151,6 +1211,7 @@ describe('ProviderClient', () => {
       expect(sent.tools[1].cache_control).toEqual({ type: 'ephemeral' });
       // Anthropic-only fields survive verbatim.
       expect(sent.top_k).toBe(40);
+      expect(sent.metadata).toEqual({ user_id: 'anthropic-user' });
       // System was promoted to a block array and got the cache_control breakpoint.
       expect(sent.system).toEqual([
         { type: 'text', text: 'Be concise.', cache_control: { type: 'ephemeral' } },
@@ -4582,6 +4643,7 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBe(false);
       expect(sentBody.max_completion_tokens).toBe(8192);
       expect(sentBody.metadata).toEqual({ user: 'test' });
+      expect(sentBody.safety_identifier).toBeUndefined();
     });
 
     it('preserves all fields for OpenRouter', async () => {
