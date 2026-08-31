@@ -1,0 +1,23 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_51fabf5e0e734b::t_8eb1191c4c0331 316,780
+packages/shared/__tests__/subscription.spec.ts
+  s_51fabf5e0e734b::t_79c7e2eafb4f3b 523
+packages/shared/src/subscription/configs.ts
+  s_51fabf5e0e734b::t_5910b20c8b9763 75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e58383d506dc3b7661c031295c332964b52aff63",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
