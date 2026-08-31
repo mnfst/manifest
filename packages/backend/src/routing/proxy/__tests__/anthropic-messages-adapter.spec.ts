@@ -214,6 +214,61 @@ describe('Anthropic Messages adapter', () => {
       ]);
     });
 
+    it('keeps parallel tool results contiguous and emits their images once, after the group', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_1',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'AAAA' },
+                  },
+                ],
+              },
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_2',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'BBBB' },
+                  },
+                ],
+              },
+              { type: 'text', text: 'both screenshots above' },
+            ],
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'tool',
+          tool_call_id: 'tu_1',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'tool',
+          tool_call_id: 'tu_2',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,BBBB' } },
+          ],
+        },
+        { role: 'user', content: 'both screenshots above' },
+      ]);
+    });
+
     it('keeps url-sourced tool_result images and leaves unconvertible image blocks in place', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [

@@ -176,6 +176,7 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
 
   const messages: OpenAIMessage[] = [];
   let pendingParts: JsonRecord[] = [];
+  let pendingToolImages: JsonRecord[] = [];
 
   const flushPendingUser = () => {
     if (pendingParts.length === 0) return;
@@ -189,6 +190,22 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
     pendingParts = [];
   };
 
+  // Images extracted from tool_results are emitted as ONE user message after
+  // the contiguous tool-message group: every role:tool message must directly
+  // follow the assistant tool_calls turn or a sibling tool message, so a user
+  // message may never be interleaved between parallel tool results.
+  const flushToolImages = () => {
+    if (pendingToolImages.length === 0) return;
+    messages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Images from the preceding tool result:' },
+        ...pendingToolImages,
+      ],
+    });
+    pendingToolImages = [];
+  };
+
   for (const block of content) {
     if (!isRecord(block)) continue;
     if (block.type === 'tool_result') {
@@ -199,22 +216,17 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
         tool_call_id: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
         content: toolContent,
       });
-      if (imageParts.length > 0) {
-        messages.push({
-          role: 'user',
-          content: [
-            { type: 'text', text: 'Images from the preceding tool result:' },
-            ...imageParts,
-          ],
-        });
-      }
+      pendingToolImages.push(...imageParts);
     } else if (block.type === 'text' && typeof block.text === 'string') {
+      flushToolImages();
       pendingParts.push({ type: 'text', text: block.text });
     } else if (block.type === 'image') {
+      flushToolImages();
       const part = imageBlockToImagePart(block);
       if (part) pendingParts.push(part);
     }
   }
+  flushToolImages();
   flushPendingUser();
   return messages;
 }
