@@ -1705,6 +1705,12 @@ describe('ModelDiscoveryService', () => {
         makeModel({ id: 'gpt-5.6-terra', contextWindow: 1050000 }),
         makeModel({ id: 'gpt-5.6-luna', contextWindow: 1050000 }),
       ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        name: 'GPT-5.6',
+        inputPricePerToken: 0,
+        outputPricePerToken: 0,
+        contextWindow: 1050000,
+      });
 
       const result = await service.discoverModels(
         makeProvider({ provider: 'openai', auth_type: 'subscription' }),

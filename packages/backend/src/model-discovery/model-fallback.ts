@@ -304,38 +304,45 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
   }));
 }
 
+export function applySubscriptionContextWindows<T extends DiscoveredModel>(
+  models: T[],
+  providerId: string,
+): T[] {
+  const capabilities = getSubscriptionCapabilities(providerId);
+  if (!capabilities) return models;
+  return models.map((model) => ({
+    ...model,
+    contextWindow: resolveSubscriptionContextWindow(model.id, model.contextWindow, capabilities),
+  }));
+}
+
 /**
- * Reconcile discovered subscription models with configured context limits, then
- * supplement missing knownModels so they remain available as selectable options.
+ * Supplement discovered models with knownModels from subscription-capabilities.
+ * Ensures subscription users always have the known models available as selectable options,
+ * even if the live provider API did not return them.
  */
 export function supplementWithKnownModels(
   raw: DiscoveredModel[],
   providerId: string,
 ): DiscoveredModel[] {
   const knownModels = getSubscriptionKnownModels(providerId);
-  const capabilities = getSubscriptionCapabilities(providerId);
-  if (!knownModels && !capabilities) return raw;
-
-  const models = raw.map((model) => ({
-    ...model,
-    contextWindow: resolveSubscriptionContextWindow(model.id, model.contextWindow, capabilities),
-  }));
-  if (!knownModels) return models;
-
+  if (!knownModels) return raw;
   const matchMode = getSubscriptionKnownModelsMatch(providerId);
+
+  const capabilities = getSubscriptionCapabilities(providerId);
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
 
   for (const modelId of knownModels) {
     const lowerModelId = modelId.toLowerCase();
     // Skip if this model is already present. Prefix-mode providers also treat
     // a more specific version (e.g., with a date suffix) as covered.
-    const covered = models.some((m) => {
+    const covered = raw.some((m) => {
       const lowerDiscovered = m.id.toLowerCase();
       if (lowerDiscovered === lowerModelId) return true;
       return matchMode !== 'exact' && lowerDiscovered.startsWith(`${lowerModelId}-`);
     });
     if (covered) continue;
-    models.push({
+    raw.push({
       id: modelId,
       displayName: modelId,
       provider: providerId,
@@ -348,5 +355,5 @@ export function supplementWithKnownModels(
     });
   }
 
-  return models;
+  return raw;
 }

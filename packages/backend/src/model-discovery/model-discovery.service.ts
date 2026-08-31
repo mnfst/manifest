@@ -38,6 +38,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  applySubscriptionContextWindows,
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
@@ -313,10 +314,13 @@ export class ModelDiscoveryService {
     // narrowing to the two legacy values would drop the 'local' tag that the
     // frontend uses to render the house badge and the Local tab.
     const authType: AuthType = provider.auth_type;
-    const enriched = raw.map((model) => ({
+    let enriched = raw.map((model) => ({
       ...this.enrichModel(model, provider.provider),
       authType,
     }));
+    if (provider.auth_type === 'subscription') {
+      enriched = applySubscriptionContextWindows(enriched, provider.provider);
+    }
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
     // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
