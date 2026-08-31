@@ -1137,7 +1137,10 @@ describe('ProviderClient', () => {
       expect(sentBody.store).toBeUndefined();
     });
 
-    it('drops Anthropic metadata that has no usable OpenAI safety identifier', async () => {
+    it.each([
+      ['an empty user ID', { user_id: '' }],
+      ['no metadata object', undefined],
+    ])('drops Anthropic metadata with %s', async (_label, metadata) => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -1147,11 +1150,11 @@ describe('ProviderClient', () => {
         body: {
           model: 'gpt-4o',
           messages: [{ role: 'user', content: 'hi' }],
-          metadata: { user_id: '' },
+          metadata,
         },
         resolveChatBody: async () => ({
           messages: [{ role: 'user', content: 'hi' }],
-          metadata: { user_id: '' },
+          metadata,
         }),
         stream: false,
         apiMode: 'messages',
