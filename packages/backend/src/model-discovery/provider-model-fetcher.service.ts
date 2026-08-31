@@ -70,7 +70,8 @@ interface ModelParserConfig<T> {
   getId: (entry: T) => string;
   getDisplayName: (entry: T, id: string) => string;
   contextWindow?: number | ((entry: T) => number);
-  contextWindowSource?: DiscoveredModel['contextWindowSource'];
+  contextWindowSource?:
+    DiscoveredModel['contextWindowSource'] | ((entry: T) => DiscoveredModel['contextWindowSource']);
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityReasoning?: boolean;
@@ -93,15 +94,17 @@ function createModelParser<T>(
         const entry = m as T;
         const id = config.getId(entry);
         const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        const contextWindowSource =
+          typeof config.contextWindowSource === 'function'
+            ? config.contextWindowSource(entry)
+            : config.contextWindowSource;
         const supportedEndpoints = config.supportedEndpoints?.(entry);
         return {
           id,
           displayName: config.getDisplayName(entry, id),
           provider,
           contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
-          ...(config.contextWindowSource
-            ? { contextWindowSource: config.contextWindowSource }
-            : {}),
+          ...(contextWindowSource ? { contextWindowSource } : {}),
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
           capabilityReasoning: config.capabilityReasoning ?? false,
@@ -740,7 +743,11 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
   getId: (entry) => entry.slug,
   getDisplayName: (entry, id) => entry.display_name || id,
   contextWindow: (entry) => entry.context_window ?? 200000,
-  contextWindowSource: 'provider',
+  // The 200000 above is a parser fallback, not provider metadata: only an
+  // actually reported window is provider-native; the fallback stays owned by
+  // (and reconcilable from) the subscription configuration.
+  contextWindowSource: (entry) =>
+    typeof entry.context_window === 'number' ? 'provider' : 'subscription_config',
   inputPricePerToken: 0,
   outputPricePerToken: 0,
   capabilityCode: true,

@@ -346,6 +346,7 @@ export function reconcileCachedSubscriptionContextWindow(
     model.contextWindowSource === undefined &&
     hasExplicitContextWindow &&
     model.displayName === model.id &&
+    model.capabilityCode === false &&
     model.inputPricePerToken === 0 &&
     model.outputPricePerToken === 0;
 

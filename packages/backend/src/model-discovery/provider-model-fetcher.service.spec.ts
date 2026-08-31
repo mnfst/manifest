@@ -2474,6 +2474,31 @@ describe('ProviderModelFetcherService', () => {
       expect(result[1].id).toBe('gpt-5.4');
     });
 
+    it('does not tag the parser context-window fallback as provider-native', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              slug: 'gpt-5.5',
+              display_name: 'GPT-5.5',
+              visibility: 'list',
+              supported_in_api: true,
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openai', 'oauth-token', 'subscription');
+      expect(result[0]).toEqual(
+        expect.objectContaining({
+          id: 'gpt-5.5',
+          contextWindow: 200000,
+          contextWindowSource: 'subscription_config',
+        }),
+      );
+    });
+
     it('should filter ChatGPT-account unsupported Codex models from the models response', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,

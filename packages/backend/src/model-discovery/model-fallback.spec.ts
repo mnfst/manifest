@@ -426,6 +426,21 @@ describe('reconcileCachedSubscriptionContextWindow', () => {
     );
   });
 
+  it('does not infer legacy provenance for provider-fetched rows whose display name fell back to the id', () => {
+    // A pre-provenance row from the Codex models API whose display_name was
+    // absent looks id-named and zero-priced, exactly like a supplemented row -
+    // but the fetch parser marks capabilityCode true, the supplement path false.
+    const providerFetchedModel = {
+      ...cachedModel,
+      contextWindow: 640000,
+      capabilityCode: true,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(providerFetchedModel, 'openai')).toBe(
+      providerFetchedModel,
+    );
+  });
+
   it('does not infer legacy provenance for other subscription providers', () => {
     const ambiguousMoonshotModel = {
       ...cachedModel,
