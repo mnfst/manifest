@@ -1,0 +1,31 @@
+CLAUDE.md
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 411
+packages/backend/.env.example
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 60-61
+packages/backend/src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 6,9,15-19,273-305
+.changeset/configurable-concurrency-limit.md
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 1-5
+docker/.env.example
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 81-83
+docker/docker-compose.yml
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 74-75
+packages/backend/src/routing/proxy/proxy-rate-limiter.ts
+  s_51fabf5e0e734b::t_0dd4cb93b9bcbc 3,9,22-23,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7c0cc51f719f8e5b1a6ca9f860568635a4aa14b4",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
