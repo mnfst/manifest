@@ -28,6 +28,8 @@ interface Props {
    * Used by the header-tier "How to send this" modal.
    */
   customHeaders?: Record<string, string>;
+  /** Model id rendered in request snippets. Defaults to Manifest's `auto`. */
+  model?: string;
 }
 
 const EyeOpen: Component = () => (
@@ -104,6 +106,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
       openaiLang(),
       props.customHeaders,
       openaiApi(),
+      props.model,
     );
   const snippetForCopy = () =>
     getSnippetForToolkit(
@@ -113,6 +116,7 @@ const FrameworkSnippets: Component<Props> = (props) => {
       openaiLang(),
       props.customHeaders,
       openaiApi(),
+      props.model,
     );
   const language = () => getLangForToolkit(activeTab(), openaiLang());
 
@@ -243,8 +247,8 @@ const FrameworkSnippets: Component<Props> = (props) => {
         <div class="setup-onboard-fields__row" role="listitem">
           <span class="setup-onboard-fields__label">Model</span>
           <span class="setup-onboard-fields__value">
-            <code>auto</code>
-            <CopyButton text="auto" />
+            <code>{props.model ?? 'auto'}</code>
+            <CopyButton text={props.model ?? 'auto'} />
           </span>
         </div>
         <For each={headerEntries()}>

@@ -3,6 +3,7 @@ import type { DiscoveredModel } from '../../model-discovery/model-fetcher';
 import { unambiguousRoute } from '../routing-core/route-helpers';
 
 export const OPENAI_MODEL_ID_AUTO = 'auto';
+export const MANIFEST_MODEL_ID_PREFIX = 'manifest/';
 export const SUBSCRIPTION_MODEL_SUFFIX = '-subscription';
 
 export interface ExplicitModelRouteCandidate {
@@ -21,6 +22,16 @@ export function openAiModelId(model: DiscoveredModel): string {
     return routeId;
   }
   return `${routeId}${SUBSCRIPTION_MODEL_SUFFIX}`;
+}
+
+export function manifestModelId(alias: string): string {
+  return `${MANIFEST_MODEL_ID_PREFIX}${alias}`;
+}
+
+export function modelAliasFromManifestId(modelId: string): string | null {
+  if (!modelId.startsWith(MANIFEST_MODEL_ID_PREFIX)) return null;
+  const alias = modelId.slice(MANIFEST_MODEL_ID_PREFIX.length);
+  return alias || null;
 }
 
 /**

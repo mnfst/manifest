@@ -209,6 +209,7 @@ const baseTier: HeaderTier = {
   id: 'ht-1',
   agent_id: 'agent-1',
   name: 'Premium',
+  model_alias: 'premium',
   header_key: 'x-manifest-tier',
   header_value: 'premium',
   badge_color: 'indigo',
@@ -308,6 +309,7 @@ describe('HeaderTierCard', () => {
     expect(container.textContent).toContain('Premium');
     expect(container.textContent).toContain('x-manifest-tier');
     expect(container.textContent).toContain('premium');
+    expect(container.textContent).toContain('manifest/premium');
   });
 
   it('renders the override_route.model display label', () => {
@@ -632,10 +634,10 @@ describe('HeaderTierCard', () => {
     fireEvent.click(kebab);
     expect(container.querySelector('.header-tier-card__menu')).not.toBeNull();
     const items = Array.from(container.querySelectorAll('.header-tier-card__menu-item'));
-    expect(items.map((b) => b.textContent)).toEqual(['Send this header', 'Edit tier', 'Disable']);
+    expect(items.map((b) => b.textContent)).toEqual(['How to route', 'Edit tier', 'Disable']);
   });
 
-  it('opens the snippet modal when Send this header is clicked', () => {
+  it('opens the snippet modal when How to route is clicked', () => {
     const { container, queryByTestId } = render(() => (
       <HeaderTierCard
         agentName="demo"
@@ -650,7 +652,7 @@ describe('HeaderTierCard', () => {
     fireEvent.click(container.querySelector('.header-tier-card__icon-btn') as HTMLButtonElement);
     fireEvent.click(
       Array.from(container.querySelectorAll('.header-tier-card__menu-item')).find((b) =>
-        b.textContent?.includes('Send this header'),
+        b.textContent?.includes('How to route'),
       ) as HTMLButtonElement,
     );
     expect(queryByTestId('snippet-modal')).not.toBeNull();

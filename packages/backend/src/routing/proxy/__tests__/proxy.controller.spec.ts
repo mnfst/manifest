@@ -143,6 +143,8 @@ describe('ProxyController', () => {
   };
   let mockPricingCache: { getByModel: jest.Mock };
   let modelDiscovery: { getModelsForAgent: jest.Mock };
+  let headerTierService: { list: jest.Mock };
+  let resolveService: { isCustomTierRoutable: jest.Mock };
   let providerParamSpecs: { getCapabilities: jest.Mock };
   let modelsDevSync: { lookupModelCapabilities: jest.Mock };
   let recorder: ProxyMessageRecorder;
@@ -187,6 +189,8 @@ describe('ProxyController', () => {
     modelDiscovery = {
       getModelsForAgent: jest.fn().mockResolvedValue([]),
     };
+    headerTierService = { list: jest.fn().mockResolvedValue([]) };
+    resolveService = { isCustomTierRoutable: jest.fn().mockResolvedValue(true) };
     providerParamSpecs = { getCapabilities: jest.fn().mockResolvedValue(null) };
     modelsDevSync = { lookupModelCapabilities: jest.fn().mockReturnValue(null) };
     observationReporter = { report: jest.fn() };
@@ -224,6 +228,8 @@ describe('ProxyController', () => {
       new ThinkingBlockCache(),
       new ReasoningContentCache(),
       modelDiscovery as never,
+      headerTierService as never,
+      resolveService as never,
       planService as never,
       observationReporter as never,
       providerParamSpecs as never,
@@ -250,6 +256,50 @@ describe('ProxyController', () => {
       ],
     });
     expect(modelDiscovery.getModelsForAgent).toHaveBeenCalledWith('tenant-1', 'agent-1');
+    expect(headerTierService.list).toHaveBeenCalledWith('agent-1');
+  });
+
+  it('should include enabled custom-tier aliases with a configured primary route', async () => {
+    resolveService.isCustomTierRoutable.mockImplementation(
+      async (_agentId: string, _tenantId: string, tier: { model_alias: string }) =>
+        tier.model_alias === 'free',
+    );
+    headerTierService.list.mockResolvedValue([
+      {
+        model_alias: 'free',
+        enabled: true,
+        override_route: { provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' },
+        fallback_routes: null,
+      },
+      {
+        model_alias: 'unavailable',
+        enabled: true,
+        override_route: { provider: 'openai', authType: 'api_key', model: 'missing' },
+        fallback_routes: null,
+      },
+      {
+        model_alias: 'fallback-only',
+        enabled: true,
+        override_route: null,
+        fallback_routes: [{ provider: 'openai', authType: 'api_key', model: 'gpt-4o-mini' }],
+      },
+      { model_alias: 'disabled', enabled: false, override_route: {}, fallback_routes: null },
+      { model_alias: null, enabled: true, override_route: {}, fallback_routes: null },
+      { model_alias: 'empty', enabled: true, override_route: null, fallback_routes: null },
+    ]);
+
+    const result = await controller.models(mockRequest({}) as never);
+
+    expect(result.data).toEqual([
+      { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+      { id: 'manifest/free', object: 'model', created: 0, owned_by: 'manifest' },
+    ]);
+    expect(resolveService.isCustomTierRoutable).toHaveBeenCalledTimes(4);
+    expect(resolveService.isCustomTierRoutable).toHaveBeenCalledWith(
+      'agent-1',
+      'tenant-1',
+      expect.objectContaining({ model_alias: 'free' }),
+    );
   });
 
   it('should include authenticated agent models using provider-qualified ids', async () => {

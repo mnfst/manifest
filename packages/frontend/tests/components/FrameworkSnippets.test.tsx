@@ -410,6 +410,14 @@ describe("FrameworkSnippets", () => {
     expect(container.textContent).not.toContain("Header x-");
   });
 
+  it("renders a custom model in the snippet and connection details", () => {
+    const { container } = render(() => (
+      <FrameworkSnippets {...defaultProps} model="manifest/free" />
+    ));
+    expect(container.textContent).toContain('model="manifest/free"');
+    expect(container.textContent).toContain("manifest/free");
+  });
+
   it("weaves customHeaders into the snippet code (defaultHeaders for OpenAI TS)", () => {
     const { container } = render(() => (
       <FrameworkSnippets

@@ -12,6 +12,7 @@ vi.mock("../../src/components/FrameworkSnippets.jsx", () => ({
     baseUrl: string;
     apiKey?: string | null;
     keyPrefix?: string | null;
+    model?: string;
   }) => (
     <div data-testid="framework-snippets">
       <div data-testid="snippets-base-url">{props.baseUrl}</div>
@@ -20,6 +21,7 @@ vi.mock("../../src/components/FrameworkSnippets.jsx", () => ({
       </div>
       <div data-testid="snippets-api-key">{props.apiKey ?? "null"}</div>
       <div data-testid="snippets-key-prefix">{props.keyPrefix ?? "null"}</div>
+      <div data-testid="snippets-model">{props.model ?? "auto"}</div>
     </div>
   ),
 }));
@@ -31,6 +33,7 @@ const baseTier: HeaderTier = {
   id: "ht-1",
   agent_id: "agent-1",
   name: "Premium",
+  model_alias: null,
   header_key: "x-manifest-tier",
   header_value: "premium",
   badge_color: "indigo",
@@ -86,6 +89,19 @@ describe("HeaderTierSnippetModal", () => {
       string
     >;
     expect(headers).toEqual({ "x-manifest-tier": "premium" });
+  });
+
+  it("uses the stable model alias instead of a custom header when configured", () => {
+    const tier = { ...baseTier, model_alias: "premium" };
+    const { getByTestId, container } = render(() => (
+      <HeaderTierSnippetModal agentName="demo" tier={tier} onClose={vi.fn()} />
+    ));
+
+    expect(getByTestId("snippets-model").textContent).toBe("manifest/premium");
+    expect(getByTestId("snippets-custom-headers").textContent).toBe("null");
+    expect(container.querySelector(".modal-card__desc")?.textContent).toContain(
+      "manifest/premium",
+    );
   });
 
   it("uses window.location.origin + /v1 as the base URL on non-app.manifest.build hosts", () => {

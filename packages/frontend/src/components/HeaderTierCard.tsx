@@ -310,7 +310,7 @@ const HeaderTierCard: Component<Props> = (props) => {
                     setSnippetOpen(true);
                   }}
                 >
-                  Send this header
+                  How to route
                 </button>
                 <Show when={props.onEdit}>
                   <button
@@ -372,12 +372,21 @@ const HeaderTierCard: Component<Props> = (props) => {
         </Show>
       </div>
 
-      <code
-        class="header-tier-card__rule"
-        title={`${props.tier.header_key}: ${props.tier.header_value}`}
-      >
-        {props.tier.header_key}: {props.tier.header_value}
-      </code>
+      <div class="header-tier-card__rules">
+        <Show when={props.tier.model_alias}>
+          {(alias) => (
+            <code class="header-tier-card__rule" title={`model: manifest/${alias()}`}>
+              model: manifest/{alias()}
+            </code>
+          )}
+        </Show>
+        <code
+          class="header-tier-card__rule"
+          title={`${props.tier.header_key}: ${props.tier.header_value}`}
+        >
+          {props.tier.header_key}: {props.tier.header_value}
+        </code>
+      </div>
 
       <div class="routing-card__body">
         <Show when={currentModel()}>

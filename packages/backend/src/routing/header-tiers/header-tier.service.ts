@@ -29,11 +29,14 @@ export const RESERVED_HEADER_KEYS = new Set<string>([
 ]);
 
 const HEADER_KEY_RE = /^[a-z0-9-]+$/;
+export const MODEL_ALIAS_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_NAME_LEN = 32;
+export const MAX_MODEL_ALIAS_LEN = 48;
 const MAX_HEADER_VALUE_LEN = 128;
 
 export interface CreateHeaderTierInput {
   name: string;
+  model_alias?: string | null;
   header_key: string;
   header_value: string;
   badge_color: TierColor;
@@ -41,6 +44,7 @@ export interface CreateHeaderTierInput {
 
 export interface UpdateHeaderTierInput {
   name?: string;
+  model_alias?: string | null;
   header_key?: string;
   header_value?: string;
   badge_color?: TierColor;
@@ -72,12 +76,14 @@ export class HeaderTierService {
     input: CreateHeaderTierInput,
   ): Promise<HeaderTier> {
     const name = this.validateName(input.name);
+    const modelAlias = this.validateModelAlias(input.model_alias);
     const headerKey = this.validateHeaderKey(input.header_key);
     const headerValue = this.validateHeaderValue(input.header_value);
     const badgeColor = this.validateColor(input.badge_color);
 
     const existing = await this.repo.find({ where: { agent_id: agentId } });
     this.assertNameAvailable(existing, name);
+    this.assertModelAliasAvailable(existing, modelAlias);
     this.assertRuleAvailable(existing, headerKey, headerValue);
 
     const nextOrder =
@@ -89,6 +95,7 @@ export class HeaderTierService {
       tenant_id: tenantId,
       agent_id: agentId,
       name,
+      model_alias: modelAlias,
       header_key: headerKey,
       header_value: headerValue,
       badge_color: badgeColor,
@@ -116,6 +123,9 @@ export class HeaderTierService {
       this.assertNameAvailable(siblings, next);
       row.name = next;
     }
+    if (patch.model_alias !== undefined) {
+      row.model_alias = this.validateModelAlias(patch.model_alias);
+    }
     if (patch.header_key !== undefined) {
       row.header_key = this.validateHeaderKey(patch.header_key);
     }
@@ -125,6 +135,7 @@ export class HeaderTierService {
     if (patch.badge_color !== undefined) {
       row.badge_color = this.validateColor(patch.badge_color);
     }
+    this.assertModelAliasAvailable(siblings, row.model_alias);
     this.assertRuleAvailable(siblings, row.header_key, row.header_value);
     row.updated_at = new Date().toISOString();
     await this.repo.save(row);
@@ -351,6 +362,28 @@ export class HeaderTierService {
     return name;
   }
 
+  private validateModelAlias(raw: unknown): string | null {
+    if (raw !== null && raw !== undefined && typeof raw !== 'string') {
+      throw new BadRequestException('Model alias must be a string');
+    }
+    const alias = (raw ?? '').trim();
+    if (!alias) return null;
+    if (alias.length > MAX_MODEL_ALIAS_LEN) {
+      throw new BadRequestException(
+        `Model alias must be ${MAX_MODEL_ALIAS_LEN} characters or fewer`,
+      );
+    }
+    if (alias === 'auto') {
+      throw new BadRequestException('The model alias "auto" is reserved by Manifest');
+    }
+    if (!MODEL_ALIAS_RE.test(alias)) {
+      throw new BadRequestException(
+        'Model alias can only contain lowercase letters, numbers, and single hyphens',
+      );
+    }
+    return alias;
+  }
+
   private validateHeaderKey(raw: string): string {
     const key = (raw ?? '').trim().toLowerCase();
     if (!key) throw new BadRequestException('Header key is required');
@@ -389,6 +422,12 @@ export class HeaderTierService {
     const lower = name.toLowerCase();
     if (existing.some((t) => t.name.toLowerCase() === lower)) {
       throw new BadRequestException('A tier with this name already exists');
+    }
+  }
+
+  private assertModelAliasAvailable(existing: HeaderTier[], alias: string | null): void {
+    if (alias && existing.some((t) => t.model_alias === alias)) {
+      throw new BadRequestException('Another tier already uses this model alias');
     }
   }
 

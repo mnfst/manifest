@@ -86,7 +86,12 @@ describe('ProxyService — orchestration', () => {
   let resolveService: jest.Mocked<
     Pick<
       ResolveService,
-      'resolve' | 'resolveLazy' | 'resolveForTier' | 'resolveHeaderTier' | 'pinRouteKeyLabel'
+      | 'resolve'
+      | 'resolveLazy'
+      | 'resolveForTier'
+      | 'resolveHeaderTier'
+      | 'resolveModelAlias'
+      | 'pinRouteKeyLabel'
     >
   >;
   let providerKeyService: jest.Mocked<
@@ -144,6 +149,7 @@ describe('ProxyService — orchestration', () => {
       }),
       resolveForTier: jest.fn(),
       resolveHeaderTier: jest.fn().mockResolvedValue(null),
+      resolveModelAlias: jest.fn().mockResolvedValue(null),
       // Default: no connection pin configured — the route passes through.
       // Tests that exercise pinning override this per case.
       pinRouteKeyLabel: jest.fn(async (_agentId, _tenantId, route: ModelRoute) => route),
@@ -1260,6 +1266,54 @@ describe('ProxyService — orchestration', () => {
         }),
       );
     });
+
+    it('routes a custom model alias ahead of a conflicting header rule', async () => {
+      resolveService.resolveModelAlias.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'api_key', 'gpt-4o-mini'),
+        fallback_routes: [route('anthropic', 'api_key', 'claude-haiku-4-5')],
+        confidence: 1,
+        score: 0,
+        reason: 'model-alias',
+        header_tier_id: 'ht-free',
+        header_tier_name: 'Free',
+      });
+
+      const result = await svc.proxyRequest(
+        baseOpts({
+          body: { model: 'manifest/free', messages: [{ role: 'user', content: 'hi' }] },
+          headers: { 'x-manifest-tier': 'premium' },
+        }),
+      );
+
+      expect(resolveService.resolveModelAlias).toHaveBeenCalledWith('agent-1', 'tenant-1', 'free');
+      expect(resolveService.resolveHeaderTier).not.toHaveBeenCalled();
+      expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', model: 'gpt-4o-mini' }),
+      );
+      expect(result.meta).toMatchObject({
+        tier: 'standard',
+        reason: 'model-alias',
+        header_tier_id: 'ht-free',
+      });
+    });
+
+    it.each(['manifest/missing', 'manifest/auto', 'manifest/'])(
+      'returns model-not-available for the unknown or reserved alias %s',
+      async (model) => {
+        const result = await svc.proxyRequest(
+          baseOpts({ body: { model, messages: [{ role: 'user', content: 'hi' }] } }),
+        );
+        const responseBody = await result.forward.response.text();
+
+        expect(responseBody).toContain('M302');
+        expect(responseBody).toContain(model);
+        expect(modelDiscovery.getModelsForAgent).not.toHaveBeenCalled();
+        expect(providerKeyService.hasRouteCredentials).not.toHaveBeenCalled();
+        expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      },
+    );
 
     it('routes a bare provider-native model name to the one connection carrying it', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([

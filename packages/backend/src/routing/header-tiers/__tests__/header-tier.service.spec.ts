@@ -101,6 +101,7 @@ describe('HeaderTierService', () => {
       expect(repo.insert).toHaveBeenCalledTimes(1);
       expect(result.sort_order).toBe(0);
       expect(result.name).toBe('Premium');
+      expect(result.model_alias).toBeNull();
       expect(result.header_key).toBe('x-tier');
       expect(result.header_value).toBe('premium');
       expect(result.badge_color).toBe('red');
@@ -127,6 +128,52 @@ describe('HeaderTierService', () => {
       await expect(
         svc.create('agent-1', 'tenant-1', validInput({ name: 'a'.repeat(33) })),
       ).rejects.toThrow(/32 characters/);
+    });
+
+    it('stores a valid model alias', async () => {
+      const result = await svc.create(
+        'agent-1',
+        'tenant-1',
+        validInput({ model_alias: 'premium-fast' }),
+      );
+      expect(result.model_alias).toBe('premium-fast');
+    });
+
+    it.each(['auto', 'Premium', 'premium_fast', 'premium--fast', 'manifest/premium'])(
+      'rejects the invalid or reserved model alias %s',
+      async (model_alias) => {
+        await expect(
+          svc.create('agent-1', 'tenant-1', validInput({ model_alias })),
+        ).rejects.toThrow(/model alias/i);
+      },
+    );
+
+    it('rejects oversized model aliases', async () => {
+      await expect(
+        svc.create('agent-1', 'tenant-1', validInput({ model_alias: 'a'.repeat(49) })),
+      ).rejects.toThrow(/48 characters/);
+    });
+
+    it('rejects non-string model aliases', async () => {
+      await expect(
+        svc.create('agent-1', 'tenant-1', validInput({ model_alias: 42 as never })),
+      ).rejects.toThrow('Model alias must be a string');
+    });
+
+    it('rejects a model alias used by a sibling tier', async () => {
+      repo.find.mockResolvedValue([
+        {
+          id: 'h1',
+          name: 'Other',
+          model_alias: 'premium',
+          header_key: 'x',
+          header_value: 'a',
+          sort_order: 0,
+        } as HeaderTier,
+      ]);
+      await expect(
+        svc.create('agent-1', 'tenant-1', validInput({ model_alias: 'premium' })),
+      ).rejects.toThrow(/already uses this model alias/);
     });
 
     it('rejects header keys with disallowed characters', async () => {
@@ -254,6 +301,52 @@ describe('HeaderTierService', () => {
       expect(result.header_key).toBe('x-band');
       expect(result.header_value).toBe('gold');
       expect(result.badge_color).toBe('blue');
+    });
+
+    it('sets and clears a model alias without changing the display name', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        name: 'Premium',
+        model_alias: null,
+        header_key: 'x-tier',
+        header_value: 'old',
+        badge_color: 'red' as TierColor,
+      } as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+      repo.find.mockResolvedValue([row]);
+
+      const withAlias = await svc.update('agent-1', 'h1', { model_alias: 'premium' });
+      expect(withAlias.model_alias).toBe('premium');
+      expect(withAlias.name).toBe('Premium');
+
+      const withoutAlias = await svc.update('agent-1', 'h1', { model_alias: null });
+      expect(withoutAlias.model_alias).toBeNull();
+    });
+
+    it('rejects changing a model alias to a sibling alias', async () => {
+      const row = {
+        id: 'h1',
+        agent_id: 'agent-1',
+        name: 'A',
+        model_alias: 'a',
+        header_key: 'x-tier',
+        header_value: 'a',
+      } as HeaderTier;
+      const sibling = {
+        id: 'h2',
+        agent_id: 'agent-1',
+        name: 'B',
+        model_alias: 'b',
+        header_key: 'x-tier',
+        header_value: 'b',
+      } as HeaderTier;
+      repo.findOne.mockResolvedValue(row);
+      repo.find.mockResolvedValue([row, sibling]);
+
+      await expect(svc.update('agent-1', 'h1', { model_alias: 'b' })).rejects.toThrow(
+        /already uses this model alias/,
+      );
     });
 
     it('rejects renaming to a sibling name', async () => {

@@ -20,6 +20,9 @@ export class HeaderTier {
   @Column('varchar')
   name!: string;
 
+  @Column('varchar', { length: 48, nullable: true })
+  model_alias!: string | null;
+
   @Column('varchar')
   header_key!: string;
 

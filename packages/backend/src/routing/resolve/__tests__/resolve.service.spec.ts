@@ -442,6 +442,91 @@ describe('ResolveService', () => {
     });
   });
 
+  describe('resolveModelAlias', () => {
+    const aliasTier = {
+      id: 'h1',
+      name: 'Free',
+      model_alias: 'free',
+      header_key: 'x-tier',
+      header_value: 'free',
+      enabled: true,
+      badge_color: 'emerald',
+      override_route: route('openai', 'api_key', 'gpt-4o-mini'),
+      fallback_routes: null,
+    } as unknown as HeaderTier;
+
+    it('returns the enabled custom tier with model-alias attribution', async () => {
+      headerTierService.list.mockResolvedValue([aliasTier]);
+
+      const result = await svc.resolveModelAlias('agent-1', 'tenant-1', 'free');
+
+      expect(result).toMatchObject({
+        reason: 'model-alias',
+        route: route('openai', 'api_key', 'gpt-4o-mini'),
+        header_tier_id: 'h1',
+        header_tier_name: 'Free',
+        header_tier_color: 'emerald',
+      });
+    });
+
+    it('requires an exact, enabled alias', async () => {
+      headerTierService.list.mockResolvedValue([
+        aliasTier,
+        { ...aliasTier, id: 'h2', model_alias: 'disabled', enabled: false },
+      ]);
+
+      await expect(svc.resolveModelAlias('agent-1', 'tenant-1', 'Free')).resolves.toBeNull();
+      await expect(svc.resolveModelAlias('agent-1', 'tenant-1', 'disabled')).resolves.toBeNull();
+      await expect(svc.resolveModelAlias('agent-1', 'tenant-1', 'missing')).resolves.toBeNull();
+    });
+
+    it('returns null when the selected tier has no available route', async () => {
+      headerTierService.list.mockResolvedValue([aliasTier]);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+
+      await expect(svc.resolveModelAlias('agent-1', 'tenant-1', 'free')).resolves.toBeNull();
+    });
+  });
+
+  describe('isCustomTierRoutable', () => {
+    const primary = route('openai', 'api_key', 'gpt-4o-mini');
+    const fallback = route('anthropic', 'api_key', 'claude-haiku');
+
+    it('returns false without a configured primary route', async () => {
+      const tier = { override_route: null, fallback_routes: [fallback] } as HeaderTier;
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(false);
+      expect(providerKeyService.isRouteAvailable).not.toHaveBeenCalled();
+    });
+
+    it('returns true when the primary route is available', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(true);
+      expect(providerKeyService.isRouteAvailable).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks fallbacks until it finds an available route', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+      providerKeyService.isRouteAvailable.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(true);
+      expect(providerKeyService.isRouteAvailable).toHaveBeenNthCalledWith(
+        2,
+        'tenant-1',
+        fallback,
+        'agent-1',
+      );
+    });
+
+    it('returns false when every configured route is unavailable', async () => {
+      const tier = { override_route: primary, fallback_routes: [fallback] } as HeaderTier;
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+
+      await expect(svc.isCustomTierRoutable('agent-1', 'tenant-1', tier)).resolves.toBe(false);
+    });
+  });
+
   describe('resolveProviderForModel paths (via header tier with bare model)', () => {
     // Provider field is empty (falsy) so resolveProviderForModel runs via the
     // `||` short-circuit. authType is a real value so the route can be built

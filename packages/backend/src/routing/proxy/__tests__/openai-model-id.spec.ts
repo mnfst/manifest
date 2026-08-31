@@ -1,6 +1,8 @@
 import type { DiscoveredModel } from '../../../model-discovery/model-fetcher';
 import {
   explicitModelRouteCandidate,
+  manifestModelId,
+  modelAliasFromManifestId,
   openAiModelId,
   routeForOpenAiModelId,
 } from '../openai-model-id';
@@ -22,6 +24,13 @@ function model(overrides: Partial<DiscoveredModel> = {}): DiscoveredModel {
 }
 
 describe('OpenAI model ids', () => {
+  it('formats and parses Manifest custom-route ids', () => {
+    expect(manifestModelId('free')).toBe('manifest/free');
+    expect(modelAliasFromManifestId('manifest/free')).toBe('free');
+    expect(modelAliasFromManifestId('manifest/')).toBeNull();
+    expect(modelAliasFromManifestId('openai/gpt-4o')).toBeNull();
+  });
+
   it('formats provider-qualified API-key model ids', () => {
     expect(openAiModelId(model({ id: 'gpt-4o-mini', provider: 'openai' }))).toBe(
       'openai/gpt-4o-mini',

@@ -397,6 +397,20 @@ describe("getSnippetsForFramework", () => {
     expect(result).toHaveLength(1);
     expect(result[0].title).toBe("cURL");
   });
+
+  it.each(["python", "typescript", "curl"] as const)(
+    "forwards the selected model to %s snippets",
+    (framework) => {
+      const result = getSnippetsForFramework(
+        framework,
+        "http://x/v1",
+        "key",
+        undefined,
+        "manifest/free",
+      );
+      expect(result.every((snippet) => snippet.code.includes("manifest/free"))).toBe(true);
+    },
+  );
 });
 
 describe("getSnippetForToolkit", () => {
@@ -668,4 +682,20 @@ describe("customHeaders weaving", () => {
     const s = getSnippetForToolkit("curl", "https://api.local/v1", "k", "python", headers);
     expect(s.code).toContain("-H 'x-manifest-tier: premium'");
   });
+
+  it.each(["openai-sdk", "anthropic-sdk", "vercel-ai-sdk", "langchain", "curl"] as const)(
+    "getSnippetForToolkit renders a custom model id for %s",
+    (toolkit) => {
+      const s = getSnippetForToolkit(
+        toolkit,
+        "https://api.local/v1",
+        "k",
+        "python",
+        undefined,
+        "responses",
+        "manifest/free",
+      );
+      expect(s.code).toContain('"manifest/free"');
+    },
+  );
 });
