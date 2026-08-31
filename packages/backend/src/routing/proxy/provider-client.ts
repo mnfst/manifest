@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { HttpStatus, Inject, Injectable, Logger, Optional } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, Optional } from '@nestjs/common';
 import { OPENAI_RESPONSES_ONLY_RE, stripVendorPrefix } from '../../common/constants/openai-models';
 import { XAI_RESPONSES_ONLY_RE } from '../../common/constants/xai-models';
 import {
@@ -12,8 +12,6 @@ import { validatePublicUrl } from '../../common/utils/url-validation';
 import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 import { resolveSubscriptionEndpointKey } from './provider-hooks';
 import { injectOpenAiMessageCacheControl, injectOpenRouterCacheControl } from './cache-injection';
-import type { ReasoningModelCatalog } from './reasoning-format';
-import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 import {
   applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
@@ -233,6 +231,19 @@ function applyHashedPromptCacheKey(
   body.prompt_cache_key = buildPromptCacheKey(trimmedCacheKey);
 }
 
+// Anthropic metadata.user_id identifies the caller. OpenAI metadata instead
+// annotates stored completions, so the equivalent OpenAI field is safety_identifier.
+function applyAnthropicUserIdForOpenAi(body: Record<string, unknown>): void {
+  const metadata = isRecord(body.metadata) ? body.metadata : undefined;
+  delete body.metadata;
+
+  const userId = metadata?.user_id;
+  if (typeof userId !== 'string' || !userId) return;
+
+  body.safety_identifier =
+    userId.length <= 64 ? userId : createHash('sha256').update(userId).digest('hex');
+}
+
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
   const normalized = model.toLowerCase().replace(/^~/, '');
   if (normalized.startsWith('anthropic/')) return 'anthropic';
@@ -283,9 +294,6 @@ export class ProviderClient {
     private readonly modelRegistry?: ProviderModelRegistryService,
     @Optional()
     codexAffinity?: CodexSessionAffinity,
-    @Optional()
-    @Inject(ModelsDevReasoningCatalog)
-    private readonly reasoningCatalog?: ReasoningModelCatalog,
   ) {
     this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
   }
@@ -664,7 +672,6 @@ export class ProviderClient {
               injectSubscriptionIdentity,
               thinkingLookup: ctx.thinkingLookup,
               thinkingRouteContext,
-              targetModel: bareModel,
             })
           : toAnthropicRequest(requestSource, bareModel, {
               injectSubscriptionIdentity,
@@ -752,12 +759,7 @@ export class ProviderClient {
     }
 
     // OpenAI-compatible path (default)
-    const sanitized = sanitizeOpenAiBody(
-      requestSource,
-      endpointKey,
-      ctx.model,
-      this.reasoningCatalog,
-    );
+    const sanitized = sanitizeOpenAiBody(requestSource, endpointKey, ctx.model);
     if (stream && endpoint.streamUsageReporting === 'openai_stream_options') {
       const existing =
         typeof sanitized.stream_options === 'object' && sanitized.stream_options !== null
@@ -767,6 +769,7 @@ export class ProviderClient {
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'openai') {
+      if (ctx.apiMode === 'messages') applyAnthropicUserIdForOpenAi(requestBody);
       applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'mistral') {
