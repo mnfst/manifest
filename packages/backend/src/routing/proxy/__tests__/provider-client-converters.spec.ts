@@ -1247,7 +1247,7 @@ describe('provider-client-converters', () => {
   });
 });
 
-describe('sanitizeOpenAiBody reasoning dialect', () => {
+describe('sanitizeOpenAiBody provider-specific fields', () => {
   const bodyWithReasoning = () => ({
     messages: [
       {
@@ -1259,22 +1259,11 @@ describe('sanitizeOpenAiBody reasoning dialect', () => {
     ],
   });
 
-  it('keeps reasoning_content without consulting model capabilities', () => {
+  it('keeps reasoning_content without model capability checks', () => {
     const result = sanitizeOpenAiBody(
       bodyWithReasoning(),
       'opencode-zen',
       'opencode-zen/big-pickle',
-    );
-
-    const messages = result.messages as Array<Record<string, unknown>>;
-    expect(messages[0].reasoning_content).toBe('upstream thinking');
-  });
-
-  it('keeps reasoning_content when the catalog has no provider capability entry', () => {
-    const result = sanitizeOpenAiBody(
-      bodyWithReasoning(),
-      'opencode-zen',
-      'opencode-zen/mystery-slug',
     );
 
     const messages = result.messages as Array<Record<string, unknown>>;

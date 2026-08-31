@@ -4224,7 +4224,9 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.store).toBe(false);
+      expect(sentBody.metadata).toEqual({ user: 'test' });
       expect(sentBody.service_tier).toBe('default');
+      expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
     it('preserves DeepSeek reasoning_effort in the provider-facing request', async () => {
