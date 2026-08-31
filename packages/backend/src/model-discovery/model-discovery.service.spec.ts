@@ -1696,6 +1696,25 @@ describe('ModelDiscoveryService', () => {
       );
     });
 
+    it('should apply configured context windows to live OpenAI subscription models', async () => {
+      mockDecrypt.mockReturnValue(
+        JSON.stringify({ t: 'access-token-123', r: 'refresh-tok', e: Date.now() + 60000 }),
+      );
+      fetcher.fetch.mockResolvedValue([
+        makeModel({ id: 'gpt-5.6-sol', contextWindow: 1050000 }),
+        makeModel({ id: 'gpt-5.6-terra', contextWindow: 1050000 }),
+        makeModel({ id: 'gpt-5.6-luna', contextWindow: 1050000 }),
+      ]);
+
+      const result = await service.discoverModels(
+        makeProvider({ provider: 'openai', auth_type: 'subscription' }),
+      );
+
+      expect(result.find((model) => model.id === 'gpt-5.6-sol')?.contextWindow).toBe(272000);
+      expect(result.find((model) => model.id === 'gpt-5.6-terra')?.contextWindow).toBe(1050000);
+      expect(result.find((model) => model.id === 'gpt-5.6-luna')?.contextWindow).toBe(1050000);
+    });
+
     it('should use raw key when OpenAI subscription blob has no t field', async () => {
       const blob = JSON.stringify({ r: 'refresh-tok', e: Date.now() + 60000 });
       mockDecrypt.mockReturnValue(blob);

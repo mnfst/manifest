@@ -305,32 +305,37 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
 }
 
 /**
- * Supplement discovered models with knownModels from subscription-capabilities.
- * Ensures subscription users always have the known models available as selectable options,
- * even if the live provider API did not return them.
+ * Reconcile discovered subscription models with configured context limits, then
+ * supplement missing knownModels so they remain available as selectable options.
  */
 export function supplementWithKnownModels(
   raw: DiscoveredModel[],
   providerId: string,
 ): DiscoveredModel[] {
   const knownModels = getSubscriptionKnownModels(providerId);
-  if (!knownModels) return raw;
-  const matchMode = getSubscriptionKnownModelsMatch(providerId);
-
   const capabilities = getSubscriptionCapabilities(providerId);
+  if (!knownModels && !capabilities) return raw;
+
+  const models = raw.map((model) => ({
+    ...model,
+    contextWindow: resolveSubscriptionContextWindow(model.id, model.contextWindow, capabilities),
+  }));
+  if (!knownModels) return models;
+
+  const matchMode = getSubscriptionKnownModelsMatch(providerId);
   const defaultCtx = capabilities?.maxContextWindow ?? 200000;
 
   for (const modelId of knownModels) {
     const lowerModelId = modelId.toLowerCase();
     // Skip if this model is already present. Prefix-mode providers also treat
     // a more specific version (e.g., with a date suffix) as covered.
-    const covered = raw.some((m) => {
+    const covered = models.some((m) => {
       const lowerDiscovered = m.id.toLowerCase();
       if (lowerDiscovered === lowerModelId) return true;
       return matchMode !== 'exact' && lowerDiscovered.startsWith(`${lowerModelId}-`);
     });
     if (covered) continue;
-    raw.push({
+    models.push({
       id: modelId,
       displayName: modelId,
       provider: providerId,
@@ -343,5 +348,5 @@ export function supplementWithKnownModels(
     });
   }
 
-  return raw;
+  return models;
 }
