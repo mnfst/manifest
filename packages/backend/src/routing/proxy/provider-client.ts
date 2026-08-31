@@ -233,6 +233,22 @@ function applyHashedPromptCacheKey(
   body.prompt_cache_key = buildPromptCacheKey(trimmedCacheKey);
 }
 
+// Anthropic metadata.user_id identifies the caller. OpenAI metadata instead
+// annotates stored completions, so the equivalent OpenAI field is safety_identifier.
+function applyAnthropicUserIdForOpenAi(
+  body: Record<string, unknown>,
+  source: Record<string, unknown> = body,
+): void {
+  const metadata = isRecord(source.metadata) ? source.metadata : undefined;
+  delete body.metadata;
+
+  const userId = metadata?.user_id;
+  if (typeof userId !== 'string' || !userId) return;
+
+  body.safety_identifier =
+    userId.length <= 64 ? userId : createHash('sha256').update(userId).digest('hex');
+}
+
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
   const normalized = model.toLowerCase().replace(/^~/, '');
   if (normalized.startsWith('anthropic/')) return 'anthropic';
@@ -734,6 +750,9 @@ export class ProviderClient {
       if (endpointKey === 'xai-responses') {
         applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
       }
+      if (endpointKey === 'openai-responses' && ctx.apiMode === 'messages') {
+        applyAnthropicUserIdForOpenAi(requestBody, requestSource);
+      }
       if (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') {
         applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
       }
@@ -767,6 +786,7 @@ export class ProviderClient {
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'openai') {
+      if (ctx.apiMode === 'messages') applyAnthropicUserIdForOpenAi(requestBody);
       applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'mistral') {
