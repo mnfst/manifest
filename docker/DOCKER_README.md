@@ -15,6 +15,24 @@
   <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
 
+<blockquote>
+  <h3>🚀 Manifest is becoming the self-healing layer for APIs</h3>
+
+  <p>
+    We're building a new product that fixes failed API requests on the fly, independently of the gateway.
+  </p>
+
+  <p>
+    <strong>This open-source gateway stays available and maintained.</strong>
+  </p>
+
+  <p>
+    <a href="https://manifest.build/blog/manifest-is-taking-a-new-direction/" target="_blank" rel="noopener noreferrer">
+      <strong>Read about the new direction →</strong>
+    </a>
+  </p>
+</blockquote>
+
 ## What is Manifest?
 
 Manifest is a smart model router for **AI agents** like OpenClaw, Hermes, or anything speaking the OpenAI-compatible HTTP API. It sits between your agents and your providers (API keys, subscriptions, or local models) and sends each request to the right one. Simple questions go to fast, cheap models. Hard problems go to the powerful ones. One endpoint for every provider, and a smaller bill as a bonus.
