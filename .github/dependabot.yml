@@ -36,6 +36,12 @@ updates:
       # Better Auth minor releases can require database migrations. Keep the
       # package family together and out of broad dependency bundles.
       better-auth:
+        applies-to: version-updates
+        patterns:
+          - "better-auth"
+          - "@better-auth/*"
+      better-auth-security:
+        applies-to: security-updates
         patterns:
           - "better-auth"
           - "@better-auth/*"
