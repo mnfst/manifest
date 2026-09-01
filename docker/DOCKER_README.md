@@ -27,7 +27,7 @@
   </p>
 
   <p>
-    <a href="https://manifest.build/blog/manifest-is-taking-a-new-direction/" target="_blank" rel="noopener noreferrer">
+    <a href="https://manifest.build/blog/introducing-paid-plans/" target="_blank" rel="noopener noreferrer">
       <strong>Read about the new direction →</strong>
     </a>
   </p>
