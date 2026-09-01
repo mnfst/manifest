@@ -30,7 +30,9 @@ describe('CompleteDiscoveryDto', () => {
       companySize: 'huge',
     });
 
-    expect(errors.map((error) => error.property)).toEqual(['email', 'projectType', 'companySize']);
+    expect(errors.map((error) => error.property).sort()).toEqual(
+      ['email', 'projectType', 'companySize'].sort(),
+    );
   });
 
   it('rejects unknown fields', () => {
