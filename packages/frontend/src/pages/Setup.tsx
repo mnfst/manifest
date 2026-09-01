@@ -2,7 +2,7 @@ import { useNavigate } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, onMount, Show } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
-import { checkNeedsSetup, createFirstAdmin } from '../services/setup-status.js';
+import { checkIsSelfHosted, checkNeedsSetup, createFirstAdmin } from '../services/setup-status.js';
 
 const Setup: Component = () => {
   const navigate = useNavigate();
@@ -50,7 +50,8 @@ const Setup: Component = () => {
         navigate('/login', { replace: true });
         return;
       }
-      window.location.href = '/';
+      // New self-hosted admins get the one-time discovery step first.
+      window.location.href = (await checkIsSelfHosted()) ? '/discovery' : '/';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Setup failed');
     } finally {

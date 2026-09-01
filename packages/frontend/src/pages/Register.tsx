@@ -14,7 +14,7 @@ import PlanPicker, { type PlanId } from '../components/PlanPicker.jsx';
 import { authClient } from '../services/auth-client.js';
 import { appendSearch } from '../services/auth-redirects.js';
 import { getLastAuthMethod, setLastAuthMethod } from '../services/last-auth-method.js';
-import { checkSocialProviders } from '../services/setup-status.js';
+import { checkIsSelfHosted, checkSocialProviders } from '../services/setup-status.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
 import { formatBillingPrice } from '../services/billing-display.js';
@@ -32,6 +32,8 @@ const Register: Component = () => {
   const [alreadyExists, setAlreadyExists] = createSignal(false);
   const [resendCooldown, setResendCooldown] = createSignal(0);
   const [socialProviders, setSocialProviders] = createSignal<string[]>([]);
+  // Self-hosted signups pass through the one-time discovery step first.
+  const [postSignupUrl, setPostSignupUrl] = createSignal('/welcome');
   const [lastAuthMethod] = createSignal(getLastAuthMethod());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -48,6 +50,9 @@ const Register: Component = () => {
 
   onMount(async () => {
     setSocialProviders(await checkSocialProviders());
+    if (await checkIsSelfHosted()) {
+      setPostSignupUrl('/discovery?next=%2Fwelcome');
+    }
   });
 
   createEffect(() => {
@@ -94,7 +99,7 @@ const Register: Component = () => {
       name: name(),
       email: email(),
       password: password(),
-      callbackURL: '/welcome',
+      callbackURL: postSignupUrl(),
     });
 
     setLoading(false);
@@ -110,7 +115,7 @@ const Register: Component = () => {
     setLastAuthMethod('email');
 
     if (data?.token) {
-      window.location.href = '/welcome';
+      window.location.href = postSignupUrl();
       return;
     }
 
@@ -149,7 +154,7 @@ const Register: Component = () => {
 
     const { error: resendError } = await authClient.sendVerificationEmail({
       email: email(),
-      callbackURL: '/welcome',
+      callbackURL: postSignupUrl(),
     });
 
     if (resendError) {

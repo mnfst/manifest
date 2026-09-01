@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (308 BEM blocks, 1681 classes)
+## Blocks (313 BEM blocks, 1691 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -151,6 +151,7 @@ complexity-empty (routing.css): complexity-empty complexity-empty__desc complexi
 confirm-modal (limits.css): confirm-modal__confirm-row confirm-modal__footer confirm-modal__warning
 connection-delete-confirmation (routing-providers.css): connection-delete-confirmation connection-delete-confirmation__copy connection-delete-confirmation__footer connection-delete-confirmation__label connection-delete-confirmation__title connection-delete-confirmation__warning
 connection-label-cell (routing-providers.css): connection-label-cell connection-label-cell__edit
+connections-panel (routing-providers.css): connections-panel connections-panel--collapsed connections-panel__body connections-panel__chevron connections-panel__toggle connections-panel__viewport
 container (layout.css, theme.css): container--full container--lg container--md container--sm
 conv-outline-row (request-drawer.css): conv-outline-row conv-outline-row--active conv-outline-row__badge conv-outline-row__badge--assistant conv-outline-row__badge--system conv-outline-row__badge--tool conv-outline-row__badge--unknown conv-outline-row__badge--user conv-outline-row__num conv-outline-row__preview conv-outline-row__tokens
 conv-rail (request-drawer.css): conv-rail conv-rail__empty conv-rail__list conv-rail__role-pill conv-rail__role-pill--assistant conv-rail__role-pill--off conv-rail__role-pill--system conv-rail__role-pill--tool conv-rail__role-pill--unknown conv-rail__role-pill--user conv-rail__roles conv-rail__search conv-rail__search-wrap
@@ -163,11 +164,15 @@ count-link (theme.css): count-link
 custom-provider-item (routing-providers.css): custom-provider-item custom-provider-item__delete custom-provider-item__icon custom-provider-item__info custom-provider-item__meta custom-provider-item__name
 custom-provider-model-row (routing-providers.css): custom-provider-model-row custom-provider-model-row__name custom-provider-model-row__price custom-provider-model-row__remove
 custom-provider-models (routing-providers.css): custom-provider-models custom-provider-models__column custom-provider-models__column--name custom-provider-models__column--price custom-provider-models__column-spacer custom-provider-models__columns custom-provider-models__label
-custom-select (custom-select.css, routing-providers.css): custom-select custom-select__chevron custom-select__dropdown custom-select__dropdown--portal custom-select__dropdown--wide custom-select__option custom-select__option--disabled custom-select__option--selected custom-select__option--top custom-select__option-desc custom-select__option-text custom-select__option-text--inline custom-select__trigger custom-select__trigger--open custom-select__value
+custom-select (custom-select.css, discovery.css, routing-providers.css): custom-select custom-select__chevron custom-select__dropdown custom-select__dropdown--portal custom-select__dropdown--wide custom-select__option custom-select__option--disabled custom-select__option--selected custom-select__option--top custom-select__option-desc custom-select__option-text custom-select__option-text--inline custom-select__trigger custom-select__trigger--open custom-select__value
 dark (agent-type-select.css, agents.css, analytics-overview.css, auth.css, controls.css, data.css, modals.css, model-filter.css, overview.css, request-drawer.css, routing-deprecation.css, routing-providers.css, routing.css, syntax-highlight.css, theme.css, tokens.css, welcome.css, wizard.css): dark
 data-table (data.css, feedback.css, theme.css): data-table data-table__sortable
 data-table-scroll (data.css): data-table-scroll
 demo-dashboard (overview.css): demo-dashboard
+discovery-form (discovery.css): discovery-form
+discovery-intro (discovery.css): discovery-intro
+discovery-select (discovery.css): discovery-select--empty
+discovery-skip (discovery.css): discovery-skip
 drawer (request-drawer.css): drawer drawer--open drawer__badge drawer__badge--autofix drawer__badge--fallback drawer__body drawer__close drawer__content drawer__content-empty drawer__header drawer__messages-pane drawer__meta-row drawer__meta-sep drawer__meta-text drawer__sidebar drawer__sidebar-title drawer__split drawer__tabs-full drawer__title drawer__title-row
 drawer-context-card (request-drawer.css): drawer-context-card drawer-context-card--autofix drawer-context-card--error drawer-context-card--fallback
 drawer-kv (request-drawer.css): drawer-kv drawer-kv__key
@@ -328,7 +333,7 @@ routing-tabs (routing-tabs.css): routing-tabs routing-tabs__arrow routing-tabs__
 routing-tooltip (routing.css): routing-tooltip
 routing-unified-add-card (routing.css): routing-unified-add-card
 rule-menu (limits.css): rule-menu__btn rule-menu__dropdown rule-menu__item rule-menu__item--danger
-scroll-panel (analytics-overview.css): scroll-panel scroll-panel--at-bottom scroll-panel__body
+scroll-panel (analytics-overview.css, routing-providers.css): scroll-panel scroll-panel--at-bottom scroll-panel__body
 security-event (data.css, theme.css): security-event security-event__badge security-event__desc security-event__dot security-event__dot--critical security-event__dot--info security-event__dot--warning security-event__time
 select (controls.css, theme.css): select
 settings-card (agents.css, controls.css, modals.css, notifications.css): settings-card settings-card--danger settings-card--disabled settings-card--flush settings-card--highlight settings-card__body settings-card__control settings-card__control--end settings-card__copy-btn settings-card__desc settings-card__footer settings-card__id-row settings-card__id-value settings-card__input settings-card__key-actions settings-card__key-row settings-card__key-value settings-card__label settings-card__label-desc settings-card__label-desc--meta settings-card__label-title settings-card__legal settings-card__row
@@ -412,10 +417,11 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 ## Migration map — legacy component → primitive to use instead (0)
 (empty until primitives exist)
 
-## Canonical rules — same selector+property declared twice with different values; the winner renders (47)
+## Canonical rules — same selector+property declared twice with different values; the winner renders (48)
 .view-more-link { color: hsl(var(--foreground)) }  ← analytics-overview.css:170
 .custom-select__option--top > svg { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
+.modal-overlay { backdrop-filter: none }  ← modals.css:158
 .setup-modal__header { align-items: center }  ← overview.css:15
 .setup-modal__next { padding: 0 1rem }  ← overview.css:42
 .setup-modal__next { background: hsl(var(--foreground)) }  ← overview.css:45
@@ -427,30 +433,30 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .request-tool { border-radius: var(--radius-sm) }  ← request-drawer.css:875
 .request-tool { background: hsl(36 80% 50% / 0.04) }  ← request-drawer.css:876
 .hljs-attr { color: hsl(var(--chart-4)) }  ← syntax-highlight.css:41
-.summary-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:195
-.trend--up { color: hsl(var(--success)) }  ← theme.css:236
-.trend--up { background: hsl(var(--success) / 0.1) }  ← theme.css:237
-.trend--down { color: hsl(var(--destructive)) }  ← theme.css:241
-.trend--down { background: hsl(var(--destructive) / 0.1) }  ← theme.css:242
-.panel { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:267
-.chart-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:283
-.chart-card__header { align-items: flex-end }  ← theme.css:289
-.chart-card__value-row { align-items: baseline }  ← theme.css:321
-.feed-item { align-items: center }  ← theme.css:585
-.feed-item { gap: var(--gap-md) }  ← theme.css:586
-.feed-item { padding: 10px 0 }  ← theme.css:587
-.sidebar { padding: var(--gap-lg) 0 0 0 }  ← theme.css:783
-.sidebar__agent-item { gap: 8px }  ← theme.css:921
-.theme-toggle { padding: 6px 12px }  ← theme.css:999
-.theme-toggle { width: 100% }  ← theme.css:1008
-.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1085
-.expandable-card__fade { height: 64px }  ← theme.css:1116
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1117
-.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1122
+.summary-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:196
+.trend--up { color: hsl(var(--success)) }  ← theme.css:237
+.trend--up { background: hsl(var(--success) / 0.1) }  ← theme.css:238
+.trend--down { color: hsl(var(--destructive)) }  ← theme.css:242
+.trend--down { background: hsl(var(--destructive) / 0.1) }  ← theme.css:243
+.panel { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:268
+.chart-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:284
+.chart-card__header { align-items: flex-end }  ← theme.css:290
+.chart-card__value-row { align-items: baseline }  ← theme.css:322
+.feed-item { align-items: center }  ← theme.css:586
+.feed-item { gap: var(--gap-md) }  ← theme.css:587
+.feed-item { padding: 10px 0 }  ← theme.css:588
+.sidebar { padding: var(--gap-lg) 0 0 0 }  ← theme.css:784
+.sidebar__agent-item { gap: 8px }  ← theme.css:922
+.theme-toggle { padding: 6px 12px }  ← theme.css:1000
+.theme-toggle { width: 100% }  ← theme.css:1009
+.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1086
+.expandable-card__fade { height: 64px }  ← theme.css:1117
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1118
+.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1123
 .modal { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1173
-.modal__close { width: 2rem }  ← theme.css:1198
-.modal__close { height: 2rem }  ← theme.css:1199
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1174
+.modal__close { width: 2rem }  ← theme.css:1199
+.modal__close { height: 2rem }  ← theme.css:1200
 .toast { align-items: flex-start }  ← toast.css:16
 .toast { gap: var(--gap-sm) }  ← toast.css:17
 .toast { padding: 12px var(--gap-md) }  ← toast.css:18
@@ -463,50 +469,51 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .welcome__route-test-heading { align-items: center }  ← welcome.css:903
 .welcome__route-test-heading { gap: 10px }  ← welcome.css:904
 
-## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (47)
-.summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:195
-.trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:236
-.trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:241
-.trend--up { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:237
-.trend--down { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:242
-.panel { box-shadow: var(--card-shadow) }  at cards.css:59 loses to theme.css:267
+## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (48)
+.summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:196
+.trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:237
+.trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:242
+.trend--up { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:238
+.trend--down { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:243
+.panel { box-shadow: var(--card-shadow) }  at cards.css:59 loses to theme.css:268
 .view-more-link { color: hsl(var(--muted-foreground)) }  at cards.css:72 loses to analytics-overview.css:170
-.chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:283
-.chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:289
-.chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:321
-.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1085
-.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1116
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1117
-.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1122
+.chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:284
+.chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:290
+.chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:322
+.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1086
+.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1117
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1118
+.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1123
 .toast { align-items: center }  at controls.css:172 loses to toast.css:16
 .toast { gap: 10px }  at controls.css:173 loses to toast.css:17
 .toast { padding: 12px 16px }  at controls.css:174 loses to toast.css:18
 .toast { box-shadow: 0 4px 16px rgb(0 0 0 / 0.15) }  at controls.css:177 loses to toast.css:22
 .toast { animation: toast-in 200ms ease-out }  at controls.css:180 loses to toast.css:26
-.sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:783
+.sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:784
 .custom-select__option--top > svg { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .tier-badge--fallback { background: hsl(var(--muted-foreground) / 0.1) }  at data.css:299 loses to overview.css:194
 .tier-badge--fallback { color: hsl(var(--muted-foreground)) }  at data.css:300 loses to overview.css:195
-.feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:585
-.feed-item { gap: 12px }  at data.css:508 loses to theme.css:586
-.feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:587
-.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:1008
-.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:999
+.feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:586
+.feed-item { gap: 12px }  at data.css:508 loses to theme.css:587
+.feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:588
+.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:1009
+.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:1000
 .modal { box-shadow: var(--card-shadow),
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1173
-.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1198
-.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1199
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1174
+.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1199
+.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1200
 .setup-modal__header { align-items: flex-start }  at modals.css:64 loses to overview.css:15
 .setup-modal__next { padding: 8px 20px }  at modals.css:105 loses to overview.css:42
 .setup-modal__next { color: hsl(var(--primary-foreground)) }  at modals.css:109 loses to overview.css:46
 .setup-modal__next { background: hsl(var(--primary)) }  at modals.css:110 loses to overview.css:45
 .setup-modal__next:hover { opacity: 0.9 }  at modals.css:118 loses to overview.css:55
+.modal-overlay { backdrop-filter: blur(2px) }  at modals.css:146 loses to modals.css:158
 .request-tool { border: 1px solid hsl(var(--border)) }  at request-drawer.css:646 loses to request-drawer.css:874
 .request-tool { border-radius: var(--radius) }  at request-drawer.css:647 loses to request-drawer.css:875
 .request-tool { background: hsl(var(--card)) }  at request-drawer.css:648 loses to request-drawer.css:876
 .hljs-attr { color: hsl(187 60% 38%) }  at request-drawer.css:1054 loses to syntax-highlight.css:41
-.sidebar__agent-item { gap: var(--gap-xs) }  at theme.css:823 loses to theme.css:921
+.sidebar__agent-item { gap: var(--gap-xs) }  at theme.css:824 loses to theme.css:922
 .welcome__progress-header span { letter-spacing: 0.09em }  at welcome.css:548 loses to welcome.css:554
 .welcome__text-link:focus-visible { outline: 3px solid hsl(var(--ring)) }  at welcome.css:726 loses to welcome.css:865
 .welcome__text-link:focus-visible { outline-offset: 2px }  at welcome.css:727 loses to welcome.css:866

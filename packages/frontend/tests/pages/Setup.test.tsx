@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 const mockNavigate = vi.fn();
 const mockSignInEmail = vi.fn().mockResolvedValue({});
 const mockCheckNeedsSetup = vi.fn();
+const mockCheckIsSelfHosted = vi.fn();
 const mockCreateFirstAdmin = vi.fn();
 
 vi.mock('@solidjs/router', () => ({
@@ -25,6 +26,7 @@ vi.mock('../../src/services/auth-client.js', () => ({
 
 vi.mock('../../src/services/setup-status.js', () => ({
   checkNeedsSetup: (...args: unknown[]) => mockCheckNeedsSetup(...args),
+  checkIsSelfHosted: (...args: unknown[]) => mockCheckIsSelfHosted(...args),
   createFirstAdmin: (...args: unknown[]) => mockCreateFirstAdmin(...args),
 }));
 
@@ -34,6 +36,7 @@ describe('Setup page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockCheckNeedsSetup.mockResolvedValue(true);
+    mockCheckIsSelfHosted.mockResolvedValue(false);
     mockCreateFirstAdmin.mockResolvedValue(undefined);
     mockSignInEmail.mockResolvedValue({});
 
@@ -117,6 +120,28 @@ describe('Setup page', () => {
         email: 'founder@example.com',
         password: 'secretpassword',
       });
+    });
+  });
+
+  it('redirects self-hosted admins to the discovery step after setup', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    const { container } = await renderSetup();
+    fillValidForm();
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe('/discovery');
+    });
+  });
+
+  it('redirects non-self-hosted admins straight to the dashboard after setup', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(false);
+    const { container } = await renderSetup();
+    fillValidForm();
+    fireEvent.submit(container.querySelector('form')!);
+
+    await waitFor(() => {
+      expect(window.location.href).toBe('/');
     });
   });
 

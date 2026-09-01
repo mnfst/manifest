@@ -896,6 +896,19 @@
         "routing-providers.css"
       ]
     },
+    "connections-panel": {
+      "classes": [
+        "connections-panel",
+        "connections-panel--collapsed",
+        "connections-panel__body",
+        "connections-panel__chevron",
+        "connections-panel__toggle",
+        "connections-panel__viewport"
+      ],
+      "files": [
+        "routing-providers.css"
+      ]
+    },
     "container": {
       "classes": [
         "container--full",
@@ -1059,6 +1072,7 @@
       ],
       "files": [
         "custom-select.css",
+        "discovery.css",
         "routing-providers.css"
       ]
     },
@@ -1112,6 +1126,38 @@
       ],
       "files": [
         "overview.css"
+      ]
+    },
+    "discovery-form": {
+      "classes": [
+        "discovery-form"
+      ],
+      "files": [
+        "discovery.css"
+      ]
+    },
+    "discovery-intro": {
+      "classes": [
+        "discovery-intro"
+      ],
+      "files": [
+        "discovery.css"
+      ]
+    },
+    "discovery-select": {
+      "classes": [
+        "discovery-select--empty"
+      ],
+      "files": [
+        "discovery.css"
+      ]
+    },
+    "discovery-skip": {
+      "classes": [
+        "discovery-skip"
+      ],
+      "files": [
+        "discovery.css"
       ]
     },
     "drawer": {
@@ -3259,7 +3305,8 @@
         "scroll-panel__body"
       ],
       "files": [
-        "analytics-overview.css"
+        "analytics-overview.css",
+        "routing-providers.css"
       ]
     },
     "security-event": {
@@ -4268,6 +4315,13 @@
       "line": 142
     },
     {
+      "selector": ".modal-overlay",
+      "prop": "backdrop-filter",
+      "value": "none",
+      "file": "modals.css",
+      "line": 158
+    },
+    {
       "selector": ".setup-modal__header",
       "prop": "align-items",
       "value": "center",
@@ -4349,161 +4403,161 @@
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 195
+      "line": 196
     },
     {
       "selector": ".trend--up",
       "prop": "color",
       "value": "hsl(var(--success))",
       "file": "theme.css",
-      "line": 236
+      "line": 237
     },
     {
       "selector": ".trend--up",
       "prop": "background",
       "value": "hsl(var(--success) / 0.1)",
       "file": "theme.css",
-      "line": 237
+      "line": 238
     },
     {
       "selector": ".trend--down",
       "prop": "color",
       "value": "hsl(var(--destructive))",
       "file": "theme.css",
-      "line": 241
+      "line": 242
     },
     {
       "selector": ".trend--down",
       "prop": "background",
       "value": "hsl(var(--destructive) / 0.1)",
       "file": "theme.css",
-      "line": 242
+      "line": 243
     },
     {
       "selector": ".panel",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 267
+      "line": 268
     },
     {
       "selector": ".chart-card",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 283
+      "line": 284
     },
     {
       "selector": ".chart-card__header",
       "prop": "align-items",
       "value": "flex-end",
       "file": "theme.css",
-      "line": 289
+      "line": 290
     },
     {
       "selector": ".chart-card__value-row",
       "prop": "align-items",
       "value": "baseline",
       "file": "theme.css",
-      "line": 321
+      "line": 322
     },
     {
       "selector": ".feed-item",
       "prop": "align-items",
       "value": "center",
       "file": "theme.css",
-      "line": 585
+      "line": 586
     },
     {
       "selector": ".feed-item",
       "prop": "gap",
       "value": "var(--gap-md)",
       "file": "theme.css",
-      "line": 586
+      "line": 587
     },
     {
       "selector": ".feed-item",
       "prop": "padding",
       "value": "10px 0",
       "file": "theme.css",
-      "line": 587
+      "line": 588
     },
     {
       "selector": ".sidebar",
       "prop": "padding",
       "value": "var(--gap-lg) 0 0 0",
       "file": "theme.css",
-      "line": 783
+      "line": 784
     },
     {
       "selector": ".sidebar__agent-item",
       "prop": "gap",
       "value": "8px",
       "file": "theme.css",
-      "line": 921
+      "line": 922
     },
     {
       "selector": ".theme-toggle",
       "prop": "padding",
       "value": "6px 12px",
       "file": "theme.css",
-      "line": 999
+      "line": 1000
     },
     {
       "selector": ".theme-toggle",
       "prop": "width",
       "value": "100%",
       "file": "theme.css",
-      "line": 1008
+      "line": 1009
     },
     {
       "selector": ".chart-tooltip",
       "prop": "font-size",
       "value": "var(--font-size-xs)",
       "file": "theme.css",
-      "line": 1085
+      "line": 1086
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "height",
       "value": "64px",
       "file": "theme.css",
-      "line": 1116
+      "line": 1117
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "background",
       "value": "linear-gradient(transparent, hsl(var(--card)) 70%)",
       "file": "theme.css",
-      "line": 1117
+      "line": 1118
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "padding-bottom",
       "value": "12px",
       "file": "theme.css",
-      "line": 1122
+      "line": 1123
     },
     {
       "selector": ".modal",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "theme.css",
-      "line": 1173
+      "line": 1174
     },
     {
       "selector": ".modal__close",
       "prop": "width",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1198
+      "line": 1199
     },
     {
       "selector": ".modal__close",
       "prop": "height",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1199
+      "line": 1200
     },
     {
       "selector": ".toast",
@@ -4583,7 +4637,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 7,
-      "losesTo": "theme.css:195"
+      "losesTo": "theme.css:196"
     },
     {
       "selector": ".trend--up",
@@ -4591,31 +4645,31 @@
       "value": "hsl(var(--muted-foreground))",
       "file": "cards.css",
       "line": 48,
-      "losesTo": "theme.css:236"
-    },
-    {
-      "selector": ".trend--down",
-      "prop": "color",
-      "value": "hsl(var(--muted-foreground))",
-      "file": "cards.css",
-      "line": 48,
-      "losesTo": "theme.css:241"
-    },
-    {
-      "selector": ".trend--up",
-      "prop": "background",
-      "value": "hsl(var(--muted))",
-      "file": "cards.css",
-      "line": 49,
       "losesTo": "theme.css:237"
     },
     {
       "selector": ".trend--down",
+      "prop": "color",
+      "value": "hsl(var(--muted-foreground))",
+      "file": "cards.css",
+      "line": 48,
+      "losesTo": "theme.css:242"
+    },
+    {
+      "selector": ".trend--up",
       "prop": "background",
       "value": "hsl(var(--muted))",
       "file": "cards.css",
       "line": 49,
-      "losesTo": "theme.css:242"
+      "losesTo": "theme.css:238"
+    },
+    {
+      "selector": ".trend--down",
+      "prop": "background",
+      "value": "hsl(var(--muted))",
+      "file": "cards.css",
+      "line": 49,
+      "losesTo": "theme.css:243"
     },
     {
       "selector": ".panel",
@@ -4623,7 +4677,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 59,
-      "losesTo": "theme.css:267"
+      "losesTo": "theme.css:268"
     },
     {
       "selector": ".view-more-link",
@@ -4639,7 +4693,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 86,
-      "losesTo": "theme.css:283"
+      "losesTo": "theme.css:284"
     },
     {
       "selector": ".chart-card__header",
@@ -4647,7 +4701,7 @@
       "value": "stretch",
       "file": "cards.css",
       "line": 92,
-      "losesTo": "theme.css:289"
+      "losesTo": "theme.css:290"
     },
     {
       "selector": ".chart-card__value-row",
@@ -4655,7 +4709,7 @@
       "value": "center",
       "file": "cards.css",
       "line": 160,
-      "losesTo": "theme.css:321"
+      "losesTo": "theme.css:322"
     },
     {
       "selector": ".chart-tooltip",
@@ -4663,7 +4717,7 @@
       "value": "var(--tooltip-font-size)",
       "file": "charts.css",
       "line": 78,
-      "losesTo": "theme.css:1085"
+      "losesTo": "theme.css:1086"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4671,7 +4725,7 @@
       "value": "80px",
       "file": "charts.css",
       "line": 110,
-      "losesTo": "theme.css:1116"
+      "losesTo": "theme.css:1117"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4679,7 +4733,7 @@
       "value": "linear-gradient(transparent, hsl(var(--card)) 60%)",
       "file": "charts.css",
       "line": 111,
-      "losesTo": "theme.css:1117"
+      "losesTo": "theme.css:1118"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4687,7 +4741,7 @@
       "value": "16px",
       "file": "charts.css",
       "line": 116,
-      "losesTo": "theme.css:1122"
+      "losesTo": "theme.css:1123"
     },
     {
       "selector": ".toast",
@@ -4735,7 +4789,7 @@
       "value": "var(--gap-md) 0",
       "file": "controls.css",
       "line": 261,
-      "losesTo": "theme.css:783"
+      "losesTo": "theme.css:784"
     },
     {
       "selector": ".custom-select__option--top > svg",
@@ -4775,7 +4829,7 @@
       "value": "flex-start",
       "file": "data.css",
       "line": 507,
-      "losesTo": "theme.css:585"
+      "losesTo": "theme.css:586"
     },
     {
       "selector": ".feed-item",
@@ -4783,7 +4837,7 @@
       "value": "12px",
       "file": "data.css",
       "line": 508,
-      "losesTo": "theme.css:586"
+      "losesTo": "theme.css:587"
     },
     {
       "selector": ".feed-item",
@@ -4791,7 +4845,7 @@
       "value": "12px 0",
       "file": "data.css",
       "line": 509,
-      "losesTo": "theme.css:587"
+      "losesTo": "theme.css:588"
     },
     {
       "selector": ".theme-toggle",
@@ -4799,7 +4853,7 @@
       "value": "2rem",
       "file": "layout.css",
       "line": 141,
-      "losesTo": "theme.css:1008"
+      "losesTo": "theme.css:1009"
     },
     {
       "selector": ".theme-toggle",
@@ -4807,7 +4861,7 @@
       "value": "0",
       "file": "layout.css",
       "line": 149,
-      "losesTo": "theme.css:999"
+      "losesTo": "theme.css:1000"
     },
     {
       "selector": ".modal",
@@ -4815,7 +4869,7 @@
       "value": "var(--card-shadow),\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "modals.css",
       "line": 22,
-      "losesTo": "theme.css:1173"
+      "losesTo": "theme.css:1174"
     },
     {
       "selector": ".modal__close",
@@ -4823,7 +4877,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 47,
-      "losesTo": "theme.css:1198"
+      "losesTo": "theme.css:1199"
     },
     {
       "selector": ".modal__close",
@@ -4831,7 +4885,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 48,
-      "losesTo": "theme.css:1199"
+      "losesTo": "theme.css:1200"
     },
     {
       "selector": ".setup-modal__header",
@@ -4874,6 +4928,14 @@
       "losesTo": "overview.css:55"
     },
     {
+      "selector": ".modal-overlay",
+      "prop": "backdrop-filter",
+      "value": "blur(2px)",
+      "file": "modals.css",
+      "line": 146,
+      "losesTo": "modals.css:158"
+    },
+    {
       "selector": ".request-tool",
       "prop": "border",
       "value": "1px solid hsl(var(--border))",
@@ -4910,8 +4972,8 @@
       "prop": "gap",
       "value": "var(--gap-xs)",
       "file": "theme.css",
-      "line": 823,
-      "losesTo": "theme.css:921"
+      "line": 824,
+      "losesTo": "theme.css:922"
     },
     {
       "selector": ".welcome__progress-header span",
@@ -5029,9 +5091,9 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 308,
-    "classes": 1681,
-    "canonicalRules": 47,
-    "ghostRules": 47
+    "blocks": 313,
+    "classes": 1691,
+    "canonicalRules": 48,
+    "ghostRules": 48
   }
 }

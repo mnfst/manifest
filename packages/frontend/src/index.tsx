@@ -35,6 +35,7 @@ const Login = lazyReload(() => import('./pages/Login.jsx'));
 const Register = lazyReload(() => import('./pages/Register.jsx'));
 const ResetPassword = lazyReload(() => import('./pages/ResetPassword.jsx'));
 const Setup = lazyReload(() => import('./pages/Setup.jsx'));
+const Discovery = lazyReload(() => import('./pages/Discovery.jsx'));
 const Welcome = lazyReload(() => import('./pages/Welcome.jsx'));
 const ModelPrices = lazyReload(() => import('./pages/ModelPrices.jsx'));
 const Help = lazyReload(() => import('./pages/Help.jsx'));
@@ -49,6 +50,15 @@ const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
     <AuthLayout>{props.children}</AuthLayout>
   </GuestGuard>
+);
+
+// Post-signup discovery step (self-hosted only): authenticated, rendered in
+// the centered auth card rather than the App shell. The page itself redirects
+// anyone who should not see it (cloud, already completed or skipped).
+const DiscoveryLayout: ParentComponent = (props) => (
+  <AuthGuard>
+    <AuthLayout>{props.children}</AuthLayout>
+  </AuthGuard>
 );
 
 // Full-page onboarding: authenticated but outside the App dashboard shell.
@@ -142,6 +152,9 @@ render(
         </Route>
         <Route path="/setup" component={AuthLayout}>
           <Route path="/" component={Setup} />
+        </Route>
+        <Route path="/discovery" component={DiscoveryLayout}>
+          <Route path="/" component={Discovery} />
         </Route>
         <Route path="/welcome" component={WelcomeLayout}>
           <Route path="/" component={Welcome} />

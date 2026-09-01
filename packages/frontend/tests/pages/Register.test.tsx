@@ -5,6 +5,7 @@ const mockSignUpEmail = vi.fn().mockResolvedValue({});
 const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
 const mockSubscriptionUpgrade = vi.fn().mockResolvedValue({});
 const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
+const mockCheckIsSelfHosted = vi.fn().mockResolvedValue(false);
 const mockNavigate = vi.fn();
 const mockToastError = vi.fn();
 let mockLocationSearch = '';
@@ -52,6 +53,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 
 vi.mock('../../src/services/setup-status.js', () => ({
   checkSocialProviders: vi.fn().mockResolvedValue([]),
+  checkIsSelfHosted: (...args: unknown[]) => mockCheckIsSelfHosted(...args),
 }));
 
 import Register from '../../src/pages/Register';
@@ -63,6 +65,7 @@ describe('Register', () => {
     mockSignUpEmail.mockResolvedValue({});
     mockSubscriptionUpgrade.mockResolvedValue({});
     mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
+    mockCheckIsSelfHosted.mockResolvedValue(false);
     mockLocationSearch = '';
     mockSearchParams = {};
     localStorage.clear();
@@ -216,6 +219,60 @@ describe('Register', () => {
     fireEvent.submit(container.querySelector('form')!);
     await vi.waitFor(() => {
       expect(hrefSetter).toHaveBeenCalledWith('/welcome');
+    });
+
+    locationSpy.mockRestore();
+  });
+
+  it('routes self-hosted email signups through the discovery step', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockSignUpEmail.mockResolvedValue({ error: null });
+    const { container } = render(() => <Register />);
+    // Let onMount resolve checkIsSelfHosted before submitting.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'test@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass123' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => {
+      expect(mockSignUpEmail).toHaveBeenCalledWith({
+        name: 'Test',
+        email: 'test@test.com',
+        password: 'pass123',
+        callbackURL: '/discovery?next=%2Fwelcome',
+      });
+    });
+  });
+
+  it('redirects self-hosted token signups to the discovery step', async () => {
+    const locationSpy = vi.spyOn(window, 'location', 'get').mockReturnValue({
+      ...window.location,
+      href: '',
+    });
+    const hrefSetter = vi.fn();
+    Object.defineProperty(window.location, 'href', { set: hrefSetter, configurable: true });
+
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockSignUpEmail.mockResolvedValue({
+      data: { token: 'tok', user: { id: 'u1' } },
+      error: null,
+    });
+    const { container } = render(() => <Register />);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    fireEvent.input(container.querySelector('input[type="text"]')!, { target: { value: 'Test' } });
+    fireEvent.input(container.querySelector('input[type="email"]')!, {
+      target: { value: 'new@test.com' },
+    });
+    fireEvent.input(container.querySelector('input[type="password"]')!, {
+      target: { value: 'pass12345' },
+    });
+    fireEvent.submit(container.querySelector('form')!);
+    await vi.waitFor(() => {
+      expect(hrefSetter).toHaveBeenCalledWith('/discovery?next=%2Fwelcome');
     });
 
     locationSpy.mockRestore();

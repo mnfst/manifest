@@ -1,0 +1,40 @@
+/* ── Self-hosted user discovery step (Discovery.tsx) ── */
+
+.discovery-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-sm);
+  margin-bottom: var(--gap-lg);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* Selects sized to match .auth-form__input (2.75rem, full width) */
+.discovery-form .custom-select {
+  display: block;
+  width: 100%;
+}
+
+.discovery-form .custom-select__trigger {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 var(--gap-md);
+  background: hsl(var(--background));
+  border-color: hsl(var(--input));
+}
+
+.discovery-form .custom-select__trigger--open {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+}
+
+/* Unselected selects read as placeholders, like input placeholder text */
+.discovery-select--empty .custom-select__value {
+  color: hsl(var(--muted-foreground) / 0.6);
+}
+
+.discovery-skip {
+  text-align: center;
+}
