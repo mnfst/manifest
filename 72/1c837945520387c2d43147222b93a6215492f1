@@ -1,0 +1,54 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_6056ce3cb45fff::t_b5c3fe4894e71e 1212-1239
+  s_6056ce3cb45fff::t_1b29913440cd6f 79-109,1211,1240
+  s_6a30cb9f0f3b0e::t_b96b74725f5e76 1199-1210,1241
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_6056ce3cb45fff::t_8dd667026fbb72 479-498
+  s_6056ce3cb45fff::t_537d76226d9e5e 18
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_6056ce3cb45fff::t_850751b094bc89 215
+  s_6056ce3cb45fff::t_0c513848def9c2 213-214
+  s_6056ce3cb45fff::t_d88d2b406e9c70 216
+  s_6056ce3cb45fff::t_a78792923f60df 22-23,225,240-258
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_6056ce3cb45fff::t_fd793b1d9ebf13 123-124
+packages/backend/src/routing/proxy/provider-client.ts
+  s_6056ce3cb45fff::t_d33ec07ede0a25 352,436-442
+  s_6056ce3cb45fff::t_c448625e8be2e9 356,361-362,384,420,458,477
+  s_6a30cb9f0f3b0e::t_9f0a6feac9b4a4 49,346-351,353-354,443-444
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_6056ce3cb45fff::t_537d76226d9e5e 89,788
+  s_6056ce3cb45fff::t_b4d2f15746259f 742-754,782,784
+.changeset/quiet-cats-drop-tools.md
+  s_6056ce3cb45fff::t_27155a0142f103 1-5
+packages/backend/src/common/errors/error-codes.ts
+  s_6056ce3cb45fff::t_6829ba09c99dcc 80-84
+packages/backend/src/common/errors/manifest-error.ts
+  s_6056ce3cb45fff::t_530f56abe32188 61
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_6056ce3cb45fff::t_99a37c8d8b2c92 5,468-470,473,632-660
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "721c837945520387c2d43147222b93a6215492f1",
+  "prompts": {},
+  "sessions": {
+    "s_6056ce3cb45fff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4d-3d33-7212-b606-95864e04f4e2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_6a30cb9f0f3b0e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05890-d354-7d73-97ce-5e38abe32175",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
