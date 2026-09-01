@@ -38,6 +38,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
@@ -307,6 +308,7 @@ export class ModelDiscoveryService {
     // curated list so users can always select known supported models.
     if (provider.auth_type === 'subscription') {
       raw = supplementWithKnownModels(raw, provider.provider);
+      raw = raw.map((model) => reconcileCachedSubscriptionContextWindow(model, provider.provider));
     }
 
     // Preserve the full AuthType union (api_key / subscription / local) —
@@ -551,7 +553,11 @@ export class ModelDiscoveryService {
       const providerId = p.provider.toLowerCase();
       const filterKey = nonChatFilterKey(providerId, providerAuthType);
       const cached = filterNonChatModels(rawCached, filterKey);
-      for (const m of cached) {
+      for (const cachedModel of cached) {
+        const m =
+          providerAuthType === 'subscription'
+            ? reconcileCachedSubscriptionContextWindow(cachedModel, p.provider)
+            : cachedModel;
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by the routable tuple, not just model ID. Multiple
         // providers can expose the same native model name, and the picker must

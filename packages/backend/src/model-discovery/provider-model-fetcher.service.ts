@@ -70,6 +70,7 @@ interface ModelParserConfig<T> {
   getId: (entry: T) => string;
   getDisplayName: (entry: T, id: string) => string;
   contextWindow?: number | ((entry: T) => number);
+  contextWindowSource?: (entry: T) => DiscoveredModel['contextWindowSource'];
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityReasoning?: boolean;
@@ -92,12 +93,14 @@ function createModelParser<T>(
         const entry = m as T;
         const id = config.getId(entry);
         const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        const contextWindowSource = config.contextWindowSource?.(entry);
         const supportedEndpoints = config.supportedEndpoints?.(entry);
         return {
           id,
           displayName: config.getDisplayName(entry, id),
           provider,
           contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
+          ...(contextWindowSource ? { contextWindowSource } : {}),
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
           capabilityReasoning: config.capabilityReasoning ?? false,
@@ -736,6 +739,8 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
   getId: (entry) => entry.slug,
   getDisplayName: (entry, id) => entry.display_name || id,
   contextWindow: (entry) => entry.context_window ?? 200000,
+  contextWindowSource: (entry) =>
+    typeof entry.context_window === 'number' ? 'provider' : 'subscription_config',
   inputPricePerToken: 0,
   outputPricePerToken: 0,
   capabilityCode: true,

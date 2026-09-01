@@ -187,6 +187,30 @@ describe('ModelDiscoveryService', () => {
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
     });
 
+    it('caches the current configured window after capability enrichment', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'gpt-5.6-sol',
+          contextWindow: 272000,
+          contextWindowSource: 'subscription_config',
+          inputPricePerToken: 0,
+          outputPricePerToken: 0,
+        }),
+      ]);
+      mockModelsDevSync.lookupModelCapabilities.mockReturnValue({ toolCall: true });
+      const provider = makeProvider({ auth_type: 'subscription' });
+
+      const result = await service.discoverModels(provider);
+      const sol = result.find((model) => model.id === 'gpt-5.6-sol');
+
+      expect(sol).toMatchObject({
+        contextWindow: 1050000,
+        contextWindowSource: 'subscription_config',
+        capabilityCode: true,
+      });
+      expect(provider.cached_models).toEqual(result);
+    });
+
     it('should return [] when decrypt fails', async () => {
       mockDecrypt.mockImplementation(() => {
         throw new Error('bad key');
@@ -814,6 +838,37 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('agent-1');
 
       expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
+    });
+
+    it('updates only explicitly configured subscription context windows', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'gpt-5.6-sol',
+              contextWindow: 272000,
+              contextWindowSource: 'subscription_config',
+            }),
+            makeModel({
+              id: 'gpt-5.6-terra',
+              contextWindow: 272000,
+              contextWindowSource: 'provider',
+            }),
+            makeModel({ id: 'gpt-5.6-luna', contextWindow: 272000 }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('tenant-1');
+
+      expect(result.map((model) => [model.id, model.contextWindow])).toEqual([
+        ['gpt-5.6-sol', 1050000],
+        ['gpt-5.6-terra', 272000],
+        ['gpt-5.6-luna', 272000],
+      ]);
     });
 
     it('should keep Mistral Vibe subscription cached models that API-key Mistral hides', async () => {

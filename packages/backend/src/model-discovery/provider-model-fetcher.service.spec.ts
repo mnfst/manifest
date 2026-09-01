@@ -2464,6 +2464,7 @@ describe('ProviderModelFetcherService', () => {
           displayName: 'GPT-5.5',
           provider: 'openai',
           contextWindow: 192000,
+          contextWindowSource: 'provider',
           inputPricePerToken: 0,
           outputPricePerToken: 0,
           capabilityCode: true,
@@ -2533,6 +2534,7 @@ describe('ProviderModelFetcherService', () => {
 
       const result = await service.fetch('openai', 'token', 'subscription');
       expect(result[0].contextWindow).toBe(200000);
+      expect(result[0].contextWindowSource).toBe('subscription_config');
     });
 
     it('should return [] when models is not an array', async () => {
