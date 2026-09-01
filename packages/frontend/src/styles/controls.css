@@ -264,8 +264,12 @@
   z-index: 10;
   /* The harness list carries its own cap and scroll (see theme.css), so on
      any reasonable height the bottom stack (pivot card, usage, upgrade)
-     stays in view without this column ever scrolling; on very short
-     viewports the column overflows and scrolls as it always did. */
+     stays in view without this column ever scrolling. On very short
+     viewports the column overflows and scrolls around the still-capped
+     list — deliberately: keeping the list compact brings the bottom stack
+     back with the least column scrolling, and a viewport threshold that
+     lifts the cap proved worse (it silently restored the push-down bug on
+     any window with devtools open). */
   overflow-y: auto;
 }
 
