@@ -76,10 +76,13 @@ vi.mock('../../src/services/toast-store.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
   // Mirrors the real formatCost contract: Number() coercion, null for
-  // negative or non-finite input (so null coerces to 0 and renders $0.00).
+  // negative or non-finite input (so null coerces to 0 and renders $0.00),
+  // and the sub-cent floor for costs between 0 and $0.01.
   formatCost: (v: number) => {
     const n = Number(v);
-    return Number.isFinite(n) && n >= 0 ? `$${n.toFixed(2)}` : null;
+    if (!Number.isFinite(n) || n < 0) return null;
+    if (n > 0 && n < 0.01) return '< $0.01';
+    return `$${n.toFixed(2)}`;
   },
   formatTime: (ts: string) => ts,
 }));
