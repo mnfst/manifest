@@ -20,6 +20,7 @@
 @import './action-menu.css';
 @import './feedback.css';
 @import './params-card.css';
+@import './teams.css';
 
 /*
  * Route-scoped stylesheets are intentionally NOT imported here. They are
@@ -932,7 +933,7 @@ h6 {
   letter-spacing: 0.05em;
 }
 
-/* Base styling shared by global nav links and harness switcher items. */
+/* Base styling shared by global nav links and agent switcher items. */
 .sidebar__link,
 .sidebar__agent-item {
   display: flex;
@@ -959,7 +960,7 @@ h6 {
   font-weight: 500;
 }
 
-/* HARNESSES section header — a row holding the collapse toggle and + button. */
+/* AGENTS section header — a row holding the collapse toggle and + button. */
 .sidebar__section-header {
   display: flex;
   align-items: center;
@@ -1028,8 +1029,8 @@ h6 {
   background: hsl(var(--border));
 }
 
-/* Harness list items reuse the shared link base (above); these are the only
-   harness-specific overrides — a wider icon gap and a bolder label. */
+/* Agent list items reuse the shared link base (above); these are the only
+   agent-specific overrides — a wider icon gap and a bolder label. */
 .sidebar__agents-list {
   padding: 0;
 }

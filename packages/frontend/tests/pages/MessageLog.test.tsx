@@ -24,6 +24,12 @@ vi.mock('@solidjs/router', () => ({
       get range() {
         return mockSearchParams.range;
       },
+      get owners() {
+        return mockSearchParams.owners;
+      },
+      get projects() {
+        return mockSearchParams.projects;
+      },
     },
     mockSetSearchParams,
   ],
@@ -1027,7 +1033,7 @@ describe('MessageLog', () => {
     });
     const btn = container.querySelector('.empty-state button.btn--primary') as HTMLButtonElement;
     fireEvent.click(btn);
-    expect(mockNavigate).toHaveBeenCalledWith('/harnesses/test-agent/routing', {
+    expect(mockNavigate).toHaveBeenCalledWith('/agents/test-agent/routing', {
       state: { openProviders: true },
     });
   });
@@ -1048,7 +1054,7 @@ describe('MessageLog', () => {
     });
   });
 
-  it('shows Set up harness when no setupCompleted and no providers', async () => {
+  it('shows Set up agent when no setupCompleted and no providers', async () => {
     mockGetMessages.mockResolvedValue({
       items: [],
       next_cursor: null,
@@ -1057,7 +1063,7 @@ describe('MessageLog', () => {
     });
     const { container } = render(() => <MessageLog />);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('Set up harness');
+      expect(container.textContent).toContain('Set up agent');
       expect(container.textContent).not.toContain('Enable routing');
       expect(container.textContent).not.toContain('Connect provider');
     });
@@ -1133,7 +1139,7 @@ describe('MessageLog', () => {
     });
 
     it('resolves custom provider name + icon in global mode from the response', async () => {
-      // Global ("All harnesses") log has no route agent. The backend resolves
+      // Global ("All agents") log has no route agent. The backend resolves
       // the custom provider's name into each row (`custom_provider_name`), so
       // custom:<uuid> models still render with the real name and provider icon
       // — the page no longer fetches the provider list itself.
@@ -1533,7 +1539,7 @@ describe('MessageLog', () => {
         const selects = container.querySelectorAll('[data-testid="select"]');
         // agent filter is the first select in global mode
         expect(selects.length).toBeGreaterThanOrEqual(1);
-        expect(selects[0].textContent).toContain('All harnesses');
+        expect(selects[0].textContent).toContain('All agents');
       });
     });
 
@@ -1585,9 +1591,9 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         const selects = container.querySelectorAll('[data-testid="select"]');
-        // In agent mode, no harness select renders; the first Select is the
+        // In agent mode, no agent select renders; the first Select is the
         // recovery filter (connections stay a multiselect, rendered apart).
-        expect(selects[0].textContent).not.toContain('All harnesses');
+        expect(selects[0].textContent).not.toContain('All agents');
         expect(selects[0].textContent).toContain('All attempts');
       });
     });
@@ -1680,7 +1686,7 @@ describe('MessageLog', () => {
       expect(agentSelect.value).toBe('agent-beta');
     });
 
-    it("omits agent_name query param when 'All harnesses' is selected", async () => {
+    it("omits agent_name query param when 'All agents' is selected", async () => {
       mockAgentName = '';
       mockGetMessages.mockResolvedValue(messagesData);
       const { container } = render(() => <MessageLog />);
@@ -1701,7 +1707,7 @@ describe('MessageLog', () => {
         expect(calls.some((c: any[]) => c[0]?.agent_name === 'agent-alpha')).toBe(true);
       });
       mockGetMessages.mockClear();
-      // Then go back to "All harnesses"
+      // Then go back to "All agents"
       fireEvent.change(agentSelect, { target: { value: '' } });
       await vi.waitFor(() => {
         const calls = mockGetMessages.mock.calls;
@@ -1786,7 +1792,7 @@ describe('MessageLog', () => {
         expect(mockGetAgents).toHaveBeenCalled();
         const selects = container.querySelectorAll('[data-testid="select"]');
         // Agent filter still renders gracefully (agentList() ?? [] = [])
-        expect(selects[0].textContent).toContain('All harnesses');
+        expect(selects[0].textContent).toContain('All agents');
         expect(selects[0].textContent).not.toContain('agent-alpha');
       });
       // Unmount and reset before the rejection can leak into the next test.
@@ -1827,9 +1833,9 @@ describe('MessageLog', () => {
       });
     });
 
-    it("renders 'Harness' column header in the message table when in global mode", async () => {
+    it("renders 'Agent' column header in the message table when in global mode", async () => {
       // Fix: columns() now inserts 'agent' before 'model' when !params.agentName.
-      // This test asserts the Harness column header actually appears in the DOM,
+      // This test asserts the Agent column header actually appears in the DOM,
       // not just that the component receives the columns array.
       mockAgentName = '';
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1839,10 +1845,10 @@ describe('MessageLog', () => {
       });
       const headers = Array.from(container.querySelectorAll('thead th'));
       const headerTexts = headers.map((th) => th.textContent?.trim());
-      expect(headerTexts).toContain('Harness');
+      expect(headerTexts).toContain('Agent');
     });
 
-    it("does NOT render 'Harness' column header in agent-scoped mode", async () => {
+    it("does NOT render 'Agent' column header in agent-scoped mode", async () => {
       // mockAgentName is "test-agent" from beforeEach — agent-scoped mode.
       // columns() returns DETAILED_COLUMNS unchanged (no 'agent' key).
       mockGetMessages.mockResolvedValue(messagesData);
@@ -1852,7 +1858,7 @@ describe('MessageLog', () => {
       });
       const headers = Array.from(container.querySelectorAll('thead th'));
       const headerTexts = headers.map((th) => th.textContent?.trim());
-      expect(headerTexts).not.toContain('Harness');
+      expect(headerTexts).not.toContain('Agent');
     });
 
     it('renders agent_name values in the Agent column cells in global mode', async () => {
@@ -1874,7 +1880,7 @@ describe('MessageLog', () => {
       });
     });
 
-    it('renders harness platform icons in global Harness column cells', async () => {
+    it('renders agent platform icons in global Agent column cells', async () => {
       mockAgentName = '';
       mockGetAgents.mockResolvedValue({
         agents: [
@@ -1938,7 +1944,7 @@ describe('MessageLog', () => {
       });
     });
 
-    it("shows 'Go to Harnesses' link (not SetupModal CTA) in the empty state in global mode", async () => {
+    it("shows 'Go to Agents' link (not SetupModal CTA) in the empty state in global mode", async () => {
       mockAgentName = '';
       mockGetMessages.mockResolvedValue({
         items: [],
@@ -1949,16 +1955,16 @@ describe('MessageLog', () => {
       const { container } = render(() => <MessageLog />);
       await vi.waitFor(() => {
         expect(container.textContent).toContain('No requests yet');
-        // Global empty state guides to /harnesses, not set-up-agent modal
-        const link = container.querySelector('a[href="/harnesses"]') as HTMLAnchorElement;
+        // Global empty state guides to /agents, not set-up-agent modal
+        const link = container.querySelector('a[href="/agents"]') as HTMLAnchorElement;
         expect(link).not.toBeNull();
-        expect(link.textContent).toContain('Go to Harnesses');
-        // No "Set up harness" button in global mode
-        expect(container.textContent).not.toContain('Set up harness');
+        expect(link.textContent).toContain('Go to Agents');
+        // No "Set up agent" button in global mode
+        expect(container.textContent).not.toContain('Set up agent');
       });
     });
 
-    it('does not navigate to /harnesses/undefined/routing in global mode', async () => {
+    it('does not navigate to /agents/undefined/routing in global mode', async () => {
       mockAgentName = '';
       mockGetMessages.mockResolvedValue({
         items: [],
@@ -1970,8 +1976,8 @@ describe('MessageLog', () => {
       await vi.waitFor(() => {
         expect(container.textContent).toContain('No requests yet');
       });
-      // Clicking the "Go to Harnesses" link should use the href attribute, not navigate()
-      // Verify no button triggers mockNavigate with "/harnesses/undefined/routing"
+      // Clicking the "Go to Agents" link should use the href attribute, not navigate()
+      // Verify no button triggers mockNavigate with "/agents/undefined/routing"
       expect(mockNavigate).not.toHaveBeenCalledWith(
         expect.stringContaining('undefined'),
         expect.anything(),
@@ -1989,5 +1995,116 @@ describe('MessageLog', () => {
       });
       mockSearchParams = {};
     });
+  });
+});
+
+// ── Teams: owner / project filters on the global log ─────────────────
+let ownerProjectProps: {
+  owners: string[];
+  projects: string[];
+  onOwnersChange: (v: string[]) => void;
+  onProjectsChange: (v: string[]) => void;
+} | null = null;
+let mockTeamsBackend = true;
+vi.mock('../../src/services/api/teams.js', () => ({
+  teamsBackendAvailable: () => Promise.resolve(mockTeamsBackend),
+}));
+vi.mock('../../src/components/OwnerProjectFilters.jsx', () => ({
+  default: (props: NonNullable<typeof ownerProjectProps>) => {
+    ownerProjectProps = props;
+    return (
+      <div data-testid="owner-project-filters">
+        <button data-testid="pick-owner" onClick={() => props.onOwnersChange(['u-maya', 'none'])}>
+          owner
+        </button>
+        <button data-testid="pick-project" onClick={() => props.onProjectsChange(['p-hsbc'])}>
+          project
+        </button>
+      </div>
+    );
+  },
+}));
+
+describe('MessageLog owner/project filters', () => {
+  beforeEach(() => {
+    ownerProjectProps = null;
+    mockAgentName = '';
+    mockSearchParams = {};
+    mockSetSearchParams.mockClear();
+    mockGetMessages.mockClear();
+    mockGetRoutingStatus.mockResolvedValue({ enabled: true, reason: null });
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+    mockGetMessageCount.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+  });
+
+  it('reads owners and projects from the URL and sends them to the API', async () => {
+    mockSearchParams = { owners: 'u-maya,none', projects: 'p-hsbc' };
+    render(() => <MessageLog />);
+    await vi.waitFor(() => {
+      expect(mockGetMessages).toHaveBeenCalledWith(
+        expect.objectContaining({ owners: 'u-maya,none', projects: 'p-hsbc' }),
+      );
+    });
+    expect(ownerProjectProps?.owners).toEqual(['u-maya', 'none']);
+    expect(ownerProjectProps?.projects).toEqual(['p-hsbc']);
+  });
+
+  it('writes a selection to the URL, refetches, and clears it with the other filters', async () => {
+    const { getByTestId, container } = render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+    expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+
+    fireEvent.click(getByTestId('pick-owner'));
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ owners: 'u-maya,none' }, { replace: true });
+    await vi.waitFor(() => {
+      expect(mockGetMessages.mock.lastCall![0]).toMatchObject({ owners: 'u-maya,none' });
+    });
+    fireEvent.click(getByTestId('pick-project'));
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ projects: 'p-hsbc' }, { replace: true });
+    await vi.waitFor(() => {
+      expect(mockGetMessages.mock.lastCall![0]).toMatchObject({ projects: 'p-hsbc' });
+    });
+
+    // A filtered empty result offers "Clear filters", which resets both.
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('Clear filters');
+    });
+    const clear = [...container.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Clear filters',
+    ) as HTMLButtonElement;
+    fireEvent.click(clear);
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ owners: undefined }, { replace: true });
+    expect(mockSetSearchParams).toHaveBeenCalledWith({ projects: undefined }, { replace: true });
+    await vi.waitFor(() => {
+      expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+    });
+  });
+
+  it('does not render or send the team filters on an agent-scoped log', async () => {
+    mockAgentName = 'test-agent';
+    mockSearchParams = { owners: 'u-maya' };
+    const { queryByTestId } = render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+    expect(queryByTestId('owner-project-filters')).toBeNull();
+    expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+  });
+});
+
+describe('MessageLog team filter gate', () => {
+  it('withholds the team params while the backend check fails', async () => {
+    mockTeamsBackend = true;
+    const teams = await import('../../src/services/api/teams.js');
+    const spy = vi.spyOn(teams, 'teamsBackendAvailable').mockRejectedValueOnce(new Error('boom'));
+    mockAgentName = '';
+    mockSearchParams = { owners: 'u-maya' };
+    mockGetMessages.mockClear();
+    mockGetMessages.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+    mockGetMessageCount.mockResolvedValue({ items: [], next_cursor: null, total_count: 0 });
+    mockGetRoutingStatus.mockResolvedValue({ enabled: true, reason: null });
+    render(() => <MessageLog />);
+    await vi.waitFor(() => expect(mockGetMessages).toHaveBeenCalled());
+    await Promise.resolve();
+    expect(mockGetMessages.mock.lastCall![0]).not.toHaveProperty('owners');
+    spy.mockRestore();
   });
 });

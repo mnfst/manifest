@@ -111,16 +111,11 @@ function makeRow(overrides: Partial<MessageRow> = {}): MessageRow {
   };
 }
 
-
 describe('MessageTable', () => {
   describe('column configuration', () => {
     it('renders compact column headers', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const headers = container.querySelectorAll('th');
       expect(headers.length).toBe(10);
@@ -164,11 +159,7 @@ describe('MessageTable', () => {
 
     it('renders "Tokens" without tooltip when showHeaderTooltips is false', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const tokensHeader = container.querySelectorAll('th')[7]!; // 'totalTokens' is at index 7 in COMPACT_COLUMNS (after selfheal)
       expect(tokensHeader.textContent).toBe('Tokens');
@@ -193,11 +184,7 @@ describe('MessageTable', () => {
   describe('data rendering', () => {
     it('renders date cell', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('2026-02-16 10:00:00');
     });
@@ -228,11 +215,7 @@ describe('MessageTable', () => {
 
     it('renders cost value', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ cost: 1.5 })]}
-          columns={['cost']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ cost: 1.5 })]} columns={['cost']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('$1.50');
     });
@@ -258,18 +241,12 @@ describe('MessageTable', () => {
         />
       ));
       expect(container.textContent).toContain('$0.01');
-      expect(
-        container.querySelector('[title^="Per-request subscription cost:"]'),
-      ).not.toBeNull();
+      expect(container.querySelector('[title^="Per-request subscription cost:"]')).not.toBeNull();
     });
 
     it('renders em dash for null cost', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ cost: null })]}
-          columns={['cost']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ cost: null })]} columns={['cost']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('\u2014');
     });
@@ -430,11 +407,7 @@ describe('MessageTable', () => {
 
     it('renders em dash for null model', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ model: null })]}
-          columns={['model']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow({ model: null })]} columns={['model']} agentName="agent-1" />
       ));
       expect(container.textContent).toContain('\u2014');
     });
@@ -555,11 +528,7 @@ describe('MessageTable', () => {
 
     it('renders dash when neither autofix nor fallback applies', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['selfheal']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['selfheal']} agentName="agent-1" />
       ));
       expect(container.querySelector('td')!.textContent).toContain('\u2014');
     });
@@ -641,11 +610,7 @@ describe('MessageTable', () => {
 
     it('does not set row id when rowIdPrefix is omitted', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       const bodyRow = container.querySelector('tbody tr');
       expect(bodyRow!.getAttribute('id')).toBeNull();
@@ -668,11 +633,7 @@ describe('MessageTable', () => {
 
     it('does not render chevron when expandable is false', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" />
       ));
       expect(container.querySelector('.msg-detail__chevron-btn')).toBeNull();
       expect(container.querySelector('.msg-detail__chevron-th')).toBeNull();
@@ -680,12 +641,7 @@ describe('MessageTable', () => {
 
     it('expands details panel when chevron is clicked', async () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
@@ -695,12 +651,7 @@ describe('MessageTable', () => {
 
     it('collapses details panel on second click', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLButtonElement;
       fireEvent.click(btn);
@@ -711,12 +662,7 @@ describe('MessageTable', () => {
 
     it('adds open class to chevron button when expanded', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
       expect(btn.classList.contains('msg-detail__chevron-btn--open')).toBe(false);
@@ -758,12 +704,7 @@ describe('MessageTable', () => {
 
     it('sets aria-label on chevron button', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       const btn = container.querySelector('.msg-detail__chevron-btn') as HTMLElement;
       expect(btn.getAttribute('aria-label')).toBe('Expand details');
@@ -773,12 +714,7 @@ describe('MessageTable', () => {
 
     it('expands the panel when the row body (a non-interactive cell) is clicked', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date']}
-          agentName="agent-1"
-          expandable
-        />
+        <MessageTable items={[makeRow()]} columns={['date']} agentName="agent-1" expandable />
       ));
       expect(container.querySelector('[data-testid="message-details"]')).toBeNull();
       // Click a plain cell — the click bubbles to the row handler and toggles.
@@ -811,11 +747,7 @@ describe('MessageTable', () => {
       const row = makeRow({ model: 'gpt-4o', display_name: 'GPT-4o', routing_tier: 'fast' });
 
       const { container: compact } = render(() => (
-        <MessageTable
-          items={[row]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[row]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const { container: detailed } = render(() => (
         <MessageTable
@@ -838,11 +770,7 @@ describe('MessageTable', () => {
       const row = makeRow({ status: 'error', error_message: 'timeout' });
 
       const { container: compact } = render(() => (
-        <MessageTable
-          items={[row]}
-          columns={COMPACT_COLUMNS}
-          agentName="agent-1"
-        />
+        <MessageTable items={[row]} columns={COMPACT_COLUMNS} agentName="agent-1" />
       ));
       const { container: detailed } = render(() => (
         <MessageTable
@@ -880,42 +808,30 @@ describe('MessageTable', () => {
   describe('agent column (global mode)', () => {
     it('renders Agent column header when agent column is in columns list', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: 'my-agent' })]}
-          columns={['agent', 'date']}
-        />
+        <MessageTable items={[makeRow({ agent_name: 'my-agent' })]} columns={['agent', 'date']} />
       ));
       const headers = container.querySelectorAll('th');
-      expect(headers[0]!.textContent).toContain('Harness');
+      expect(headers[0]!.textContent).toContain('Agent');
       expect(headers[1]!.textContent).toContain('Date');
     });
 
     it('renders agent_name value in agent cell', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: 'my-agent' })]}
-          columns={['agent']}
-        />
+        <MessageTable items={[makeRow({ agent_name: 'my-agent' })]} columns={['agent']} />
       ));
       expect(container.textContent).toContain('my-agent');
     });
 
     it('renders em dash when agent_name is null', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow({ agent_name: null })]}
-          columns={['agent']}
-        />
+        <MessageTable items={[makeRow({ agent_name: null })]} columns={['agent']} />
       ));
       expect(container.textContent).toContain('—');
     });
 
     it('works without agentName prop (global mode)', () => {
       const { container } = render(() => (
-        <MessageTable
-          items={[makeRow()]}
-          columns={['date', 'status']}
-        />
+        <MessageTable items={[makeRow()]} columns={['date', 'status']} />
       ));
       expect(container.querySelector('.data-table')).not.toBeNull();
     });

@@ -84,7 +84,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
       toast.success(`Duplicated "${props.sourceName}" to "${slug}"`);
       props.onClose();
       props.onDuplicated?.();
-      navigate(`/harnesses/${encodeURIComponent(slug)}`, {
+      navigate(`/agents/${encodeURIComponent(slug)}`, {
         state: { newApiKey: result.apiKey },
       });
     } catch {
@@ -120,12 +120,12 @@ const DuplicateAgentModal: Component<Props> = (props) => {
             Duplicate "{props.sourceName}"
           </h2>
           <p class="modal-card__desc">
-            Creates a new harness with the same providers, routing, and tier configuration. A fresh
+            Creates a new agent with the same providers, routing, and tier configuration. A fresh
             API key is generated. Telemetry and request history stay with the original.
           </p>
 
           <label class="modal-card__field-label" for="duplicate-agent-name">
-            New harness name
+            New agent name
           </label>
           <input
             ref={(el) =>
@@ -191,7 +191,7 @@ const DuplicateAgentModal: Component<Props> = (props) => {
               disabled={!name().trim() || submitting()}
               type="button"
             >
-              {submitting() ? <span class="spinner" /> : 'Duplicate harness'}
+              {submitting() ? <span class="spinner" /> : 'Duplicate agent'}
             </button>
           </div>
         </div>

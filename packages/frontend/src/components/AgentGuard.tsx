@@ -29,12 +29,12 @@ const AgentGuard: ParentComponent = (props) => {
   const params = useParams<{ agentName: string }>();
 
   // Key the fetch on the agent param so the list is re-fetched whenever the
-  // viewed agent changes. AgentGuard stays mounted across `/harnesses/:agentName`
+  // viewed agent changes. AgentGuard stays mounted across `/agents/:agentName`
   // navigations (only the param updates), so a source-less resource would keep
   // serving the list captured on first mount. That stale list omits an agent
   // created from the always-present sidebar while another agent is open, which
   // left `setAgentPlatform(null)` below — making the post-create setup modal
-  // render its full harness picker instead of the harness the user just chose.
+  // render its full agent picker instead of the agent the user just chose.
   const [data, { refetch }] = createResource(
     () => params.agentName,
     () => getAgents() as Promise<AgentsData>,

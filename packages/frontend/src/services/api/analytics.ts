@@ -118,7 +118,7 @@ export function getConnectionAttemptBreakdown(
   }) as Promise<ConnectionAttemptBreakdown>;
 }
 
-/** Attempts per harness over time for ONE connection (By harness view). */
+/** Attempts per agent over time for ONE connection (By agent view). */
 export function getConnectionAttemptsByAgentTimeseries(
   authType: string,
   provider: string,
@@ -239,8 +239,22 @@ export function getPerProviderCostTimeseries(agentName: string, range = '24h'): 
   }) as PivotedTimeseries;
 }
 
-export function getOverview(range = '24h', agentName?: string) {
-  return fetchJson('/overview', { range, ...(agentName ? { agent_name: agentName } : {}) });
+/**
+ * `filter.owners` (user ids, `none` for agents without an owner) and
+ * `filter.projects` narrow the summary the same way they narrow the charts.
+ * Sent as comma-separated `owners` / `projects` query params.
+ */
+export function getOverview(
+  range = '24h',
+  agentName?: string,
+  filter?: { owners?: string[]; projects?: string[] },
+) {
+  return fetchJson('/overview', {
+    range,
+    ...(agentName ? { agent_name: agentName } : {}),
+    ...(filter?.owners?.length ? { owners: filter.owners.join(',') } : {}),
+    ...(filter?.projects?.length ? { projects: filter.projects.join(',') } : {}),
+  });
 }
 
 export interface AttemptMetric {
@@ -402,12 +416,11 @@ export const CONNECTION_SUCCESS_RATE_TOOLTIP_30D =
   'Successful attempts over all attempts for this connection, over the last 30 days.';
 export const CONNECTION_SUCCESS_RATE_TOOLTIP =
   'Successful attempts over all attempts for this connection, on the filtered period.';
-export const CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP =
-  'Successful attempts over all attempts for this harness on this connection.';
-export const HARNESS_SUCCESS_RATE_TOOLTIP =
-  'Successful requests over all requests for this harness.';
-export const HARNESS_TOTAL_REQUESTS_TOOLTIP =
-  'Logical requests from this harness, one per call, whatever the number of attempts.';
+export const CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP =
+  'Successful attempts over all attempts for this agent on this connection.';
+export const AGENT_SUCCESS_RATE_TOOLTIP = 'Successful requests over all requests for this agent.';
+export const AGENT_TOTAL_REQUESTS_TOOLTIP =
+  'Logical requests from this agent, one per call, whatever the number of attempts.';
 export const REQUEST_SUCCESS_RATE_TOOLTIP =
   'Successful requests over all requests. Recovered requests count as successful.';
 

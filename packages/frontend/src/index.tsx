@@ -4,7 +4,6 @@ import { Router, Route, Navigate } from '@solidjs/router';
 import { MetaProvider, Title } from '@solidjs/meta';
 import App from './App.jsx';
 import AuthLayout from './layouts/AuthLayout.jsx';
-import Workspace from './pages/Workspace.jsx';
 import RootRedirect from './components/RootRedirect.jsx';
 import AgentGuard from './components/AgentGuard.jsx';
 import AuthGuard from './components/AuthGuard.jsx';
@@ -19,6 +18,7 @@ import './styles/theme.css';
 clearReloadFlag();
 
 const GlobalOverview = lazyReload(() => import('./pages/GlobalOverview.jsx'));
+const Agents = lazyReload(() => import('./pages/Agents.jsx'));
 const AgentDetail = lazyReload(() => import('./pages/AgentDetail.jsx'));
 const AgentOverview = lazyReload(() => import('./pages/AgentOverview.jsx'));
 const AgentProviders = lazyReload(() => import('./pages/AgentProviders.jsx'));
@@ -44,6 +44,18 @@ const Subscriptions = lazyReload(() => import('./pages/providers/Subscriptions.j
 const Byok = lazyReload(() => import('./pages/providers/Byok.jsx'));
 const LocalProviders = lazyReload(() => import('./pages/providers/Local.jsx'));
 const ConnectionDetail = lazyReload(() => import('./pages/providers/ConnectionDetail.jsx'));
+const Users = lazyReload(() => import('./pages/Users.jsx'));
+const UserDetail = lazyReload(() => import('./pages/UserDetail.jsx'));
+const UserOverview = lazyReload(() => import('./pages/UserOverview.jsx'));
+const UserAgents = lazyReload(() => import('./pages/UserAgents.jsx'));
+const UserModelAccess = lazyReload(() => import('./pages/UserModelAccess.jsx'));
+const UserSettings = lazyReload(() => import('./pages/UserSettings.jsx'));
+const Projects = lazyReload(() => import('./pages/Projects.jsx'));
+const ProjectDetail = lazyReload(() => import('./pages/ProjectDetail.jsx'));
+const ProjectOverview = lazyReload(() => import('./pages/ProjectOverview.jsx'));
+const ProjectAgents = lazyReload(() => import('./pages/ProjectAgents.jsx'));
+const ProjectUsers = lazyReload(() => import('./pages/ProjectUsers.jsx'));
+const ProjectSettings = lazyReload(() => import('./pages/ProjectSettings.jsx'));
 
 const GuestLayout: ParentComponent = (props) => (
   <GuestGuard>
@@ -83,18 +95,34 @@ render(
           <Route path="/" component={RootRedirect} />
           <Route path="/overview" component={GlobalOverview} />
           <Route path="/messages" component={MessageLog} />
-          <Route path="/harnesses" component={Workspace} />
+          <Route path="/agents" component={Agents} />
+          <Route path="/users" component={Users} />
+          <Route path="/users/:userId" component={UserDetail}>
+            <Route path="/" component={UserOverview} />
+            <Route path="/overview" component={UserOverview} />
+            <Route path="/agents" component={UserAgents} />
+            <Route path="/model-access" component={UserModelAccess} />
+            <Route path="/settings" component={UserSettings} />
+          </Route>
+          <Route path="/projects" component={Projects} />
+          <Route path="/projects/:projectId" component={ProjectDetail}>
+            <Route path="/" component={ProjectOverview} />
+            <Route path="/overview" component={ProjectOverview} />
+            <Route path="/agents" component={ProjectAgents} />
+            <Route path="/users" component={ProjectUsers} />
+            <Route path="/settings" component={ProjectSettings} />
+          </Route>
           <Route path="/playground" component={Playground} />
           <Route path="/providers/subscriptions" component={Subscriptions} />
           <Route path="/providers/usage-based" component={Byok} />
           <Route path="/providers/local" component={LocalProviders} />
           <Route path="/providers/connections/:connectionId" component={ConnectionDetail} />
-          <Route path="/harnesses/:agentName" component={AgentGuard}>
+          <Route path="/agents/:agentName" component={AgentGuard}>
             {/* Redirects: /limits → /guardrails, /messages → global /messages */}
             <Route path="/limits" component={AgentLimitsRedirect} />
             <Route path="/messages" component={AgentMessagesRedirect} />
 
-            {/* Tabbed shell wraps Overview / Routing / Limits / Settings */}
+            {/* Tabbed shell wraps Overview / Routing / Providers and models / Limits / Settings */}
             <Route path="/" component={AgentDetail}>
               <Route path="/" component={AgentOverview} />
               <Route path="/overview" component={AgentOverview} />
@@ -110,21 +138,21 @@ render(
             <Route path="/help" component={Help} />
           </Route>
 
-          {/* Legacy /agents redirects → /harnesses (keep bookmarks alive) */}
+          {/* Legacy /harnesses redirects → /agents (keep bookmarks alive) */}
           <Route
-            path="/agents"
+            path="/harnesses"
             component={() => {
               const { search, hash } = window.location;
-              return <Navigate href={`/harnesses${search}${hash}`} />;
+              return <Navigate href={`/agents${search}${hash}`} />;
             }}
           />
           {/* The *rest splat matches zero trailing segments too, so this single
-              route also covers the bare /agents/:agentName path. */}
+              route also covers the bare /harnesses/:agentName path. */}
           <Route
-            path="/agents/:agentName/*rest"
+            path="/harnesses/:agentName/*rest"
             component={() => {
               const { pathname, search, hash } = window.location;
-              const target = pathname.replace(/^\/agents/, '/harnesses');
+              const target = pathname.replace(/^\/harnesses/, '/agents');
               return <Navigate href={`${target}${search}${hash}`} />;
             }}
           />

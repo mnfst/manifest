@@ -2,8 +2,8 @@ import { Navigate, useLocation, useParams } from '@solidjs/router';
 import type { Component } from 'solid-js';
 
 /**
- * Redirects /harnesses/:agentName/messages → /messages?agent=<name> so the
- * global message log opens pre-filtered to the harness the user came from
+ * Redirects /agents/:agentName/messages → /messages?agent=<name> so the
+ * global message log opens pre-filtered to the agent the user came from
  * (e.g. via a Recent Requests "View more" link). Extra query params (like the
  * `?request=` drawer deep-link) are carried through.
  */

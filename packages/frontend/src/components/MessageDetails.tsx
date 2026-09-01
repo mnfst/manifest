@@ -65,7 +65,7 @@ function MiscategorizeControl(props: {
       class="msg-detail__miscat-btn"
       onClick={toggle}
       disabled={busy()}
-      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this harness."
+      title="Flag this message's routing category as wrong. Repeated flags reduce this category's routing score for this agent."
       aria-pressed={flagged()}
     >
       {flagged() ? 'Flagged as miscategorized (undo)' : 'Wrong category?'}

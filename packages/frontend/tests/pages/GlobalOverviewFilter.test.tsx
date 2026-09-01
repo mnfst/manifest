@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { cleanup, fireEvent, render, waitFor } from '@solidjs/testing-library';
 
 /**
- * Targeted coverage for GlobalOverview's harness/provider multi-select
+ * Targeted coverage for GlobalOverview's agent/provider multi-select
  * `onUnselectAll` callback. The real `FilterSelect` only renders a "Select all"
  * button, so `onUnselectAll` is unreachable through its DOM — we stub
  * FilterSelect to expose the callback as a button and assert the page clears the
@@ -75,11 +75,11 @@ vi.mock('../../src/services/api/analytics.js', () => ({
     'Successful attempts over all attempts for this connection, over the last 30 days.',
   CONNECTION_SUCCESS_RATE_TOOLTIP:
     'Successful attempts over all attempts for this connection, on the filtered period.',
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP:
-    'Successful attempts over all attempts for this harness on this connection.',
-  HARNESS_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this harness.',
-  HARNESS_TOTAL_REQUESTS_TOOLTIP:
-    'Logical requests from this harness, one per call, whatever the number of attempts.',
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP:
+    'Successful attempts over all attempts for this agent on this connection.',
+  AGENT_SUCCESS_RATE_TOOLTIP: 'Successful requests over all requests for this agent.',
+  AGENT_TOTAL_REQUESTS_TOOLTIP:
+    'Logical requests from this agent, one per call, whatever the number of attempts.',
   attemptSuccessRate: (row: { attempts: number; succeeded?: number }) =>
     !row.attempts || row.succeeded == null ? null : row.succeeded / row.attempts,
   selfHealedCount: (row: { autofixed: number; fallback_saves?: number }) =>
@@ -106,7 +106,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 2, previous: 1 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -403,7 +404,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
     await waitFor(() => expect(queryByTestId('global-overview-skeleton')).not.toBeNull());
   });
 
-  it('links the harness total-requests count to the agent-scoped Requests log', async () => {
+  it('links the agent total-requests count to the agent-scoped Requests log', async () => {
     const { container } = render(() => <GlobalOverview />);
     await waitFor(() => {
       const link = [...container.querySelectorAll('a')].find(
@@ -415,8 +416,7 @@ describe('GlobalOverview filter onUnselectAll', () => {
 
   it('links the recovered-requests count to the scoped Requests log', async () => {
     const { container } = render(() => <GlobalOverview />);
-    const href =
-      '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback';
+    const href = '/messages?agent=demo-agent&range=7d&status=ok&trigger=autofix,fallback';
     const link = await waitFor(() => {
       const found = [...container.querySelectorAll('a')].find(
         (candidate) => candidate.getAttribute('href') === href,
@@ -478,5 +478,223 @@ describe('GlobalOverview filter onUnselectAll', () => {
 
     expect(localStorage.getItem('manifest:user-discovery-modal-dismissed:v1')).toBe('true');
     await waitFor(() => expect(document.body.textContent).not.toContain('Book my slot to get $25'));
+  });
+});
+
+// ── Teams: owner / project filters and group-by ──────────────────────
+const teamsMocks = vi.hoisted(() => ({
+  getOverviewGroupedUsage: vi.fn(),
+}));
+let ownerProjectProps: {
+  owners: string[];
+  projects: string[];
+  onOwnersChange: (v: string[]) => void;
+  onProjectsChange: (v: string[]) => void;
+} | null = null;
+
+vi.mock('../../src/services/api/teams.js', () => ({
+  getOverviewGroupedUsage: (...args: unknown[]) => teamsMocks.getOverviewGroupedUsage(...args),
+  NO_OWNER: 'none',
+  teamFilterParams: (filter: unknown) => Promise.resolve(filter),
+  teamsBackendAvailable: () => Promise.resolve(true),
+}));
+
+vi.mock('../../src/components/OwnerProjectFilters.jsx', () => ({
+  default: (props: typeof ownerProjectProps & object) => {
+    ownerProjectProps = props;
+    return (
+      <div data-testid="owner-project-filters">
+        <button data-testid="pick-owner" onClick={() => props.onOwnersChange(['u-maya', 'none'])}>
+          owner
+        </button>
+        <button data-testid="pick-project" onClick={() => props.onProjectsChange(['p-hsbc'])}>
+          project
+        </button>
+      </div>
+    );
+  },
+}));
+
+describe('GlobalOverview owner/project filters and grouping', () => {
+  const groupedSeries = {
+    agents: ['Maya Okonkwo', 'No user'],
+    timeseries: [{ hour: '2026-06-04 10:00:00', 'Maya Okonkwo': 5, 'No user': 2 }],
+  };
+  beforeEach(() => {
+    ownerProjectProps = null;
+    teamsMocks.getOverviewGroupedUsage.mockResolvedValue({
+      tokenUsage: groupedSeries,
+      messageUsage: groupedSeries,
+      costUsage: groupedSeries,
+    });
+  });
+
+  const groupButton = (container: HTMLElement, label: string) =>
+    [...container.querySelectorAll('button.chart-card__filter-btn')].find(
+      (b) => b.textContent === label,
+    ) as HTMLButtonElement;
+
+  it('sends the owner and project filters to the summary and persists them for the session', async () => {
+    const { container, getByTestId } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    // Unfiltered: the summary carries no team params at all.
+    expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {});
+    expect(ownerProjectProps?.owners).toEqual([]);
+
+    fireEvent.click(getByTestId('pick-owner'));
+    await waitFor(() =>
+      expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {
+        owners: ['u-maya', 'none'],
+        projects: [],
+      }),
+    );
+    expect(sessionStorage.getItem('global-owner-filter')).toBe('["u-maya","none"]');
+    fireEvent.click(getByTestId('pick-project'));
+    await waitFor(() => expect(sessionStorage.getItem('global-project-filter')).toBe('["p-hsbc"]'));
+    expect(ownerProjectProps?.projects).toEqual(['p-hsbc']);
+  });
+
+  it('routes the agent grouping through the teams usage endpoint once a filter is active', async () => {
+    localStorage.setItem('manifest_global_group', 'agent');
+    sessionStorage.setItem('global-owner-filter', '["none"]');
+    render(() => <GlobalOverview />);
+    await waitFor(() =>
+      expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenCalledWith('7d', 'agent', {
+        owners: ['none'],
+        projects: [],
+      }),
+    );
+    // The Agents table below the chart still reads the plain per-agent usage.
+    expect(apiMocks.getOverviewAgentUsage).toHaveBeenCalledWith('7d');
+  });
+
+  it('groups by owner and by project from the chart buttons, on both tab families', async () => {
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+
+    // Requests tab: status is the default; owner and project join agent.
+    fireEvent.click(groupButton(container, 'By user'));
+    await waitFor(() =>
+      expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenLastCalledWith('7d', 'owner', {
+        owners: [],
+        projects: [],
+      }),
+    );
+    expect(localStorage.getItem('manifest_global_group')).toBe('owner');
+    expect(
+      groupButton(container, 'By user').classList.contains('chart-card__filter-btn--active'),
+    ).toBe(true);
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['Maya Okonkwo', 'No user']));
+
+    fireEvent.click(groupButton(container, 'By project'));
+    await waitFor(() =>
+      expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenLastCalledWith('7d', 'project', {
+        owners: [],
+        projects: [],
+      }),
+    );
+    expect(
+      groupButton(container, 'By project').classList.contains('chart-card__filter-btn--active'),
+    ).toBe(true);
+
+    // Switch to the cost tab: the usage family keeps the team grouping.
+    const costTab = [...container.querySelectorAll('.chart-card__stat')].find((el) =>
+      el.textContent?.includes('Cost'),
+    ) as HTMLElement;
+    fireEvent.click(costTab);
+    expect(
+      groupButton(container, 'By project').classList.contains('chart-card__filter-btn--active'),
+    ).toBe(true);
+    fireEvent.click(groupButton(container, 'By user'));
+    await waitFor(() =>
+      expect(
+        groupButton(container, 'By user').classList.contains('chart-card__filter-btn--active'),
+      ).toBe(true),
+    );
+    fireEvent.click(groupButton(container, 'By provider'));
+    await waitFor(() => expect(apiMocks.getOverviewProviderUsage).toHaveBeenCalled());
+  });
+
+  it('restores a persisted owner grouping', async () => {
+    localStorage.setItem('manifest_global_group', 'project');
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    expect(
+      groupButton(container, 'By project').classList.contains('chart-card__filter-btn--active'),
+    ).toBe(true);
+    expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenCalledWith('7d', 'project', {
+      owners: [],
+      projects: [],
+    });
+  });
+});
+
+describe('GlobalOverview team filter gate', () => {
+  it('keeps the summary unfiltered when the transport check fails', async () => {
+    const original = teamsMocks.getOverviewGroupedUsage;
+    void original;
+    const teams = await import('../../src/services/api/teams.js');
+    const spy = vi.spyOn(teams, 'teamFilterParams').mockRejectedValueOnce(new Error('boom'));
+    sessionStorage.setItem('global-owner-filter', '["u-maya"]');
+    render(() => <GlobalOverview />);
+    await waitFor(() => expect(apiMocks.getOverview).toHaveBeenCalled());
+    await Promise.resolve();
+    expect(apiMocks.getOverview).toHaveBeenLastCalledWith('7d', undefined, {});
+    spy.mockRestore();
+  });
+});
+
+describe('GlobalOverview provider grouping under a team filter', () => {
+  it('fetches per agent, not per provider, while an owner filter is active', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
+    sessionStorage.setItem('global-owner-filter', '["u-maya"]');
+    teamsMocks.getOverviewGroupedUsage.mockResolvedValue({
+      tokenUsage: { agents: ['demo-agent'], timeseries: [] },
+      messageUsage: { agents: ['demo-agent'], timeseries: [] },
+      costUsage: { agents: ['demo-agent'], timeseries: [] },
+    });
+    const { container } = render(() => <GlobalOverview />);
+    await waitFor(() =>
+      expect(teamsMocks.getOverviewGroupedUsage).toHaveBeenCalledWith('7d', 'agent', {
+        owners: ['u-maya'],
+        projects: [],
+      }),
+    );
+    expect(apiMocks.getOverviewProviderUsage).not.toHaveBeenCalled();
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    const costTab = [...container.querySelectorAll('.chart-card__stat')].find((el) =>
+      el.textContent?.includes('Cost'),
+    ) as HTMLElement;
+    fireEvent.click(costTab);
+    const provider = [...container.querySelectorAll('button.chart-card__filter-btn')].find(
+      (b) => b.textContent === 'By provider',
+    ) as HTMLButtonElement;
+    expect(provider.disabled).toBe(true);
+    expect(container.textContent).toContain('Recovery and status series show all agents');
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['demo-agent']));
+  });
+});
+
+describe('GlobalOverview series selection under a team filter', () => {
+  it('keeps the provider selection apart from the agent fallback selection', async () => {
+    localStorage.setItem('manifest_global_group', 'provider');
+    sessionStorage.setItem('global-agent-filter:provider', '["openai"]');
+    teamsMocks.getOverviewGroupedUsage.mockResolvedValue({
+      tokenUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+      messageUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+      costUsage: { agents: ['demo-agent', 'other'], timeseries: [] },
+    });
+    const { container, getByTestId } = render(() => <GlobalOverview />);
+    await waitFor(() => expect(container.querySelector('.chart-card')).not.toBeNull());
+    const costTab = [...container.querySelectorAll('.chart-card__stat')].find((el) =>
+      el.textContent?.includes('Cost'),
+    ) as HTMLElement;
+    fireEvent.click(costTab);
+    fireEvent.click(getByTestId('pick-owner'));
+    await waitFor(() => expect(filterSelectProps?.items).toEqual(['demo-agent', 'other']));
+    fireEvent.click(getByTestId('filter-unselect-all'));
+    expect(sessionStorage.getItem('global-agent-filter:agent')).toBe('[]');
+    // The provider selection made before the filter is untouched.
+    expect(sessionStorage.getItem('global-agent-filter:provider')).toBe('["openai"]');
   });
 });

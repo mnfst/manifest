@@ -148,7 +148,9 @@ packages/
 │   │   ├── pages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
-│   │   │   ├── Workspace.tsx                # Agent grid + create agent
+│   │   │   ├── Agents.tsx                   # Agents list (search, filters, sorting, bulk actions)
+│   │   │   ├── Users.tsx, UserDetail.tsx, User*.tsx     # Users list + a user's page (Overview / Agents / Model access / Settings)
+│   │   │   ├── Projects.tsx, ProjectDetail.tsx, Project*.tsx # Projects list + a project's page
 │   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
 │   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
 │   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
@@ -167,6 +169,7 @@ packages/
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
 │   │   │   ├── api.ts                       # API functions (credentials: include)
+│   │   │   ├── api/teams.ts, api/teams-mock.ts # Teams data layer: users, projects, ownership, model access, bulk. HTTP contract + dev-only in-memory mock (see "Teams" below)
 │   │   │   ├── providers.ts                 # ProviderDef list + SPECIFICITY_STAGES + STAGES
 │   │   │   ├── model-display.ts             # Model display-name cache
 │   │   │   ├── formatters.ts               # Number/cost formatting
@@ -809,3 +812,11 @@ This applies to:
 ### E2E Test Entities
 
 When adding new TypeORM entities to `database/data-source-definitions.ts` (the entities array `database.module.ts` imports from), also add them to the E2E test helper (`packages/backend/test/helpers.ts`) entities array. Missing entities cause `EntityMetadataNotFoundError` in services that depend on them.
+
+## Teams (frontend shipped, backend pending)
+
+The dashboard is built for a company: **users** (people the company tracks spend for; they do not log in, the login is the **account**), **projects** (a tag an agent carries, many-to-many), a **user** per agent (one at most, or none; the contract field is `owner`, the UI never says "owner"), per-model access on the agent's "Providers and models" tab, and archive instead of delete on agents, users and projects. Harnesses are called **agents** everywhere, URLs included (`/agents`, with `/harnesses/*` redirects). The sidebar is nine fixed navigation entries; the header breadcrumb carries the depth.
+
+`packages/frontend/src/services/api/teams.ts` is the contract for the backend: every function documents its route, method, payload and response. None of these endpoints exist on the backend yet. Dev builds load `teams-mock.ts` (in-memory, persisted to `localStorage` under `manifest-teams-mock`, seeded users and projects assigned round-robin to the real agents) through a dynamic import inside an `import.meta.env.DEV` branch, so production bundles never contain it. Set `VITE_TEAMS_API=http` to hit a real backend from the dev server.
+
+Three decisions are deliberate: there is **no user reassignment** on an agent (archive the agent and create a fresh one for the new user, "Copy settings from an agent" carries the setup across), there are **no user budgets** (limits stay on agents), and the Providers page redesign is parked. Time windows: users and agents report rolling 30-day and 365-day spend; projects report calendar months because they feed invoices. One question is open: how an agent on several projects splits its cost. A request comes from one agent, so it never spans two projects; an agent on several projects is counted in full in each of them. The Projects list explains this on the Spend column header and the project overview keeps the `spend_shared` marker.

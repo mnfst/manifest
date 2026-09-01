@@ -17,6 +17,8 @@ import RequestDrawer from '../components/RequestDrawer.jsx';
 import Pagination from '../components/Pagination.jsx';
 import Select from '../components/Select.jsx';
 import MultiSelect, { type MultiSelectOption } from '../components/MultiSelect.jsx';
+import OwnerProjectFilters from '../components/OwnerProjectFilters.jsx';
+import { teamsBackendAvailable } from '../services/api/teams.js';
 import { getProviders as getProviderConnections } from '../services/api/providers.js';
 import SetupModal from '../components/SetupModal.jsx';
 import { DETAILED_COLUMNS, type MessageRow } from '../components/message-table-types.js';
@@ -126,6 +128,8 @@ const MessageLog: Component = () => {
     trigger?: string;
     attempts?: string;
     range?: string;
+    owners?: string;
+    projects?: string;
   }>();
   const navigate = useNavigate();
 
@@ -133,12 +137,12 @@ const MessageLog: Component = () => {
   const columns = () => {
     const base = DETAILED_COLUMNS;
     if (params.agentName) return base;
-    // Global Messages spans every harness, so show which harness each row belongs to.
+    // Global Messages spans every agent, so show which agent each row belongs to.
     const at = base.indexOf('model');
     return [...base.slice(0, at), 'agent' as const, ...base.slice(at)];
   };
   // Seed from ?agent= (set by AgentMessagesRedirect) so "View more" on a
-  // harness overview lands pre-filtered; only meaningful in global mode —
+  // agent overview lands pre-filtered; only meaningful in global mode —
   // when the route itself carries an agent, that param scopes the query.
   const [agentFilter, setAgentFilter] = createSignal(
     !params.agentName && typeof searchParams.agent === 'string' ? searchParams.agent : '',
@@ -173,7 +177,7 @@ const MessageLog: Component = () => {
     return map;
   });
   const agentFilterOptions = createMemo(() => [
-    { label: 'All harnesses', value: '' },
+    { label: 'All agents', value: '' },
     ...(agentList() ?? []).map((a) => {
       const info = agentPlatformMap().get(a);
       const iconPath = info?.platform ? platformIcon(info.platform, info.category) : null;
@@ -202,6 +206,41 @@ const MessageLog: Component = () => {
       { replace: true },
     );
   };
+  // Owner and project filters (global log only). `owners` carries user ids and
+  // the `none` sentinel for agents without an owner; both ride in the URL and
+  // are sent to the API as `owners` / `projects` query params.
+  const splitParam = (value: unknown): string[] =>
+    typeof value === 'string' && value ? value.split(',').filter(Boolean) : [];
+  const [ownersFilter, setOwnersFilterValue] = createSignal<string[]>(
+    splitParam(searchParams.owners),
+  );
+  const [projectsFilter, setProjectsFilterValue] = createSignal<string[]>(
+    splitParam(searchParams.projects),
+  );
+  const setOwnersFilter = (values: string[]) => {
+    setOwnersFilterValue(values);
+    setSearchParams({ owners: values.length ? values.join(',') : undefined }, { replace: true });
+  };
+  const setProjectsFilter = (values: string[]) => {
+    setProjectsFilterValue(values);
+    setSearchParams({ projects: values.length ? values.join(',') : undefined }, { replace: true });
+  };
+  // Browser history or a deep link can change the URL while the log stays
+  // mounted; mirror the params back into the signals like the other filters.
+  createEffect(
+    on(
+      () => searchParams.owners,
+      (owners) => setOwnersFilterValue(splitParam(owners)),
+      { defer: true },
+    ),
+  );
+  createEffect(
+    on(
+      () => searchParams.projects,
+      (projects) => setProjectsFilterValue(splitParam(projects)),
+      { defer: true },
+    ),
+  );
   const [connectionConfig] = createResource(async () => {
     try {
       return await getProviderConnections();
@@ -364,6 +403,8 @@ const MessageLog: Component = () => {
         rangeFilter,
         costMin,
         costMax,
+        ownersFilter,
+        projectsFilter,
       ],
       () => pager.resetPage(),
       {
@@ -371,6 +412,25 @@ const MessageLog: Component = () => {
       },
     ),
   );
+
+  // The existing /messages endpoint runs a strict DTO: `owners` / `projects`
+  // are only sent once the teams backend answers (it whitelists them). The dev
+  // mock and the compatibility transport cannot filter the log, so they are
+  // dropped there and the log stays unfiltered on those two axes.
+  // Resolved once; until it is known the params are withheld. The resources
+  // below only read it while an owner or project filter is set, so an
+  // unfiltered log never refetches when the answer arrives.
+  const [teamsBackend, setTeamsBackend] = createSignal(false);
+  void teamsBackendAvailable()
+    .then(setTeamsBackend)
+    .catch(() => setTeamsBackend(false));
+  const teamFilterAllowed = () =>
+    (ownersFilter().length > 0 || projectsFilter().length > 0) && teamsBackend();
+  const withTeamFilter = (q: Record<string, string>, allowed: boolean): Record<string, string> => {
+    if (allowed) return { ...q };
+    const { owners: _owners, projects: _projects, ...rest } = q;
+    return rest;
+  };
 
   const messageFilters = () => {
     const q: Record<string, string> = {};
@@ -402,6 +462,12 @@ const MessageLog: Component = () => {
     if (maxCost) q.cost_max = maxCost;
     const agentName = agentFilter() || params.agentName;
     if (agentName) q.agent_name = agentName;
+    if (!params.agentName) {
+      const owners = ownersFilter();
+      if (owners.length) q.owners = owners.join(',');
+      const projects = projectsFilter();
+      if (projects.length) q.projects = projects.join(',');
+    }
     return q;
   };
 
@@ -411,9 +477,10 @@ const MessageLog: Component = () => {
       _ping: messagePing(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
+      teams: teamFilterAllowed(),
     }),
     (p) => {
-      const q = { ...p.filters };
+      const q = withTeamFilter(p.filters, p.teams);
       if (p.cursor) q.cursor = p.cursor;
       q.limit = String(p.limit);
       // Live message events refresh only the bounded page. Exact totals have
@@ -425,13 +492,22 @@ const MessageLog: Component = () => {
     },
   );
 
-  const countQueryKey = () => JSON.stringify(messageFilters());
+  // The identity carries the backend gate: rows fetched before the gate opened
+  // are never presented as the filtered result.
+  const countQueryKey = () =>
+    JSON.stringify({ filters: messageFilters(), teams: teamFilterAllowed() });
   const [messageCount] = createResource(
     () => ({ key: countQueryKey(), _ping: analyticsPing() }),
-    async (source) => ({
-      key: source.key,
-      data: (await getMessageCount(JSON.parse(source.key))) as MessagesData,
-    }),
+    async (source) => {
+      const { filters, teams } = JSON.parse(source.key) as {
+        filters: Record<string, string>;
+        teams: boolean;
+      };
+      return {
+        key: source.key,
+        data: (await getMessageCount(withTeamFilter(filters, teams))) as MessagesData,
+      };
+    },
   );
 
   // The resource retains its previous value during refetches. Show the table
@@ -440,6 +516,7 @@ const MessageLog: Component = () => {
   const messageQueryKey = () =>
     JSON.stringify({
       filters: messageFilters(),
+      teams: teamFilterAllowed(),
       cursor: pager.currentCursor(),
       limit: pager.pageSize,
     });
@@ -486,7 +563,9 @@ const MessageLog: Component = () => {
     statusFilterValue() !== '' ||
     rangeFilter() !== '' ||
     costMin() !== '' ||
-    costMax() !== '';
+    costMax() !== '' ||
+    ownersFilter().length > 0 ||
+    projectsFilter().length > 0;
 
   const exactTotal = () => {
     const count = messageCount();
@@ -522,6 +601,8 @@ const MessageLog: Component = () => {
     setRangeFilter('');
     setCostMin('');
     setCostMax('');
+    setOwnersFilter([]);
+    setProjectsFilter([]);
   };
 
   const activeSpecificityCategories = createMemo(
@@ -717,7 +798,7 @@ const MessageLog: Component = () => {
         content={
           params.agentName
             ? `Browse all requests handled for ${agentDisplayName() ?? decodeURIComponent(params.agentName)}. Filter by provider, status, or cost.`
-            : 'Browse all requests across all harnesses. Filter by provider, status, or cost.'
+            : 'Browse all requests across all agents. Filter by provider, status, or cost.'
         }
       />
       <div class="page-header page-header--wrap">
@@ -730,6 +811,12 @@ const MessageLog: Component = () => {
         <div class="header-controls">
           <Show when={!showEmptyState()}>
             <Show when={!params.agentName}>
+              <OwnerProjectFilters
+                owners={ownersFilter()}
+                projects={projectsFilter()}
+                onOwnersChange={setOwnersFilter}
+                onProjectsChange={setProjectsFilter}
+              />
               <Select
                 value={agentFilter()}
                 onChange={setAgentFilter}
@@ -800,7 +887,7 @@ const MessageLog: Component = () => {
           </Show>
           <Show when={showEmptyState() && !!params.agentName && !setupCompleted()}>
             <button class="btn btn--primary btn--sm" onClick={() => setSetupOpen(true)}>
-              Set up harness
+              Set up agent
             </button>
           </Show>
         </div>
@@ -885,27 +972,25 @@ const MessageLog: Component = () => {
                     fallback={
                       <>
                         <p>
-                          Create a harness and send a request. Every caller request shows up here.
+                          Create a agent and send a request. Every caller request shows up here.
                         </p>
                         <A
-                          href="/harnesses"
+                          href="/agents"
                           class="btn btn--primary btn--sm"
                           style="margin-top: var(--gap-md);"
                         >
-                          Go to Harnesses
+                          Go to Agents
                         </A>
                       </>
                     }
                   >
-                    <p>
-                      Set up your harness and send a request. Every caller request shows up here.
-                    </p>
+                    <p>Set up your agent and send a request. Every caller request shows up here.</p>
                     <button
                       class="btn btn--primary btn--sm"
                       style="margin-top: var(--gap-md);"
                       onClick={() => setSetupOpen(true)}
                     >
-                      Set up harness
+                      Set up agent
                     </button>
                   </Show>
                   <div class="empty-state__img-wrapper">
@@ -926,7 +1011,7 @@ const MessageLog: Component = () => {
                   class="btn btn--primary btn--sm"
                   style="margin-top: var(--gap-md);"
                   onClick={() =>
-                    navigate(`/harnesses/${encodeURIComponent(params.agentName)}/routing`, {
+                    navigate(`/agents/${encodeURIComponent(params.agentName)}/routing`, {
                       state: { openProviders: true },
                     })
                   }

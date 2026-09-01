@@ -107,7 +107,7 @@ const RoutingModals: Component<RoutingModalsProps> = (props) => {
       props.onOpenProviderModal();
       return;
     }
-    navigate(`/harnesses/${encodeURIComponent(props.agentName())}/providers`);
+    navigate(`/agents/${encodeURIComponent(props.agentName())}/providers`);
   };
 
   const handleSelect = (

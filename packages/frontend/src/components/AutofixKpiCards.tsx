@@ -33,7 +33,7 @@ function trendBadge(current: number, previous: number) {
 
 export interface AutofixKpiCardsProps {
   stats: AutofixStats | undefined;
-  /** Scopes the deep links to one harness; omitted, they cover every harness. */
+  /** Scopes the deep links to one agent; omitted, they cover every agent. */
   agentName?: string;
   /** The page's current window, carried on the deep links. */
   range?: string;
@@ -80,7 +80,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
         }
       : {};
   const scopeTitle = (subject: string) =>
-    props.agentName ? `View this harness's ${subject}` : `View ${subject} across all harnesses`;
+    props.agentName ? `View this agent's ${subject}` : `View ${subject} across all agents`;
   const selfHealed = () => {
     const s = props.stats;
     if (!s) return 0;

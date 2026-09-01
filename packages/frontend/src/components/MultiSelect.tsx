@@ -6,6 +6,8 @@ export interface MultiSelectOption {
   /** Optional icon rendered before the label (e.g. provider logo). */
   icon?: JSX.Element;
   description?: string;
+  /** Draw a divider above this option (e.g. "Without an owner" under the users). */
+  separatorBefore?: boolean;
 }
 
 interface MultiSelectProps {
@@ -101,30 +103,35 @@ const MultiSelect: Component<MultiSelectProps> = (props) => {
           </button>
           <For each={props.options}>
             {(opt) => (
-              <button
-                class="custom-select__option custom-select__option--top"
-                classList={{ 'custom-select__option--selected': isSelected(opt.value) }}
-                onClick={() => toggle(opt.value)}
-                type="button"
-                role="option"
-                aria-selected={isSelected(opt.value)}
-                style="display: flex; gap: 6px;"
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected(opt.value)}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  style="pointer-events: none;"
-                />
-                <Show when={opt.icon}>{opt.icon}</Show>
-                <span class="custom-select__option-text custom-select__option-text--inline">
-                  <span>{opt.label}</span>
-                  <Show when={opt.description}>
-                    <span class="custom-select__option-desc">{opt.description}</span>
-                  </Show>
-                </span>
-              </button>
+              <>
+                <Show when={opt.separatorBefore}>
+                  <hr class="custom-select__separator" />
+                </Show>
+                <button
+                  class="custom-select__option custom-select__option--top"
+                  classList={{ 'custom-select__option--selected': isSelected(opt.value) }}
+                  onClick={() => toggle(opt.value)}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected(opt.value)}
+                  style="display: flex; gap: 6px;"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected(opt.value)}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    style="pointer-events: none;"
+                  />
+                  <Show when={opt.icon}>{opt.icon}</Show>
+                  <span class="custom-select__option-text custom-select__option-text--inline">
+                    <span>{opt.label}</span>
+                    <Show when={opt.description}>
+                      <span class="custom-select__option-desc">{opt.description}</span>
+                    </Show>
+                  </span>
+                </button>
+              </>
             )}
           </For>
         </div>

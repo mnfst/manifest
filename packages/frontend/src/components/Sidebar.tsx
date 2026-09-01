@@ -1,7 +1,6 @@
 import { A, useLocation } from '@solidjs/router';
 import { Show, For, createSignal, createResource, onCleanup, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { useAgentName } from '../services/routing.js';
 import { getAgents } from '../services/api.js';
 import { getBillingStatus } from '../services/api/billing.js';
 import { getWorkspaceAutofixStatus, type AutofixStatus } from '../services/api/analytics.js';
@@ -11,7 +10,6 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import { agentPing, routingPing } from '../services/sse.js';
 import { platformIcon } from 'manifest-shared';
 import { useFocusTrap } from '../services/use-focus-trap.js';
-import AddAgentModal from './AddAgentModal.jsx';
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -20,7 +18,7 @@ interface SidebarProps {
 
 const AUTOFIX_CARD_DISMISSED_KEY = 'autofix-card-dismissed';
 
-interface HarnessItem {
+interface AgentItem {
   agent_name: string;
   display_name?: string;
   agent_platform?: string | null;
@@ -29,7 +27,7 @@ interface HarnessItem {
 
 /**
  * Returns true when the given route matches the current location either
- * exactly or as a path prefix (so `/harnesses` stays active on `/harnesses/:name/*`).
+ * exactly or as a path prefix (so `/agents` stays active on `/agents/:name/*`).
  */
 function makeIsGlobalActive(pathname: () => string) {
   return (route: string): boolean => {
@@ -38,12 +36,51 @@ function makeIsGlobalActive(pathname: () => string) {
   };
 }
 
+interface NavItem {
+  label: string;
+  href: string;
+  /** Local providers only exist on self-hosted installs. */
+  selfHostedOnly?: boolean;
+}
+
+/**
+ * The nine fixed navigation entries. Navigation only: no agent list, no pinned
+ * rows, no counts, so the sidebar is identical at five agents and at five
+ * thousand. Depth lives in the header breadcrumb; search lives on each list
+ * page.
+ */
+export const SIDEBAR_NAV: Array<{ section?: string; items: NavItem[] }> = [
+  {
+    items: [
+      { label: 'Overview', href: '/overview' },
+      { label: 'Requests', href: '/messages' },
+    ],
+  },
+  {
+    section: 'MANAGE',
+    items: [
+      { label: 'Users', href: '/users' },
+      { label: 'Agents', href: '/agents' },
+      { label: 'Projects', href: '/projects' },
+    ],
+  },
+  {
+    section: 'PROVIDERS',
+    items: [
+      { label: 'Usage-based', href: '/providers/usage-based' },
+      { label: 'Subscriptions', href: '/providers/subscriptions' },
+      { label: 'Local', href: '/providers/local', selfHostedOnly: true },
+    ],
+  },
+  {
+    section: 'TOOLS',
+    items: [{ label: 'Playground', href: '/playground' }],
+  },
+];
+
 const Sidebar: Component<SidebarProps> = (props) => {
   const location = useLocation();
   const isGlobalActive = makeIsGlobalActive(() => location.pathname);
-  const getAgentName = useAgentName();
-  const [agentsCollapsed, setAgentsCollapsed] = createSignal(false);
-  const [addModalOpen, setAddModalOpen] = createSignal(false);
   // Poll every 15s to catch autofix toggle changes (no SSE for this mutation).
   const [autofixTick, setAutofixTick] = createSignal(0);
   const autofixInterval = setInterval(() => setAutofixTick((n) => n + 1), 15_000);
@@ -86,15 +123,23 @@ const Sidebar: Component<SidebarProps> = (props) => {
   useFocusTrap(confirmingAutofix, () => autofixDialogRef);
 
   // The modal lists the agents captured when it opens (a snapshot: rows never
-  // jump away mid-interaction) with one independent toggle per agent.
+  // jump away mid-interaction) with one independent toggle per agent. The
+  // agent list is fetched on open only; the sidebar no longer keeps one.
   const [modalAgents, setModalAgents] = createSignal<
     { name: string; display: string; icon?: string }[]
   >([]);
   const [agentToggles, setAgentToggles] = createSignal<
     Record<string, { on: boolean; saving: boolean }>
   >({});
-  const openAutofixModal = () => {
-    const known = new Map((agents() ?? []).map((agent) => [agent.agent_name, agent]));
+  const openAutofixModal = async () => {
+    let list: AgentItem[] = [];
+    try {
+      const data = (await getAgents()) as { agents?: AgentItem[] } | AgentItem[] | null;
+      list = Array.isArray(data) ? data : (data?.agents ?? []);
+    } catch {
+      list = [];
+    }
+    const known = new Map(list.map((agent) => [agent.agent_name, agent]));
     const snapshot = (autofixStatus()?.disabled_agents ?? []).map((name) => {
       const agent = known.get(name);
       return {
@@ -148,8 +193,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
       setAgentToggles((all) => ({ ...all, [name]: { on: !next, saving: false } }));
     }
   };
-  // Local providers only exist on self-hosted installs — a cloud backend
-  // can't reach the user's localhost, so the Local entry is hidden there.
   const [selfHosted] = createResource(checkIsSelfHosted);
   const [billing] = createResource(async () => {
     try {
@@ -161,24 +204,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
   const showUpgrade = () => billing()?.enabled && billing()?.plan === 'free';
   const requestLimitLabel = () =>
     billing()?.requests.limit?.toLocaleString('en-US') ?? FREE_REQUEST_LIMIT_LABEL;
-
-  // Harness list for the in-nav switcher. Refetches whenever the agent SSE ping
-  // fires (create/delete/rename). Uses the DEFAULT getAgents() — playground agents
-  // (the reserved Playground) are excluded so they never leak into the switcher.
-  const [agents] = createResource(
-    () => agentPing(),
-    async (): Promise<HarnessItem[]> => {
-      try {
-        const data = (await getAgents()) as { agents?: HarnessItem[] } | HarnessItem[] | null;
-        if (Array.isArray(data)) return data;
-        return data?.agents ?? [];
-      } catch {
-        return [];
-      }
-    },
-  );
-
-  const currentAgent = () => getAgentName();
 
   const handleNav = () => {
     props.onNavigate?.();
@@ -197,139 +222,29 @@ const Sidebar: Component<SidebarProps> = (props) => {
         }
       }}
     >
-      <A
-        href="/overview"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/overview') }}
-        aria-current={isGlobalActive('/overview') ? 'page' : undefined}
-      >
-        Overview
-      </A>
-      <A
-        href="/messages"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/messages') }}
-        aria-current={isGlobalActive('/messages') ? 'page' : undefined}
-      >
-        Requests
-      </A>
-      <div class="sidebar__section-label">PROVIDERS</div>
-      <Show when={selfHosted()}>
-        <A
-          href="/providers/local"
-          class="sidebar__link"
-          classList={{ active: isGlobalActive('/providers/local') }}
-          aria-current={isGlobalActive('/providers/local') ? 'page' : undefined}
-        >
-          Local
-        </A>
-      </Show>
-      <A
-        href="/providers/usage-based"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/usage-based') }}
-        aria-current={isGlobalActive('/providers/usage-based') ? 'page' : undefined}
-      >
-        Usage-based
-      </A>
-      <A
-        href="/providers/subscriptions"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/providers/subscriptions') }}
-        aria-current={isGlobalActive('/providers/subscriptions') ? 'page' : undefined}
-      >
-        Subscriptions
-      </A>
-
-      {/* Harnesses — collapsible section with a + create button.
-          The collapse toggle and the create button are sibling buttons (never
-          nested) so both are independently keyboard-operable. */}
-      <div class="sidebar__section-header">
-        <button
-          type="button"
-          class="sidebar__section-caret"
-          onClick={() => setAgentsCollapsed(!agentsCollapsed())}
-          aria-expanded={!agentsCollapsed()}
-        >
-          <span>HARNESSES</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-            style={{
-              transition: 'transform 150ms',
-              transform: agentsCollapsed() ? 'rotate(-90deg)' : 'rotate(0deg)',
-            }}
-          >
-            <path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          class="sidebar__section-add"
-          title="Create new harness"
-          aria-label="Create new harness"
-          onClick={() => setAddModalOpen(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" />
-          </svg>
-        </button>
-      </div>
-
-      <Show when={!agentsCollapsed()}>
-        <div class="sidebar__agents-list">
-          <For
-            each={agents() ?? []}
-            fallback={
-              <Show when={!agents.loading}>
-                <div class="sidebar__agents-empty">No harnesses yet</div>
-              </Show>
-            }
-          >
-            {(agent) => {
-              const name = () => agent.agent_name;
-              const display = () => agent.display_name || agent.agent_name;
-              const icon = () => platformIcon(agent.agent_platform, agent.agent_category);
-              const isSelected = () => currentAgent() === name();
-              return (
-                <A
-                  href={`/harnesses/${encodeURIComponent(name())}`}
-                  class="sidebar__agent-item"
-                  classList={{ 'sidebar__agent-item--active': isSelected() }}
-                  aria-current={isSelected() ? 'page' : undefined}
-                  onClick={handleNav}
-                >
-                  <Show when={icon()}>
-                    <img src={icon()} alt="" class="sidebar__agent-icon" />
-                  </Show>
-                  <span class="sidebar__agent-item-name">{display()}</span>
-                </A>
-              );
-            }}
-          </For>
-        </div>
-      </Show>
-
-      <div class="sidebar__section-label">TOOLS</div>
-      <A
-        href="/playground"
-        class="sidebar__link"
-        classList={{ active: isGlobalActive('/playground') }}
-        aria-current={isGlobalActive('/playground') ? 'page' : undefined}
-      >
-        Playground
-      </A>
+      <For each={SIDEBAR_NAV}>
+        {(group) => (
+          <>
+            <Show when={group.section}>
+              <div class="sidebar__section-label">{group.section}</div>
+            </Show>
+            <For each={group.items}>
+              {(item) => (
+                <Show when={!item.selfHostedOnly || selfHosted()}>
+                  <A
+                    href={item.href}
+                    class="sidebar__link"
+                    classList={{ active: isGlobalActive(item.href) }}
+                    aria-current={isGlobalActive(item.href) ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </A>
+                </Show>
+              )}
+            </For>
+          </>
+        )}
+      </For>
 
       <div class="sidebar__spacer" />
 
@@ -373,7 +288,11 @@ const Sidebar: Component<SidebarProps> = (props) => {
             At least one of your agents runs without Autofix. Enable it to repair eligible failing
             requests before they reach the model.
           </p>
-          <button type="button" class="sidebar-autofix__btn" onClick={openAutofixModal}>
+          <button
+            type="button"
+            class="sidebar-autofix__btn"
+            onClick={() => void openAutofixModal()}
+          >
             Enable
           </button>
         </div>
@@ -438,9 +357,6 @@ const Sidebar: Component<SidebarProps> = (props) => {
           Upgrade plan
         </A>
       </Show>
-
-      {/* Create-harness modal, opened by the HARNESSES section + button */}
-      <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
 
       <Portal>
         <Show when={confirmingAutofix()}>

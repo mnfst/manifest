@@ -103,8 +103,8 @@ const Settings: Component = () => {
     setDeleting(true);
     try {
       await deleteAgent(agentName());
-      toast.success(`Harness "${agentName()}" deleted`);
-      navigate('/harnesses', { replace: true });
+      toast.success(`Agent "${agentName()}" deleted`);
+      navigate('/agents', { replace: true });
     } catch {
       setDeleting(false);
     }
@@ -119,7 +119,7 @@ const Settings: Component = () => {
       const result = await renameAgent(agentName(), name().trim());
       const slug = (result?.name as string) ?? name().trim();
       markAgentCreated(slug);
-      window.location.replace(`/harnesses/${encodeURIComponent(slug)}/settings`);
+      window.location.replace(`/agents/${encodeURIComponent(slug)}/settings`);
     } catch {
       setName(agentName());
     } finally {
@@ -153,20 +153,20 @@ const Settings: Component = () => {
         Rename your agent, manage API keys, and view setup instructions
       </p>
 
-      {/* -- Harness Name ------------------------------ */}
+      {/* -- Agent Name ------------------------------ */}
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Harness name</span>
+            <span class="settings-card__label-title">Agent name</span>
             <span class="settings-card__label-desc">
-              The display name for this harness across the dashboard.
+              The display name for this agent across the dashboard.
             </span>
           </div>
           <div class="settings-card__control">
             <input
               class="settings-card__input"
               type="text"
-              aria-label="Harness name"
+              aria-label="Agent name"
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}
             />
@@ -190,8 +190,8 @@ const Settings: Component = () => {
         </div>
       </div>
 
-      {/* -- Harness Type (read-only + change modal) --- */}
-      <h2 class="settings-section__title">Harness type</h2>
+      {/* -- Agent Type (read-only + change modal) --- */}
+      <h2 class="settings-section__title">Agent type</h2>
       <div class="settings-card">
         <div class="settings-card__row">
           <div class="settings-card__label">
@@ -247,10 +247,10 @@ const Settings: Component = () => {
         <h2 class="settings-section__title">API Key</h2>
         <div class="settings-card">
           <div class="settings-card__body">
-            <span class="settings-card__label-title">Harness API key</span>
+            <span class="settings-card__label-title">Agent API key</span>
             <span class="settings-card__label-desc" style="font-size: 14px;">
-              This key authenticates your harness's requests to Manifest. Rotating it generates a
-              new key and immediately invalidates the current one.
+              This key authenticates your agent's requests to Manifest. Rotating it generates a new
+              key and immediately invalidates the current one.
             </span>
             <div class="settings-card__key-row">
               <code class="settings-card__key-value">{displayedKey()}</code>
@@ -339,9 +339,9 @@ const Settings: Component = () => {
       <div class="settings-card settings-card--danger">
         <div class="settings-card__row">
           <div class="settings-card__label">
-            <span class="settings-card__label-title">Delete this harness</span>
+            <span class="settings-card__label-title">Delete this agent</span>
             <span class="settings-card__label-desc">
-              Permanently delete this harness, its API key, and all messages and analytics. This
+              Permanently delete this agent, its API key, and all messages and analytics. This
               action cannot be undone.
             </span>
           </div>
@@ -353,7 +353,7 @@ const Settings: Component = () => {
                 setDeleteConfirmName('');
               }}
             >
-              Delete harness
+              Delete agent
             </button>
           </div>
         </div>
@@ -410,7 +410,7 @@ const Settings: Component = () => {
             </div>
             <p style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: var(--gap-md);">
               This will permanently delete the{' '}
-              <strong style="color: hsl(var(--foreground));">{agentName()}</strong> harness and all
+              <strong style="color: hsl(var(--foreground));">{agentName()}</strong> agent and all
               its data. This action cannot be undone.
             </p>
             <label
@@ -441,7 +441,7 @@ const Settings: Component = () => {
                   <span class="sr-only">Deleting...</span>
                 </>
               ) : (
-                'Delete this harness'
+                'Delete this agent'
               )}
             </button>
           </div>
@@ -468,9 +468,9 @@ const Settings: Component = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 class="modal-card__title" id="change-type-modal-title">
-              Change harness type
+              Change agent type
             </h2>
-            <p class="modal-card__desc">Select the new type and platform for this harness.</p>
+            <p class="modal-card__desc">Select the new type and platform for this agent.</p>
 
             <AgentTypeGrid
               category={modalCategory()}

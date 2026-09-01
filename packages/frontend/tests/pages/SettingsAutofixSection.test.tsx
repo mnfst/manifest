@@ -126,9 +126,7 @@ describe('SettingsAutofixSection', () => {
       const { container } = render(() => <SettingsAutofixSection agentName={() => 'demo'} />);
       expect(container.querySelector('.settings-card--highlight')).not.toBeNull();
       await vi.advanceTimersByTimeAsync(1_500);
-      await waitFor(() =>
-        expect(container.querySelector('.settings-card--highlight')).toBeNull(),
-      );
+      await waitFor(() => expect(container.querySelector('.settings-card--highlight')).toBeNull());
     } finally {
       vi.useRealTimers();
     }
@@ -194,7 +192,7 @@ describe('SettingsAutofixSection', () => {
     expect(container.textContent).toContain('Autofix');
   });
 
-  it('shows the switch off (not the previous agent state) while a harness switch is loading', async () => {
+  it('shows the switch off (not the previous agent state) while a agent switch is loading', async () => {
     const [name, setName] = createSignal('a');
     mockGetAutofix.mockResolvedValueOnce({ enabled: true });
     // The second agent's read never resolves → config.loading stays true, but
@@ -214,7 +212,7 @@ describe('SettingsAutofixSection', () => {
     expect(btn.classList.contains('settings-switch--on')).toBe(false);
   });
 
-  it('does not apply a stale save after the harness switches mid-request', async () => {
+  it('does not apply a stale save after the agent switches mid-request', async () => {
     const [name, setName] = createSignal('a');
     mockGetAutofix.mockResolvedValue({ enabled: false });
     let resolveUpdate: (v: { enabled: boolean }) => void = () => {};
@@ -229,13 +227,13 @@ describe('SettingsAutofixSection', () => {
     fireEvent.click(btn); // targets 'a'
     expect(mockUpdateAutofix).toHaveBeenCalledWith('a', { enabled: true });
 
-    // Switch harness before the save resolves; the resource refetches for 'b'.
+    // Switch agent before the save resolves; the resource refetches for 'b'.
     setName('b');
     await waitFor(() => expect(mockGetAutofix).toHaveBeenCalledWith('b', expect.anything()));
 
     // Resolve the stale 'a' update as ON, then let the toggle chain settle (the
     // save's finally re-enables the switch). The guard must drop the stale
-    // response so the current 'b' harness stays OFF.
+    // response so the current 'b' agent stays OFF.
     resolveUpdate({ enabled: true });
     await waitFor(() => {
       const el = container.querySelector('.settings-switch') as HTMLButtonElement;

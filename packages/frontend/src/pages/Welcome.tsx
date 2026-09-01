@@ -76,19 +76,19 @@ const WingmanDevTools = __DEV_MODE__
   ? lazy(() => import('../components/WingmanDevTools.jsx'))
   : null;
 
-type StepId = 'harness' | 'providers' | 'playground' | 'route' | 'activate';
-const STEP_ORDER: StepId[] = ['harness', 'providers', 'playground', 'route', 'activate'];
+type StepId = 'agent' | 'providers' | 'playground' | 'route' | 'activate';
+const STEP_ORDER: StepId[] = ['agent', 'providers', 'playground', 'route', 'activate'];
 
 /** The theme lives in "Launch sequence"; the rest is plain wayfinding. */
 const eyebrow = (id: StepId) =>
   `Launch sequence · Step ${STEP_ORDER.indexOf(id) + 1} of ${STEP_ORDER.length}`;
 
 const STEP_META: Record<StepId, { label: string }> = {
-  harness: { label: 'Create harness' },
+  agent: { label: 'Create agent' },
   providers: { label: 'Connect providers' },
   playground: { label: 'Test models' },
   route: { label: 'Configure routing' },
-  activate: { label: 'Connect harness & go live' },
+  activate: { label: 'Connect agent & go live' },
 };
 
 /** Replicates ProviderMark from ProviderConnectionsPage (icon or colored initial). */
@@ -140,7 +140,7 @@ const Welcome: Component = () => {
     const uid = userId();
     if (uid && hasOnboardingBeenDone(uid)) navigate('/', { replace: true });
   });
-  const [step, setStep] = createSignal<StepId>('harness');
+  const [step, setStep] = createSignal<StepId>('agent');
   const [maxStepReached, setMaxStepReached] = createSignal(0);
   createEffect(() => {
     const index = STEP_ORDER.indexOf(step());
@@ -148,11 +148,11 @@ const Welcome: Component = () => {
   });
   const goTo = (id: StepId) => {
     setStep(id);
-    // Provider connections can complete after this harness's models resource
+    // Provider connections can complete after this agent's models resource
     // initially resolved empty. Refresh before opening routing so a newly
     // connected provider is immediately available for the default proposal.
     if (id === 'playground' || id === 'route') {
-      const slug = harnessSlug();
+      const slug = newAgentSlug();
       if (slug && (models() ?? []).length === 0) {
         void refreshModels(slug)
           .catch(() => undefined)
@@ -166,16 +166,16 @@ const Welcome: Component = () => {
   const [selfHosted] = createResource(checkIsSelfHosted);
 
   // The Playground agent gives provider connections an agent context before
-  // the user's own harness exists (providers are tenant-global anyway).
+  // the user's own agent exists (providers are tenant-global anyway).
   const [agent] = createResource(() => getPlaygroundAgent());
   const contextAgent = () => agent()?.name;
 
-  // Providers connect against the user's harness once it exists; the reserved
+  // Providers connect against the user's agent once it exists; the reserved
   // Playground agent only bridges the gap before creation. Declared before the
   // resources below because createResource evaluates its source immediately.
-  const [harnessName, setHarnessName] = createSignal('');
-  const [harnessSlug, setHarnessSlug] = createSignal('');
-  const providerAgent = () => harnessSlug() || contextAgent();
+  const [newAgentName, setNewAgentName] = createSignal('');
+  const [newAgentSlug, setNewAgentSlug] = createSignal('');
+  const providerAgent = () => newAgentSlug() || contextAgent();
   const [providers, { refetch: refetchProviders }] = createResource(providerAgent, (name) =>
     getProviders(name),
   );
@@ -187,9 +187,9 @@ const Welcome: Component = () => {
   );
   const handleProvidersUpdate = async () => {
     await Promise.all([refetchProviders(), refetchCustom()]);
-    const slug = harnessSlug();
+    const slug = newAgentSlug();
     if (!slug) return;
-    // Force discovery once a connection finishes. The harness may have asked
+    // Force discovery once a connection finishes. The agent may have asked
     // for models before the provider existed, leaving an empty server cache for
     // its two-minute TTL; a plain GET would keep returning that stale result.
     await refreshModels(slug).catch(() => undefined);
@@ -267,23 +267,23 @@ const Welcome: Component = () => {
     );
   };
 
-  // ── Step: harness ────────────────────────────────────────────────────
-  const [harnessKey, setHarnessKey] = createSignal<string | null>(null);
-  const [harnessKeyPrefix, setHarnessKeyPrefix] = createSignal<string | null>(null);
+  // ── Step: agent ────────────────────────────────────────────────────
+  const [newAgentKey, setNewAgentKey] = createSignal<string | null>(null);
+  const [newAgentKeyPrefix, setNewAgentKeyPrefix] = createSignal<string | null>(null);
   const [category, setCategory] = createSignal<AgentCategory | null>('personal');
   const [platform, setPlatform] = createSignal<AgentPlatform | null>(
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
   );
   const [creating, setCreating] = createSignal(false);
-  const [harnessError, setHarnessError] = createSignal('');
-  // Both default ON, mirroring the Connect Harness modal — explicit so create
+  const [newAgentError, setNewAgentError] = createSignal('');
+  // Both default ON, mirroring the Connect Agent modal — explicit so create
   // always sends a choice rather than relying on the server-side inherit path
   // (which is OFF for Autofix on self-hosted). Creating with Autofix on is
   // itself the consent act (the backend records it), so the form shows the
   // legal line inline instead of a consent dialog mid-onboarding.
   const [autofixEnabled, setAutofixEnabled] = createSignal(true);
   const [logsEnabled, setLogsEnabled] = createSignal(true);
-  const harnessCreated = () => !!harnessSlug();
+  const newAgentCreated = () => !!newAgentSlug();
 
   const handleCategoryChange = (c: AgentCategory) => {
     setCategory(c);
@@ -296,11 +296,11 @@ const Welcome: Component = () => {
     return `${window.location.origin}/v1`;
   };
 
-  const createHarness = async () => {
-    const name = harnessName().trim();
+  const createNewAgent = async () => {
+    const name = newAgentName().trim();
     if (!name || creating()) return;
     setCreating(true);
-    setHarnessError('');
+    setNewAgentError('');
     try {
       const result = await createAgent({
         name,
@@ -310,31 +310,31 @@ const Welcome: Component = () => {
         record_messages: logsEnabled(),
       });
       const slug = result?.agent?.name ?? name;
-      setHarnessSlug(slug);
-      setHarnessKey(result.apiKey);
+      setNewAgentSlug(slug);
+      setNewAgentKey(result.apiKey);
       markAgentCreated(slug);
       goTo('providers');
     } catch (e) {
-      setHarnessError(e instanceof Error ? e.message : 'Failed to create harness');
+      setNewAgentError(e instanceof Error ? e.message : 'Failed to create agent');
     } finally {
       setCreating(false);
     }
   };
 
   // ── Step: routing — the app's real default-routing card ──────────────
-  const [models, { refetch: refetchModels }] = createResource(harnessSlug, (slug) =>
+  const [models, { refetch: refetchModels }] = createResource(newAgentSlug, (slug) =>
     slug ? getAvailableModels(slug) : Promise.resolve([]),
   );
   const [tiers, { refetch: refetchTiers, mutate: mutateTiers }] = createResource(
-    harnessSlug,
+    newAgentSlug,
     (slug) => (slug ? getTierAssignments(slug) : Promise.resolve([])),
   );
-  const [harnessProviders, { refetch: refetchHarnessProviders }] = createResource(
-    harnessSlug,
+  const [newAgentProviders, { refetch: refetchNewAgentProviders }] = createResource(
+    newAgentSlug,
     (slug) => (slug ? getProviders(slug) : Promise.resolve([])),
   );
-  const [harnessCustomProviders, { refetch: refetchHarnessCustom }] = createResource(
-    harnessSlug,
+  const [newAgentCustomProviders, { refetch: refetchNewAgentCustom }] = createResource(
+    newAgentSlug,
     (slug) => (slug ? getCustomProviders(slug) : Promise.resolve([])),
   );
 
@@ -342,14 +342,14 @@ const Welcome: Component = () => {
     await Promise.all([
       refetchTiers(),
       refetchModels(),
-      refetchHarnessProviders(),
-      refetchHarnessCustom(),
+      refetchNewAgentProviders(),
+      refetchNewAgentCustom(),
     ]);
   };
 
   // Per-route request params — same wiring as Routing.tsx so the card's
   // params affordance works here too.
-  const [modelParams, { mutate: mutateModelParams }] = createResource(harnessSlug, (slug) =>
+  const [modelParams, { mutate: mutateModelParams }] = createResource(newAgentSlug, (slug) =>
     slug ? listModelParams(slug).catch(() => [] as AgentModelParamsRow[]) : Promise.resolve([]),
   );
   const modelParamsMap = createMemo(() => {
@@ -380,11 +380,11 @@ const Welcome: Component = () => {
       r.authType === authType &&
       r.model === model;
     if (next === null) {
-      await deleteModelParams(harnessSlug(), { scope, provider, authType, model });
+      await deleteModelParams(newAgentSlug(), { scope, provider, authType, model });
       mutateModelParams((rows) => (rows ?? []).filter((r) => !matches(r)));
       return;
     }
-    const saved = await setModelParamsApi(harnessSlug(), {
+    const saved = await setModelParamsApi(newAgentSlug(), {
       scope,
       provider,
       authType,
@@ -395,15 +395,15 @@ const Welcome: Component = () => {
   };
 
   // New agents get every provider enabled, so connected == enabled here.
-  const harnessConnected = () => harnessProviders() ?? [];
-  const harnessActive = () => harnessConnected().filter((p) => p.is_active);
+  const newAgentConnected = () => newAgentProviders() ?? [];
+  const newAgentActive = () => newAgentConnected().filter((p) => p.is_active);
 
   const [dropdownTier, setDropdownTier] = createSignal<string | null>(null);
   const [fallbackPickerTier, setFallbackPickerTier] = createSignal<string | null>(null);
   const [instructionModal, setInstructionModal] = createSignal<'enable' | 'disable' | null>(null);
 
   const actions = createRoutingActions({
-    agentName: harnessSlug,
+    agentName: newAgentSlug,
     tiers,
     mutateTiers,
     refetchAll: refetchRouting,
@@ -625,7 +625,7 @@ const Welcome: Component = () => {
   });
 
   const checkForFirstAgentRequest = async () => {
-    const slug = harnessSlug();
+    const slug = newAgentSlug();
     if (!slug || agentRequestSeen() || checkingForRequest()) return;
     setCheckingForRequest(true);
     try {
@@ -657,7 +657,7 @@ const Welcome: Component = () => {
   };
 
   createEffect(() => {
-    if (step() !== 'activate' || !harnessSlug() || agentRequestSeen()) return;
+    if (step() !== 'activate' || !newAgentSlug() || agentRequestSeen()) return;
     setWaitedLong(false);
     // The check toggles `checkingForRequest`; keep that implementation detail
     // out of this effect's dependencies or it becomes a request loop instead
@@ -672,7 +672,7 @@ const Welcome: Component = () => {
     });
   });
 
-  // Resume the newest zero-message harness after a reload. Server state is the
+  // Resume the newest zero-message agent after a reload. Server state is the
   // source of truth: providers, routes determine the next useful
   // stage, while the restored key keeps the connection instructions usable.
   const [resumeHydrated, setResumeHydrated] = createSignal(false);
@@ -687,8 +687,8 @@ const Welcome: Component = () => {
       setResumeChecked(true);
       return;
     }
-    setHarnessName(candidate.display_name || candidate.agent_name);
-    setHarnessSlug(candidate.agent_name);
+    setNewAgentName(candidate.display_name || candidate.agent_name);
+    setNewAgentSlug(candidate.agent_name);
     if (candidate.agent_category) setCategory(candidate.agent_category as AgentCategory);
     if (candidate.agent_platform) setPlatform(candidate.agent_platform as AgentPlatform);
     setStep('providers');
@@ -696,8 +696,8 @@ const Welcome: Component = () => {
     setResumeChecked(true);
     void getAgentKey(candidate.agent_name)
       .then((key) => {
-        setHarnessKey(key.apiKey ?? null);
-        setHarnessKeyPrefix(key.keyPrefix ?? null);
+        setNewAgentKey(key.apiKey ?? null);
+        setNewAgentKeyPrefix(key.keyPrefix ?? null);
       })
       .catch(() => undefined);
   });
@@ -735,8 +735,8 @@ const Welcome: Component = () => {
   // not the current one, so navigating back never un-ticks them.
   const stepDone = (id: StepId): boolean => {
     switch (id) {
-      case 'harness':
-        return harnessCreated();
+      case 'agent':
+        return newAgentCreated();
       case 'providers':
         return connectedCount() > 0;
       case 'playground':
@@ -755,7 +755,7 @@ const Welcome: Component = () => {
       <Title>Welcome - Manifest</Title>
       <Meta
         name="description"
-        content="Connect your AI harness and send its first reliable request through Manifest."
+        content="Connect your AI agent and send its first reliable request through Manifest."
       />
 
       {/* ── Sidebar: activation progress + steps ───── */}
@@ -843,37 +843,37 @@ const Welcome: Component = () => {
         </Show>
 
         <Show when={resumeChecked()}>
-          {/* ====== Harness ====== */}
-          <Show when={step() === 'harness'}>
+          {/* ====== Agent ====== */}
+          <Show when={step() === 'agent'}>
             <div class="welcome__panel">
               <div class="welcome__panel-header">
-                <p class="welcome__eyebrow">{eyebrow('harness')}</p>
-                <h1 class="welcome__panel-title">Create your first harness</h1>
+                <p class="welcome__eyebrow">{eyebrow('agent')}</p>
+                <h1 class="welcome__panel-title">Create your first agent</h1>
                 <p class="welcome__panel-desc">
-                  A harness represents the agent or application whose requests Manifest will route,
+                  A agent represents the agent or application whose requests Manifest will route,
                   repair and observe.
                 </p>
               </div>
 
               <Show
-                when={!harnessCreated()}
+                when={!newAgentCreated()}
                 fallback={
                   <div
-                    class="panel welcome__form-panel welcome__harness-summary"
+                    class="panel welcome__form-panel welcome__agent-summary"
                     style="padding: 20px; margin-bottom: 0;"
                   >
                     <Show when={platform() && PLATFORM_ICONS[platform()!]}>
                       <img
                         src={PLATFORM_ICONS[platform()!]}
                         alt=""
-                        class="welcome__harness-summary-icon"
+                        class="welcome__agent-summary-icon"
                         aria-hidden="true"
                       />
                     </Show>
                     <div>
-                      <p class="welcome__harness-summary-name">{harnessName()}</p>
+                      <p class="welcome__agent-summary-name">{newAgentName()}</p>
                       <Show when={platform()}>
-                        <p class="welcome__harness-summary-type">{PLATFORM_LABELS[platform()!]}</p>
+                        <p class="welcome__agent-summary-type">{PLATFORM_LABELS[platform()!]}</p>
                       </Show>
                     </div>
                   </div>
@@ -884,7 +884,7 @@ const Welcome: Component = () => {
                   style="padding: 20px; margin-bottom: 0;"
                   onSubmit={(event) => {
                     event.preventDefault();
-                    void createHarness();
+                    void createNewAgent();
                   }}
                 >
                   <div class="agent-type-select-row">
@@ -899,26 +899,26 @@ const Welcome: Component = () => {
                       />
                     </div>
                     <div style="flex: 1;">
-                      <label class="modal-card__field-label" for="welcome-harness-name">
-                        Harness name
+                      <label class="modal-card__field-label" for="welcome-agent-name">
+                        Agent name
                       </label>
                       <input
                         ref={(el) => requestAnimationFrame(() => el.focus())}
-                        id="welcome-harness-name"
+                        id="welcome-agent-name"
                         class="modal-card__input modal-card__input--lg"
                         type="text"
-                        placeholder="e.g. My Cool Harness"
-                        value={harnessName()}
-                        onInput={(e) => setHarnessName(e.currentTarget.value)}
+                        placeholder="e.g. My Cool Agent"
+                        value={newAgentName()}
+                        onInput={(e) => setNewAgentName(e.currentTarget.value)}
                         disabled={creating()}
                         required
-                        aria-describedby={harnessError() ? 'welcome-harness-error' : undefined}
+                        aria-describedby={newAgentError() ? 'welcome-agent-error' : undefined}
                       />
                     </div>
                   </div>
                   <div class="add-agent-toggles">
                     <div class="model-params__group">
-                      {/* Same label treatment as the Type / Harness name field
+                      {/* Same label treatment as the Type / Agent name field
                           labels, not the larger Model-params group header. */}
                       <div class="modal-card__field-label add-agent-toggles__header">Settings</div>
                       <div class="model-params__group-card">
@@ -1006,23 +1006,23 @@ const Welcome: Component = () => {
                       .
                     </p>
                   </Show>
-                  <Show when={harnessError()}>
+                  <Show when={newAgentError()}>
                     <p
-                      id="welcome-harness-error"
+                      id="welcome-agent-error"
                       class="welcome__error"
                       role="alert"
                       style="margin-top: 10px;"
                     >
-                      {harnessError()}
+                      {newAgentError()}
                     </p>
                   </Show>
                   <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
                     <button
                       type="submit"
                       class="btn btn--primary btn--sm"
-                      disabled={!harnessName().trim() || !platform() || creating()}
+                      disabled={!newAgentName().trim() || !platform() || creating()}
                     >
-                      {creating() ? <span class="spinner" /> : 'Create harness'}
+                      {creating() ? <span class="spinner" /> : 'Create agent'}
                     </button>
                   </div>
                 </form>
@@ -1037,7 +1037,7 @@ const Welcome: Component = () => {
                 <p class="welcome__eyebrow">{eyebrow('providers')}</p>
                 <h1 class="welcome__panel-title">Connect providers</h1>
                 <p class="welcome__panel-desc">
-                  {harnessName().trim() || 'Your harness'} routes requests across the providers you
+                  {newAgentName().trim() || 'Your agent'} routes requests across the providers you
                   connect. Start with one, then add two more independent providers for full fallback
                   coverage.
                 </p>
@@ -1252,12 +1252,12 @@ const Welcome: Component = () => {
                 }
               >
                 <RoutingDefaultTierSection
-                  agentName={harnessSlug}
+                  agentName={newAgentSlug}
                   tier={() => actions.getTier('default')}
                   models={() => models() ?? []}
-                  customProviders={() => harnessCustomProviders() ?? []}
-                  activeProviders={harnessActive}
-                  connectedProviders={harnessConnected}
+                  customProviders={() => newAgentCustomProviders() ?? []}
+                  activeProviders={newAgentActive}
+                  connectedProviders={newAgentConnected}
                   tiersLoading={tiers.loading}
                   changingTier={actions.changingTier}
                   resettingTier={actions.resettingTier}
@@ -1299,14 +1299,14 @@ const Welcome: Component = () => {
             </div>
           </Show>
 
-          {/* ====== First request from the real harness ====== */}
+          {/* ====== First request from the real agent ====== */}
           <Show when={step() === 'activate'}>
             <div class="welcome__panel welcome__panel--setup">
               <div class="welcome__panel-header">
                 <p class="welcome__eyebrow">{eyebrow('activate')}</p>
-                <h1 class="welcome__panel-title">Connect your harness and go live</h1>
+                <h1 class="welcome__panel-title">Connect your agent and go live</h1>
                 <p class="welcome__panel-desc">
-                  Point {harnessName().trim() || 'your agent'} at Manifest with the instructions
+                  Point {newAgentName().trim() || 'your agent'} at Manifest with the instructions
                   below, then send one message. We detect the first successful request
                   automatically.
                 </p>
@@ -1315,11 +1315,11 @@ const Welcome: Component = () => {
               <section
                 class="panel welcome__form-panel welcome__setup-snippets"
                 style="padding: 20px; margin-bottom: 0;"
-                aria-label="Harness setup instructions"
+                aria-label="Agent setup instructions"
               >
                 <SetupStepAddProvider
-                  apiKey={harnessKey()}
-                  keyPrefix={harnessKeyPrefix()}
+                  apiKey={newAgentKey()}
+                  keyPrefix={newAgentKeyPrefix()}
                   baseUrl={baseUrl()}
                   platform={platform()}
                 />
@@ -1402,7 +1402,7 @@ const Welcome: Component = () => {
                       ✓
                     </span>
                     <div>
-                      <strong>Your harness is live.</strong>
+                      <strong>Your agent is live.</strong>
                       <p class="welcome__section-desc">
                         Manifest successfully routed the first real request
                         <Show when={latestAgentRequest()?.model}>
@@ -1605,7 +1605,7 @@ const Welcome: Component = () => {
               class="welcome__liftoff-status"
               aria-hidden="true"
             >
-              {harnessSlug() || 'agent'} · live
+              {newAgentSlug() || 'agent'} · live
             </span>
             <button
               ref={(element) => (liftoffAction = element)}
@@ -1632,9 +1632,9 @@ const Welcome: Component = () => {
       </Show>
 
       {/* Provider connect modal — root level so the fixed overlay fills the viewport */}
-      <Show when={step() === 'providers' && connectTarget() && harnessSlug()}>
+      <Show when={step() === 'providers' && connectTarget() && newAgentSlug()}>
         <ProviderSelectModal
-          agentName={harnessSlug()}
+          agentName={newAgentSlug()}
           providers={providers() ?? []}
           customProviders={customProviders() ?? []}
           providerDeepLink={{
@@ -1650,9 +1650,9 @@ const Welcome: Component = () => {
       </Show>
 
       {/* Model / fallback picker modals for the routing card — same as Routing.tsx */}
-      <Show when={harnessSlug()}>
+      <Show when={newAgentSlug()}>
         <RoutingModals
-          agentName={harnessSlug}
+          agentName={newAgentSlug}
           dropdownTier={dropdownTier}
           onDropdownClose={() => {
             setDropdownTier(null);
@@ -1670,8 +1670,8 @@ const Welcome: Component = () => {
           }}
           models={() => models() ?? []}
           tiers={() => tiers() ?? []}
-          customProviders={() => harnessCustomProviders() ?? []}
-          connectedProviders={harnessConnected}
+          customProviders={() => newAgentCustomProviders() ?? []}
+          connectedProviders={newAgentConnected}
           getTier={actions.getTier}
           onOverride={handleOverride}
           onAddFallback={handleAddFallback}

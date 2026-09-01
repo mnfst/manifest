@@ -55,7 +55,7 @@ describe('MessageTable status labels', () => {
     });
 
     const link = screen.getByText('Failed') as HTMLAnchorElement;
-    expect(link.getAttribute('href')).toBe('/harnesses/demo-agent/limits');
+    expect(link.getAttribute('href')).toBe('/agents/demo-agent/limits');
     expect(link.getAttribute('title')).toBe('Manifest usage limit reached - open your limits');
   });
 });

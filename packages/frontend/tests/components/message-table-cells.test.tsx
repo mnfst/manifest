@@ -304,7 +304,7 @@ describe('StatusCell merged pill', () => {
     );
     const link = container.querySelector('a');
     expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toContain('/harnesses/billing-bot/limits');
+    expect(link!.getAttribute('href')).toContain('/agents/billing-bot/limits');
     expect(link!.textContent).toContain('Failed');
     expect(link!.className).toContain('status-badge--error');
     expect(container.querySelectorAll('a').length).toBe(1);

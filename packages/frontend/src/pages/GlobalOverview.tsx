@@ -47,6 +47,13 @@ import UserDiscoveryModal, {
 import Sparkline from '../components/Sparkline.jsx';
 import FilterSelect from '../components/FilterSelect.jsx';
 import Select from '../components/Select.jsx';
+import OwnerProjectFilters from '../components/OwnerProjectFilters.jsx';
+import {
+  getOverviewGroupedUsage,
+  NO_OWNER,
+  teamFilterParams,
+  type OwnerProjectFilter,
+} from '../services/api/teams.js';
 import { authLabel, authBadgeFor } from '../components/AuthBadge.jsx';
 import { platformIcon } from 'manifest-shared';
 import GlobalOverviewSkeleton from '../components/GlobalOverviewSkeleton.jsx';
@@ -74,8 +81,8 @@ import {
   MODEL_SUCCESS_RATE_TOOLTIP,
   PROVIDER_SUCCESS_RATE_TOOLTIP,
   CONNECTION_SUCCESS_RATE_TOOLTIP,
-  HARNESS_SUCCESS_RATE_TOOLTIP,
-  HARNESS_TOTAL_REQUESTS_TOOLTIP,
+  AGENT_SUCCESS_RATE_TOOLTIP,
+  AGENT_TOTAL_REQUESTS_TOOLTIP,
 } from '../services/api/analytics.js';
 
 interface ProviderGroup {
@@ -147,6 +154,8 @@ const PRO_DASHBOARD_RANGES = new Set(['30d', '90d', '365d']);
 
 const RANGE_STORAGE_KEY = 'manifest_global_range';
 const GROUP_STORAGE_KEY = 'manifest_global_group';
+const OWNER_FILTER_KEY = 'global-owner-filter';
+const PROJECT_FILTER_KEY = 'global-project-filter';
 
 function loadRange(): string {
   try {
@@ -200,7 +209,9 @@ const GlobalOverview: Component = () => {
   const loadGroup = (): string => {
     try {
       const v = localStorage.getItem(GROUP_STORAGE_KEY);
-      if (v === 'status' || v === 'provider' || v === 'agent') return v;
+      if (v === 'status' || v === 'provider' || v === 'agent' || v === 'owner' || v === 'project') {
+        return v;
+      }
     } catch {
       /* ignore */
     }
@@ -215,6 +226,46 @@ const GlobalOverview: Component = () => {
       /* ignore */
     }
   };
+  const isTeamGroup = (v: string) => v === 'owner' || v === 'project';
+  // The provider aggregation cannot be narrowed by owner or project: while a
+  // team filter is active a persisted provider grouping fetches per agent.
+  const effectiveGroup = () => (hasTeamFilter() && groupBy() === 'provider' ? 'agent' : groupBy());
+
+  // ── Owner / project filters (sessionStorage) ─────────────────────────
+  // They join the agent and provider filters. `owners` carries user ids and
+  // the `none` sentinel ("Without an owner"); both are sent to every
+  // analytics call on this page.
+  const loadList = (key: string): string[] => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw) return JSON.parse(raw) as string[];
+    } catch {
+      /* ignore */
+    }
+    return [];
+  };
+  const [ownerFilter, setOwnerFilterRaw] = createSignal<string[]>(loadList(OWNER_FILTER_KEY));
+  const [projectFilter, setProjectFilterRaw] = createSignal<string[]>(loadList(PROJECT_FILTER_KEY));
+  const persistList = (key: string, values: string[]) => {
+    try {
+      sessionStorage.setItem(key, JSON.stringify(values));
+    } catch {
+      /* ignore */
+    }
+  };
+  const setOwnerFilter = (values: string[]) => {
+    setOwnerFilterRaw(values);
+    persistList(OWNER_FILTER_KEY, values);
+  };
+  const setProjectFilter = (values: string[]) => {
+    setProjectFilterRaw(values);
+    persistList(PROJECT_FILTER_KEY, values);
+  };
+  const teamFilter = (): OwnerProjectFilter => ({
+    owners: ownerFilter(),
+    projects: projectFilter(),
+  });
+  const hasTeamFilter = () => ownerFilter().length > 0 || projectFilter().length > 0;
 
   // ── Chart view state ─────────────────────────────────────────────────
   const [chartView, setChartView] = createSignal<'requests' | 'selfheal' | 'tokens' | 'cost'>(
@@ -237,9 +288,24 @@ const GlobalOverview: Component = () => {
   });
 
   // ── Data resources (5 parallel) ──────────────────────────────────────
+  // The existing summary endpoint only receives the owner/project params once
+  // the teams backend can accept them (see teamFilterParams). Resolved once;
+  // the summary re-runs when the answer arrives.
+  const [teamsBackend, setTeamsBackend] = createSignal(false);
+  void teamFilterParams({ owners: [NO_OWNER] })
+    .then((allowed) => setTeamsBackend((allowed.owners?.length ?? 0) > 0))
+    .catch(() => setTeamsBackend(false));
+  // Only read teamsBackend() while a team filter is set, so an unfiltered
+  // summary never refetches when the answer arrives.
+  const summaryFilter = (): OwnerProjectFilter =>
+    hasTeamFilter() && teamsBackend() ? teamFilter() : {};
   const [overview] = createResource(
-    () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
-    (p) => getOverview(p.range) as Promise<OverviewResponse>,
+    () => ({
+      range: effectiveChartRange(),
+      filter: summaryFilter(),
+      _ping: analyticsPing(),
+    }),
+    (p) => getOverview(p.range, undefined, p.filter) as Promise<OverviewResponse>,
   );
 
   // Show the skeleton on a range change, but not on the frequent background SSE
@@ -321,14 +387,14 @@ const GlobalOverview: Component = () => {
     };
   };
 
-  // Harness table usage, driven by the page range selector (the workspace
+  // Agent table usage, driven by the page range selector (the workspace
   // agents endpoint is a fixed window; this table must follow the filter).
-  const [harnessUsage] = createResource(
+  const [agentUsage] = createResource(
     () => ({ range: effectiveChartRange(), _ping: analyticsPing() }),
     (p) => getOverviewAgentUsage(p.range) as Promise<UsageTSResult>,
   );
-  const harnessUsageFor = (agentName: string) => {
-    const ts = harnessUsage()?.tokenUsage;
+  const agentUsageFor = (agentName: string) => {
+    const ts = agentUsage()?.tokenUsage;
     if (!ts || !ts.agents.includes(agentName)) return null;
     const spark: number[] = [];
     let total = 0;
@@ -369,14 +435,34 @@ const GlobalOverview: Component = () => {
 
   type TSResult = { agents: string[]; timeseries: Array<Record<string, number | string>> };
   type UsageTSResult = { tokenUsage: TSResult; messageUsage: TSResult; costUsage: TSResult };
-  const usageFetcher = (range: string, group: string): Promise<UsageTSResult> => {
+  const usageFetcher = (
+    range: string,
+    group: string,
+    filter: OwnerProjectFilter,
+    filtered: boolean,
+  ): Promise<UsageTSResult> => {
     if (group === 'provider') return getOverviewProviderUsage(range) as Promise<UsageTSResult>;
+    // Owner / project groupings, and the agent grouping whenever an owner or
+    // project filter is active, go through the teams usage endpoint.
+    if (isTeamGroup(group) || filtered) {
+      return getOverviewGroupedUsage(
+        range,
+        group === 'owner' || group === 'project' ? group : 'agent',
+        filter,
+      ) as Promise<UsageTSResult>;
+    }
     return getOverviewAgentUsage(range) as Promise<UsageTSResult>;
   };
 
   const [usageTimeseries] = createResource(
-    () => ({ range: effectiveChartRange(), group: groupBy(), _ping: analyticsPing() }),
-    (p) => usageFetcher(p.range, p.group),
+    () => ({
+      range: effectiveChartRange(),
+      group: effectiveGroup(),
+      filter: teamFilter(),
+      filtered: hasTeamFilter(),
+      _ping: analyticsPing(),
+    }),
+    (p) => usageFetcher(p.range, p.group, p.filter, p.filtered),
   );
 
   // Provider-grouped series key custom providers as 'custom:<uuid>'. Remap
@@ -404,13 +490,15 @@ const GlobalOverview: Component = () => {
   const messageSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.messageUsage));
   const costSeries = createMemo(() => remapCustomSeries(usageTimeseries()?.costUsage));
 
-  // ── Harness filter state (sessionStorage) ────────────────────────────
+  // ── Agent filter state (sessionStorage) ────────────────────────────
   // Scope the persisted selection by groupBy(): the provider grouping and the
-  // harness grouping list completely different series, so a single shared set
-  // would carry harness names into provider mode (and vice versa), filtering
+  // agent grouping list completely different series, so a single shared set
+  // would carry agent names into provider mode (and vice versa), filtering
   // out every series and blanking the chart. A per-grouping key keeps each
   // mode's selection independent.
-  const storageKey = () => `global-agent-filter:${groupBy()}`;
+  // Keyed by the effective group: the agent fallback that replaces a provider
+  // grouping under a team filter must not share the provider selection.
+  const storageKey = () => `global-agent-filter:${effectiveGroup()}`;
   const loadSavedAgents = (key: string): Set<string> => {
     try {
       const saved = sessionStorage.getItem(key);
@@ -427,7 +515,7 @@ const GlobalOverview: Component = () => {
   // (defaulting to "all selected" when none was saved for it).
   createEffect(
     on(
-      () => groupBy(),
+      () => effectiveGroup(),
       () => setSelectedAgents(loadSavedAgents(storageKey())),
       { defer: true },
     ),
@@ -547,7 +635,7 @@ const GlobalOverview: Component = () => {
   const hasNoAgents = () => agents() !== undefined && agentList().length === 0;
   const hasNoProviders = () => providers() !== undefined && providerList().length === 0;
 
-  // Auto-open the Create Harness modal for first-time users (once per session)
+  // Auto-open the Create Agent modal for first-time users (once per session)
   const ONBOARDING_DISMISSED_KEY = 'overview_onboarding_dismissed';
   const [addAgentOpen, setAddAgentOpen] = createSignal(false);
   const dismissAddAgent = () => {
@@ -596,7 +684,7 @@ const GlobalOverview: Component = () => {
     <div class="container--lg">
       <Title>Overview | Manifest</Title>
 
-      {/* Add Harness Modal */}
+      {/* Add Agent Modal */}
       <AddAgentModal open={addAgentOpen()} onClose={dismissAddAgent} />
       <UpgradeSuccessModal open={upgradeModalOpen()} onClose={closeUpgradeModal} />
       <UserDiscoveryModal open={discoveryModalOpen()} onClose={closeDiscoveryModal} />
@@ -607,10 +695,16 @@ const GlobalOverview: Component = () => {
       <div class="page-header" style="border-bottom: none; padding-bottom: 0;">
         <div>
           <h1 class="page-header__title">Overview</h1>
-          <p class="page-header__subtitle">All your harnesses and providers</p>
+          <p class="page-header__subtitle">All your agents and providers</p>
         </div>
         <Show when={!hasNoAgents() || !hasNoProviders()}>
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="header-controls" style="flex-wrap: wrap;">
+            <OwnerProjectFilters
+              owners={ownerFilter()}
+              projects={projectFilter()}
+              onOwnersChange={setOwnerFilter}
+              onProjectsChange={setProjectFilter}
+            />
             <Select value={chartRange()} onChange={setChartRange} options={rangeOptions()} />
           </div>
         </Show>
@@ -635,11 +729,11 @@ const GlobalOverview: Component = () => {
             No activity yet
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-            Set up your harness and connect at least one provider. Once your harness sends requests,
+            Set up your agent and connect at least one provider. Once your agent sends requests,
             data will appear here.
           </div>
           <button class="btn btn--primary btn--sm" onClick={() => setAddAgentOpen(true)}>
-            Set up harness
+            Set up agent
           </button>
         </div>
       </Show>
@@ -662,7 +756,7 @@ const GlobalOverview: Component = () => {
             No providers connected
           </div>
           <div style="font-size: var(--font-size-sm); color: hsl(var(--muted-foreground)); margin-bottom: 8px;">
-            Connect a model provider to start routing your harnesses' LLM calls.
+            Connect a model provider to start routing your agents' LLM calls.
           </div>
           <A
             href="/providers/subscriptions"
@@ -697,10 +791,29 @@ const GlobalOverview: Component = () => {
         {(() => {
           const o = () => overview()!;
           // A request can touch several providers, so the Requests tab only
-          // groups by status or harness; usage tabs (tokens/cost) only group
-          // by provider or harness. One stored groupBy, coerced per tab.
-          const requestsGroup = () => (groupBy() === 'agent' ? 'agent' : 'status');
-          const usageGroup = () => (groupBy() === 'provider' ? 'provider' : 'agent');
+          // groups by status or agent; usage tabs (tokens/cost) only group
+          // by provider or agent. One stored groupBy, coerced per tab.
+          const requestsGroup = () =>
+            groupBy() === 'agent' || isTeamGroup(groupBy()) ? groupBy() : 'status';
+          // The provider aggregation cannot be narrowed by owner or project,
+          // so while a team filter is active the usage tabs fall back to the
+          // agent grouping and the provider button is disabled.
+          const usageGroup = () =>
+            (groupBy() === 'provider' && !hasTeamFilter()) || isTeamGroup(groupBy())
+              ? groupBy()
+              : 'agent';
+          const groupNoun = (): string => {
+            switch (effectiveGroup()) {
+              case 'provider':
+                return 'providers';
+              case 'owner':
+                return 'users';
+              case 'project':
+                return 'projects';
+              default:
+                return 'agents';
+            }
+          };
           return (
             <UnifiedChartCard
               activeTab={chartView()}
@@ -728,7 +841,7 @@ const GlobalOverview: Component = () => {
               range={effectiveChartRange()}
               requestStatusTimeseries={requestsGroup() === 'status' ? requestStatusTs() : undefined}
               agentRequestTimeseries={
-                requestsGroup() === 'agent'
+                requestsGroup() !== 'status'
                   ? (filteredAgentMessageTimeseries() ?? undefined)
                   : undefined
               }
@@ -752,7 +865,23 @@ const GlobalOverview: Component = () => {
                       classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'agent' }}
                       onClick={() => setGroupBy('agent')}
                     >
-                      By harness
+                      By agent
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': requestsGroup() === 'owner' }}
+                      onClick={() => setGroupBy('owner')}
+                    >
+                      By user
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{
+                        'chart-card__filter-btn--active': requestsGroup() === 'project',
+                      }}
+                      onClick={() => setGroupBy('project')}
+                    >
+                      By project
                     </button>
                   </Show>
                   <Show when={chartView() !== 'requests'}>
@@ -761,6 +890,12 @@ const GlobalOverview: Component = () => {
                       classList={{
                         'chart-card__filter-btn--active': usageGroup() === 'provider',
                       }}
+                      disabled={hasTeamFilter()}
+                      title={
+                        hasTeamFilter()
+                          ? 'Provider series cannot be filtered by user or project'
+                          : undefined
+                      }
                       onClick={() => setGroupBy('provider')}
                     >
                       By provider
@@ -770,13 +905,35 @@ const GlobalOverview: Component = () => {
                       classList={{ 'chart-card__filter-btn--active': usageGroup() === 'agent' }}
                       onClick={() => setGroupBy('agent')}
                     >
-                      By harness
+                      By agent
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': usageGroup() === 'owner' }}
+                      onClick={() => setGroupBy('owner')}
+                    >
+                      By user
+                    </button>
+                    <button
+                      class="chart-card__filter-btn"
+                      classList={{ 'chart-card__filter-btn--active': usageGroup() === 'project' }}
+                      onClick={() => setGroupBy('project')}
+                    >
+                      By project
                     </button>
                   </Show>
-                  <Show when={chartView() !== 'requests' || requestsGroup() === 'agent'}>
+                  <Show when={hasTeamFilter()}>
+                    <span
+                      class="field__hint"
+                      title="Recovery and request-status series come from endpoints that do not take the user and project filters yet."
+                    >
+                      Recovery and status series show all agents
+                    </span>
+                  </Show>
+                  <Show when={chartView() !== 'requests' || requestsGroup() !== 'status'}>
                     <div style="min-width: 140px;">
                       <FilterSelect
-                        noun={groupBy() === 'provider' ? 'providers' : 'harnesses'}
+                        noun={groupNoun()}
                         items={allAgents()}
                         selected={effectiveSelected()}
                         colorMap={agentColorMap()}
@@ -795,7 +952,7 @@ const GlobalOverview: Component = () => {
         {/* "Error classes by frequency" stays unmounted until the backend has
             real error_class data (see the preservation spec in tests/components). */}
 
-        {/* Stat cards removed — info is in Provider connections + Harnesses tables below */}
+        {/* Stat cards removed — info is in Provider connections + Agents tables below */}
 
         {/* ── 4. Recent Requests (full width) ──────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
@@ -1145,23 +1302,23 @@ const GlobalOverview: Component = () => {
           </div>
         </div>
 
-        {/* ── 7. Harnesses (full width) ──────────────────────────────── */}
+        {/* ── 7. Agents (full width) ──────────────────────────────── */}
         <div class="panel scroll-panel" style="margin-bottom: 24px;">
-          <div class="panel__title">Harnesses</div>
+          <div class="panel__title">Agents</div>
           <div class="scroll-panel__body" onScroll={toggleScrollFade}>
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Harness</th>
+                  <th>Agent</th>
                   <th>Usage</th>
                   <th class="rel-col">
                     Total requests
-                    <InfoTooltip text={HARNESS_TOTAL_REQUESTS_TOOLTIP} />
+                    <InfoTooltip text={AGENT_TOTAL_REQUESTS_TOOLTIP} />
                   </th>
                   <th class="rel-col">Recovered requests</th>
                   <th class="rel-col">
                     Success rate
-                    <InfoTooltip text={HARNESS_SUCCESS_RATE_TOOLTIP} />
+                    <InfoTooltip text={AGENT_SUCCESS_RATE_TOOLTIP} />
                   </th>
                 </tr>
               </thead>
@@ -1172,9 +1329,7 @@ const GlobalOverview: Component = () => {
                     return (
                       <tr
                         style="cursor: pointer;"
-                        onClick={() =>
-                          navigate(`/harnesses/${encodeURIComponent(agent.agent_name)}`)
-                        }
+                        onClick={() => navigate(`/agents/${encodeURIComponent(agent.agent_name)}`)}
                       >
                         <td>
                           <div style="display: flex; align-items: center; gap: 8px;">
@@ -1194,7 +1349,7 @@ const GlobalOverview: Component = () => {
                         </td>
                         <td>
                           {(() => {
-                            const usage = () => harnessUsageFor(agent.agent_name);
+                            const usage = () => agentUsageFor(agent.agent_name);
                             return (
                               <div style="display: flex; align-items: center; gap: 8px;">
                                 <Show when={(usage()?.spark ?? []).length > 0}>
@@ -1219,7 +1374,7 @@ const GlobalOverview: Component = () => {
                               <a
                                 class="count-link"
                                 href={link}
-                                title="View this harness's requests"
+                                title="View this agent's requests"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -1246,7 +1401,7 @@ const GlobalOverview: Component = () => {
                                       <a
                                         class="count-link"
                                         href={link}
-                                        title="View this harness's recovered requests"
+                                        title="View this agent's recovered requests"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
@@ -1278,7 +1433,7 @@ const GlobalOverview: Component = () => {
                       colspan="5"
                       style="text-align: center; color: hsl(var(--muted-foreground)); padding: 24px 0;"
                     >
-                      No harnesses yet
+                      No agents yet
                     </td>
                   </tr>
                 </Show>

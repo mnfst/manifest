@@ -690,29 +690,29 @@
   color: hsl(var(--foreground));
 }
 
-/* ── Harness created summary ───────────────────── */
+/* ── Agent created summary ───────────────────── */
 
-.welcome__harness-summary {
+.welcome__agent-summary {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.welcome__harness-summary-icon {
+.welcome__agent-summary-icon {
   width: 32px;
   height: 32px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-.welcome__harness-summary-name {
+.welcome__agent-summary-name {
   margin: 0;
   font-size: var(--font-size-base);
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-.welcome__harness-summary-type {
+.welcome__agent-summary-type {
   margin: 2px 0 0;
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
@@ -785,7 +785,7 @@
   color: hsl(var(--muted-foreground));
 }
 
-/* ── Harness step ───────────────────────────────── */
+/* ── Agent step ───────────────────────────────── */
 
 /* .panel ships overflow-x:auto / overflow-y:hidden (cards.css), which clips
    the AgentTypeSelect dropdown. The form panel needs free overflow. */

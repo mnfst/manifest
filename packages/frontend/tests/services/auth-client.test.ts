@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Spy that `createAuthClient` from `better-auth/solid` resolves to. The
 // module under test (`auth-client.ts`) imports this symbol and invokes it
@@ -14,15 +14,15 @@ const { createAuthClientMock, stripeClientMock } = vi.hoisted(() => ({
   stripeClientMock: vi.fn((opts: unknown) => ({ __stripePlugin: true, opts })),
 }));
 
-vi.mock("better-auth/solid", () => ({
+vi.mock('better-auth/solid', () => ({
   createAuthClient: createAuthClientMock,
 }));
 
-vi.mock("@better-auth/stripe/client", () => ({
+vi.mock('@better-auth/stripe/client', () => ({
   stripeClient: stripeClientMock,
 }));
 
-describe("authClient", () => {
+describe('authClient', () => {
   beforeEach(() => {
     // Each test re-imports the module to re-trigger the top-level
     // `createAuthClient({...})` call against a fresh mock state.
@@ -32,12 +32,12 @@ describe("authClient", () => {
 
     // Pin `window.location.origin` to a deterministic value. jsdom would
     // otherwise return "http://localhost:3000", which is fine but we want
-    // tests to be insensitive to harness defaults.
-    vi.stubGlobal("window", {
+    // tests to be insensitive to agent defaults.
+    vi.stubGlobal('window', {
       ...window,
       location: {
         ...window.location,
-        origin: "https://dashboard.manifest.build",
+        origin: 'https://dashboard.manifest.build',
       },
     } as Window & typeof globalThis);
   });
@@ -46,30 +46,30 @@ describe("authClient", () => {
     vi.unstubAllGlobals();
   });
 
-  it("creates client with correct baseURL from window.location.origin", async () => {
-    await import("../../src/services/auth-client.js");
+  it('creates client with correct baseURL from window.location.origin', async () => {
+    await import('../../src/services/auth-client.js');
 
     expect(createAuthClientMock).toHaveBeenCalledTimes(1);
     const config = createAuthClientMock.mock.calls[0][0] as {
       baseURL: string;
       basePath: string;
     };
-    expect(config.baseURL).toBe("https://dashboard.manifest.build");
+    expect(config.baseURL).toBe('https://dashboard.manifest.build');
   });
 
-  it("creates client with basePath /api/auth", async () => {
-    await import("../../src/services/auth-client.js");
+  it('creates client with basePath /api/auth', async () => {
+    await import('../../src/services/auth-client.js');
 
     expect(createAuthClientMock).toHaveBeenCalledTimes(1);
     const config = createAuthClientMock.mock.calls[0][0] as {
       baseURL: string;
       basePath: string;
     };
-    expect(config.basePath).toBe("/api/auth");
+    expect(config.basePath).toBe('/api/auth');
   });
 
-  it("registers the stripe subscription client plugin", async () => {
-    await import("../../src/services/auth-client.js");
+  it('registers the stripe subscription client plugin', async () => {
+    await import('../../src/services/auth-client.js');
 
     // `stripeClient` must be called once with subscription mode enabled...
     expect(stripeClientMock).toHaveBeenCalledTimes(1);
@@ -85,8 +85,8 @@ describe("authClient", () => {
     expect(config.plugins[0]).toBe(stripeClientMock.mock.results[0].value);
   });
 
-  it("exports authClient as createAuthClient return type", async () => {
-    const mod = await import("../../src/services/auth-client.js");
+  it('exports authClient as createAuthClient return type', async () => {
+    const mod = await import('../../src/services/auth-client.js');
 
     // The exported `authClient` must be the exact value returned by
     // `createAuthClient`. We return a tagged object from the mock so we
@@ -96,18 +96,18 @@ describe("authClient", () => {
     expect(mod.authClient).toBe(createAuthClientMock.mock.results[0].value);
   });
 
-  it("initialization does not throw errors", async () => {
+  it('initialization does not throw errors', async () => {
     // The module evaluates its top-level `createAuthClient({...})` call
     // synchronously on import. A throw inside `createAuthClient` would
     // surface here as a rejected promise from the dynamic import.
-    await expect(import("../../src/services/auth-client.js")).resolves.toBeDefined();
+    await expect(import('../../src/services/auth-client.js')).resolves.toBeDefined();
   });
 
-  it("re-reads window.location.origin on each module load", async () => {
+  it('re-reads window.location.origin on each module load', async () => {
     // First load uses the stubbed origin from beforeEach.
-    await import("../../src/services/auth-client.js");
+    await import('../../src/services/auth-client.js');
     expect(createAuthClientMock.mock.calls[0][0]).toMatchObject({
-      baseURL: "https://dashboard.manifest.build",
+      baseURL: 'https://dashboard.manifest.build',
     });
 
     // Swap the origin and reload. We expect a fresh `createAuthClient`
@@ -116,19 +116,19 @@ describe("authClient", () => {
     vi.resetModules();
     createAuthClientMock.mockClear();
     stripeClientMock.mockClear();
-    vi.stubGlobal("window", {
+    vi.stubGlobal('window', {
       ...window,
       location: {
         ...window.location,
-        origin: "http://localhost:3001",
+        origin: 'http://localhost:3001',
       },
     } as Window & typeof globalThis);
 
-    await import("../../src/services/auth-client.js");
+    await import('../../src/services/auth-client.js');
     expect(createAuthClientMock).toHaveBeenCalledTimes(1);
     expect(createAuthClientMock.mock.calls[0][0]).toMatchObject({
-      baseURL: "http://localhost:3001",
-      basePath: "/api/auth",
+      baseURL: 'http://localhost:3001',
+      basePath: '/api/auth',
     });
   });
 });

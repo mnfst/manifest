@@ -8,7 +8,16 @@ import {
 } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import AgentTypeSelect from './AgentTypeSelect.jsx';
+import Select from './Select.jsx';
+import MultiSelect from './MultiSelect.jsx';
 import { createAgent, getGlobalProviders } from '../services/api.js';
+import {
+  assignNewAgent,
+  checkAgentName,
+  getProjects,
+  getUsers,
+  type AgentNameCheck,
+} from '../services/api/teams.js';
 import { toast } from '../services/toast-store.js';
 import { markAgentCreated, markSetupPending } from '../services/recent-agents.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
@@ -16,7 +25,7 @@ import { refreshAgents } from '../services/sse.js';
 import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'manifest-shared';
 
 /**
- * "Connect Harness" modal extracted from Workspace so it can be reused by other
+ * "Connect Agent" modal extracted from Workspace so it can be reused by other
  * onboarding surfaces (e.g. an empty-state CTA or a deep-link).
  *
  * Onboarding navigation: a freshly created agent inherits access to every
@@ -25,9 +34,74 @@ import { type AgentCategory, type AgentPlatform, PLATFORMS_BY_CATEGORY } from 'm
  * `state.openProviders` so Routing opens the provider-connect flow immediately —
  * the new user's very next action is to connect their first provider.
  */
-const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props) => {
+interface AddAgentModalProps {
+  open: boolean;
+  onClose: () => void;
+  /** Pre-fills the owner (a user page's "New agent" action). */
+  defaultOwnerId?: string;
+  /** Pre-fills the projects (a project page's "New agent" action). */
+  defaultProjectIds?: string[];
+}
+
+const NAME_CHECK_DEBOUNCE_MS = 300;
+
+const AddAgentModal: Component<AddAgentModalProps> = (props) => {
   const navigate = useNavigate();
   const [name, setName] = createSignal('');
+  // Owner is chosen once, at creation. There is no reassignment afterwards:
+  // past activity stays with whoever owned the agent when it ran, so handing
+  // an agent over means archiving it and creating a fresh one.
+  const [ownerId, setOwnerId] = createSignal(props.defaultOwnerId ?? '');
+  const [projectIds, setProjectIds] = createSignal<string[]>(props.defaultProjectIds ?? []);
+  const [users] = createResource(
+    () => props.open,
+    async (open) => {
+      if (!open) return [];
+      try {
+        return (await getUsers()).users;
+      } catch {
+        return [];
+      }
+    },
+  );
+  const [projects] = createResource(
+    () => props.open,
+    async (open) => {
+      if (!open) return [];
+      try {
+        return (await getProjects()).projects;
+      } catch {
+        return [];
+      }
+    },
+  );
+  // Names are unique per owner: two owners can each have a `claude-code`, one
+  // owner cannot. A taken name is flagged here, with a free suggestion, and
+  // an agent is never silently renamed after creation.
+  const [nameCheck, setNameCheck] = createSignal<AgentNameCheck | null>(null);
+  let checkTimer: ReturnType<typeof setTimeout> | undefined;
+  let checkSeq = 0;
+  createEffect(() => {
+    const candidate = name().trim();
+    const owner = ownerId() || null;
+    if (checkTimer) clearTimeout(checkTimer);
+    setNameCheck(null);
+    if (!candidate) return;
+    const seq = ++checkSeq;
+    checkTimer = setTimeout(async () => {
+      try {
+        const result = await checkAgentName(candidate, owner);
+        if (seq === checkSeq) setNameCheck(result ?? null);
+      } catch {
+        // A failed check must not block creation; the backend enforces uniqueness.
+        if (seq === checkSeq) setNameCheck({ available: true, suggestion: null });
+      }
+    }, NAME_CHECK_DEBOUNCE_MS);
+  });
+  onCleanup(() => {
+    if (checkTimer) clearTimeout(checkTimer);
+  });
+  const nameTaken = () => nameCheck()?.available === false;
   const [category, setCategory] = createSignal<AgentCategory | null>('personal');
   const [platform, setPlatform] = createSignal<AgentPlatform | null>(
     PLATFORMS_BY_CATEGORY['personal'][0] ?? null,
@@ -60,10 +134,17 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   // Reopening invalidates whatever the previous session left in flight. The
   // success path closes the modal *before* awaiting the providers lookup, and
   // closing is not a dismissal — so a user who immediately reopens to add a
-  // second harness would otherwise be yanked to the first one the moment that
+  // second agent would otherwise be yanked to the first one the moment that
   // lookup lands, mid-typing.
   createEffect(() => {
-    if (props.open) attemptToken++;
+    if (props.open) {
+      attemptToken++;
+      // Follow the caller's defaults on every open: a user's Agents tab that
+      // stays mounted while the route switches to another user must not keep
+      // the previous owner.
+      setOwnerId(props.defaultOwnerId ?? '');
+      setProjectIds(props.defaultProjectIds ?? []);
+    }
   });
   // If the component unmounts mid-request, treat it like a dismissal so we never
   // navigate from a disposed modal.
@@ -89,6 +170,9 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   const createAgentNow = async (token: number, autofixChoice: boolean) => {
     const agentName = name().trim();
     if (!agentName) return;
+    // Pinned now: the form resets as soon as the create succeeds.
+    const owner = ownerId() || null;
+    const chosenProjects = projectIds();
     setCreating(true);
     try {
       const result = await createAgent({
@@ -98,16 +182,25 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
         autofix_enabled: autofixChoice,
         record_messages: recordingEnabled(),
       });
+      const slug = result?.agent?.name ?? agentName;
+      // Attach owner and projects BEFORE anything refetches the agent lists, so
+      // a user's Agents tab sees the new agent under its owner on the first
+      // refresh. The agent already exists at this point, so a failure here is
+      // a warning, not a failed create.
+      try {
+        await assignNewAgent(slug, owner, chosenProjects);
+      } catch {
+        toast.warning(`Agent "${slug}" was created but its user and projects could not be saved.`);
+      }
       // Local creates do not wait for the asynchronous server-sent event. This
-      // immediately reruns the sidebar's harness-list resource with fresh data.
+      // immediately reruns every agent-list resource with fresh data.
       refreshAgents();
       // The user dismissed the modal while the request was in flight — honour
       // that dismissal and skip every success side effect + the navigation.
       if (isStale(token)) return;
-      toast.success(`Harness "${agentName}" connected`);
+      toast.success(`Agent "${agentName}" connected`);
       props.onClose();
       resetForm();
-      const slug = result?.agent?.name ?? agentName;
       markAgentCreated(slug);
       // Persistent flag so the setup modal reopens after a page refresh until
       // the user dismisses or completes it (the in-memory mark above is dropped
@@ -130,7 +223,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
       if (isStale(token)) return;
 
       // Land on Routing either way; the new agent's API key is surfaced there.
-      navigate(`/harnesses/${encodeURIComponent(slug)}/routing`, {
+      navigate(`/agents/${encodeURIComponent(slug)}/routing`, {
         state: {
           newApiKey: result?.apiKey,
           ...(hasProviders ? {} : { openProviders: true }),
@@ -144,7 +237,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
   };
 
   const handleCreate = async () => {
-    if (!name().trim()) return;
+    // A pending check does not block: the backend enforces uniqueness anyway.
+    if (!name().trim() || nameTaken()) return;
     // A second submit while the create is already running would issue a
     // duplicate agent-creation request.
     if (creating()) return;
@@ -159,6 +253,8 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
     setPlatform(PLATFORMS_BY_CATEGORY['personal'][0] ?? null);
     setAutofixEnabled(true);
     setRecordingEnabled(true);
+    setOwnerId(props.defaultOwnerId ?? '');
+    setProjectIds(props.defaultProjectIds ?? []);
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -179,10 +275,10 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
           onKeyDown={handleKeyDown}
         >
           <h2 class="modal-card__title" id="add-agent-title">
-            Connect Harness
+            New agent
           </h2>
           <p class="modal-card__desc">
-            Name your harness to start tracking its LLM usage, costs, and messages in real time.
+            Name your agent to start tracking its LLM usage, costs and requests in real time.
           </p>
 
           <div class="agent-type-select-row">
@@ -198,24 +294,74 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             </div>
             <div style="flex: 1;">
               <label class="modal-card__field-label" for="agent-name-input">
-                Harness name
+                Agent name
               </label>
               <input
                 ref={(el) => requestAnimationFrame(() => el.focus())}
                 id="agent-name-input"
                 class="modal-card__input modal-card__input--lg"
                 type="text"
-                placeholder="e.g. My Cool Harness"
+                placeholder="e.g. claude-code"
                 value={name()}
                 onInput={(e) => setName(e.currentTarget.value)}
                 disabled={creating()}
+                aria-invalid={nameTaken()}
               />
             </div>
+          </div>
+          {/* Below the Type + name row, so the hint never shifts the two columns. */}
+          <div class="field" style="margin-top: var(--gap-xs);">
+            <Show
+              when={nameTaken()}
+              fallback={
+                <span class="field__hint">
+                  Unique per user. The user's name never goes inside the agent name.
+                </span>
+              }
+            >
+              <span class="field__error" role="alert">
+                {name().trim()} is already taken for this owner.{' '}
+                <Show when={nameCheck()?.suggestion}>
+                  <button
+                    type="button"
+                    class="field__suggestion"
+                    onClick={() => setName(nameCheck()!.suggestion!)}
+                  >
+                    Use {nameCheck()!.suggestion}
+                  </button>
+                </Show>
+              </span>
+            </Show>
+          </div>
+
+          <div class="field">
+            <label class="modal-card__field-label">User</label>
+            <Select
+              value={ownerId()}
+              onChange={setOwnerId}
+              label="User"
+              disabled={creating()}
+              options={[
+                { label: 'No user', value: '' },
+                ...(users() ?? []).map((u) => ({ label: u.name, value: u.id })),
+              ]}
+            />
+            <span class="field__hint">Optional. It can't be changed once set.</span>
+          </div>
+          <div class="field">
+            <label class="modal-card__field-label">Projects</label>
+            <MultiSelect
+              values={projectIds()}
+              onChange={setProjectIds}
+              placeholder="No projects"
+              label="Projects"
+              options={(projects() ?? []).map((p) => ({ label: p.name, value: p.id }))}
+            />
           </div>
 
           <div class="add-agent-toggles">
             <div class="model-params__group">
-              {/* Same label treatment as the Type / Harness name field labels,
+              {/* Same label treatment as the Type / Agent name field labels,
                   not the larger Model-params group header. */}
               <div class="modal-card__field-label add-agent-toggles__header">Settings</div>
               <div class="model-params__group-card">
@@ -298,7 +444,7 @@ const AddAgentModal: Component<{ open: boolean; onClose: () => void }> = (props)
             <button
               class="btn btn--primary btn--sm"
               onClick={handleCreate}
-              disabled={!name().trim() || creating()}
+              disabled={!name().trim() || creating() || nameTaken()}
             >
               {creating() ? <span class="spinner" /> : 'Create'}
             </button>

@@ -8,15 +8,17 @@ import {
   getCustomProviders,
 } from '../services/api.js';
 import { getProviders as getGlobalProviders } from '../services/api/providers.js';
+import { getAgentModelAccess, type ProviderModelAccess } from '../services/api/teams.js';
 import { PROVIDERS } from '../services/providers.js';
 import { toast } from '../services/toast-store.js';
 import { customProviderColor } from '../services/formatters.js';
 import { providerIcon } from '../components/ProviderIcon.jsx';
 import NoConnectionsPrompt from '../components/NoConnectionsPrompt.jsx';
+import ModelAccessModal from '../components/ModelAccessModal.jsx';
 import '../styles/routing.css';
 
 const AUTH_BADGES: Record<string, string> = {
-  api_key: 'API Key',
+  api_key: 'API key',
   subscription: 'Subscription',
   local: 'Local',
 };
@@ -29,6 +31,12 @@ interface AgentProviderConnection {
   models: number;
 }
 
+/**
+ * Providers and models. Each provider row: name, connection type, models
+ * enabled, a toggle for the whole provider (as before) and a "Models" button
+ * that opens that provider's model list. Turning a provider off keeps its
+ * model selection so turning it back on restores it.
+ */
 const AgentProviders: Component = () => {
   const params = useParams<{ agentName: string }>();
   const agentName = () => decodeURIComponent(params.agentName);
@@ -51,6 +59,23 @@ const AgentProviders: Component = () => {
       }
     },
   );
+
+  // `null` means the lookup failed. It is not an empty list: showing every
+  // model as allowed would let a Save replace the real selection.
+  const [modelAccess, { mutate: mutateModelAccess, refetch: refetchModelAccess }] = createResource(
+    () => agentName(),
+    async (name): Promise<ProviderModelAccess[] | null> => {
+      try {
+        return await getAgentModelAccess(name);
+      } catch {
+        return null;
+      }
+    },
+  );
+  const modelAccessFailed = () => modelAccess() === null;
+  // The editor stays closed until the lookup resolved: opening it on an
+  // unknown record would let an early Save replace the real selection.
+  const modelAccessReady = () => !modelAccess.loading && modelAccess() != null;
 
   const [customProviders] = createResource(
     () => agentName(),
@@ -75,8 +100,21 @@ const AgentProviders: Component = () => {
   };
 
   const [busy, setBusy] = createSignal<string | null>(null);
+  const [editing, setEditing] = createSignal<ProviderModelAccess | null>(null);
 
   const isEnabled = (userProviderId: string) => access()?.has(userProviderId) ?? false;
+  const accessFor = (userProviderId: string) =>
+    (modelAccess() ?? []).find((p) => p.user_provider_id === userProviderId) ?? null;
+
+  const modelsLabel = (connection: AgentProviderConnection): string => {
+    if (!isEnabled(connection.userProviderId)) return 'Off';
+    if (modelAccessFailed()) return 'Unavailable';
+    if (!modelAccessReady()) return '…';
+    const a = accessFor(connection.userProviderId);
+    if (!a) return connection.models ? `All ${connection.models}` : '-';
+    if (a.all_models) return `All ${a.total_count}`;
+    return `${a.enabled_count} of ${a.total_count}`;
+  };
 
   const providerName = (providerId: string) => {
     const known = PROVIDERS.find((provider) => provider.id === providerId);
@@ -109,7 +147,7 @@ const AgentProviders: Component = () => {
 
     setBusy(connection.userProviderId);
 
-    // A provider whose models are wired into this harness's routing can't be
+    // A provider whose models are wired into this agent's routing can't be
     // disabled — that would silently strip live tier assignments. Block it with
     // an error and tell the user to update routing first, rather than removing
     // the assignments for them.
@@ -126,7 +164,7 @@ const AgentProviders: Component = () => {
     if (affectedTiers.length > 0) {
       setBusy(null);
       toast.error(
-        `Can't disable ${providerName(connection.provider)}. Its models are assigned to this harness's routing. Update routing to stop using them first.`,
+        `Can't disable ${providerName(connection.provider)}. Its models are assigned to this agent's routing. Update routing to stop using them first.`,
       );
       return;
     }
@@ -141,28 +179,69 @@ const AgentProviders: Component = () => {
     }
   };
 
+  const openModels = (connection: AgentProviderConnection) => {
+    const a = accessFor(connection.userProviderId);
+    setEditing(
+      a ?? {
+        user_provider_id: connection.userProviderId,
+        provider: connection.provider,
+        auth_type: connection.authType,
+        label: connection.label,
+        provider_enabled: true,
+        all_models: true,
+        models: [],
+        enabled_count: 0,
+        total_count: 0,
+      },
+    );
+  };
+
+  const handleSaved = (updated: ProviderModelAccess) => {
+    mutateModelAccess((list) => {
+      const rest = (list ?? []).filter((p) => p.user_provider_id !== updated.user_provider_id);
+      return [...rest, updated];
+    });
+  };
+
   return (
     <div>
+      <Show when={modelAccessFailed()}>
+        <div class="bulk-result bulk-result--failed" role="alert">
+          <div style="display: flex; align-items: center; gap: var(--gap-sm);">
+            <span style="flex: 1;">
+              Model access couldn't be loaded, so the per-model switches are disabled until it does.
+            </span>
+            <button
+              type="button"
+              class="btn btn--outline btn--sm"
+              onClick={() => void refetchModelAccess()}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </Show>
       <p style="color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); margin-bottom: 16px;">
-        Enable the global provider connections this harness may use. A provider can't be turned off
-        while its models are assigned to this harness's routing. Update routing first to remove it.
+        Enable the provider connections this agent may use, then choose its models provider by
+        provider. A provider can't be turned off while its models are assigned to this agent's
+        routing. Turning a provider off keeps its model selection.
       </p>
 
       <Show when={connections().length > 0} fallback={<NoConnectionsPrompt />}>
         <div class="panel" style="padding: 0; overflow-x: auto;">
-          <table class="data-table" style="min-width: 600px; table-layout: fixed;">
+          <table class="data-table" style="min-width: 640px; table-layout: fixed;">
             <colgroup>
-              <col style="width: 220px;" />
-              <col style="width: 120px;" />
+              <col style="width: 200px;" />
+              <col style="width: 110px;" />
               <col />
-              <col style="width: 56px;" />
-              <col style="width: 64px;" />
+              <col style="width: 100px;" />
+              <col style="width: 150px;" />
             </colgroup>
             <thead>
               <tr>
                 <th>Provider</th>
-                <th>Type</th>
                 <th>Connection</th>
+                <th>Label</th>
                 <th>Models</th>
                 <th />
               </tr>
@@ -222,21 +301,39 @@ const AgentProviders: Component = () => {
                           {connection.label}
                         </span>
                       </td>
-                      <td>{connection.models || '-'}</td>
+                      <td class="num" classList={{ 'num--muted': !enabled() }}>
+                        {modelsLabel(connection)}
+                      </td>
                       <td style="text-align: right;">
-                        <button
-                          class="routing-switch"
-                          classList={{ 'routing-switch--on': enabled() }}
-                          disabled={busy() === connection.userProviderId}
-                          aria-label={`${enabled() ? 'Disable' : 'Enable'} ${name()} ${
-                            connection.label
-                          }`}
-                          onClick={() => void handleToggle(connection)}
-                        >
-                          <span class="routing-switch__track">
-                            <span class="routing-switch__thumb" />
-                          </span>
-                        </button>
+                        <span style="display: inline-flex; align-items: center; gap: 10px; justify-content: flex-end;">
+                          <button
+                            class="routing-switch"
+                            classList={{ 'routing-switch--on': enabled() }}
+                            disabled={busy() === connection.userProviderId}
+                            aria-label={`${enabled() ? 'Disable' : 'Enable'} ${name()} ${
+                              connection.label
+                            }`}
+                            onClick={() => void handleToggle(connection)}
+                          >
+                            <span class="routing-switch__track">
+                              <span class="routing-switch__thumb" />
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn--outline btn--sm"
+                            disabled={!enabled() || !modelAccessReady()}
+                            title={
+                              modelAccessFailed()
+                                ? 'Model access could not be loaded. Retry above.'
+                                : undefined
+                            }
+                            aria-label={`Models for ${name()} ${connection.label}`}
+                            onClick={() => openModels(connection)}
+                          >
+                            Models
+                          </button>
+                        </span>
                       </td>
                     </tr>
                   );
@@ -245,6 +342,16 @@ const AgentProviders: Component = () => {
             </tbody>
           </table>
         </div>
+      </Show>
+
+      <Show when={editing()}>
+        <ModelAccessModal
+          open={editing() !== null}
+          agentName={agentName()}
+          access={editing()!}
+          onClose={() => setEditing(null)}
+          onSaved={handleSaved}
+        />
       </Show>
     </div>
   );

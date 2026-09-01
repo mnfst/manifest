@@ -25,7 +25,7 @@ import {
   attemptSuccessRate,
   totalAttemptsTooltip,
   CONNECTION_SUCCESS_RATE_TOOLTIP,
-  CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP,
+  CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP,
 } from '../../services/api/analytics.js';
 import { platformIcon } from 'manifest-shared';
 import { PROVIDERS } from '../../services/providers.js';
@@ -245,19 +245,19 @@ const ConnectionDetail: Component = () => {
   };
   const [chartAgent] = createSignal('');
 
-  // Attempts tab view: By attempt status (default) or By harness. Persisted
+  // Attempts tab view: By attempt status (default) or By agent. Persisted
   // per connection like the range and the active tab.
   const groupKey = () => `chart-group:${params.connectionId}`;
-  const savedGroup = (): 'status' | 'http' | 'harness' => {
+  const savedGroup = (): 'status' | 'http' | 'agent' => {
     try {
       const v = sessionStorage.getItem(groupKey());
-      return v === 'harness' || v === 'status' ? v : 'http';
+      return v === 'agent' || v === 'status' ? v : 'http';
     } catch {
       return 'http';
     }
   };
-  const [groupBy, setGroupByRaw] = createSignal<'status' | 'http' | 'harness'>(savedGroup());
-  const setGroupBy = (v: 'status' | 'http' | 'harness') => {
+  const [groupBy, setGroupByRaw] = createSignal<'status' | 'http' | 'agent'>(savedGroup());
+  const setGroupBy = (v: 'status' | 'http' | 'agent') => {
     setGroupByRaw(v);
     try {
       sessionStorage.setItem(groupKey(), v);
@@ -327,7 +327,7 @@ const ConnectionDetail: Component = () => {
   );
 
   // Attempt world: every provider call on this connection, by its own
-  // outcome. Default view of the Attempts chart; the harness view shares the
+  // outcome. Default view of the Attempts chart; the agent view shares the
   // same universe so both stack to the same totals.
   const [attemptStatusTs] = createResource(
     () => {
@@ -433,7 +433,7 @@ const ConnectionDetail: Component = () => {
     },
   );
 
-  // Harness tag selection for chart filtering (persisted in sessionStorage).
+  // Agent tag selection for chart filtering (persisted in sessionStorage).
   // `null` means "no persisted preference" (→ default to all selected); a Set
   // — even an empty one — means an explicit user choice, so a genuine
   // "Unselect all" survives and isn't coerced back to "all selected".
@@ -569,7 +569,7 @@ const ConnectionDetail: Component = () => {
     const c = conn();
     if (!c) return;
     if (!firstAgentName()) {
-      toast.error('Create at least one harness first.');
+      toast.error('Create at least one agent first.');
       return;
     }
     const newLabel = renameValue().trim();
@@ -602,7 +602,7 @@ const ConnectionDetail: Component = () => {
     const agent = firstAgentName();
     if (!agent) {
       toast.error(
-        `Create at least one harness before ${c.is_active ? 'disconnecting' : 'deleting'} a provider.`,
+        `Create at least one agent before ${c.is_active ? 'disconnecting' : 'deleting'} a provider.`,
       );
       return;
     }
@@ -620,7 +620,7 @@ const ConnectionDetail: Component = () => {
 
   const handleRefreshModels = async () => {
     if (!firstAgentName()) {
-      toast.error('Create at least one harness first.');
+      toast.error('Create at least one agent first.');
       return;
     }
     setRefreshingModels(true);
@@ -791,7 +791,7 @@ const ConnectionDetail: Component = () => {
                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                   <Show when={allAgents().length > 1}>
                     <FilterSelect
-                      noun="harnesses"
+                      noun="agents"
                       items={allAgents()}
                       selected={effectiveSelected()}
                       colorMap={agentColorMap()}
@@ -932,7 +932,7 @@ const ConnectionDetail: Component = () => {
                       range={chartRange()}
                       agentTimeseries={filteredAgentTimeseries() ?? undefined}
                       agentRequestTimeseries={
-                        groupBy() === 'harness' ? filteredAttemptsByAgentTimeseries() : undefined
+                        groupBy() === 'agent' ? filteredAttemptsByAgentTimeseries() : undefined
                       }
                       requestStatusTimeseries={
                         groupBy() === 'status'
@@ -948,8 +948,8 @@ const ConnectionDetail: Component = () => {
                       colorMap={agentColorMap()}
                       seriesFilters={
                         <>
-                          {/* Status/harness grouping only applies to the
-                              Requests tab; Tokens and Cost stay per-harness. */}
+                          {/* Status/agent grouping only applies to the
+                              Requests tab; Tokens and Cost stay per-agent. */}
                           <Show when={chartView() === 'requests'}>
                             <button
                               class="chart-card__filter-btn"
@@ -972,21 +972,21 @@ const ConnectionDetail: Component = () => {
                             <button
                               class="chart-card__filter-btn"
                               classList={{
-                                'chart-card__filter-btn--active': groupBy() === 'harness',
+                                'chart-card__filter-btn--active': groupBy() === 'agent',
                               }}
-                              onClick={() => setGroupBy('harness')}
+                              onClick={() => setGroupBy('agent')}
                             >
-                              By harness
+                              By agent
                             </button>
                           </Show>
                           <Show
                             when={
-                              (chartView() !== 'requests' || groupBy() === 'harness') &&
+                              (chartView() !== 'requests' || groupBy() === 'agent') &&
                               allAgents().length > 1
                             }
                           >
                             <FilterSelect
-                              noun="harnesses"
+                              noun="agents"
                               items={allAgents()}
                               selected={effectiveSelected()}
                               colorMap={agentColorMap()}
@@ -1126,14 +1126,14 @@ const ConnectionDetail: Component = () => {
                 </Show>
               </div>
 
-              {/* Harnesses (full width) */}
+              {/* Agents (full width) */}
               <div class="panel scroll-panel" style="margin-bottom: 0;">
-                <div class="panel__title">Harnesses</div>
+                <div class="panel__title">Agents</div>
                 <Show
                   when={detail()!.agents.length > 0}
                   fallback={
                     <div style="padding: 24px 16px; color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); text-align: center;">
-                      No harnesses have used this provider yet.
+                      No agents have used this provider yet.
                     </div>
                   }
                 >
@@ -1141,7 +1141,7 @@ const ConnectionDetail: Component = () => {
                     <table class="data-table">
                       <thead>
                         <tr>
-                          <th>Harness</th>
+                          <th>Agent</th>
                           <th>Tokens (30d)</th>
                           <th>% of total</th>
                           <Show when={isByok()}>
@@ -1153,7 +1153,7 @@ const ConnectionDetail: Component = () => {
                           </th>
                           <th class="rel-col">
                             Success rate
-                            <InfoTooltip text={CONNECTION_HARNESS_SUCCESS_RATE_TOOLTIP} />
+                            <InfoTooltip text={CONNECTION_AGENT_SUCCESS_RATE_TOOLTIP} />
                           </th>
                           <th>Last used</th>
                         </tr>
@@ -1164,7 +1164,7 @@ const ConnectionDetail: Component = () => {
                             <tr>
                               <td>
                                 <A
-                                  href={`/harnesses/${encodeURIComponent(agent.agent_name)}`}
+                                  href={`/agents/${encodeURIComponent(agent.agent_name)}`}
                                   style="text-decoration: none; color: hsl(var(--foreground)); font-weight: 500; display: flex; align-items: center; gap: 8px;"
                                 >
                                   <Show when={platformIcon(agent.agent_platform, null)}>

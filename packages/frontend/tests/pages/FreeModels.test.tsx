@@ -24,9 +24,41 @@ vi.mock('../../src/services/setup-status.js', () => ({
 
 vi.mock('../../src/services/providers.js', () => ({
   PROVIDERS: [
-    { id: 'ollama', name: 'Ollama', localOnly: true, color: '#1a1a1a', initial: 'Ol', subtitle: '', keyPrefix: '', minKeyLength: 0, keyPlaceholder: '', noKeyRequired: true, models: [] },
-    { id: 'gemini', name: 'Google', color: '#4285f4', initial: 'G', subtitle: '', keyPrefix: '', minKeyLength: 30, keyPlaceholder: '', models: [] },
-    { id: 'nvidia', name: 'NVIDIA NIM', color: '#76B900', initial: 'Nv', subtitle: '', keyPrefix: '', minKeyLength: 20, keyPlaceholder: 'nvapi-...', models: [] },
+    {
+      id: 'ollama',
+      name: 'Ollama',
+      localOnly: true,
+      color: '#1a1a1a',
+      initial: 'Ol',
+      subtitle: '',
+      keyPrefix: '',
+      minKeyLength: 0,
+      keyPlaceholder: '',
+      noKeyRequired: true,
+      models: [],
+    },
+    {
+      id: 'gemini',
+      name: 'Google',
+      color: '#4285f4',
+      initial: 'G',
+      subtitle: '',
+      keyPrefix: '',
+      minKeyLength: 30,
+      keyPlaceholder: '',
+      models: [],
+    },
+    {
+      id: 'nvidia',
+      name: 'NVIDIA NIM',
+      color: '#76B900',
+      initial: 'Nv',
+      subtitle: '',
+      keyPrefix: '',
+      minKeyLength: 20,
+      keyPlaceholder: 'nvapi-...',
+      models: [],
+    },
   ],
 }));
 
@@ -44,9 +76,30 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         country: 'CA',
         flag: '\u{1F1E8}\u{1F1E6}',
         models: [
-          { id: 'command-a-03-2025', name: 'Command A (111B)', context: '256K', max_output: '8K', modality: 'Text', rate_limit: '20 RPM' },
-          { id: 'command-a-reasoning-08-2025', name: 'Command A Reasoning', context: '256K', max_output: '32K', modality: 'Text', rate_limit: '20 RPM' },
-          { id: null, name: '+ 4 more models', context: 'Varies', max_output: 'Varies', modality: 'Text', rate_limit: '' },
+          {
+            id: 'command-a-03-2025',
+            name: 'Command A (111B)',
+            context: '256K',
+            max_output: '8K',
+            modality: 'Text',
+            rate_limit: '20 RPM',
+          },
+          {
+            id: 'command-a-reasoning-08-2025',
+            name: 'Command A Reasoning',
+            context: '256K',
+            max_output: '32K',
+            modality: 'Text',
+            rate_limit: '20 RPM',
+          },
+          {
+            id: null,
+            name: '+ 4 more models',
+            context: 'Varies',
+            max_output: 'Varies',
+            modality: 'Text',
+            rate_limit: '',
+          },
         ],
       },
       {
@@ -60,8 +113,22 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         country: 'US',
         flag: '\u{1F1FA}\u{1F1F8}',
         models: [
-          { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', context: '1M', max_output: '65K', modality: 'Text + Image', rate_limit: '10 RPM' },
-          { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite', context: '1M', max_output: '65K', modality: 'Text + Image', rate_limit: '' },
+          {
+            id: 'gemini-2.5-flash',
+            name: 'Gemini 2.5 Flash',
+            context: '1M',
+            max_output: '65K',
+            modality: 'Text + Image',
+            rate_limit: '10 RPM',
+          },
+          {
+            id: 'gemini-2.5-flash-lite',
+            name: 'Gemini 2.5 Flash-Lite',
+            context: '1M',
+            max_output: '65K',
+            modality: 'Text + Image',
+            rate_limit: '',
+          },
         ],
       },
       {
@@ -75,7 +142,14 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         country: 'US',
         flag: '\u{1F1FA}\u{1F1F8}',
         models: [
-          { id: 'gpt-4o', name: 'GPT-4o', context: '128K', max_output: '16K', modality: 'Text', rate_limit: '10 RPM' },
+          {
+            id: 'gpt-4o',
+            name: 'GPT-4o',
+            context: '128K',
+            max_output: '16K',
+            modality: 'Text',
+            rate_limit: '10 RPM',
+          },
         ],
       },
       {
@@ -89,7 +163,14 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         country: 'US',
         flag: '\u{1F1FA}\u{1F1F8}',
         models: [
-          { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron 3 Super', context: '128K', max_output: '8K', modality: 'Text', rate_limit: '' },
+          {
+            id: 'nvidia/nemotron-3-super-120b-a12b',
+            name: 'Nemotron 3 Super',
+            context: '128K',
+            max_output: '8K',
+            modality: 'Text',
+            rate_limit: '',
+          },
         ],
       },
       {
@@ -103,7 +184,14 @@ vi.mock('../../src/services/api/free-models.js', () => ({
         country: 'US',
         flag: '\u{1F1FA}\u{1F1F8}',
         models: [
-          { id: 'llama3.1:cloud', name: 'llama3.1', context: '128K', max_output: '8K', modality: 'Text', rate_limit: '30 RPM' },
+          {
+            id: 'llama3.1:cloud',
+            name: 'llama3.1',
+            context: '128K',
+            max_output: '8K',
+            modality: 'Text',
+            rate_limit: '30 RPM',
+          },
         ],
       },
     ],
@@ -130,8 +218,14 @@ describe('FreeModels', () => {
     render(() => <FreeModels />);
     await vi.waitFor(() => {
       expect(screen.getByText('Get your free API key from the provider website')).toBeDefined();
-      expect(screen.getByText('Hit the provider Connect button, paste your key, and validate the connection')).toBeDefined();
-      expect(screen.getByText(/Done! The provider models are now included in your routing/)).toBeDefined();
+      expect(
+        screen.getByText(
+          'Hit the provider Connect button, paste your key, and validate the connection',
+        ),
+      ).toBeDefined();
+      expect(
+        screen.getByText(/Done! The provider models are now included in your routing/),
+      ).toBeDefined();
     });
   });
 
@@ -168,7 +262,7 @@ describe('FreeModels', () => {
       const connectBtn = screen.getByText('Connect Cohere');
       expect(connectBtn.tagName).toBe('A');
       const href = connectBtn.getAttribute('href')!;
-      expect(href).toContain('/harnesses/test-agent/routing?');
+      expect(href).toContain('/agents/test-agent/routing?');
       expect(href).toContain('provider=custom');
       expect(href).toContain('name=Cohere');
       expect(href).toContain('command-a-03-2025');

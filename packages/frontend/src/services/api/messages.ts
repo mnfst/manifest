@@ -138,6 +138,10 @@ export interface MessageListParams extends Record<string, string | undefined> {
   cursor?: string;
   limit?: string;
   agent_name?: string;
+  /** Comma-separated owner (user) ids; `none` selects agents without an owner. */
+  owners?: string;
+  /** Comma-separated project ids. */
+  projects?: string;
   cost_min?: string;
   cost_max?: string;
   status?: string;

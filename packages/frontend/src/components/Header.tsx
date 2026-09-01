@@ -1,5 +1,6 @@
 import { A, useLocation, useNavigate } from '@solidjs/router';
 import {
+  For,
   Show,
   createSignal,
   createEffect,
@@ -24,6 +25,12 @@ import {
 } from '../services/connection-breadcrumb-store.js';
 import { providerIcon } from './ProviderIcon.jsx';
 import DuplicateAgentModal from './DuplicateAgentModal.jsx';
+import {
+  breadcrumbCurrent,
+  breadcrumbTrail,
+  viaFromState,
+  type BreadcrumbEntry,
+} from '../services/breadcrumb-store.js';
 
 const GITHUB_REPO = 'mnfst/manifest';
 const STAR_DISMISSED_KEY = 'github-star-dismissed';
@@ -93,8 +100,18 @@ const Header: Component<HeaderProps> = (props) => {
     return n.toLocaleString('en-US');
   };
 
+  // The login is the "account" in the UI; "user" is a person the company
+  // tracks spend for (see the Users page).
   const user = () => session()?.data?.user;
-  const effectiveName = () => user()?.name ?? 'User';
+  const effectiveName = () => user()?.name ?? 'Account';
+
+  // Where the agent breadcrumb starts: the trail the person arrived by
+  // (Users / Maya Okonkwo, Projects / HSBC) when the navigation carried one,
+  // else the Agents list.
+  const agentTrail = (): BreadcrumbEntry[] => {
+    const via = viaFromState(location.state);
+    return via.length ? via : [{ label: 'Agents', href: '/agents' }];
+  };
   const docsUrl = () => {
     const p = location.pathname;
     if (p.includes('/guardrails') || p.includes('/limits')) return `${DOCS_BASE_URL}/set-limits`;
@@ -159,13 +176,16 @@ const Header: Component<HeaderProps> = (props) => {
           </span>
         </Show>
         <Show when={getAgentName()}>
-          <span class="header__separator">/</span>
-          <A
-            href="/harnesses"
-            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
-          >
-            Harnesses
-          </A>
+          <For each={agentTrail()}>
+            {(entry) => (
+              <>
+                <span class="header__separator">/</span>
+                <A href={entry.href} class="header__breadcrumb-link">
+                  {entry.label}
+                </A>
+              </>
+            )}
+          </For>
           <span class="header__separator">/</span>
           <span class="header__breadcrumb-current">
             <Show when={agentPlatformIcon()}>
@@ -182,7 +202,7 @@ const Header: Component<HeaderProps> = (props) => {
               <button
                 class="header__gear-btn"
                 onClick={() => setGearOpen(!gearOpen())}
-                aria-label="Harness actions"
+                aria-label="Agent actions"
                 aria-haspopup="menu"
                 aria-expanded={gearOpen()}
               >
@@ -201,7 +221,7 @@ const Header: Component<HeaderProps> = (props) => {
               <Show when={gearOpen()}>
                 <div class="header__dropdown" role="menu" style="left: 0; right: auto;">
                   <A
-                    href={`/harnesses/${encodeURIComponent(getAgentName()!)}/settings`}
+                    href={`/agents/${encodeURIComponent(getAgentName()!)}/settings`}
                     class="header__dropdown-item"
                     role="menuitem"
                     onClick={() => setGearOpen(false)}
@@ -240,14 +260,40 @@ const Header: Component<HeaderProps> = (props) => {
                       <path d="M20 2H10c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 12H10V4h10z" />
                       <path d="M4 22h10c1.1 0 2-.9 2-2v-2h-2v2H4V10h2V8H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2m10-10h2v-2h2V8h-2V6h-2v2h-2v2h2z" />
                     </svg>
-                    Duplicate harness
+                    Duplicate agent
                   </button>
                 </div>
               </Show>
             </div>
           </span>
         </Show>
-        <Show when={!getAgentName() && connectionBreadcrumbName()}>
+        {/* User and project pages publish their trail through the breadcrumb store */}
+        <Show when={!getAgentName() && breadcrumbCurrent()}>
+          <For each={breadcrumbTrail()}>
+            {(entry) => (
+              <>
+                <span class="header__separator">/</span>
+                <A href={entry.href} class="header__breadcrumb-link">
+                  {entry.label}
+                </A>
+              </>
+            )}
+          </For>
+          <span class="header__separator">/</span>
+          <span class="header__breadcrumb-current">
+            <Show when={breadcrumbCurrent()!.icon}>
+              <img
+                src={breadcrumbCurrent()!.icon}
+                alt=""
+                width="14"
+                height="14"
+                class="header__breadcrumb-icon"
+              />
+            </Show>
+            <span>{breadcrumbCurrent()!.label}</span>
+          </span>
+        </Show>
+        <Show when={!getAgentName() && !breadcrumbCurrent() && connectionBreadcrumbName()}>
           <span class="header__separator">/</span>
           <A
             href={connectionBreadcrumbBackLink()}
@@ -358,7 +404,7 @@ const Header: Component<HeaderProps> = (props) => {
           <button
             class="header__avatar-btn"
             onClick={() => setMenuOpen(!menuOpen())}
-            aria-label="User menu"
+            aria-label="Account menu"
             aria-haspopup="menu"
             aria-expanded={menuOpen()}
           >

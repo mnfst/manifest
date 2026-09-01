@@ -158,7 +158,7 @@ const UnifiedChartCard: Component<UnifiedChartCardProps> = (props) => {
       {/* ── Subtitle bar: title + contextual filters ── */}
       <div class="chart-card__subtitle">
         <span class="chart-card__subtitle-title">{tabTitle()}</span>
-        {/* The grouping filters (by status/provider/harness) only apply to the
+        {/* The grouping filters (by status/provider/agent) only apply to the
             other tabs — self-healed is already a fixed autofix/fallback split. */}
         <Show when={props.seriesFilters && props.activeTab !== 'selfheal'}>
           <div class="chart-card__filters">{props.seriesFilters}</div>
