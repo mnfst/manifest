@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_380349f89128b9::t_d52bb8a8c89c2b 165-177,185-188,219,222,267,276-281,283-286
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_380349f89128b9::t_d52bb8a8c89c2b 272-344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "312d4dc3708398f9a39ef29731b33e0a0f98c136",
+  "prompts": {},
+  "sessions": {
+    "s_380349f89128b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4e-1caa-74d3-b6d3-9baae8b8d19b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
