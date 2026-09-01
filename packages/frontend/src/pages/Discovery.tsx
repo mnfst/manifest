@@ -131,14 +131,14 @@ const Discovery: Component = () => {
                 />
               </label>
               <div class="auth-form__label">
-                What type of project are you using Manifest for?
+                What type of project are you working on?
                 <div classList={{ 'discovery-select--empty': !projectType() }}>
                   <Select
                     options={PROJECT_TYPE_OPTIONS}
                     value={projectType()}
                     onChange={setProjectType}
                     placeholder="Select an option"
-                    label="What type of project are you using Manifest for?"
+                    label="What type of project are you working on?"
                   />
                 </div>
               </div>

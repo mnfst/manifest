@@ -101,7 +101,7 @@ describe('Discovery page', () => {
     expect(screen.getByPlaceholderText('Your name')).toBeDefined();
     expect(screen.getByPlaceholderText('you@example.com')).toBeDefined();
     expect(
-      screen.getByRole('button', { name: 'What type of project are you using Manifest for?' }),
+      screen.getByRole('button', { name: 'What type of project are you working on?' }),
     ).toBeDefined();
     expect(screen.getByRole('button', { name: 'How big is your company?' })).toBeDefined();
     expect(screen.getByText('Continue')).toBeDefined();
@@ -115,7 +115,7 @@ describe('Discovery page', () => {
 
     fireEvent.input(screen.getByPlaceholderText('Your name'), { target: { value: '  Seb  ' } });
     fireEvent.click(
-      screen.getByRole('button', { name: 'What type of project are you using Manifest for?' }),
+      screen.getByRole('button', { name: 'What type of project are you working on?' }),
     );
     fireEvent.click(screen.getByText('AI agent'));
     fireEvent.submit(container.querySelector('form')!);
@@ -139,7 +139,7 @@ describe('Discovery page', () => {
       target: { value: 'seb@example.com' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'What type of project are you using Manifest for?' }),
+      screen.getByRole('button', { name: 'What type of project are you working on?' }),
     );
     fireEvent.click(screen.getByText('Other'));
     fireEvent.click(screen.getByRole('button', { name: 'How big is your company?' }));
