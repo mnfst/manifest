@@ -187,17 +187,22 @@ describe('ModelDiscoveryService', () => {
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
     });
 
-    it('caches the current configured window after capability enrichment', async () => {
+    it('caches the current configured window after models.dev enrichment', async () => {
       fetcher.fetch.mockResolvedValue([
         makeModel({
           id: 'gpt-5.6-sol',
           contextWindow: 272000,
           contextWindowSource: 'subscription_config',
-          inputPricePerToken: 0,
-          outputPricePerToken: 0,
         }),
       ]);
-      mockModelsDevSync.lookupModelCapabilities.mockReturnValue({ toolCall: true });
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        name: 'GPT-5.6 Sol',
+        contextWindow: 400000,
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.000002,
+        reasoning: true,
+        toolCall: true,
+      });
       const provider = makeProvider({ auth_type: 'subscription' });
 
       const result = await service.discoverModels(provider);
@@ -206,6 +211,7 @@ describe('ModelDiscoveryService', () => {
       expect(sol).toMatchObject({
         contextWindow: 1050000,
         contextWindowSource: 'subscription_config',
+        inputPricePerToken: 0.000001,
         capabilityCode: true,
       });
       expect(provider.cached_models).toEqual(result);

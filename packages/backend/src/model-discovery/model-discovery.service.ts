@@ -308,7 +308,6 @@ export class ModelDiscoveryService {
     // curated list so users can always select known supported models.
     if (provider.auth_type === 'subscription') {
       raw = supplementWithKnownModels(raw, provider.provider);
-      raw = raw.map((model) => reconcileCachedSubscriptionContextWindow(model, provider.provider));
     }
 
     // Preserve the full AuthType union (api_key / subscription / local) —
@@ -319,13 +318,19 @@ export class ModelDiscoveryService {
       ...this.enrichModel(model, provider.provider),
       authType,
     }));
+    const reconciled =
+      provider.auth_type === 'subscription'
+        ? enriched.map((model) =>
+            reconcileCachedSubscriptionContextWindow(model, provider.provider),
+          )
+        : enriched;
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
     // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
-    const filtered = enriched.filter((model) => {
+    const filtered = reconciled.filter((model) => {
       const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
       const metadataProvider = metadata.provider ?? provider.provider;
       const mdEntry = this.modelsDevSync?.lookupModelCapabilities(metadataProvider, metadata.model);

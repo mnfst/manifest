@@ -463,6 +463,20 @@ describe('reconcileCachedSubscriptionContextWindow', () => {
     expect(reconcileCachedSubscriptionContextWindow(model, 'openai')).toBe(model);
   });
 
+  it('matches subscription catalogs and context overrides by prefix', () => {
+    const cached = {
+      ...model,
+      id: 'claude-opus-4-8-20260801',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'anthropic')).toMatchObject({
+      contextWindow: 1000000,
+    });
+  });
+
   it('preserves tagged rows outside the current subscription catalog', () => {
     const cached = {
       ...model,
