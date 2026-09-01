@@ -15,23 +15,13 @@
   <a href="https://discord.gg/FepAked3W7"><img src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white" alt="Discord" /></a>
 </p>
 
-<blockquote>
-  <h3>🚀 Manifest is becoming the self-healing layer for APIs</h3>
-
-  <p>
-    We're building a new product that fixes failed API requests on the fly, independently of the gateway.
-  </p>
-
-  <p>
-    <strong>This open-source gateway stays available and maintained.</strong>
-  </p>
-
-  <p>
-    <a href="https://manifest.build/blog/introducing-paid-plans/" target="_blank" rel="noopener noreferrer">
-      <strong>Read about the new direction →</strong>
-    </a>
-  </p>
-</blockquote>
+> ### 🚀 Manifest is becoming the self-healing layer for APIs
+>
+> We're building a new product that fixes failed API requests on the fly, independently of the gateway.
+>
+> **This open-source gateway stays available and maintained.**
+>
+> **[Read about the new direction →](https://manifest.build/blog/introducing-paid-plans/)**
 
 ## What is Manifest?
 
