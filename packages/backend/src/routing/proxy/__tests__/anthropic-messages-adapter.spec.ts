@@ -173,6 +173,213 @@ describe('Anthropic Messages adapter', () => {
       ]);
     });
 
+    it('extracts tool_result images into a follow-up user message instead of stringified base64', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_1',
+                content: [
+                  { type: 'text', text: 'screenshot follows' },
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'AAAA' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'tool',
+          tool_call_id: 'tu_1',
+          content: JSON.stringify([
+            { type: 'text', text: 'screenshot follows' },
+            { type: 'text', text: '[image attached below]' },
+          ]),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } },
+          ],
+        },
+      ]);
+    });
+
+    it('keeps parallel tool results contiguous and emits their images once, after the group', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_1',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'AAAA' },
+                  },
+                ],
+              },
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_2',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'BBBB' },
+                  },
+                ],
+              },
+              { type: 'text', text: 'both screenshots above' },
+            ],
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'tool',
+          tool_call_id: 'tu_1',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'tool',
+          tool_call_id: 'tu_2',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,BBBB' } },
+          ],
+        },
+        { role: 'user', content: 'both screenshots above' },
+      ]);
+    });
+
+    it('keeps parallel tool results contiguous across consecutive user messages', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'assistant',
+            content: [
+              { type: 'tool_use', id: 'tu_1', name: 'screenshot', input: {} },
+              { type: 'tool_use', id: 'tu_2', name: 'screenshot', input: {} },
+            ],
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_1',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'AAAA' },
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_2',
+                content: [
+                  {
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: 'BBBB' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'assistant',
+          content: null,
+          tool_calls: [
+            { id: 'tu_1', type: 'function', function: { name: 'screenshot', arguments: '{}' } },
+            { id: 'tu_2', type: 'function', function: { name: 'screenshot', arguments: '{}' } },
+          ],
+        },
+        {
+          role: 'tool',
+          tool_call_id: 'tu_1',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'tool',
+          tool_call_id: 'tu_2',
+          content: JSON.stringify([{ type: 'text', text: '[image attached below]' }]),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,AAAA' } },
+            { type: 'image_url', image_url: { url: 'data:image/png;base64,BBBB' } },
+          ],
+        },
+      ]);
+    });
+
+    it('keeps url-sourced tool_result images and leaves unconvertible image blocks in place', () => {
+      const result = messagesToChatCompletionsRequest({
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'tool_result',
+                tool_use_id: 'tu_1',
+                content: [
+                  { type: 'image', source: { type: 'url', url: 'https://example.com/a.png' } },
+                  { type: 'image', source: { type: 'unknown' } },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        {
+          role: 'tool',
+          tool_call_id: 'tu_1',
+          content: JSON.stringify([
+            { type: 'text', text: '[image attached below]' },
+            { type: 'image', source: { type: 'unknown' } },
+          ]),
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Images from the preceding tool result:' },
+            { type: 'image_url', image_url: { url: 'https://example.com/a.png' } },
+          ],
+        },
+      ]);
+    });
+
     it('falls back to "unknown" for missing tool ids and synthesizes assistant ids', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [
@@ -1200,12 +1407,13 @@ describe('tool-call id sanitation on /v1/messages responses', () => {
 
   it('createMessagesStreamTransformer sanitizes the streamed tool_use id', () => {
     const t = createMessagesStreamTransformer('kimi-k3');
-    const out = [
-      'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"Edit:0","function":{"name":"Edit","arguments":""}}]}}]}\n\n',
-      'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
-    ]
-      .map((c) => t.transform(c) ?? '')
-      .join('') + (t.finalize() ?? '');
+    const out =
+      [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"Edit:0","function":{"name":"Edit","arguments":""}}]}}]}\n\n',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n',
+      ]
+        .map((c) => t.transform(c) ?? '')
+        .join('') + (t.finalize() ?? '');
     const start = out
       .split('\n\n')
       .find((b) => b.startsWith('event: content_block_start') && b.includes('tool_use'))!;
@@ -1222,7 +1430,9 @@ describe('empty upstream tool_call ids', () => {
           {
             message: {
               content: '',
-              tool_calls: [{ id: '', type: 'function', function: { name: 'Read', arguments: '{}' } }],
+              tool_calls: [
+                { id: '', type: 'function', function: { name: 'Read', arguments: '{}' } },
+              ],
             },
             finish_reason: 'tool_calls',
           },
