@@ -1,0 +1,27 @@
+.changeset/quiet-auth-rollback.md
+  s_e62394123e4a62::t_b7e8acf08c8e82 1-5
+.github/dependabot.yml
+  s_e62394123e4a62::t_ea205edf1f9f5b 36-41,50-51
+packages/frontend/package.json
+  s_e62394123e4a62::t_b7e8acf08c8e82 15,18
+packages/backend/package.json
+  s_e62394123e4a62::t_b7e8acf08c8e82 28,41
+package-lock.json
+  s_e62394123e4a62::t_7bf9a66425b737 1196-1198,1201,1210,1225-1227,1230,1232,1241-1243,1246,1257-1259,1262,1267-1269,1272,1283-1285,1288,1302-1317,1319-1321,1324,6985-6996,6999-7001,7003,7005,7015-7016,7090-7092,7095-7098,13810-13812,16491,16504,16566,16569
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "919285990d3739b33ef4042bc376f54154d24ca7",
+  "prompts": {},
+  "sessions": {
+    "s_e62394123e4a62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05cc8-68af-77a2-8d21-9ae26efaed82",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
