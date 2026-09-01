@@ -46,14 +46,15 @@ const Discovery: Component = () => {
 
   onMount(async () => {
     if (!(await checkIsSelfHosted())) {
-      // Only a confirmed non-self-hosted answer drops the pending marker; a
-      // transient status failure keeps it so a real self-hosted signup does
-      // not lose the one-time form.
+      // Only a confirmed non-self-hosted answer drops the marker and leaves.
+      // On an unconfirmed answer (transient status failure) we fall through
+      // and behave as self-hosted: leaving while the marker stands would let
+      // the guards bounce the user back here in an endless loop.
       if (await isConfirmedNotSelfHosted()) {
         clearDiscoveryPending(userId());
+        leave();
+        return;
       }
-      leave();
-      return;
     }
     if (!(await isDiscoveryRequired(userId()))) {
       leave();

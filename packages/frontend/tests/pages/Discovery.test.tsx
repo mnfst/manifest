@@ -77,13 +77,13 @@ describe('Discovery page', () => {
     expect(mockClearDiscoveryPending).toHaveBeenCalledWith('u1');
   });
 
-  it('keeps the pending marker when the non-self-hosted answer is unconfirmed', async () => {
+  it('behaves as self-hosted when the non-self-hosted answer is unconfirmed', async () => {
     mockCheckIsSelfHosted.mockResolvedValue(false);
     mockIsConfirmedNotSelfHosted.mockResolvedValue(false);
-    render(() => <Discovery />);
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
-    });
+    await renderForm();
+    // No redirect and no marker loss: leaving while the marker stands would
+    // let the guards loop the user back here forever.
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockClearDiscoveryPending).not.toHaveBeenCalled();
   });
 

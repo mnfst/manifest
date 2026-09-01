@@ -172,6 +172,11 @@ describe('discovery service', () => {
       expect(await isConfirmedNotSelfHosted()).toBe(false);
     });
 
+    it('denies on a success body without the isSelfHosted field', async () => {
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+      expect(await isConfirmedNotSelfHosted()).toBe(false);
+    });
+
     it('denies on a non-2xx response', async () => {
       mockFetch.mockResolvedValue({ ok: false, status: 503 });
       expect(await isConfirmedNotSelfHosted()).toBe(false);

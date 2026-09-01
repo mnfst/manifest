@@ -96,7 +96,7 @@ export async function isConfirmedNotSelfHosted(): Promise<boolean> {
     });
     if (!res.ok) return false;
     const data = (await res.json()) as { isSelfHosted?: boolean };
-    return data.isSelfHosted !== true;
+    return data.isSelfHosted === false;
   } catch {
     return false;
   }
