@@ -124,7 +124,6 @@ const PivotAnnouncement: Component = () => {
               aria-modal="true"
               aria-labelledby="pivot-modal-title"
               aria-describedby="pivot-modal-description"
-              style="max-width: 520px;"
             >
               <h2 class="modal-card__title" id="pivot-modal-title">
                 Manifest is becoming the self-healing layer for APIs
