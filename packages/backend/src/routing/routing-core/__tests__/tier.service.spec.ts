@@ -666,7 +666,7 @@ describe('TierService', () => {
     it('rejects clearing the only stream-capable route while stream mode is active', async () => {
       tierRepo.findOne.mockResolvedValue({
         tier: 'standard',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('openai', 'api_key', 'gpt-image-1'),
         auto_assigned_route: null,
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
         response_mode: 'stream',
@@ -683,7 +683,7 @@ describe('TierService', () => {
     it('rejects stream mode when the route chain has no stream-capable model', async () => {
       tierRepo.findOne.mockResolvedValue({
         tier: 'standard',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('openai', 'api_key', 'gpt-image-1'),
         auto_assigned_route: null,
         fallback_routes: null,
       } as TierAssignment);
@@ -699,7 +699,7 @@ describe('TierService', () => {
         tier: 'standard',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         auto_assigned_route: null,
-        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+        fallback_routes: [route('openai', 'api_key', 'gpt-image-1')],
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
@@ -734,18 +734,18 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
       discoveryService.getModelsForAgent.mockResolvedValue([
-        discovered('local-model', 'custom:local', 'api_key'),
+        discovered('gpt-image-1', 'openai', 'api_key'),
       ]);
 
       const result = await svc.setFallbacks(
         'agent-1',
         'tenant-1',
         'standard',
-        ['local-model'],
-        [route('custom:local', 'api_key', 'local-model')],
+        ['gpt-image-1'],
+        [route('openai', 'api_key', 'gpt-image-1')],
       );
 
-      expect(result).toEqual([route('custom:local', 'api_key', 'local-model')]);
+      expect(result).toEqual([route('openai', 'api_key', 'gpt-image-1')]);
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
   });

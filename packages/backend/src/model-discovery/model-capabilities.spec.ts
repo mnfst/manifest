@@ -93,6 +93,16 @@ describe('resolveModelCapabilityMetadata', () => {
     });
   });
 
+  it('marks custom provider models as stream-capable', async () => {
+    const resolved = await resolveModelCapabilityMetadata(
+      makeModel({ id: 'custom:cp-1/local-model', provider: 'custom:cp-1' }),
+      paramSpecs,
+      modelsDevSync,
+    );
+
+    expect(resolved.capabilities).toEqual(['stream']);
+  });
+
   it('keeps discovery-time modalities when models.dev has no entry', async () => {
     const resolved = await resolveModelCapabilityMetadata(
       makeModel({
