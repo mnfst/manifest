@@ -10,6 +10,7 @@ import {
   PROJECT_TYPE_OPTIONS,
   completeDiscovery,
   isDiscoveryRequired,
+  markDiscoveryPending,
   type DiscoverySubmission,
 } from '../services/discovery.js';
 
@@ -50,6 +51,10 @@ const Discovery: Component = () => {
       leave();
       return;
     }
+    // Anyone who sees the form gets the pending marker, so browser Back
+    // returns here via the guards until the step is completed or skipped.
+    // Covers users whose signup predates the marker (or another browser).
+    markDiscoveryPending(userId(), next());
     setChecking(false);
   });
 

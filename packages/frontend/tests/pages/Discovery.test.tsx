@@ -5,6 +5,7 @@ const mockNavigate = vi.fn();
 const mockCheckIsSelfHosted = vi.fn();
 const mockIsDiscoveryRequired = vi.fn();
 const mockCompleteDiscovery = vi.fn();
+const mockMarkDiscoveryPending = vi.fn();
 let mockSearchParams: Record<string, string | string[] | undefined> = {};
 
 vi.mock('@solidjs/router', () => ({
@@ -36,6 +37,7 @@ vi.mock('../../src/services/discovery.js', async (importOriginal) => {
     ...actual,
     isDiscoveryRequired: (...args: unknown[]) => mockIsDiscoveryRequired(...args),
     completeDiscovery: (...args: unknown[]) => mockCompleteDiscovery(...args),
+    markDiscoveryPending: (...args: unknown[]) => mockMarkDiscoveryPending(...args),
   };
 });
 
@@ -107,6 +109,21 @@ describe('Discovery page', () => {
     expect(screen.getByText('Continue')).toBeDefined();
     expect(screen.getByText('Skip')).toBeDefined();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('marks the step pending when the form is shown, so Back returns to it', async () => {
+    mockSearchParams = { next: '/welcome' };
+    await renderForm();
+    expect(mockMarkDiscoveryPending).toHaveBeenCalledWith('u1', '/welcome');
+  });
+
+  it('does not mark the step pending when redirecting away', async () => {
+    mockIsDiscoveryRequired.mockResolvedValue(false);
+    render(() => <Discovery />);
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+    expect(mockMarkDiscoveryPending).not.toHaveBeenCalled();
   });
 
   it('submits only the provided fields and redirects to next', async () => {
