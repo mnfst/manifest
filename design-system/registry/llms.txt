@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (313 BEM blocks, 1696 classes)
+## Blocks (313 BEM blocks, 1699 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -356,7 +356,7 @@ setup-step (wizard.css): setup-step__desc setup-step__heading
 setup-step-providers (overview.css): setup-step-providers
 setup-steps (controls.css): setup-steps setup-steps__content setup-steps__divider setup-steps__number setup-steps__step
 sidebar (controls.css, theme.css): sidebar sidebar--mobile-open sidebar__agent-icon sidebar__agent-item sidebar__agent-item--active sidebar__agent-item-name sidebar__agents-empty sidebar__agents-list sidebar__feedback sidebar__feedback-hint sidebar__feedback-title sidebar__footer sidebar__link sidebar__link--disabled sidebar__logo sidebar__logo-dot sidebar__section-add sidebar__section-caret sidebar__section-header sidebar__section-label sidebar__spacer
-sidebar-pivot (pivot.css): sidebar-pivot sidebar-pivot__btn sidebar-pivot__desc sidebar-pivot__dismiss sidebar-pivot__header sidebar-pivot__joined sidebar-pivot__title
+sidebar-pivot (pivot.css): sidebar-pivot sidebar-pivot__bottom sidebar-pivot__btn sidebar-pivot__canvas sidebar-pivot__desc sidebar-pivot__dismiss sidebar-pivot__header sidebar-pivot__joined sidebar-pivot__title sidebar-pivot__top
 sidebar-upgrade (modals.css): sidebar-upgrade
 sidebar-usage (modals.css): sidebar-usage sidebar-usage__alert sidebar-usage__bar sidebar-usage__count sidebar-usage__count--danger sidebar-usage__fill sidebar-usage__fill--danger sidebar-usage__fill--warning sidebar-usage__header sidebar-usage__month sidebar-usage__title
 skeleton (skeleton.css): skeleton skeleton--rect skeleton--text

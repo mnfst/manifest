@@ -2,12 +2,14 @@
    Sidebar card + waiting-list modal extras. Same visual language as the
    retired sidebar Autofix card. */
 
+/* No padding on the card itself: the top and bottom wrappers each carry
+   their own, and overflow hidden clips the canvas to the rounded corners. */
 .sidebar-pivot {
   margin: var(--gap-sm);
-  padding: 14px;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
+  overflow: hidden;
   cursor: default;
 }
 
@@ -15,25 +17,35 @@
   background: hsl(var(--card));
 }
 
-/* Top-aligned so the icon and the dismiss button track the FIRST line of a
-   wrapping title; the margins below re-center each against that line box. */
+/* The animated blob canvas paints this whole band; the inline fallback
+   background comes from the component (canvas colors are art data). */
+.sidebar-pivot__top {
+  position: relative;
+  padding: 12px 14px;
+}
+
+.sidebar-pivot__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .sidebar-pivot__header {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 6px;
 }
 
-.sidebar-pivot__header > svg {
-  flex-shrink: 0;
-  margin-top: 3px;
-  color: hsl(var(--success));
-}
-
+/* --success-foreground is pure white in both themes: the right token for
+   text over the theme-independent canvas backdrop. */
 .sidebar-pivot__title {
   font-size: var(--font-size-sm);
   font-weight: 600;
-  color: hsl(var(--foreground));
+  line-height: 1.35;
+  color: hsl(var(--success-foreground));
 }
 
 .sidebar-pivot__dismiss {
@@ -42,9 +54,11 @@
   justify-content: center;
   margin-left: auto;
   margin-top: -3px;
+  margin-right: -6px;
   width: 28px;
   height: 28px;
-  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+  color: hsl(var(--success-foreground) / 0.8);
   background: none;
   border: none;
   border-radius: var(--radius);
@@ -56,8 +70,12 @@
 
 .sidebar-pivot__dismiss:hover,
 .sidebar-pivot__dismiss:focus-visible {
-  color: hsl(var(--foreground));
-  background: hsl(var(--muted));
+  color: hsl(var(--success-foreground));
+  background: hsl(var(--success-foreground) / 0.2);
+}
+
+.sidebar-pivot__bottom {
+  padding: 12px 14px 14px;
 }
 
 .sidebar-pivot__desc {

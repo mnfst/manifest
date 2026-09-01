@@ -34,14 +34,20 @@ export class WaitlistController {
   @Post('pivot/claim')
   @HttpCode(HttpStatus.OK)
   async receivePivotClaim(@Body() dto: PivotClaimDto): Promise<{ ok: boolean }> {
-    await this.claimRepo.upsert(
-      {
+    // On an email conflict only claimed_at is refreshed: a row registered
+    // under another source keeps its original attribution, so the pivot
+    // route never rewrites history it does not own.
+    await this.claimRepo
+      .createQueryBuilder()
+      .insert()
+      .into(WaitlistClaim)
+      .values({
         email: dto.email.trim().toLowerCase(),
         source: 'pivot',
         claimed_at: new Date().toISOString(),
-      },
-      { conflictPaths: ['email'] },
-    );
+      })
+      .orUpdate(['claimed_at'], ['email'])
+      .execute();
     return { ok: true };
   }
 }

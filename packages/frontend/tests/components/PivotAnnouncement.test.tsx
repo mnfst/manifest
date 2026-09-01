@@ -3,7 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 
 const mockCheckIsSelfHosted = vi.fn();
 const mockSubmitPivotClaim = vi.fn();
+const mockStopBlobCanvas = vi.fn();
+const mockInitBlobCanvas = vi.fn(() => mockStopBlobCanvas);
 let mockSessionEmail = 'test@test.com';
+
+vi.mock('../../src/services/blob-canvas.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/services/blob-canvas.js')>();
+  return {
+    ...actual,
+    initBlobCanvas: (...args: unknown[]) => mockInitBlobCanvas(...(args as [HTMLCanvasElement])),
+  };
+});
 
 vi.mock('../../src/services/auth-client.js', () => ({
   authClient: {
@@ -54,6 +64,27 @@ describe('PivotAnnouncement', () => {
     expect(screen.getByText('Learn more')).toBeDefined();
   });
 
+  it('splits into a canvas-backed top band and a plain bottom band, without the star icon', () => {
+    const { container } = render(() => <PivotAnnouncement />);
+    const top = container.querySelector('.sidebar-pivot__top');
+    expect(top).not.toBeNull();
+    expect(top!.querySelector('canvas.sidebar-pivot__canvas')).not.toBeNull();
+    expect(mockInitBlobCanvas).toHaveBeenCalledTimes(1);
+    // The header holds only the title and the dismiss button: no leading icon.
+    expect(container.querySelectorAll('.sidebar-pivot__header > svg')).toHaveLength(0);
+    const bottom = container.querySelector('.sidebar-pivot__bottom');
+    expect(bottom).not.toBeNull();
+    expect(bottom!.querySelector('.sidebar-pivot__desc')).not.toBeNull();
+    expect(bottom!.querySelector('.sidebar-pivot__btn')).not.toBeNull();
+  });
+
+  it('stops the canvas animation when the card is dismissed', () => {
+    const { container } = render(() => <PivotAnnouncement />);
+    expect(mockStopBlobCanvas).not.toHaveBeenCalled();
+    fireEvent.click(container.querySelector('.sidebar-pivot__dismiss')!);
+    expect(mockStopBlobCanvas).toHaveBeenCalledTimes(1);
+  });
+
   it('dismisses for the session and comes back in a fresh session', () => {
     const { container, unmount } = render(() => <PivotAnnouncement />);
     fireEvent.click(container.querySelector('.sidebar-pivot__dismiss')!);
@@ -88,14 +119,17 @@ describe('PivotAnnouncement', () => {
       expect(mockSubmitPivotClaim).toHaveBeenCalledWith('good@company.com', true);
     });
     await screen.findByText("You're on the list. We'll reach out at launch.");
+    // The success message is announced and focus lands on Close.
+    expect(document.querySelector('.sidebar-pivot__joined')?.getAttribute('role')).toBe('status');
+    expect(document.activeElement?.textContent).toBe('Close');
   });
 
-  it('passes the cloud flag through on cloud deployments', async () => {
+  it('resolves the deployment mode at submit time and passes the cloud flag', async () => {
     mockCheckIsSelfHosted.mockResolvedValue(false);
     await openModal();
-    await waitFor(() => {
-      expect(mockCheckIsSelfHosted).toHaveBeenCalled();
-    });
+    // Not called on mount: the mode is resolved when the claim is sent, so a
+    // submit can never race the deployment detection.
+    expect(mockCheckIsSelfHosted).not.toHaveBeenCalled();
     fireEvent.submit(document.querySelector('.modal-card form')!);
     await waitFor(() => {
       expect(mockSubmitPivotClaim).toHaveBeenCalledWith('test@test.com', false);
@@ -150,6 +184,9 @@ describe('PivotAnnouncement', () => {
     const form = document.querySelector('.modal-card form')!;
     fireEvent.submit(form);
     fireEvent.submit(form);
+    await waitFor(() => {
+      expect(mockSubmitPivotClaim).toHaveBeenCalledTimes(1);
+    });
     resolveClaim(true);
 
     await screen.findByText("You're on the list. We'll reach out at launch.");

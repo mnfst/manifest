@@ -41,6 +41,24 @@ describe('POST /api/v1/waitlist/pivot/claim', () => {
     expect(rows).toHaveLength(1);
   });
 
+  it('preserves the original source of an already-registered email', async () => {
+    const ds = app.get(DataSource);
+    await ds.query(
+      `INSERT INTO waitlist_claims (email, source, claimed_at) VALUES ($1, $2, now() - interval '1 day')`,
+      ['old@b.co', 'self-hosted'],
+    );
+
+    await request(app.getHttpServer())
+      .post('/api/v1/waitlist/pivot/claim')
+      .send({ email: 'old@b.co' })
+      .expect(200);
+
+    const rows = await ds.query(
+      `SELECT email, source, claimed_at > now() - interval '1 hour' AS refreshed FROM waitlist_claims`,
+    );
+    expect(rows).toEqual([{ email: 'old@b.co', source: 'self-hosted', refreshed: true }]);
+  });
+
   it('rejects an invalid email with 400 and stores nothing', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/waitlist/pivot/claim')

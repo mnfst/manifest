@@ -1,5 +1,6 @@
-import { Show, createResource, createSignal, createUniqueId, type Component } from 'solid-js';
+import { Show, createSignal, createUniqueId, onCleanup, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { PIVOT_CANVAS_BG, cssColor, initBlobCanvas } from '../services/blob-canvas.js';
 import { authClient } from '../services/auth-client.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { useFocusTrap } from '../services/use-focus-trap.js';
@@ -18,7 +19,6 @@ const PivotAnnouncement: Component = () => {
   const session = authClient.useSession();
   const userId = () => session()?.data?.user?.id ?? '';
   const sessionEmail = () => session()?.data?.user?.email ?? '';
-  const [selfHosted] = createResource(checkIsSelfHosted);
 
   const [dismissed, setDismissed] = createSignal(
     sessionStorage.getItem(PIVOT_CARD_DISMISSED_KEY) === '1',
@@ -35,6 +35,7 @@ const PivotAnnouncement: Component = () => {
   const [joined, setJoined] = createSignal(false);
   const emailId = createUniqueId();
   let dialogRef: HTMLDivElement | undefined;
+  let closeBtnRef: HTMLButtonElement | undefined;
   useFocusTrap(open, () => dialogRef);
 
   const openModal = () => {
@@ -50,7 +51,10 @@ const PivotAnnouncement: Component = () => {
     if (busy()) return;
     setError('');
     setBusy(true);
-    const ok = await submitPivotClaim(email().trim(), selfHosted() === true);
+    // Awaited here (module-cached after the first call) so a submit that
+    // races the deployment-mode fetch can never target the wrong endpoint.
+    const selfHosted = await checkIsSelfHosted();
+    const ok = await submitPivotClaim(email().trim(), selfHosted);
     setBusy(false);
     if (!ok) {
       setError('Could not reach the waiting list. Please try again.');
@@ -58,51 +62,58 @@ const PivotAnnouncement: Component = () => {
     }
     markPivotJoined(userId());
     setJoined(true);
+    // The submit button just left the DOM with the form: hand focus to the
+    // Close button so keyboard and screen-reader users are not dropped.
+    closeBtnRef?.focus();
   };
 
   return (
     <>
       <Show when={!dismissed()}>
         <div class="sidebar-pivot">
-          <div class="sidebar-pivot__header">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              fill="currentColor"
-              viewBox="0 0 24 24"
+          {/* The inline background doubles as the fallback when the canvas
+              cannot start; canvas colors are art data, not theme tokens. */}
+          <div class="sidebar-pivot__top" style={{ background: cssColor(PIVOT_CANVAS_BG) }}>
+            <canvas
+              class="sidebar-pivot__canvas"
               aria-hidden="true"
-            >
-              <path d="M12 2 9.44 8.55 2.5 9.19l5.24 4.57L6.2 20.5 12 16.9l5.8 3.6-1.54-6.74 5.24-4.57-6.94-.64z" />
-            </svg>
-            <span class="sidebar-pivot__title">
-              Manifest is becoming the self-healing layer for APIs
-            </span>
-            <button
-              type="button"
-              class="sidebar-pivot__dismiss"
-              title="Hide for this session"
-              aria-label="Hide the announcement for this session"
-              onClick={dismiss}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
+              ref={(el) => {
+                const stop = initBlobCanvas(el);
+                onCleanup(stop);
+              }}
+            />
+            <div class="sidebar-pivot__header">
+              <span class="sidebar-pivot__title">
+                Manifest is becoming the self-healing layer for APIs
+              </span>
+              <button
+                type="button"
+                class="sidebar-pivot__dismiss"
+                title="Hide for this session"
+                aria-label="Hide the announcement for this session"
+                onClick={dismiss}
               >
-                <path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z" />
-              </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="sidebar-pivot__bottom">
+            <p class="sidebar-pivot__desc">
+              We're building a new product that fixes failed API requests on the fly.
+            </p>
+            <button type="button" class="sidebar-pivot__btn" onClick={openModal}>
+              Learn more
             </button>
           </div>
-          <p class="sidebar-pivot__desc">
-            We're building a new product that fixes failed API requests on the fly.
-          </p>
-          <button type="button" class="sidebar-pivot__btn" onClick={openModal}>
-            Learn more
-          </button>
         </div>
       </Show>
 
@@ -136,7 +147,7 @@ const PivotAnnouncement: Component = () => {
               <Show
                 when={!joined()}
                 fallback={
-                  <p class="sidebar-pivot__joined">
+                  <p class="sidebar-pivot__joined" role="status">
                     <svg
                       width="16"
                       height="16"
@@ -201,7 +212,12 @@ const PivotAnnouncement: Component = () => {
                   >
                     Read about the new direction →
                   </a>
-                  <button type="button" class="btn btn--ghost btn--sm" onClick={close}>
+                  <button
+                    ref={closeBtnRef}
+                    type="button"
+                    class="btn btn--ghost btn--sm"
+                    onClick={close}
+                  >
                     Close
                   </button>
                 </div>

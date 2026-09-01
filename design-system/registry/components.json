@@ -3593,12 +3593,15 @@
     "sidebar-pivot": {
       "classes": [
         "sidebar-pivot",
+        "sidebar-pivot__bottom",
         "sidebar-pivot__btn",
+        "sidebar-pivot__canvas",
         "sidebar-pivot__desc",
         "sidebar-pivot__dismiss",
         "sidebar-pivot__header",
         "sidebar-pivot__joined",
-        "sidebar-pivot__title"
+        "sidebar-pivot__title",
+        "sidebar-pivot__top"
       ],
       "files": [
         "pivot.css"
@@ -5087,7 +5090,7 @@
     "tokens": 79,
     "darkOverrides": 38,
     "blocks": 313,
-    "classes": 1696,
+    "classes": 1699,
     "canonicalRules": 47,
     "ghostRules": 47
   }
