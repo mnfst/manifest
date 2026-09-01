@@ -162,7 +162,19 @@ function splitToolResultContent(content: unknown): {
   return { toolContent: safeJsonStringify(sanitized), imageParts };
 }
 
-function buildUserMessages(content: unknown): OpenAIMessage[] {
+function flushToolImages(messages: OpenAIMessage[], pendingToolImages: JsonRecord[]): void {
+  if (pendingToolImages.length === 0) return;
+  messages.push({
+    role: 'user',
+    content: [
+      { type: 'text', text: 'Images from the preceding tool result:' },
+      ...pendingToolImages,
+    ],
+  });
+  pendingToolImages.length = 0;
+}
+
+function buildUserMessages(content: unknown, pendingToolImages: JsonRecord[]): OpenAIMessage[] {
   // Walk Anthropic content blocks in input order and emit chat_completions
   // messages without reshuffling. Each `tool_result` becomes a standalone
   // `role: tool` message; intermediate text/image blocks accumulate into a
@@ -170,13 +182,15 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
   // the end of the turn. Preserves the relative order of tool_result blocks
   // vs. surrounding text in mixed-content user turns.
   if (typeof content === 'string') {
-    return content ? [{ role: 'user', content }] : [];
+    const messages: OpenAIMessage[] = [];
+    flushToolImages(messages, pendingToolImages);
+    if (content) messages.push({ role: 'user', content });
+    return messages;
   }
   if (!Array.isArray(content)) return [];
 
   const messages: OpenAIMessage[] = [];
   let pendingParts: JsonRecord[] = [];
-  let pendingToolImages: JsonRecord[] = [];
 
   const flushPendingUser = () => {
     if (pendingParts.length === 0) return;
@@ -188,22 +202,6 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
       if (text) messages.push({ role: 'user', content: text });
     }
     pendingParts = [];
-  };
-
-  // Images extracted from tool_results are emitted as ONE user message after
-  // the contiguous tool-message group: every role:tool message must directly
-  // follow the assistant tool_calls turn or a sibling tool message, so a user
-  // message may never be interleaved between parallel tool results.
-  const flushToolImages = () => {
-    if (pendingToolImages.length === 0) return;
-    messages.push({
-      role: 'user',
-      content: [
-        { type: 'text', text: 'Images from the preceding tool result:' },
-        ...pendingToolImages,
-      ],
-    });
-    pendingToolImages = [];
   };
 
   for (const block of content) {
@@ -218,15 +216,14 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
       });
       pendingToolImages.push(...imageParts);
     } else if (block.type === 'text' && typeof block.text === 'string') {
-      flushToolImages();
+      flushToolImages(messages, pendingToolImages);
       pendingParts.push({ type: 'text', text: block.text });
     } else if (block.type === 'image') {
-      flushToolImages();
+      flushToolImages(messages, pendingToolImages);
       const part = imageBlockToImagePart(block);
       if (part) pendingParts.push(part);
     }
   }
-  flushToolImages();
   flushPendingUser();
   return messages;
 }
@@ -267,6 +264,7 @@ function toChatToolChoice(choice: unknown): unknown {
 /** Anthropic Messages request → chat_completions request (used for routing/forwarding). */
 export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const messages: OpenAIMessage[] = [];
+  const pendingToolImages: JsonRecord[] = [];
 
   const systemText = systemToString(body.system);
   if (systemText) messages.push({ role: 'system', content: systemText });
@@ -275,12 +273,17 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   for (const item of inputMessages) {
     if (!isRecord(item)) continue;
     const role = item.role === 'assistant' ? 'assistant' : 'user';
-    messages.push(
-      ...(role === 'assistant'
-        ? buildAssistantMessage(item.content)
-        : buildUserMessages(item.content)),
-    );
+    if (role === 'assistant') {
+      flushToolImages(messages, pendingToolImages);
+      messages.push(...buildAssistantMessage(item.content));
+    } else {
+      messages.push(...buildUserMessages(item.content, pendingToolImages));
+    }
   }
+  // Anthropic combines consecutive user messages into one logical turn.
+  // Keep extracted images buffered across those message boundaries so all
+  // sibling tool results stay contiguous in the OpenAI-compatible request.
+  flushToolImages(messages, pendingToolImages);
 
   const chatBody: JsonRecord = { messages };
 
