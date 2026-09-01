@@ -22,6 +22,9 @@ export const PIVOT_CANVAS_PALETTE: Rgb[] = [
   [250, 210, 130],
 ];
 
+/* Dark navy for the fine text shadow that lifts white text off the canvas. */
+export const PIVOT_CANVAS_INK: Rgb = [10, 18, 50];
+
 export function cssColor(color: Rgb, alpha = 1): string {
   return `rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
 }

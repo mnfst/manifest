@@ -1,6 +1,11 @@
 import { Show, createSignal, createUniqueId, onCleanup, type Component } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { PIVOT_CANVAS_BG, cssColor, initBlobCanvas } from '../services/blob-canvas.js';
+import {
+  PIVOT_CANVAS_BG,
+  PIVOT_CANVAS_INK,
+  cssColor,
+  initBlobCanvas,
+} from '../services/blob-canvas.js';
 import { authClient } from '../services/auth-client.js';
 import { checkIsSelfHosted } from '../services/setup-status.js';
 import { useFocusTrap } from '../services/use-focus-trap.js';
@@ -83,7 +88,12 @@ const PivotAnnouncement: Component = () => {
               }}
             />
             <div class="sidebar-pivot__header">
-              <span class="sidebar-pivot__title">
+              {/* Fine dark shadow (canvas art color) so the white title stays
+                  readable on the light spots of the animated backdrop. */}
+              <span
+                class="sidebar-pivot__title"
+                style={{ 'text-shadow': `0 0.5px 2px ${cssColor(PIVOT_CANVAS_INK, 0.45)}` }}
+              >
                 Manifest is becoming the self-healing layer for APIs
               </span>
               <button
