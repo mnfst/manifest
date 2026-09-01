@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@solidjs/testing-library';
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library';
 
 const mockNavigate = vi.fn();
 let mockSearchParams: Record<string, string | undefined> = {};
@@ -76,6 +76,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
   formatCost: (v: number) => `$${v.toFixed(2)}`,
+  formatTime: (ts: string) => ts,
 }));
 
 vi.mock('../../src/components/Sparkline.jsx', () => ({
@@ -160,6 +161,7 @@ import Workspace from '../../src/pages/Workspace';
 describe('Workspace', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     mockSearchParams = {};
     mockGetAgents.mockResolvedValue({
       agents: [
@@ -734,5 +736,42 @@ describe('Workspace', () => {
       fireEvent.keyDown(overlay, { key: 'Escape' });
       expect(container.textContent).not.toContain('Delete demo-agent');
     });
+  });
+});
+
+describe('Workspace — view toggle', () => {
+  it('defaults to the grid view with the toggle visible', async () => {
+    const { container } = render(() => <Workspace />);
+    await waitFor(() => expect(container.querySelector('.agents-grid')).not.toBeNull());
+    const tabs = container.querySelectorAll('.panel__tabs .panel__tab');
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].classList.contains('panel__tab--active')).toBe(true);
+    expect(container.querySelector('table.data-table')).toBeNull();
+  });
+
+  it('switches to the table view with one row per harness and persists the choice', async () => {
+    const { container } = render(() => <Workspace />);
+    await waitFor(() => expect(container.querySelector('.agents-grid')).not.toBeNull());
+    fireEvent.click(screen.getByLabelText('Table view'));
+
+    const table = container.querySelector('table.data-table');
+    expect(table).not.toBeNull();
+    const row = table!.querySelector('tbody tr')!;
+    expect(row.textContent).toContain('Demo Agent');
+    expect(row.textContent).toContain('42');
+    expect(row.textContent).toContain('15000');
+    expect(row.textContent).toContain('$5.50');
+    expect(row.querySelector('a[href="/harnesses/demo-agent"]')).not.toBeNull();
+    expect(container.querySelector('.agents-grid')).toBeNull();
+    expect(localStorage.getItem('manifest_harness_view')).toBe('table');
+  });
+
+  it('restores the persisted table view on mount and can switch back', async () => {
+    localStorage.setItem('manifest_harness_view', 'table');
+    const { container } = render(() => <Workspace />);
+    await waitFor(() => expect(container.querySelector('table.data-table')).not.toBeNull());
+    fireEvent.click(screen.getByLabelText('Grid view'));
+    expect(container.querySelector('.agents-grid')).not.toBeNull();
+    expect(localStorage.getItem('manifest_harness_view')).toBe('grid');
   });
 });

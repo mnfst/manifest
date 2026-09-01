@@ -855,3 +855,21 @@
 .dark .overview__platform-icon[src*='other'] {
   filter: invert(1);
 }
+
+/* ── Harness table view (Workspace) ─────────────────── */
+.workspace-table__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  color: hsl(var(--foreground));
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.workspace-table__name:hover {
+  text-decoration: underline;
+}
+
+.workspace-table__actions {
+  text-align: right;
+}
