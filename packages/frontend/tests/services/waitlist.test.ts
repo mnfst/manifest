@@ -79,9 +79,26 @@ describe('waitlist service', () => {
       expect(body.source).toBe('self-hosted');
     });
 
-    it('reports failure on a non-2xx response', async () => {
+    it('retries once without the source field when a pre-source backend answers 400', async () => {
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 400 })
+        .mockResolvedValueOnce({ ok: true });
+      await expect(submitPivotClaim('jane@example.com', true)).resolves.toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      const retryBody = JSON.parse((mockFetch.mock.calls[1][1] as RequestInit).body as string);
+      expect(retryBody).toEqual({ email: 'jane@example.com' });
+    });
+
+    it('reports failure when the retry also fails (truly invalid email)', async () => {
       mockFetch.mockResolvedValue({ ok: false, status: 400 });
       await expect(submitPivotClaim('bad', false)).resolves.toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry on non-400 failures', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 });
+      await expect(submitPivotClaim('jane@example.com', false)).resolves.toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('reports failure when the request throws', async () => {

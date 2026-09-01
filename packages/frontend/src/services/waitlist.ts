@@ -40,13 +40,24 @@ export function hasPivotJoined(userId: string): boolean {
  * of a fake success.
  */
 export async function submitPivotClaim(email: string, selfHosted: boolean): Promise<boolean> {
-  try {
-    const res = await fetch(getPivotClaimUrl(selfHosted), {
+  const url = getPivotClaimUrl(selfHosted);
+  const post = (body: Record<string, string>) =>
+    fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: selfHosted ? 'self-hosted' : 'cloud' }),
+      body: JSON.stringify(body),
     });
-    return res.ok;
+  try {
+    const res = await post({ email, source: selfHosted ? 'self-hosted' : 'cloud' });
+    if (res.ok) return true;
+    // A pre-source cloud backend (rollback) rejects the unknown field with a
+    // 400; one retry without it keeps the claim working, with attribution
+    // falling back to the server default. A truly invalid email 400s again.
+    if (res.status === 400) {
+      const retry = await post({ email });
+      return retry.ok;
+    }
+    return false;
   } catch {
     return false;
   }

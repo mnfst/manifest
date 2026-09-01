@@ -1,6 +1,34 @@
+import { Request } from 'express';
 import { Repository } from 'typeorm';
 import { WaitlistClaim } from '../entities/waitlist-claim.entity';
-import { WaitlistController } from './waitlist.controller';
+import { WaitlistController, claimRequestIsSameOrigin } from './waitlist.controller';
+
+function reqWith(headers: Record<string, string> = {}): Request {
+  return { headers } as unknown as Request;
+}
+
+describe('claimRequestIsSameOrigin', () => {
+  it('matches when the Origin host equals the Host header', () => {
+    expect(
+      claimRequestIsSameOrigin({
+        origin: 'https://app.manifest.build',
+        host: 'app.manifest.build',
+      }),
+    ).toBe(true);
+  });
+
+  it('rejects a foreign origin', () => {
+    expect(
+      claimRequestIsSameOrigin({ origin: 'https://someone.example', host: 'app.manifest.build' }),
+    ).toBe(false);
+  });
+
+  it('rejects missing, array, or malformed headers', () => {
+    expect(claimRequestIsSameOrigin({})).toBe(false);
+    expect(claimRequestIsSameOrigin({ origin: ['a', 'b'], host: 'x' })).toBe(false);
+    expect(claimRequestIsSameOrigin({ origin: 'not a url', host: 'x' })).toBe(false);
+  });
+});
 
 describe('WaitlistController', () => {
   let chain: {
@@ -36,7 +64,7 @@ describe('WaitlistController', () => {
 
   it('stores a claim with a normalized email and the declared source', async () => {
     await expect(
-      controller.receivePivotClaim({ email: '  Jane@Example.COM ', source: 'cloud' }),
+      controller.receivePivotClaim({ email: '  Jane@Example.COM ', source: 'cloud' }, reqWith()),
     ).resolves.toEqual({ ok: true });
 
     expect(chain.values).toHaveBeenCalledWith(
@@ -46,13 +74,37 @@ describe('WaitlistController', () => {
     expect(Number.isNaN(Date.parse(row.claimed_at))).toBe(false);
   });
 
-  it('defaults a missing source to self-hosted', async () => {
-    await controller.receivePivotClaim({ email: 'jane@example.com' });
+  it('infers cloud for a sourceless same-origin claim (stale cloud bundle)', async () => {
+    await controller.receivePivotClaim(
+      { email: 'jane@example.com' },
+      reqWith({ origin: 'https://app.manifest.build', host: 'app.manifest.build' }),
+    );
+    expect(chain.values).toHaveBeenCalledWith(expect.objectContaining({ source: 'cloud' }));
+  });
+
+  it('defaults a sourceless cross-origin or headerless claim to self-hosted', async () => {
+    await controller.receivePivotClaim({ email: 'jane@example.com' }, reqWith());
     expect(chain.values).toHaveBeenCalledWith(expect.objectContaining({ source: 'self-hosted' }));
   });
 
-  it('lets the latest claim win on an email conflict, source included', async () => {
-    await controller.receivePivotClaim({ email: 'jane@example.com', source: 'self-hosted' });
-    expect(chain.orUpdate).toHaveBeenCalledWith(['source', 'claimed_at'], ['email']);
+  it('lets an explicit source win over the origin inference', async () => {
+    await controller.receivePivotClaim(
+      { email: 'jane@example.com', source: 'self-hosted' },
+      reqWith({ origin: 'https://app.manifest.build', host: 'app.manifest.build' }),
+    );
+    expect(chain.values).toHaveBeenCalledWith(expect.objectContaining({ source: 'self-hosted' }));
+  });
+
+  it('lets the latest claim win on conflict, but never over a website row', async () => {
+    await controller.receivePivotClaim(
+      { email: 'jane@example.com', source: 'self-hosted' },
+      reqWith(),
+    );
+    expect(chain.orUpdate).toHaveBeenCalledWith(['source', 'claimed_at'], ['email'], {
+      overwriteCondition: {
+        where: '"waitlist_claims"."source" != :websiteSource',
+        parameters: { websiteSource: 'website' },
+      },
+    });
   });
 });

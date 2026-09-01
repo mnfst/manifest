@@ -5,6 +5,9 @@ import { IsEmail, IsIn, MaxLength, ValidateIf } from 'class-validator';
 export const PIVOT_CLAIM_SOURCES = ['cloud', 'self-hosted'] as const;
 export type PivotClaimSource = (typeof PIVOT_CLAIM_SOURCES)[number];
 
+/** Fallback when a claim carries no source and no same-origin signal. */
+export const DEFAULT_PIVOT_CLAIM_SOURCE: PivotClaimSource = 'self-hosted';
+
 /** Body of the public pivot waiting-list claim. */
 export class PivotClaimDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
