@@ -1,0 +1,79 @@
+packages/frontend/src/pages/Discovery.tsx
+  s_c4117368f2548c::t_39272e04a6198e 4,47-50,59-60,63
+scripts/check-design-tokens.mjs
+  s_c4117368f2548c::t_1502cd43be7d56 63-106,125,138-158,160,163-164,169
+  s_c4117368f2548c::t_1c1b9c94e89ac3 22,38-39,159,161,165-168,171-177,179,183-189,223-225
+packages/backend/src/discovery/discovery-sync.service.spec.ts
+  s_c4117368f2548c::t_39272e04a6198e 12,18,32-33,54-62
+  s_c4117368f2548c::t_6d010dba54a171 63-64
+.husky/pre-commit
+  s_c4117368f2548c::t_1502cd43be7d56 2-4
+packages/frontend/tests/pages/Discovery.test.tsx
+  s_c4117368f2548c::t_9a6de2b7c7fd45 142
+  s_c4117368f2548c::t_64cb6ec6e00c69 143-144
+  s_c4117368f2548c::t_b4ac1754f27d5f 80,85,88,138-139
+  s_c4117368f2548c::t_ada51cf95ba5c4 140-141
+  s_c4117368f2548c::t_3d2047bfc96b59 145-146
+packages/frontend/src/pages/Register.tsx
+  s_c4117368f2548c::t_39272e04a6198e 51-52,232-236
+packages/frontend/src/components/SocialButtons.tsx
+  s_c4117368f2548c::t_39272e04a6198e 59-65,71-74
+packages/backend/src/discovery/discovery-sync.service.ts
+  s_c4117368f2548c::t_39272e04a6198e 5,17-18
+packages/frontend/tests/pages/Register.test.tsx
+  s_c4117368f2548c::t_b4ac1754f27d5f 5,10,39,58,69,73,253-266
+design-system/lib/cascade.mjs
+  s_c4117368f2548c::t_1502cd43be7d56 71,83-88,91-92,98
+  s_c4117368f2548c::t_db9c8177b08cc6 68-70,72-74,99-107,126-127
+packages/frontend/src/pages/Setup.tsx
+  s_c4117368f2548c::t_39272e04a6198e 5,51-53
+packages/frontend/tests/components/SocialButtons.test.tsx
+  s_c4117368f2548c::t_b4ac1754f27d5f 104-113
+design-system/generate-registry.mjs
+  s_c4117368f2548c::t_1502cd43be7d56 60-62
+  s_c4117368f2548c::t_277d3a5b98e6a4 72-75,81-83,122-123
+packages/frontend/src/services/discovery.ts
+  s_c4117368f2548c::t_39272e04a6198e 99
+scripts/design-registry.test.js
+  s_c4117368f2548c::t_67ba08255f1089 1-78
+design-system/lib/emit.mjs
+  s_c4117368f2548c::t_1502cd43be7d56 6
+  s_c4117368f2548c::t_3fea45fa7a1e06 38-42,45-55,58-59,95-97,100-103,108-112,114-126,128-130,132-135,137-139,143-146,150-153,158-160
+design-system/lib/parse-css.mjs
+  s_c4117368f2548c::t_1502cd43be7d56 13,15-24,29-30,36-41,90,92-97,124-126
+  s_c4117368f2548c::t_dd4251fde566e0 145
+CLAUDE.md
+  s_c4117368f2548c::t_39272e04a6198e 426
+packages/frontend/tests/services/discovery.test.ts
+  s_c4117368f2548c::t_b4ac1754f27d5f 175-179
+design-system/registry/components.json
+  s_c4117368f2548c::t_eefc62648caf16 199-201,4405,4412,4419,4426,4433,4440,4447,4454,4461,4468,4475,4482,4489,4496,4503,4510,4517,4524,4531,4538,4545,4552,4559,4639,4647,4655,4663,4671,4679,4695,4703,4711,4719,4727,4735,4743,4791,4831,4839,4847,4855,4863,4871,4879,4887,4966-4967,5020-5022,5090-5091
+design-system/registry/llms.txt
+  s_c4117368f2548c::t_109e42811c50ad 66,420,435-454,456-458,471-477,479-485,491,496-500,502-504,514,521,524
+packages/frontend/tests/pages/Setup.test.tsx
+  s_45f68beab6e2ce::t_5194bde8098526 163,170-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e3f9eb5904e7ebfd82d0f580fce03e63b58e03ad",
+  "prompts": {},
+  "sessions": {
+    "s_45f68beab6e2ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a050c746-b9ee-48f8-a0ac-a75bff580779",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c4117368f2548c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05cf7-3c1a-7243-b69e-146265b724d0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
