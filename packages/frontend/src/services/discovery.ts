@@ -4,15 +4,15 @@
  * Shown once to new self-hosted users right after signup. This module is the
  * frontend contract for the backend endpoints:
  *
- *   GET  /api/v1/discovery/status   -> { required: boolean }
+ *   GET  /api/v1/discovery/status   -> { required: boolean } (optional)
  *   POST /api/v1/discovery/complete -> { ok: true }
  *        body: { name?, email?, projectType?, companySize? }
  *        (an empty body means the user skipped the form)
  *
- * Until those endpoints ship, completion is persisted per user in
- * localStorage so the step still appears exactly once per user on this
- * browser; once the backend exists its answer takes precedence for users
- * without a local flag.
+ * Completion is persisted per user in localStorage so the step appears
+ * exactly once per user on this browser. The complete endpoint forwards
+ * non-empty submissions to Peacock; the optional status endpoint can replace
+ * the local fallback later if completion needs to follow a user across browsers.
  */
 
 export interface DiscoverySubmission {
