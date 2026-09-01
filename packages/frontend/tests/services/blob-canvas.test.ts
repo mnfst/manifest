@@ -167,6 +167,18 @@ describe('blob canvas', () => {
     stop();
   });
 
+  it('renders at the device pixel ratio, capped at 2x', () => {
+    vi.stubGlobal('devicePixelRatio', 3);
+    stubContexts('fake');
+    const canvas = makeCanvas();
+    const stop = initBlobCanvas(canvas);
+    const [ctx] = ctxs;
+    expect(canvas.width).toBe(400);
+    expect(canvas.height).toBe(120);
+    expect(ctx.fillRect).toHaveBeenCalledWith(0, 0, 400, 120);
+    stop();
+  });
+
   it('accepts custom colors', () => {
     stubContexts('fake');
     const stop = initBlobCanvas(makeCanvas(), { bgColor: [1, 2, 3], palette: [[4, 5, 6]] });

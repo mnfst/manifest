@@ -68,6 +68,7 @@ export function initBlobCanvas(
 
   let W = 0;
   let H = 0;
+  let dpr = 1;
   let raf = 0;
   let stopped = false;
   let t = Math.random() * 100;
@@ -87,8 +88,13 @@ export function initBlobCanvas(
     const parent = canvas.parentElement;
     if (!parent) return;
     const rect = parent.getBoundingClientRect();
-    W = canvas.width = rect.width;
-    H = canvas.height = rect.height;
+    // Render at the physical resolution (capped at 2x): a 1x backing store
+    // gets upscaled on retina displays, which turns the one-pixel grain into
+    // fat two-by-two speckles. The blur scales with dpr so the blobs keep
+    // the same visual softness.
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.width = Math.round(rect.width * dpr);
+    H = canvas.height = Math.round(rect.height * dpr);
     if (!W || !H) return;
     grainCanvas.width = W;
     grainCanvas.height = H;
@@ -104,7 +110,7 @@ export function initBlobCanvas(
     t += 0.005 * (SPEED_MULT / 5);
     ctx!.fillStyle = cssColor(bgColor);
     ctx!.fillRect(0, 0, W, H);
-    ctx!.filter = `blur(${BLUR_PX}px)`;
+    ctx!.filter = `blur(${BLUR_PX * dpr}px)`;
     CONFIGS.slice(0, BLOB_COUNT).forEach((b, i) => {
       const color = palette[i % palette.length] ?? bgColor;
       const px = (b.x + Math.sin(t * b.speed + b.phaseX) * 0.15) * W;
