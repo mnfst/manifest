@@ -1,5 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { mkdtempSync, rmSync, writeFileSync } = require('node:fs');
+const { tmpdir } = require('node:os');
+const { join } = require('node:path');
 
 const parser = import('../design-system/lib/parse-css.mjs');
 const cascade = import('../design-system/lib/cascade.mjs');
@@ -29,7 +32,15 @@ test('CSS parsing accepts unquoted url imports', async () => {
   const { parseCss } = await parser;
   const { imports } = parseCss('@import url(base.css);', 'x.css');
 
-  assert.deepEqual(imports, ['base.css']);
+  assert.deepEqual(imports, [{ specifier: 'base.css', layer: null, offset: 0 }]);
+});
+
+test('CSS parsing captures import layer metadata', async () => {
+  const { parseCss } = await parser;
+  const { imports } = parseCss('@import "base.css" layer(theme);', 'x.css');
+
+  assert.equal(imports[0].specifier, 'base.css');
+  assert.equal(imports[0].layer, 'theme');
 });
 
 test('conditional at-rules remain separate from unconditional cascade rules', async () => {
@@ -97,17 +108,15 @@ test('important detection accepts values without whitespace before the suffix', 
 
 test('unlayered normal declarations beat declarations inside a layer', async () => {
   const { parseCss } = await parser;
-  const { resolveConflicts } = await cascade;
+  const { applyLayerRanks, resolveConflicts } = await cascade;
   const { rules, layers } = parseCss(
     '@layer components { .a { color: red; } } .a { color: blue; }',
     'x.css',
   );
-  const layerIndexes = new Map(layers.map((layer, index) => [layer, index]));
-  const ordered = rules.map((rule, orderIndex) => ({
-    ...rule,
-    layerIndex: rule.layer ? layerIndexes.get(rule.layer) : undefined,
-    orderIndex,
-  }));
+  const ordered = applyLayerRanks(
+    rules.map((rule, orderIndex) => ({ ...rule, orderIndex })),
+    layers,
+  );
 
   assert.equal(rules[0].layer, 'components');
   assert.equal(rules[0].media, '');
@@ -116,19 +125,74 @@ test('unlayered normal declarations beat declarations inside a layer', async () 
 
 test('important layer precedence reverses normal layer precedence', async () => {
   const { parseCss } = await parser;
-  const { resolveConflicts } = await cascade;
+  const { applyLayerRanks, resolveConflicts } = await cascade;
   const { rules, layers } = parseCss(
     '@layer base, components; @layer base { .a { color: red!important; } } @layer components { .a { color: blue!important; } } .a { color: green!important; }',
     'x.css',
   );
-  const layerIndexes = new Map(layers.map((layer, index) => [layer, index]));
-  const ordered = rules.map((rule, orderIndex) => ({
-    ...rule,
-    layerIndex: rule.layer ? layerIndexes.get(rule.layer) : undefined,
-    orderIndex,
-  }));
+  const ordered = applyLayerRanks(
+    rules.map((rule, orderIndex) => ({ ...rule, orderIndex })),
+    layers,
+  );
 
   assert.equal(resolveConflicts(ordered).canonical[0].value, 'red!important');
+});
+
+test('direct parent-layer declarations beat nested layers for normal rules', async () => {
+  const { parseCss } = await parser;
+  const { applyLayerRanks, resolveConflicts } = await cascade;
+  const { rules, layers } = parseCss(
+    '@layer framework { @layer components { .a { color: red; } } .a { color: blue; } }',
+    'x.css',
+  );
+  const ordered = applyLayerRanks(
+    rules.map((rule, orderIndex) => ({ ...rule, orderIndex })),
+    layers,
+  );
+
+  assert.equal(resolveConflicts(ordered).canonical[0].value, 'blue');
+});
+
+test('anonymous layer identities are unique across parser scopes', async () => {
+  const { parseCss } = await parser;
+  const first = parseCss('@layer { .a { color: red; } }', 'a.css', { anonymousScope: 1 });
+  const second = parseCss('@layer { .a { color: blue; } }', 'b.css', { anonymousScope: 2 });
+
+  assert.notEqual(first.rules[0].layer, second.rules[0].layer);
+});
+
+test('cascade loading propagates import layers and unique anonymous identities', async (t) => {
+  const { loadCascade, resolveConflicts } = await cascade;
+  const dir = mkdtempSync(join(tmpdir(), 'manifest-registry-layers-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  writeFileSync(
+    join(dir, 'entry.css'),
+    '@import "first.css" layer(theme); @import "second.css" layer; .a { color: blue; }',
+  );
+  writeFileSync(join(dir, 'first.css'), '@layer { .a { color: red; } }');
+  writeFileSync(join(dir, 'second.css'), '@layer { .a { color: green; } }');
+
+  const { rules } = loadCascade(join(dir, 'entry.css'));
+
+  assert.match(rules[0].layer, /^theme\.__anonymous_/);
+  assert.match(rules[1].layer, /^__anonymous_import_1\.__anonymous_/);
+  assert.notEqual(rules[0].layer, rules[1].layer);
+  assert.equal(resolveConflicts(rules).canonical[0].value, 'blue');
+});
+
+test('token resolution applies the same layer precedence as ordinary declarations', async () => {
+  const { parseCss } = await parser;
+  const { applyLayerRanks, resolveTokens } = await cascade;
+  const { rules, layers } = parseCss(
+    '@layer base { :root { --brand: red; } } :root { --brand: blue; }',
+    'tokens.css',
+  );
+  const ordered = applyLayerRanks(
+    rules.map((rule, orderIndex) => ({ ...rule, orderIndex })),
+    layers,
+  );
+
+  assert.equal(resolveTokens(ordered).light.get('--brand').value, 'blue');
 });
 
 test('layout tokens are categorized before sidebar tokens', async () => {

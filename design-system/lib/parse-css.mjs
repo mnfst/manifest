@@ -105,16 +105,26 @@ const NESTING_AT = /^@(media|supports|layer|container)\b/;
 
 /**
  * Parse one stylesheet.
- * Returns { rules, imports } — imports as written ('./x.css').
+ * Returns rules plus import metadata and layers in first-declaration order.
  */
-export function parseCss(source, file) {
+export function parseCss(source, file, options = {}) {
   const text = stripComments(source);
   const rules = [];
   const imports = [];
   const layers = [];
-  const ctx = { text, file, rules, imports, layers, anonymousLayers: 0 };
-  walk(text, 0, text.length, { media: '', layer: '' }, ctx);
-  return { rules, imports, layers };
+  const layerEvents = [];
+  const ctx = {
+    text,
+    file,
+    rules,
+    imports,
+    layers,
+    layerEvents,
+    anonymousLayers: 0,
+    anonymousScope: options.anonymousScope ?? 0,
+  };
+  walk(text, 0, text.length, { media: '', layer: options.layerPrefix ?? '' }, ctx);
+  return { rules, imports, layers, layerEvents };
 }
 
 function walk(text, from, to, context, ctx) {
@@ -124,13 +134,22 @@ function walk(text, from, to, context, ctx) {
     const semi = text.indexOf(';', i);
     if (semi !== -1 && (brace === -1 || semi < brace) && semi < to) {
       const statement = text.slice(i, semi).trim();
-      const m = statement.match(/^@import\s+(?:url\(\s*)?(?:['"]([^'"]+)['"]|([^)\s;]+))\s*\)?/);
+      const m = statement.match(
+        /^@import\s+(?:url\(\s*)?(?:['"]([^'"]+)['"]|([^)\s;]+))\s*\)?(.*)$/,
+      );
       const specifier = m?.[1] ?? m?.[2];
-      if (specifier) ctx.imports.push(specifier);
+      if (specifier) {
+        const layerMatch = m?.[3]?.match(/(?:^|\s)layer(?:\(\s*([^)]+?)\s*\))?(?:\s|$)/);
+        ctx.imports.push({
+          specifier,
+          layer: layerMatch ? (layerMatch[1]?.trim() ?? true) : null,
+          offset: i,
+        });
+      }
       const layerStatement = statement.match(/^@layer\s+(.+)$/);
       if (layerStatement) {
         for (const name of layerStatement[1].split(',').map((value) => value.trim())) {
-          if (name) registerLayer(ctx, qualifyLayer(context.layer, name));
+          if (name) registerLayer(ctx, qualifyLayer(context.layer, name), i);
         }
       }
       i = semi + 1;
@@ -150,9 +169,9 @@ function handleBlock(prelude, brace, close, context, ctx, preludeStart) {
   if (OPAQUE_AT.test(prelude)) return;
   if (prelude.startsWith('@layer')) {
     const rawName = prelude.replace(/^@layer\s*/, '').trim();
-    const name = rawName || `__anonymous_${++ctx.anonymousLayers}`;
+    const name = rawName || `__anonymous_${ctx.anonymousScope}_${++ctx.anonymousLayers}`;
     const layer = qualifyLayer(context.layer, name);
-    registerLayer(ctx, layer);
+    registerLayer(ctx, layer, preludeStart);
     walk(text, brace + 1, close, { ...context, layer }, ctx);
     return;
   }
@@ -184,6 +203,9 @@ function qualifyLayer(parent, name) {
   return parent ? `${parent}.${name}` : name;
 }
 
-function registerLayer(ctx, layer) {
-  if (layer && !ctx.layers.includes(layer)) ctx.layers.push(layer);
+function registerLayer(ctx, layer, offset) {
+  if (layer && !ctx.layers.includes(layer)) {
+    ctx.layers.push(layer);
+    ctx.layerEvents.push({ layer, offset });
+  }
 }

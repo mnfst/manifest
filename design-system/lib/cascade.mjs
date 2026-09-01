@@ -1,9 +1,10 @@
 // Cascade resolution for the registry generator.
 //
 // Answers "which declaration actually renders" the way the browser does for
-// same-element rules: selector specificity first, then source order (the
-// depth-first @import order from the entry stylesheet). Declarations that can
-// never win against an identical selector are the ghost rules.
+// same-element rules: importance and cascade-layer order, then selector
+// specificity and source order (the depth-first @import order from the entry
+// stylesheet). Declarations that can never win against an identical selector
+// are the ghost rules.
 
 import { readFileSync } from 'node:fs';
 import { resolve, dirname, basename } from 'node:path';
@@ -21,16 +22,30 @@ export function loadCascade(entryPath, extras = []) {
   const rules = [];
   const missing = [];
   const seen = new Set();
-  const ctx = { order, rules, missing, seen, layers: new Map() };
+  const ctx = {
+    order,
+    rules,
+    missing,
+    seen,
+    layers: [],
+    anonymousScopes: 0,
+    anonymousImports: 0,
+  };
   visit(resolve(entryPath), ctx);
   const entryTreeSize = order.length;
   for (const extra of extras) visit(resolve(extra), ctx);
-  return { order, rules, missing, entryTreeSize };
+  return {
+    order,
+    rules: applyLayerRanks(rules, ctx.layers),
+    missing,
+    entryTreeSize,
+  };
 }
 
-function visit(path, ctx) {
-  if (ctx.seen.has(path)) return;
-  ctx.seen.add(path);
+function visit(path, ctx, layerPrefix = '') {
+  const visitKey = `${path} § ${layerPrefix}`;
+  if (ctx.seen.has(visitKey)) return;
+  ctx.seen.add(visitKey);
   let source;
   try {
     source = readFileSync(path, 'utf8');
@@ -38,19 +53,71 @@ function visit(path, ctx) {
     ctx.missing.push(path);
     return;
   }
-  const { rules, imports, layers } = parseCss(source, basename(path));
-  for (const spec of imports) visit(resolve(dirname(path), spec), ctx);
-  for (const layer of layers) {
-    if (!ctx.layers.has(layer)) ctx.layers.set(layer, ctx.layers.size);
+  const { rules, imports, layerEvents } = parseCss(source, basename(path), {
+    layerPrefix,
+    anonymousScope: ++ctx.anonymousScopes,
+  });
+  const events = [
+    ...layerEvents.map((event) => ({ ...event, type: 'layer' })),
+    ...imports.map((entry) => ({ ...entry, type: 'import' })),
+  ].sort((a, b) => a.offset - b.offset);
+  for (const event of events) {
+    if (event.type === 'layer') {
+      registerGlobalLayer(ctx, event.layer);
+      continue;
+    }
+    let importLayer = layerPrefix;
+    if (event.layer !== null) {
+      const name =
+        event.layer === true ? `__anonymous_import_${++ctx.anonymousImports}` : event.layer;
+      importLayer = qualifyLayer(layerPrefix, name);
+      registerGlobalLayer(ctx, importLayer);
+    }
+    visit(resolve(dirname(path), event.specifier), ctx, importLayer);
   }
   ctx.order.push(path);
   for (const rule of rules) {
     ctx.rules.push({
       ...rule,
-      layerIndex: rule.layer ? ctx.layers.get(rule.layer) : undefined,
       orderIndex: ctx.rules.length,
     });
   }
+}
+
+function qualifyLayer(parent, name) {
+  return parent ? `${parent}.${name}` : name;
+}
+
+function registerGlobalLayer(ctx, layer) {
+  if (layer && !ctx.layers.includes(layer)) ctx.layers.push(layer);
+}
+
+export function applyLayerRanks(rules, orderedLayers) {
+  const root = { children: new Map() };
+  for (const layer of orderedLayers) {
+    let node = root;
+    for (const name of layer.split('.')) {
+      if (!node.children.has(name)) {
+        node.children.set(name, { index: node.children.size, children: new Map() });
+      }
+      node = node.children.get(name);
+    }
+  }
+
+  return rules.map((rule) => {
+    if (!rule.layer) return rule;
+    const rank = [];
+    let node = root;
+    for (const name of rule.layer.split('.')) {
+      const child = node.children.get(name);
+      if (!child) return rule;
+      rank.push(child.index);
+      node = child;
+    }
+    // Direct declarations in a parent layer form an implicit final sublayer.
+    rank.push(node.children.size);
+    return { ...rule, layerRank: rank };
+  });
 }
 
 /** Specificity as a single comparable number (ids, classes/attrs/pseudos, types). */
@@ -79,7 +146,7 @@ export function resolveConflicts(rules) {
         selector: rule.selector,
         media: rule.media,
         layer: rule.layer,
-        layerIndex: rule.layerIndex,
+        layerRank: rule.layerRank,
         file: rule.file,
         orderIndex: rule.orderIndex,
       };
@@ -91,13 +158,7 @@ export function resolveConflicts(rules) {
   for (const [, entries] of byKey) {
     const values = new Set(entries.map((e) => e.value));
     if (entries.length < 2 || values.size < 2) continue;
-    entries.sort(
-      (a, b) =>
-        Number(isImportant(a.value)) - Number(isImportant(b.value)) ||
-        layerRank(a) - layerRank(b) ||
-        specificity(a.selector) - specificity(b.selector) ||
-        a.orderIndex - b.orderIndex,
-    );
+    entries.sort(compareCascadeEntries);
     const winner = entries[entries.length - 1];
     canonical.push(strip(winner));
     for (const loser of entries.slice(0, -1))
@@ -109,11 +170,30 @@ export function resolveConflicts(rules) {
 
 const isImportant = (value) => /!important\s*$/i.test(value);
 
-function layerRank(entry) {
-  const important = isImportant(entry.value);
-  if (!entry.layer) return important ? Number.MIN_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
-  const index = entry.layerIndex ?? entry.orderIndex;
-  return important ? -index : index;
+function compareCascadeEntries(a, b) {
+  return (
+    Number(isImportant(a.value)) - Number(isImportant(b.value)) ||
+    compareLayerPrecedence(a, b) ||
+    specificity(a.selector) - specificity(b.selector) ||
+    a.orderIndex - b.orderIndex
+  );
+}
+
+function compareLayerPrecedence(a, b) {
+  const important = isImportant(a.value);
+  if (!a.layer && !b.layer) return 0;
+  if (!a.layer) return important ? -1 : 1;
+  if (!b.layer) return important ? 1 : -1;
+  const comparison = compareRankVectors(a.layerRank ?? [], b.layerRank ?? []);
+  return important ? -comparison : comparison;
+}
+
+function compareRankVectors(a, b) {
+  for (let index = 0; index < Math.max(a.length, b.length); index++) {
+    const difference = (a[index] ?? -1) - (b[index] ?? -1);
+    if (difference !== 0) return difference;
+  }
+  return 0;
 }
 
 const strip = ({ selector, media, layer, prop, value, file, line }) => ({
@@ -135,19 +215,37 @@ const TOKEN_SCOPES = [':root', '.dark'];
  * out-of-source definitions — the single-source rule forbids them.
  */
 export function resolveTokens(rules) {
-  const tables = { ':root': new Map(), '.dark': new Map() };
+  const candidates = { ':root': new Map(), '.dark': new Map() };
   const outOfSource = [];
   for (const rule of rules) {
     const scope = TOKEN_SCOPES.includes(rule.selector) ? rule.selector : null;
     if (!scope) continue;
     for (const d of rule.declarations) {
       if (!d.prop.startsWith('--')) continue;
-      tables[scope].set(d.prop, { value: d.value, file: rule.file, line: d.line });
+      const entry = {
+        ...d,
+        selector: rule.selector,
+        layer: rule.layer,
+        layerRank: rule.layerRank,
+        file: rule.file,
+        orderIndex: rule.orderIndex,
+      };
+      const entries = candidates[scope].get(d.prop) ?? [];
+      entries.push(entry);
+      candidates[scope].set(d.prop, entries);
       if (rule.file !== 'tokens.css')
         outOfSource.push({ scope, prop: d.prop, file: rule.file, line: d.line });
     }
   }
-  return { light: tables[':root'], dark: tables['.dark'], outOfSource };
+  const resolveScope = (scope) =>
+    new Map(
+      [...candidates[scope]].map(([prop, entries]) => {
+        entries.sort(compareCascadeEntries);
+        const winner = entries[entries.length - 1];
+        return [prop, { value: winner.value, file: winner.file, line: winner.line }];
+      }),
+    );
+  return { light: resolveScope(':root'), dark: resolveScope('.dark'), outOfSource };
 }
 
 /** Group class selectors into BEM blocks: block__element--modifier. */
