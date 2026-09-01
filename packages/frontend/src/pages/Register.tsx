@@ -48,6 +48,8 @@ const Register: Component = () => {
   const emailId = createUniqueId();
   const passwordId = createUniqueId();
   const errorId = createUniqueId();
+  const socialSignupUrl = () =>
+    postSignupUrl().startsWith('/discovery') ? `${postSignupUrl()}&signup=1` : undefined;
 
   onMount(async () => {
     setSocialProviders(await checkSocialProviders());
@@ -227,7 +229,11 @@ const Register: Component = () => {
                 <p class="auth-header__subtitle">Monitor your AI harnesses' costs and usage</p>
               </div>
 
-              <SocialButtons enabledProviders={socialProviders()} lastUsed={lastAuthMethod()} />
+              <SocialButtons
+                enabledProviders={socialProviders()}
+                lastUsed={lastAuthMethod()}
+                callbackURL={socialSignupUrl()}
+              />
 
               <Show when={socialProviders().length > 0}>
                 <div class="auth-divider">

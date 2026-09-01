@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, createUniqueId, onMount, Show } from 'solid-js';
+import '../styles/discovery.css';
 import Select from '../components/Select.jsx';
 import { authClient } from '../services/auth-client.js';
 import { isSafeInternalRedirect } from '../services/auth-redirects.js';
@@ -43,6 +44,10 @@ const Discovery: Component = () => {
   };
 
   const leave = () => navigate(next(), { replace: true });
+  const isSignupRedirect = () => {
+    const raw = searchParams.signup;
+    return (Array.isArray(raw) ? raw[0] : raw) === '1';
+  };
 
   onMount(async () => {
     if (!(await checkIsSelfHosted())) {
@@ -56,6 +61,7 @@ const Discovery: Component = () => {
         return;
       }
     }
+    if (isSignupRedirect()) markDiscoveryPending(userId(), next());
     if (!(await isDiscoveryRequired(userId()))) {
       leave();
       return;

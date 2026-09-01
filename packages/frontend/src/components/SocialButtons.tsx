@@ -56,15 +56,22 @@ const providerIcons: Record<Provider, () => JSX.Element> = {
   ),
 };
 
-const SocialButtons: Component<{ enabledProviders?: string[]; lastUsed?: string | null }> = (
-  props,
-) => {
+interface SocialButtonsProps {
+  enabledProviders?: string[];
+  lastUsed?: string | null;
+  callbackURL?: string;
+}
+
+const SocialButtons: Component<SocialButtonsProps> = (props) => {
   const [searchParams] = useSearchParams();
   const visible = () => {
     if (!props.enabledProviders) return allProviders;
     return allProviders.filter((p) => props.enabledProviders!.includes(p.id));
   };
-  const authUrls = () => buildSocialAuthUrls(searchParams);
+  const authUrls = () => ({
+    ...buildSocialAuthUrls(searchParams),
+    ...(props.callbackURL ? { callbackURL: props.callbackURL } : {}),
+  });
 
   return (
     <Show when={visible().length > 0}>

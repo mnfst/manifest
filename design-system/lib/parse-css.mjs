@@ -10,16 +10,33 @@
 export function stripComments(source) {
   let out = '';
   let i = 0;
+  let quote = null;
   while (i < source.length) {
-    if (source[i] === '/' && source[i + 1] === '*') {
+    const char = source[i];
+    if (quote) {
+      out += char;
+      if (char === quote && !isEscaped(source, i)) quote = null;
+      i++;
+    } else if (char === '"' || char === "'") {
+      quote = char;
+      out += char;
+      i++;
+    } else if (char === '/' && source[i + 1] === '*') {
       const end = source.indexOf('*/', i + 2);
       const stop = end === -1 ? source.length : end + 2;
       for (; i < stop; i++) out += source[i] === '\n' ? '\n' : ' ';
     } else {
-      out += source[i++];
+      out += char;
+      i++;
     }
   }
   return out;
+}
+
+function isEscaped(text, index) {
+  let slashes = 0;
+  for (let i = index - 1; i >= 0 && text[i] === '\\'; i--) slashes++;
+  return slashes % 2 === 1;
 }
 
 const lineAt = (text, index) => text.slice(0, index).split('\n').length;
@@ -70,9 +87,14 @@ function withOffset(str, offset) {
 /** Find the index of the matching close brace for the open brace at `open`. */
 function matchBrace(text, open) {
   let depth = 0;
+  let quote = null;
   for (let i = open; i < text.length; i++) {
-    if (text[i] === '{') depth++;
-    else if (text[i] === '}' && --depth === 0) return i;
+    const char = text[i];
+    if (quote) {
+      if (char === quote && !isEscaped(text, i)) quote = null;
+    } else if (char === '"' || char === "'") quote = char;
+    else if (char === '{') depth++;
+    else if (char === '}' && --depth === 0) return i;
   }
   return text.length;
 }
@@ -99,8 +121,9 @@ function walk(text, from, to, media, ctx) {
     const semi = text.indexOf(';', i);
     if (semi !== -1 && (brace === -1 || semi < brace) && semi < to) {
       const statement = text.slice(i, semi).trim();
-      const m = statement.match(/^@import\s+(?:url\()?['"]([^'"]+)['"]\)?/);
-      if (m) ctx.imports.push(m[1]);
+      const m = statement.match(/^@import\s+(?:url\(\s*)?(?:['"]([^'"]+)['"]|([^)\s;]+))\s*\)?/);
+      const specifier = m?.[1] ?? m?.[2];
+      if (specifier) ctx.imports.push(specifier);
       i = semi + 1;
       continue;
     }
@@ -119,7 +142,7 @@ function handleBlock(prelude, brace, close, media, ctx, preludeStart) {
   if (NESTING_AT.test(prelude)) {
     const nested = prelude.startsWith('@media')
       ? [media, prelude.replace(/^@media\s*/, '')].filter(Boolean).join(' && ')
-      : media;
+      : [media, prelude].filter(Boolean).join(' && ');
     walk(text, brace + 1, close, nested, ctx);
     return;
   }

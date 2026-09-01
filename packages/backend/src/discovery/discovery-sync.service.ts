@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { CompleteDiscoveryDto } from './dto/complete-discovery.dto';
 
-const BLUE_DISCOVERY_URL = 'https://blue.manifest.build/v1/self-hosted/discovery';
+const DEFAULT_DISCOVERY_ENDPOINT = 'https://blue.manifest.build/v1/self-hosted/discovery';
 const DISCOVERY_SYNC_TIMEOUT_MS = 10_000;
 
 @Injectable()
@@ -14,7 +14,8 @@ export class DiscoverySyncService {
     if (!hasContent(submission)) return;
 
     try {
-      const response = await fetch(BLUE_DISCOVERY_URL, {
+      const endpoint = process.env['DISCOVERY_ENDPOINT']?.trim() || DEFAULT_DISCOVERY_ENDPOINT;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(submission),

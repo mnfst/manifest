@@ -196,6 +196,9 @@
     "layout": {
       "--header-height": {
         "light": "48px"
+      },
+      "--sidebar-width": {
+        "light": "230px"
       }
     },
     "radius": {
@@ -261,9 +264,6 @@
       "--sidebar-ring": {
         "light": "217.2 91.2% 59.8%",
         "dark": "0 0% 60%"
-      },
-      "--sidebar-width": {
-        "light": "230px"
       }
     },
     "transition": {
@@ -4321,13 +4321,6 @@
       "line": 142
     },
     {
-      "selector": ".modal-overlay",
-      "prop": "backdrop-filter",
-      "value": "none",
-      "file": "modals.css",
-      "line": 158
-    },
-    {
       "selector": ".setup-modal__header",
       "prop": "align-items",
       "value": "center",
@@ -4409,161 +4402,161 @@
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 196
+      "line": 195
     },
     {
       "selector": ".trend--up",
       "prop": "color",
       "value": "hsl(var(--success))",
       "file": "theme.css",
-      "line": 237
+      "line": 236
     },
     {
       "selector": ".trend--up",
       "prop": "background",
       "value": "hsl(var(--success) / 0.1)",
       "file": "theme.css",
-      "line": 238
+      "line": 237
     },
     {
       "selector": ".trend--down",
       "prop": "color",
       "value": "hsl(var(--destructive))",
       "file": "theme.css",
-      "line": 242
+      "line": 241
     },
     {
       "selector": ".trend--down",
       "prop": "background",
       "value": "hsl(var(--destructive) / 0.1)",
       "file": "theme.css",
-      "line": 243
+      "line": 242
     },
     {
       "selector": ".panel",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 268
+      "line": 267
     },
     {
       "selector": ".chart-card",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
       "file": "theme.css",
-      "line": 284
+      "line": 283
     },
     {
       "selector": ".chart-card__header",
       "prop": "align-items",
       "value": "flex-end",
       "file": "theme.css",
-      "line": 290
+      "line": 289
     },
     {
       "selector": ".chart-card__value-row",
       "prop": "align-items",
       "value": "baseline",
       "file": "theme.css",
-      "line": 322
+      "line": 321
     },
     {
       "selector": ".feed-item",
       "prop": "align-items",
       "value": "center",
       "file": "theme.css",
-      "line": 586
+      "line": 585
     },
     {
       "selector": ".feed-item",
       "prop": "gap",
       "value": "var(--gap-md)",
       "file": "theme.css",
-      "line": 587
+      "line": 586
     },
     {
       "selector": ".feed-item",
       "prop": "padding",
       "value": "10px 0",
       "file": "theme.css",
-      "line": 588
+      "line": 587
     },
     {
       "selector": ".sidebar",
       "prop": "padding",
       "value": "var(--gap-lg) 0 0 0",
       "file": "theme.css",
-      "line": 784
+      "line": 783
     },
     {
       "selector": ".sidebar__agent-item",
       "prop": "gap",
       "value": "8px",
       "file": "theme.css",
-      "line": 922
+      "line": 921
     },
     {
       "selector": ".theme-toggle",
       "prop": "padding",
       "value": "6px 12px",
       "file": "theme.css",
-      "line": 1000
+      "line": 999
     },
     {
       "selector": ".theme-toggle",
       "prop": "width",
       "value": "100%",
       "file": "theme.css",
-      "line": 1009
+      "line": 1008
     },
     {
       "selector": ".chart-tooltip",
       "prop": "font-size",
       "value": "var(--font-size-xs)",
       "file": "theme.css",
-      "line": 1086
+      "line": 1085
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "height",
       "value": "64px",
       "file": "theme.css",
-      "line": 1117
+      "line": 1116
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "background",
       "value": "linear-gradient(transparent, hsl(var(--card)) 70%)",
       "file": "theme.css",
-      "line": 1118
+      "line": 1117
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "padding-bottom",
       "value": "12px",
       "file": "theme.css",
-      "line": 1123
+      "line": 1122
     },
     {
       "selector": ".modal",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "theme.css",
-      "line": 1174
+      "line": 1173
     },
     {
       "selector": ".modal__close",
       "prop": "width",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1199
+      "line": 1198
     },
     {
       "selector": ".modal__close",
       "prop": "height",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1200
+      "line": 1199
     },
     {
       "selector": ".toast",
@@ -4643,7 +4636,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 7,
-      "losesTo": "theme.css:196"
+      "losesTo": "theme.css:195"
     },
     {
       "selector": ".trend--up",
@@ -4651,31 +4644,31 @@
       "value": "hsl(var(--muted-foreground))",
       "file": "cards.css",
       "line": 48,
+      "losesTo": "theme.css:236"
+    },
+    {
+      "selector": ".trend--down",
+      "prop": "color",
+      "value": "hsl(var(--muted-foreground))",
+      "file": "cards.css",
+      "line": 48,
+      "losesTo": "theme.css:241"
+    },
+    {
+      "selector": ".trend--up",
+      "prop": "background",
+      "value": "hsl(var(--muted))",
+      "file": "cards.css",
+      "line": 49,
       "losesTo": "theme.css:237"
     },
     {
       "selector": ".trend--down",
-      "prop": "color",
-      "value": "hsl(var(--muted-foreground))",
+      "prop": "background",
+      "value": "hsl(var(--muted))",
       "file": "cards.css",
-      "line": 48,
+      "line": 49,
       "losesTo": "theme.css:242"
-    },
-    {
-      "selector": ".trend--up",
-      "prop": "background",
-      "value": "hsl(var(--muted))",
-      "file": "cards.css",
-      "line": 49,
-      "losesTo": "theme.css:238"
-    },
-    {
-      "selector": ".trend--down",
-      "prop": "background",
-      "value": "hsl(var(--muted))",
-      "file": "cards.css",
-      "line": 49,
-      "losesTo": "theme.css:243"
     },
     {
       "selector": ".panel",
@@ -4683,7 +4676,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 59,
-      "losesTo": "theme.css:268"
+      "losesTo": "theme.css:267"
     },
     {
       "selector": ".view-more-link",
@@ -4699,7 +4692,7 @@
       "value": "var(--card-shadow)",
       "file": "cards.css",
       "line": 86,
-      "losesTo": "theme.css:284"
+      "losesTo": "theme.css:283"
     },
     {
       "selector": ".chart-card__header",
@@ -4707,7 +4700,7 @@
       "value": "stretch",
       "file": "cards.css",
       "line": 92,
-      "losesTo": "theme.css:290"
+      "losesTo": "theme.css:289"
     },
     {
       "selector": ".chart-card__value-row",
@@ -4715,7 +4708,7 @@
       "value": "center",
       "file": "cards.css",
       "line": 160,
-      "losesTo": "theme.css:322"
+      "losesTo": "theme.css:321"
     },
     {
       "selector": ".chart-tooltip",
@@ -4723,7 +4716,7 @@
       "value": "var(--tooltip-font-size)",
       "file": "charts.css",
       "line": 78,
-      "losesTo": "theme.css:1086"
+      "losesTo": "theme.css:1085"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4731,7 +4724,7 @@
       "value": "80px",
       "file": "charts.css",
       "line": 110,
-      "losesTo": "theme.css:1117"
+      "losesTo": "theme.css:1116"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4739,7 +4732,7 @@
       "value": "linear-gradient(transparent, hsl(var(--card)) 60%)",
       "file": "charts.css",
       "line": 111,
-      "losesTo": "theme.css:1118"
+      "losesTo": "theme.css:1117"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4747,7 +4740,7 @@
       "value": "16px",
       "file": "charts.css",
       "line": 116,
-      "losesTo": "theme.css:1123"
+      "losesTo": "theme.css:1122"
     },
     {
       "selector": ".toast",
@@ -4795,7 +4788,7 @@
       "value": "var(--gap-md) 0",
       "file": "controls.css",
       "line": 261,
-      "losesTo": "theme.css:784"
+      "losesTo": "theme.css:783"
     },
     {
       "selector": ".custom-select__option--top > svg",
@@ -4835,7 +4828,7 @@
       "value": "flex-start",
       "file": "data.css",
       "line": 507,
-      "losesTo": "theme.css:586"
+      "losesTo": "theme.css:585"
     },
     {
       "selector": ".feed-item",
@@ -4843,7 +4836,7 @@
       "value": "12px",
       "file": "data.css",
       "line": 508,
-      "losesTo": "theme.css:587"
+      "losesTo": "theme.css:586"
     },
     {
       "selector": ".feed-item",
@@ -4851,7 +4844,7 @@
       "value": "12px 0",
       "file": "data.css",
       "line": 509,
-      "losesTo": "theme.css:588"
+      "losesTo": "theme.css:587"
     },
     {
       "selector": ".theme-toggle",
@@ -4859,7 +4852,7 @@
       "value": "2rem",
       "file": "layout.css",
       "line": 141,
-      "losesTo": "theme.css:1009"
+      "losesTo": "theme.css:1008"
     },
     {
       "selector": ".theme-toggle",
@@ -4867,7 +4860,7 @@
       "value": "0",
       "file": "layout.css",
       "line": 149,
-      "losesTo": "theme.css:1000"
+      "losesTo": "theme.css:999"
     },
     {
       "selector": ".modal",
@@ -4875,7 +4868,7 @@
       "value": "var(--card-shadow),\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "modals.css",
       "line": 22,
-      "losesTo": "theme.css:1174"
+      "losesTo": "theme.css:1173"
     },
     {
       "selector": ".modal__close",
@@ -4883,7 +4876,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 47,
-      "losesTo": "theme.css:1199"
+      "losesTo": "theme.css:1198"
     },
     {
       "selector": ".modal__close",
@@ -4891,7 +4884,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 48,
-      "losesTo": "theme.css:1200"
+      "losesTo": "theme.css:1199"
     },
     {
       "selector": ".setup-modal__header",
@@ -4934,14 +4927,6 @@
       "losesTo": "overview.css:55"
     },
     {
-      "selector": ".modal-overlay",
-      "prop": "backdrop-filter",
-      "value": "blur(2px)",
-      "file": "modals.css",
-      "line": 146,
-      "losesTo": "modals.css:158"
-    },
-    {
       "selector": ".request-tool",
       "prop": "border",
       "value": "1px solid hsl(var(--border))",
@@ -4978,8 +4963,8 @@
       "prop": "gap",
       "value": "var(--gap-xs)",
       "file": "theme.css",
-      "line": 824,
-      "losesTo": "theme.css:922"
+      "line": 823,
+      "losesTo": "theme.css:921"
     },
     {
       "selector": ".welcome__progress-header span",
@@ -5031,6 +5016,9 @@
       "pages/GlobalOverview.tsx",
       "pages/providers/ConnectionDetail.tsx",
       "pages/providers/ProviderConnectionsPage.tsx"
+    ],
+    "discovery.css": [
+      "pages/Discovery.tsx"
     ],
     "filter-select.css": [
       "components/FilterSelect.tsx"
@@ -5099,7 +5087,7 @@
     "darkOverrides": 38,
     "blocks": 313,
     "classes": 1696,
-    "canonicalRules": 48,
-    "ghostRules": 48
+    "canonicalRules": 47,
+    "ghostRules": 47
   }
 }

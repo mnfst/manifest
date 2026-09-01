@@ -9,11 +9,13 @@ const mockIsSelfHosted = isSelfHosted as jest.MockedFunction<typeof isSelfHosted
 
 describe('DiscoverySyncService', () => {
   const originalNodeEnv = process.env['NODE_ENV'];
+  const originalDiscoveryEndpoint = process.env['DISCOVERY_ENDPOINT'];
   let service: DiscoverySyncService;
   let fetchSpy: jest.SpyInstance;
 
   beforeEach(() => {
     process.env['NODE_ENV'] = 'production';
+    delete process.env['DISCOVERY_ENDPOINT'];
     mockIsSelfHosted.mockReturnValue(true);
     fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true } as Response);
     service = new DiscoverySyncService();
@@ -27,6 +29,8 @@ describe('DiscoverySyncService', () => {
   afterAll(() => {
     if (originalNodeEnv === undefined) delete process.env['NODE_ENV'];
     else process.env['NODE_ENV'] = originalNodeEnv;
+    if (originalDiscoveryEndpoint === undefined) delete process.env['DISCOVERY_ENDPOINT'];
+    else process.env['DISCOVERY_ENDPOINT'] = originalDiscoveryEndpoint;
   });
 
   it('posts the submission to the neutral Blue ingest endpoint', async () => {
@@ -45,6 +49,17 @@ describe('DiscoverySyncService', () => {
       body: JSON.stringify(submission),
       signal: expect.any(AbortSignal),
     });
+  });
+
+  it('supports a local endpoint override for end-to-end testing', async () => {
+    process.env['DISCOVERY_ENDPOINT'] = ' http://127.0.0.1:39102/v1/self-hosted/discovery ';
+
+    await service.submit({ email: 'jane@example.com' });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'http://127.0.0.1:39102/v1/self-hosted/discovery',
+      expect.any(Object),
+    );
   });
 
   it('does not send Skip or whitespace-only submissions', async () => {

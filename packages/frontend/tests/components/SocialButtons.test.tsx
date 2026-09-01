@@ -101,4 +101,14 @@ describe('SocialButtons', () => {
       errorCallbackURL: '/login?redirect=%2Fupgrade%3Freason%3Drequests&error=oauth_failed',
     });
   });
+
+  it('accepts a signup-specific callback override', async () => {
+    render(() => <SocialButtons callbackURL="/discovery?next=%2Fwelcome&signup=1" />);
+    await fireEvent.click(screen.getByText('Continue with GitHub'));
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: 'github',
+      callbackURL: '/discovery?next=%2Fwelcome&signup=1',
+      errorCallbackURL: '/login?error=oauth_failed',
+    });
+  });
 });

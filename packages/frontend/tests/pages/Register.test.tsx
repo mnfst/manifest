@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@solidjs/testing-library';
 
 const mockSignUpEmail = vi.fn().mockResolvedValue({});
+const mockSignInSocial = vi.fn().mockResolvedValue({});
 const mockSendVerificationEmail = vi.fn().mockResolvedValue({});
 const mockSubscriptionUpgrade = vi.fn().mockResolvedValue({});
 const mockGetBillingStatus = vi.fn().mockResolvedValue({ enabled: false, plan: 'free' });
 const mockCheckIsSelfHosted = vi.fn().mockResolvedValue(false);
+const mockCheckSocialProviders = vi.fn().mockResolvedValue([]);
 const mockNavigate = vi.fn();
 const mockToastError = vi.fn();
 let mockLocationSearch = '';
@@ -34,6 +36,7 @@ vi.mock('../../src/services/auth-client.js', () => ({
       isPending: false,
     }),
     signUp: { email: (...args: unknown[]) => mockSignUpEmail(...args) },
+    signIn: { social: (...args: unknown[]) => mockSignInSocial(...args) },
     sendVerificationEmail: (...args: unknown[]) => mockSendVerificationEmail(...args),
     subscription: { upgrade: (...args: unknown[]) => mockSubscriptionUpgrade(...args) },
   },
@@ -52,7 +55,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 }));
 
 vi.mock('../../src/services/setup-status.js', () => ({
-  checkSocialProviders: vi.fn().mockResolvedValue([]),
+  checkSocialProviders: (...args: unknown[]) => mockCheckSocialProviders(...args),
   checkIsSelfHosted: (...args: unknown[]) => mockCheckIsSelfHosted(...args),
 }));
 
@@ -63,9 +66,11 @@ describe('Register', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSignUpEmail.mockResolvedValue({});
+    mockSignInSocial.mockResolvedValue({});
     mockSubscriptionUpgrade.mockResolvedValue({});
     mockGetBillingStatus.mockResolvedValue({ enabled: false, plan: 'free' });
     mockCheckIsSelfHosted.mockResolvedValue(false);
+    mockCheckSocialProviders.mockResolvedValue([]);
     mockLocationSearch = '';
     mockSearchParams = {};
     localStorage.clear();
@@ -245,6 +250,20 @@ describe('Register', () => {
         password: 'pass123',
         callbackURL: '/discovery?next=%2Fwelcome',
       });
+    });
+  });
+
+  it('routes self-hosted social signups through the discovery step', async () => {
+    mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockCheckSocialProviders.mockResolvedValue(['github']);
+    render(() => <Register />);
+
+    await fireEvent.click(await screen.findByText('Continue with GitHub'));
+
+    expect(mockSignInSocial).toHaveBeenCalledWith({
+      provider: 'github',
+      callbackURL: '/discovery?next=%2Fwelcome&signup=1',
+      errorCallbackURL: '/login?error=oauth_failed',
     });
   });
 

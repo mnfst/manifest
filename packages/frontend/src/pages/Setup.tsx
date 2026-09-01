@@ -2,6 +2,7 @@ import { useNavigate } from '@solidjs/router';
 import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, onMount, Show } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
+import { buildLoginRedirect } from '../services/auth-redirects.js';
 import { checkIsSelfHosted, checkNeedsSetup, createFirstAdmin } from '../services/setup-status.js';
 import { markDiscoveryPending } from '../services/discovery.js';
 
@@ -47,8 +48,9 @@ const Setup: Component = () => {
         password: password(),
       });
       if (authError) {
-        // Creation succeeded but sign-in failed — send them to login.
-        navigate('/login', { replace: true });
+        // Creation succeeded but sign-in failed. Preserve the new-account
+        // destination so a later manual login still reaches discovery.
+        navigate(buildLoginRedirect('/discovery', '?next=%2F&signup=1'), { replace: true });
         return;
       }
       // New self-hosted admins get the one-time discovery step first; the

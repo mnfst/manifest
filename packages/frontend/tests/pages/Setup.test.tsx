@@ -160,14 +160,17 @@ describe('Setup page', () => {
     });
   });
 
-  it('falls back to /login if auto-sign-in fails after setup', async () => {
+  it('preserves discovery through a manual login if auto-sign-in fails after setup', async () => {
     mockSignInEmail.mockResolvedValue({ error: { message: 'session failed' } });
     const { container } = await renderSetup();
     fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/login?redirect=%2Fdiscovery%3Fnext%3D%252F%26signup%3D1',
+        { replace: true },
+      );
     });
   });
 

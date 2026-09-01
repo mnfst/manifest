@@ -57,7 +57,9 @@ function scanComponentImports() {
       const cssPath = join(dirname(path), m[1]);
       if (!cssPath.startsWith(stylesDir)) continue;
       const key = basename(cssPath);
-      (importers.get(key) ?? importers.set(key, []).get(key)).push(relative(srcDir, path));
+      (importers.get(key) ?? importers.set(key, []).get(key)).push(
+        relative(srcDir, path).replaceAll('\\', '/'),
+      );
     }
   };
   walk(srcDir);
@@ -67,13 +69,18 @@ function scanComponentImports() {
 
 function generate() {
   const { files: componentFiles, importers } = scanComponentImports();
-  const { order, rules, missing, entryTreeSize } = loadCascade(join(stylesDir, 'theme.css'), componentFiles);
+  const { order, rules, missing, entryTreeSize } = loadCascade(
+    join(stylesDir, 'theme.css'),
+    componentFiles,
+  );
   const imported = new Set(order.map((p) => basename(p)));
   const orphans = readdirSync(stylesDir)
     .filter((f) => f.endsWith('.css') && !imported.has(f))
     .sort();
   const componentSheets = Object.fromEntries(
-    order.slice(entryTreeSize).map((p) => [basename(p), (importers.get(basename(p)) ?? ['(via @import)']).sort()]),
+    order
+      .slice(entryTreeSize)
+      .map((p) => [basename(p), (importers.get(basename(p)) ?? ['(via @import)']).sort()]),
   );
   const tokens = resolveTokens(rules);
   const registry = buildRegistry({
@@ -112,7 +119,8 @@ if (process.argv.includes('--check')) {
   console.log('✓ design-system registry is up to date');
 } else {
   mkdirSync(registryDir, { recursive: true });
-  for (const [name, content] of Object.entries(files)) writeFileSync(join(registryDir, name), content);
+  for (const [name, content] of Object.entries(files))
+    writeFileSync(join(registryDir, name), content);
   console.log(
     `✓ registry written: ${stats.tokens} tokens, ${stats.blocks} blocks / ${stats.classes} classes, ` +
       `${stats.canonicalRules} canonical rules, ${stats.ghostRules} ghosts`,

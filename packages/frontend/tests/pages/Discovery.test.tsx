@@ -134,6 +134,15 @@ describe('Discovery page', () => {
     expect(mockMarkDiscoveryPending).toHaveBeenCalledWith('u1', '/welcome');
   });
 
+  it('creates the per-user marker after a social signup callback', async () => {
+    mockSearchParams = { next: '/welcome', signup: '1' };
+    await renderForm();
+    expect(mockMarkDiscoveryPending).toHaveBeenCalledWith('u1', '/welcome');
+    expect(mockMarkDiscoveryPending.mock.invocationCallOrder[0]!).toBeLessThan(
+      mockIsDiscoveryRequired.mock.invocationCallOrder[0]!,
+    );
+  });
+
   it('does not mark the step pending when redirecting away', async () => {
     mockIsDiscoveryRequired.mockResolvedValue(false);
     render(() => <Discovery />);

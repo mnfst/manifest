@@ -65,7 +65,13 @@ export function resolveConflicts(rules) {
     for (const d of rule.declarations) {
       if (d.prop.startsWith('--')) continue; // token definitions handled separately
       const key = `${rule.selector} § ${rule.media} § ${d.prop}`;
-      const entry = { ...d, selector: rule.selector, media: rule.media, file: rule.file, orderIndex: rule.orderIndex };
+      const entry = {
+        ...d,
+        selector: rule.selector,
+        media: rule.media,
+        file: rule.file,
+        orderIndex: rule.orderIndex,
+      };
       (byKey.get(key) ?? byKey.set(key, []).get(key)).push(entry);
     }
   }
@@ -74,17 +80,31 @@ export function resolveConflicts(rules) {
   for (const [, entries] of byKey) {
     const values = new Set(entries.map((e) => e.value));
     if (entries.length < 2 || values.size < 2) continue;
-    entries.sort((a, b) => specificity(a.selector) - specificity(b.selector) || a.orderIndex - b.orderIndex);
+    entries.sort(
+      (a, b) =>
+        Number(isImportant(a.value)) - Number(isImportant(b.value)) ||
+        specificity(a.selector) - specificity(b.selector) ||
+        a.orderIndex - b.orderIndex,
+    );
     const winner = entries[entries.length - 1];
     canonical.push(strip(winner));
-    for (const loser of entries.slice(0, -1)) ghosts.push({ ...strip(loser), losesTo: `${winner.file}:${winner.line}` });
+    for (const loser of entries.slice(0, -1))
+      ghosts.push({ ...strip(loser), losesTo: `${winner.file}:${winner.line}` });
   }
   const bySource = (a, b) => a.file.localeCompare(b.file) || a.line - b.line;
   return { canonical: canonical.sort(bySource), ghosts: ghosts.sort(bySource) };
 }
 
-const strip = ({ selector, media, prop, value, file, line }) =>
-  ({ selector, ...(media ? { media } : {}), prop, value, file, line });
+const isImportant = (value) => /\s!important\s*$/i.test(value);
+
+const strip = ({ selector, media, prop, value, file, line }) => ({
+  selector,
+  ...(media ? { media } : {}),
+  prop,
+  value,
+  file,
+  line,
+});
 
 const TOKEN_SCOPES = [':root', '.dark'];
 
@@ -103,7 +123,8 @@ export function resolveTokens(rules) {
     for (const d of rule.declarations) {
       if (!d.prop.startsWith('--')) continue;
       tables[scope].set(d.prop, { value: d.value, file: rule.file, line: d.line });
-      if (rule.file !== 'tokens.css') outOfSource.push({ scope, prop: d.prop, file: rule.file, line: d.line });
+      if (rule.file !== 'tokens.css')
+        outOfSource.push({ scope, prop: d.prop, file: rule.file, line: d.line });
     }
   }
   return { light: tables[':root'], dark: tables['.dark'], outOfSource };
