@@ -4305,6 +4305,7 @@
     "workspace-table": {
       "classes": [
         "workspace-table__actions",
+        "workspace-table__icon",
         "workspace-table__name"
       ],
       "files": [
@@ -5087,7 +5088,7 @@
     "tokens": 79,
     "darkOverrides": 38,
     "blocks": 315,
-    "classes": 1696,
+    "classes": 1697,
     "canonicalRules": 46,
     "ghostRules": 46
   }

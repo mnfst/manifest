@@ -873,3 +873,15 @@
 .workspace-table__actions {
   text-align: right;
 }
+
+.workspace-table__icon {
+  flex-shrink: 0;
+}
+
+.dark .workspace-table__icon[src*='openai'],
+.dark .workspace-table__icon[src*='anthropic'],
+.dark .workspace-table__icon[src*='vercel'],
+.dark .workspace-table__icon[src*='opencode'],
+.dark .workspace-table__icon[src*='other'] {
+  filter: invert(1);
+}

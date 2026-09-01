@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (315 BEM blocks, 1696 classes)
+## Blocks (315 BEM blocks, 1697 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -411,7 +411,7 @@ waiting-banner (overview.css): waiting-banner waiting-banner--success
 welcome (welcome.css): welcome welcome__actions welcome__actions--split welcome__actions--sticky welcome__actions-note welcome__agent-wait welcome__agent-wait--success welcome__agent-wait-heading welcome__autofix-details welcome__autofix-examples welcome__autofix-heading welcome__autofix-how welcome__autofix-section welcome__availability-note welcome__error welcome__eyebrow welcome__first-request welcome__form-panel welcome__harness-summary welcome__harness-summary-icon welcome__harness-summary-name welcome__harness-summary-type welcome__inline-code welcome__input-hint welcome__launch-orbit welcome__launch-rocket welcome__launch-rocket--complete welcome__launch-stack welcome__launch-stack--complete welcome__launch-stack-header welcome__launch-track welcome__legal welcome__liftoff welcome__liftoff-action welcome__liftoff-beacon welcome__liftoff-copy welcome__liftoff-description welcome__liftoff-earth welcome__liftoff-exit welcome__liftoff-flash welcome__liftoff-kicker welcome__liftoff-orbit welcome__liftoff-plume welcome__liftoff-plume-inner welcome__liftoff-rocket welcome__liftoff-smoke welcome__liftoff-stars welcome__liftoff-stars--far welcome__liftoff-stars--near welcome__liftoff-status welcome__liftoff-title welcome__liftoff-title--launch welcome__liftoff-title--orbit welcome__liftoff-titles welcome__logo-dark welcome__logo-light welcome__logo-mark welcome__main welcome__model-badge welcome__nav welcome__nav-btn welcome__nav-check welcome__nav-dot welcome__nav-hint welcome__nav-item welcome__nav-item--active welcome__nav-item--done welcome__nav-label welcome__nav-mobile-rocket welcome__nav-mobile-rocket--complete welcome__output welcome__panel welcome__panel--playground welcome__panel--setup welcome__panel-desc welcome__panel-header welcome__panel-title welcome__pending welcome__plan-heading welcome__plan-section welcome__playground welcome__playground-actions welcome__playground-link welcome__progress welcome__progress-header welcome__prompt-label welcome__provider-connected welcome__provider-list welcome__request-failure welcome__response welcome__rocket-flame welcome__route-test-heading welcome__route-test-section welcome__route-test-title welcome__section-desc welcome__section-heading welcome__setup-snippets welcome__sidebar welcome__sidebar-footer welcome__sidebar-top welcome__skip-row welcome__spinner welcome__stats welcome__success-icon welcome__text-link welcome__textarea
 wingman-drawer (controls.css): wingman-drawer wingman-drawer--resizing wingman-drawer__actions wingman-drawer__frame wingman-drawer__head wingman-drawer__icon-btn wingman-drawer__resizer wingman-drawer__sub wingman-drawer__title
 wingman-fab (controls.css): wingman-fab wingman-fab__label
-workspace-table (agents.css): workspace-table__actions workspace-table__name
+workspace-table (agents.css): workspace-table__actions workspace-table__icon workspace-table__name
 
 ## Primitives (0)
 (none yet — phase 2 builds them in src/components/ui/)

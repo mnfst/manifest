@@ -103,6 +103,23 @@ const Workspace: Component = () => {
     }
   });
   const [duplicateSource, setDuplicateSource] = createSignal<string | null>(null);
+  // Shared by the grid card menu and the table row menu so both views stay in sync.
+  const harnessActionItems = (agentName: string) => [
+    {
+      label: 'Duplicate',
+      icon: <DuplicateIcon />,
+      onClick: () => setDuplicateSource(agentName),
+    },
+    {
+      label: 'Delete',
+      danger: true,
+      icon: <DeleteIcon />,
+      onClick: () => {
+        setDeleteTarget(agentName);
+        setDeleteConfirmName('');
+      },
+    },
+  ];
   const [deleteTarget, setDeleteTarget] = createSignal<string | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = createSignal('');
   const [deleting, setDeleting] = createSignal(false);
@@ -209,6 +226,16 @@ const Workspace: Component = () => {
             fallback={
               <div class="panel" style="padding: 0;">
                 <table class="data-table" style="width: 100%;">
+                  <thead>
+                    <tr>
+                      <th>Harness</th>
+                      <th>Requests</th>
+                      <th>Tokens</th>
+                      <th>Cost</th>
+                      <th>Last active</th>
+                      <th aria-label="Actions" />
+                    </tr>
+                  </thead>
                   <tbody>
                     <For each={[1, 2, 3, 4, 5]}>
                       {() => (
@@ -227,6 +254,12 @@ const Workspace: Component = () => {
                           </td>
                           <td>
                             <div class="skeleton skeleton--text" style="width: 70%;" />
+                          </td>
+                          <td class="workspace-table__actions">
+                            <div
+                              class="skeleton"
+                              style="width: 20px; height: 20px; margin-left: auto;"
+                            />
                           </td>
                         </tr>
                       )}
@@ -307,34 +340,20 @@ const Workspace: Component = () => {
                                     alt=""
                                     width="16"
                                     height="16"
+                                    class="workspace-table__icon"
                                   />
                                 </Show>
                                 {agent.display_name ?? agent.agent_name}
                               </A>
                             </td>
-                            <td>{agent.message_count}</td>
+                            <td>{formatNumber(agent.message_count)}</td>
                             <td>{formatNumber(agent.total_tokens)}</td>
                             <td>{formatCost(agent.total_cost) ?? '—'}</td>
                             <td>{agent.last_active ? formatTime(agent.last_active) : '—'}</td>
                             <td class="workspace-table__actions">
                               <ActionMenu
                                 ariaLabel={`Actions for ${agent.agent_name}`}
-                                items={[
-                                  {
-                                    label: 'Duplicate',
-                                    icon: <DuplicateIcon />,
-                                    onClick: () => setDuplicateSource(agent.agent_name),
-                                  },
-                                  {
-                                    label: 'Delete',
-                                    danger: true,
-                                    icon: <DeleteIcon />,
-                                    onClick: () => {
-                                      setDeleteTarget(agent.agent_name);
-                                      setDeleteConfirmName('');
-                                    },
-                                  },
-                                ]}
+                                items={harnessActionItems(agent.agent_name)}
                               />
                             </td>
                           </tr>
@@ -376,7 +395,9 @@ const Workspace: Component = () => {
                           </div>
                           <div class="agent-card__stat">
                             <span class="agent-card__stat-label">Requests</span>
-                            <span class="agent-card__stat-value">{agent.message_count}</span>
+                            <span class="agent-card__stat-value">
+                              {formatNumber(agent.message_count)}
+                            </span>
                           </div>
                         </div>
                         <div class="agent-card__chart">
@@ -386,22 +407,7 @@ const Workspace: Component = () => {
                       <ActionMenu
                         class="agent-card__menu"
                         ariaLabel={`Actions for ${agent.agent_name}`}
-                        items={[
-                          {
-                            label: 'Duplicate',
-                            icon: <DuplicateIcon />,
-                            onClick: () => setDuplicateSource(agent.agent_name),
-                          },
-                          {
-                            label: 'Delete',
-                            danger: true,
-                            icon: <DeleteIcon />,
-                            onClick: () => {
-                              setDeleteTarget(agent.agent_name);
-                              setDeleteConfirmName('');
-                            },
-                          },
-                        ]}
+                        items={harnessActionItems(agent.agent_name)}
                       />
                     </div>
                   )}

@@ -27,13 +27,6 @@ vi.mock("@solidjs/router", () => ({
   useLocation: () => ({ get pathname() { return mockPathname; } }),
 }));
 
-// getAgents returns the harness list rendered in the in-nav switcher. Each test
-// can override the resolved value via mockGetAgents.
-const mockGetAgents = vi.fn();
-vi.mock("../../src/services/api.js", () => ({
-  getAgents: (...args: unknown[]) => mockGetAgents(...args),
-}));
-
 const mockGetBillingStatus = vi.fn();
 vi.mock("../../src/services/api/billing.js", () => ({
   getBillingStatus: (...args: unknown[]) => mockGetBillingStatus(...args),
@@ -79,29 +72,12 @@ vi.mock("../../src/components/AddAgentModal.jsx", async () => {
 });
 
 import Sidebar from "../../src/components/Sidebar";
-import { refreshAgents } from "../../src/services/sse";
-
-const SAMPLE_AGENTS = [
-  {
-    agent_name: "alpha",
-    display_name: "Alpha Harness",
-    agent_platform: "openclaw",
-    agent_category: "personal",
-  },
-  {
-    // No display_name → falls back to agent_name. No platform → no icon.
-    agent_name: "beta",
-    agent_platform: null,
-    agent_category: null,
-  },
-];
 
 beforeEach(() => {
   sessionStorage.clear();
   vi.clearAllMocks();
   mockPathname = "/overview";
   mockIsSelfHosted = true;
-  mockGetAgents.mockResolvedValue({ agents: SAMPLE_AGENTS });
   mockGetBillingStatus.mockResolvedValue({
     enabled: false,
     plan: "free",

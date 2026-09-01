@@ -75,7 +75,7 @@ vi.mock('../../src/services/toast-store.js', () => ({
 
 vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
-  formatCost: (v: number) => `$${v.toFixed(2)}`,
+  formatCost: (v: number) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : null),
   formatTime: (ts: string) => ts,
 }));
 
@@ -749,6 +749,8 @@ describe('Workspace — view toggle', () => {
         {
           agent_name: 'demo-agent',
           display_name: 'Demo Agent',
+          agent_platform: 'openclaw',
+          agent_category: 'personal',
           message_count: 42,
           last_active: '2024-01-01',
           total_cost: 5.5,
@@ -781,6 +783,8 @@ describe('Workspace — view toggle', () => {
     expect(row.textContent).toContain('15000');
     expect(row.textContent).toContain('$5.50');
     expect(row.querySelector('a[href="/harnesses/demo-agent"]')).not.toBeNull();
+    // The platform icon carries the class the dark-mode invert rules target.
+    expect(row.querySelector('img.workspace-table__icon')).not.toBeNull();
     expect(container.querySelector('.agents-grid')).toBeNull();
     expect(localStorage.getItem('manifest_harness_view')).toBe('table');
   });
@@ -792,5 +796,119 @@ describe('Workspace — view toggle', () => {
     fireEvent.click(screen.getByLabelText('Grid view'));
     expect(container.querySelector('.agents-grid')).not.toBeNull();
     expect(localStorage.getItem('manifest_harness_view')).toBe('grid');
+  });
+
+  it('falls back to grid view when localStorage.getItem throws', async () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: () => {
+          throw new Error('blocked');
+        },
+        setItem: () => {},
+      },
+      configurable: true,
+    });
+    try {
+      const { container } = render(() => <Workspace />);
+      await waitFor(() => expect(container.textContent).toContain('Demo Agent'));
+      expect(container.querySelector('.agents-grid')).not.toBeNull();
+    } finally {
+      if (original) Object.defineProperty(window, 'localStorage', original);
+    }
+  });
+
+  it('still switches to table view when localStorage.setItem throws', async () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: () => null,
+        setItem: () => {
+          throw new Error('quota');
+        },
+      },
+      configurable: true,
+    });
+    try {
+      const { container } = render(() => <Workspace />);
+      await waitFor(() => expect(container.textContent).toContain('Demo Agent'));
+      fireEvent.click(screen.getByLabelText('Table view'));
+      expect(container.querySelector('table.data-table')).not.toBeNull();
+    } finally {
+      if (original) Object.defineProperty(window, 'localStorage', original);
+    }
+  });
+
+  it('shows the table skeleton with the real header while loading in table view', async () => {
+    localStorage.setItem('manifest_harness_view', 'table');
+    let resolveAgents!: (v: unknown) => void;
+    mockGetAgents.mockReturnValue(
+      new Promise((res) => {
+        resolveAgents = res;
+      }),
+    );
+    const { container } = render(() => <Workspace />);
+    const table = container.querySelector('table.data-table');
+    expect(table).not.toBeNull();
+    expect(table!.querySelector('thead')?.textContent).toContain('Harness');
+    // Skeleton rows mirror the loaded table: 6 cells including the actions column.
+    const firstRow = table!.querySelector('tbody tr')!;
+    expect(firstRow.querySelectorAll('td')).toHaveLength(6);
+    expect(firstRow.querySelector('.skeleton')).not.toBeNull();
+    expect(container.querySelector('.agents-grid')).toBeNull();
+    resolveAgents({ agents: [] });
+    await waitFor(() => expect(container.textContent).toContain('No harnesses yet'));
+  });
+
+  it('renders em dashes for missing cost and last_active in the table view', async () => {
+    localStorage.setItem('manifest_harness_view', 'table');
+    mockGetAgents.mockResolvedValue({
+      agents: [
+        {
+          agent_name: 'idle-agent',
+          message_count: 0,
+          total_cost: null,
+          total_tokens: 0,
+          last_active: null,
+          sparkline: [],
+        },
+      ],
+    });
+    const { container } = render(() => <Workspace />);
+    await waitFor(() =>
+      expect(container.querySelector('table.data-table tbody tr')).not.toBeNull(),
+    );
+    const cells = Array.from(
+      container.querySelectorAll('table.data-table tbody tr td'),
+      (td) => td.textContent,
+    );
+    // Cost and Last active both fall back to an em dash.
+    expect(cells[3]).toBe('—');
+    expect(cells[4]).toBe('—');
+  });
+
+  it('drives Duplicate and Delete from the table row action menu', async () => {
+    localStorage.setItem('manifest_harness_view', 'table');
+    const { container } = render(() => <Workspace />);
+    await waitFor(() =>
+      expect(
+        container.querySelector('.workspace-table__actions .action-menu__trigger'),
+      ).not.toBeNull(),
+    );
+    const trigger = container.querySelector(
+      '.workspace-table__actions .action-menu__trigger',
+    ) as HTMLButtonElement;
+    expect(trigger.getAttribute('aria-label')).toBe('Actions for demo-agent');
+
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByText('Duplicate'));
+    await waitFor(() =>
+      expect(container.querySelector('[data-testid="duplicate-modal"]')).not.toBeNull(),
+    );
+    fireEvent.click(screen.getByTestId('duplicate-modal-close'));
+
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByText('Delete'));
+    await waitFor(() => expect(container.textContent).toContain('Delete demo-agent'));
   });
 });

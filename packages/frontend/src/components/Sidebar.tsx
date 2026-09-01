@@ -208,7 +208,7 @@ const Sidebar: Component<SidebarProps> = (props) => {
         </A>
       </Show>
 
-      {/* Create-harness modal, opened by the HARNESSES section + button */}
+      {/* Create-harness modal, opened by the + button next to the Harnesses nav link */}
       <AddAgentModal open={addModalOpen()} onClose={() => setAddModalOpen(false)} />
     </nav>
   );
