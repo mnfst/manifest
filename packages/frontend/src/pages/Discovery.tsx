@@ -144,6 +144,8 @@ const Discovery: Component = () => {
                     onChange={setProjectType}
                     placeholder="Select an option"
                     label="What type of project are you working on?"
+                    portal
+                    maxDropdownHeight={280}
                   />
                 </div>
               </div>
@@ -156,6 +158,8 @@ const Discovery: Component = () => {
                     onChange={setCompanySize}
                     placeholder="Select an option"
                     label="How big is your company?"
+                    portal
+                    maxDropdownHeight={280}
                   />
                 </div>
               </div>
