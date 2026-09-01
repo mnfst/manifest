@@ -364,6 +364,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
 | GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status + email preferences (Stripe)                                                                 |
 | POST                      | `/api/v1/waitlist/autofix/claim`                | Public                              | Deprecated no-op compatibility route for older self-hosted versions                                         |
+| POST                      | `/api/v1/discovery/complete`                    | Session/API Key                     | Best-effort self-hosted discovery submission forwarded to Peacock                                           |
 | GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
@@ -422,6 +423,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
 - `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
+- `DISCOVERY_ENDPOINT` — Optional override for the discovery submission endpoint. Default: `https://blue.manifest.build/v1/self-hosted/discovery`.
 - `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).
 - `WINGMAN_PORT` — Dev-only. Port a locally-running Wingman build listens on, allowed through CSP `frame-src` and CORS alongside the hosted Wingman origin. Default: backend `PORT` + 1.
 - `AUTH_DB_POOL_MAX` — Connection pool size for Better Auth's own `pg.Pool`, separate from `DB_POOL_MAX`. Default: `5`.
