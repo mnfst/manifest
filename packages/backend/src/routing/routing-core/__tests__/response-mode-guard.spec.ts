@@ -13,13 +13,13 @@ const route = (provider: string, model: string): ModelRoute => ({
 
 describe('assertStreamableResponseMode', () => {
   it('rejects stream mode when no saved route supports streaming', () => {
-    const unsupported = route('unsupported', 'local-model');
+    const nonStreaming = route('openai', 'gpt-image-1');
 
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', unsupported, null),
+      assertStreamableResponseMode('stream', 'tier "default"', nonStreaming, null),
     ).toThrow(BadRequestException);
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', unsupported, null),
+      assertStreamableResponseMode('stream', 'tier "default"', nonStreaming, null),
     ).toThrow(/add at least one stream-capable model/);
   });
 
@@ -32,20 +32,20 @@ describe('assertStreamableResponseMode', () => {
   });
 
   it('allows a non-stream primary when a stream-capable fallback exists', () => {
-    const unsupported = route('unsupported', 'local-model');
+    const nonStreaming = route('openai', 'gpt-image-1');
     const openai = route('openai', 'gpt-4o');
 
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', unsupported, [openai]),
+      assertStreamableResponseMode('stream', 'tier "default"', nonStreaming, [openai]),
     ).not.toThrow();
   });
 
   it('allows a non-stream fallback when the primary supports streaming', () => {
     const openai = route('openai', 'gpt-4o');
-    const unsupported = route('unsupported', 'local-model');
+    const nonStreaming = route('openai', 'gpt-image-1');
 
     expect(() =>
-      assertStreamableResponseMode('stream', 'tier "default"', openai, [unsupported]),
+      assertStreamableResponseMode('stream', 'tier "default"', openai, [nonStreaming]),
     ).not.toThrow();
   });
 
@@ -70,11 +70,11 @@ describe('effectiveRoutesForResponseMode', () => {
   });
 
   it('lifts the first stream-capable fallback when streaming skips the primary', () => {
-    const unsupported = route('unsupported', 'local-model');
+    const nonStreaming = route('openai', 'gpt-image-1');
     const openai = route('openai', 'gpt-4o');
     const anthropic = route('anthropic', 'claude-3-5-sonnet');
 
-    expect(effectiveRoutesForResponseMode('stream', unsupported, [openai, anthropic])).toEqual({
+    expect(effectiveRoutesForResponseMode('stream', nonStreaming, [openai, anthropic])).toEqual({
       primaryRoute: openai,
       fallbackRoutes: [anthropic],
     });
@@ -82,9 +82,9 @@ describe('effectiveRoutesForResponseMode', () => {
 
   it('filters non-stream fallbacks while keeping a stream-capable primary', () => {
     const openai = route('openai', 'gpt-4o');
-    const unsupported = route('unsupported', 'local-model');
+    const nonStreaming = route('openai', 'gpt-image-1');
 
-    expect(effectiveRoutesForResponseMode('stream', openai, [unsupported])).toEqual({
+    expect(effectiveRoutesForResponseMode('stream', openai, [nonStreaming])).toEqual({
       primaryRoute: openai,
       fallbackRoutes: null,
     });
