@@ -418,7 +418,7 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 ## Migration map — legacy component → primitive to use instead (0)
 (empty until primitives exist)
 
-## Canonical rules — same selector+property declared twice with different values; the winner renders (47)
+## Canonical rules — same selector+property declared twice with different values; the winner renders (48)
 .view-more-link { color: hsl(var(--foreground)) }  ← analytics-overview.css:170
 .custom-select__option--top > svg { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
@@ -446,17 +446,18 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .feed-item { gap: var(--gap-md) }  ← theme.css:587
 .feed-item { padding: 10px 0 }  ← theme.css:588
 .sidebar { padding: var(--gap-lg) 0 0 0 }  ← theme.css:784
-.sidebar__agent-item { gap: 8px }  ← theme.css:922
-.theme-toggle { padding: 6px 12px }  ← theme.css:1000
-.theme-toggle { width: 100% }  ← theme.css:1009
-.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1086
-.expandable-card__fade { height: 64px }  ← theme.css:1117
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1118
-.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1123
+.sidebar { overflow-y: auto }  ← theme.css:788
+.sidebar__agent-item { gap: 8px }  ← theme.css:958
+.theme-toggle { padding: 6px 12px }  ← theme.css:1036
+.theme-toggle { width: 100% }  ← theme.css:1045
+.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1122
+.expandable-card__fade { height: 64px }  ← theme.css:1153
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1154
+.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1159
 .modal { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1174
-.modal__close { width: 2rem }  ← theme.css:1199
-.modal__close { height: 2rem }  ← theme.css:1200
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1210
+.modal__close { width: 2rem }  ← theme.css:1235
+.modal__close { height: 2rem }  ← theme.css:1236
 .toast { align-items: flex-start }  ← toast.css:16
 .toast { gap: var(--gap-sm) }  ← toast.css:17
 .toast { padding: 12px var(--gap-md) }  ← toast.css:18
@@ -469,7 +470,7 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .welcome__route-test-heading { align-items: center }  ← welcome.css:903
 .welcome__route-test-heading { gap: 10px }  ← welcome.css:904
 
-## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (47)
+## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (48)
 .summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:196
 .trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:237
 .trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:242
@@ -480,16 +481,17 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:284
 .chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:290
 .chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:322
-.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1086
-.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1117
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1118
-.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1123
+.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1122
+.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1153
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1154
+.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1159
 .toast { align-items: center }  at controls.css:172 loses to toast.css:16
 .toast { gap: 10px }  at controls.css:173 loses to toast.css:17
 .toast { padding: 12px 16px }  at controls.css:174 loses to toast.css:18
 .toast { box-shadow: 0 4px 16px rgb(0 0 0 / 0.15) }  at controls.css:177 loses to toast.css:22
 .toast { animation: toast-in 200ms ease-out }  at controls.css:180 loses to toast.css:26
 .sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:784
+.sidebar { overflow-y: hidden }  at controls.css:269 loses to theme.css:788
 .custom-select__option--top > svg { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .tier-badge--fallback { background: hsl(var(--muted-foreground) / 0.1) }  at data.css:299 loses to overview.css:194
@@ -497,12 +499,12 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:586
 .feed-item { gap: 12px }  at data.css:508 loses to theme.css:587
 .feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:588
-.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:1009
-.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:1000
+.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:1045
+.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:1036
 .modal { box-shadow: var(--card-shadow),
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1174
-.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1199
-.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1200
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1210
+.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1235
+.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1236
 .setup-modal__header { align-items: flex-start }  at modals.css:64 loses to overview.css:15
 .setup-modal__next { padding: 8px 20px }  at modals.css:105 loses to overview.css:42
 .setup-modal__next { color: hsl(var(--primary-foreground)) }  at modals.css:109 loses to overview.css:46
@@ -512,7 +514,7 @@ wingman-fab (controls.css): wingman-fab wingman-fab__label
 .request-tool { border-radius: var(--radius) }  at request-drawer.css:647 loses to request-drawer.css:875
 .request-tool { background: hsl(var(--card)) }  at request-drawer.css:648 loses to request-drawer.css:876
 .hljs-attr { color: hsl(187 60% 38%) }  at request-drawer.css:1054 loses to syntax-highlight.css:41
-.sidebar__agent-item { gap: var(--gap-xs) }  at theme.css:824 loses to theme.css:922
+.sidebar__agent-item { gap: var(--gap-xs) }  at theme.css:824 loses to theme.css:958
 .welcome__progress-header span { letter-spacing: 0.09em }  at welcome.css:548 loses to welcome.css:554
 .welcome__text-link:focus-visible { outline: 3px solid hsl(var(--ring)) }  at welcome.css:726 loses to welcome.css:865
 .welcome__text-link:focus-visible { outline-offset: 2px }  at welcome.css:727 loses to welcome.css:866

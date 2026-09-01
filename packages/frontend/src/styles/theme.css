@@ -912,10 +912,46 @@ h6 {
   background: hsl(var(--border));
 }
 
-/* Harness list items reuse the shared link base (above); these are the only
-   harness-specific overrides — a wider icon gap and a bolder label. */
+/* Harness list items reuse the shared link base (above). The list is the
+   sidebar's only scrollable region: it shrinks before anything else, capped
+   at ~5.5 rows so the half row already hints at more, and the flex column
+   sizes it to whatever space the nav and the pinned bottom stack leave. */
 .sidebar__agents-list {
   padding: 0;
+  flex: 0 1 auto;
+  min-height: 74px; /* two ~36px rows — the list never collapses entirely */
+  max-height: 198px; /* 5.5 rows of ~36px (6px padding + 22px line + 2px margin) */
+  overflow-y: auto;
+  /* Pure-CSS scroll shadows: the sidebar-background covers travel with the
+     content (attachment: local) and unmask the pinned gradients only on the
+     side where more content remains. */
+  background:
+    linear-gradient(hsl(var(--sidebar-background)) 30%, transparent),
+    linear-gradient(transparent, hsl(var(--sidebar-background)) 70%) 0 100%,
+    radial-gradient(farthest-side at 50% 0, hsl(var(--sidebar-foreground) / 0.18), transparent),
+    radial-gradient(farthest-side at 50% 100%, hsl(var(--sidebar-foreground) / 0.18), transparent) 0
+      100%;
+  background-repeat: no-repeat;
+  background-size:
+    100% 32px,
+    100% 32px,
+    100% 12px,
+    100% 12px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* Short viewports cannot fit the pinned bottom stack above the fold: fall
+   back to the historic whole-column scroll so nothing becomes unreachable. */
+@media (max-height: 720px) {
+  .sidebar {
+    overflow-y: auto;
+  }
+  .sidebar__agents-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: visible;
+    background: none;
+  }
 }
 
 .sidebar__agent-item {
@@ -1423,6 +1459,14 @@ h6 {
   .sidebar__spacer,
   .sidebar__feedback {
     display: block;
+  }
+  /* The mobile drawer scrolls as one column; the desktop list cap and its
+     scroll shadows would only nest a second scrollbar here. */
+  .sidebar__agents-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: visible;
+    background: none;
   }
   .sidebar__link {
     flex: 0 0 auto;
