@@ -1995,6 +1995,7 @@
         "modals.css",
         "notifications.css",
         "overview.css",
+        "pivot.css",
         "routing-header-tiers.css",
         "routing.css"
       ]
@@ -3607,6 +3608,15 @@
         "pivot.css"
       ]
     },
+    "sidebar-pivot-modal": {
+      "classes": [
+        "sidebar-pivot-modal",
+        "sidebar-pivot-modal__logo"
+      ],
+      "files": [
+        "pivot.css"
+      ]
+    },
     "sidebar-upgrade": {
       "classes": [
         "sidebar-upgrade"
@@ -5089,8 +5099,8 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 313,
-    "classes": 1699,
+    "blocks": 314,
+    "classes": 1701,
     "canonicalRules": 47,
     "ghostRules": 47
   }

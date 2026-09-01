@@ -105,6 +105,17 @@
   opacity: 0.9;
 }
 
+/* Waiting-list modal: logo above the title, roomier description */
+.sidebar-pivot-modal__logo {
+  margin-bottom: var(--gap-md);
+}
+
+.sidebar-pivot-modal .modal-card__desc {
+  font-size: var(--font-size-md);
+  color: hsl(var(--muted-foreground));
+  margin-bottom: var(--gap-md);
+}
+
 /* Joined state inside the waiting-list modal */
 .sidebar-pivot__joined {
   display: flex;

@@ -101,12 +101,16 @@ describe('PivotAnnouncement', () => {
     expect(third.container.querySelector('.sidebar-pivot')).not.toBeNull();
   });
 
-  it('opens the modal with the session email prefilled and the article link', async () => {
+  it('opens the modal with the logo, the session email prefilled, and the article link', async () => {
     await openModal();
     const input = document.querySelector('.modal-card__input') as HTMLInputElement;
     expect(input.value).toBe('test@test.com');
     const link = document.querySelector(`a[href="${PIVOT_ARTICLE_URL}"]`);
     expect(link).not.toBeNull();
+    // The Manifest logotype sits above the title, in both theme variants.
+    const logo = document.querySelector('.sidebar-pivot-modal__logo');
+    expect(logo?.querySelector('img.auth-logo__img--light')).not.toBeNull();
+    expect(logo?.querySelector('img.auth-logo__img--dark')).not.toBeNull();
   });
 
   it('submits a corrected email, not the prefilled one', async () => {

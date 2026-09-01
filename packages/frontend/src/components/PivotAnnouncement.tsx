@@ -130,12 +130,20 @@ const PivotAnnouncement: Component = () => {
           >
             <div
               ref={dialogRef}
-              class="modal-card"
+              class="modal-card sidebar-pivot-modal"
               role="dialog"
               aria-modal="true"
               aria-labelledby="pivot-modal-title"
               aria-describedby="pivot-modal-description"
             >
+              <div class="sidebar-pivot-modal__logo">
+                <img
+                  src="/logotype-white.svg"
+                  alt="Manifest"
+                  class="auth-logo__img auth-logo__img--light"
+                />
+                <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
+              </div>
               <h2 class="modal-card__title" id="pivot-modal-title">
                 Manifest is becoming the self-healing layer for APIs
               </h2>
