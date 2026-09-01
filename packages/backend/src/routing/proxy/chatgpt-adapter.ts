@@ -195,6 +195,8 @@ function reasoningDeltaText(data: Record<string, unknown>): string {
 /** Tracks whether reasoning summary text was already streamed to the client. */
 interface ReasoningStreamState {
   streamed: boolean;
+  /** True once the stream has emitted any function_call output item / delta. */
+  sawToolCall: boolean;
 }
 
 /**
@@ -301,7 +303,7 @@ export function fromResponsesResponse(
  * summaries that never streamed as recognizable deltas.
  */
 export function createChatGptStreamTransformer(model: string): (chunk: string) => string | null {
-  const state: ReasoningStreamState = { streamed: false };
+  const state: ReasoningStreamState = { streamed: false, sawToolCall: false };
   return (chunk) => transformResponsesStreamChunk(chunk, model, state);
 }
 
@@ -370,6 +372,7 @@ export function transformResponsesStreamChunk(
     if (!data) return null;
     const item = isObjectRecord(data.item) ? data.item : undefined;
     if (item?.type !== 'function_call') return null;
+    if (state) state.sawToolCall = true;
     return formatSSE(
       {
         delta: {
@@ -412,8 +415,9 @@ function handleCompletedEvent(
   const response = isObjectRecord(data?.response) ? data.response : undefined;
   const responseOutput = responseOutputItems(response);
   const hasFunctionCalls = responseOutput.some((item) => item.type === 'function_call');
+  const sawToolCall = state?.sawToolCall ?? false;
   const finish = formatSSE(
-    { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
+    { delta: {}, finish_reason: hasFunctionCalls || sawToolCall ? 'tool_calls' : 'stop' },
     model,
     extractResponseUsage(response),
   );
