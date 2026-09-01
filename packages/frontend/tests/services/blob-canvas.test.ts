@@ -115,12 +115,21 @@ describe('blob canvas', () => {
     expect(ctx.fillRect).not.toHaveBeenCalled();
     expect(frames).toHaveLength(1);
 
-    // The parent gains a size; the deferred frame paints once and stops.
+    // The parent gains a size: resize repaints the static frame itself,
+    // since no animation loop exists to do it. The stale deferred frame
+    // paints once more and nothing gets rescheduled.
     rect = { width: 100, height: 40 };
     window.dispatchEvent(new Event('resize'));
-    frames.shift()!(0);
     expect(ctx.fillRect).toHaveBeenCalledTimes(1);
+    frames.shift()!(0);
+    expect(ctx.fillRect).toHaveBeenCalledTimes(2);
     expect(frames).toHaveLength(0);
+
+    // A later resize clears the backing store; the static frame follows.
+    rect = { width: 120, height: 50 };
+    window.dispatchEvent(new Event('resize'));
+    expect(ctx.fillRect).toHaveBeenCalledTimes(3);
+    expect(ctx.fillRect).toHaveBeenLastCalledWith(0, 0, 120, 50);
   });
 
   it('uses ResizeObserver when available and disconnects it on cleanup', () => {
@@ -146,6 +155,12 @@ describe('blob canvas', () => {
     rect = { width: 300, height: 80 };
     callback();
     expect(canvas.width).toBe(300);
+
+    // A DPR change (new display) alters no CSS size, so the observer stays
+    // silent; the window resize listener picks it up instead.
+    vi.stubGlobal('devicePixelRatio', 2);
+    window.dispatchEvent(new Event('resize'));
+    expect(canvas.width).toBe(600);
 
     stop();
     expect(disconnect).toHaveBeenCalled();

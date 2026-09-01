@@ -102,6 +102,10 @@ export function initBlobCanvas(
     grainCanvas.width = W;
     grainCanvas.height = H;
     generateGrain();
+    // Setting width/height just cleared the backing store. The animation
+    // loop repaints on its next frame, but under reduced motion there is no
+    // loop: repaint the static frame here so it tracks the new size.
+    if (reducedMotion) draw();
   }
 
   function draw() {
@@ -140,9 +144,11 @@ export function initBlobCanvas(
   if (typeof ResizeObserver === 'function' && canvas.parentElement) {
     observer = new ResizeObserver(() => resize());
     observer.observe(canvas.parentElement);
-  } else {
-    window.addEventListener('resize', onWindowResize);
   }
+  // Kept alongside the observer: moving the window to a display with a
+  // different pixel ratio changes dpr without changing the parent's CSS
+  // size, which the observer never reports.
+  window.addEventListener('resize', onWindowResize);
 
   resize();
   draw();
