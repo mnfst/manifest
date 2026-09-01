@@ -296,11 +296,12 @@ describe("Sidebar — create-harness modal", () => {
     expect(mockAddModal).toHaveBeenCalledWith(true);
   });
 
-  it("clicking + does not navigate away from the current page", async () => {
-    const { container } = render(() => <Sidebar />);
+  it("clicking + opens the modal without triggering navigation", async () => {
+    const onNavigate = vi.fn();
+    const { container } = render(() => <Sidebar onNavigate={onNavigate} />);
     const addBtn = container.querySelector(".sidebar__section-add") as HTMLButtonElement;
     await fireEvent.click(addBtn);
-    expect(container.querySelector('a.sidebar__link[href="/harnesses"]')).not.toBeNull();
+    expect(onNavigate).not.toHaveBeenCalled();
   });
 });
 

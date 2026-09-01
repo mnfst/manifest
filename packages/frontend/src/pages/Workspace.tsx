@@ -141,13 +141,12 @@ const Workspace: Component = () => {
           <span class="breadcrumb">View and manage all your connected harnesses</span>
         </div>
         <div class="header-controls">
-          <div class="panel__tabs" role="tablist" aria-label="Harness list layout">
+          <div class="panel__tabs" role="group" aria-label="Harness list layout">
             <button
               type="button"
-              role="tab"
               class="panel__tab"
               classList={{ 'panel__tab--active': view() === 'grid' }}
-              aria-selected={view() === 'grid'}
+              aria-pressed={view() === 'grid'}
               aria-label="Grid view"
               title="Grid view"
               onClick={() => switchView('grid')}
@@ -164,10 +163,9 @@ const Workspace: Component = () => {
             </button>
             <button
               type="button"
-              role="tab"
               class="panel__tab"
               classList={{ 'panel__tab--active': view() === 'table' }}
-              aria-selected={view() === 'table'}
+              aria-pressed={view() === 'table'}
               aria-label="Table view"
               title="Table view"
               onClick={() => switchView('table')}
@@ -206,23 +204,56 @@ const Workspace: Component = () => {
       <Show
         when={!data.loading}
         fallback={
-          <div class="agents-grid">
-            <For each={[1, 2, 3, 4, 5, 6]}>
-              {() => (
-                <div class="agent-card agent-card--skeleton">
-                  <div class="skeleton skeleton--text" style="width: 60%; height: 20px;" />
-                  <div style="display: flex; gap: 16px; margin-top: 12px;">
-                    <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
-                    <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
+          <Show
+            when={view() === 'grid'}
+            fallback={
+              <div class="panel" style="padding: 0;">
+                <table class="data-table" style="width: 100%;">
+                  <tbody>
+                    <For each={[1, 2, 3, 4, 5]}>
+                      {() => (
+                        <tr>
+                          <td>
+                            <div class="skeleton skeleton--text" style="width: 40%;" />
+                          </td>
+                          <td>
+                            <div class="skeleton skeleton--text" style="width: 60%;" />
+                          </td>
+                          <td>
+                            <div class="skeleton skeleton--text" style="width: 60%;" />
+                          </td>
+                          <td>
+                            <div class="skeleton skeleton--text" style="width: 50%;" />
+                          </td>
+                          <td>
+                            <div class="skeleton skeleton--text" style="width: 70%;" />
+                          </td>
+                        </tr>
+                      )}
+                    </For>
+                  </tbody>
+                </table>
+              </div>
+            }
+          >
+            <div class="agents-grid">
+              <For each={[1, 2, 3, 4, 5, 6]}>
+                {() => (
+                  <div class="agent-card agent-card--skeleton">
+                    <div class="skeleton skeleton--text" style="width: 60%; height: 20px;" />
+                    <div style="display: flex; gap: 16px; margin-top: 12px;">
+                      <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
+                      <div class="skeleton skeleton--text" style="width: 30%; height: 14px;" />
+                    </div>
+                    <div
+                      class="skeleton skeleton--rect"
+                      style="width: 100%; height: 50px; margin-top: 12px;"
+                    />
                   </div>
-                  <div
-                    class="skeleton skeleton--rect"
-                    style="width: 100%; height: 50px; margin-top: 12px;"
-                  />
-                </div>
-              )}
-            </For>
-          </div>
+                )}
+              </For>
+            </div>
+          </Show>
         }
       >
         <Show when={!data.error} fallback={<ErrorState error={data.error} onRetry={refetch} />}>

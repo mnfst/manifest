@@ -740,9 +740,28 @@ describe('Workspace', () => {
 });
 
 describe('Workspace — view toggle', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    mockSearchParams = {};
+    mockGetAgents.mockResolvedValue({
+      agents: [
+        {
+          agent_name: 'demo-agent',
+          display_name: 'Demo Agent',
+          message_count: 42,
+          last_active: '2024-01-01',
+          total_cost: 5.5,
+          total_tokens: 15000,
+          sparkline: [1, 2, 3],
+        },
+      ],
+    });
+  });
+
   it('defaults to the grid view with the toggle visible', async () => {
     const { container } = render(() => <Workspace />);
-    await waitFor(() => expect(container.querySelector('.agents-grid')).not.toBeNull());
+    await waitFor(() => expect(container.textContent).toContain('Demo Agent'));
     const tabs = container.querySelectorAll('.panel__tabs .panel__tab');
     expect(tabs).toHaveLength(2);
     expect(tabs[0].classList.contains('panel__tab--active')).toBe(true);
@@ -751,7 +770,7 @@ describe('Workspace — view toggle', () => {
 
   it('switches to the table view with one row per harness and persists the choice', async () => {
     const { container } = render(() => <Workspace />);
-    await waitFor(() => expect(container.querySelector('.agents-grid')).not.toBeNull());
+    await waitFor(() => expect(container.textContent).toContain('Demo Agent'));
     fireEvent.click(screen.getByLabelText('Table view'));
 
     const table = container.querySelector('table.data-table');
