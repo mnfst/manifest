@@ -1,5 +1,9 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, MaxLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, MaxLength } from 'class-validator';
+
+/** Claim origins this route may record; `website` belongs to Peacock's own form. */
+export const PIVOT_CLAIM_SOURCES = ['cloud', 'self-hosted'] as const;
+export type PivotClaimSource = (typeof PIVOT_CLAIM_SOURCES)[number];
 
 /** Body of the public pivot waiting-list claim. */
 export class PivotClaimDto {
@@ -7,4 +11,9 @@ export class PivotClaimDto {
   @IsEmail()
   @MaxLength(254)
   email!: string;
+
+  /** Where the claim was made; absent defaults to self-hosted. */
+  @IsOptional()
+  @IsIn([...PIVOT_CLAIM_SOURCES])
+  source?: PivotClaimSource;
 }

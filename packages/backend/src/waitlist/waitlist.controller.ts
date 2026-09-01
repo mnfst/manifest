@@ -28,25 +28,24 @@ export class WaitlistController {
    * Pivot waiting-list claim. Public and CORS-open on purpose: cloud posts
    * same-origin and self-hosted dashboards post here straight from the
    * browser, so any locally-registered user can join with a corrected email.
-   * The upsert dedupes by email; the global throttler still applies.
+   * The upsert dedupes by email and the latest claim wins, source included:
+   * attribution reflects where the person last joined from, matching the
+   * historical phone-home behavior. The global throttler still applies.
    */
   @Public()
   @Post('pivot/claim')
   @HttpCode(HttpStatus.OK)
   async receivePivotClaim(@Body() dto: PivotClaimDto): Promise<{ ok: boolean }> {
-    // On an email conflict only claimed_at is refreshed: a row registered
-    // under another source keeps its original attribution, so the pivot
-    // route never rewrites history it does not own.
     await this.claimRepo
       .createQueryBuilder()
       .insert()
       .into(WaitlistClaim)
       .values({
         email: dto.email.trim().toLowerCase(),
-        source: 'pivot',
+        source: dto.source ?? 'self-hosted',
         claimed_at: new Date().toISOString(),
       })
-      .orUpdate(['claimed_at'], ['email'])
+      .orUpdate(['source', 'claimed_at'], ['email'])
       .execute();
     return { ok: true };
   }

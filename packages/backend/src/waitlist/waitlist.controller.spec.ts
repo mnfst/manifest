@@ -34,20 +34,25 @@ describe('WaitlistController', () => {
     expect(chain.execute).not.toHaveBeenCalled();
   });
 
-  it('stores a pivot claim with a normalized email', async () => {
-    await expect(controller.receivePivotClaim({ email: '  Jane@Example.COM ' })).resolves.toEqual({
-      ok: true,
-    });
+  it('stores a claim with a normalized email and the declared source', async () => {
+    await expect(
+      controller.receivePivotClaim({ email: '  Jane@Example.COM ', source: 'cloud' }),
+    ).resolves.toEqual({ ok: true });
 
     expect(chain.values).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'jane@example.com', source: 'pivot' }),
+      expect.objectContaining({ email: 'jane@example.com', source: 'cloud' }),
     );
     const row = chain.values.mock.calls[0][0] as { claimed_at: string };
     expect(Number.isNaN(Date.parse(row.claimed_at))).toBe(false);
   });
 
-  it('only refreshes claimed_at on an email conflict, preserving the original source', async () => {
+  it('defaults a missing source to self-hosted', async () => {
     await controller.receivePivotClaim({ email: 'jane@example.com' });
-    expect(chain.orUpdate).toHaveBeenCalledWith(['claimed_at'], ['email']);
+    expect(chain.values).toHaveBeenCalledWith(expect.objectContaining({ source: 'self-hosted' }));
+  });
+
+  it('lets the latest claim win on an email conflict, source included', async () => {
+    await controller.receivePivotClaim({ email: 'jane@example.com', source: 'self-hosted' });
+    expect(chain.orUpdate).toHaveBeenCalledWith(['source', 'claimed_at'], ['email']);
   });
 });

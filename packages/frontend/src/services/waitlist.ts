@@ -34,15 +34,17 @@ export function hasPivotJoined(userId: string): boolean {
 }
 
 /**
- * Submit the claim. Returns false on any failure so the modal can show a
- * real error instead of a fake success.
+ * Submit the claim. The deployment mode rides along as the claim source so
+ * attribution in waitlist_claims reflects where the person joined from.
+ * Returns false on any failure so the modal can show a real error instead
+ * of a fake success.
  */
 export async function submitPivotClaim(email: string, selfHosted: boolean): Promise<boolean> {
   try {
     const res = await fetch(getPivotClaimUrl(selfHosted), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, source: selfHosted ? 'self-hosted' : 'cloud' }),
     });
     return res.ok;
   } catch {

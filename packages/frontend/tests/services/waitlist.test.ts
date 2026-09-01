@@ -62,14 +62,21 @@ describe('waitlist service', () => {
   });
 
   describe('submitPivotClaim', () => {
-    it('posts the email as JSON and reports success', async () => {
+    it('posts the email with the cloud source from cloud deployments', async () => {
       mockFetch.mockResolvedValue({ ok: true });
       await expect(submitPivotClaim('jane@example.com', false)).resolves.toBe(true);
       expect(mockFetch).toHaveBeenCalledWith('/api/v1/waitlist/pivot/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'jane@example.com' }),
+        body: JSON.stringify({ email: 'jane@example.com', source: 'cloud' }),
       });
+    });
+
+    it('posts the self-hosted source from self-hosted deployments', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+      await submitPivotClaim('jane@example.com', true);
+      const body = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string);
+      expect(body.source).toBe('self-hosted');
     });
 
     it('reports failure on a non-2xx response', async () => {
