@@ -940,20 +940,6 @@ h6 {
   background-attachment: local, local, scroll, scroll;
 }
 
-/* Short viewports cannot fit the pinned bottom stack above the fold: fall
-   back to the historic whole-column scroll so nothing becomes unreachable. */
-@media (max-height: 720px) {
-  .sidebar {
-    overflow-y: auto;
-  }
-  .sidebar__agents-list {
-    max-height: none;
-    min-height: 0;
-    overflow-y: visible;
-    background: none;
-  }
-}
-
 .sidebar__agent-item {
   gap: 8px;
   font-weight: 500;

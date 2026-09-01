@@ -4503,81 +4503,74 @@
       "line": 784
     },
     {
-      "selector": ".sidebar",
-      "prop": "overflow-y",
-      "value": "auto",
-      "file": "theme.css",
-      "line": 788
-    },
-    {
       "selector": ".sidebar__agent-item",
       "prop": "gap",
       "value": "8px",
       "file": "theme.css",
-      "line": 958
+      "line": 944
     },
     {
       "selector": ".theme-toggle",
       "prop": "padding",
       "value": "6px 12px",
       "file": "theme.css",
-      "line": 1036
+      "line": 1022
     },
     {
       "selector": ".theme-toggle",
       "prop": "width",
       "value": "100%",
       "file": "theme.css",
-      "line": 1045
+      "line": 1031
     },
     {
       "selector": ".chart-tooltip",
       "prop": "font-size",
       "value": "var(--font-size-xs)",
       "file": "theme.css",
-      "line": 1122
+      "line": 1108
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "height",
       "value": "64px",
       "file": "theme.css",
-      "line": 1153
+      "line": 1139
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "background",
       "value": "linear-gradient(transparent, hsl(var(--card)) 70%)",
       "file": "theme.css",
-      "line": 1154
+      "line": 1140
     },
     {
       "selector": ".expandable-card__fade",
       "prop": "padding-bottom",
       "value": "12px",
       "file": "theme.css",
-      "line": 1159
+      "line": 1145
     },
     {
       "selector": ".modal",
       "prop": "box-shadow",
       "value": "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "theme.css",
-      "line": 1210
+      "line": 1196
     },
     {
       "selector": ".modal__close",
       "prop": "width",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1235
+      "line": 1221
     },
     {
       "selector": ".modal__close",
       "prop": "height",
       "value": "2rem",
       "file": "theme.css",
-      "line": 1236
+      "line": 1222
     },
     {
       "selector": ".toast",
@@ -4737,7 +4730,7 @@
       "value": "var(--tooltip-font-size)",
       "file": "charts.css",
       "line": 78,
-      "losesTo": "theme.css:1122"
+      "losesTo": "theme.css:1108"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4745,7 +4738,7 @@
       "value": "80px",
       "file": "charts.css",
       "line": 110,
-      "losesTo": "theme.css:1153"
+      "losesTo": "theme.css:1139"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4753,7 +4746,7 @@
       "value": "linear-gradient(transparent, hsl(var(--card)) 60%)",
       "file": "charts.css",
       "line": 111,
-      "losesTo": "theme.css:1154"
+      "losesTo": "theme.css:1140"
     },
     {
       "selector": ".expandable-card__fade",
@@ -4761,7 +4754,7 @@
       "value": "16px",
       "file": "charts.css",
       "line": 116,
-      "losesTo": "theme.css:1159"
+      "losesTo": "theme.css:1145"
     },
     {
       "selector": ".toast",
@@ -4810,14 +4803,6 @@
       "file": "controls.css",
       "line": 261,
       "losesTo": "theme.css:784"
-    },
-    {
-      "selector": ".sidebar",
-      "prop": "overflow-y",
-      "value": "hidden",
-      "file": "controls.css",
-      "line": 269,
-      "losesTo": "theme.css:788"
     },
     {
       "selector": ".custom-select__option--top > svg",
@@ -4881,7 +4866,7 @@
       "value": "2rem",
       "file": "layout.css",
       "line": 141,
-      "losesTo": "theme.css:1045"
+      "losesTo": "theme.css:1031"
     },
     {
       "selector": ".theme-toggle",
@@ -4889,7 +4874,7 @@
       "value": "0",
       "file": "layout.css",
       "line": 149,
-      "losesTo": "theme.css:1036"
+      "losesTo": "theme.css:1022"
     },
     {
       "selector": ".modal",
@@ -4897,7 +4882,7 @@
       "value": "var(--card-shadow),\n    0 25px 50px -12px rgb(0 0 0 / 0.25)",
       "file": "modals.css",
       "line": 22,
-      "losesTo": "theme.css:1210"
+      "losesTo": "theme.css:1196"
     },
     {
       "selector": ".modal__close",
@@ -4905,7 +4890,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 47,
-      "losesTo": "theme.css:1235"
+      "losesTo": "theme.css:1221"
     },
     {
       "selector": ".modal__close",
@@ -4913,7 +4898,7 @@
       "value": "32px",
       "file": "modals.css",
       "line": 48,
-      "losesTo": "theme.css:1236"
+      "losesTo": "theme.css:1222"
     },
     {
       "selector": ".setup-modal__header",
@@ -4993,7 +4978,7 @@
       "value": "var(--gap-xs)",
       "file": "theme.css",
       "line": 824,
-      "losesTo": "theme.css:958"
+      "losesTo": "theme.css:944"
     },
     {
       "selector": ".welcome__progress-header span",
@@ -5116,7 +5101,7 @@
     "darkOverrides": 38,
     "blocks": 314,
     "classes": 1701,
-    "canonicalRules": 48,
-    "ghostRules": 48
+    "canonicalRules": 47,
+    "ghostRules": 47
   }
 }

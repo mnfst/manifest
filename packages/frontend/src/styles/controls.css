@@ -262,11 +262,11 @@
   display: flex;
   flex-direction: column;
   z-index: 10;
-  /* The column itself never scrolls: the harness list is the one scrollable
-     region, so the nav and the pinned bottom stack (pivot card, usage,
-     upgrade) stay visible whatever the list length. Short viewports fall
-     back to whole-column scrolling (media query beside the list rules). */
-  overflow-y: hidden;
+  /* The harness list carries its own cap and scroll (see theme.css), so on
+     any reasonable height the bottom stack (pivot card, usage, upgrade)
+     stays in view without this column ever scrolling; on very short
+     viewports the column overflows and scrolls as it always did. */
+  overflow-y: auto;
 }
 
 .sidebar__section-label {
