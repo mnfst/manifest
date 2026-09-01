@@ -76,6 +76,37 @@ describe('ProviderClient', () => {
       expect(result.isAnthropic).toBe(false);
     });
 
+    it('allocates a provider attempt only when transport is ready to start', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const startRecording = jest.fn();
+      const attempt = {
+        id: 'attempt-lazy',
+        attemptNumber: 1,
+        startedAtMs: 0,
+        startedAt: new Date(0).toISOString(),
+        pendingWrite: Promise.resolve(true),
+        startRecording,
+      };
+      const startAttempt = jest.fn(() => attempt);
+
+      const result = await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body,
+        stream: false,
+        apiMode: 'chat_completions',
+        startAttempt,
+      });
+
+      expect(startAttempt).toHaveBeenCalledTimes(1);
+      expect(startRecording).toHaveBeenCalledWith({
+        requestBody: expect.objectContaining({ model: 'gpt-4o' }),
+        wireFormat: 'openai_chat_completions',
+      });
+      expect(result.attempt).toBe(attempt);
+    });
+
     it('turns an empty non-streaming Chat Completions response into a provider failure', async () => {
       const upstreamBody = {
         id: 'chatcmpl-empty',
@@ -1163,6 +1194,49 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.metadata).toBeUndefined();
       expect(sentBody.safety_identifier).toBeUndefined();
+    });
+
+    it('rejects implicit Anthropic tools before forwarding to MiniMax chat completions', async () => {
+      const resolveChatBody = jest.fn().mockResolvedValue({
+        messages: [{ role: 'user', content: 'find cats' }],
+        tools: [
+          { type: 'function', function: { name: 'web_search' } },
+          { type: 'function', function: { name: 'bash' } },
+          {
+            type: 'function',
+            function: { name: 'lookup', parameters: { type: 'object' } },
+          },
+        ],
+        tool_choice: 'auto',
+      });
+      const startAttempt = jest.fn();
+      const request = client.forward({
+        provider: 'minimax',
+        apiKey: 'sk-test',
+        model: 'MiniMax-M2.5',
+        body: {
+          model: 'MiniMax-M2.5',
+          messages: [{ role: 'user', content: 'find cats' }],
+          tools: [
+            { type: 'web_search_20250305', name: 'web_search' },
+            { type: 'bash_20250124', name: 'bash' },
+            { name: 'lookup', input_schema: { type: 'object' } },
+          ],
+          tool_choice: { type: 'auto' },
+        },
+        resolveChatBody,
+        startAttempt,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      await expect(request).rejects.toMatchObject({ code: 'M304', status: 400 });
+      await expect(request).rejects.toThrow(
+        'Provider "minimax" cannot execute these Anthropic tools: web_search, bash',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(resolveChatBody).not.toHaveBeenCalled();
+      expect(startAttempt).not.toHaveBeenCalled();
     });
 
     it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {

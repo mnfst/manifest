@@ -2,6 +2,7 @@ import {
   chatCompletionsResponseToMessages,
   createMessagesStreamTransformer,
   messagesToChatCompletionsRequest,
+  unsupportedAnthropicToolNames,
 } from '../anthropic-messages-adapter';
 
 describe('Anthropic Messages adapter', () => {
@@ -464,9 +465,12 @@ describe('Anthropic Messages adapter', () => {
         'my_custom',
         'explicit_custom',
       ]);
+      expect(tools[0].function).not.toHaveProperty('parameters');
+      expect(tools[1].function).not.toHaveProperty('parameters');
+      expect(tools[2].function).not.toHaveProperty('parameters');
     });
 
-    it('treats unknown non-custom tool types as custom tools with a safe empty schema (issue #1897)', () => {
+    it('does not invent an empty schema for unknown typed tools', () => {
       const result = messagesToChatCompletionsRequest({
         messages: [{ role: 'user', content: 'x' }],
         tools: [{ type: 'advisor_20260301', name: 'advisor', description: 'Plan the task' }],
@@ -478,7 +482,6 @@ describe('Anthropic Messages adapter', () => {
           function: {
             name: 'advisor',
             description: 'Plan the task',
-            parameters: { type: 'object', properties: {}, additionalProperties: false },
           },
         },
       ]);
@@ -623,6 +626,35 @@ describe('Anthropic Messages adapter', () => {
         messages: ['nope', null, { role: 'user', content: 'ok' }],
       } as Record<string, unknown>);
       expect(result.messages).toEqual([{ role: 'user', content: 'ok' }]);
+    });
+  });
+
+  describe('unsupportedAnthropicToolNames', () => {
+    it('finds server, client, and future implicit tools without matching custom tools', () => {
+      expect(
+        unsupportedAnthropicToolNames({
+          tools: [
+            { type: 'web_search_20260318', name: 'search' },
+            { name: 'search', input_schema: { type: 'object' } },
+            { type: 'bash_20250124', name: 'bash' },
+            { type: 'future_tool_20270101', name: 'future_tool' },
+            { type: 'web_search_20260318', name: 'search' },
+            { type: 'mcp_toolset' },
+          ],
+        }),
+      ).toEqual(['search', 'bash', 'future_tool', 'mcp_toolset']);
+    });
+
+    it('ignores absent tools and custom tools', () => {
+      expect(unsupportedAnthropicToolNames({})).toEqual([]);
+      expect(
+        unsupportedAnthropicToolNames({
+          tools: [
+            { name: 'lookup', input_schema: { type: 'object' } },
+            { type: 'custom', name: 'explicit_custom' },
+          ],
+        }),
+      ).toEqual([]);
     });
   });
 

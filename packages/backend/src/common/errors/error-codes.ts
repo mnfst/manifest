@@ -77,6 +77,11 @@ export const MANIFEST_ERRORS = {
     template:
       'Built-in local providers are only available in self-hosted Manifest. On Manifest Cloud, expose the runtime through a public URL or tunnel and connect it as a custom provider.',
   },
+  M304: {
+    title: 'Anthropic tools not available for selected provider',
+    template:
+      'Provider "{provider}" cannot execute these Anthropic tools: {tools}. Use an Anthropic model or remove these tools.',
+  },
   M500: {
     title: 'Internal server error',
     template: 'Something broke on our end. Try again in a moment.',

@@ -15,6 +15,7 @@ import { ReasoningContentCache } from '../reasoning-content-cache';
 import { ModelPricingCacheService } from '../../../model-prices/model-pricing-cache.service';
 import { AgentModelParamsService } from '../../routing-core/agent-model-params.service';
 import { ProviderParamSpecService } from '../../routing-core/provider-param-spec.service';
+import { ManifestError } from '../../../common/errors/manifest-error';
 import { getProviderParamSpecs, type ProviderParamSpecCatalog } from 'manifest-shared';
 
 const specCatalog: ProviderParamSpecCatalog = [
@@ -473,6 +474,26 @@ describe('ProxyFallbackService', () => {
       expect(result.response.status).toBe(503);
       expect(result.attempt).toBe(attempt);
       expect(attempt).toEqual(expect.objectContaining({ completedAtMs: expect.any(Number) }));
+    });
+
+    it('does not allocate a provider attempt for a local Manifest rejection', async () => {
+      providerClient.forward.mockRejectedValue(
+        new ManifestError('M304', 400, { provider: 'minimax', tools: 'web_search' }),
+      );
+      const startProviderAttempt = jest.fn();
+
+      const request = service.tryForwardToProvider({
+        provider: 'minimax',
+        apiKey: 'sk-test',
+        model: 'MiniMax-M2.5',
+        body,
+        stream: false,
+        sessionKey: 'sess-1',
+        startProviderAttempt,
+      });
+
+      await expect(request).rejects.toMatchObject({ code: 'M304', status: 400 });
+      expect(startProviderAttempt).not.toHaveBeenCalled();
     });
 
     it('returns a tagged transport failure when an OAuth retry cannot connect', async () => {
