@@ -274,6 +274,8 @@ describe('Register', () => {
     await vi.waitFor(() => {
       expect(hrefSetter).toHaveBeenCalledWith('/discovery?next=%2Fwelcome');
     });
+    // The pending marker lets the guards route Back presses to the form.
+    expect(localStorage.getItem('manifest_discovery_pending_u1')).toBe('/welcome');
 
     locationSpy.mockRestore();
   });

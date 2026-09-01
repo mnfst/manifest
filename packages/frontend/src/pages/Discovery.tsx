@@ -94,13 +94,13 @@ const Discovery: Component = () => {
             <h1 class="discovery-card__title">Help us understand who uses Manifest</h1>
             <div class="discovery-card__desc">
               <p>
-                Manifest is open source and self-hosted, so we don't usually know who's using it or
-                what they're building.
+                Manifest is <strong>open source</strong> and self-hosted, so we don't usually know
+                who's using it or what they're building.
               </p>
               <p>
                 If you're open to it, tell us a little about yourself. We may reach out personally
-                to learn about your experience and get your feedback. No newsletters or marketing
-                emails.
+                to learn about your experience and get your feedback.{' '}
+                <strong>No newsletters or marketing emails.</strong>
               </p>
             </div>
           </aside>

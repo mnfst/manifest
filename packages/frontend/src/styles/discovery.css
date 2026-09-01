@@ -1,6 +1,6 @@
 /* ── Self-hosted user discovery step (Discovery.tsx) ── */
 
-/* Two-column modal card: intro 33% left, form 66% right */
+/* Two-column modal card: intro 40% left, form 60% right */
 .discovery-card {
   width: 100%;
   max-width: 860px;
@@ -15,7 +15,7 @@
 }
 
 .discovery-card__intro {
-  flex: 0 0 33%;
+  flex: 0 0 40%;
   display: flex;
   flex-direction: column;
   gap: var(--gap-md);
@@ -37,14 +37,19 @@
   line-height: 1.2;
 }
 
-/* 14px (--font-size-sm) muted intro copy */
+/* Muted intro copy */
 .discovery-card__desc {
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-md);
   color: hsl(var(--muted-foreground));
   line-height: 1.55;
+}
+
+.discovery-card__desc strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
 }
 
 .discovery-card__form {

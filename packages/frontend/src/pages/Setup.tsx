@@ -3,6 +3,7 @@ import { Title, Meta } from '@solidjs/meta';
 import { type Component, createSignal, onMount, Show } from 'solid-js';
 import { authClient } from '../services/auth-client.js';
 import { checkIsSelfHosted, checkNeedsSetup, createFirstAdmin } from '../services/setup-status.js';
+import { markDiscoveryPending } from '../services/discovery.js';
 
 const Setup: Component = () => {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const Setup: Component = () => {
       await createFirstAdmin({ email: email(), name: name(), password: password() });
 
       // Auto sign-in with the credentials just created.
-      const { error: authError } = await authClient.signIn.email({
+      const { data: signInData, error: authError } = await authClient.signIn.email({
         email: email(),
         password: password(),
       });
@@ -50,8 +51,14 @@ const Setup: Component = () => {
         navigate('/login', { replace: true });
         return;
       }
-      // New self-hosted admins get the one-time discovery step first.
-      window.location.href = (await checkIsSelfHosted()) ? '/discovery' : '/';
+      // New self-hosted admins get the one-time discovery step first; the
+      // pending marker lets the guards route them back until it is done.
+      if (await checkIsSelfHosted()) {
+        markDiscoveryPending(signInData?.user?.id ?? '', '/');
+        window.location.href = '/discovery';
+      } else {
+        window.location.href = '/';
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Setup failed');
     } finally {

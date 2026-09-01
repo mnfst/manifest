@@ -19,6 +19,7 @@ import { getBillingStatus } from '../services/api/billing.js';
 import { markPlanChosen } from '../services/plan-selection.js';
 import { formatBillingPrice } from '../services/billing-display.js';
 import { toast } from '../services/toast-store.js';
+import { markDiscoveryPending } from '../services/discovery.js';
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -113,6 +114,12 @@ const Register: Component = () => {
     }
     setAlreadyExists(false);
     setLastAuthMethod('email');
+
+    // Self-hosted: remember the discovery step is pending so the guards keep
+    // routing this user back to it until it is completed or skipped.
+    if (postSignupUrl().startsWith('/discovery')) {
+      markDiscoveryPending(data?.user?.id ?? '', '/welcome');
+    }
 
     if (data?.token) {
       window.location.href = postSignupUrl();

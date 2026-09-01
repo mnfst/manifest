@@ -46,12 +46,40 @@ export const COMPANY_SIZE_OPTIONS: DiscoveryOption[] = [
 ];
 
 const PREFIX = 'manifest_discovery_done_';
+const PENDING_PREFIX = 'manifest_discovery_pending_';
 
 export function markDiscoveryDoneLocally(userId: string): void {
   try {
     localStorage.setItem(`${PREFIX}${userId}`, '1');
+    localStorage.removeItem(`${PENDING_PREFIX}${userId}`);
   } catch {
     /* storage full or unavailable */
+  }
+}
+
+/**
+ * Record at signup that this user still has the discovery step ahead, along
+ * with where the flow continues afterwards. The guards use this to send the
+ * user back to the form (browser Back, manual navigation) until it is
+ * completed or skipped.
+ */
+export function markDiscoveryPending(userId: string, next: string): void {
+  if (!userId) return;
+  try {
+    localStorage.setItem(`${PENDING_PREFIX}${userId}`, next);
+  } catch {
+    /* storage full or unavailable */
+  }
+}
+
+/** The pending `next` destination, or null when nothing is pending. */
+export function getDiscoveryPendingNext(userId: string): string | null {
+  if (!userId) return null;
+  try {
+    if (localStorage.getItem(`${PREFIX}${userId}`) === '1') return null;
+    return localStorage.getItem(`${PENDING_PREFIX}${userId}`);
+  } catch {
+    return null;
   }
 }
 

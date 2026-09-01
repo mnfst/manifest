@@ -3,9 +3,11 @@ import {
   COMPANY_SIZE_OPTIONS,
   PROJECT_TYPE_OPTIONS,
   completeDiscovery,
+  getDiscoveryPendingNext,
   hasDiscoveryBeenDoneLocally,
   isDiscoveryRequired,
   markDiscoveryDoneLocally,
+  markDiscoveryPending,
 } from '../../src/services/discovery';
 
 const mockFetch = vi.fn();
@@ -60,6 +62,38 @@ describe('discovery service', () => {
       throw new Error('unavailable');
     });
     expect(hasDiscoveryBeenDoneLocally('u1')).toBe(false);
+  });
+
+  describe('pending marker', () => {
+    it('stores and returns the pending next destination per user', () => {
+      expect(getDiscoveryPendingNext('u1')).toBeNull();
+      markDiscoveryPending('u1', '/welcome');
+      expect(getDiscoveryPendingNext('u1')).toBe('/welcome');
+      expect(getDiscoveryPendingNext('u2')).toBeNull();
+    });
+
+    it('returns null once the step is done, and completion clears the marker', () => {
+      markDiscoveryPending('u1', '/welcome');
+      markDiscoveryDoneLocally('u1');
+      expect(getDiscoveryPendingNext('u1')).toBeNull();
+      expect(localStorage.getItem('manifest_discovery_pending_u1')).toBeNull();
+    });
+
+    it('ignores an empty user id', () => {
+      markDiscoveryPending('', '/welcome');
+      expect(getDiscoveryPendingNext('')).toBeNull();
+    });
+
+    it('swallows storage errors', () => {
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('quota');
+      });
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+        throw new Error('unavailable');
+      });
+      expect(() => markDiscoveryPending('u1', '/welcome')).not.toThrow();
+      expect(getDiscoveryPendingNext('u1')).toBeNull();
+    });
   });
 
   describe('isDiscoveryRequired', () => {

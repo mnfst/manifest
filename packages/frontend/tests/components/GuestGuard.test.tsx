@@ -44,6 +44,42 @@ describe('GuestGuard', () => {
     });
   });
 
+  it('redirects to the discovery step when it is still pending for the user', async () => {
+    localStorage.setItem('manifest_discovery_pending_u1', '/welcome');
+    mockSessionData = {
+      data: { user: { id: 'u1', name: 'Test' } },
+      isPending: false,
+    };
+    render(() => (
+      <GuestGuard>
+        <span>Guest content</span>
+      </GuestGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/discovery?next=%2Fwelcome', { replace: true });
+    });
+    localStorage.removeItem('manifest_discovery_pending_u1');
+  });
+
+  it('ignores a pending discovery step already marked done', async () => {
+    localStorage.setItem('manifest_discovery_pending_u1', '/welcome');
+    localStorage.setItem('manifest_discovery_done_u1', '1');
+    mockSessionData = {
+      data: { user: { id: 'u1', name: 'Test' } },
+      isPending: false,
+    };
+    render(() => (
+      <GuestGuard>
+        <span>Guest content</span>
+      </GuestGuard>
+    ));
+    await vi.waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    });
+    localStorage.removeItem('manifest_discovery_pending_u1');
+    localStorage.removeItem('manifest_discovery_done_u1');
+  });
+
   it('redirects to home when session exists', async () => {
     mockSessionData = {
       data: { user: { id: 'u1', name: 'Test' } },

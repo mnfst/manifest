@@ -125,6 +125,8 @@ describe('Setup page', () => {
 
   it('redirects self-hosted admins to the discovery step after setup', async () => {
     mockCheckIsSelfHosted.mockResolvedValue(true);
+    mockSignInEmail.mockResolvedValue({ data: { user: { id: 'admin1' } } });
+    localStorage.removeItem('manifest_discovery_pending_admin1');
     const { container } = await renderSetup();
     fillValidForm();
     fireEvent.submit(container.querySelector('form')!);
@@ -132,6 +134,8 @@ describe('Setup page', () => {
     await waitFor(() => {
       expect(window.location.href).toBe('/discovery');
     });
+    expect(localStorage.getItem('manifest_discovery_pending_admin1')).toBe('/');
+    localStorage.removeItem('manifest_discovery_pending_admin1');
   });
 
   it('redirects non-self-hosted admins straight to the dashboard after setup', async () => {
