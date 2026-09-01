@@ -320,9 +320,10 @@ export class ModelDiscoveryService {
     }));
     const reconciled =
       provider.auth_type === 'subscription'
-        ? enriched.map((model) =>
-            reconcileCachedSubscriptionContextWindow(model, provider.provider),
-          )
+        ? enriched.map((model) => {
+            const current = reconcileCachedSubscriptionContextWindow(model, provider.provider);
+            return current === model ? model : this.computeScore(current);
+          })
         : enriched;
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).

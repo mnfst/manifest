@@ -203,6 +203,9 @@ describe('ModelDiscoveryService', () => {
         reasoning: true,
         toolCall: true,
       });
+      mockComputeScore.mockImplementation(({ context_window }) =>
+        context_window >= 1000000 ? 5 : 4,
+      );
       const provider = makeProvider({ auth_type: 'subscription' });
 
       const result = await service.discoverModels(provider);
@@ -213,7 +216,14 @@ describe('ModelDiscoveryService', () => {
         contextWindowSource: 'subscription_config',
         inputPricePerToken: 0.000001,
         capabilityCode: true,
+        qualityScore: 5,
       });
+      expect(mockComputeScore).toHaveBeenCalledWith(
+        expect.objectContaining({ context_window: 400000 }),
+      );
+      expect(mockComputeScore).toHaveBeenCalledWith(
+        expect.objectContaining({ context_window: 1050000 }),
+      );
       expect(provider.cached_models).toEqual(result);
     });
 
