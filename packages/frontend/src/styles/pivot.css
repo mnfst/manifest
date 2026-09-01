@@ -1,0 +1,98 @@
+/* ── Pivot announcement (PivotAnnouncement.tsx) ─────
+   Sidebar card + waiting-list modal extras. Same visual language as the
+   retired sidebar Autofix card. */
+
+.sidebar-pivot {
+  margin: var(--gap-sm);
+  padding: 14px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  cursor: default;
+}
+
+.dark .sidebar-pivot {
+  background: hsl(var(--card));
+}
+
+/* Top-aligned so the icon and the dismiss button track the FIRST line of a
+   wrapping title; the margins below re-center each against that line box. */
+.sidebar-pivot__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.sidebar-pivot__header > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: hsl(var(--success));
+}
+
+.sidebar-pivot__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.sidebar-pivot__dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-top: -3px;
+  width: 28px;
+  height: 28px;
+  color: hsl(var(--muted-foreground));
+  background: none;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.sidebar-pivot__dismiss:hover,
+.sidebar-pivot__dismiss:focus-visible {
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
+}
+
+.sidebar-pivot__desc {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.sidebar-pivot__btn {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-family);
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  text-align: center;
+}
+
+.sidebar-pivot__btn:hover {
+  opacity: 0.9;
+}
+
+/* Joined state inside the waiting-list modal */
+.sidebar-pivot__joined {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--success));
+}
