@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (313 BEM blocks, 1691 classes)
+## Blocks (313 BEM blocks, 1696 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -125,7 +125,7 @@ attempt-item (request-drawer.css): attempt-item attempt-item--active attempt-ite
 auth-card (auth.css): auth-card
 auth-divider (auth.css): auth-divider auth-divider__text
 auth-footer (auth.css): auth-footer auth-footer__link
-auth-form (auth.css): auth-form auth-form__actions auth-form__error auth-form__error-link auth-form__forgot auth-form__input auth-form__label auth-form__link-btn auth-form__notice auth-form__notice-link auth-form__submit auth-form__success
+auth-form (auth.css, discovery.css): auth-form auth-form__actions auth-form__error auth-form__error-link auth-form__forgot auth-form__input auth-form__label auth-form__link-btn auth-form__notice auth-form__notice-link auth-form__submit auth-form__success
 auth-header (auth.css): auth-header auth-header__subtitle auth-header__title
 auth-last-used (auth.css): auth-last-used
 auth-layout (auth.css): auth-layout
@@ -169,10 +169,10 @@ dark (agent-type-select.css, agents.css, analytics-overview.css, auth.css, contr
 data-table (data.css, feedback.css, theme.css): data-table data-table__sortable
 data-table-scroll (data.css): data-table-scroll
 demo-dashboard (overview.css): demo-dashboard
+discovery-actions (discovery.css): discovery-actions
+discovery-card (discovery.css): discovery-card discovery-card__desc discovery-card__form discovery-card__intro discovery-card__logo discovery-card__title
 discovery-form (discovery.css): discovery-form
-discovery-intro (discovery.css): discovery-intro
 discovery-select (discovery.css): discovery-select--empty
-discovery-skip (discovery.css): discovery-skip
 drawer (request-drawer.css): drawer drawer--open drawer__badge drawer__badge--autofix drawer__badge--fallback drawer__body drawer__close drawer__content drawer__content-empty drawer__header drawer__messages-pane drawer__meta-row drawer__meta-sep drawer__meta-text drawer__sidebar drawer__sidebar-title drawer__split drawer__tabs-full drawer__title drawer__title-row
 drawer-context-card (request-drawer.css): drawer-context-card drawer-context-card--autofix drawer-context-card--error drawer-context-card--fallback
 drawer-kv (request-drawer.css): drawer-kv drawer-kv__key

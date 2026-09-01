@@ -612,7 +612,8 @@
         "auth-form__success"
       ],
       "files": [
-        "auth.css"
+        "auth.css",
+        "discovery.css"
       ]
     },
     "auth-header": {
@@ -1128,6 +1129,27 @@
         "overview.css"
       ]
     },
+    "discovery-actions": {
+      "classes": [
+        "discovery-actions"
+      ],
+      "files": [
+        "discovery.css"
+      ]
+    },
+    "discovery-card": {
+      "classes": [
+        "discovery-card",
+        "discovery-card__desc",
+        "discovery-card__form",
+        "discovery-card__intro",
+        "discovery-card__logo",
+        "discovery-card__title"
+      ],
+      "files": [
+        "discovery.css"
+      ]
+    },
     "discovery-form": {
       "classes": [
         "discovery-form"
@@ -1136,25 +1158,9 @@
         "discovery.css"
       ]
     },
-    "discovery-intro": {
-      "classes": [
-        "discovery-intro"
-      ],
-      "files": [
-        "discovery.css"
-      ]
-    },
     "discovery-select": {
       "classes": [
         "discovery-select--empty"
-      ],
-      "files": [
-        "discovery.css"
-      ]
-    },
-    "discovery-skip": {
-      "classes": [
-        "discovery-skip"
       ],
       "files": [
         "discovery.css"
@@ -5092,7 +5098,7 @@
     "tokens": 79,
     "darkOverrides": 38,
     "blocks": 313,
-    "classes": 1691,
+    "classes": 1696,
     "canonicalRules": 48,
     "ghostRules": 48
   }

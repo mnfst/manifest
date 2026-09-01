@@ -75,88 +75,103 @@ const Discovery: Component = () => {
   };
 
   return (
-    <>
+    <div class="auth-layout">
       <Title>Welcome - Manifest</Title>
       <Meta name="description" content="Tell us a little about how you use Manifest." />
       <Show when={!checking()} fallback={<div class="auth-header__subtitle">Loading...</div>}>
-        <div class="auth-header">
-          <h1 class="auth-header__title">Help us understand who uses Manifest</h1>
-        </div>
-        <div class="discovery-intro">
-          <p>
-            Manifest is open source and self-hosted, so we don't usually know who's using it or what
-            they're building.
-          </p>
-          <p>
-            If you're open to it, tell us a little about yourself. We may reach out personally to
-            learn about your experience and get your feedback. No newsletters or marketing emails.
-          </p>
-        </div>
-        <form class="auth-form discovery-form" onSubmit={handleSubmit}>
-          <label class="auth-form__label" for={nameId}>
-            Name
-            <input
-              id={nameId}
-              class="auth-form__input"
-              type="text"
-              autocomplete="name"
-              placeholder="Your name"
-              value={name()}
-              onInput={(e) => setName(e.currentTarget.value)}
-            />
-          </label>
-          <label class="auth-form__label" for={emailId}>
-            Email
-            <input
-              id={emailId}
-              class="auth-form__input"
-              type="email"
-              autocomplete="email"
-              placeholder="you@example.com"
-              value={email()}
-              onInput={(e) => setEmail(e.currentTarget.value)}
-            />
-          </label>
-          <div class="auth-form__label">
-            What type of project are you using Manifest for?
-            <div classList={{ 'discovery-select--empty': !projectType() }}>
-              <Select
-                options={PROJECT_TYPE_OPTIONS}
-                value={projectType()}
-                onChange={setProjectType}
-                placeholder="Select an option"
-                label="What type of project are you using Manifest for?"
-              />
+        <div class="discovery-card">
+          <aside class="discovery-card__intro">
+            <div class="auth-logo discovery-card__logo">
+              <a href="https://manifest.build" class="auth-logo__link">
+                <img
+                  src="/logotype-white.svg"
+                  alt="Manifest"
+                  class="auth-logo__img auth-logo__img--light"
+                />
+                <img src="/logotype-dark.svg" alt="" class="auth-logo__img auth-logo__img--dark" />
+              </a>
             </div>
-          </div>
-          <div class="auth-form__label">
-            How big is your company?
-            <div classList={{ 'discovery-select--empty': !companySize() }}>
-              <Select
-                options={COMPANY_SIZE_OPTIONS}
-                value={companySize()}
-                onChange={setCompanySize}
-                placeholder="Select an option"
-                label="How big is your company?"
-              />
+            <h1 class="discovery-card__title">Help us understand who uses Manifest</h1>
+            <div class="discovery-card__desc">
+              <p>
+                Manifest is open source and self-hosted, so we don't usually know who's using it or
+                what they're building.
+              </p>
+              <p>
+                If you're open to it, tell us a little about yourself. We may reach out personally
+                to learn about your experience and get your feedback. No newsletters or marketing
+                emails.
+              </p>
             </div>
+          </aside>
+          <div class="discovery-card__form">
+            <form class="auth-form discovery-form" onSubmit={handleSubmit}>
+              <label class="auth-form__label" for={nameId}>
+                Name
+                <input
+                  id={nameId}
+                  class="auth-form__input"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="Your name"
+                  value={name()}
+                  onInput={(e) => setName(e.currentTarget.value)}
+                />
+              </label>
+              <label class="auth-form__label" for={emailId}>
+                Email
+                <input
+                  id={emailId}
+                  class="auth-form__input"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  value={email()}
+                  onInput={(e) => setEmail(e.currentTarget.value)}
+                />
+              </label>
+              <div class="auth-form__label">
+                What type of project are you using Manifest for?
+                <div classList={{ 'discovery-select--empty': !projectType() }}>
+                  <Select
+                    options={PROJECT_TYPE_OPTIONS}
+                    value={projectType()}
+                    onChange={setProjectType}
+                    placeholder="Select an option"
+                    label="What type of project are you using Manifest for?"
+                  />
+                </div>
+              </div>
+              <div class="auth-form__label">
+                How big is your company?
+                <div classList={{ 'discovery-select--empty': !companySize() }}>
+                  <Select
+                    options={COMPANY_SIZE_OPTIONS}
+                    value={companySize()}
+                    onChange={setCompanySize}
+                    placeholder="Select an option"
+                    label="How big is your company?"
+                  />
+                </div>
+              </div>
+              <div class="discovery-actions">
+                <button
+                  type="button"
+                  class="btn btn--ghost"
+                  onClick={() => finish({})}
+                  disabled={busy()}
+                >
+                  Skip
+                </button>
+                <button class="btn btn--primary" type="submit" disabled={busy()}>
+                  {busy() ? <span class="spinner" /> : 'Continue'}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="auth-form__submit" type="submit" disabled={busy()}>
-            {busy() ? <span class="spinner" /> : 'Continue'}
-          </button>
-          <div class="discovery-skip">
-            <button
-              type="button"
-              class="auth-form__link-btn"
-              onClick={() => finish({})}
-              disabled={busy()}
-            >
-              Skip
-            </button>
-          </div>
-        </form>
+        </div>
       </Show>
-    </>
+    </div>
   );
 };
 

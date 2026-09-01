@@ -52,14 +52,10 @@ const GuestLayout: ParentComponent = (props) => (
   </GuestGuard>
 );
 
-// Post-signup discovery step (self-hosted only): authenticated, rendered in
-// the centered auth card rather than the App shell. The page itself redirects
-// anyone who should not see it (cloud, already completed or skipped).
-const DiscoveryLayout: ParentComponent = (props) => (
-  <AuthGuard>
-    <AuthLayout>{props.children}</AuthLayout>
-  </AuthGuard>
-);
+// Post-signup discovery step (self-hosted only): authenticated, rendered as
+// its own centered two-column card outside the App shell. The page itself
+// redirects anyone who should not see it (cloud, already completed or skipped).
+const DiscoveryLayout: ParentComponent = (props) => <AuthGuard>{props.children}</AuthGuard>;
 
 // Full-page onboarding: authenticated but outside the App dashboard shell.
 // The embedded Playground step calls useRightSidebar, so the provider App

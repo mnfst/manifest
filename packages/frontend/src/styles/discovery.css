@@ -1,14 +1,60 @@
 /* ── Self-hosted user discovery step (Discovery.tsx) ── */
 
-.discovery-intro {
+/* Two-column modal card: intro 33% left, form 66% right */
+.discovery-card {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  align-items: stretch;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  animation: fadeInUp 300ms ease-out both;
+}
+
+.discovery-card__intro {
+  flex: 0 0 33%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+  padding: var(--gap-xl);
+  text-align: left;
+  border-right: 1px solid hsl(var(--border));
+}
+
+.discovery-card__logo {
+  text-align: left;
+  margin-bottom: var(--gap-xs);
+}
+
+.discovery-card__title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+/* 14px (--font-size-sm) muted intro copy */
+.discovery-card__desc {
   display: flex;
   flex-direction: column;
   gap: var(--gap-sm);
-  margin-bottom: var(--gap-lg);
   font-size: var(--font-size-sm);
   color: hsl(var(--muted-foreground));
-  line-height: 1.5;
-  text-align: left;
+  line-height: 1.55;
+}
+
+.discovery-card__form {
+  flex: 1;
+  min-width: 0;
+  padding: var(--gap-xl);
+}
+
+.discovery-card__form .auth-form {
+  margin-bottom: 0;
 }
 
 /* Selects sized to match .auth-form__input (2.75rem, full width) */
@@ -35,6 +81,23 @@
   color: hsl(var(--muted-foreground) / 0.6);
 }
 
-.discovery-skip {
-  text-align: center;
+/* Footer: Skip bottom-left, Continue (fit-content) bottom-right */
+.discovery-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-top: var(--gap-sm);
+}
+
+@media (max-width: 720px) {
+  .discovery-card {
+    flex-direction: column;
+  }
+
+  .discovery-card__intro {
+    flex: none;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+  }
 }
