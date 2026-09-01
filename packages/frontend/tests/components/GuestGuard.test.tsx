@@ -28,6 +28,7 @@ import GuestGuard from '../../src/components/GuestGuard';
 describe('GuestGuard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     mockSessionData = { data: null, isPending: false };
     mockSearchParams = {};
     mockCheckNeedsSetup.mockResolvedValue(false);
@@ -58,7 +59,6 @@ describe('GuestGuard', () => {
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/discovery?next=%2Fwelcome', { replace: true });
     });
-    localStorage.removeItem('manifest_discovery_pending_u1');
   });
 
   it('ignores a pending discovery step already marked done', async () => {
@@ -76,8 +76,6 @@ describe('GuestGuard', () => {
     await vi.waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
-    localStorage.removeItem('manifest_discovery_pending_u1');
-    localStorage.removeItem('manifest_discovery_done_u1');
   });
 
   it('redirects to home when session exists', async () => {

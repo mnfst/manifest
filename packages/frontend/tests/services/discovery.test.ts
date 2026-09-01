@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   COMPANY_SIZE_OPTIONS,
   PROJECT_TYPE_OPTIONS,
+  clearDiscoveryPending,
   completeDiscovery,
   getDiscoveryPendingNext,
   hasDiscoveryBeenDoneLocally,
@@ -82,6 +83,14 @@ describe('discovery service', () => {
     it('ignores an empty user id', () => {
       markDiscoveryPending('', '/welcome');
       expect(getDiscoveryPendingNext('')).toBeNull();
+      expect(() => clearDiscoveryPending('')).not.toThrow();
+    });
+
+    it('clearDiscoveryPending drops the marker without recording completion', () => {
+      markDiscoveryPending('u1', '/welcome');
+      clearDiscoveryPending('u1');
+      expect(getDiscoveryPendingNext('u1')).toBeNull();
+      expect(hasDiscoveryBeenDoneLocally('u1')).toBe(false);
     });
 
     it('swallows storage errors', () => {
@@ -112,9 +121,12 @@ describe('discovery service', () => {
       });
     });
 
-    it('trusts the backend when it answers required: false', async () => {
+    it('caches a required: false answer as local completion, killing redirect loops', async () => {
+      markDiscoveryPending('u1', '/welcome');
       mockFetch.mockResolvedValue({ ok: true, json: async () => ({ required: false }) });
       expect(await isDiscoveryRequired('u1')).toBe(false);
+      expect(hasDiscoveryBeenDoneLocally('u1')).toBe(true);
+      expect(getDiscoveryPendingNext('u1')).toBeNull();
     });
 
     it('treats an unexpected response shape as not required', async () => {
@@ -122,23 +134,28 @@ describe('discovery service', () => {
       expect(await isDiscoveryRequired('u1')).toBe(false);
     });
 
-    it('stays required when the endpoint is not deployed yet (non-2xx)', async () => {
+    it('falls back to the pending marker when the endpoint is not deployed (non-2xx)', async () => {
       mockFetch.mockResolvedValue({ ok: false, status: 404 });
+      expect(await isDiscoveryRequired('u1')).toBe(false);
+      markDiscoveryPending('u1', '/welcome');
       expect(await isDiscoveryRequired('u1')).toBe(true);
     });
 
-    it('stays required when the request throws', async () => {
+    it('falls back to the pending marker when the request throws', async () => {
       mockFetch.mockRejectedValue(new Error('network down'));
+      expect(await isDiscoveryRequired('u1')).toBe(false);
+      markDiscoveryPending('u1', '/welcome');
       expect(await isDiscoveryRequired('u1')).toBe(true);
     });
 
-    it('stays required when the response body is not JSON', async () => {
+    it('falls back to the pending marker when the response body is not JSON', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         json: async () => {
           throw new Error('bad json');
         },
       });
+      markDiscoveryPending('u1', '/welcome');
       expect(await isDiscoveryRequired('u1')).toBe(true);
     });
   });

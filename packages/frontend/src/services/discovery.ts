@@ -83,6 +83,16 @@ export function getDiscoveryPendingNext(userId: string): string | null {
   }
 }
 
+/** Drop the pending marker without recording completion. */
+export function clearDiscoveryPending(userId: string): void {
+  if (!userId) return;
+  try {
+    localStorage.removeItem(`${PENDING_PREFIX}${userId}`);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export function hasDiscoveryBeenDoneLocally(userId: string): boolean {
   try {
     return localStorage.getItem(`${PREFIX}${userId}`) === '1';
@@ -92,11 +102,12 @@ export function hasDiscoveryBeenDoneLocally(userId: string): boolean {
 }
 
 /**
- * Whether the discovery step should be shown to this user. The local flag
- * wins when present; otherwise the backend is asked. An unreachable or
- * not-yet-deployed endpoint keeps the step available (the page is only ever
- * reached through the post-signup redirect, so this never traps existing
- * users), while a reachable endpoint is trusted as the source of truth.
+ * Whether the discovery step should be shown to this user. The local done
+ * flag wins when present; otherwise the backend is asked. A `required: false`
+ * answer is cached as local completion so the guards stop redirecting here.
+ * When the endpoint is unreachable or not deployed yet, only users holding a
+ * signup pending marker see the step, so existing users who open /discovery
+ * by hand are never trapped.
  */
 export async function isDiscoveryRequired(userId: string): Promise<boolean> {
   if (hasDiscoveryBeenDoneLocally(userId)) return false;
@@ -105,11 +116,13 @@ export async function isDiscoveryRequired(userId: string): Promise<boolean> {
       credentials: 'include',
       cache: 'no-store',
     });
-    if (!res.ok) return true;
+    if (!res.ok) return getDiscoveryPendingNext(userId) !== null;
     const data = (await res.json()) as { required?: boolean };
-    return data.required === true;
+    if (data.required === true) return true;
+    markDiscoveryDoneLocally(userId);
+    return false;
   } catch {
-    return true;
+    return getDiscoveryPendingNext(userId) !== null;
   }
 }
 

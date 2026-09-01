@@ -8,6 +8,7 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import {
   COMPANY_SIZE_OPTIONS,
   PROJECT_TYPE_OPTIONS,
+  clearDiscoveryPending,
   completeDiscovery,
   isDiscoveryRequired,
   markDiscoveryPending,
@@ -44,6 +45,9 @@ const Discovery: Component = () => {
 
   onMount(async () => {
     if (!(await checkIsSelfHosted())) {
+      // Covers cloud and a transient status failure alike: drop the pending
+      // marker so the guards cannot bounce the user back here in a loop.
+      clearDiscoveryPending(userId());
       leave();
       return;
     }
