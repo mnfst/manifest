@@ -139,7 +139,7 @@ function walk(text, from, to, context, ctx) {
       );
       const specifier = m?.[1] ?? m?.[2];
       if (specifier) {
-        const layerMatch = m?.[3]?.match(/(?:^|\s)layer(?:\(\s*([^)]+?)\s*\))?(?:\s|$)/);
+        const layerMatch = m?.[3]?.match(/(?:^|\s)layer(?:\(\s*([^)]+?)\s*\))?(?:\s|$)/i);
         ctx.imports.push({
           specifier,
           layer: layerMatch ? (layerMatch[1]?.trim() ?? true) : null,

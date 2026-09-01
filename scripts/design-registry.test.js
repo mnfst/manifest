@@ -37,7 +37,7 @@ test('CSS parsing accepts unquoted url imports', async () => {
 
 test('CSS parsing captures import layer metadata', async () => {
   const { parseCss } = await parser;
-  const { imports } = parseCss('@import "base.css" layer(theme);', 'x.css');
+  const { imports } = parseCss('@import "base.css" LAYER(theme);', 'x.css');
 
   assert.equal(imports[0].specifier, 'base.css');
   assert.equal(imports[0].layer, 'theme');
