@@ -1,0 +1,35 @@
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_7f5db2dfa19812::t_92e0207adf37f1 2611
+.changeset/bright-custom-streams.md
+  s_7f5db2dfa19812::t_2e33e79fcaf9bc 1-5
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_7f5db2dfa19812::t_f215c1397aa7db 1031,1053
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_7f5db2dfa19812::t_c3582cd166f4c4 96-105
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_7f5db2dfa19812::t_f215c1397aa7db 669,686,702,737,745,748
+packages/backend/src/routing/routing-core/__tests__/response-mode-guard.spec.ts
+  s_7f5db2dfa19812::t_c3582cd166f4c4 16-26,29-31,35,39,45,48,73,77,85,87
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_7f5db2dfa19812::t_f215c1397aa7db 431,479,498
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_7f5db2dfa19812::t_f215c1397aa7db 640,679,700
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_7f5db2dfa19812::t_d21c8555daa97a 161
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "eff4cb8ab02ff4837763e807f4bba7514fe0e0fb",
+  "prompts": {},
+  "sessions": {
+    "s_7f5db2dfa19812": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b55-a157-7390-8a32-2fc9127a34cd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
