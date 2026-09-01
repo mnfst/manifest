@@ -2,6 +2,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
   findOpenRouterPrefix,
   lookupWithVariants,
@@ -321,6 +322,7 @@ describe('buildSubscriptionFallbackModels', () => {
     expect(result.find((model) => model.id === 'claude-opus-4')?.contextWindow).toBe(200000);
     expect(result.find((model) => model.id === 'claude-opus-5')?.contextWindow).toBe(1000000);
     expect(result.find((model) => model.id === 'claude-sonnet-5')?.contextWindow).toBe(1000000);
+    expect(result.every((model) => model.contextWindowSource === 'subscription_config')).toBe(true);
   });
 
   it('applies moonshot per-model context windows without prefix bleed', () => {
@@ -377,6 +379,12 @@ describe('supplementWithKnownModels', () => {
     expect(result).toHaveLength(1);
   });
 
+  it('marks supplemented context windows as subscription configuration', () => {
+    const result = supplementWithKnownModels([], 'openai');
+
+    expect(result.every((model) => model.contextWindowSource === 'subscription_config')).toBe(true);
+  });
+
   it('should not add known models that are already covered', () => {
     const raw = [
       {
@@ -420,6 +428,74 @@ describe('supplementWithKnownModels', () => {
     expect(ids).toContain('gemini-3.1-flash-lite-preview');
     expect(ids).not.toContain('gemini-3.1-pro-preview');
     expect(ids).not.toContain('gemini-3-flash-preview');
+  });
+});
+
+describe('reconcileCachedSubscriptionContextWindow', () => {
+  const model = {
+    id: 'gpt-5.6-sol',
+    displayName: 'GPT-5.6 Sol',
+    provider: 'openai',
+    contextWindow: 272000,
+    inputPricePerToken: 0,
+    outputPricePerToken: 0,
+    capabilityReasoning: true,
+    capabilityCode: true,
+    qualityScore: 5,
+  };
+
+  it('updates a context window that came from subscription configuration', () => {
+    expect(
+      reconcileCachedSubscriptionContextWindow(
+        { ...model, contextWindowSource: 'subscription_config' },
+        'openai',
+      ),
+    ).toMatchObject({ contextWindow: 1050000, contextWindowSource: 'subscription_config' });
+  });
+
+  it('preserves a context window reported by the provider', () => {
+    const cached = { ...model, contextWindowSource: 'provider' as const };
+
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'openai')).toBe(cached);
+  });
+
+  it('preserves an untagged legacy context window', () => {
+    expect(reconcileCachedSubscriptionContextWindow(model, 'openai')).toBe(model);
+  });
+
+  it('matches subscription catalogs and context overrides by prefix', () => {
+    const cached = {
+      ...model,
+      id: 'claude-opus-4-8-20260801',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'anthropic')).toMatchObject({
+      contextWindow: 1000000,
+    });
+  });
+
+  it('preserves tagged rows outside the current subscription catalog', () => {
+    const cached = {
+      ...model,
+      id: 'unknown-model',
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'openai')).toBe(cached);
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'unknown-provider')).toBe(cached);
+  });
+
+  it('returns an already-current row unchanged', () => {
+    const cached = {
+      ...model,
+      contextWindow: 1050000,
+      contextWindowSource: 'subscription_config' as const,
+    };
+
+    expect(reconcileCachedSubscriptionContextWindow(cached, 'openai')).toBe(cached);
   });
 });
 
