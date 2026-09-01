@@ -2608,7 +2608,7 @@ describe('ProxyService — orchestration', () => {
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: [
-          route('custom:local', 'api_key', 'local-model'),
+          route('unsupported', 'api_key', 'local-model'),
           route('anthropic', 'api_key', 'claude'),
         ],
         response_mode: 'stream',

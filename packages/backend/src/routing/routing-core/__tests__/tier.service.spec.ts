@@ -666,7 +666,7 @@ describe('TierService', () => {
     it('rejects clearing the only stream-capable route while stream mode is active', async () => {
       tierRepo.findOne.mockResolvedValue({
         tier: 'standard',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('unsupported', 'api_key', 'local-model'),
         auto_assigned_route: null,
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
         response_mode: 'stream',
@@ -683,7 +683,7 @@ describe('TierService', () => {
     it('rejects stream mode when the route chain has no stream-capable model', async () => {
       tierRepo.findOne.mockResolvedValue({
         tier: 'standard',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('unsupported', 'api_key', 'local-model'),
         auto_assigned_route: null,
         fallback_routes: null,
       } as TierAssignment);
@@ -699,7 +699,7 @@ describe('TierService', () => {
         tier: 'standard',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         auto_assigned_route: null,
-        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+        fallback_routes: [route('unsupported', 'api_key', 'local-model')],
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
 
@@ -734,7 +734,7 @@ describe('TierService', () => {
       } as TierAssignment;
       tierRepo.findOne.mockResolvedValue(existing);
       discoveryService.getModelsForAgent.mockResolvedValue([
-        discovered('local-model', 'custom:local', 'api_key'),
+        discovered('local-model', 'unsupported', 'api_key'),
       ]);
 
       const result = await svc.setFallbacks(
@@ -742,10 +742,10 @@ describe('TierService', () => {
         'tenant-1',
         'standard',
         ['local-model'],
-        [route('custom:local', 'api_key', 'local-model')],
+        [route('unsupported', 'api_key', 'local-model')],
       );
 
-      expect(result).toEqual([route('custom:local', 'api_key', 'local-model')]);
+      expect(result).toEqual([route('unsupported', 'api_key', 'local-model')]);
       expect(tierRepo.save).toHaveBeenCalledWith(existing);
     });
   });
