@@ -1,0 +1,30 @@
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_7f5db2dfa19812::t_4fd861e3388f24 1031,1053
+packages/backend/src/routing/routing-core/__tests__/response-mode-guard.spec.ts
+  s_7f5db2dfa19812::t_40464c2192ead8 19,22,39,48,77,87
+  s_7f5db2dfa19812::t_4fd861e3388f24 16,35,45,73,85
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_7f5db2dfa19812::t_4fd861e3388f24 640,679,700
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_7f5db2dfa19812::t_4fd861e3388f24 2611
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_7f5db2dfa19812::t_4fd861e3388f24 669,686,702,737,744-745,748
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_7f5db2dfa19812::t_4fd861e3388f24 431,479,498
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7bda93391a0559e9e8503d0901e0a599fedca4d1",
+  "prompts": {},
+  "sessions": {
+    "s_7f5db2dfa19812": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b55-a157-7390-8a32-2fc9127a34cd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
