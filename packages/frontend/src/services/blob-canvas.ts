@@ -140,7 +140,14 @@ export function initBlobCanvas(
   }
 
   let observer: ResizeObserver | undefined;
-  const onWindowResize = () => resize();
+  const onWindowResize = () => {
+    // With the observer covering parent size changes, this listener only
+    // needs to act on a device-pixel-ratio change; bailing otherwise avoids
+    // clearing the canvas and regenerating the grain on every drag of the
+    // window edge.
+    if (observer && Math.min(window.devicePixelRatio || 1, 2) === dpr) return;
+    resize();
+  };
   if (typeof ResizeObserver === 'function' && canvas.parentElement) {
     observer = new ResizeObserver(() => resize());
     observer.observe(canvas.parentElement);

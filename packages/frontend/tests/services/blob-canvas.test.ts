@@ -156,6 +156,12 @@ describe('blob canvas', () => {
     callback();
     expect(canvas.width).toBe(300);
 
+    // A plain window resize with an unchanged dpr is the observer's job:
+    // the listener bails instead of clearing and regenerating the grain.
+    const regens = ctxs[1].putImageData.mock.calls.length;
+    window.dispatchEvent(new Event('resize'));
+    expect(ctxs[1].putImageData.mock.calls.length).toBe(regens);
+
     // A DPR change (new display) alters no CSS size, so the observer stays
     // silent; the window resize listener picks it up instead.
     vi.stubGlobal('devicePixelRatio', 2);
