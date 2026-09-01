@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsIn, IsOptional, MaxLength } from 'class-validator';
+import { IsEmail, IsIn, MaxLength, ValidateIf } from 'class-validator';
 
 /** Claim origins this route may record; `website` belongs to Peacock's own form. */
 export const PIVOT_CLAIM_SOURCES = ['cloud', 'self-hosted'] as const;
@@ -12,8 +12,9 @@ export class PivotClaimDto {
   @MaxLength(254)
   email!: string;
 
-  /** Where the claim was made; absent defaults to self-hosted. */
-  @IsOptional()
+  /** Where the claim was made; absent defaults to self-hosted. Explicit
+   * null is rejected: only omission earns the default. */
+  @ValidateIf((claim) => claim.source !== undefined)
   @IsIn([...PIVOT_CLAIM_SOURCES])
   source?: PivotClaimSource;
 }

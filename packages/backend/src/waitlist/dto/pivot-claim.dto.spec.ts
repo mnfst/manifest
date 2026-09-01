@@ -29,6 +29,11 @@ describe('PivotClaimDto', () => {
     expect(errors.map((error) => error.property)).toContain('newsletter');
   });
 
+  it('rejects an explicit null source; only omission earns the default', () => {
+    const { errors } = validate({ email: 'a@b.co', source: null });
+    expect(errors.map((error) => error.property)).toContain('source');
+  });
+
   it('accepts the two claim sources and rejects anything else', () => {
     expect(validate({ email: 'a@b.co', source: 'cloud' }).errors).toHaveLength(0);
     expect(validate({ email: 'a@b.co', source: 'self-hosted' }).errors).toHaveLength(0);
