@@ -99,8 +99,8 @@ const Discovery: Component = () => {
               </p>
               <p>
                 If you're open to it, tell us a little about yourself. We may reach out personally
-                to learn about your experience and get your feedback.{' '}
-                <strong>No newsletters or marketing emails.</strong>
+                to learn about your experience and get your feedback. No newsletters or marketing
+                emails.
               </p>
             </div>
           </aside>
