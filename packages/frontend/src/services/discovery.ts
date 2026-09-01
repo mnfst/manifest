@@ -83,6 +83,25 @@ export function getDiscoveryPendingNext(userId: string): string | null {
   }
 }
 
+/**
+ * Cache-free probe used before dropping the pending marker: only a positive
+ * "this deployment is not self-hosted" answer counts. A transient failure
+ * returns false so a real self-hosted signup never loses the one-time form.
+ */
+export async function isConfirmedNotSelfHosted(): Promise<boolean> {
+  try {
+    const res = await fetch('/api/v1/setup/status', {
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) return false;
+    const data = (await res.json()) as { isSelfHosted?: boolean };
+    return data.isSelfHosted !== true;
+  } catch {
+    return false;
+  }
+}
+
 /** Drop the pending marker without recording completion. */
 export function clearDiscoveryPending(userId: string): void {
   if (!userId) return;

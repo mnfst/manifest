@@ -10,6 +10,7 @@ import {
   PROJECT_TYPE_OPTIONS,
   clearDiscoveryPending,
   completeDiscovery,
+  isConfirmedNotSelfHosted,
   isDiscoveryRequired,
   markDiscoveryPending,
   type DiscoverySubmission,
@@ -45,9 +46,12 @@ const Discovery: Component = () => {
 
   onMount(async () => {
     if (!(await checkIsSelfHosted())) {
-      // Covers cloud and a transient status failure alike: drop the pending
-      // marker so the guards cannot bounce the user back here in a loop.
-      clearDiscoveryPending(userId());
+      // Only a confirmed non-self-hosted answer drops the pending marker; a
+      // transient status failure keeps it so a real self-hosted signup does
+      // not lose the one-time form.
+      if (await isConfirmedNotSelfHosted()) {
+        clearDiscoveryPending(userId());
+      }
       leave();
       return;
     }
