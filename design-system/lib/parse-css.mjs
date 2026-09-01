@@ -1,8 +1,9 @@
 // Dependency-free CSS parser for the registry generator.
 //
 // Walks a stylesheet with a brace-depth scanner and yields flat rules:
-//   { selector, declarations: [{ prop, value, line }], media, file, line }
-// @media/@supports/@layer blocks recurse with their context tracked;
+//   { selector, declarations: [{ prop, value, line }], media, layer, file, line }
+// @media/@supports blocks recurse with their conditional context tracked;
+// @layer blocks keep a separate cascade-layer context;
 // @keyframes and @font-face bodies are opaque (their inner "selectors" are
 // not classes); @import lines are collected for the cascade walk.
 
@@ -110,11 +111,13 @@ export function parseCss(source, file) {
   const text = stripComments(source);
   const rules = [];
   const imports = [];
-  walk(text, 0, text.length, '', { text, file, rules, imports });
-  return { rules, imports };
+  const layers = [];
+  const ctx = { text, file, rules, imports, layers, anonymousLayers: 0 };
+  walk(text, 0, text.length, { media: '', layer: '' }, ctx);
+  return { rules, imports, layers };
 }
 
-function walk(text, from, to, media, ctx) {
+function walk(text, from, to, context, ctx) {
   let i = from;
   while (i < to) {
     const brace = text.indexOf('{', i);
@@ -124,6 +127,12 @@ function walk(text, from, to, media, ctx) {
       const m = statement.match(/^@import\s+(?:url\(\s*)?(?:['"]([^'"]+)['"]|([^)\s;]+))\s*\)?/);
       const specifier = m?.[1] ?? m?.[2];
       if (specifier) ctx.imports.push(specifier);
+      const layerStatement = statement.match(/^@layer\s+(.+)$/);
+      if (layerStatement) {
+        for (const name of layerStatement[1].split(',').map((value) => value.trim())) {
+          if (name) registerLayer(ctx, qualifyLayer(context.layer, name));
+        }
+      }
       i = semi + 1;
       continue;
     }
@@ -131,19 +140,26 @@ function walk(text, from, to, media, ctx) {
     const raw = text.slice(i, brace);
     const preludeStart = i + (raw.length - raw.trimStart().length);
     const close = matchBrace(text, brace);
-    handleBlock(raw.trim(), brace, close, media, ctx, preludeStart);
+    handleBlock(raw.trim(), brace, close, context, ctx, preludeStart);
     i = close + 1;
   }
 }
 
-function handleBlock(prelude, brace, close, media, ctx, preludeStart) {
+function handleBlock(prelude, brace, close, context, ctx, preludeStart) {
   const { text, file } = ctx;
   if (OPAQUE_AT.test(prelude)) return;
+  if (prelude.startsWith('@layer')) {
+    const rawName = prelude.replace(/^@layer\s*/, '').trim();
+    const name = rawName || `__anonymous_${++ctx.anonymousLayers}`;
+    const layer = qualifyLayer(context.layer, name);
+    registerLayer(ctx, layer);
+    walk(text, brace + 1, close, { ...context, layer }, ctx);
+    return;
+  }
   if (NESTING_AT.test(prelude)) {
-    const nested = prelude.startsWith('@media')
-      ? [media, prelude.replace(/^@media\s*/, '')].filter(Boolean).join(' && ')
-      : [media, prelude].filter(Boolean).join(' && ');
-    walk(text, brace + 1, close, nested, ctx);
+    const condition = prelude.startsWith('@media') ? prelude.replace(/^@media\s*/, '') : prelude;
+    const media = [context.media, condition].filter(Boolean).join(' && ');
+    walk(text, brace + 1, close, { ...context, media }, ctx);
     return;
   }
   if (prelude.startsWith('@')) return;
@@ -153,6 +169,21 @@ function handleBlock(prelude, brace, close, media, ctx, preludeStart) {
   for (const sel of splitTop(prelude, ',')) {
     const selector = String(sel).replace(/\s+/g, ' ');
     if (!selector) continue;
-    ctx.rules.push({ selector, declarations, media, file, line: lineAt(text, preludeStart) });
+    ctx.rules.push({
+      selector,
+      declarations,
+      media: context.media,
+      layer: context.layer,
+      file,
+      line: lineAt(text, preludeStart),
+    });
   }
+}
+
+function qualifyLayer(parent, name) {
+  return parent ? `${parent}.${name}` : name;
+}
+
+function registerLayer(ctx, layer) {
+  if (layer && !ctx.layers.includes(layer)) ctx.layers.push(layer);
 }

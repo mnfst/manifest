@@ -21,7 +21,7 @@ export function loadCascade(entryPath, extras = []) {
   const rules = [];
   const missing = [];
   const seen = new Set();
-  const ctx = { order, rules, missing, seen };
+  const ctx = { order, rules, missing, seen, layers: new Map() };
   visit(resolve(entryPath), ctx);
   const entryTreeSize = order.length;
   for (const extra of extras) visit(resolve(extra), ctx);
@@ -38,10 +38,19 @@ function visit(path, ctx) {
     ctx.missing.push(path);
     return;
   }
-  const { rules, imports } = parseCss(source, basename(path));
+  const { rules, imports, layers } = parseCss(source, basename(path));
   for (const spec of imports) visit(resolve(dirname(path), spec), ctx);
+  for (const layer of layers) {
+    if (!ctx.layers.has(layer)) ctx.layers.set(layer, ctx.layers.size);
+  }
   ctx.order.push(path);
-  for (const rule of rules) ctx.rules.push({ ...rule, orderIndex: ctx.rules.length });
+  for (const rule of rules) {
+    ctx.rules.push({
+      ...rule,
+      layerIndex: rule.layer ? ctx.layers.get(rule.layer) : undefined,
+      orderIndex: ctx.rules.length,
+    });
+  }
 }
 
 /** Specificity as a single comparable number (ids, classes/attrs/pseudos, types). */
@@ -54,7 +63,7 @@ export function specificity(selector) {
 }
 
 /**
- * Group every declaration by (selector, media, property) and resolve the
+ * Group every declaration by (selector, conditional context, property) and resolve the
  * winner. Only genuine conflicts (differing values) are reported: a repeated
  * identical value is noise, not a fork.
  * Returns { canonical: [...], ghosts: [...] }.
@@ -69,6 +78,8 @@ export function resolveConflicts(rules) {
         ...d,
         selector: rule.selector,
         media: rule.media,
+        layer: rule.layer,
+        layerIndex: rule.layerIndex,
         file: rule.file,
         orderIndex: rule.orderIndex,
       };
@@ -83,6 +94,7 @@ export function resolveConflicts(rules) {
     entries.sort(
       (a, b) =>
         Number(isImportant(a.value)) - Number(isImportant(b.value)) ||
+        layerRank(a) - layerRank(b) ||
         specificity(a.selector) - specificity(b.selector) ||
         a.orderIndex - b.orderIndex,
     );
@@ -95,11 +107,19 @@ export function resolveConflicts(rules) {
   return { canonical: canonical.sort(bySource), ghosts: ghosts.sort(bySource) };
 }
 
-const isImportant = (value) => /\s!important\s*$/i.test(value);
+const isImportant = (value) => /!important\s*$/i.test(value);
 
-const strip = ({ selector, media, prop, value, file, line }) => ({
+function layerRank(entry) {
+  const important = isImportant(entry.value);
+  if (!entry.layer) return important ? Number.MIN_SAFE_INTEGER : Number.MAX_SAFE_INTEGER;
+  const index = entry.layerIndex ?? entry.orderIndex;
+  return important ? -index : index;
+}
+
+const strip = ({ selector, media, layer, prop, value, file, line }) => ({
   selector,
   ...(media ? { media } : {}),
+  ...(layer ? { layer } : {}),
   prop,
   value,
   file,

@@ -70,6 +70,67 @@ test('important declarations beat later non-important declarations', async () =>
   assert.equal(result.ghosts[0].value, 'blue');
 });
 
+test('important detection accepts values without whitespace before the suffix', async () => {
+  const { resolveConflicts } = await cascade;
+  const declarations = (value) => [{ prop: 'color', value, line: 1 }];
+  const rules = [
+    {
+      selector: '.a',
+      declarations: declarations('red!important'),
+      media: '',
+      layer: '',
+      file: 'first.css',
+      orderIndex: 0,
+    },
+    {
+      selector: '.a',
+      declarations: declarations('blue'),
+      media: '',
+      layer: '',
+      file: 'second.css',
+      orderIndex: 1,
+    },
+  ];
+
+  assert.equal(resolveConflicts(rules).canonical[0].value, 'red!important');
+});
+
+test('unlayered normal declarations beat declarations inside a layer', async () => {
+  const { parseCss } = await parser;
+  const { resolveConflicts } = await cascade;
+  const { rules, layers } = parseCss(
+    '@layer components { .a { color: red; } } .a { color: blue; }',
+    'x.css',
+  );
+  const layerIndexes = new Map(layers.map((layer, index) => [layer, index]));
+  const ordered = rules.map((rule, orderIndex) => ({
+    ...rule,
+    layerIndex: rule.layer ? layerIndexes.get(rule.layer) : undefined,
+    orderIndex,
+  }));
+
+  assert.equal(rules[0].layer, 'components');
+  assert.equal(rules[0].media, '');
+  assert.equal(resolveConflicts(ordered).canonical[0].value, 'blue');
+});
+
+test('important layer precedence reverses normal layer precedence', async () => {
+  const { parseCss } = await parser;
+  const { resolveConflicts } = await cascade;
+  const { rules, layers } = parseCss(
+    '@layer base, components; @layer base { .a { color: red!important; } } @layer components { .a { color: blue!important; } } .a { color: green!important; }',
+    'x.css',
+  );
+  const layerIndexes = new Map(layers.map((layer, index) => [layer, index]));
+  const ordered = rules.map((rule, orderIndex) => ({
+    ...rule,
+    layerIndex: rule.layer ? layerIndexes.get(rule.layer) : undefined,
+    orderIndex,
+  }));
+
+  assert.equal(resolveConflicts(ordered).canonical[0].value, 'red!important');
+});
+
 test('layout tokens are categorized before sidebar tokens', async () => {
   const { categorize } = await emitter;
 
