@@ -75,7 +75,12 @@ vi.mock('../../src/services/toast-store.js', () => ({
 
 vi.mock('../../src/services/formatters.js', () => ({
   formatNumber: (v: number) => String(v),
-  formatCost: (v: number) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : null),
+  // Mirrors the real formatCost contract: Number() coercion, null for
+  // negative or non-finite input (so null coerces to 0 and renders $0.00).
+  formatCost: (v: number) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 0 ? `$${n.toFixed(2)}` : null;
+  },
   formatTime: (ts: string) => ts,
 }));
 
@@ -862,12 +867,13 @@ describe('Workspace — view toggle', () => {
 
   it('renders em dashes for missing cost and last_active in the table view', async () => {
     localStorage.setItem('manifest_harness_view', 'table');
+    // total_cost omitted: Number(undefined) is NaN, which the real formatCost
+    // maps to null, firing the em-dash fallback (null would render $0.00).
     mockGetAgents.mockResolvedValue({
       agents: [
         {
           agent_name: 'idle-agent',
           message_count: 0,
-          total_cost: null,
           total_tokens: 0,
           last_active: null,
           sparkline: [],
