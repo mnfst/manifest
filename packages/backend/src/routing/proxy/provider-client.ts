@@ -244,6 +244,21 @@ function applyAnthropicUserIdForOpenAi(body: Record<string, unknown>): void {
     userId.length <= 64 ? userId : createHash('sha256').update(userId).digest('hex');
 }
 
+// Anthropic thinking configures extended reasoning. OpenAI chat completions
+// reject the field as an unknown parameter and express the same control as
+// reasoning_effort, so translate instead of forwarding. Only `disabled` has a
+// lossless equivalent (`none`); adaptive/enabled budgets map to no single
+// effort tier, so those fall back to the provider's default reasoning.
+function applyAnthropicThinkingForOpenAi(body: Record<string, unknown>): void {
+  if (!('thinking' in body)) return;
+  const thinking = isRecord(body.thinking) ? body.thinking : undefined;
+  delete body.thinking;
+
+  if (thinking?.type === 'disabled' && body.reasoning_effort === undefined) {
+    body.reasoning_effort = 'none';
+  }
+}
+
 function openRouterCacheMode(model: string): 'anthropic' | 'message' | null {
   const normalized = model.toLowerCase().replace(/^~/, '');
   if (normalized.startsWith('anthropic/')) return 'anthropic';
@@ -769,7 +784,10 @@ export class ProviderClient {
     }
     const requestBody = { ...sanitized, model: bareModel, stream };
     if (endpointKey === 'openai') {
-      if (ctx.apiMode === 'messages') applyAnthropicUserIdForOpenAi(requestBody);
+      if (ctx.apiMode === 'messages') {
+        applyAnthropicUserIdForOpenAi(requestBody);
+        applyAnthropicThinkingForOpenAi(requestBody);
+      }
       applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
     if (endpointKey === 'mistral') {

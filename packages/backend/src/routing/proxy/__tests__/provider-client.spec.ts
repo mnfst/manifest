@@ -1158,6 +1158,69 @@ describe('ProviderClient', () => {
       expect(sentBody.safety_identifier).toBeUndefined();
     });
 
+    it('translates adaptive Anthropic thinking to the OpenAI default reasoning effort', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: { model: 'gpt-5.6-sol', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody).not.toHaveProperty('reasoning_effort');
+    });
+
+    it('translates disabled Anthropic thinking to reasoning_effort none', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: { model: 'gpt-5.6-sol', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody.reasoning_effort).toBe('none');
+    });
+
+    it('leaves a caller-sent thinking param alone outside messages mode', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: {
+          model: 'gpt-5.6-sol',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'adaptive' },
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.thinking).toEqual({ type: 'adaptive' });
+    });
+
     it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 

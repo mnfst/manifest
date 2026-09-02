@@ -248,7 +248,9 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.stop_sequences !== undefined) chatBody.stop = body.stop_sequences;
   // Anthropic-native fields with no chat_completions analogue. Carried on
   // chatBody so toAnthropicRequest can forward them when the resolved
-  // provider is Anthropic; harmlessly ignored by other adapters.
+  // provider is Anthropic. Native OpenAI rejects `thinking` as an unknown
+  // parameter, so the forwarding boundary translates it to reasoning_effort
+  // (see applyAnthropicThinkingForOpenAi in provider-client).
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 
