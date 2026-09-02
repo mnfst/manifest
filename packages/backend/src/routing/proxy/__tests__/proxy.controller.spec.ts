@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, Logger } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { ProxyController } from '../proxy.controller';
@@ -1917,6 +1917,28 @@ describe('ProxyController', () => {
         source: 'provider',
       }),
     });
+  });
+
+  it('scrubs provider credentials out of the logged Responses SSE failure', async () => {
+    // A ChatGPT-family SSE failure carries the raw upstream body, which on a
+    // 401 can contain the caller's own key.
+    const key = 'sk-ant-api03-AAAABBBBCCCCDDDDEEEEFFFF';
+    const leaky = JSON.stringify({
+      error: { message: `invalid x-api-key: ${key}`, type: 'authentication_error' },
+    });
+    proxyService.proxyRequest.mockRejectedValue(new ResponsesSseError(leaky, 401, leaky));
+    const errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    const logged = errorSpy.mock.calls.map((call) => String(call[0])).join('\n');
+    errorSpy.mockRestore();
+    expect(logged).toContain('Proxy error:');
+    expect(logged).toContain('[REDACTED]');
+    expect(logged).not.toContain(key);
   });
 
   it('should forward HttpException as friendly chat message', async () => {

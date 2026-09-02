@@ -10,6 +10,7 @@ import { RoutingMeta } from '../proxy.service';
 import { FailedFallback } from '../proxy-fallback.service';
 import { IngestionContext } from '../../../otlp/interfaces/ingestion-context.interface';
 import { StreamUsage } from '../stream-writer';
+import { Logger } from '@nestjs/common';
 import type { AutofixRecord } from '../../autofix/autofix.types';
 
 const testCtx: IngestionContext = {
@@ -3403,6 +3404,130 @@ describe('proxy-response-handler', () => {
         'Internal Server Error',
         expect.objectContaining({ specificityCategory: 'coding' }),
       );
+    });
+  });
+  /* ── Credential scrubbing in log output ── */
+
+  describe('secret scrubbing of logged upstream error bodies', () => {
+    // Anthropic 401s echo the caller's own auth header back inside the error
+    // body. Everything we log has to go through scrubSecrets first.
+    const ANTHROPIC_KEY = 'sk-ant-api03-AAAABBBBCCCCDDDDEEEEFFFF';
+    const BEARER_TOKEN = 'sk-proj-1111222233334444555566667777';
+    const LEAKY_401_BODY = JSON.stringify({
+      type: 'error',
+      error: {
+        type: 'authentication_error',
+        message: `invalid x-api-key: ${ANTHROPIC_KEY}`,
+      },
+      request_headers: {
+        'x-api-key': ANTHROPIC_KEY,
+        authorization: `Bearer ${BEARER_TOKEN}`,
+      },
+    });
+
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    function loggedLines(): string {
+      return warnSpy.mock.calls.map((call) => String(call[0])).join('\n');
+    }
+
+    it('scrubs credentials from the "Upstream error" log line', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4' });
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        401,
+        LEAKY_401_BODY,
+        undefined,
+        recorder as any,
+        'trace-secret-1',
+      );
+
+      const logged = loggedLines();
+      expect(logged).toContain('Upstream error 401');
+      expect(logged).toContain('[REDACTED]');
+      expect(logged).not.toContain(ANTHROPIC_KEY);
+      expect(logged).not.toContain(BEARER_TOKEN);
+    });
+
+    it('scrubs credentials from the "Fallback chain exhausted" log line', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4' });
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-3-haiku',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 401,
+          errorBody: LEAKY_401_BODY,
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        401,
+        LEAKY_401_BODY,
+        failedFallbacks,
+        recorder as any,
+        'trace-secret-2',
+      );
+
+      const logged = loggedLines();
+      expect(logged).toContain('Fallback chain exhausted');
+      expect(logged).toContain('[REDACTED]');
+      expect(logged).not.toContain(ANTHROPIC_KEY);
+      expect(logged).not.toContain(BEARER_TOKEN);
+    });
+
+    it('masks a key that straddles the truncation boundary', async () => {
+      const { res } = mockResponse();
+      const recorder = mockRecorder();
+      const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4' });
+      // The 200-char slice falls inside the key: scrubbing after slicing would
+      // leave its leading half in the log.
+      const straddling = `${'A'.repeat(169)} x-api-key: ${ANTHROPIC_KEY} trailing`;
+      const failedFallbacks: FailedFallback[] = [
+        {
+          model: 'claude-3-haiku',
+          provider: 'anthropic',
+          fallbackIndex: 0,
+          status: 401,
+          errorBody: straddling,
+        },
+      ];
+
+      await handleProviderError(
+        res as any,
+        testCtx,
+        meta,
+        buildMetaHeaders(meta),
+        401,
+        straddling,
+        failedFallbacks,
+        recorder as any,
+        'trace-secret-3',
+      );
+
+      const logged = loggedLines();
+      expect(logged).toContain('[REDACTED]');
+      expect(logged).not.toContain('sk-ant-api03-AAAA');
     });
   });
 });
