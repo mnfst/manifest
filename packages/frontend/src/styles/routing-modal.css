@@ -185,12 +185,15 @@
   padding: 8px 24px 8px 48px;
   border-top: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
   font-size: var(--font-size-xs);
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  position: relative;
+  z-index: 2;
 }
 
 .routing-modal__table-head > span:not(:first-child) {
