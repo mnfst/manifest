@@ -1,0 +1,14 @@
+packages/frontend/src/styles/routing-modal.css
+  h_4314c622e2d856 188,195-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "54b2d35c1d3e82589f60b0a9b8c2d994a518ba10",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
