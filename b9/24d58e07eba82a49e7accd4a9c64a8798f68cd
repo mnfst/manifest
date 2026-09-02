@@ -1,0 +1,25 @@
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_d750ff127765d5::t_48f1f416cf0e76 1,3-6
+docker/DOCKER_README.md
+  s_d750ff127765d5::t_48f1f416cf0e76 132-138
+packages/backend/src/common/utils/crypto.util.spec.ts
+  s_d750ff127765d5::t_ee121e5af8753e 198
+packages/backend/src/common/utils/crypto.util.ts
+  s_d750ff127765d5::t_923815b9100232 122-130,132,134,144,148,159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "b924d58e07eba82a49e7accd4a9c64a8798f68cd",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
