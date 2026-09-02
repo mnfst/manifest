@@ -129,10 +129,14 @@ cp .env.example .env
 openssl rand -hex 32
 ```
 
-`MANIFEST_ENCRYPTION_KEY` encrypts the provider API keys and OAuth tokens
-Manifest stores. Left unset it falls back to `BETTER_AUTH_SECRET`, which means
-one leaked session-signing secret also decrypts every stored credential. Set it
-before first boot — adding it later means re-encrypting what is already stored.
+`MANIFEST_ENCRYPTION_KEY` encrypts the provider API keys, OAuth tokens and
+request recordings Manifest stores; the rest of the database is not encrypted
+by it. Left unset it falls back to `BETTER_AUTH_SECRET`, which means one leaked
+session-signing secret also decrypts every stored credential and recording.
+Set it before first boot.
+Recordings written under a previous secret are not migrated: after the secret
+changes they can no longer be decrypted and the dashboard shows them as
+unavailable, while retention removes them on schedule.
 
 (Optional: to use a stronger database password, set BOTH `POSTGRES_PASSWORD` and `DATABASE_URL` in `.env`, they must agree, and any special characters in the password need to be percent-encoded in the URL.)
 
