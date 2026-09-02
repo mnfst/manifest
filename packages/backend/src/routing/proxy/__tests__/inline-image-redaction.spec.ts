@@ -169,4 +169,23 @@ describe('redactInlineImageDataUrls', () => {
     expect(redactInlineImageDataUrls(body)).toBe(body);
   });
 
+  it('still walks the sibling fields of a native image block', () => {
+    const body = {
+      source: {
+        media_type: 'image/png',
+        data: 'AAAA',
+        thumbnail: { inline_data: { mime_type: 'image/png', data: 'BBBB' } },
+        preview: 'data:image/png;base64,CCCC',
+      },
+    };
+    expect(redactInlineImageDataUrls(body)).toEqual({
+      source: {
+        media_type: 'image/png',
+        data: '[inline image: image/png, 3 bytes, 4 base64 chars]',
+        thumbnail: { inline_data: { mime_type: 'image/png', data: '[inline image: image/png, 3 bytes, 4 base64 chars]' } },
+        preview: '[inline image: image/png, 3 bytes, 4 base64 chars]',
+      },
+    });
+  });
+
 });

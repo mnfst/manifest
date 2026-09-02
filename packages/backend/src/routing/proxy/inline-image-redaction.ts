@@ -14,12 +14,17 @@ function redactValue(value: unknown): RedactResult {
   if (Array.isArray(value)) return redactArray(value);
   if (!isPlainRecord(value)) return { value, changed: false };
 
-  const inline = redactInlineBase64Record(value);
-  if (inline) return inline;
-
+  const inlineData = inlineImageDataMarker(value);
   const out: Record<string, unknown> = {};
   let changed = false;
   for (const [key, nested] of Object.entries(value)) {
+    // Provider-native image blocks keep the bytes in `data`; the sibling
+    // fields are still walked so nothing nested beside them survives.
+    if (inlineData !== null && key === 'data') {
+      out[key] = inlineData;
+      changed = true;
+      continue;
+    }
     const result = redactValue(nested);
     out[key] = result.value;
     changed ||= result.changed;
@@ -50,14 +55,14 @@ function redactString(value: string): RedactResult {
 // key, so both wire formats and their casing variants are covered.
 const INLINE_MIME_KEYS = ['media_type', 'mime_type', 'mimeType'] as const;
 
-function redactInlineBase64Record(value: Record<string, unknown>): RedactResult | null {
+function inlineImageDataMarker(value: Record<string, unknown>): string | null {
   const data = value['data'];
   if (typeof data !== 'string' || data.length === 0) return null;
   const mimeKey = INLINE_MIME_KEYS.find((key) => typeof value[key] === 'string');
   if (!mimeKey) return null;
   const mimeType = value[mimeKey] as string;
   if (!/^image\//i.test(mimeType)) return null;
-  return { value: { ...value, data: describeInlineImage(mimeType, data) }, changed: true };
+  return describeInlineImage(mimeType, data);
 }
 
 function describeInlineImage(mimeType: string, base64: string): string {
