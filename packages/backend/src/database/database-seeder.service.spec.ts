@@ -1,3 +1,5 @@
+process.env['MANIFEST_ENCRYPTION_KEY'] ??= 'test-recording-secret-at-least-32-characters';
+
 import { keyPrefix, verifyKey } from '../common/utils/hash.util';
 import { decodeRequestRecording } from '../common/utils/request-recording-codec';
 import { DatabaseSeederService } from './database-seeder.service';

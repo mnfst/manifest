@@ -129,7 +129,7 @@ cp .env.example .env
 openssl rand -hex 32
 ```
 
-`MANIFEST_ENCRYPTION_KEY` encrypts the provider API keys and OAuth tokens
+`MANIFEST_ENCRYPTION_KEY` encrypts the provider API keys, OAuth tokens and stored request recordings
 Manifest stores. Left unset it falls back to `BETTER_AUTH_SECRET`, which means
 one leaked session-signing secret also decrypts every stored credential. Set it
 before first boot — adding it later means re-encrypting what is already stored.

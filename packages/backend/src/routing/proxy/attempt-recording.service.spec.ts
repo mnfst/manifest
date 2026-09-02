@@ -1,3 +1,5 @@
+process.env['MANIFEST_ENCRYPTION_KEY'] ??= 'test-recording-secret-at-least-32-characters';
+
 import { decodeRequestRecording } from '../../common/utils/request-recording-codec';
 import type { StoredAttemptRecording } from './attempt-recording.types';
 import { AttemptRecordingService } from './attempt-recording.service';

@@ -117,3 +117,41 @@ export function isEncrypted(value: string): boolean {
     return false;
   }
 }
+
+// Binary envelope for blobs that are not text (compressed request recordings).
+// Layout: magic(4) | salt(16) | iv(12) | tag(16) | ciphertext. The magic prefix
+// makes a stored blob self-identifying, so a reader can tell an encrypted
+// recording from a legacy gzip-only one without extra bookkeeping.
+export const BINARY_ENVELOPE_MAGIC = Buffer.from('MRE1', 'ascii');
+const TAG_LENGTH = 16;
+const BINARY_HEADER_LENGTH = BINARY_ENVELOPE_MAGIC.length + SALT_LENGTH + IV_LENGTH + TAG_LENGTH;
+
+export function hasBinaryEnvelope(blob: Buffer): boolean {
+  return (
+    blob.length >= BINARY_ENVELOPE_MAGIC.length &&
+    blob.subarray(0, BINARY_ENVELOPE_MAGIC.length).equals(BINARY_ENVELOPE_MAGIC)
+  );
+}
+
+export function encryptBuffer(plain: Buffer, secret: string): Buffer {
+  const salt = randomBytes(SALT_LENGTH);
+  const key = deriveKey(secret, salt);
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
+  return Buffer.concat([BINARY_ENVELOPE_MAGIC, salt, iv, cipher.getAuthTag(), encrypted]);
+}
+
+export function decryptBuffer(blob: Buffer, secret: string): Buffer {
+  if (!hasBinaryEnvelope(blob) || blob.length < BINARY_HEADER_LENGTH) {
+    throw new Error('Invalid encrypted blob format');
+  }
+  let offset = BINARY_ENVELOPE_MAGIC.length;
+  const salt = blob.subarray(offset, (offset += SALT_LENGTH));
+  const iv = blob.subarray(offset, (offset += IV_LENGTH));
+  const tag = blob.subarray(offset, (offset += TAG_LENGTH));
+  const encrypted = blob.subarray(offset);
+  const decipher = createDecipheriv(ALGORITHM, deriveKey(secret, salt), iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+}
