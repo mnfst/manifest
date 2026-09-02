@@ -119,7 +119,9 @@ describe(`Provider Attempt recording E2E (${expectedBackend})`, () => {
     expect(metadataTables).toHaveLength(0);
 
     const objectBytes = await storage.get(jsonRecording.recording_key);
-    expect([...objectBytes.subarray(0, 2)]).toEqual([0x1f, 0x8b]);
+    // Encrypted envelope, not gzip: the on-disk object must not expose the exchange.
+    expect(objectBytes.subarray(0, 4).toString('ascii')).toBe('MRE1');
+    expect(objectBytes.includes(Buffer.from(largeTail, 'utf8'))).toBe(false);
     await expect(decodeRequestRecording(objectBytes)).resolves.toEqual({
       version: 1,
       wire_format: 'openai_chat_completions',
