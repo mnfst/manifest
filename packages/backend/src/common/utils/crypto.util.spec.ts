@@ -6,6 +6,8 @@ import {
   encryptBuffer,
   hasBinaryEnvelope,
   isEncrypted,
+  getDecryptionSecrets,
+  decryptWithAny,
 } from './crypto.util';
 
 describe('getEncryptionSecret', () => {
@@ -173,6 +175,68 @@ describe('isEncrypted', () => {
     // must be rejected as not-encrypted. This guards the
     // `buf.toString('base64') !== part` branch inside isEncrypted.
     expect(isEncrypted('AB:AB:AB:AB')).toBe(false);
+  });
+});
+
+describe('getDecryptionSecrets', () => {
+  const originalEnv = process.env;
+  const KEY = 'k'.repeat(32);
+  const PREVIOUS = 'p'.repeat(32);
+  const SESSION = 's'.repeat(32);
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+    delete process.env['MANIFEST_ENCRYPTION_KEY'];
+    delete process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'];
+    delete process.env['BETTER_AUTH_SECRET'];
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('lists the dedicated key first, then PREVIOUS, then the session secret', () => {
+    process.env['MANIFEST_ENCRYPTION_KEY'] = KEY;
+    process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'] = PREVIOUS;
+    process.env['BETTER_AUTH_SECRET'] = SESSION;
+    expect(getDecryptionSecrets()).toEqual([KEY, PREVIOUS, SESSION]);
+  });
+
+  it('returns only the session secret when it is the encryption fallback', () => {
+    process.env['BETTER_AUTH_SECRET'] = SESSION;
+    expect(getDecryptionSecrets()).toEqual([SESSION]);
+  });
+
+  it('drops short and duplicate candidates', () => {
+    process.env['MANIFEST_ENCRYPTION_KEY'] = KEY;
+    process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'] = 'too-short';
+    process.env['BETTER_AUTH_SECRET'] = KEY;
+    expect(getDecryptionSecrets()).toEqual([KEY]);
+  });
+
+  it('throws when nothing usable is configured', () => {
+    expect(() => getDecryptionSecrets()).toThrow('Encryption secret required');
+  });
+});
+
+describe('decryptWithAny', () => {
+  const A = 'a'.repeat(32);
+  const B = 'b'.repeat(32);
+
+  it('reports index 0 for the current secret', () => {
+    expect(decryptWithAny(encrypt('v', A), [A, B])).toEqual({ plaintext: 'v', secretIndex: 0 });
+  });
+
+  it('falls through to a later secret and reports its index', () => {
+    expect(decryptWithAny(encrypt('v', B), [A, B])).toEqual({ plaintext: 'v', secretIndex: 1 });
+  });
+
+  it('rethrows the last error when no secret matches', () => {
+    expect(() => decryptWithAny(encrypt('v', 'c'.repeat(32)), [A, B])).toThrow();
+  });
+
+  it('throws when given no secrets', () => {
+    expect(() => decryptWithAny(encrypt('v', A), [])).toThrow('No decryption secret available');
   });
 });
 
