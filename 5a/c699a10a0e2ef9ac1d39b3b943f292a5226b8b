@@ -1,0 +1,20 @@
+CLAUDE.md
+  h_4314c622e2d856 397
+packages/backend/.env.example
+  h_4314c622e2d856 13
+packages/backend/src/database/secret-reencryption.service.spec.ts
+  h_4314c622e2d856 124-132
+packages/backend/src/database/secret-reencryption.service.ts
+  h_4314c622e2d856 88-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5ac699a10a0e2ef9ac1d39b3b943f292a5226b8b",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
