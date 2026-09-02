@@ -21,7 +21,7 @@ export function formatNumber(n: number): string {
  */
 export function formatCost(n: number): string | null {
   n = Number(n);
-  if (n < 0) return null;
+  if (!Number.isFinite(n) || n < 0) return null;
   if (n > 0 && n < 0.01) return '< $0.01';
   return `$${n.toFixed(2)}`;
 }
@@ -53,6 +53,7 @@ export function formatTrend(pct: number): string {
 export function formatTime(ts: string): string {
   const normalized = ts.replace(' ', 'T');
   const d = new Date(normalized.endsWith('Z') ? normalized : normalized + 'Z');
+  if (Number.isNaN(d.getTime())) return '—';
   const date = d.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
