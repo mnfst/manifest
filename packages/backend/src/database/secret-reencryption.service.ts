@@ -85,7 +85,11 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
 
   onApplicationBootstrap(): void {
     // Not awaited: a large rotation must not hold the health check hostage.
-    void this.run();
+    // run() swallows its own errors, but a throw before its try (for example
+    // createQueryRunner on a dead pool) must not become an unhandled rejection.
+    this.run().catch((err) => {
+      this.logger.error(`Secret re-encryption crashed: ${describe(err)}`);
+    });
   }
 
   async run(): Promise<void> {

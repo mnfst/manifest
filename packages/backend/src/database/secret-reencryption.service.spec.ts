@@ -121,6 +121,15 @@ describe('SecretReencryptionService', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
+  it('logs instead of leaking an unhandled rejection when the detached pass throws', async () => {
+    const ds = buildDataSource({});
+    const service = new SecretReencryptionService(ds.dataSource);
+    jest.spyOn(service, 'run').mockRejectedValue(new Error('pool closed'));
+    service.onApplicationBootstrap();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('pool closed'));
+  });
+
   it('moves on without scanning when another replica holds the lock', async () => {
     process.env['MANIFEST_ENCRYPTION_KEY'] = CURRENT;
     process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'] = PREVIOUS;
