@@ -1,0 +1,42 @@
+packages/backend/src/routing/routing-core/route-helpers.ts
+  s_58290f34fb07e7::t_40b3bd3af6365e 75-100
+  s_58290f34fb07e7::t_e9f3bd8d682f7d 74
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_58290f34fb07e7::t_7baa266183e2af 1095-1098,1104,1109-1111
+  s_58290f34fb07e7::t_b4101f46fbc71f 65
+  s_58290f34fb07e7::t_235e9737304b4a 1187-1188
+  s_58290f34fb07e7::t_ea5f1006243059 1258,1271-1279
+  s_58290f34fb07e7::t_e75597e917f6a7 619
+  s_58290f34fb07e7::t_4a397acf9837a7 1322,1339-1346
+  s_58290f34fb07e7::t_80302109b5a8f9 321-328
+  s_58290f34fb07e7::t_20f8eaecf40d51 382
+  s_58290f34fb07e7::t_10eb995b84d1ae 510,512
+  s_58290f34fb07e7::t_f68db4cd834cec 393
+  s_58290f34fb07e7::t_116540641d0ce6 984-990
+  s_58290f34fb07e7::t_d6090f5d0f462a 1011-1024
+packages/backend/src/routing/routing-core/__tests__/route-helpers.spec.ts
+  s_58290f34fb07e7::t_45b1483ca36394 8
+  s_58290f34fb07e7::t_3494e2fde75840 130-193
+.changeset/explicit-subscription-preference.md
+  s_58290f34fb07e7::t_7c199c6f9474a0 1-5
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_58290f34fb07e7::t_f7e95f9a4d330f 1417,1423-1479,1507-1510
+  s_58290f34fb07e7::t_8d2d3d010b2358 1480-1506,1511
+  s_58290f34fb07e7::t_5c6db4813cac8e 1512
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4cd6bc52141b73a42dd2c2ff0d71dd031053d2af",
+  "prompts": {},
+  "sessions": {
+    "s_58290f34fb07e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3a6f5ec2-53b6-4b4f-8c1e-4858129976fe",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
