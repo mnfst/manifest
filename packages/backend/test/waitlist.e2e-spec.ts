@@ -19,16 +19,66 @@ beforeEach(async () => {
 });
 
 describe('POST /api/v1/waitlist/pivot/claim', () => {
-  it('stores a claim with a normalized email and pivot source', async () => {
+  it('stores a claim with a normalized email and the declared cloud source', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/waitlist/pivot/claim')
-      .send({ email: '  Jane@Example.COM ' })
+      .send({ email: '  Jane@Example.COM ', source: 'cloud' })
       .expect(200)
       .expect({ ok: true });
 
     const ds = app.get(DataSource);
     const rows = await ds.query(`SELECT email, source FROM waitlist_claims`);
-    expect(rows).toEqual([{ email: 'jane@example.com', source: 'pivot' }]);
+    expect(rows).toEqual([{ email: 'jane@example.com', source: 'cloud' }]);
+  });
+
+  it('defaults a sourceless claim to self-hosted', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/waitlist/pivot/claim')
+      .send({ email: 'a@b.co' })
+      .expect(200);
+
+    const ds = app.get(DataSource);
+    const rows = await ds.query(`SELECT source FROM waitlist_claims`);
+    expect(rows).toEqual([{ source: 'self-hosted' }]);
+  });
+
+  it('infers cloud for a sourceless same-origin claim', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/waitlist/pivot/claim')
+      .set('Host', 'claims.test')
+      .set('Origin', 'http://claims.test')
+      .send({ email: 'stale@b.co' })
+      .expect(200);
+
+    const ds = app.get(DataSource);
+    const rows = await ds.query(`SELECT source FROM waitlist_claims`);
+    expect(rows).toEqual([{ source: 'cloud' }]);
+  });
+
+  it('never overwrites a website row, while still answering ok', async () => {
+    const ds = app.get(DataSource);
+    await ds.query(
+      `INSERT INTO waitlist_claims (email, source, claimed_at) VALUES ($1, $2, now() - interval '1 day')`,
+      ['site@b.co', 'website'],
+    );
+
+    await request(app.getHttpServer())
+      .post('/api/v1/waitlist/pivot/claim')
+      .send({ email: 'site@b.co', source: 'cloud' })
+      .expect(200)
+      .expect({ ok: true });
+
+    const rows = await ds.query(
+      `SELECT source, claimed_at < now() - interval '1 hour' AS untouched FROM waitlist_claims`,
+    );
+    expect(rows).toEqual([{ source: 'website', untouched: true }]);
+  });
+
+  it('rejects a source outside cloud/self-hosted', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/waitlist/pivot/claim')
+      .send({ email: 'a@b.co', source: 'website' })
+      .expect(400);
   });
 
   it('dedupes by email on a second claim', async () => {
@@ -41,7 +91,7 @@ describe('POST /api/v1/waitlist/pivot/claim', () => {
     expect(rows).toHaveLength(1);
   });
 
-  it('preserves the original source of an already-registered email', async () => {
+  it('lets the latest claim overwrite the source of an already-registered email', async () => {
     const ds = app.get(DataSource);
     await ds.query(
       `INSERT INTO waitlist_claims (email, source, claimed_at) VALUES ($1, $2, now() - interval '1 day')`,
@@ -50,13 +100,13 @@ describe('POST /api/v1/waitlist/pivot/claim', () => {
 
     await request(app.getHttpServer())
       .post('/api/v1/waitlist/pivot/claim')
-      .send({ email: 'old@b.co' })
+      .send({ email: 'old@b.co', source: 'cloud' })
       .expect(200);
 
     const rows = await ds.query(
       `SELECT email, source, claimed_at > now() - interval '1 hour' AS refreshed FROM waitlist_claims`,
     );
-    expect(rows).toEqual([{ email: 'old@b.co', source: 'self-hosted', refreshed: true }]);
+    expect(rows).toEqual([{ email: 'old@b.co', source: 'cloud', refreshed: true }]);
   });
 
   it('rejects an invalid email with 400 and stores nothing', async () => {

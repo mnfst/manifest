@@ -2,6 +2,9 @@ import {
   getEncryptionSecret,
   encrypt,
   decrypt,
+  decryptBuffer,
+  encryptBuffer,
+  hasBinaryEnvelope,
   isEncrypted,
   getDecryptionSecrets,
   decryptWithAny,
@@ -235,5 +238,48 @@ describe('decryptWithAny', () => {
   it('throws when given no secrets', () => {
     expect(() => decryptWithAny(encrypt('v', A), [])).toThrow('No decryption secret available');
   });
+});
 
+describe('encryptBuffer / decryptBuffer', () => {
+  const secret = 'buffer-secret-that-is-at-least-32-characters';
+  const plain = Buffer.from('binary payload with a known marker', 'utf8');
+
+  it('round-trips arbitrary bytes', () => {
+    expect(decryptBuffer(encryptBuffer(plain, secret), secret)).toEqual(plain);
+  });
+
+  it('stamps the self-identifying magic prefix', () => {
+    const blob = encryptBuffer(plain, secret);
+    expect(blob.subarray(0, 4).toString('ascii')).toBe('MRE1');
+    expect(hasBinaryEnvelope(blob)).toBe(true);
+    expect(hasBinaryEnvelope(Buffer.from([0x1f, 0x8b, 0x08]))).toBe(false);
+    expect(hasBinaryEnvelope(Buffer.from('MR', 'ascii'))).toBe(false);
+  });
+
+  it('uses a distinct IV for every encryption of the same input', () => {
+    const first = encryptBuffer(plain, secret);
+    const second = encryptBuffer(plain, secret);
+    expect(first.subarray(4, 16).equals(second.subarray(4, 16))).toBe(false);
+    expect(first.equals(second)).toBe(false);
+  });
+
+  it('rejects a tampered ciphertext', () => {
+    const blob = encryptBuffer(plain, secret);
+    blob[blob.length - 1] = blob[blob.length - 1] ^ 0xff;
+    expect(() => decryptBuffer(blob, secret)).toThrow();
+  });
+
+  it('rejects the wrong secret', () => {
+    const blob = encryptBuffer(plain, secret);
+    expect(() => decryptBuffer(blob, 'another-secret-that-is-at-least-32-chars')).toThrow();
+  });
+
+  it('rejects blobs without the magic prefix or with a truncated header', () => {
+    expect(() => decryptBuffer(Buffer.from([0x1f, 0x8b, 0x08, 0x00]), secret)).toThrow(
+      'Invalid encrypted blob format',
+    );
+    expect(() => decryptBuffer(Buffer.from('MRE1short', 'ascii'), secret)).toThrow(
+      'Invalid encrypted blob format',
+    );
+  });
 });

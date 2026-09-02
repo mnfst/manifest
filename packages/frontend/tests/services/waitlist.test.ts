@@ -62,19 +62,43 @@ describe('waitlist service', () => {
   });
 
   describe('submitPivotClaim', () => {
-    it('posts the email as JSON and reports success', async () => {
+    it('posts the email with the cloud source from cloud deployments', async () => {
       mockFetch.mockResolvedValue({ ok: true });
       await expect(submitPivotClaim('jane@example.com', false)).resolves.toBe(true);
       expect(mockFetch).toHaveBeenCalledWith('/api/v1/waitlist/pivot/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'jane@example.com' }),
+        body: JSON.stringify({ email: 'jane@example.com', source: 'cloud' }),
       });
     });
 
-    it('reports failure on a non-2xx response', async () => {
+    it('posts the self-hosted source from self-hosted deployments', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+      await submitPivotClaim('jane@example.com', true);
+      const body = JSON.parse((mockFetch.mock.calls[0][1] as RequestInit).body as string);
+      expect(body.source).toBe('self-hosted');
+    });
+
+    it('retries once without the source field when a pre-source backend answers 400', async () => {
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 400 })
+        .mockResolvedValueOnce({ ok: true });
+      await expect(submitPivotClaim('jane@example.com', true)).resolves.toBe(true);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      const retryBody = JSON.parse((mockFetch.mock.calls[1][1] as RequestInit).body as string);
+      expect(retryBody).toEqual({ email: 'jane@example.com' });
+    });
+
+    it('reports failure when the retry also fails (truly invalid email)', async () => {
       mockFetch.mockResolvedValue({ ok: false, status: 400 });
       await expect(submitPivotClaim('bad', false)).resolves.toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry on non-400 failures', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 });
+      await expect(submitPivotClaim('jane@example.com', false)).resolves.toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('reports failure when the request throws', async () => {
