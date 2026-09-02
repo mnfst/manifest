@@ -34,6 +34,17 @@ describe('buildFallbackModels', () => {
     expect(result.map((m) => m.id)).toEqual(['gpt-4o', 'gpt-4-turbo']);
   });
 
+  it('should filter out :batch variants (only served via the async Batch API)', () => {
+    const cache = new Map([
+      ['openai/gpt-5', { input: 0.01, output: 0.02 }],
+      ['openai/gpt-5:batch', { input: 0.005, output: 0.01 }],
+    ]);
+
+    const result = buildFallbackModels(makePricingSync(cache), 'openai');
+
+    expect(result.map((m) => m.id)).toEqual(['gpt-5']);
+  });
+
   it('should return empty when pricingSync is null', () => {
     expect(buildFallbackModels(null, 'openai')).toEqual([]);
   });

@@ -251,6 +251,9 @@ export function buildFallbackModels(
 
   for (const [fullId, entry] of pricingSync.getAll()) {
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
+    // `:batch` variants are only served through OpenRouter's async Batch API,
+    // never through the synchronous chat completions proxy.
+    if (fullId.endsWith(':batch')) continue;
     const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
     if (seen.has(modelId)) continue;
 

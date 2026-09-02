@@ -2071,6 +2071,32 @@ describe('ProviderModelFetcherService', () => {
       );
     });
 
+    it('should filter out :batch variants (only served via the async Batch API)', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'openai/gpt-5',
+              name: 'GPT-5',
+              context_length: 400000,
+              architecture: { output_modalities: ['text'] },
+            },
+            {
+              id: 'openai/gpt-5:batch',
+              name: 'GPT-5 (batch)',
+              context_length: 400000,
+              architecture: { output_modalities: ['text'] },
+            },
+          ],
+        }),
+      });
+
+      const result = await service.fetch('openrouter', '');
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('openai/gpt-5');
+    });
+
     it('should normalize OpenRouter input and output modalities', async () => {
       fetchSpy.mockResolvedValue({
         ok: true,
