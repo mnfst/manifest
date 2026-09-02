@@ -1,0 +1,23 @@
+packages/backend/src/model-prices/model-pricing-cache.time-tiers.spec.ts
+  s_78cbe2cc719f93::t_50464d5125b3a7 100-124
+packages/backend/src/playground/playground.service.spec.ts
+  s_78cbe2cc719f93::t_d0bda67c7909dc 623-751
+packages/backend/src/playground/playground.service.ts
+  s_78cbe2cc719f93::t_3d83b3c02033f3 335-346,361,364,368-373
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "2b00e57f5baabee6129cf3083817d56d64a41488",
+  "prompts": {},
+  "sessions": {
+    "s_78cbe2cc719f93": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "138ab594-2b36-4313-95b0-3623876cac97",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

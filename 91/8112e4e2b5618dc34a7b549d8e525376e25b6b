@@ -1,0 +1,23 @@
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_60e687e1253b34::t_1445e112e0b8b1 126,500-529
+packages/backend/src/routing/autofix/observation-reporter.ts
+  s_60e687e1253b34::t_1445e112e0b8b1 22-23,80-81
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_60e687e1253b34::t_1445e112e0b8b1 1221-1244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "918112e4e2b5618dc34a7b549d8e525376e25b6b",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

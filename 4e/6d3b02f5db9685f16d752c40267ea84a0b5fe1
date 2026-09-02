@@ -1,0 +1,18 @@
+.changeset/xai-subscription-grok-4.6.md
+  h_4314c622e2d856 1-5
+packages/shared/__tests__/subscription.spec.ts
+  h_4314c622e2d856 248,444
+packages/shared/src/subscription/configs.ts
+  h_4314c622e2d856 280
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4e6d3b02f5db9685f16d752c40267ea84a0b5fe1",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

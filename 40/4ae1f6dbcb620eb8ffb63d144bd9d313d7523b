@@ -1,0 +1,34 @@
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_c183ca91fdb9b1::t_94e2329c250cfa 24-25
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_c183ca91fdb9b1::t_94e2329c250cfa 44,51,76,83,1555-1636
+  s_c183ca91fdb9b1::t_92655b86afebfa 1637
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_c183ca91fdb9b1::t_94e2329c250cfa 2630-2688
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_c183ca91fdb9b1::t_94e2329c250cfa 63,746-815
+.changeset/copilot-token-costs.md
+  s_c183ca91fdb9b1::t_23febdb7dce7dd 1-5
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_c183ca91fdb9b1::t_94858565b895d5 475-479
+  s_c183ca91fdb9b1::t_94e2329c250cfa 1,16-19,31,441-442,454-474,480-482,484,487-512,514-520,524,528-533,1149-1150,1152-1155,1159-1160
+  s_c183ca91fdb9b1::t_abe05ee254b4e3 513,521,1237
+  s_c183ca91fdb9b1::t_378795bb189ed3 522-523,525-527
+  s_c183ca91fdb9b1::t_3566b8e9dd43d9 483,485-486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "404ae1f6dbcb620eb8ffb63d144bd9d313d7523b",
+  "prompts": {},
+  "sessions": {
+    "s_c183ca91fdb9b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03a50-c76f-7cc0-a6e8-ec83674a5bdd",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

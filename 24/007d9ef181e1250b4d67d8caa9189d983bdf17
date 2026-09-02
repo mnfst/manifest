@@ -1,0 +1,21 @@
+packages/backend/src/notifications/services/limit-check.service.spec.ts
+  s_60e687e1253b34::t_6b7b46a0ae656d 149-175
+packages/backend/src/notifications/services/limit-check.service.ts
+  s_60e687e1253b34::t_6b7b46a0ae656d 45,48-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "24007d9ef181e1250b4d67d8caa9189d983bdf17",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

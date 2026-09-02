@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_6056ce3cb45fff::t_b1bff128419bba 171-174,183,198-230,238-252,256-274
+  s_6056ce3cb45fff::t_dc025fd7e627cb 253-255
+  s_6056ce3cb45fff::t_7a93e19669407f 232-237
+  s_6056ce3cb45fff::t_220427e9191097 22,231
+  s_6056ce3cb45fff::t_9baaa761e45e8e 23,275-276
+packages/backend/src/common/errors/error-codes.ts
+  s_6056ce3cb45fff::t_b1bff128419bba 80-84
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_6056ce3cb45fff::t_dc025fd7e627cb 5,261-263,266,425-543,1350,1352
+  s_6056ce3cb45fff::t_7f5b613938deb9 544-545,1327-1333,1351
+packages/backend/src/routing/proxy/provider-client.ts
+  s_6056ce3cb45fff::t_b1bff128419bba 49,346-356
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_6056ce3cb45fff::t_220427e9191097 1168,1172,1174,1176,1201
+  s_6056ce3cb45fff::t_dc025fd7e627cb 1169-1171,1173,1175,1177-1200,1202-1238
+packages/backend/src/common/errors/manifest-error.ts
+  s_6056ce3cb45fff::t_b1bff128419bba 61
+.changeset/quiet-cats-drop-tools.md
+  s_6056ce3cb45fff::t_b1bff128419bba 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "64daedcab58c04796ee43eb4732a944ebf33c38a",
+  "prompts": {},
+  "sessions": {
+    "s_6056ce3cb45fff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4d-3d33-7212-b606-95864e04f4e2",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

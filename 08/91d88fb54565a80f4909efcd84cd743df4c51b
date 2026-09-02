@@ -1,0 +1,28 @@
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_7888f3d031ea10::t_5bc704a40dbb2f 491-529
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_7888f3d031ea10::t_b236e0a0af3f2d 282-296
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_7888f3d031ea10::t_e33f7768d627c1 189-191
+  s_7888f3d031ea10::t_b236e0a0af3f2d 178-188
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_7888f3d031ea10::t_b236e0a0af3f2d 133
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_7888f3d031ea10::t_b04aacbf733f12 147,193,263-265,297-298,301
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "0891d88fb54565a80f4909efcd84cd743df4c51b",
+  "prompts": {},
+  "sessions": {
+    "s_7888f3d031ea10": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03ad9-4883-7272-8a5f-36d7ecfb2f79",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

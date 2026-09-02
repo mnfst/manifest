@@ -1,0 +1,23 @@
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_e3840ab064e072::t_b266ef8e822760 138
+  s_e3840ab064e072::t_a8095b076ab609 122,127
+  s_e3840ab064e072::t_ffd8d7df5b56fc 42
+  s_e3840ab064e072::t_66ff23bb20ee24 264
+  s_e3840ab064e072::t_7ed1eb79bca1aa 424-438
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "e4b49294c0863c9e53ab62015ca5e45a2081458e",
+  "prompts": {},
+  "sessions": {
+    "s_e3840ab064e072": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fd6c05ec5ffeV2MFQGNKpx1JYU",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+.changeset/configurable-concurrency-limit.md
+  s_51fabf5e0e734b::t_268d8f4900c71a 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "af7e8b883b1a10deca19028582aaf74861218f38",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

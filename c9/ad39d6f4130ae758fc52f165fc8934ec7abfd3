@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_9d3be92b46a911::t_ed42d3b8614344 17
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_9d3be92b46a911::t_ed42d3b8614344 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "c9ad39d6f4130ae758fc52f165fc8934ec7abfd3",
+  "prompts": {},
+  "sessions": {
+    "s_9d3be92b46a911": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05719-b3d9-7983-a95f-cceb66494c63",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

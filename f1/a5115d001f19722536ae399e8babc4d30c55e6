@@ -1,0 +1,29 @@
+packages/backend/src/routing/autofix/__tests__/autofix-healing-config.spec.ts
+  s_60e687e1253b34::t_067b5d5e6bf899 18,20,22
+.changeset/fix-autofix-toggle-consistency.md
+  s_60e687e1253b34::t_61db26e4efe6ef 1-5
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_60e687e1253b34::t_067b5d5e6bf899 496-498,511
+CLAUDE.md
+  s_60e687e1253b34::t_067b5d5e6bf899 623
+packages/backend/src/routing/tier.controller.spec.ts
+  s_60e687e1253b34::t_067b5d5e6bf899 197
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_60e687e1253b34::t_067b5d5e6bf899 1186,1188-1189,1192-1193,1196,1201,1203-1205,1210,1212-1214,1216,1218-1219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "f1a5115d001f19722536ae399e8babc4d30c55e6",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

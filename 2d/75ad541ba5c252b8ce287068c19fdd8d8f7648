@@ -1,0 +1,26 @@
+packages/frontend/src/components/FallbackList.tsx
+  s_1d351ac4603911::t_225793c13fabb3 303-316
+.changeset/calm-fallback-drag.md
+  s_1d351ac4603911::t_0c0f9739e87c0e 1-5
+packages/frontend/tests/components/FallbackList.test.tsx
+  s_1d351ac4603911::t_03bfd4ef58b4a3 716-723,730-737,819-834
+  s_1d351ac4603911::t_608371c24f64ce 790-793
+  s_1d351ac4603911::t_b9e284da764788 703-712,715,724-729,776-789,794-818,835-845
+  s_1d351ac4603911::t_ceec46075f1c06 846-847
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2d75ad541ba5c252b8ce287068c19fdd8d8f7648",
+  "prompts": {},
+  "sessions": {
+    "s_1d351ac4603911": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a054b6-5c36-73f0-8c3f-a3505e43b8f3",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

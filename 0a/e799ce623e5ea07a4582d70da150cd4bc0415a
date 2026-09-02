@@ -1,0 +1,101 @@
+packages/backend/src/database/data-source-definitions.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 162,324
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_7888f3d031ea10::t_3cb187664074fe 6,27-35
+  s_7888f3d031ea10::t_9dfb75ca719b24 36
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_7888f3d031ea10::t_3cb187664074fe 67-68,902-912,919,958-968
+  s_7888f3d031ea10::t_2f9aa1294c1a0a 969-970
+packages/backend/src/database/migrations/1802100000000-AddHeaderTierModelAliases.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 1-34
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_7888f3d031ea10::t_002d21f005ae9d 104,133-172,300-344
+  s_7888f3d031ea10::t_4b3d00846a3ec5 345
+packages/frontend/tests/components/HeaderTierCard.test.tsx
+  s_7888f3d031ea10::t_a656e8c49094bc 212
+  s_7888f3d031ea10::t_a372dc5c210b95 312
+  s_7888f3d031ea10::t_d6971029cc98c0 637,640,655
+packages/frontend/tests/pages/RoutingHeaderTiersSection.test.tsx
+  s_7888f3d031ea10::t_a656e8c49094bc 168
+  s_7888f3d031ea10::t_522cdd90722cc3 183
+packages/frontend/src/components/FrameworkSnippets.tsx
+  s_7888f3d031ea10::t_15b14d6ba22729 31-32,109,119,250-251
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_7888f3d031ea10::t_31d8a66fce016f 146,191,229,256-258,260-283
+  s_7888f3d031ea10::t_522cdd90722cc3 259
+packages/frontend/src/styles/routing-header-tiers.css
+  s_7888f3d031ea10::t_36e8dd8e79d62d 144,146-154,162
+  s_7888f3d031ea10::t_e3fd4499c3c7cd 302-314
+packages/backend/src/database/migrations/1802100000000-AddHeaderTierModelAliases.spec.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 1-29
+packages/frontend/tests/components/FrameworkSnippets.test.tsx
+  s_7888f3d031ea10::t_df96da31c3943e 413-420
+packages/frontend/tests/components/HeaderTierModal.test.tsx
+  s_7888f3d031ea10::t_51d34f3a850dca 63,99-101,219,229-288,551,559-583
+  s_7888f3d031ea10::t_847173e26052d2 289-290,584-586
+packages/backend/src/scoring/types.ts
+  s_7888f3d031ea10::t_3cb187664074fe 50-51
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_7888f3d031ea10::t_31d8a66fce016f 132
+packages/frontend/src/components/HeaderTierCard.tsx
+  s_7888f3d031ea10::t_6ac23803afced7 313,375-389
+packages/frontend/src/services/framework-snippets.ts
+  s_7888f3d031ea10::t_15b14d6ba22729 122,125,136,146,149,160,180,184,195,206,210,221,232,236,245,258,270,273,285,295,299,312,326,405,407,423,492,498-499,502-503,506-507,510-511,513,515
+packages/backend/src/routing/header-tiers/header-tier.controller.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 36,44
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_7888f3d031ea10::t_522cdd90722cc3 177
+  s_7888f3d031ea10::t_31daf7b0d2082b 29,65,138,157-163,176,178-187
+  s_7888f3d031ea10::t_0657892d0c0eb0 188
+packages/backend/src/entities/header-tier.entity.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 23-25
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_7888f3d031ea10::t_a9539ec00fe8d7 32,34,39,47,79,86,98,126-128,138,365-383,425-428
+  s_7888f3d031ea10::t_344e71e385830d 429-430
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_7888f3d031ea10::t_e6436403a095dc 4-5,27-33
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_7888f3d031ea10::t_a5678f5c956873 89-94,152,1270-1317
+packages/frontend/tests/components/HeaderTierSnippetModal.test.tsx
+  s_7888f3d031ea10::t_3f566f4f2fe4a1 105-106
+  s_7888f3d031ea10::t_45879f1c6c27b7 15,24,36,94-104
+packages/frontend/src/components/HeaderTierModal.tsx
+  s_7888f3d031ea10::t_e3fd4499c3c7cd 23,25,28-38,58-59,148-163,184-185,192,203,228-229,304-308,314-341
+  s_7888f3d031ea10::t_2b7f2142aba2f9 342-343
+packages/frontend/src/components/RoutingPipelineCard.tsx
+  s_7888f3d031ea10::t_add9afa3d1bb87 24
+packages/frontend/src/services/api/header-tiers.ts
+  s_7888f3d031ea10::t_e3fd4499c3c7cd 9,32
+packages/frontend/src/pages/RoutingHeaderTiersSection.tsx
+  s_7888f3d031ea10::t_add9afa3d1bb87 366-367
+packages/frontend/src/components/HeaderTierSnippetModal.tsx
+  s_7888f3d031ea10::t_59500375df1c26 1
+  s_7888f3d031ea10::t_66a8fcdda7aee8 13-15,29-37,64,80-93,101
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_7888f3d031ea10::t_7365d6341fd6b9 292-294,311-315,329-333
+  s_7888f3d031ea10::t_3cb187664074fe 266-288,363
+.changeset/custom-route-model-aliases.md
+  s_7888f3d031ea10::t_1e94055a79c1c9 1-5
+packages/backend/src/routing/header-tiers/header-tier.controller.spec.ts
+  s_7888f3d031ea10::t_002d21f005ae9d 84,96-103
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_7888f3d031ea10::t_e16c7294e6088d 445-490
+packages/frontend/tests/services/framework-snippets.test.ts
+  s_7888f3d031ea10::t_cc385c332b8ee5 671-686
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "0ae799ce623e5ea07a4582d70da150cd4bc0415a",
+  "prompts": {},
+  "sessions": {
+    "s_7888f3d031ea10": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03ad9-4883-7272-8a5f-36d7ecfb2f79",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

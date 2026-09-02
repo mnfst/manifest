@@ -1,0 +1,36 @@
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_c3769a09cd9cf7::t_4b34bdf4888670 350-355
+  s_c3769a09cd9cf7::t_509bd9405108f3 10
+  s_c3769a09cd9cf7::t_513fb1e465d930 530-535
+packages/backend/src/routing/proxy/__tests__/tool-call-id-sanitizer.spec.ts
+  s_c3769a09cd9cf7::t_9891132291169a 1-99
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_c3769a09cd9cf7::t_9e9372381e8df9 1172-1215
+packages/backend/src/routing/proxy/tool-call-id-sanitizer.ts
+  s_c3769a09cd9cf7::t_f9d960251c19b0 1-63
+.changeset/sanitize-tool-call-ids.md
+  s_c3769a09cd9cf7::t_9a58dce7daf70c 1-5
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_c3769a09cd9cf7::t_45476925521201 264
+  s_c3769a09cd9cf7::t_9bce598ea66644 10
+  s_c3769a09cd9cf7::t_e91b93b50c8a8f 528-536
+  s_c3769a09cd9cf7::t_168a2166d05def 295
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_c3769a09cd9cf7::t_9e9372381e8df9 2868-2942
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "39717241ed91b5a56bc424b54e9ced8131a81bf5",
+  "prompts": {},
+  "sessions": {
+    "s_c3769a09cd9cf7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9198b35c-c14e-4c43-bcdc-fa74bb310932",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

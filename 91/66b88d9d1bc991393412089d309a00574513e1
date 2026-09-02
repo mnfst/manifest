@@ -1,0 +1,22 @@
+packages/backend/src/model-discovery/model-fallback.ts
+  s_51fabf5e0e734b::t_78cc83d544b4a7 308-309,317-325
+  s_51fabf5e0e734b::t_46e98321fe252b 332,338,351
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_51fabf5e0e734b::t_5730bb3feaffa7 1699-1717
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "9166b88d9d1bc991393412089d309a00574513e1",
+  "prompts": {},
+  "sessions": {
+    "s_51fabf5e0e734b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a056a0-7175-7392-a48b-4d85034212f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

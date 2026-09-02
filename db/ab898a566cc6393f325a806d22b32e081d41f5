@@ -1,0 +1,23 @@
+packages/backend/src/routing/model.controller.spec.ts
+  s_139190b400b967::t_1307f41dd91817 45,87,98,196-199,202-203,258,265-266,270-271
+packages/backend/src/routing/model.controller.ts
+  s_139190b400b967::t_1307f41dd91817 92
+.changeset/ollama-refresh-cache-invalidation.md
+  s_139190b400b967::t_1307f41dd91817 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "dbab898a566cc6393f325a806d22b32e081d41f5",
+  "prompts": {},
+  "sessions": {
+    "s_139190b400b967": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03a2c-6921-7303-815e-860e490031a4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

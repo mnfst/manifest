@@ -1,0 +1,45 @@
+.changeset/cost-source-precedence.md
+  s_d254164878e1f4::t_c04b240971757c 1-5
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d254164878e1f4::t_d9b77bb9aa5218 351-450
+packages/backend/src/playground/playground.service.ts
+  s_d254164878e1f4::t_c9e9c0f209e574 336-338,340
+  s_d254164878e1f4::t_74f37794382f2e 19-20,63-64,353-364
+  s_d254164878e1f4::t_a97abc4c5a5c3b 335,339,341-343
+  s_d254164878e1f4::t_6566fe771fb58c 18,352,365
+packages/backend/src/playground/playground.module.ts
+  s_d254164878e1f4::t_a97abc4c5a5c3b 14-15,36-37
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_beaf535f99e521 1080,1177
+  s_d254164878e1f4::t_8cd9ccf60b4459 1064-1069,1076-1077,1159-1166,1173-1174
+  s_d254164878e1f4::t_a5b5c2c7db9b0f 28
+packages/backend/src/playground/playground.service.spec.ts
+  s_d254164878e1f4::t_34a06c3ca75c4b 229-236,254-255
+  s_d254164878e1f4::t_52bf6261668edb 4-5,165-166
+  s_d254164878e1f4::t_8ea0bc16a49dbb 573-622
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_d254164878e1f4::t_f00d5c70abe753 2275-2302
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d254164878e1f4::t_530c6ae33558e3 84-99,107-108,122-124
+  s_d254164878e1f4::t_5040282cd0129b 25-32,35-40,103-106,109-118,131
+  s_d254164878e1f4::t_52e02416d0d172 83
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_d254164878e1f4::t_52bf6261668edb 3-4,90-91
+  s_d254164878e1f4::t_34a06c3ca75c4b 151-158,176-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "afd70b0ea9a916ab2c87af3c6bebf96a17ccddab",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": null
+    }
+  }
+}

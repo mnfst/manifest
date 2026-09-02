@@ -1,0 +1,45 @@
+.changeset/calm-context-cache.md
+  s_5d777084b05fcc::t_e6e72bfbb89446 1-5
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_5d777084b05fcc::t_caa65d5c3d9f33 190-213,843-872
+  s_380349f89128b9::t_a3ddd23420a9f2 873
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_5d777084b05fcc::t_caa65d5c3d9f33 5,325,382-387,434-485
+  s_380349f89128b9::t_14012f3af2ebab 486-487
+packages/backend/src/model-discovery/model-fallback.ts
+  s_5d777084b05fcc::t_c3075f82ca6a7b 299,308-339,371
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_5d777084b05fcc::t_c3075f82ca6a7b 31-32
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_5d777084b05fcc::t_ccd7b97c178eab 743
+  s_5d777084b05fcc::t_c3075f82ca6a7b 103,742
+  s_5d777084b05fcc::t_e4df90f85b3277 73,96
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_5d777084b05fcc::t_caa65d5c3d9f33 2467,2537
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_5d777084b05fcc::t_c3075f82ca6a7b 41,311,556-560
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "18e38c92f4b9d172a57eb684fb43f8ebc713e217",
+  "prompts": {},
+  "sessions": {
+    "s_380349f89128b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4e-1caa-74d3-b6d3-9baae8b8d19b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_5d777084b05fcc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4d-c90d-7b12-9e1d-7d39e63a8119",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

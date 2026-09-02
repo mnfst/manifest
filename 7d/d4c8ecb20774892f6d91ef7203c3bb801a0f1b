@@ -1,0 +1,26 @@
+packages/backend/src/common/services/agent-list-cache.service.spec.ts
+  s_17b277df30d08a::t_9a1678c7aa58fe 29,35-42,85-99,103
+  s_17b277df30d08a::t_a92f265d541960 100-102
+packages/backend/src/common/services/agent-list-cache.service.ts
+  s_17b277df30d08a::t_e095db5506abd7 8-12,40-47,65
+packages/backend/src/common/interceptors/agent-list-cache.interceptor.spec.ts
+  s_17b277df30d08a::t_195181f6282519 1,4,46,48-54,60-62,65-68,72-79
+  s_17b277df30d08a::t_ae2d0a8f5be743 28-30,55-56,63-64,69-70
+  s_17b277df30d08a::t_62852133333f53 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "7dd4c8ecb20774892f6d91ef7203c3bb801a0f1b",
+  "prompts": {},
+  "sessions": {
+    "s_17b277df30d08a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5f39d9bf-cc88-4e3c-8302-f1e1da733669",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

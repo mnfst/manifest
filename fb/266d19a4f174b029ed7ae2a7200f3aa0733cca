@@ -1,0 +1,25 @@
+packages/backend/src/notifications/services/limit-check.service.ts
+  s_60e687e1253b34::t_e3e37d3cea2419 1,27,39-42,47
+.changeset/fix-hard-limit-consistency.md
+  s_60e687e1253b34::t_eff29053fa5bbf 1-5
+packages/backend/src/notifications/notifications.controller.ts
+  s_60e687e1253b34::t_e3e37d3cea2419 93,102
+packages/backend/src/notifications/services/limit-check.service.spec.ts
+  s_60e687e1253b34::t_2cebd96d8996be 149-150,154,158,162,164-165,170,181,183-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "fb266d19a4f174b029ed7ae2a7200f3aa0733cca",
+  "prompts": {},
+  "sessions": {
+    "s_60e687e1253b34": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a043eb-f4b8-7fc2-8d5e-4a707594fa34",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

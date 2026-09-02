@@ -1,0 +1,39 @@
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_1954e2887bb38c 1069,1160
+packages/backend/src/model-prices/model-pricing-cache.provider-scope.spec.ts
+  s_d254164878e1f4::t_1954e2887bb38c 1-4,7-44,53-74,76-115,117-118,120-192,194,267-303
+  s_d254164878e1f4::t_e16d1fee30feae 5-6,230-231,233-238,243-244,248-264
+  s_d254164878e1f4::t_5467d3d2a663b2 195
+  s_d254164878e1f4::t_86d76497fa34eb 116,119
+  s_d254164878e1f4::t_6786a6f90b727b 193,196-221,226-229,265-266
+  s_d254164878e1f4::t_b8c36746f4b0ab 232,239-242,245-247
+  s_d254164878e1f4::t_e9a65b07e98f06 45-52,75,222-225
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_d254164878e1f4::t_8b0aba2284a056 83-87,89-98,100-108,111,114-116
+  s_d254164878e1f4::t_6c02e4306e5248 370
+  s_d254164878e1f4::t_804a045bec9e69 5,77-82,88,99,109-110,112-113,117-119,188-193,248,251-273
+  s_d254164878e1f4::t_e16d1fee30feae 13
+  s_d254164878e1f4::t_1954e2887bb38c 58-69,72-76,162,182-187,194-195,215-236,246-247,249-250,274-275,362-369
+packages/backend/src/playground/playground.service.ts
+  s_d254164878e1f4::t_1954e2887bb38c 336
+.changeset/provider-scoped-pricing.md
+  s_d254164878e1f4::t_08a64e077c099b 1-5
+packages/backend/src/public-stats/public-stats.service.ts
+  s_d254164878e1f4::t_6f25f0597d823a 254-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "78e709592dcb9b19e749f05b54eb7d96444946ec",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": null
+    }
+  }
+}

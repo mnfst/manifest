@@ -1,0 +1,58 @@
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_d254164878e1f4::t_1954e2887bb38c 62-73,76-80,143,163-168,175-176,196-217,227-228,230-231,255-256,344-351
+  s_d254164878e1f4::t_6c02e4306e5248 352
+  s_d254164878e1f4::t_49d92f6db37593 31-35,333
+packages/backend/src/model-prices/model-pricing-cache.provider-scope.spec.ts
+  s_d254164878e1f4::t_1954e2887bb38c 1-17,19-43,52-73,75-114,116-117,118-119,121-194,231-267
+  s_d254164878e1f4::t_49d92f6db37593 18,115,120
+.changeset/provider-scoped-pricing.md
+  s_d254164878e1f4::t_08a64e077c099b 1-5
+packages/backend/src/playground/playground.service.ts
+  s_d254164878e1f4::t_1954e2887bb38c 337
+  s_d254164878e1f4::t_6566fe771fb58c 18,339-342
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_d254164878e1f4::t_1954e2887bb38c 1078,1175
+  s_d254164878e1f4::t_8cd9ccf60b4459 1064-1069,1076-1077,1159-1166,1173-1174
+  s_d254164878e1f4::t_beaf535f99e521 1080,1177
+  s_d254164878e1f4::t_a5b5c2c7db9b0f 28
+  s_d254164878e1f4::t_49d92f6db37593 1180-1184
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_d254164878e1f4::t_d9b77bb9aa5218 351-386,388-451
+  s_d254164878e1f4::t_49d92f6db37593 387,487-582
+  s_d254164878e1f4::t_3c2f995ed773e1 583
+  s_d254164878e1f4::t_d81cc7f86b1109 697-719
+.changeset/cost-source-precedence.md
+  s_d254164878e1f4::t_c04b240971757c 1-5
+packages/backend/src/common/utils/cost-calculator.ts
+  s_d254164878e1f4::t_5040282cd0129b 25-28,35-40,142-145,148-157,170
+  s_d254164878e1f4::t_530c6ae33558e3 123-138,146-147,161-163
+  s_d254164878e1f4::t_52e02416d0d172 122
+  s_d254164878e1f4::t_49d92f6db37593 29-32,67-105,109-114,119
+  s_d254164878e1f4::t_7b375338a87e36 53-57,62-63
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_d254164878e1f4::t_f00d5c70abe753 2275-2302
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_d254164878e1f4::t_49d92f6db37593 1111,1184,1230,1243-1343,1374
+packages/backend/src/model-prices/model-pricing-cache.time-tiers.spec.ts
+  s_d254164878e1f4::t_49d92f6db37593 17,84
+packages/backend/src/database/models-dev-sync.service.ts
+  s_d254164878e1f4::t_49d92f6db37593 89-94,121,162-164,176-177,205-214,658-674,699,736
+.changeset/deepseek-weekend-offpeak.md
+  s_d254164878e1f4::t_49d92f6db37593 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "d387c2d287b4fa26f23d70a9b4b1709954bbdc93",
+  "prompts": {},
+  "sessions": {
+    "s_d254164878e1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4f289119-33b1-447a-98e8-899029e04f89",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

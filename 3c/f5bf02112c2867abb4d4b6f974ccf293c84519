@@ -1,0 +1,27 @@
+.changeset/calm-codex-image-context.md
+  s_380349f89128b9::t_f0df9e4d19925d 1-5
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_380349f89128b9::t_5736cf2a94a4e5 176-254,1282-1288,1305-1307
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_380349f89128b9::t_5e61203547edc9 142-164,196,200,202-210
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_380349f89128b9::t_474966236a16d7 603-671
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_380349f89128b9::t_0bdc82d9dc8fb6 618,624-625
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "3cf5bf02112c2867abb4d4b6f974ccf293c84519",
+  "prompts": {},
+  "sessions": {
+    "s_380349f89128b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05b4e-1caa-74d3-b6d3-9baae8b8d19b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

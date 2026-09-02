@@ -1,0 +1,41 @@
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_138c3384332ca9::t_c31656e92f2059 464,493-499,502-503,507-510,527-529
+  s_138c3384332ca9::t_d97a68e2d30857 500-501
+.changeset/copilot-token-costs.md
+  s_138c3384332ca9::t_5b5397304ea88f 5
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_138c3384332ca9::t_3e94ba795e8142 2675,2678-2722
+  s_138c3384332ca9::t_d97a68e2d30857 2645-2652,2668-2674
+  s_a7d21b885a95b6::t_c21b6d31e2c8df 2676-2677
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_138c3384332ca9::t_d97a68e2d30857 768-776
+  s_138c3384332ca9::t_c31656e92f2059 746-755,760-761,777-802,814-824,832-836,838-839,841
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_138c3384332ca9::t_3e94ba795e8142 1594-1655
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_138c3384332ca9::t_c31656e92f2059 17-25,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "6fc87834064c2b05a7d0c109e5399b489f29346f",
+  "prompts": {},
+  "sessions": {
+    "s_138c3384332ca9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03a8e-305c-7bf0-b506-d5bb7707c89d",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_a7d21b885a95b6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03a8c-1351-7b52-8a6a-18d549696ccb",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

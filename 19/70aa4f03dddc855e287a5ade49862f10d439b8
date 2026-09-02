@@ -1,0 +1,1014 @@
+packages/frontend/tests/components/MessageDetails.autofix.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 26,30,33,112,135,143,146,154,183,195,203,208,214-215,231,450,452,471-472,479,481,511-512,519,521,535,544
+.changeset/fallback-empty-chat-completions.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/routing/proxy/__tests__/codex-session-affinity.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 51,56-57,60-64,85-88,140-149,224-225,227,230,232-244
+packages/backend/src/playground/playground-stream.ts
+  s_f13175a263fab0::t_50364e4872d366 41-42
+.changeset/bright-bats-stream.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/frontend/tests/components/MessageTable.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 512,538,540
+packages/backend/src/database/migrations/1801900000000-AddAutofixConsentToInstallMetadata.ts
+  s_f13175a263fab0::t_50364e4872d366 1-33
+packages/backend/src/analytics/services/attempt-stats.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 244
+packages/backend/src/database/models-dev-sync.service.ts
+  s_f13175a263fab0::t_50364e4872d366 12-23,30,45-68,81-94,108,114-121,129-135,150-196,222-235,242-243,310-327,329,369-386,497-515,639-671,677-707,727
+packages/backend/src/analytics/services/attempt-stats.service.ts
+  s_f13175a263fab0::t_50364e4872d366 48-50,324
+packages/frontend/src/pages/Register.tsx
+  s_f13175a263fab0::t_50364e4872d366 97,113,152,329
+packages/frontend/src/services/api/routing.ts
+  s_f13175a263fab0::t_50364e4872d366 36,176,180-181,196-207,212
+  s_f13175a263fab0::t_339897d043ba3e 208-211,213
+packages/backend/src/routing/proxy/proxy-message-recorder.ts
+  s_f13175a263fab0::t_50364e4872d366 24,69,112,143,145-146,153,171,179-184,195-196,205-206,242,244-245,268,270-271,349,361,371,381,418-419,461,469,472-494,554-555,582-584,603,607,669,671,707,721-722,756,766,793,795,804,821-822,840,903,909-911,947,952-953,960,963,970-971,998,1003,1024,1026,1058,1074-1077,1119,1151,1214,1220
+packages/frontend/tests/pages/ProviderUsageLive.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 4-5,13,53,66,102,108-109
+packages/backend/src/analytics/controllers/overview.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 56-61,81-83,88-102,113,116-118
+packages/frontend/tests/services/api/routing-extra.test.ts
+  s_f13175a263fab0::t_50364e4872d366 118,120,122,128,130,140-158
+  s_f13175a263fab0::t_35bf5eb7929c94 159-161
+packages/frontend/src/services/api/agents.ts
+  s_f13175a263fab0::t_50364e4872d366 64-65
+packages/backend/test/helpers.ts
+  s_f13175a263fab0::t_50364e4872d366 43,56,88,148-153,159,215,228,243-248,265-300,312-345
+  s_f13175a263fab0::t_d800415dcef90c 346
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-30
+packages/backend/src/routing/vertex-deployment.ts
+  s_f13175a263fab0::t_50364e4872d366 1-56
+.github/workflows/docker.yml
+  s_f13175a263fab0::t_50364e4872d366 7
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_f13175a263fab0::t_50364e4872d366 2-6,9-11,13-20,30-31,36-44,46-49,59,62-69,82,85-87,92,95,105-151
+packages/frontend/tests/components/ProviderDetailView.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 63,401-418,471-521
+  s_f13175a263fab0::t_95da644b69f642 522
+packages/frontend/src/components/ProviderKeyForm.tsx
+  s_f13175a263fab0::t_50364e4872d366 13,31
+packages/backend/src/analytics/controllers/provider-usage.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 1-2,4-5,20-21
+packages/backend/src/routing/autofix/observation-reporter.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 11-15,80,83,96-97,102,156,173-194,232-233
+packages/shared/__tests__/chat-message.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-580
+packages/shared/src/provider-inference.ts
+  s_f13175a263fab0::t_50364e4872d366 15-17
+packages/backend/test/multi-key-providers.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4,14-19,22,26,30,90-91,96-97,101-106,122,162-164
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_f13175a263fab0::t_50364e4872d366 103-113,126-129,312,382,474-475,579-582
+  s_f13175a263fab0::t_4c2c0c2f560fba 583
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 2-6,124-151
+packages/frontend/src/components/AddAgentModal.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-8,14,36-43,49,51-67,85-89,98-99,106,130,146-155,160-161,216-295
+  s_f13175a263fab0::t_32bcbf9cb5d960 296
+packages/frontend/src/pages/Help.tsx
+  s_f13175a263fab0::t_50364e4872d366 26,31
+packages/frontend/src/services/api/messages.ts
+  s_f13175a263fab0::t_50364e4872d366 1,24-33,124-125,130-161,163-169
+deploy/apple-containers/start.sh
+  s_f13175a263fab0::t_50364e4872d366 84,202-212,286,310-318,349
+packages/backend/src/routing/routing-core/specificity.service.ts
+  s_f13175a263fab0::t_50364e4872d366 10,220-226,277,283,286-292,297-298,301,304-309
+packages/frontend/src/components/NotificationBell.tsx
+  s_f13175a263fab0::t_50364e4872d366 64,89,131,155,173
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4-5,7
+packages/backend/src/analytics/controllers/autofix-analytics.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 1-11,35-38,45-56
+  s_f13175a263fab0::t_5e1e905d4df7e4 57-58
+packages/backend/src/routing/proxy/__tests__/chatgpt-stream.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 132-173
+packages/frontend/src/components/ModelParamsAffordance.tsx
+  s_f13175a263fab0::t_50364e4872d366 63,65-67
+packages/frontend/tests/components/ProviderIcon.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 14,24,52-60,76-84,175-203
+  s_f13175a263fab0::t_a03c3cc3dc408a 204
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-77
+packages/backend/src/common/constants/managed-free-providers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-84
+.do/deploy.template.yaml
+  s_f13175a263fab0::t_50364e4872d366 41-61
+packages/backend/src/entities/tenant-request-usage.entity.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-24
+deploy/fly/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 3,11,33,35,44,50-55,87,115,123,127,132,141
+packages/backend/src/analytics/services/agent-analytics.service.ts
+  s_f13175a263fab0::t_50364e4872d366 20-22,53,72,83-85
+packages/backend/src/routing/proxy/__tests__/reasoning-model-catalog.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-122
+packages/frontend/src/components/JsonBlock.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-43
+packages/frontend/src/styles/analytics-overview.css
+  s_f13175a263fab0::t_50364e4872d366 70,74
+deploy/coolify/docker-compose.yml
+  s_f13175a263fab0::t_50364e4872d366 16-19,28,50
+packages/backend/src/database/database.module.ts
+  s_f13175a263fab0::t_50364e4872d366 26,61,93
+packages/backend/test/messages-cache-tokens.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 162-173,211,254
+packages/backend/src/analytics/controllers/agents.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 34,47,63-67,97-103,111-112,143-152,155-158
+packages/backend/src/routing/autofix/autofix.module.ts
+  s_f13175a263fab0::t_50364e4872d366 7-9,12,15,22-30,33,40-43,50-52,54-77,79,81
+packages/frontend/src/services/plan-store.ts
+  s_f13175a263fab0::t_50364e4872d366 1-53
+packages/backend/src/routing/routing.module.ts
+  s_f13175a263fab0::t_50364e4872d366 21-22,33,46,69,71
+packages/frontend/src/pages/welcome-helpers.ts
+  s_f13175a263fab0::t_50364e4872d366 1-81
+packages/backend/src/analytics/controllers/agent-analytics.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 27-29
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 29,39,49,60-218,779-817,2074-2120
+  s_f13175a263fab0::t_f9970663cbb23a 2121
+.changeset/remove-user-discovery-offer.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/frontend/tests/components/Help.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 53,92
+packages/frontend/tests/pages/Routing.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 1411-1446
+packages/backend/src/routing/routing-core/__tests__/provider.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1,1640-1665
+  s_f13175a263fab0::t_69f40a11d97110 1666-1667
+packages/frontend/src/styles/welcome.css
+  s_f13175a263fab0::t_50364e4872d366 1-1752
+packages/backend/src/analytics/services/timeseries-queries.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 9,343-423
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 3,97-137,282,297,301-317,447-463,468-470,532-601,616-625
+  s_f13175a263fab0::t_c68013aefd6800 626
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 3,54-61,67,131,146,165-166,175-362
+  s_f13175a263fab0::t_43ac51e5bfd78c 363-364
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-29
+packages/backend/src/routing/proxy/proxy-error-sanitizer.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 109-229,241,249,258,267,276,279,283,388
+packages/backend/src/routing/proxy/route-credentials.ts
+  s_f13175a263fab0::t_50364e4872d366 52-58,113,130-131,140,165-166,177,186,196,289-291
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-420
+packages/backend/src/analytics/analytics.module.ts
+  s_f13175a263fab0::t_50364e4872d366 6,52
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 89,103,105-110
+packages/frontend/src/pages/Welcome.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-1697
+deploy/heroku/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 9,21-23,29-36,45,71-72,78,85
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_f13175a263fab0::t_50364e4872d366 23,89-108,120-125,470-509
+  s_f13175a263fab0::t_42e94c9336117a 510
+packages/frontend/src/components/ReliabilityChart.tsx
+  s_f13175a263fab0::t_50364e4872d366 29,68,71-72,88,208
+packages/backend/src/common/utils/provider-inference.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 56-67
+packages/backend/src/analytics/services/query-helpers.ts
+  s_f13175a263fab0::t_50364e4872d366 35,217-252
+  s_f13175a263fab0::t_2f719bfa895413 253
+packages/frontend/public/logos/gemini.svg
+  s_f13175a263fab0::t_50364e4872d366 1-52
+deploy/easypanel/template/meta.yaml
+  s_f13175a263fab0::t_50364e4872d366 13-14,81-84
+packages/frontend/src/components/ProviderDetailView.tsx
+  s_f13175a263fab0::t_50364e4872d366 42,143-144,147-149,153,161-163,170-174,285-286
+.changeset/openrouter-tool-capabilities.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/routing/proxy/attempt-recording-capture.ts
+  s_f13175a263fab0::t_50364e4872d366 1-54
+packages/backend/src/routing/proxy/forward-endpoint-resolver.ts
+  s_f13175a263fab0::t_50364e4872d366 18,25,112-113,124-131
+packages/frontend/src/pages/SettingsAutofixSection.tsx
+  s_f13175a263fab0::t_50364e4872d366 1,6,9-11,27-29,35,49-50,52,57-62,65,76,80,89-100
+packages/frontend/tests/components/AddAgentModal.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 3,33-38,78,94-164,269-293,298-312
+  s_f13175a263fab0::t_59c09f497df48a 313
+packages/frontend/tests/pages/Register.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 137,196,218,369
+packages/shared/__tests__/autofix-status.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 8
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 56,60,65,140-155,163-166
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 408,414,426,432,448,475,479,490,517,529,1299-1339
+  s_f13175a263fab0::t_54a2bb64c3f012 1340
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 2,40-44,65-74,89,143-203,342
+packages/backend/src/billing/plan.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-8,14,23,29,43-45,74-81,83,90-92,99-110,168-176,210-218,222-232,234-251,253-260,262,265-341,343-362,365-375,377-382,405,442,478-481,485
+packages/backend/src/routing/autofix/mock-healing-client.ts
+  s_f13175a263fab0::t_50364e4872d366 3,7-9,23,52,57-61
+packages/backend/src/config/app.config.ts
+  s_f13175a263fab0::t_50364e4872d366 2,35-38,58-74
+packages/shared/__tests__/provider-inference.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 39-42,92-96
+  s_f13175a263fab0::t_376ccdeb9931a0 97
+packages/shared/src/autofix-status.ts
+  s_f13175a263fab0::t_50364e4872d366 31
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 195,197,199-201
+packages/frontend/tests/components/ErrorClassCard.preserved.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 24,28
+.changeset/moonshot-kimi-coding-models.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/routing/autofix/autofix-healing-config.ts
+  s_f13175a263fab0::t_50364e4872d366 1-24
+docker/.env.example
+  s_f13175a263fab0::t_50364e4872d366 26-32,34,37-39,50-67,81-88,151-152
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_f13175a263fab0::t_50364e4872d366 3-8
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 7,101,116,118-123,1208-1344,1763-1774,1795-1843,2154,2158-2159,2161,2172,2194-2197,2200,2238,2406,2411,2444,2509-2510
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_f13175a263fab0::t_50364e4872d366 22-27,55-75,94-99,302-311,331-361,363-395
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-72
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 54,164,592-627,727,739,800,810-812,814-839,1303,1307-1308,1314
+packages/frontend/src/services/api/analytics.ts
+  s_f13175a263fab0::t_50364e4872d366 266,272-277,367,369,387-389,393
+packages/backend/src/common/services/agent-recording-cache.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-39
+packages/backend/src/billing/plan.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 8,21-28,59-94,129-142,222-223,236-264,309-316,392-393,396-398,401-402,412,416,419-420,423,426-427,431-518,521-528,531,534,541,543,552,554,562,565-566,580-583,612,616,625,631
+packages/frontend/src/components/MessageDetails.tsx
+  s_f13175a263fab0::t_50364e4872d366 19,109,140,165,231,262,279,299,497,500,550,553,572
+packages/frontend/src/components/CopilotDeviceLogin.tsx
+  s_f13175a263fab0::t_50364e4872d366 2
+packages/backend/src/analytics/controllers/messages.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 61
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_f13175a263fab0::t_50364e4872d366 55-62,129-130,178-183,185,189-216,290-291,298-307,312-316,343-345,392,396,406-410,420,430-434,442,463-464
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 227-243
+packages/frontend/src/pages/Settings.tsx
+  s_f13175a263fab0::t_50364e4872d366 10,230,233-234
+  s_f13175a263fab0::t_2e00135dba8a0e 235
+packages/shared/src/plan-limits.ts
+  s_f13175a263fab0::t_50364e4872d366 30-39
+packages/frontend/src/pages/SettingsRecordingSection.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-71
+deploy/apple-containers/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 103,131,150,183,187,192,196,198,201,268,272
+packages/backend/src/common/services/agent-recording-cache.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-33
+packages/backend/src/routing/model.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 80,387,408,416,433,457,463-466
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_f13175a263fab0::t_50364e4872d366 26-47,51,131-152
+packages/backend/src/routing/proxy/__tests__/proxy-session-scope.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-38
+packages/backend/src/common/constants/managed-free-providers.ts
+  s_f13175a263fab0::t_50364e4872d366 1-85
+.changeset/calm-postgres-pools.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/test/agent-enabled-providers.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 19-24,46-47,50,58
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 350-407
+packages/backend/src/routing/proxy/provider-endpoints.ts
+  s_f13175a263fab0::t_50364e4872d366 1-4,6,63-66,82-96,146,148,156-170,206-220,290-296,338-344,432-458,515,549-559
+packages/backend/src/model-prices/model-pricing-cache.time-tiers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-119
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 33-34,36-46,50,79,85,88,90-91,96,105-107,125-199,203-217,308,403,456-474
+packages/frontend/src/pages/Overview.tsx
+  s_f13175a263fab0::t_50364e4872d366 37,44,120-127,129-133,165-166,168,247,250,254,258,262,264-268,278,286,399,466-470,493,556
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.ts
+  s_f13175a263fab0::t_50364e4872d366 1-36
+nodes/Manifest/Manifest.node.ts
+  s_f13175a263fab0::t_50364e4872d366 256
+packages/frontend/tests/pages/Settings.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 24-27,37-38
+packages/backend/src/database/request-recording-retention.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-166
+packages/frontend/tests/pages/Overview.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 41-42,80-82,85,109,119,122,279,510,516,521,523,526,536,548-549,551,557,563,930
+packages/backend/src/routing/autofix/autofix-health-probe.ts
+  s_f13175a263fab0::t_50364e4872d366 3,8-11,25-32,44-45,49,52-53
+packages/frontend/src/services/formatters.ts
+  s_f13175a263fab0::t_50364e4872d366 81
+deploy/gcp/outputs.tf
+  s_f13175a263fab0::t_50364e4872d366 20-24
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_f13175a263fab0::t_50364e4872d366 28,125-127,138-141
+packages/backend/test/oauth-subscription-lock.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-258
+packages/backend/test/proxy.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 253-255
+packages/frontend/src/services/api/cache.ts
+  s_f13175a263fab0::t_50364e4872d366 199-201,203
+CLAUDE.md
+  s_f13175a263fab0::t_50364e4872d366 110,132,156,339-387,406,426,428-431,461,463,465,484,489,578,593-599,611,613,615,619,622,624,626,628-632,635,640-644,646,648,650-654,663,724-729,766-771,802-806
+packages/backend/src/otlp/services/api-key.service.ts
+  s_f13175a263fab0::t_50364e4872d366 42-45,81-85
+deploy/easypanel/template/README.md
+  s_f13175a263fab0::t_50364e4872d366 18
+packages/backend/src/analytics/services/agent-analytics.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 48-54,64-66,73-79,89-95,103-118
+  s_f13175a263fab0::t_75e97f9cbbad07 119
+packages/frontend/src/components/PlanPicker.tsx
+  s_f13175a263fab0::t_50364e4872d366 12
+packages/frontend/src/components/RequestDrawer.tsx
+  s_f13175a263fab0::t_50364e4872d366 12-15,26,35,40,69,86,125,129,169,176,211,245-249,259-265,337,381,416-438,459-472,474-482,485-486,489-493,495-500,502-503,505-552,554-555,558-559,562,571-578,580-614,616-632,634,636,638-644,646-651,653-664,666-673,675,677-680,682,684-732,734,736-759,761-803
+  s_f13175a263fab0::t_c4bdfff3882187 11
+packages/backend/src/playground/playground.service.ts
+  s_f13175a263fab0::t_50364e4872d366 490-492,568-570
+deploy/fly/fly.toml
+  s_f13175a263fab0::t_50364e4872d366 24-28
+packages/backend/src/notifications/emails/doctor-release.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 18,22,24-25,34
+packages/frontend/src/styles/data.css
+  s_f13175a263fab0::t_50364e4872d366 105,131,1003-1004,1021,1024-1025,1079,1184,1404
+integrations/n8n-nodes-manifest/package.json
+  s_f13175a263fab0::t_50364e4872d366 3
+packages/backend/src/billing/request-quota-window.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-42
+packages/frontend/tests/components/MessageTable.onOpenMessage.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 8-9,137,157,163
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-36
+packages/backend/src/routing/vertex-deployment.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-66
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 165-170,188,294,315-321,326-343,348,458-580,735-857,899,967,1005-1039,1193,1374,1378-1379,1395-1396,1473-1474,1508,1726-1758,2054,2063-2108,2513-2557,2677-2692,2709,2834,2852,2909,2912,2952-2953,2981,3121-3176,3249
+packages/manifest/package.json
+  s_f13175a263fab0::t_50364e4872d366 3
+nodes/LmChatManifest/LmChatManifest.node.json
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/src/routing/routing-core/tier.service.ts
+  s_f13175a263fab0::t_50364e4872d366 16-22,280-286,333-340,347,353-358,363,366-372,377-378,381,384-389
+.changeset/responses-drop-non-message-items.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/frontend/public/icons/vertex.svg
+  s_f13175a263fab0::t_50364e4872d366 1-25
+packages/backend/src/database/migrations/1801400000000-MoveRecordingsToProviderAttempts.ts
+  s_f13175a263fab0::t_50364e4872d366 1-49
+packages/backend/src/auth/auth.instance.ts
+  s_f13175a263fab0::t_50364e4872d366 9,33
+.changeset/opencode-go-responses-routing.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/database/database-seeder.service.ts
+  s_f13175a263fab0::t_50364e4872d366 17-20,27-113,135,174,275,339-419
+  s_f13175a263fab0::t_17ad701afb1a03 420
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-275
+packages/backend/src/analytics/services/query-helpers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 9-11,256-304,521
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_f13175a263fab0::t_50364e4872d366 286-295
+packages/frontend/tests/pages/Overview-limits.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 34,62-64,67,91,101
+packages/frontend/tests/services/plan-store.test.ts
+  s_f13175a263fab0::t_50364e4872d366 1-52
+packages/backend/src/routing/proxy/__tests__/route-credentials.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 61,72,83,93-95,196-241
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 80,85,117,207,242,344,388,726,857,984-986,1100,1128,1133
+packages/shared/src/error-taxonomy.ts
+  s_f13175a263fab0::t_50364e4872d366 1-2,19-22,40,194,224-227,281-289
+packages/frontend/src/styles/playground.css
+  s_f13175a263fab0::t_50364e4872d366 8-41
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 1,42-53,102-109,523-524,526,528-838,843-851,886-891
+  s_f13175a263fab0::t_5fcc75f9028bb4 892
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 273-301,345-371,407-409,759,1075-1278,1468-1516,1552-1633
+  s_f13175a263fab0::t_42850e9e350b30 1634-1635
+packages/frontend/tests/components/MessageDetails.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 110,267-268
+packages/backend/src/database/migrations/1801000000000-AddRequestsAndProviderAttempts.ts
+  s_f13175a263fab0::t_50364e4872d366 156-162,171-174
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_f13175a263fab0::t_50364e4872d366 1-2,50,52,55-60
+packages/backend/src/database/request-recording-retention.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-156
+packages/frontend/src/services/api/providers.ts
+  s_f13175a263fab0::t_50364e4872d366 1-3,69-118,120-126
+packages/frontend/tests/services/sse.test.ts
+  s_f13175a263fab0::t_50364e4872d366 1,6,10,20-25,33-34,36,39-40,48,50,63,65-66,68,72,76,79-81,84,86,88-90,94,96,100-103,106,108,110-112,115-118,122,124-125,127,132,136-137,139,143,145,159,167,175-180,185-189,196-197,202,204,211,213-229,233,235,247-248,250,261,263,266,268,270,272,275,278
+packages/backend/src/common/common.module.ts
+  s_f13175a263fab0::t_50364e4872d366 10-11,22-23,31-32
+packages/backend/src/routing/proxy/proxy.module.ts
+  s_f13175a263fab0::t_50364e4872d366 28,31,60,63
+packages/backend/src/routing/tier.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 7,10-13,16-20,28,31-35,39,43-48,51-53,66,73,77-89,94,96-97,187-189,197,203,207-218,223,234,239-312,314
+packages/frontend/tests/services/api/providers.test.ts
+  s_f13175a263fab0::t_50364e4872d366 5,50,55-131
+deploy/gcp/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 5,15,22-23,34,40,57
+packages/backend/test/request-backfill-fallbacks.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 628,668
+packages/frontend/src/components/ProviderChartCard.tsx
+  s_f13175a263fab0::t_50364e4872d366 92
+.gitignore
+  s_f13175a263fab0::t_50364e4872d366 21
+packages/backend/src/database/migrations/1801300000000-AddRequestRecordings.ts
+  s_f13175a263fab0::t_50364e4872d366 1-41
+packages/backend/src/database/migrations/1799000000000-AddAutofixWaitlistSignups.ts
+  s_f13175a263fab0::t_50364e4872d366 5
+.changeset/add-meta-model-api.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/database/migrations/1799000010000-AddAutofixAgentFlags.ts
+  s_f13175a263fab0::t_50364e4872d366 4
+packages/backend/src/routing/proxy/__tests__/proxy-request-recorder.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 55,65,72-89,103,116-125,153-275,304,324,342,344,346-348,354-355,357-361,363-368,371,374,376-383,385-403,405,408-414
+packages/backend/test/autofix-null-flag.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 7,31,50
+packages/shared/src/subscription/types.ts
+  s_f13175a263fab0::t_50364e4872d366 17-19
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-326
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_f13175a263fab0::t_50364e4872d366 819,822,888-901,903-904,906,926,1152
+packages/backend/src/routing/autofix/autofix.types.ts
+  s_f13175a263fab0::t_50364e4872d366 9,45,47
+packages/backend/src/entities/agent-message.entity.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/src/routing/proxy/reasoning-content-cache.ts
+  s_f13175a263fab0::t_50364e4872d366 1,5-6,45-51,124,130-132,136-137,139-143,147-153,245-249,256,259
+packages/backend/src/database/quality-score.util.ts
+  s_f13175a263fab0::t_50364e4872d366 23-28
+.changeset/deepseek-peak-pricing.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 3,79-340,436,444,452,473,496,513,521,540,563,580,588,607,630,669-763,858-861,919-940,984-986,993,1013-1034,1045-1048,1064,1070-1076,1089,1096,1099,1116-1117,1129,1136,1162,1217,1228,1259,1262,1290,1293,1323,1334,1410-1413,1472,1484,1644,1664,1732-1752,1837-1852,1869-1884,2285-2288,2309-2312,2518-2535,2613-2616,2751-2783,2907-2991,3217,3220,3227-3229,3253,3277,3281-3327,3507,3512-3513,3524,3547,3566,3571-3572,4009-4023,4722,5216-5272
+  s_f13175a263fab0::t_fa1879d5ff1941 5273
+packages/frontend/src/components/CostByModelTable.tsx
+  s_f13175a263fab0::t_50364e4872d366 36-37
+packages/backend/src/config/env.util.ts
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/frontend/src/index.tsx
+  s_f13175a263fab0::t_50364e4872d366 15,38,54-62,146-147
+  s_f13175a263fab0::t_5bea4bd24d6533 148
+packages/frontend/tests/pages/Limits.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 16-18,26-27,31-62,99-101,573-682
+packages/frontend/tests/services/plan-range-lock.test.ts
+  s_f13175a263fab0::t_50364e4872d366 1-80
+packages/backend/src/analytics/services/messages-query.service.ts
+  s_f13175a263fab0::t_50364e4872d366 18-19,102-103,106-113,205-207,247,266-268,399-420,442-455,472,516,541-543,554,576,607-611,991-992,1004-1005,1011-1012,1024-1025
+packages/backend/src/routing/autofix/healing-client.ts
+  s_f13175a263fab0::t_50364e4872d366 2-7,12,17,24-28,35
+packages/manifest/CHANGELOG.md
+  s_f13175a263fab0::t_50364e4872d366 3-92
+.changeset/meta-provider-logo.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+docker/Dockerfile
+  s_f13175a263fab0::t_50364e4872d366 39,47,84-85
+packages/backend/src/routing/routing-core/provider-param-spec.service.ts
+  s_f13175a263fab0::t_50364e4872d366 4-5,32-35,57-63,77-173,236,274-280,282-285
+packages/backend/src/analytics/controllers/overview.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 109-111,151-153,183,188-207,221-227,233-246,255-276,278-280,306
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-454
+packages/frontend/tests/pages/Workspace-validation.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 39-46,65,134,221-222,239-240,253,265-266,271-277,291-292
+packages/backend/src/analytics/services/messages-query.requests.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 20-21,54-139,175,557-605
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_f13175a263fab0::t_50364e4872d366 3-7,32-40,55,62,74,76-77,102,107-108,152-170,178-202,217-286,359-370,423-429,593,597-605,641-642,654-655,771-781,823-827,878-882,952,1015-1016
+packages/backend/src/analytics/services/timeseries-queries.service.ts
+  s_f13175a263fab0::t_50364e4872d366 12,77,96,193,208,225,238,247,267,705-710,745-746,848-849
+packages/backend/src/routing/autofix/autofix.service.ts
+  s_f13175a263fab0::t_50364e4872d366 6-11,16-21,27,54,67-73,113,145,149,151,158,166,176-183,185-186,190,194,199-207,209,240-242,258-278,292,294,316,320,342,361-383,385-389,443-451,454-464,475,500-507,526,528,534,545-573
+packages/shared/__tests__/agent-type.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 8,90-103
+  s_f13175a263fab0::t_efb12f1b73d079 104-105
+packages/frontend/src/pages/GlobalOverview.tsx
+  s_f13175a263fab0::t_50364e4872d366 32,54,179-183,236,250,278,281,291,293,300,322,339,344,349,373,663-664,692,817,940,1131,1209-1231,1248
+packages/backend/src/routing/autofix/__tests__/autofix.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 27,34-35,316-359,396,405-428,446,479,493-520,546-550,688,804,821-828,1020-1025,1031,1035,1039-1092,1137-1150,1271,1302,1310,1316
+docs/providers/subscription-based-providers.md
+  s_f13175a263fab0::t_50364e4872d366 18,68
+render.yaml
+  s_f13175a263fab0::t_50364e4872d366 7,11-14,33-36
+packages/backend/src/routing/managed-free-provider/managed-free-provider.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 1-49
+packages/backend/src/routing/proxy/stream-protocol.ts
+  s_f13175a263fab0::t_50364e4872d366 6
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 137-160,1077-1187
+packages/backend/src/routing/proxy/attempt-recording-capture.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-59
+packages/backend/src/common/utils/cost-calculator.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 351-506
+packages/shared/src/provider-limits.ts
+  s_f13175a263fab0::t_50364e4872d366 1-7
+packages/backend/src/database/migrations/1801500000000-EnableRecordingForNewAgents.ts
+  s_f13175a263fab0::t_50364e4872d366 1-15
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_f13175a263fab0::t_50364e4872d366 1,122,154-162
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_f13175a263fab0::t_50364e4872d366 43,65-70,73,141-147,167,169,177,181-182,187-188,239-241,250-256,260,266-268,281,283-285,302,343,380,393,396-397,404,424,427,432-434,448,474-475,484-486,514,517-518,525,554,569-570,576-578,620,623-624,631,650-651,657,667-668,674,684-685,706,718,726,733-734,736,740-742,748-755,761-768,781,784,789-791,804-833,837,849-864,872-886,893-894,900-903,918-924,928,931-944,955,961-968,982-991,994-995,1001-1062,1065,1133,1136-1137,1146-1147,1159,1162-1163,1178,1195,1200,1203-1204,1239,1307,1342-1346,1381-1412,1431-1435,1437-1438
+packages/backend/src/entities/install-metadata.entity.ts
+  s_f13175a263fab0::t_50364e4872d366 26-29
+deploy/coolify/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 42,47
+packages/backend/src/entities/tenant-request-usage.entity.ts
+  s_f13175a263fab0::t_50364e4872d366 1-19
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4,199,338,356-364,368,394-399,424-448
+  s_f13175a263fab0::t_de62a1e63c168f 449-450
+packages/frontend/src/styles/agents.css
+  s_f13175a263fab0::t_50364e4872d366 688
+packages/frontend/tests/components/EmailProviderSection.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-92
+packages/backend/src/entities/agent-message.entity.ts
+  s_f13175a263fab0::t_50364e4872d366 36-37,42-45,218,230
+packages/backend/src/analytics/controllers/messages.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 90,111,134
+packages/backend/src/routing/autofix/__tests__/autofix.module.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 7-8,12,24-51,55,68-74,79,82,86,89-92,94-95,99,102,104,109-111,117,122,128,138,149,156-228
+  s_f13175a263fab0::t_3f0ba7c24f07d4 229
+packages/backend/src/database/migrations/1799000200000-AddAutofixPhoenixIds.ts
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/test/overview.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 9-13,24-39,45-119,188-235
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_f13175a263fab0::t_50364e4872d366 8-10,31-39,101-102,109-115,122-128,130,134-151,155-194,473
+packages/backend/src/otlp/services/api-key.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 206-231
+packages/frontend/src/pages/providers/ProviderConnectionsPage.tsx
+  s_f13175a263fab0::t_50364e4872d366 24,296-298,300,555,598
+packages/frontend/src/pages/Limits.tsx
+  s_f13175a263fab0::t_50364e4872d366 6-7,12,15,22-23,41-43,46-48,57-80,246-261,315-333
+packages/frontend/tests/components/ModelParamsAffordance.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 64,89-94,97,121-122
+packages/backend/src/telemetry/telemetry.module.ts
+  s_f13175a263fab0::t_50364e4872d366 13-16
+packages/backend/src/model-prices/model-pricing-cache.service.ts
+  s_f13175a263fab0::t_50364e4872d366 23-36,44-45,223-229,246-249,252-254
+packages/shared/src/provider-error-semantics.ts
+  s_f13175a263fab0::t_50364e4872d366 1-37
+packages/backend/src/routing/managed-free-provider/managed-free-provider.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-213
+packages/backend/src/routing/tier.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 7,13-14,28,30,32-33,35,44-45,47-48,175-176,190,195-207,212-213,217-262
+  s_f13175a263fab0::t_676c0fe12c9d3a 263
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 35-42,88,184
+packages/backend/src/database/migrations/1796000000000-AddAutofixWaitlist.ts
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/package.json
+  s_f13175a263fab0::t_50364e4872d366 27,51
+packages/frontend/tests/pages/Upgrade.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 22
+packages/shared/__tests__/subscription.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 273-274,400-405,436-437,582-583
+docker/DOCKER_README.md
+  s_f13175a263fab0::t_50364e4872d366 274,286-288,303,307,326,395-410,433-478
+  s_f13175a263fab0::t_26c4c54b85c6d8 479
+packages/backend/src/routing/autofix/__tests__/autofix-health-probe.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4-6,22,25-26,31-32,36,41-44,48-69,74,76,85,94,103,108
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 26-31,50,65,77,86,95-181,186,204,225,234-256,261,270,289,301-318,324,332,342,350
+packages/backend/src/routing/header-tiers/header-tier.service.ts
+  s_f13175a263fab0::t_50364e4872d366 15-20,251-257,294,300,303-309,314-315,318,321-326
+packages/frontend/tests/services/api/cache.test.ts
+  s_f13175a263fab0::t_50364e4872d366 306-308,313,315-316,327-338
+  s_f13175a263fab0::t_b17dbf54d6cc28 339-340
+packages/backend/src/routing/proxy/forward-endpoint-resolver.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 171-239
+packages/frontend/tests/components/NotificationBell.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 16,21,68,73,77,80,82,89-90,106,130-131,138-139
+packages/backend/src/analytics/services/aggregation.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 6-9,163-176,369-382,431-454
+  s_f13175a263fab0::t_21ef979cdf0a6f 455
+packages/backend/src/analytics/services/aggregation.service.ts
+  s_f13175a263fab0::t_50364e4872d366 11-12,44,52-54,73,186,198-200,219,259-266,279,289,392,402
+docs/glossary.md
+  s_f13175a263fab0::t_50364e4872d366 11,23,27,29,35,64,76,85-86,89,93,113,139,141,151,162-163,173,181-182
+packages/backend/src/common/constants/providers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 121-131,182-192
+packages/backend/src/model-discovery/filter-non-chat-models.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 229-253
+packages/frontend/src/components/AuthGuard.tsx
+  s_f13175a263fab0::t_50364e4872d366 6-7,24-33,35-48,58-62
+packages/frontend/tests/pages/ProviderPages.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 98,103,125
+deploy/aws/deploy.sh
+  s_f13175a263fab0::t_50364e4872d366 51
+packages/frontend/tests/pages/Welcome.test.ts
+  s_f13175a263fab0::t_50364e4872d366 1-151
+packages/frontend/tests/services/providers.test.ts
+  s_f13175a263fab0::t_50364e4872d366 195-212,226-242,489-510,634-645,867-872,1045
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_f13175a263fab0::t_50364e4872d366 13-15,25-30,33-35
+.github/workflows/docker-smoke.yml
+  s_f13175a263fab0::t_50364e4872d366 12,14,39-42,74-115,136-168,189-305,321-325,392-468
+  s_f13175a263fab0::t_cf256bfddbf511 469
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 575-643
+.github/workflows/publish-n8n-node.yml
+  s_f13175a263fab0::t_50364e4872d366 3-4,15
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 87-90,95-99,130,132-144,147-149,167,233-235,265-289,431,450,536-572,574-581,610,617-630,635-693,695-698,701-702,726,734-735,737-745,1100,1303,1323,1327-1330,1334,1338-1349,1351,1354-1358,1362-1365,1369-1374,1378-1387,1389-1390,1393-1408,1410-1415,1419-1425,1428-1433,1437,1442,1444-1470,1472-1494,1544-1600,1605,1613,1650-1735,1792,1795-1801,1822-1827,1831-1834,1836-1847,1870-1894,2014,2617,2620,2634,2783-2859,2885-2966,3053,3075-3076
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1331-1393
+packages/frontend/src/services/onboarding.ts
+  s_f13175a263fab0::t_50364e4872d366 1-17
+packages/frontend/src/styles/modals.css
+  s_f13175a263fab0::t_50364e4872d366 189-266,585,599-601,604,609-613,633-656,874-879,881-885,887-889,891-899
+packages/frontend/src/components/Sidebar.tsx
+  s_f13175a263fab0::t_50364e4872d366 2-3,7-8,11,13,21-22,47-150,336-359,362-363,368,370,372-382,444-536
+packages/backend/test/billing-request-limit.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 6,8-11,24-27,31,39-49,54-56,60-62,77-82,98-110,121-123,134-136,160-166,169,185
+packages/backend/src/database/migrations/1799000300000-MakeAutofixEnabledNullable.ts
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/src/routing/proxy/proxy-types.ts
+  s_f13175a263fab0::t_50364e4872d366 2,4,27-29,36-42,49-56,59,72-75,98,100,102-103,121-122,141-146,152
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-94
+packages/backend/src/database/migrations/1801600000000-DropLegacyAutofixRolloutColumns.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-52
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_f13175a263fab0::t_50364e4872d366 1,6-12,27,52-84
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.routes.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4,160
+packages/backend/src/routing/dto/routing.dto.ts
+  s_f13175a263fab0::t_50364e4872d366 238-243
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_f13175a263fab0::t_50364e4872d366 242,248-251,271,279-281,291-295,306-307,329,734,737-742,744-748,752-756,764
+packages/backend/src/model-discovery/opencode-go-catalog.service.ts
+  s_f13175a263fab0::t_50364e4872d366 9,199,214-219
+packages/shared/src/chat-message.ts
+  s_f13175a263fab0::t_50364e4872d366 1-438
+.changeset/mps-catalog-api-refresh.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+deploy/gcp/deploystack.json
+  s_f13175a263fab0::t_50364e4872d366 3
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_f13175a263fab0::t_50364e4872d366 181
+packages/backend/src/auth/auth.instance.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 411,424-436
+packages/backend/src/entities/agent.entity.ts
+  s_f13175a263fab0::t_50364e4872d366 33,40-43
+  s_f13175a263fab0::t_2922674b0b11af 44
+packages/backend/src/routing/routing-core/__tests__/provider-param-spec.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 122-141,177,181-318
+  s_f13175a263fab0::t_5933f6ddc9d04d 319
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-262
+packages/shared/__tests__/error-taxonomy.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 20,96,150-170,238-298
+  s_f13175a263fab0::t_370be7ee740aaf 299-300
+packages/shared/src/subscription/configs.ts
+  s_f13175a263fab0::t_50364e4872d366 155-157,162-165,222
+packages/backend/src/model-discovery/known-model-modalities.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 29-43
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 13,36,68-73,141-144,234,236-237,247,266,270-280,293-319,350,368-369,392-394,408,412-413,417,425,468,504,509,519,524,528-529,544,562,582,604,623,644,653,690,710,744,761,767-769,775-787,803,808-810,857-862,902,923
+packages/backend/src/analytics/services/message-details.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1,9-11,90,95-100,103-104,111-112,159-160,270,279-314
+docs/autofix-self-healing-poc.md
+  s_f13175a263fab0::t_50364e4872d366 1,20-21,31,35,39,43,54-55,57-60,64,68,74-84,96,101,133-134,189,191-199,207,209-210,212-215,250,257-260,265,269,284-292,308,313-314,316,318,324-331,342,344,352-353,355,360-362,369,372,380,393,398-400
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 5,24,28,34-35,52,54-55,63-66,69-71,79,83-112
+packages/frontend/src/components/EmailProviderSection.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-80
+packages/backend/src/routing/proxy/__tests__/anthropic-cache-control-roundtrip.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 199-252
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.json
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/src/analytics/controllers/provider-usage.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-2,5-6,21-27
+  s_f13175a263fab0::t_a37e7f07fa11e5 28-29
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_f13175a263fab0::t_50364e4872d366 256
+packages/backend/src/routing/proxy/__tests__/provider-client.headers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 245-247,256,259,262-268,301-317,329-331
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_f13175a263fab0::t_50364e4872d366 26,37-42,90,219,223,341,354
+packages/frontend/src/components/message-table-cells.tsx
+  s_f13175a263fab0::t_50364e4872d366 348,352
+packages/backend/src/notifications/emails/doctor-release.tsx
+  s_f13175a263fab0::t_50364e4872d366 22,27,29,43,56,60,63,75,85,93
+packages/backend/src/analytics/services/error-breakdown.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 100
+packages/backend/src/database/migrations/1799000400000-AddAutofixAccessGrant.ts
+  s_f13175a263fab0::t_50364e4872d366 5-6
+docker/install.sh
+  s_f13175a263fab0::t_50364e4872d366 2,16-17,23-24,51-53,59-66,87,101-102,113-121,129-165,176-182,186-187,192-198,221-260,338-340,346-367,372-381,409-412
+  s_f13175a263fab0::t_a1e020f139d1e0 413
+packages/backend/src/playground/playground-stream.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 27,179-180,183,185,195-196,202
+packages/backend/src/analytics/services/error-breakdown.service.ts
+  s_f13175a263fab0::t_50364e4872d366 24,27,109
+packages/backend/src/database/data-source-definitions.ts
+  s_f13175a263fab0::t_50364e4872d366 29,35-42,186,313-320
+deploy/easypanel/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 25,62-63,76
+packages/backend/src/common/dto/create-agent.dto.ts
+  s_f13175a263fab0::t_50364e4872d366 9,32-41
+packages/frontend/src/pages/Routing.tsx
+  s_f13175a263fab0::t_50364e4872d366 510
+packages/backend/src/routing/proxy/provider-client.ts
+  s_f13175a263fab0::t_50364e4872d366 2,5-10,15-16,26,48,61-64,106-111,128-129,136-181,228,231-233,248-249,253,261,286-288,325-329,333-337,352-354,367,375,391,393-398,403,422-427,432,436,469-471,506-512,541-543,613,616-618,657-658,680,706-707,709-715,721-722,729-732,735-738,759,769-771,773,776,779,786-791,867
+.changeset/ollama-cloud-capabilities.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_f13175a263fab0::t_7a5842e74c982c 590
+  s_f13175a263fab0::t_50364e4872d366 26,57,61,143-148,201,206,208-221,245,274,304,314-315,320,322-323,341,354,385,397,405-406,410-411,413-414,417,428-429,494-496,520,548,657-658,663,672-676,722,752,755,764,792,803-824,827,852-869,906,933,960,967
+.github/scripts/mock-openai-provider.py
+  s_f13175a263fab0::t_50364e4872d366 1-54
+packages/backend/src/routing/proxy/proxy-session-scope.ts
+  s_f13175a263fab0::t_50364e4872d366 1-39
+.changeset/trim-codeassist-models.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+.github/workflows/db-diagram.yml
+  s_f13175a263fab0::t_50364e4872d366 96-98
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-47
+deploy/aws/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 3,8,55-59,71
+packages/backend/src/playground/playground.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 174,207
+contracts/gateway/README.md
+  s_f13175a263fab0::t_50364e4872d366 1-24
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-108
+packages/frontend/tests/components/RequestMessages.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-172
+packages/backend/test/message-log-completeness.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 161-168,174,181-187,294,309,326
+.changeset/bedrock-openai-responses-path.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/src/database/quality-score.util.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 35-47
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 144-168,191-194,296-298,301-302,304-310,312-315,318-319,321-323,326-327,329-333,335-340,344-353,421-422
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_f13175a263fab0::t_50364e4872d366 48,140,143
+packages/backend/src/telemetry/install-id.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 19
+packages/backend/src/routing/proxy/reasoning-model-catalog.ts
+  s_f13175a263fab0::t_50364e4872d366 1-60
+packages/backend/src/database/migrations/1799000100000-AddAutofixMessageFields.ts
+  s_f13175a263fab0::t_50364e4872d366 4,7,26
+.changeset/unmapped-provider-capabilities.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/backend/.env.example
+  s_f13175a263fab0::t_50364e4872d366 24,27-40,61-68
+  s_f13175a263fab0::t_039d531ee4ab65 69
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_f13175a263fab0::t_50364e4872d366 40,80
+packages/backend/src/common/utils/cost-calculator.ts
+  s_f13175a263fab0::t_50364e4872d366 1,30-69,103-115,126-127,130-131
+packages/backend/test/message-count-consistency.e2e-spec.ts
+  s_f13175a263fab0::t_50364e4872d366 13-14,19,23-24,34,64,66-67,108-128
+  s_f13175a263fab0::t_704dcc75c672a1 129
+packages/backend/src/billing/billing.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 15-19
+packages/backend/src/model-discovery/opencode-go-catalog.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 6,9,16,33,72,87,98,129-130,211,364,379
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 82,154,208,245,298,322,346,390,530
+packages/frontend/tests/components/RoutingModals.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 464-481
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_f13175a263fab0::t_50364e4872d366 1,6-10,14
+packages/frontend/src/components/MessageTable.tsx
+  s_f13175a263fab0::t_50364e4872d366 16
+packages/backend/src/routing/proxy/__tests__/proxy.controller.streaming-abort.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 135-138
+packages/frontend/tests/services/api/messages.test.ts
+  s_f13175a263fab0::t_50364e4872d366 64-88
+integrations/n8n-nodes-manifest/dist/package.json
+  s_f13175a263fab0::t_50364e4872d366 3
+packages/backend/src/database/backfills/backfill-requests.gateway.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 39,60
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.failures.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 4,18,46-51,65,150,198-270,306-369,650-687
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.ts
+  s_f13175a263fab0::t_50364e4872d366 1-46
+packages/backend/src/routing/routing-core/provider-key.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 66-171
+packages/frontend/tests/pages/SettingsAutofixSection.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 2,17,19,25,38,44-45,49,59-60,69,77,81-84,87-89,102-139,146,153,165,172-175,179,181,191-192,194,199,201-202,219-220,222,239,248
+deploy/aws/manifest.yaml
+  s_f13175a263fab0::t_50364e4872d366 3-4,267-281,344-365,421-426,453,492-494
+packages/backend/src/routing/proxy/__tests__/reasoning-content-cache.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 152,165,171-263,281,284-286,300,318,353-403
+  s_f13175a263fab0::t_477e9c892bf9d8 404
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_f13175a263fab0::t_50364e4872d366 1,3,74-84,122-146,179
+.github/workflows/dockerhub-description.yml
+  s_f13175a263fab0::t_50364e4872d366 1-27
+packages/frontend/src/components/RequestMessages.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-530
+packages/backend/src/common/interceptors/user-cache.interceptor.ts
+  s_f13175a263fab0::t_50364e4872d366 2,5,10-11,16-36
+  s_f13175a263fab0::t_e68db0f0893c43 37-38
+packages/frontend/src/components/RoutingModals.tsx
+  s_f13175a263fab0::t_50364e4872d366 71,105-111,167,197,305
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-25
+packages/frontend/src/pages/Playground.tsx
+  s_f13175a263fab0::t_50364e4872d366 12,125-136,169,197-200,203,341,447,469-490,561-563
+packages/frontend/src/services/api/billing.ts
+  s_f13175a263fab0::t_50364e4872d366 2,6,15-17
+  s_f13175a263fab0::t_01c5aa11d2737c 18-19
+packages/frontend/src/pages/Upgrade.tsx
+  s_f13175a263fab0::t_50364e4872d366 14,19-20,59-60,151-158
+packages/shared/src/agent-type.ts
+  s_f13175a263fab0::t_50364e4872d366 20-26
+.changeset/bedrock-nonstreaming-responses.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+README.md
+  s_f13175a263fab0::t_50364e4872d366 9,43,45-46,48,68-76,78,84,88-121
+packages/backend/src/analytics/dto/messages-query.dto.ts
+  s_f13175a263fab0::t_50364e4872d366 159-160
+  s_f13175a263fab0::t_ce00537a071cde 156-158
+packages/backend/src/routing/autofix/__tests__/phoenix-contract.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 7,26-32,112-145
+  s_f13175a263fab0::t_6df0ec6283ed6b 146-147
+scripts/check-design-tokens.mjs
+  s_f13175a263fab0::t_50364e4872d366 1-136
+packages/backend/src/database/migrations/1801300000000-AddTenantRequestUsage.ts
+  s_f13175a263fab0::t_50364e4872d366 1-230
+packages/frontend/tests/components/CostByModelTable.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 293,302,307
+packages/frontend/tests/components/RequestDrawer.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 117-118,123,130,166,171,219-281
+deploy/digitalocean/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 3,9,11-13,29-36,54-57,63-64
+packages/frontend/package.json
+  s_f13175a263fab0::t_50364e4872d366 23
+packages/backend/src/analytics/dto/messages-query.dto.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 110,113,119
+packages/backend/src/analytics/controllers/agents.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 15,25-29,34-35,51-56,116,142,278-307,351,365-366,374-375,414,472,488,528,548-551,591,631,672,794
+packages/frontend/src/services/plan-range-lock.ts
+  s_f13175a263fab0::t_50364e4872d366 1-30
+packages/backend/src/model-discovery/known-model-modalities.ts
+  s_f13175a263fab0::t_50364e4872d366 24-28,48-54
+packages/shared/src/providers.ts
+  s_f13175a263fab0::t_50364e4872d366 36-37,48-67,105-116,196-207,256-268,293-304
+contracts/gateway/tests/routes.test.mjs
+  s_f13175a263fab0::t_50364e4872d366 1-96
+packages/backend/src/model-discovery/model-fallback.ts
+  s_f13175a263fab0::t_50364e4872d366 10-11,67-68,250,258,261,264,266-267,270-277,286-287,289-291,294-304,310
+packages/frontend/src/styles/theme.css
+  s_f13175a263fab0::t_50364e4872d366 22
+deploy/koyeb/TUTORIAL.md
+  s_f13175a263fab0::t_50364e4872d366 3,10,34,42,44,60,65-67,73
+deploy/fly/deploy.sh
+  s_f13175a263fab0::t_50364e4872d366 14-23,33,47-82,84,96-118
+  s_f13175a263fab0::t_1d1ab0bce65779 119
+packages/frontend/src/services/providers.ts
+  s_f13175a263fab0::t_50364e4872d366 3-7,118,159,165-169,172,192,204,227,232,237,259,271,277-281,294-299,323,334-341,360,371,393,398,404,415,439,453,463,471,515,518,520,525
+packages/backend/src/analytics/controllers/autofix-analytics.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 6,12-13,18-24,70-93
+packages/backend/src/common/dto/create-agent.dto.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 98-135
+packages/backend/src/routing/proxy/reasoning-format.ts
+  s_f13175a263fab0::t_50364e4872d366 35-40,42-59,67-69,72-77,79-83,98-102,106-109,115,120-122
+packages/frontend/src/services/provider-api-key-urls.ts
+  s_f13175a263fab0::t_50364e4872d366 1-4,8,16,18,35-41
+packages/backend/src/routing/autofix/__tests__/autofix-healing-config.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-24
+packages/backend/src/config/app.config.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 64,67,76-84,109-147
+  s_f13175a263fab0::t_f6a627f29cb2d5 148
+deploy/gcp/main.tf
+  s_f13175a263fab0::t_50364e4872d366 26,123-137,160-168,203-212,248-252,288,301-305,308
+packages/backend/src/routing/proxy/codex-session-affinity.ts
+  s_f13175a263fab0::t_50364e4872d366 25,43-45,67,75-78,94-95,126-132
+packages/frontend/tests/pages/MessageLog.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 44,56,153,158,330,338,706-708,751,821-840
+packages/backend/src/routing/autofix/__tests__/mock-healing-client.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 20-21,43,66,80,91,102,117,126,136-143,158
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 41,141
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 557-618
+packages/frontend/tests/pages/Limits-interactions.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 23-24,28-30
+  s_f13175a263fab0::t_923314b4e9327a 31-32
+packages/shared/__tests__/providers.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 6-8,78-87,161-170,183-192,257-275
+packages/frontend/src/pages/MessageLog.tsx
+  s_f13175a263fab0::t_50364e4872d366 29,36,42,160,266-267,375-407,410,416,419-422,428-436,442,450,456,491-495,498,502-503,637,673
+packages/frontend/tests/components/ProviderSelectContent-deeplink.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 24-25
+packages/frontend/src/styles/request-drawer.css
+  s_f13175a263fab0::t_50364e4872d366 8-10,241-242,249,251-253,256-260,263-268,271-275,280-281,287-905,907-927,930-979,1004-1081
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.json
+  s_f13175a263fab0::t_50364e4872d366 5
+packages/backend/src/routing/autofix/observation-reporter.ts
+  s_f13175a263fab0::t_50364e4872d366 4,28-32,37,46-47,62,78,111-113,120,150-160,162-165
+packages/backend/src/entities/request.entity.ts
+  s_f13175a263fab0::t_50364e4872d366 4,55,78-84
+  s_f13175a263fab0::t_3083762c5b92ce 85
+packages/backend/src/routing/proxy/__tests__/proxy-message-recorder.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 104,117,206,221-223,397-450,638-660,1032-1078,1397-1426,1813,1941
+packages/backend/src/database/migrations/1801720000000-AddRequestApiMode.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-59
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 5,78-79,107-112,163,172-173,186,234-253,255-312,540-573,727-739,832,872,970,976,980-982,987
+packages/backend/src/routing/proxy/attempt-recording.types.ts
+  s_f13175a263fab0::t_50364e4872d366 1-12
+packages/backend/src/common/interceptors/user-cache.interceptor.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1,3,28,31-34,37-99
+packages/frontend/src/pages/Workspace.tsx
+  s_f13175a263fab0::t_50364e4872d366 12,68
+packages/backend/src/playground/playground.service.truncation.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 99,129
+packages/frontend/src/styles/params-card.css
+  s_f13175a263fab0::t_50364e4872d366 1-77
+app.json
+  s_f13175a263fab0::t_50364e4872d366 35-62
+docker/docker-compose.yml
+  s_f13175a263fab0::t_50364e4872d366 1-4,31,48,50,67,88-98,126-127,186-187,231-232
+packages/backend/src/analytics/services/messages-query.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 773,782
+packages/frontend/tests/components/App.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 43
+packages/frontend/tests/pages/SettingsRecordingSection.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 1-99
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 112-132,2455-2472,2512-2519
+  s_f13175a263fab0::t_e928cbee0b9146 2520
+packages/backend/src/routing/proxy/attempt-recording.service.ts
+  s_f13175a263fab0::t_50364e4872d366 1-45
+.changeset/spicy-words-heal.md
+  s_f13175a263fab0::t_50364e4872d366 1-5
+packages/frontend/src/components/ProviderIcon.tsx
+  s_f13175a263fab0::t_50364e4872d366 18-30,134,203-263,284-296,548-552,752-754,779
+packages/frontend/tests/pages/GlobalOverviewFilter.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 20,25,48,65-67,70,85-99,109,115-121,224,227,231,234,365,374,392,416-430
+  s_f13175a263fab0::t_0004e40b01b714 431-432
+packages/frontend/tests/components/message-table-cells.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 119,155,158,173
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_f13175a263fab0::t_50364e4872d366 79-85,87-92,415-416,420-423
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 13,147,151-152,191,193-197,231-232,479,507,580-866,1145-1203,1850,2005,2012-2014,2045,2052-2054,2109,2121-2145,3549,3570,3573-3575,3585
+packages/backend/src/routing/routing-core/resolve-agent.service.ts
+  s_f13175a263fab0::t_50364e4872d366 74-81
+packages/frontend/src/services/sse.ts
+  s_f13175a263fab0::t_50364e4872d366 3,10,14,28-29,31,33-42,47,87,89
+packages/shared/src/index.ts
+  s_f13175a263fab0::t_50364e4872d366 8,61-62,119,140-142,145,173,181-190
+packages/backend/src/billing/billing.controller.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 8,17,34-40
+  s_f13175a263fab0::t_95e098a76ccffb 41-42
+packages/backend/src/billing/request-quota-window.ts
+  s_f13175a263fab0::t_50364e4872d366 1-13
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 198-250,479,503
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_f13175a263fab0::t_50364e4872d366 29,32,76,88,120-122,148,194,200,288,299-301,313,316,343,351,360-362,429-435,447,450,492-500,517,618,667,705-733,746,754,762,775
+packages/frontend/tests/services/api/analytics.test.ts
+  s_f13175a263fab0::t_50364e4872d366 77,107
+deploy/gcp/versions.tf
+  s_f13175a263fab0::t_50364e4872d366 7
+packages/frontend/tests/pages/Playground.test.tsx
+  s_f13175a263fab0::t_50364e4872d366 69-72,87-90,241,284-287,388-398,476,493-495,511-520,540,547-548,553,558-563,566,569-576,578-579,727-729,771,824-826
+packages/backend/src/billing/billing-usage-email.service.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 46,110
+packages/backend/src/routing/proxy/stream-writer.ts
+  s_f13175a263fab0::t_50364e4872d366 78-79,125-134,139,166-171,180,350,363,479,484-486
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_f13175a263fab0::t_50364e4872d366 25,44,46,489-491,493-495
+packages/backend/src/routing/proxy/__tests__/reasoning-format.spec.ts
+  s_f13175a263fab0::t_50364e4872d366 1-151
+deploy/easypanel/template/index.ts
+  s_f13175a263fab0::t_50364e4872d366 41-42,45-51
+packages/backend/src/routing/proxy/proxy-error-sanitizer.ts
+  s_f13175a263fab0::t_50364e4872d366 1-2,31-37,46-60,78-116,197-198,200
+packages/backend/src/routing/autofix/provider-error-normalizer.ts
+  s_f13175a263fab0::t_50364e4872d366 80
+.claude/settings.json
+  s_f13175a263fab0::t_ccb07d34738efe 1-17
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_f13175a263fab0::t_67ba54efacdc4c 1
+integrations/n8n-nodes-manifest/package-lock.json
+  s_f13175a263fab0::t_81cbe9af73a5e5 3,9,244-277,1026-1040,1595-1609,2777-2798,3361-3371,3682-3709,3724-4024
+package-lock.json
+  s_f13175a263fab0::t_6c16922b452310 327-634,5104-5184,7156-7161,9461-9487,12358-12398,16434,16458,16492-16500,16527,16584
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "1970aa4f03dddc855e287a5ade49862f10d439b8",
+  "prompts": {},
+  "sessions": {
+    "s_f13175a263fab0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_fdcd30f49ffe3w653aEaHfM9Om",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
