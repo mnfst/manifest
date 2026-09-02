@@ -632,6 +632,10 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
     .filter((m: unknown) => {
       const entry = m as OpenRouterModelEntry;
       if (typeof entry.id !== 'string') return false;
+      // `:batch` variants are only served through OpenRouter's async Batch API,
+      // never through the synchronous chat completions proxy — listing them
+      // advertises models that are guaranteed to 404.
+      if (entry.id.endsWith(':batch')) return false;
       const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
       if (output && output.length > 0 && !output.every((o) => o === 'text')) {
         return false;
