@@ -167,6 +167,12 @@
   padding: 0;
   margin-top: 12px;
   border-top: 1px solid hsl(var(--border));
+  overscroll-behavior: contain;
+}
+
+.routing-modal__table-head + .routing-modal__list {
+  margin-top: 0;
+  border-top: none;
 }
 
 .routing-modal__table-head {
@@ -174,7 +180,10 @@
   grid-template-columns: var(--routing-modal-model-grid);
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+  margin-top: 12px;
   padding: 8px 24px 8px 48px;
+  border-top: 1px solid hsl(var(--border));
   border-bottom: 1px solid hsl(var(--border));
   color: hsl(var(--muted-foreground));
   font-size: var(--font-size-xs);
@@ -206,11 +215,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 24px 6px;
-  position: sticky;
-  top: 0;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 24px;
   background: hsl(var(--card));
-  z-index: 1;
 }
 
 .routing-modal__group-icon {
@@ -273,8 +281,10 @@
   grid-template-columns: var(--routing-modal-model-grid);
   align-items: center;
   gap: 12px;
+  box-sizing: border-box;
   width: 100%;
-  padding: 9px 24px 9px 48px;
+  height: 40px;
+  padding: 0 24px 0 48px;
   background: none;
   border: none;
   border-top: 1px solid hsl(var(--border) / 0.5);
