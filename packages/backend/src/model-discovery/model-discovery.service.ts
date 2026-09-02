@@ -13,7 +13,7 @@ import {
 } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
-import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
+import { decryptWithAny, getDecryptionSecrets } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
@@ -139,7 +139,7 @@ export class ModelDiscoveryService {
     const lowerProvider = provider.provider.toLowerCase();
     if (provider.api_key_encrypted) {
       try {
-        apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
+        apiKey = decryptWithAny(provider.api_key_encrypted, getDecryptionSecrets()).plaintext;
       } catch {
         this.logger.warn(`Failed to decrypt key for provider ${provider.provider}`);
         return [];

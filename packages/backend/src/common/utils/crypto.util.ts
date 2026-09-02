@@ -72,6 +72,34 @@ export function getEncryptionSecret(): string {
   );
 }
 
+/**
+ * Every secret that may have encrypted a stored value, newest first.
+ *
+ * The first entry is always what {@link getEncryptionSecret} returns, so a
+ * `secretIndex` of 0 from {@link decryptWithAny} means "already under the
+ * current key" and anything greater means "written under an older key and due
+ * for a rewrite".
+ *
+ * Order: the dedicated key, then MANIFEST_ENCRYPTION_KEY_PREVIOUS (set during
+ * a rotation), then BETTER_AUTH_SECRET. Keeping the session secret last is
+ * what lets an operator introduce MANIFEST_ENCRYPTION_KEY on an install that
+ * had been encrypting with the session secret: old ciphertext still decrypts
+ * without any PREVIOUS value.
+ */
+export function getDecryptionSecrets(): string[] {
+  // getEncryptionSecret() throws when nothing usable is configured — let that
+  // propagate, it is the same failure the encrypt path already reports.
+  const secrets: string[] = [getEncryptionSecret()];
+  const add = (candidate: string | undefined): void => {
+    if (candidate && candidate.length >= 32 && !secrets.includes(candidate)) {
+      secrets.push(candidate);
+    }
+  };
+  add(process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS']);
+  add(process.env['BETTER_AUTH_SECRET']);
+  return secrets;
+}
+
 export function encrypt(plaintext: string, secret: string): string {
   const salt = randomBytes(SALT_LENGTH);
   const key = deriveKey(secret, salt);
@@ -102,6 +130,32 @@ export function decrypt(ciphertext: string, secret: string): string {
   decipher.setAuthTag(tag);
   const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
   return decrypted.toString('utf8');
+}
+
+/**
+ * Decrypt with the first secret that works, reporting which one that was.
+ *
+ * `secretIndex > 0` means the value is still encrypted under an older secret;
+ * the boot-time re-encryption pass uses that to decide what to rewrite. When
+ * no secret works the last error is rethrown, so callers see a real
+ * decryption failure rather than a generic one.
+ */
+export function decryptWithAny(
+  ciphertext: string,
+  secrets: string[],
+): { plaintext: string; secretIndex: number } {
+  if (secrets.length === 0) {
+    throw new Error('No decryption secret available');
+  }
+  let lastError: unknown;
+  for (let index = 0; index < secrets.length; index++) {
+    try {
+      return { plaintext: decrypt(ciphertext, secrets[index]), secretIndex: index };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 export function isEncrypted(value: string): boolean {
