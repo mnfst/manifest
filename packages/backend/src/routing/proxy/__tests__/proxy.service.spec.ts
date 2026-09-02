@@ -1414,10 +1414,54 @@ describe('ProxyService — orchestration', () => {
       expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
-    it('returns model-not-available when two connections carry the same bare name', async () => {
+    it('prefers the subscription when one provider carries a bare name on both auths', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', authType: 'subscription', model: 'gpt-4o' }),
+      );
+      expect(result.meta.manifest_error_code).toBeUndefined();
+    });
+
+    it('surfaces a subscription failure to the caller without falling back to the api_key', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      ]);
+      // Break the subscription credentials: the caller pinned the model, so
+      // the error is theirs to see — Manifest must not meter the key instead.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: JSON.stringify({ t: 'access', r: 'refresh', e: 0 }),
+        id: 'up-oai',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      });
+      openaiOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(body).toContain('M102');
+      expect(body).toContain('subscription credentials could not be refreshed');
+    });
+
+    it('returns model-not-available when two providers carry the same bare name', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+        discoveredModel({ id: 'gpt-4o', provider: 'azure', authType: 'api_key' }),
       ]);
 
       const result = await svc.proxyRequest(

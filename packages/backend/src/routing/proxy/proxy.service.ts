@@ -62,6 +62,7 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { subscriptionPreferredRoute } from '../routing-core/route-helpers';
 import {
   explicitModelRouteCandidate,
   OPENAI_MODEL_ID_AUTO,
@@ -998,6 +999,14 @@ export class ProxyService {
     const models = await this.modelDiscovery.getModelsForAgent(tenantId, agentId);
     const catalogRoute = routeForOpenAiModelId(requestedModel, models);
     if (catalogRoute) return this.explicitRouting(agentId, tenantId, catalogRoute);
+
+    // A bare ID served by both the subscription and api_key connections of
+    // one provider is not ambiguous: the flat-fee subscription already covers
+    // the request, so route it there instead of silently metering the key.
+    if (!requestedModel.includes('/')) {
+      const preferred = subscriptionPreferredRoute(requestedModel, models);
+      if (preferred) return this.explicitRouting(agentId, tenantId, preferred);
+    }
 
     // A bare ID already present under multiple connections is ambiguous, not
     // undiscovered. Preserve M302 instead of silently picking an auth type.
