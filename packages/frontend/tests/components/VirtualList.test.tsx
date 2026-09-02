@@ -98,6 +98,7 @@ describe('VirtualList', () => {
     fireEvent.scroll(scroller);
     setItems(rows(5));
 
+    expect(scroller.scrollTop).toBe(0);
     expect(container.querySelector('[data-testid="row-0"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="row-80"]')).toBeNull();
   });
@@ -116,6 +117,25 @@ describe('VirtualList', () => {
 
     setResetKey('filtered');
 
+    expect(container.querySelector('[data-testid="row-0"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="row-80"]')).toBeNull();
+  });
+
+  it('resets when resetKey goes from unset to a value', () => {
+    const [resetKey, setResetKey] = createSignal<string | undefined>(undefined);
+    const { container } = render(() => (
+      <VirtualList items={rows(100)} itemHeight={() => 20} class="vl" resetKey={resetKey()}>
+        {(item) => <div data-testid={item.id}>{item.id}</div>}
+      </VirtualList>
+    ));
+    const scroller = container.querySelector('.vl') as HTMLElement;
+    Object.defineProperty(scroller, 'scrollTop', { configurable: true, writable: true, value: 1600 });
+    fireEvent.scroll(scroller);
+    expect(container.querySelector('[data-testid="row-0"]')).toBeNull();
+
+    setResetKey('now');
+
+    expect(scroller.scrollTop).toBe(0);
     expect(container.querySelector('[data-testid="row-0"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="row-80"]')).toBeNull();
   });

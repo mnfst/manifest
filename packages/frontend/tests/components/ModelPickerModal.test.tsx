@@ -1527,11 +1527,14 @@ describe('ModelPickerModal', () => {
       Object.defineProperty(list, 'scrollTop', { configurable: true, writable: true, value: 7800 });
       fireEvent.scroll(list);
 
+      expect(container.textContent).not.toContain('GPT-4o 000');
+
       const search = container.querySelector('.routing-modal__search') as HTMLInputElement;
-      fireEvent.input(search, { target: { value: 'GPT-4o 000' } });
+      // Matches every row, so shrink-clamp cannot explain a jump back to the top.
+      fireEvent.input(search, { target: { value: 'GPT-4o' } });
 
       expect(container.textContent).toContain('GPT-4o 000');
-      expect(container.querySelectorAll('.routing-modal__model').length).toBe(1);
+      expect(container.textContent).not.toContain('GPT-4o 199');
     });
   });
 });

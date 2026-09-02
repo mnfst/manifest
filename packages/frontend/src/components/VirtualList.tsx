@@ -12,6 +12,7 @@ import {
 /** Used until the scroller has a real layout height, so the first paint is windowed. */
 export const VIRTUAL_LIST_DEFAULT_VIEWPORT = 480;
 const DEFAULT_OVERSCAN = 8;
+const RESET_UNSET = Symbol('virtual-list-reset-unset');
 
 export interface VirtualListProps<T> {
   items: readonly T[];
@@ -48,9 +49,9 @@ const VirtualList = <T,>(props: VirtualListProps<T>): JSX.Element => {
 
   createEffect((previous: unknown) => {
     const key = props.resetKey;
-    if (previous !== undefined && key !== previous) applyScrollTop(0);
+    if (previous !== RESET_UNSET && key !== previous) applyScrollTop(0);
     return key;
-  });
+  }, RESET_UNSET);
 
   const layout = createMemo(() => {
     const items = props.items;
