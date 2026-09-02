@@ -1,0 +1,31 @@
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_58290f34fb07e7::t_6bd4d4e7e35f88 307
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_58290f34fb07e7::t_e31c4cba0afad5 1865,2232,2235,2434,2437
+.changeset/fluffy-fable-subscription.md
+  s_58290f34fb07e7::t_6761f0e2e2345a 1-5
+packages/shared/src/subscription/configs.ts
+  s_58290f34fb07e7::t_82d39a1978cbec 15-18
+packages/backend/node_modules
+  s_58290f34fb07e7::t_854f36666bbb30 1
+packages/frontend/node_modules
+  s_58290f34fb07e7::t_32b99faca67ca9 1
+packages/shared/node_modules
+  s_58290f34fb07e7::t_a2720122fee4d9 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "b477583a941310341d1f7e94b83908c406ade0cf",
+  "prompts": {},
+  "sessions": {
+    "s_58290f34fb07e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3a6f5ec2-53b6-4b4f-8c1e-4858129976fe",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_58290f34fb07e7::t_5af7c4a2ce0f53 65
+  s_58290f34fb07e7::t_93621816f48620 1003-1010
+packages/backend/src/routing/routing-core/__tests__/route-helpers.spec.ts
+  s_58290f34fb07e7::t_3494e2fde75840 130,132-135,139-144,148-191
+  s_58290f34fb07e7::t_45b1483ca36394 8
+  s_58290f34fb07e7::t_0b153cd6c70ffb 131,136-138,145-147
+packages/backend/src/routing/routing-core/route-helpers.ts
+  s_58290f34fb07e7::t_40b3bd3af6365e 75,80-87,89-94,96-97
+  s_58290f34fb07e7::t_5f3686baa0ccb2 76-79,88,95
+  s_58290f34fb07e7::t_e9f3bd8d682f7d 74
+.changeset/explicit-subscription-preference.md
+  s_58290f34fb07e7::t_9d00263b1f8718 5
+  s_58290f34fb07e7::t_7c199c6f9474a0 1-4
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_58290f34fb07e7::t_c2d24d319dc8e9 1455,1458
+  s_58290f34fb07e7::t_f7e95f9a4d330f 1417,1423-1433,1435-1438,1441-1448,1461-1464
+  s_58290f34fb07e7::t_8d2d3d010b2358 1449-1454,1457,1459-1460,1465
+  s_58290f34fb07e7::t_5c6db4813cac8e 1466
+  s_58290f34fb07e7::t_b5a24f504e2036 1434,1439-1440,1456
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "52728d7d54beb69d0a52ffe8b14f53e31639a881",
+  "prompts": {},
+  "sessions": {
+    "s_58290f34fb07e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3a6f5ec2-53b6-4b4f-8c1e-4858129976fe",
+        "model": "claude-fable-5"
+      },
+      "human_author": null
+    }
+  }
+}

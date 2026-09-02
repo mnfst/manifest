@@ -1,0 +1,27 @@
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_45f68beab6e2ce::t_eb1ff3a8b8db3c 5,34,37-38,42-43,143,149-156,360-367,676
+packages/frontend/src/components/VirtualList.tsx
+  s_45f68beab6e2ce::t_f57f561cc5e671 1-10,21-22,31-35,49-54,67-71
+packages/frontend/src/styles/routing-modal.css
+  s_45f68beab6e2ce::t_7990b22ebba902 504
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_45f68beab6e2ce::t_c2cf22fdb01724 1514-1535
+packages/frontend/tests/components/VirtualList.test.tsx
+  s_45f68beab6e2ce::t_c6b96c552e0ed0 3,71-92,97-117,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d5831236201768095a8ade176f0124ad9b940550",
+  "prompts": {},
+  "sessions": {
+    "s_45f68beab6e2ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a050c746-b9ee-48f8-a0ac-a75bff580779",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

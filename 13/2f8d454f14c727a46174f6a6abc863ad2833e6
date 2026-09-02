@@ -1,0 +1,31 @@
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_07119186a8fb01::t_fc80b612562531 1-9,31-39,235,324-349,619-650,652-660,663,666,669,673,680,685,687-688,694,696-697,711,720-739,742-755,759-793,795-796,798,800-808
+packages/frontend/src/components/VirtualList.tsx
+  s_67368e9c522f64::t_d5d7957937bcbd 1-102
+packages/frontend/tests/components/VirtualList.test.tsx
+  s_67368e9c522f64::t_a17e6ccc1bc005 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "132f8d454f14c727a46174f6a6abc863ad2833e6",
+  "prompts": {},
+  "sessions": {
+    "s_07119186a8fb01": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f9eebaa8bffedoDI5iZiHgYb64",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_67368e9c522f64": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f9eea0f6affeeUWg01V9152sXk",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
