@@ -61,6 +61,7 @@ import type {
 } from './proxy-types';
 import { ResponsesSseError } from './chatgpt-adapter';
 import { redactInlineImageDataUrls } from './inline-image-redaction';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import { openAiModelId, subscriptionOpenAiModelId } from './openai-model-id';
 import { openAiModelCapabilities, type OpenAiModelCapabilities } from './openai-model-capabilities';
 import { PlanService } from '../../billing/plan.service';
@@ -684,7 +685,9 @@ export class ProxyController {
             ? err.getStatus()
             : 500;
     const providerErrorBody = err instanceof ResponsesSseError ? err.body : message;
-    this.logger.error(`Proxy error: ${message}`);
+    // `message` is the raw upstream body for a ResponsesSseError, so scrub it
+    // before it reaches stdout (the recorded/returned copies already are).
+    this.logger.error(`Proxy error: ${scrubSecrets(message)}`);
 
     // Who failed? A ManifestError says so explicitly. Pre-response dead sockets
     // and timeouts become synthetic 503/504 responses in proxy-transport. A

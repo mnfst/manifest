@@ -22,6 +22,7 @@ import {
   parseStructuredProviderError,
   sanitizeProviderError,
 } from './proxy-error-sanitizer';
+import { scrubSecrets } from '../../common/utils/secret-scrub';
 import {
   collectResponsesSseResponse,
   createResponsesStreamTransformer,
@@ -302,8 +303,11 @@ export async function handleProviderError(
     'provider error',
   );
 
+  // Scrub BEFORE slicing: a credential straddling the 500-char cut would
+  // otherwise survive in fragments. Some providers (Anthropic 401s) echo the
+  // caller's Authorization / x-api-key header back inside the error body.
   logger.warn(
-    `Upstream error ${errorStatus}: provider=${meta.provider} model=${meta.model} tier=${meta.tier} body=${errorBody.slice(0, 500)}`,
+    `Upstream error ${errorStatus}: provider=${meta.provider} model=${meta.model} tier=${meta.tier} body=${scrubSecrets(errorBody).slice(0, 500)}`,
   );
   res.status(errorStatus);
   setHeaders(res, metaHeaders);
@@ -396,7 +400,7 @@ function handleFallbackExhausted(
     'primary failure',
   );
 
-  logger.warn(`Fallback chain exhausted: ${errorBody.slice(0, 200)}`);
+  logger.warn(`Fallback chain exhausted: ${scrubSecrets(errorBody).slice(0, 200)}`);
   const classified = classifyProviderError(errorStatus, errorBody);
   const structured = parseStructuredProviderError(errorStatus, errorBody);
   const providerCode = classified?.code ?? structured?.code;
