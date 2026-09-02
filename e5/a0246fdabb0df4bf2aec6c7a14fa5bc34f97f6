@@ -1,0 +1,129 @@
+packages/backend/src/routing/proxy/inline-image-redaction.ts
+  s_94ffc93a57b59b::t_5233d56211130d 17,21-27,48-66,68-70
+packages/frontend/src/styles/theme.css
+  s_94ffc93a57b59b::t_5233d56211130d 819,832,843-844,849,864
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 1452-1539
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1-7,11,370
+docker/DOCKER_README.md
+  s_94ffc93a57b59b::t_5233d56211130d 132-139
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 120-190
+packages/backend/src/waitlist/dto/pivot-claim.dto.ts
+  s_94ffc93a57b59b::t_5233d56211130d 2-9,17-22
+packages/backend/test/waitlist.e2e-spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 22,25,31-81,94,103,109
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 4-9,14-23,25-26,30-40
+packages/frontend/src/styles/routing-modal.css
+  s_94ffc93a57b59b::t_5233d56211130d 170-175,183-184,186,188,195-196,221-223,287,289-290,510-511
+  s_94ffc93a57b59b::t_dc6c4567803f0b 512-513
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_94ffc93a57b59b::t_5233d56211130d 64,688-690
+packages/backend/src/common/utils/crypto.util.ts
+  s_94ffc93a57b59b::t_5233d56211130d 174-216
+packages/frontend/src/styles/agents.css
+  s_94ffc93a57b59b::t_5233d56211130d 858-887
+.changeset/routing-picker-perf.md
+  s_94ffc93a57b59b::t_5233d56211130d 1-5
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 117-122,150,161,222-223,225-229,232-233,235-237,240,243,275-277,280,311,314,373-374
+packages/frontend/tests/components/VirtualList.test.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 1-142
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 2,78-87,172,749-922
+  s_94ffc93a57b59b::t_7f931a48b1eeb3 923
+packages/backend/src/routing/proxy/attempt-recording-capture.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 49-75
+packages/frontend/tests/services/formatters.test.ts
+  s_94ffc93a57b59b::t_5233d56211130d 45-50,193-201
+packages/backend/src/common/utils/crypto.util.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 5-7,241,243-264,266-284
+  s_94ffc93a57b59b::t_2e3fce14dd069b 242
+packages/backend/.env.example
+  s_94ffc93a57b59b::t_5233d56211130d 6
+packages/backend/src/routing/proxy/attempt-recording-capture.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1,20-28,59
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 153,163,166-168
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 13,3409-3534
+  s_94ffc93a57b59b::t_a2ec7ed5b0017f 3535
+packages/frontend/src/services/waitlist.ts
+  s_94ffc93a57b59b::t_5233d56211130d 37-40,43-45,48,50-60
+packages/backend/src/waitlist/dto/pivot-claim.dto.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 31-42
+.changeset/encrypt-recordings-at-rest.md
+  s_94ffc93a57b59b::t_5233d56211130d 1-4
+.changeset/scrub-logged-provider-errors.md
+  s_94ffc93a57b59b::t_5233d56211130d 1-5
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1-2,7-26,51-53,58-66,73,76-82
+  s_94ffc93a57b59b::t_a51f82376b47a7 83
+.github/workflows/docker-smoke.yml
+  s_94ffc93a57b59b::t_5233d56211130d 272,276
+design-system/registry/llms.txt
+  s_94ffc93a57b59b::t_5233d56211130d 99,358,414,422,450-455,457-459,472,483-486,500-501,503-505
+design-system/registry/components.json
+  s_94ffc93a57b59b::t_5233d56211130d 3575,4304-4313,4513,4520,4527,4534,4541,4548,4555,4562,4569,4729,4737,4745,4753,4865,4873,4881,4889,4897,5090-5093
+packages/frontend/tests/services/waitlist.test.ts
+  s_94ffc93a57b59b::t_5233d56211130d 65,71,75-92,95-101
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 122-124,176-205,405-422
+  s_94ffc93a57b59b::t_79d2625e59e0db 423-424
+.changeset/redact-images-in-recordings.md
+  s_94ffc93a57b59b::t_5233d56211130d 1-4
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1-7
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 2-10,32-43,143,149-156,248,337-367,637-668,670-679,682,685,688,692,699,704,706-707,713,715-716,730,739-758,761-774,778-812,814-815,817,819-827
+  s_94ffc93a57b59b::t_f018cd152ba040 1
+.changeset/waitlist-claim-source.md
+  s_94ffc93a57b59b::t_5233d56211130d 1-5
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1,4-5,7-17,86-133
+packages/frontend/src/components/Sidebar.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 2,76-105,211
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 101-134,282-298
+packages/frontend/src/services/formatters.ts
+  s_94ffc93a57b59b::t_5233d56211130d 24,56
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_94ffc93a57b59b::t_5233d56211130d 3,104-107,110-116
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1-7
+packages/frontend/src/pages/Workspace.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 10,66-76,83-91,106-122,160-218,224-284,286-289,311-386,389-401,403-416
+packages/manifest/package.json
+  s_94ffc93a57b59b::t_5233d56211130d 3
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1,1922-1941
+  s_94ffc93a57b59b::t_8ae86b983c8dee 1942-1943
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_94ffc93a57b59b::t_5233d56211130d 25,306-308,310,403
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_94ffc93a57b59b::t_5233d56211130d 1,4-31,65-68,71,77-108
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_94ffc93a57b59b::t_5233d56211130d 178-181
+packages/manifest/CHANGELOG.md
+  s_94ffc93a57b59b::t_5233d56211130d 3-23
+packages/frontend/src/components/VirtualList.tsx
+  s_94ffc93a57b59b::t_5233d56211130d 1-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e5a0246fdabb0df4bf2aec6c7a14fa5bc34f97f6",
+  "prompts": {},
+  "sessions": {
+    "s_94ffc93a57b59b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "db282967-d202-41df-91c5-62569e997698",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
