@@ -129,10 +129,11 @@ cp .env.example .env
 openssl rand -hex 32
 ```
 
-`MANIFEST_ENCRYPTION_KEY` encrypts everything Manifest stores at rest: provider
-API keys, OAuth tokens and request recordings. Left unset it falls back to
-`BETTER_AUTH_SECRET`, which means one leaked session-signing secret also
-decrypts every stored credential and recording. Set it before first boot.
+`MANIFEST_ENCRYPTION_KEY` encrypts the provider API keys, OAuth tokens and
+request recordings Manifest stores; the rest of the database is not encrypted
+by it. Left unset it falls back to `BETTER_AUTH_SECRET`, which means one leaked
+session-signing secret also decrypts every stored credential and recording.
+Set it before first boot.
 Recordings written under a previous secret are not migrated: after the secret
 changes they can no longer be decrypted and the dashboard shows them as
 unavailable, while retention removes them on schedule.
