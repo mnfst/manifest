@@ -1,0 +1,26 @@
+CLAUDE.md
+  s_d750ff127765d5::t_0b66cd2d4a354b 397
+packages/backend/src/database/secret-reencryption.service.ts
+  s_d750ff127765d5::t_aa30a048a2b9da 59,73-78,86-88,92-94,117,125,127,137-139,176,184-186,195,202-208,213,217-218
+  s_d750ff127765d5::t_c82d65a2538381 219-220
+packages/backend/src/database/secret-reencryption.service.spec.ts
+  s_d750ff127765d5::t_0b66cd2d4a354b 29,55,91-92,99-108,110,116-123,167-169,176,179,186-209
+packages/backend/.env.example
+  s_d750ff127765d5::t_0b66cd2d4a354b 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e2b790b987f00748a53a1d96c2bfb728c5c847d0",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
