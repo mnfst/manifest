@@ -1,0 +1,41 @@
+.changeset/encrypt-recordings-at-rest.md
+  s_d750ff127765d5::t_99f74e1f157f76 1-4
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_d750ff127765d5::t_ba265561a83e56 1-2,6,365
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_d750ff127765d5::t_51faa4f0eb6c00 153,163,166-168
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_d750ff127765d5::t_5e599fe66f222b 178-181
+packages/backend/src/common/utils/crypto.util.spec.ts
+  s_d750ff127765d5::t_e341dbfd6a3c9e 1-9,178-221
+packages/backend/src/common/utils/crypto.util.ts
+  s_d750ff127765d5::t_50fe205f4ce676 120-157
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_d750ff127765d5::t_fde8c362093b40 1,4-5,7-17,86-133
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_d750ff127765d5::t_cfd2ef9d0b4ea8 4-9,14-23,25-26,30-40
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_d750ff127765d5::t_a32970f71f3328 1-2
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_d750ff127765d5::t_ce1fce2de990df 1-2
+docker/DOCKER_README.md
+  s_d750ff127765d5::t_f9becc5948711c 132
+packages/backend/.env.example
+  s_d750ff127765d5::t_bf01437c66f3c5 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4be527580940d0359a570ed340425063bb273baa",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
