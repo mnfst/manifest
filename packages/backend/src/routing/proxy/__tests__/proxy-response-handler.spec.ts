@@ -3500,9 +3500,11 @@ describe('proxy-response-handler', () => {
       const { res } = mockResponse();
       const recorder = mockRecorder();
       const meta = makeMeta({ provider: 'anthropic', model: 'claude-sonnet-4' });
-      // The 200-char slice falls inside the key: scrubbing after slicing would
-      // leave its leading half in the log.
-      const straddling = `${'A'.repeat(169)} x-api-key: ${ANTHROPIC_KEY} trailing`;
+      // A 300-char key pushes the sentinel past the 200-char slice. Only
+      // scrub-then-slice collapses the key first and keeps the sentinel in the
+      // log; slice-then-scrub cuts inside the key and drops the sentinel.
+      const longKey = `sk-ant-api03-${'A'.repeat(300)}`;
+      const straddling = `${'x'.repeat(100)} ${longKey} TAIL_SENTINEL`;
       const failedFallbacks: FailedFallback[] = [
         {
           model: 'claude-3-haiku',
@@ -3527,6 +3529,7 @@ describe('proxy-response-handler', () => {
 
       const logged = loggedLines();
       expect(logged).toContain('[REDACTED]');
+      expect(logged).toContain('TAIL_SENTINEL');
       expect(logged).not.toContain('sk-ant-api03-AAAA');
     });
   });
