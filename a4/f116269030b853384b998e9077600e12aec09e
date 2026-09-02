@@ -1,0 +1,19 @@
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_d750ff127765d5::t_81cb6655019a7c 122-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "a4f116269030b853384b998e9077600e12aec09e",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
