@@ -56,6 +56,7 @@ interface EncryptedRow {
 interface TableResult {
   scanned: number;
   rewritten: number;
+  skipped: number;
 }
 
 /**
@@ -69,9 +70,12 @@ interface TableResult {
  * for one deploy, and this pass moves every row onto the new one so the
  * operator can drop it again.
  *
- * The pass is a no-op unless more than one secret is configured, so a normal
- * boot never touches the tables. It never throws: a failure here must not stop
- * the app from serving, and the old secret keeps working while it is listed.
+ * The pass only runs while `MANIFEST_ENCRYPTION_KEY_PREVIOUS` is set, so a
+ * normal boot never touches the tables: the session secret is always a decrypt
+ * candidate, and a dedicated key alone would otherwise trigger a full scan
+ * (one scrypt per row) on every restart. It runs after bootstrap rather than
+ * during it, yields between rows, and never throws: a failure here must not
+ * stop the app from serving, and the old secret keeps working while listed.
  */
 @Injectable()
 export class SecretReencryptionService implements OnApplicationBootstrap {
@@ -79,11 +83,15 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
 
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async onApplicationBootstrap(): Promise<void> {
-    await this.run();
+  onApplicationBootstrap(): void {
+    // Not awaited: a large rotation must not hold the health check hostage.
+    void this.run();
   }
 
   async run(): Promise<void> {
+    const previous = process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'];
+    if (!previous || previous.length < 32) return;
+
     let secrets: string[];
     let currentSecret: string;
     try {
@@ -93,9 +101,6 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
       this.logger.warn(`Skipping secret re-encryption: ${describe(err)}`);
       return;
     }
-
-    // One secret means there is no older key anything could still be under.
-    if (secrets.length <= 1) return;
 
     const queryRunner = this.dataSource.createQueryRunner();
     let acquired = false;
@@ -109,6 +114,7 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
 
       const summary: string[] = [];
       let totalRewritten = 0;
+      let totalSkipped = 0;
       let failed = false;
       for (const target of ENCRYPTED_COLUMNS) {
         // Per-table so a missing table or a permission error on one column
@@ -116,8 +122,9 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
         try {
           const result = await this.reencryptTable(queryRunner, target, secrets, currentSecret);
           totalRewritten += result.rewritten;
+          totalSkipped += result.skipped;
           summary.push(
-            `${target.table}.${target.column} ${result.scanned} scanned / ${result.rewritten} rewritten`,
+            `${target.table}.${target.column} ${result.scanned} scanned / ${result.rewritten} rewritten / ${result.skipped} undecryptable`,
           );
         } catch (err) {
           failed = true;
@@ -127,7 +134,9 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
       this.logger.log(
         `Secret re-encryption complete (${secrets.length} secrets configured): ${summary.join(', ')}`,
       );
-      if (totalRewritten === 0 && !failed) {
+      // Only say PREVIOUS is safe to drop when every row is provably under the
+      // current secret: a skipped row may still be under PREVIOUS's predecessor.
+      if (totalRewritten === 0 && totalSkipped === 0 && !failed) {
         this.logger.log(
           'Nothing left under an older secret — MANIFEST_ENCRYPTION_KEY_PREVIOUS can be removed.',
         );
@@ -164,6 +173,7 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
     let cursor = '';
     let scanned = 0;
     let rewritten = 0;
+    let skipped = 0;
 
     for (;;) {
       const rows = (await queryRunner.query(selectSql, [cursor])) as EncryptedRow[];
@@ -171,6 +181,9 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
       for (const row of rows) {
         cursor = row.id;
         scanned++;
+        // Each decrypt is a synchronous scrypt; give the event loop a turn so
+        // a large rotation does not stall request handling on this replica.
+        await yieldToEventLoop();
         // Legacy plaintext rows predate encryption; leave them to the
         // EncryptApiKeys migration rather than guessing at their format.
         if (!isEncrypted(row.value)) continue;
@@ -179,24 +192,30 @@ export class SecretReencryptionService implements OnApplicationBootstrap {
           decrypted = decryptWithAny(row.value, secrets);
         } catch {
           // Under none of the configured secrets — a rewrite would destroy it.
+          skipped++;
           this.logger.warn(
             `Could not decrypt ${target.table}.${target.column} for row ${row.id} with any configured secret; leaving it untouched`,
           );
           continue;
         }
         if (decrypted.secretIndex === 0) continue;
-        await queryRunner.query(updateSql, [
-          encrypt(decrypted.plaintext, currentSecret),
-          row.id,
-          row.value,
-        ]);
-        rewritten++;
+        const result = (await queryRunner.query(
+          updateSql,
+          [encrypt(decrypted.plaintext, currentSecret), row.id, row.value],
+          true,
+        )) as { affected?: number };
+        // affected === 0 means another process rewrote the row first.
+        if (result.affected === 1) rewritten++;
       }
       if (rows.length < BATCH_SIZE) break;
     }
 
-    return { scanned, rewritten };
+    return { scanned, rewritten, skipped };
   }
+}
+
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 function describe(err: unknown): string {
