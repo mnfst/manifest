@@ -1,4 +1,13 @@
-import { createMemo, createSignal, For, onCleanup, onMount, type JSX } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  untrack,
+  type JSX,
+} from 'solid-js';
 
 /** Used until the scroller has a real layout height, so the first paint is windowed. */
 export const VIRTUAL_LIST_DEFAULT_VIEWPORT = 480;
@@ -9,6 +18,8 @@ export interface VirtualListProps<T> {
   itemHeight: (item: T, index: number) => number;
   overscan?: number;
   class?: string;
+  /** When this value changes, the scroller returns to the top. */
+  resetKey?: unknown;
   children: (item: T, index: number) => JSX.Element;
 }
 
@@ -16,6 +27,11 @@ const VirtualList = <T,>(props: VirtualListProps<T>): JSX.Element => {
   const [scrollTop, setScrollTop] = createSignal(0);
   const [viewport, setViewport] = createSignal(VIRTUAL_LIST_DEFAULT_VIEWPORT);
   let scroller: HTMLDivElement | undefined;
+
+  const applyScrollTop = (next: number) => {
+    setScrollTop(next);
+    if (scroller) scroller.scrollTop = next;
+  };
 
   const measure = () => {
     const height = scroller?.clientHeight ?? 0;
@@ -30,6 +46,12 @@ const VirtualList = <T,>(props: VirtualListProps<T>): JSX.Element => {
     onCleanup(() => observer.disconnect());
   });
 
+  createEffect((previous: unknown) => {
+    const key = props.resetKey;
+    if (previous !== undefined && key !== previous) applyScrollTop(0);
+    return key;
+  });
+
   const layout = createMemo(() => {
     const items = props.items;
     const heights = items.map((item, index) => props.itemHeight(item, index));
@@ -40,6 +62,11 @@ const VirtualList = <T,>(props: VirtualListProps<T>): JSX.Element => {
       acc += heights[i]!;
     }
     return { heights, offsets, total: acc };
+  });
+
+  createEffect(() => {
+    const max = Math.max(0, layout().total - viewport());
+    if (untrack(scrollTop) > max) applyScrollTop(max);
   });
 
   const visible = createMemo(() => {

@@ -2,6 +2,7 @@ import {
   createMemo,
   createSignal,
   For,
+  onCleanup,
   onMount,
   Show,
   startTransition,
@@ -30,13 +31,16 @@ import ModelCapabilityBadges, {
 } from './ModelCapabilityBadges.js';
 import VirtualList from './VirtualList.js';
 
+const PICKER_NARROW_QUERY = '(max-width: 640px)';
 const PICKER_GROUP_HEADER_HEIGHT = 32;
 const PICKER_MODEL_ROW_HEIGHT = 40;
+/** Stacked label + four cells + gaps + padding in the ≤640px layout. */
+const PICKER_MODEL_ROW_HEIGHT_NARROW = 160;
 
 type ModalModel = { value: string; label: string; pricing: AvailableModel };
 type PickerItem =
-  | { kind: 'header'; key: string; provId: string; name: string }
-  | { kind: 'model'; key: string; provId: string; name: string; model: ModalModel };
+  | { kind: 'header'; provId: string; name: string }
+  | { kind: 'model'; provId: string; name: string; model: ModalModel };
 
 interface Props {
   tierId: string;
@@ -136,11 +140,20 @@ const ModelPickerModal: Component<Props> = (props) => {
     props.requiredCapability ? new Set([props.requiredCapability]) : new Set(),
   );
   const [refreshingProvId, setRefreshingProvId] = createSignal<string | null>(null);
+  const [isNarrow, setIsNarrow] = createSignal(false);
   // Parent callbacks refetch resources read inside this modal's Suspense
   // boundary. Keep the current picker visible until those resources settle.
   const notifyProviderRefreshed = () => startTransition(() => props.onProviderRefreshed?.());
 
   onMount(() => {
+    if (typeof window.matchMedia === 'function') {
+      const media = window.matchMedia(PICKER_NARROW_QUERY);
+      const sync = () => setIsNarrow(media.matches);
+      sync();
+      media.addEventListener('change', sync);
+      onCleanup(() => media.removeEventListener('change', sync));
+    }
+
     const agentName = props.agentName;
     if (!agentName) return;
     const now = new Date();
@@ -328,14 +341,12 @@ const ModelPickerModal: Component<Props> = (props) => {
     for (const group of groupedModels()) {
       items.push({
         kind: 'header',
-        key: `h:${group.provId}`,
         provId: group.provId,
         name: group.name,
       });
       for (const model of group.models) {
         items.push({
           kind: 'model',
-          key: `m:${group.provId}:${model.value}`,
           provId: group.provId,
           name: group.name,
           model,
@@ -346,7 +357,14 @@ const ModelPickerModal: Component<Props> = (props) => {
   });
 
   const pickerItemHeight = (item: PickerItem) =>
-    item.kind === 'header' ? PICKER_GROUP_HEADER_HEIGHT : PICKER_MODEL_ROW_HEIGHT;
+    item.kind === 'header'
+      ? PICKER_GROUP_HEADER_HEIGHT
+      : isNarrow()
+        ? PICKER_MODEL_ROW_HEIGHT_NARROW
+        : PICKER_MODEL_ROW_HEIGHT;
+
+  const pickerResetKey = () =>
+    `${activeTab()}\0${search()}\0${showFreeOnly()}\0${[...requiredCapabilities()].sort().join(',')}`;
 
   /** Returns the role of a model in the current tier: "Primary", "Fallback 1", etc. or null */
   const modelRole = (
@@ -655,6 +673,7 @@ const ModelPickerModal: Component<Props> = (props) => {
             class="routing-modal__list"
             items={pickerItems()}
             itemHeight={pickerItemHeight}
+            resetKey={pickerResetKey()}
           >
             {(item) =>
               item.kind === 'header' ? (

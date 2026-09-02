@@ -501,6 +501,7 @@
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 8px;
+    height: 160px;
     padding: 10px 16px 10px 48px;
   }
 

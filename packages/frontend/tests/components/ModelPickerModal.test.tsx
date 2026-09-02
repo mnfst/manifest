@@ -1511,5 +1511,27 @@ describe('ModelPickerModal', () => {
       expect(container.textContent).toContain('GPT-4o 199');
       expect(container.querySelectorAll('.routing-modal__model').length).toBe(1);
     });
+
+    it('resets to the top of the filtered list after the user had scrolled', () => {
+      const { container } = render(() => (
+        <ModelPickerModal
+          tierId="simple"
+          models={manyModels}
+          tiers={tiers}
+          connectedProviders={apiKeyOnly}
+          onSelect={vi.fn()}
+          onClose={vi.fn()}
+        />
+      ));
+      const list = container.querySelector('.routing-modal__list') as HTMLElement;
+      Object.defineProperty(list, 'scrollTop', { configurable: true, writable: true, value: 7800 });
+      fireEvent.scroll(list);
+
+      const search = container.querySelector('.routing-modal__search') as HTMLInputElement;
+      fireEvent.input(search, { target: { value: 'GPT-4o 000' } });
+
+      expect(container.textContent).toContain('GPT-4o 000');
+      expect(container.querySelectorAll('.routing-modal__model').length).toBe(1);
+    });
   });
 });
