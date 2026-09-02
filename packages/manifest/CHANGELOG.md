@@ -1,5 +1,22 @@
 # manifest
 
+## 6.21.0
+
+### Minor Changes
+
+- ae39136: Encrypt stored request recordings with the at-rest encryption key. Existing gzip-only recordings remain readable.
+- 760e21c: Add MANIFEST_ENCRYPTION_KEY_PREVIOUS and a boot-time re-encryption pass so the at-rest key can be introduced or rotated without losing stored provider credentials.
+
+### Patch Changes
+
+- 6b88368: Route an explicit bare model id to the subscription connection when both a subscription and an api_key connection of the same provider serve it, instead of silently metering the key.
+- 39fdbe0: Add claude-fable-5-1 to the Anthropic subscription model catalog so Claude Max / Pro connections can serve it instead of silently falling through to an API key
+- 478c64b: Strip inline base64 images from stored request recordings and Phoenix observations.
+- 15998da: Remove the self-hosted loopback auto-login. Requests from 127.0.0.1 without a session are no longer treated as a signed-in local user.
+- 686656a: The routing model picker now window-renders long catalogs so scrolling stays in place instead of lagging or jumping back to the top.
+- 9534911: Scrub provider credentials from upstream error bodies before they are written to logs.
+- 65e318b: Waiting-list claims now record where they were made (cloud or self-hosted) instead of a generic label, and a repeat claim updates the attribution to the latest origin.
+
 ## 6.20.0
 
 ### Minor Changes
