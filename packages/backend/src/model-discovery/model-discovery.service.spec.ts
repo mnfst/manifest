@@ -1862,6 +1862,7 @@ describe('ModelDiscoveryService', () => {
       // environments (pricing-cache state moves ids around).
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',
@@ -2228,9 +2229,10 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Subscription membership comes only from the curated knownModels list.
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',
@@ -2429,9 +2431,10 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',

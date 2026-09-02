@@ -12,6 +12,10 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionTokenPrefix: 'sk-ant-oat',
     knownModels: Object.freeze([
       'claude-fable-5',
+      // Anthropic subscription membership comes exclusively from this curated
+      // list (no live discovery), so point releases callers address directly
+      // need their own entry — the claude-fable-5 prefix alone never emits it.
+      'claude-fable-5-1',
       'claude-opus-4',
       'claude-sonnet-4',
       'claude-haiku-4',
