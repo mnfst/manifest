@@ -195,7 +195,7 @@ describe('encryptBuffer / decryptBuffer', () => {
   it('uses a distinct IV for every encryption of the same input', () => {
     const first = encryptBuffer(plain, secret);
     const second = encryptBuffer(plain, secret);
-    expect(first.subarray(20, 32).equals(second.subarray(20, 32))).toBe(false);
+    expect(first.subarray(4, 16).equals(second.subarray(4, 16))).toBe(false);
     expect(first.equals(second)).toBe(false);
   });
 

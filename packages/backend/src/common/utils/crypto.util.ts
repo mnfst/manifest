@@ -119,12 +119,19 @@ export function isEncrypted(value: string): boolean {
 }
 
 // Binary envelope for blobs that are not text (compressed request recordings).
-// Layout: magic(4) | salt(16) | iv(12) | tag(16) | ciphertext. The magic prefix
-// makes a stored blob self-identifying, so a reader can tell an encrypted
-// recording from a legacy gzip-only one without extra bookkeeping.
+// Layout: magic(4) | iv(12) | tag(16) | ciphertext. The magic prefix makes a
+// stored blob self-identifying, so a reader can tell an encrypted recording
+// from a legacy gzip-only one without extra bookkeeping.
+//
+// Unlike the string envelope there is no per-blob salt: the key is derived
+// once per secret with a fixed, versioned salt and served from the deriveKey
+// cache, so a recording write or read costs one AES pass instead of a full
+// scrypt run on the request path. GCM's guarantee rests on the random 96-bit
+// IV per blob, not on the salt. Bump the salt string to rotate the derivation.
 export const BINARY_ENVELOPE_MAGIC = Buffer.from('MRE1', 'ascii');
+const BINARY_KDF_SALT = Buffer.from('manifest-recording-envelope-v1', 'utf8');
 const TAG_LENGTH = 16;
-const BINARY_HEADER_LENGTH = BINARY_ENVELOPE_MAGIC.length + SALT_LENGTH + IV_LENGTH + TAG_LENGTH;
+const BINARY_HEADER_LENGTH = BINARY_ENVELOPE_MAGIC.length + IV_LENGTH + TAG_LENGTH;
 
 export function hasBinaryEnvelope(blob: Buffer): boolean {
   return (
@@ -134,12 +141,11 @@ export function hasBinaryEnvelope(blob: Buffer): boolean {
 }
 
 export function encryptBuffer(plain: Buffer, secret: string): Buffer {
-  const salt = randomBytes(SALT_LENGTH);
-  const key = deriveKey(secret, salt);
+  const key = deriveKey(secret, BINARY_KDF_SALT);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, key, iv);
   const encrypted = Buffer.concat([cipher.update(plain), cipher.final()]);
-  return Buffer.concat([BINARY_ENVELOPE_MAGIC, salt, iv, cipher.getAuthTag(), encrypted]);
+  return Buffer.concat([BINARY_ENVELOPE_MAGIC, iv, cipher.getAuthTag(), encrypted]);
 }
 
 export function decryptBuffer(blob: Buffer, secret: string): Buffer {
@@ -147,11 +153,10 @@ export function decryptBuffer(blob: Buffer, secret: string): Buffer {
     throw new Error('Invalid encrypted blob format');
   }
   let offset = BINARY_ENVELOPE_MAGIC.length;
-  const salt = blob.subarray(offset, (offset += SALT_LENGTH));
   const iv = blob.subarray(offset, (offset += IV_LENGTH));
   const tag = blob.subarray(offset, (offset += TAG_LENGTH));
   const encrypted = blob.subarray(offset);
-  const decipher = createDecipheriv(ALGORITHM, deriveKey(secret, salt), iv);
+  const decipher = createDecipheriv(ALGORITHM, deriveKey(secret, BINARY_KDF_SALT), iv);
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(encrypted), decipher.final()]);
 }
