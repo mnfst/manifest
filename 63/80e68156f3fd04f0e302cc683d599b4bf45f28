@@ -1,0 +1,23 @@
+.changeset/remove-loopback-synthetic-user.md
+  s_d750ff127765d5::t_c0075100a7ba6f 1-4
+CLAUDE.md
+  s_d750ff127765d5::t_6f3247799d0e62 422
+packages/backend/src/auth/session.guard.spec.ts
+  s_d750ff127765d5::t_c89b67c990f4d1 24-25,234,261,266-267,269-273,276,281,283-286,289
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "6380e68156f3fd04f0e302cc683d599b4bf45f28",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
