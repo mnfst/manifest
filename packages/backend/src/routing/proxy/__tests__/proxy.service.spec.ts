@@ -533,6 +533,117 @@ describe('ProxyService — orchestration', () => {
       expect(reforwardOpts.provider).toBe('openai');
     });
 
+    it('routes a native Autofix remap through the original subscription auth type', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.4'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const healed = fwd(200, { model: 'gpt-5.5' });
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(fwd(400, { model: 'gpt-5.4' }))
+        .mockResolvedValueOnce(healed);
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-5.5', provider: 'openai', authType: 'api_key' }),
+        discoveredModel({ id: 'gpt-5.5', provider: 'openai', authType: 'subscription' }),
+      ]);
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => ({
+          forward: await params.reforward({ model: 'gpt-5.5', max_output_tokens: 5 }),
+          record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
+        }),
+      );
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward).toBe(healed);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(2);
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0]).toEqual(
+        expect.objectContaining({
+          provider: 'openai',
+          authType: 'subscription',
+          model: 'gpt-5.5',
+          body: expect.objectContaining({ model: 'gpt-5.5' }),
+        }),
+      );
+    });
+
+    it('keeps a native remap body on the original subscription transport when discovery is stale', async () => {
+      const failed = fwd(400, { model: 'gpt-5.4' });
+      const healed = fwd(200, { model: 'gpt-5.5' });
+      fallbackService.tryForwardToProvider.mockResolvedValueOnce(failed);
+      fallbackService.retryWireBody.mockResolvedValueOnce(healed);
+      modelDiscovery.getModelsForAgent.mockResolvedValue([]);
+      resolveService.resolve.mockResolvedValueOnce({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.4'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => ({
+          forward: await params.reforward({ model: 'gpt-5.5', max_output_tokens: 5 }),
+          record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
+        }),
+      );
+
+      const result = await svc.proxyRequest(baseOpts());
+
+      expect(result.forward).toBe(healed);
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledTimes(1);
+      expect(fallbackService.retryWireBody).toHaveBeenCalledWith(
+        failed,
+        { model: 'gpt-5.5', max_output_tokens: 5 },
+        expect.objectContaining({
+          provider: 'openai',
+          model: 'gpt-5.5',
+          authType: 'subscription',
+        }),
+      );
+    });
+
+    it('keeps legacy suffixed Autofix remaps idempotent', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: route('openai', 'subscription', 'gpt-5.4'),
+        fallback_routes: null,
+        confidence: 0.9,
+        score: 5,
+        reason: 'scored',
+      });
+      const healed = fwd(200, { model: 'gpt-5.5' });
+      fallbackService.tryForwardToProvider
+        .mockResolvedValueOnce(fwd(400, { model: 'gpt-5.4' }))
+        .mockResolvedValueOnce(healed);
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-5.5', provider: 'openai', authType: 'subscription' }),
+      ]);
+      autofixService.maybeHeal.mockImplementation(
+        async (params: { reforward: (b: Record<string, unknown>) => Promise<unknown> }) => ({
+          forward: await params.reforward({
+            model: 'openai/gpt-5.5-subscription',
+            max_output_tokens: 5,
+          }),
+          record: { outcome: 'healed', attempts: 1, original_http_status: 400, chain: [] },
+        }),
+      );
+
+      await svc.proxyRequest(baseOpts());
+
+      expect(fallbackService.tryForwardToProvider.mock.calls[1][0]).toEqual(
+        expect.objectContaining({
+          authType: 'subscription',
+          model: 'gpt-5.5',
+          body: expect.objectContaining({ model: 'openai/gpt-5.5-subscription' }),
+        }),
+      );
+    });
+
     it('re-resolves an uncatalogued healed model through connected-provider passthrough', async () => {
       routableResolve();
       const healed = fwd(200, { model: 'gpt-new' });
@@ -1303,10 +1414,54 @@ describe('ProxyService — orchestration', () => {
       expect(autofixService.maybeHeal).not.toHaveBeenCalled();
     });
 
-    it('returns model-not-available when two connections carry the same bare name', async () => {
+    it('prefers the subscription when one provider carries a bare name on both auths', async () => {
       modelDiscovery.getModelsForAgent.mockResolvedValue([
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
         discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      ]);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+
+      expect(resolveService.resolve).not.toHaveBeenCalled();
+      expect(fallbackService.tryForwardToProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'openai', authType: 'subscription', model: 'gpt-4o' }),
+      );
+      expect(result.meta.manifest_error_code).toBeUndefined();
+    });
+
+    it('surfaces a subscription failure to the caller without falling back to the api_key', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+      ]);
+      // Break the subscription credentials: the caller pinned the model, so
+      // the error is theirs to see — Manifest must not meter the key instead.
+      providerKeyService.selectProviderKey.mockResolvedValue({
+        apiKey: JSON.stringify({ t: 'access', r: 'refresh', e: 0 }),
+        id: 'up-oai',
+        region: null,
+        label: 'Default',
+        priority: 0,
+      });
+      openaiOauth.unwrapToken.mockResolvedValue(null);
+
+      const result = await svc.proxyRequest(
+        baseOpts({ body: { model: 'gpt-4o', messages: [{ role: 'user', content: 'hi' }] } }),
+      );
+      const body = await result.forward.response.text();
+
+      expect(fallbackService.tryForwardToProvider).not.toHaveBeenCalled();
+      expect(fallbackService.tryFallbacks).not.toHaveBeenCalled();
+      expect(body).toContain('M102');
+      expect(body).toContain('subscription credentials could not be refreshed');
+    });
+
+    it('returns model-not-available when two providers carry the same bare name', async () => {
+      modelDiscovery.getModelsForAgent.mockResolvedValue([
+        discoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'subscription' }),
+        discoveredModel({ id: 'gpt-4o', provider: 'azure', authType: 'api_key' }),
       ]);
 
       const result = await svc.proxyRequest(
@@ -2497,7 +2652,7 @@ describe('ProxyService — orchestration', () => {
         tier: 'standard',
         route: route('openai', 'api_key', 'gpt-4o'),
         fallback_routes: [
-          route('custom:local', 'api_key', 'local-model'),
+          route('openai', 'api_key', 'gpt-image-1'),
           route('anthropic', 'api_key', 'claude'),
         ],
         response_mode: 'stream',

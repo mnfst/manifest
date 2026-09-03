@@ -13,7 +13,7 @@ import {
 } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
-import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
+import { decryptWithAny, getDecryptionSecrets } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
@@ -38,6 +38,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
@@ -138,7 +139,7 @@ export class ModelDiscoveryService {
     const lowerProvider = provider.provider.toLowerCase();
     if (provider.api_key_encrypted) {
       try {
-        apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
+        apiKey = decryptWithAny(provider.api_key_encrypted, getDecryptionSecrets()).plaintext;
       } catch {
         this.logger.warn(`Failed to decrypt key for provider ${provider.provider}`);
         return [];
@@ -317,13 +318,20 @@ export class ModelDiscoveryService {
       ...this.enrichModel(model, provider.provider),
       authType,
     }));
+    const reconciled =
+      provider.auth_type === 'subscription'
+        ? enriched.map((model) => {
+            const current = reconcileCachedSubscriptionContextWindow(model, provider.provider);
+            return current === model ? model : this.computeScore(current);
+          })
+        : enriched;
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
     // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
-    const filtered = enriched.filter((model) => {
+    const filtered = reconciled.filter((model) => {
       const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
       const metadataProvider = metadata.provider ?? provider.provider;
       const mdEntry = this.modelsDevSync?.lookupModelCapabilities(metadataProvider, metadata.model);
@@ -551,7 +559,11 @@ export class ModelDiscoveryService {
       const providerId = p.provider.toLowerCase();
       const filterKey = nonChatFilterKey(providerId, providerAuthType);
       const cached = filterNonChatModels(rawCached, filterKey);
-      for (const m of cached) {
+      for (const cachedModel of cached) {
+        const m =
+          providerAuthType === 'subscription'
+            ? reconcileCachedSubscriptionContextWindow(cachedModel, p.provider)
+            : cachedModel;
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by the routable tuple, not just model ID. Multiple
         // providers can expose the same native model name, and the picker must

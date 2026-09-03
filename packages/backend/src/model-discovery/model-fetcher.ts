@@ -28,6 +28,8 @@ export interface DiscoveredModel {
   displayName: string;
   provider: string;
   contextWindow: number;
+  /** Identifies context windows that can be recalculated without replacing provider metadata. */
+  contextWindowSource?: 'provider' | 'subscription_config';
   inputPricePerToken: number | null;
   outputPricePerToken: number | null;
   cacheReadPricePerToken?: number;

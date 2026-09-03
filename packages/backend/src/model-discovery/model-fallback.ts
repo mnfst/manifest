@@ -251,6 +251,9 @@ export function buildFallbackModels(
 
   for (const [fullId, entry] of pricingSync.getAll()) {
     if (!fullId.startsWith(`${orPrefix}/`)) continue;
+    // `:batch` variants are only served through OpenRouter's async Batch API,
+    // never through the synchronous chat completions proxy.
+    if (fullId.endsWith(':batch')) continue;
     const modelId = normalizeProviderModelId(providerId, fullId.substring(orPrefix.length + 1));
     if (seen.has(modelId)) continue;
 
@@ -296,12 +299,45 @@ export function buildSubscriptionFallbackModels(providerId: string): DiscoveredM
     displayName: modelId,
     provider: providerId,
     contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
+    contextWindowSource: 'subscription_config',
     inputPricePerToken: 0,
     outputPricePerToken: 0,
     capabilityReasoning: false,
     capabilityCode: false,
     qualityScore: 3,
   }));
+}
+
+/**
+ * Recalculate context windows that were copied from subscription configuration.
+ * Provider values and legacy rows without provenance remain unchanged.
+ */
+export function reconcileCachedSubscriptionContextWindow(
+  model: DiscoveredModel,
+  providerId: string,
+): DiscoveredModel {
+  if (model.contextWindowSource !== 'subscription_config') return model;
+
+  const knownModels = getSubscriptionKnownModels(providerId);
+  if (!knownModels) return model;
+  const matchMode = getSubscriptionKnownModelsMatch(providerId);
+  const normalizedModelId = model.id.toLowerCase();
+  const isKnownModel = knownModels.some((knownModel) => {
+    const normalizedKnownModel = knownModel.toLowerCase();
+    if (normalizedKnownModel === normalizedModelId) return true;
+    return matchMode !== 'exact' && normalizedModelId.startsWith(`${normalizedKnownModel}-`);
+  });
+  if (!isKnownModel) return model;
+
+  const capabilities = getSubscriptionCapabilities(providerId);
+  const contextWindow = resolveSubscriptionContextWindow(
+    model.id,
+    capabilities?.maxContextWindow ?? 200000,
+    capabilities,
+  );
+  if (contextWindow === model.contextWindow) return model;
+
+  return { ...model, contextWindow };
 }
 
 /**
@@ -335,6 +371,7 @@ export function supplementWithKnownModels(
       displayName: modelId,
       provider: providerId,
       contextWindow: resolveSubscriptionContextWindow(modelId, defaultCtx, capabilities),
+      contextWindowSource: 'subscription_config',
       inputPricePerToken: 0,
       outputPricePerToken: 0,
       capabilityReasoning: false,

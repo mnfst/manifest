@@ -112,6 +112,7 @@ export class HttpHealingClient implements HealingClient {
       return this.request(path, init, {
         'content-type': 'application/json',
         'x-api-key': this.apiKey,
+        'X-Manifest-Version': this.manifestVersion ?? 'unknown',
       });
     }
     if (!this.instanceId) {

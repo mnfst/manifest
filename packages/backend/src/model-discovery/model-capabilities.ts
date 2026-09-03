@@ -158,6 +158,7 @@ export async function resolveModelCapabilityMetadata(
 
 export function modelSupportsStreaming(providerId: string, modelId: string): boolean {
   const provider = resolveProviderId(providerId);
+  if (provider.startsWith('custom:')) return true;
   if (!STREAMING_ENDPOINT_PROVIDERS.has(provider)) return false;
   if (provider === 'openai' && isOpenAiNonStreamingModel(modelId)) return false;
   return true;

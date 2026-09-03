@@ -9,13 +9,20 @@ import { supplementWithKnownModels } from './model-fallback';
 jest.mock('../common/utils/crypto.util', () => ({
   decrypt: jest.fn(),
   getEncryptionSecret: jest.fn(),
+  getDecryptionSecrets: jest.fn(() => ['test-secret-32-chars-long-enough!!']),
+  decryptWithAny: jest.fn((ciphertext: string, secrets: string[]) => {
+    const mod = jest.requireMock('../common/utils/crypto.util') as {
+      decrypt: (c: string, s: string) => string;
+    };
+    return { plaintext: mod.decrypt(ciphertext, secrets[0]), secretIndex: 0 };
+  }),
 }));
 
 jest.mock('../database/quality-score.util', () => ({
   computeQualityScore: jest.fn().mockReturnValue(3),
 }));
 
-import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
+import { decrypt, getEncryptionSecret, getDecryptionSecrets } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 
 const mockDecrypt = decrypt as jest.MockedFunction<typeof decrypt>;
@@ -178,13 +185,53 @@ describe('ModelDiscoveryService', () => {
       const provider = makeProvider();
       const result = await service.discoverModels(provider);
 
-      expect(mockGetSecret).toHaveBeenCalled();
+      expect(getDecryptionSecrets).toHaveBeenCalled();
       expect(mockDecrypt).toHaveBeenCalledWith('encrypted-key', expect.any(String));
       expect(fetcher.fetch).toHaveBeenCalledWith('openai', 'decrypted-key', 'api_key', undefined);
       expect(result).toHaveLength(1);
       expect(provider.cached_models).toEqual(result);
       expect(provider.models_fetched_at).toBeDefined();
       expect(providerRepo.save).toHaveBeenCalledWith(provider);
+    });
+
+    it('caches the current configured window after models.dev enrichment', async () => {
+      fetcher.fetch.mockResolvedValue([
+        makeModel({
+          id: 'gpt-5.6-sol',
+          contextWindow: 272000,
+          contextWindowSource: 'subscription_config',
+        }),
+      ]);
+      mockModelsDevSync.lookupModel.mockReturnValue({
+        name: 'GPT-5.6 Sol',
+        contextWindow: 400000,
+        inputPricePerToken: 0.000001,
+        outputPricePerToken: 0.000002,
+        reasoning: true,
+        toolCall: true,
+      });
+      mockComputeScore.mockImplementation(({ context_window }) =>
+        context_window >= 1000000 ? 5 : 4,
+      );
+      const provider = makeProvider({ auth_type: 'subscription' });
+
+      const result = await service.discoverModels(provider);
+      const sol = result.find((model) => model.id === 'gpt-5.6-sol');
+
+      expect(sol).toMatchObject({
+        contextWindow: 1050000,
+        contextWindowSource: 'subscription_config',
+        inputPricePerToken: 0.000001,
+        capabilityCode: true,
+        qualityScore: 5,
+      });
+      expect(mockComputeScore).toHaveBeenCalledWith(
+        expect.objectContaining({ context_window: 400000 }),
+      );
+      expect(mockComputeScore).toHaveBeenCalledWith(
+        expect.objectContaining({ context_window: 1050000 }),
+      );
+      expect(provider.cached_models).toEqual(result);
     });
 
     it('should return [] when decrypt fails', async () => {
@@ -814,6 +861,37 @@ describe('ModelDiscoveryService', () => {
       const result = await service.getModelsForAgent('agent-1');
 
       expect(result.map((m) => m.id)).toEqual(['gpt-5.5', 'gpt-5.3-codex-spark']);
+    });
+
+    it('updates only explicitly configured subscription context windows', async () => {
+      providerRepo.find.mockResolvedValue([
+        makeProvider({
+          provider: 'openai',
+          auth_type: 'subscription',
+          cached_models: [
+            makeModel({
+              id: 'gpt-5.6-sol',
+              contextWindow: 272000,
+              contextWindowSource: 'subscription_config',
+            }),
+            makeModel({
+              id: 'gpt-5.6-terra',
+              contextWindow: 272000,
+              contextWindowSource: 'provider',
+            }),
+            makeModel({ id: 'gpt-5.6-luna', contextWindow: 272000 }),
+          ],
+        }),
+      ]);
+      customProviderRepo.find.mockResolvedValue([]);
+
+      const result = await service.getModelsForAgent('tenant-1');
+
+      expect(result.map((model) => [model.id, model.contextWindow])).toEqual([
+        ['gpt-5.6-sol', 1050000],
+        ['gpt-5.6-terra', 272000],
+        ['gpt-5.6-luna', 272000],
+      ]);
     });
 
     it('should keep Mistral Vibe subscription cached models that API-key Mistral hides', async () => {
@@ -1786,6 +1864,7 @@ describe('ModelDiscoveryService', () => {
       // environments (pricing-cache state moves ids around).
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',
@@ -2152,9 +2231,10 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Subscription membership comes only from the curated knownModels list.
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',
@@ -2353,9 +2433,10 @@ describe('ModelDiscoveryService', () => {
       );
 
       // Even without pricingSync, knownModels are returned directly
-      expect(result).toHaveLength(6);
+      expect(result).toHaveLength(7);
       expect(result.map((m) => m.id).sort()).toEqual([
         'claude-fable-5',
+        'claude-fable-5-1',
         'claude-haiku-4',
         'claude-opus-4',
         'claude-opus-5',

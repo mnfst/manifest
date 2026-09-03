@@ -269,10 +269,11 @@ jobs:
 
           docker run --rm --user 65532:65532 \
             -e RECORDING_KEY="$storage_key" \
+            -e RECORDING_PROMPT="$prompt" \
             -v manifest_request_recordings:/recordings:ro \
             --entrypoint /nodejs/bin/node \
             manifestdotbuild/manifest:latest \
-            -e "const fs=require('fs');const b=fs.readFileSync('/recordings/'+process.env.RECORDING_KEY);if(b[0]!==0x1f||b[1]!==0x8b)process.exit(1)"
+            -e "const fs=require('fs');const b=fs.readFileSync('/recordings/'+process.env.RECORDING_KEY);if(b.subarray(0,4).toString('ascii')!=='MRE1')process.exit(1);if(b.includes(process.env.RECORDING_PROMPT))process.exit(2)"
 
           docker compose up -d --force-recreate --no-deps manifest
           for i in $(seq 1 60); do

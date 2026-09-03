@@ -637,7 +637,7 @@ describe('HeaderTierService', () => {
         id: 'h1',
         name: 'Premium',
         agent_id: 'agent-1',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('openai', 'api_key', 'gpt-image-1'),
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
         response_mode: 'stream',
       } as HeaderTier);
@@ -676,7 +676,7 @@ describe('HeaderTierService', () => {
         name: 'Premium',
         agent_id: 'agent-1',
         override_route: route('openai', 'api_key', 'gpt-4o'),
-        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+        fallback_routes: [route('openai', 'api_key', 'gpt-image-1')],
       } as HeaderTier;
       repo.findOne.mockResolvedValue(existing);
 
@@ -697,7 +697,7 @@ describe('HeaderTierService', () => {
       } as HeaderTier);
 
       await expect(
-        svc.setOverride('agent-1', 'tenant-1', 'h1', 'local-model', 'custom:local', 'api_key'),
+        svc.setOverride('agent-1', 'tenant-1', 'h1', 'gpt-image-1', 'openai', 'api_key'),
       ).rejects.toThrow(/add at least one stream-capable model/);
       expect(repo.save).not.toHaveBeenCalled();
     });

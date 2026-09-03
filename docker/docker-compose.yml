@@ -71,6 +71,8 @@ services:
       - PROVIDER_TIMEOUT_MS=${PROVIDER_TIMEOUT_MS:-180000}
       - STREAM_WARMUP_MS=${STREAM_WARMUP_MS:-15000}
       - CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS=${CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS:-60000}
+      # Per-tenant concurrent in-flight request limit for this backend process.
+      - MANIFEST_CONCURRENCY_MAX=${MANIFEST_CONCURRENCY_MAX:-10}
       # Both are deliberately hardcoded, not `${VAR:-default}`. The image is a
       # production artifact: NODE_ENV=production is what makes it one, and the
       # seeder refuses to run under it anyway (database-seeder.service.ts logs

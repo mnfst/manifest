@@ -1,4 +1,4 @@
-import { HttpException } from '@nestjs/common';
+import { HttpException, Logger } from '@nestjs/common';
 import { FREE_PLAN_REQUESTS_PER_MONTH } from 'manifest-shared';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { ProxyController } from '../proxy.controller';
@@ -321,6 +321,33 @@ describe('ProxyController', () => {
     });
   });
 
+  it('should expose provider-native route metadata when requested', async () => {
+    modelDiscovery.getModelsForAgent.mockResolvedValue([
+      makeDiscoveredModel({
+        id: 'opencode-go/glm-5.1',
+        provider: 'opencode-go',
+        authType: 'subscription',
+      }),
+    ]);
+
+    await expect(
+      controller.models(mockRequest({}) as never, undefined, undefined, 'true'),
+    ).resolves.toEqual({
+      object: 'list',
+      data: [
+        { id: 'auto', object: 'model', created: 0, owned_by: 'manifest' },
+        {
+          id: 'opencode-go/glm-5.1-subscription',
+          object: 'model',
+          created: 0,
+          owned_by: 'opencode-go',
+          provider_model_id: 'opencode-go/glm-5.1',
+          auth_type: 'subscription',
+        },
+      ],
+    });
+  });
+
   it('should expose capability metadata when ?capabilities=true, preserving subscription ids', async () => {
     modelDiscovery.getModelsForAgent.mockResolvedValue([
       makeDiscoveredModel({
@@ -575,6 +602,44 @@ describe('ProxyController', () => {
     expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     expect(headers['X-Manifest-Confidence']).toBe('0.9');
     expect(headers['X-Manifest-Reason']).toBe('scored');
+  });
+
+  it('routes a native Phoenix replay through the requested subscription connection', async () => {
+    const responseBody = { choices: [{ message: { content: 'hello' } }] };
+    proxyService.proxyRequest.mockResolvedValue({
+      forward: {
+        response: new Response(JSON.stringify(responseBody), { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      },
+      meta: {
+        tier: 'direct',
+        model: 'gpt-5.5',
+        provider: 'openai',
+        auth_type: 'subscription',
+        confidence: 1,
+        reason: 'direct',
+      },
+    });
+    const body = { model: 'gpt-5.5', messages: [{ role: 'user', content: 'hi' }] };
+    const req = mockRequest(body, 'user-1', {
+      'x-manifest-provider': 'openai',
+      'x-manifest-auth-type': 'subscription',
+    });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    expect(proxyService.proxyRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body,
+        routingBody: {
+          model: 'openai/gpt-5.5-subscription',
+          messages: [{ role: 'user', content: 'hi' }],
+        },
+      }),
+    );
   });
 
   it.each([
@@ -1852,6 +1917,28 @@ describe('ProxyController', () => {
         source: 'provider',
       }),
     });
+  });
+
+  it('scrubs provider credentials out of the logged Responses SSE failure', async () => {
+    // A ChatGPT-family SSE failure carries the raw upstream body, which on a
+    // 401 can contain the caller's own key.
+    const key = 'sk-ant-api03-AAAABBBBCCCCDDDDEEEEFFFF';
+    const leaky = JSON.stringify({
+      error: { message: `invalid x-api-key: ${key}`, type: 'authentication_error' },
+    });
+    proxyService.proxyRequest.mockRejectedValue(new ResponsesSseError(leaky, 401, leaky));
+    const errorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
+    const req = mockRequest({ messages: [{ role: 'user', content: 'test' }] });
+    const { res } = mockResponse();
+
+    await controller.chatCompletions(req as never, res as never);
+
+    const logged = errorSpy.mock.calls.map((call) => String(call[0])).join('\n');
+    errorSpy.mockRestore();
+    expect(logged).toContain('Proxy error:');
+    expect(logged).toContain('[REDACTED]');
+    expect(logged).not.toContain(key);
   });
 
   it('should forward HttpException as friendly chat message', async () => {

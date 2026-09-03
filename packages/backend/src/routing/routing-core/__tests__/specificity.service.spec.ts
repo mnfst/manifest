@@ -428,7 +428,7 @@ describe('SpecificityService', () => {
     it('rejects clearing the only stream-capable route while stream mode is active', async () => {
       repo.findOne.mockResolvedValue({
         category: 'coding',
-        override_route: route('custom:local', 'api_key', 'local-model'),
+        override_route: route('openai', 'api_key', 'gpt-image-1'),
         auto_assigned_route: null,
         fallback_routes: [route('openai', 'api_key', 'gpt-4o')],
         response_mode: 'stream',
@@ -476,7 +476,7 @@ describe('SpecificityService', () => {
         category: 'coding',
         override_route: route('openai', 'api_key', 'gpt-4o'),
         auto_assigned_route: null,
-        fallback_routes: [route('custom:local', 'api_key', 'local-model')],
+        fallback_routes: [route('openai', 'api_key', 'gpt-image-1')],
       } as SpecificityAssignment;
       repo.findOne.mockResolvedValue(existing);
 
@@ -495,7 +495,7 @@ describe('SpecificityService', () => {
       } as SpecificityAssignment);
 
       await expect(
-        svc.setOverride('agent-1', 'tenant-1', 'coding', 'local-model', 'custom:local', 'api_key'),
+        svc.setOverride('agent-1', 'tenant-1', 'coding', 'gpt-image-1', 'openai', 'api_key'),
       ).rejects.toThrow(/add at least one stream-capable model/);
       expect(repo.save).not.toHaveBeenCalled();
     });
