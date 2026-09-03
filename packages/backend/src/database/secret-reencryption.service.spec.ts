@@ -56,7 +56,14 @@ function buildDataSource(opts: {
   });
   const queryRunner = { connect, query, release };
   const createQueryRunner = jest.fn(() => queryRunner);
-  return { dataSource: { createQueryRunner } as never, createQueryRunner, connect, query, release, updates };
+  return {
+    dataSource: { createQueryRunner } as never,
+    createQueryRunner,
+    connect,
+    query,
+    release,
+    updates,
+  };
 }
 
 describe('SecretReencryptionService', () => {
@@ -253,7 +260,10 @@ describe('SecretReencryptionService', () => {
   it('logs and swallows a failure to connect, then still releases the runner', async () => {
     process.env['MANIFEST_ENCRYPTION_KEY'] = CURRENT;
     process.env['MANIFEST_ENCRYPTION_KEY_PREVIOUS'] = PREVIOUS;
-    const ds = buildDataSource({ connectError: new Error('db down'), releaseError: new Error('x') });
+    const ds = buildDataSource({
+      connectError: new Error('db down'),
+      releaseError: new Error('x'),
+    });
     await expect(new SecretReencryptionService(ds.dataSource).run()).resolves.toBeUndefined();
     expect(error).toHaveBeenCalledWith(expect.stringContaining('db down'));
     expect(ds.query).not.toHaveBeenCalledWith(expect.stringContaining('pg_advisory_unlock'));

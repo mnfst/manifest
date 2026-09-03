@@ -125,7 +125,10 @@ describe('redactInlineImageDataUrls', () => {
           content: [
             { type: 'text', text: 'what is this?' },
             { type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'AAAA' } },
-            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: 'BBBB' } },
+            {
+              type: 'document',
+              source: { type: 'base64', media_type: 'application/pdf', data: 'BBBB' },
+            },
           ],
         },
       ],
@@ -156,16 +159,25 @@ describe('redactInlineImageDataUrls', () => {
     };
     const result = redactInlineImageDataUrls(body);
     expect(result.contents[0]!.parts[0]).toEqual({
-      inline_data: { mime_type: 'image/jpeg', data: '[inline image: image/jpeg, 3 bytes, 4 base64 chars]' },
+      inline_data: {
+        mime_type: 'image/jpeg',
+        data: '[inline image: image/jpeg, 3 bytes, 4 base64 chars]',
+      },
     });
     expect(result.contents[0]!.parts[1]).toEqual({
-      inlineData: { mimeType: 'image/webp', data: '[inline image: image/webp, 3 bytes, 4 base64 chars]' },
+      inlineData: {
+        mimeType: 'image/webp',
+        data: '[inline image: image/webp, 3 bytes, 4 base64 chars]',
+      },
     });
     expect(result.contents[0]!.parts[2]).toEqual({ text: 'caption' });
   });
 
   it('leaves records with an empty or non-string data field alone', () => {
-    const body = { source: { media_type: 'image/png', data: '' }, other: { mime_type: 'image/png', data: 5 } };
+    const body = {
+      source: { media_type: 'image/png', data: '' },
+      other: { mime_type: 'image/png', data: 5 },
+    };
     expect(redactInlineImageDataUrls(body)).toBe(body);
   });
 
@@ -182,10 +194,14 @@ describe('redactInlineImageDataUrls', () => {
       source: {
         media_type: 'image/png',
         data: '[inline image: image/png, 3 bytes, 4 base64 chars]',
-        thumbnail: { inline_data: { mime_type: 'image/png', data: '[inline image: image/png, 3 bytes, 4 base64 chars]' } },
+        thumbnail: {
+          inline_data: {
+            mime_type: 'image/png',
+            data: '[inline image: image/png, 3 bytes, 4 base64 chars]',
+          },
+        },
         preview: '[inline image: image/png, 3 bytes, 4 base64 chars]',
       },
     });
   });
-
 });

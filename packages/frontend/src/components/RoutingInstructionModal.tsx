@@ -65,7 +65,7 @@ const RoutingInstructionModal: Component<Props> = (props) => {
                     alt=""
                     width="28"
                     height="28"
-                    class="setup-modal__platform-icon"
+                    class="platform-icon setup-modal__platform-icon"
                   />
                 </Show>
               </Show>

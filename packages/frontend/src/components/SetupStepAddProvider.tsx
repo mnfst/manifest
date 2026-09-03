@@ -157,7 +157,7 @@ const SetupStepAddProvider: Component<Props> = (props) => {
                 <img
                   src="/icons/hermes.svg"
                   alt=""
-                  class="panel__tab-icon"
+                  class="platform-icon panel__tab-icon"
                   width="16"
                   height="16"
                 />

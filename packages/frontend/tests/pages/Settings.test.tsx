@@ -163,6 +163,15 @@ describe("Settings", () => {
     expect(screen.getByText("Harness type")).toBeDefined();
   });
 
+  it("applies the platform-icon theming class to the harness type icon", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.querySelector("img.settings-type__icon")).not.toBeNull();
+    });
+    const icon = container.querySelector("img.settings-type__icon");
+    expect(icon?.classList.contains("platform-icon")).toBe(true);
+  });
+
   it("renders Change button for agent type", async () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {

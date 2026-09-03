@@ -95,14 +95,6 @@
   flex-shrink: 0;
 }
 
-.dark .agent-card__platform-icon[src*='openai'],
-.dark .agent-card__platform-icon[src*='anthropic'],
-.dark .agent-card__platform-icon[src*='vercel'],
-.dark .agent-card__platform-icon[src*='opencode'],
-.dark .agent-card__platform-icon[src*='other'] {
-  filter: invert(1);
-}
-
 .agent-card__name {
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -838,20 +830,12 @@
   background: hsl(var(--chart-1) / 0.08);
 }
 
-/* Dark-mode icon inversion for Settings agent type display */
-.dark .settings-type__icon[src*='openai'],
-.dark .settings-type__icon[src*='anthropic'],
-.dark .settings-type__icon[src*='vercel'],
-.dark .settings-type__icon[src*='opencode'],
-.dark .settings-type__icon[src*='other'] {
-  filter: invert(1);
-}
-
 /* Dark-mode icon inversion for Overview heading */
 .dark .overview__platform-icon[src*='openai'],
 .dark .overview__platform-icon[src*='anthropic'],
 .dark .overview__platform-icon[src*='vercel'],
 .dark .overview__platform-icon[src*='opencode'],
+.dark .overview__platform-icon[src*='hermes'],
 .dark .overview__platform-icon[src*='other'] {
   filter: invert(1);
 }
@@ -876,12 +860,4 @@
 
 .workspace-table__icon {
   flex-shrink: 0;
-}
-
-.dark .workspace-table__icon[src*='openai'],
-.dark .workspace-table__icon[src*='anthropic'],
-.dark .workspace-table__icon[src*='vercel'],
-.dark .workspace-table__icon[src*='opencode'],
-.dark .workspace-table__icon[src*='other'] {
-  filter: invert(1);
 }

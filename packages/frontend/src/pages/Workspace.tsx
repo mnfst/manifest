@@ -340,7 +340,7 @@ const Workspace: Component = () => {
                                     alt=""
                                     width="16"
                                     height="16"
-                                    class="workspace-table__icon"
+                                    class="platform-icon workspace-table__icon"
                                   />
                                 </Show>
                                 {agent.display_name ?? agent.agent_name}
@@ -379,7 +379,7 @@ const Workspace: Component = () => {
                               alt=""
                               width="18"
                               height="18"
-                              class="agent-card__platform-icon"
+                              class="platform-icon agent-card__platform-icon"
                             />
                           </Show>
                           <span class="agent-card__name">

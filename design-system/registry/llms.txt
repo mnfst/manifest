@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (315 BEM blocks, 1697 classes)
+## Blocks (314 BEM blocks, 1696 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -165,7 +165,7 @@ custom-provider-item (routing-providers.css): custom-provider-item custom-provid
 custom-provider-model-row (routing-providers.css): custom-provider-model-row custom-provider-model-row__name custom-provider-model-row__price custom-provider-model-row__remove
 custom-provider-models (routing-providers.css): custom-provider-models custom-provider-models__column custom-provider-models__column--name custom-provider-models__column--price custom-provider-models__column-spacer custom-provider-models__columns custom-provider-models__label
 custom-select (custom-select.css, discovery.css, routing-providers.css): custom-select custom-select__chevron custom-select__dropdown custom-select__dropdown--portal custom-select__dropdown--wide custom-select__option custom-select__option--disabled custom-select__option--selected custom-select__option--top custom-select__option-desc custom-select__option-text custom-select__option-text--inline custom-select__trigger custom-select__trigger--open custom-select__value
-dark (agent-type-select.css, agents.css, analytics-overview.css, auth.css, controls.css, data.css, modals.css, model-filter.css, overview.css, pivot.css, request-drawer.css, routing-deprecation.css, routing-providers.css, routing.css, syntax-highlight.css, theme.css, tokens.css, welcome.css, wizard.css): dark
+dark (agent-type-select.css, agents.css, analytics-overview.css, auth.css, controls.css, data.css, modals.css, model-filter.css, overview.css, pivot.css, platform-icons.css, request-drawer.css, routing-deprecation.css, routing-providers.css, routing.css, syntax-highlight.css, tokens.css, welcome.css, wizard.css): dark
 data-table (data.css, feedback.css, theme.css): data-table data-table__sortable
 data-table-scroll (data.css): data-table-scroll
 demo-dashboard (overview.css): demo-dashboard
@@ -280,6 +280,7 @@ page-header (analytics-overview.css, layout.css, theme.css): page-header page-he
 pagination (data.css): pagination pagination__btn pagination__controls pagination__summary
 panel (analytics-overview.css, cards.css, charts.css, limits.css, request-drawer.css, routing-providers.css, routing-tabs.css, theme.css, welcome.css, wizard.css): panel panel--disabled panel__header panel__tab panel__tab--active panel__tab-icon panel__tabs panel__title
 plan-picker (auth.css): plan-picker plan-picker__amount plan-picker__badge plan-picker__card plan-picker__card--expanded plan-picker__card--pro plan-picker__cta plan-picker__details plan-picker__features plan-picker__name plan-picker__period plan-picker__price-inline plan-picker__radio plan-picker__radio-dot plan-picker__row plan-picker__section-header plan-picker__section-subtitle plan-picker__section-title plan-picker__usage
+platform-icon (platform-icons.css): platform-icon
 playground (playground.css): playground playground--embedded playground__add playground__add-plus playground__add-shortcut playground__add-shortcut-plus playground__columns
 playground-column (playground.css): playground-column playground-column__best playground-column__best--on playground-column__best--static playground-column__body playground-column__chip playground-column__edit-icon playground-column__error playground-column__error-text playground-column__header playground-column__headers playground-column__headers-caret playground-column__headers-caret--open playground-column__headers-list playground-column__headers-toggle playground-column__icon playground-column__metric playground-column__metric-label playground-column__metric-value playground-column__metric-value-row playground-column__metrics playground-column__name playground-column__placeholder playground-column__remove playground-column__response playground-column__skeleton playground-column__title playground-column__title--readonly playground-column__title-left playground-column__win-badge
 playground-empty (playground.css): playground-empty playground-empty__body playground-empty__cta playground-empty__title
@@ -339,7 +340,6 @@ select (controls.css, theme.css): select
 settings-card (agents.css, controls.css, modals.css, notifications.css): settings-card settings-card--danger settings-card--disabled settings-card--flush settings-card--highlight settings-card__body settings-card__control settings-card__control--end settings-card__copy-btn settings-card__desc settings-card__footer settings-card__id-row settings-card__id-value settings-card__input settings-card__key-actions settings-card__key-row settings-card__key-value settings-card__label settings-card__label-desc settings-card__label-desc--meta settings-card__label-title settings-card__legal settings-card__row
 settings-section (agents.css, controls.css): settings-section__title settings-section__title--danger
 settings-switch (agents.css, modals.css, welcome.css): settings-switch settings-switch--on settings-switch__thumb settings-switch__track
-settings-type (agents.css): settings-type__icon
 setup-agents-card (wizard.css): setup-agents-card setup-agents-card__title
 setup-agents-coming-soon (wizard.css): setup-agents-coming-soon setup-agents-coming-soon__text
 setup-change-type-link (wizard.css): setup-change-type-link
@@ -374,7 +374,6 @@ status-badge (data.css, theme.css): status-badge status-badge--auto_fixed status
 status-badge-tooltip (data.css): status-badge-tooltip status-badge-tooltip__bubble
 subscription-detail (routing-providers.css): subscription-detail__alt subscription-detail__alt-divider subscription-detail__alt-hint subscription-detail__btn subscription-detail__primary
 summary-card (cards.css, theme.css): summary-card summary-card__label summary-card__subtitle summary-card__value
-svg (theme.css): svg
 theme-picker (agents.css): theme-picker theme-picker__option theme-picker__option--active
 theme-toggle (layout.css, theme.css): theme-toggle theme-toggle__icon
 tier-badge (data.css, overview.css): tier-badge tier-badge--complex tier-badge--custom tier-badge--default tier-badge--direct tier-badge--fallback tier-badge--playground tier-badge--reasoning tier-badge--simple tier-badge--specificity tier-badge--standard
@@ -434,29 +433,29 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .request-tool { border-radius: var(--radius-sm) }  ← request-drawer.css:875
 .request-tool { background: hsl(36 80% 50% / 0.04) }  ← request-drawer.css:876
 .hljs-attr { color: hsl(var(--chart-4)) }  ← syntax-highlight.css:41
-.summary-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:196
-.trend--up { color: hsl(var(--success)) }  ← theme.css:237
-.trend--up { background: hsl(var(--success) / 0.1) }  ← theme.css:238
-.trend--down { color: hsl(var(--destructive)) }  ← theme.css:242
-.trend--down { background: hsl(var(--destructive) / 0.1) }  ← theme.css:243
-.panel { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:268
-.chart-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:284
-.chart-card__header { align-items: flex-end }  ← theme.css:290
-.chart-card__value-row { align-items: baseline }  ← theme.css:322
-.feed-item { align-items: center }  ← theme.css:586
-.feed-item { gap: var(--gap-md) }  ← theme.css:587
-.feed-item { padding: 10px 0 }  ← theme.css:588
-.sidebar { padding: var(--gap-lg) 0 0 0 }  ← theme.css:784
-.theme-toggle { padding: 6px 12px }  ← theme.css:927
-.theme-toggle { width: 100% }  ← theme.css:936
-.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1013
-.expandable-card__fade { height: 64px }  ← theme.css:1044
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1045
-.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1050
+.summary-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:197
+.trend--up { color: hsl(var(--success)) }  ← theme.css:238
+.trend--up { background: hsl(var(--success) / 0.1) }  ← theme.css:239
+.trend--down { color: hsl(var(--destructive)) }  ← theme.css:243
+.trend--down { background: hsl(var(--destructive) / 0.1) }  ← theme.css:244
+.panel { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:269
+.chart-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:285
+.chart-card__header { align-items: flex-end }  ← theme.css:291
+.chart-card__value-row { align-items: baseline }  ← theme.css:323
+.feed-item { align-items: center }  ← theme.css:587
+.feed-item { gap: var(--gap-md) }  ← theme.css:588
+.feed-item { padding: 10px 0 }  ← theme.css:589
+.sidebar { padding: var(--gap-lg) 0 0 0 }  ← theme.css:785
+.theme-toggle { padding: 6px 12px }  ← theme.css:928
+.theme-toggle { width: 100% }  ← theme.css:937
+.chart-tooltip { font-size: var(--font-size-xs) }  ← theme.css:1014
+.expandable-card__fade { height: 64px }  ← theme.css:1045
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 70%) }  ← theme.css:1046
+.expandable-card__fade { padding-bottom: 12px }  ← theme.css:1051
 .modal { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1101
-.modal__close { width: 2rem }  ← theme.css:1126
-.modal__close { height: 2rem }  ← theme.css:1127
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1102
+.modal__close { width: 2rem }  ← theme.css:1127
+.modal__close { height: 2rem }  ← theme.css:1128
 .toast { align-items: flex-start }  ← toast.css:16
 .toast { gap: var(--gap-sm) }  ← toast.css:17
 .toast { padding: 12px var(--gap-md) }  ← toast.css:18
@@ -470,44 +469,44 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .welcome__route-test-heading { gap: 10px }  ← welcome.css:904
 
 ## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (46)
-.summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:196
-.trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:237
-.trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:242
-.trend--up { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:238
-.trend--down { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:243
-.panel { box-shadow: var(--card-shadow) }  at cards.css:59 loses to theme.css:268
+.summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:197
+.trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:238
+.trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:243
+.trend--up { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:239
+.trend--down { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:244
+.panel { box-shadow: var(--card-shadow) }  at cards.css:59 loses to theme.css:269
 .view-more-link { color: hsl(var(--muted-foreground)) }  at cards.css:72 loses to analytics-overview.css:170
-.chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:284
-.chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:290
-.chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:322
-.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1013
-.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1044
-.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1045
-.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1050
+.chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:285
+.chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:291
+.chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:323
+.chart-tooltip { font-size: var(--tooltip-font-size) }  at charts.css:78 loses to theme.css:1014
+.expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1045
+.expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1046
+.expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1051
 .toast { align-items: center }  at controls.css:172 loses to toast.css:16
 .toast { gap: 10px }  at controls.css:173 loses to toast.css:17
 .toast { padding: 12px 16px }  at controls.css:174 loses to toast.css:18
 .toast { box-shadow: 0 4px 16px rgb(0 0 0 / 0.15) }  at controls.css:177 loses to toast.css:22
 .toast { animation: toast-in 200ms ease-out }  at controls.css:180 loses to toast.css:26
-.sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:784
+.sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:785
 .custom-select__option--top > svg { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .tier-badge--fallback { background: hsl(var(--muted-foreground) / 0.1) }  at data.css:299 loses to overview.css:194
 .tier-badge--fallback { color: hsl(var(--muted-foreground)) }  at data.css:300 loses to overview.css:195
-.feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:586
-.feed-item { gap: 12px }  at data.css:508 loses to theme.css:587
-.feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:588
-.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:936
-.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:927
+.feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:587
+.feed-item { gap: 12px }  at data.css:508 loses to theme.css:588
+.feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:589
+.theme-toggle { width: 2rem }  at layout.css:141 loses to theme.css:937
+.theme-toggle { padding: 0 }  at layout.css:149 loses to theme.css:928
 .modal { box-shadow: var(--card-shadow),
-    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1101
-.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1126
-.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1127
+    0 25px 50px -12px rgb(0 0 0 / 0.25) }  at modals.css:22 loses to theme.css:1102
+.modal__close { width: 32px }  at modals.css:47 loses to theme.css:1127
+.modal__close { height: 32px }  at modals.css:48 loses to theme.css:1128
 .setup-modal__header { align-items: flex-start }  at modals.css:64 loses to overview.css:15
-.setup-modal__next { padding: 8px 20px }  at modals.css:105 loses to overview.css:42
-.setup-modal__next { color: hsl(var(--primary-foreground)) }  at modals.css:109 loses to overview.css:46
-.setup-modal__next { background: hsl(var(--primary)) }  at modals.css:110 loses to overview.css:45
-.setup-modal__next:hover { opacity: 0.9 }  at modals.css:118 loses to overview.css:55
+.setup-modal__next { padding: 8px 20px }  at modals.css:97 loses to overview.css:42
+.setup-modal__next { color: hsl(var(--primary-foreground)) }  at modals.css:101 loses to overview.css:46
+.setup-modal__next { background: hsl(var(--primary)) }  at modals.css:102 loses to overview.css:45
+.setup-modal__next:hover { opacity: 0.9 }  at modals.css:110 loses to overview.css:55
 .request-tool { border: 1px solid hsl(var(--border)) }  at request-drawer.css:646 loses to request-drawer.css:874
 .request-tool { border-radius: var(--radius) }  at request-drawer.css:647 loses to request-drawer.css:875
 .request-tool { background: hsl(var(--card)) }  at request-drawer.css:648 loses to request-drawer.css:876

@@ -181,7 +181,14 @@ const MessageLog: Component = () => {
         label: a,
         value: a,
         icon: iconPath ? (
-          <img src={iconPath} alt="" width="14" height="14" style="border-radius: 3px;" />
+          <img
+            src={iconPath}
+            alt=""
+            width="14"
+            height="14"
+            class="platform-icon"
+            style="border-radius: 3px;"
+          />
         ) : (
           <span style="display: inline-block; width: 14px; height: 14px;" />
         ),

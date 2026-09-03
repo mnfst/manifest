@@ -291,4 +291,3 @@ describe('chatgpt-adapter streaming: finish_reason with empty response.completed
     expect(final).toContain('"finish_reason":"tool_calls"');
   });
 });
-

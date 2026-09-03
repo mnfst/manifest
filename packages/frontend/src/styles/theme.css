@@ -7,6 +7,7 @@
 @import './custom-select.css';
 @import './data.css';
 @import './agents.css';
+@import './platform-icons.css';
 @import './modals.css';
 @import './tokens.css';
 @import './wizard.css';
@@ -1501,11 +1502,6 @@ h6 {
   .header__gear {
     display: none;
   }
-}
-
-/* ── Dark-mode icon overrides ─────────────────────── */
-.dark img[src$='/icons/hermes.svg'] {
-  filter: brightness(0) invert(1);
 }
 
 /* ── Requests tables: pinned lead-column widths ──

@@ -10,7 +10,9 @@ jest.mock('../common/utils/crypto.util', () => ({
   getEncryptionSecret: jest.fn(),
   getDecryptionSecrets: jest.fn(() => ['test-secret-32-chars-long-enough!!']),
   decryptWithAny: jest.fn((ciphertext: string, secrets: string[]) => {
-    const mod = jest.requireMock('../common/utils/crypto.util') as { decrypt: (c: string, s: string) => string };
+    const mod = jest.requireMock('../common/utils/crypto.util') as {
+      decrypt: (c: string, s: string) => string;
+    };
     return { plaintext: mod.decrypt(ciphertext, secrets[0]), secretIndex: 0 };
   }),
 }));
