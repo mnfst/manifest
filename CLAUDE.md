@@ -1,10 +1,14 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-07-20
+Last updated: 2026-09-03
 
 ## What Manifest Is
 
 Manifest is a smart model router for **AI agents**. It sits between an agent and its LLM providers, scores each request, and routes it to the cheapest model that can handle it. The dashboard tracks logical requests and their provider attempts, costs, and tokens across any agent that speaks OpenAI-compatible HTTP.
+
+**"Harness" is the dashboard word for an agent.** The UI now labels agents **Harnesses** (nav item "Harnesses", routes under `/harnesses`, categories `AI agent` / `App AI SDK` / `Coding Assistant` from `CATEGORY_LABELS` in `packages/shared/src/agent-type.ts`). This is a **copy-level rename only**: backend code, database tables (`agents`, `agent_messages`, …), API routes (`/api/v1/agents/*`), and entity/service names all still say *agent*. Legacy `/agents/*` dashboard URLs redirect to `/harnesses/*`. When writing UI copy say "harness"; when writing code or API docs keep "agent".
+
+**Pivot note:** Manifest is pivoting toward "the self-healing layer for APIs" (see the README banner). The dashboard shows a sidebar `PivotAnnouncement` card with a waiting-list modal in every deployment mode (per-session dismiss); waiting-list claims land on `POST /api/v1/waitlist/pivot/claim` and record their origin (cloud vs self-hosted). The open-source gateway remains available and maintained.
 
 **Supported agents**: see `AGENT_PLATFORMS` in `packages/shared/src/agent-type.ts` for the current list (OpenClaw, Hermes, Claude Code, OpenCode, generic OpenAI/Anthropic SDK slots, and others — don't duplicate the list here, it grows independently of this doc). OpenClaw remains the deepest integration, but no new code or copy should frame Manifest as OpenClaw-only. When adding examples, prefer "AI agent" as the noun and pick OpenClaw as the worked example rather than the sole target. Manifest is consumed as a generic OpenAI-compatible HTTP endpoint — there are no first-party OpenClaw plugins in this repo anymore.
 
@@ -84,7 +88,7 @@ packages/
 │   │   │   ├── ollama-sync.service.ts       # Ollama model sync
 │   │   │   ├── quality-score.util.ts        # Model quality scoring
 │   │   │   └── seed-messages.ts             # Demo request/provider-attempt seed data
-│   │   ├── entities/                        # TypeORM entities (22 files)
+│   │   ├── entities/                        # TypeORM entities (24 entities)
 │   │   │   ├── tenant.entity.ts             # Multi-tenant root
 │   │   │   ├── agent.entity.ts              # Agent (belongs to tenant)
 │   │   │   ├── agent-api-key.entity.ts      # OTLP ingest keys (mnfst_*)
@@ -96,7 +100,7 @@ packages/
 │   │   │   ├── filters/spa-fallback.filter.ts
 │   │   │   ├── interceptors/               # agent-cache, user-cache
 │   │   │   ├── constants/                   # api-key, cache, ollama, providers, openai-models, xai-models, subscription-clients
-│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache
+│   │   │   ├── services/                    # ingest-event-bus, manifest-runtime, tenant-cache, request-recording-storage
 │   │   │   └── utils/                       # crypto, hash, range, period, slugify, url-validation, provider-inference, postgres-sql, cost-calculator, detect-self-hosted, frontend-path, og-rewrite, secret-scrub, ttl-cache, local-ip, etc.
 │   │   ├── health/                          # @Public() health check
 │   │   ├── analytics/                       # Dashboard analytics
@@ -106,7 +110,7 @@ packages/
 │   │   │   ├── guards/agent-key-auth.guard.ts # Bearer token auth (agent API keys)
 │   │   │   └── services/api-key.service.ts  # Agent onboarding (creates tenant+agent+key)
 │   │   ├── routing/                         # LLM routing (providers, tiers, proxy, scorer)
-│   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters)
+│   │   │   ├── proxy/                       # OpenAI-compatible proxy (anthropic/google adapters, attempt recording)
 │   │   │   ├── autofix/                     # Autofix self-healing (Phoenix client + heal-once flow)
 │   │   │   ├── routing-core/               # Tier, provider, specificity services + cache
 │   │   │   ├── resolve/                     # Scoring-based tier + specificity resolution
@@ -129,7 +133,8 @@ packages/
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
 │   │   ├── billing/                         # Stripe billing status + plan limits
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
-│   │   ├── waitlist/                        # Legacy Autofix claim compatibility route
+│   │   ├── waitlist/                        # Pivot waiting-list claims + legacy Autofix claim compatibility route
+│   │   ├── discovery/                       # Self-hosted discovery onboarding (forwarded to Peacock)
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
 │   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
@@ -148,21 +153,25 @@ packages/
 │   │   ├── pages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
-│   │   │   ├── Workspace.tsx                # Agent grid + create agent
-│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-agent + per-agent dashboards (split from one Overview.tsx)
-│   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-agent detail + provider connections
+│   │   │   ├── Workspace.tsx                # Harness grid/table at /harnesses + create harness
+│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-harness + per-harness dashboards (split from one Overview.tsx)
+│   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-harness detail shell (tabs) + provider connections
 │   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
 │   │   │   ├── Account.tsx                  # User profile (session data)
-│   │   │   ├── Settings.tsx, SettingsAutofixSection.tsx # Agent settings + Autofix toggle
+│   │   │   ├── Settings.tsx, SettingsAutofixSection.tsx, SettingsRecordingSection.tsx # Harness settings + Autofix + request-recording toggles
 │   │   │   ├── Routing.tsx, RoutingPanels.tsx, RoutingActions.tsx, RoutingDefaultTierSection.tsx, RoutingHeaderTiersSection.tsx, RoutingSpecificitySection.tsx, RoutingTierCard.tsx # LLM routing config (split by concern)
-│   │   │   ├── Limits.tsx                   # Alert rule management (token/cost thresholds)
+│   │   │   ├── Limits.tsx                   # Alert rule management — mounted at /harnesses/:agentName/guardrails ("Guardrails" tab)
 │   │   │   ├── ModelPrices.tsx              # Model pricing table
 │   │   │   ├── Playground.tsx               # Prompt playground
-│   │   │   ├── ConnectProvider.tsx, providers/       # Provider connection flow
+│   │   │   ├── ConnectProvider.tsx          # Provider connection flow
+│   │   │   ├── providers/                   # Subscriptions.tsx, Byok.tsx, Local.tsx, ConnectionDetail.tsx, ProviderConnectionsPage.tsx (/providers/* pages)
+│   │   │   ├── Discovery.tsx                # Self-hosted discovery form (one-time, post-signup)
+│   │   │   ├── Welcome.tsx                  # Post-signup welcome flow (+ welcome-helpers.ts)
 │   │   │   ├── FreeModels.tsx               # Free model catalog
 │   │   │   ├── Setup.tsx                    # First-run setup wizard
 │   │   │   ├── Upgrade.tsx                  # Billing/plan upgrade page
 │   │   │   ├── Help.tsx                     # Help page
+│   │   │   ├── AgentLimitsRedirect.tsx, AgentMessagesRedirect.tsx # Legacy per-harness URL redirects
 │   │   │   └── NotFound.tsx                 # 404 page
 │   │   ├── services/
 │   │   │   ├── auth-client.ts               # Better Auth SolidJS client
@@ -180,6 +189,14 @@ packages/
 │   └── tests/
 └── shared/                           # Shared TypeScript types + helpers (consumed by backend and frontend)
 ```
+
+Beyond `packages/`, the repo root also carries:
+
+- `integrations/n8n-nodes-manifest/` — the published n8n community node (`n8n-nodes-manifest` on npm); root-level `nodes/` and `credentials/` are identical mirrors of its sources for n8n's community-node scanner.
+- `contracts/gateway/` — gateway API contract tests.
+- `design-system/` — machine-readable design registry (generated `registry/components.json` + `registry/llms.txt`; generator `generate-registry.mjs`).
+- `deploy/` — one-click deployment templates (apple-containers, aws, coolify, digitalocean, easypanel, fly, gcp, heroku, koyeb).
+- `docs/` — `glossary.md` (canonical terminology contract), `autofix-self-healing-poc.md`, `model-parameters-schema.md`, `providers/subscription-based-providers.md`.
 
 ## Single-Service Deployment
 
@@ -362,13 +379,16 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key                     | Connected provider list + usage                                                                             |
 | GET                       | `/api/v1/provider-analytics/*`                  | Session/API Key                     | Per-provider analytics                                                                                      |
 | GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
-| GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status + email preferences (Stripe)                                                                 |
+| GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status, light `plan` endpoint, email preferences (Stripe)                                           |
 | POST                      | `/api/v1/waitlist/autofix/claim`                | Public                              | Deprecated no-op compatibility route for older self-hosted versions                                         |
+| POST                      | `/api/v1/waitlist/pivot/claim`                  | Public                              | Pivot ("self-healing layer for APIs") waiting-list claim; records origin (cloud/self-hosted)                |
+| GET/POST                  | `/api/v1/autofix/status` / `.../enable-all`     | Session/API Key                     | Workspace Autofix coverage + API-only fleet enable (no dashboard caller)                                    |
+| GET                       | `/api/v1/overview/autofix-*`                    | Session/API Key                     | Autofix analytics (stats, timeseries, per-agent/provider/model)                                             |
 | POST                      | `/api/v1/discovery/complete`                    | Session/API Key                     | Best-effort self-hosted discovery submission forwarded to Peacock                                           |
 | GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
-| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, etc.) |
+| GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, recording, etc.) |
 | POST                      | `/api/v1/routing/ollama/sync`                   | Session/API Key                     | Sync Ollama models                                                                                          |
 | GET                       | `/api/v1/routing/pricing-health`                | Session/API Key                     | OpenRouter pricing sync health                                                                              |
 | POST                      | `/api/v1/routing/pricing/refresh`               | Session/API Key                     | Force pricing cache refresh                                                                                 |
@@ -382,7 +402,8 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST                      | `/v1/chat/completions`                          | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI-compatible)                                                                               |
 | POST                      | `/v1/responses`                                 | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI Responses API)                                                                            |
 | POST                      | `/v1/messages`                                  | Bearer (mnfst\_\*)                  | LLM proxy (Anthropic Messages API)                                                                          |
-| POST                      | `/chat/completions`                             | Bearer (mnfst\_\*)                  | Legacy root-level OTLP-compatible proxy alias                                                               |
+| POST                      | `/chat/completions`                             | Public                              | Structured 404 pointing callers at `/v1/chat/completions` (missing `/v1` basePath — not a proxy alias)      |
+| ALL                       | `/otlp/v1/*`, `/v1/{traces,metrics,logs}`       | Public                              | Structured **410 Gone** — OTLP ingest is removed (`otlp-deprecated.controller.ts`)                          |
 | GET/POST/PATCH            | `/api/v1/playground/*`                          | Session/API Key                     | Playground runs (run, list, star, mark best)                                                                |
 | GET                       | `/api/v1/events`                                | Session                             | SSE real-time events                                                                                        |
 | GET                       | `/api/v1/github/stars`                          | Public                              | GitHub star count                                                                                           |
@@ -407,8 +428,10 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
 - `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `10`
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
+- `MIGRATION_DATABASE_URL` / `BACKFILL_DATABASE_URL` — Cloud-only direct (non-PgBouncer) database URLs used for migrations and backfills; unset on self-hosted (falls back to `DATABASE_URL`).
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
+- `STREAM_IDLE_TIMEOUT_MS` — Max silence (ms) between upstream streaming events before the attempt is failed with HTTP 504. Default: `180000`
 - `CODEX_SEMANTIC_OUTPUT_TIMEOUT_MS` — Timeout (ms) to wait for deliverable ChatGPT Codex text or tool output. Default: `60000`
 - `MANIFEST_CONCURRENCY_MAX` — Per-tenant concurrent in-flight request limit for each backend process. Accepts a plain positive integer; invalid values fall back to `10`.
 - `EMAIL_PROVIDER` — Unified email provider: `resend` (recommended), `mailgun`, or `sendgrid`. Used for Better Auth transactional emails and threshold alerts.
@@ -433,6 +456,8 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `AUTOFIX_HEALING_API_KEY` — Sent as `x-api-key` on every call to Phoenix. Required for a cloud/production Phoenix that enforces a static key; omit it for a keyless dev/test Phoenix. **Self-hosted installs need no key**: with no key set, Manifest announces its anonymous install id instead (see [Autofix](#autofix-self-healing-via-phoenix)).
 - `AUTOFIX_GLOBAL_ENABLED` — Set `false` to disable Autofix for all agents (default on). Companions: `AUTOFIX_TIMEOUT_MS` (per heal call, default `10000`), `AUTOFIX_REPAIRABLE_STATUSES` (default `400,404,422`).
 - `AUTOFIX_REPORT_ALL_4XX` — Set `true` to stream an agent's request-side 4xx (4xx except 401/402/403/429) to Phoenix's `POST /api/heal/observe` as evidence, carrying the full request body. Serves no fix and creates no heal attempt; it only lets Phoenix see the body that failed. Wider than the heal path in scope (not limited to `AUTOFIX_REPAIRABLE_STATUSES`, and it catches fallback-model failures the heal path never reports) but **gated to agents with Autofix on** — `AutofixService.isActiveFor()`, the same per-agent flag that healing checks. Turning Autofix on is what consents to sending failing requests to the healing service; the check fails closed. Off by default: a second, deployment-level switch on top. Manifest persists nothing; the body is secret-scrubbed, capped at 256 KB, batched, and dropped under backpressure. Skipped when Autofix already reported the same failure via `/api/heal`. See `routing/autofix/observation-reporter.ts`.
+- `REQUEST_RECORDING_STORAGE` / `REQUEST_RECORDING_FILESYSTEM_PATH` / `REQUEST_RECORDING_S3_*` / `REQUEST_RECORDING_RETENTION_DAYS` — Provider Attempt body recording storage + retention. See [Request Recording](#request-recording-provider-attempt-bodies).
+- `CREDITS_BASE_URL` / `CREDITS_MASTER_KEY` / `CREDITS_AUTO_PROVISION_ALLOWLIST` / `CREDITS_GEMINI_FREE_MAX_BUDGET` — Managed free providers (e.g. Gemini Free) via the credits gateway (default base URL `https://credits.manifest.build`; free-provider budget default `10`).
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_PRO_PRICE_ID` — Billing (cloud only). See `packages/backend/src/billing/`.
 - `PLAN_LIMIT_FREE_REQUESTS` / `PLAN_LIMIT_PRO_REQUESTS` / `PLAN_REQUEST_QUOTA_RESET_AT` — Per-plan request quotas enforced by `plan.service.ts`.
 
@@ -443,7 +468,7 @@ Manifest terminology is directional:
 - A **Manifest Request** is one logical request from an agent to Manifest and lives in `requests`.
 - A **Provider Attempt** is one request from Manifest to an AI provider and lives in `agent_messages`.
 - A **Tenant** is a user's data boundary. It is created from `user.id` on first agent creation.
-- An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key.
+- An **Agent** is an AI agent owned by a tenant. It has a unique OTLP ingest key. The dashboard labels agents **Harnesses** (UI copy only — code, DB, and API keep "agent").
 
 [`docs/glossary.md`](docs/glossary.md) is the canonical contract for statuses, ordering, recovery, database mapping, and counting rules. Do not duplicate those definitions in agent guides.
 
@@ -477,6 +502,18 @@ Every failure Manifest itself produces — as opposed to one a provider returned
 `ERROR_ORIGINS` (in `packages/shared/src/error-taxonomy.ts`) has six values. `request` means the caller sent a body Manifest could not route — not the operator's setup (`config`), not a limit they set (`policy`), and not a Manifest bug (`internal`).
 
 `request` is a member of `MANIFEST_ERROR_ORIGINS`. Do not confuse the error-origin value with the `requests` table: it classifies who caused an error. That membership is load-bearing because it keeps caller-caused failures out of provider reliability metrics and inside the `origin=manifest` filter shorthand. Any new origin that is not a provider round-trip belongs there too.
+
+## Request Recording (Provider Attempt bodies)
+
+Opt-in, **per-harness** recording of Provider Attempt request/response bodies, browsable from the Requests log.
+
+- **Toggle**: `GET/PATCH /api/v1/routing/:agentName/recording` (in `tier.controller.ts`); UI in `pages/SettingsRecordingSection.tsx`. **Default ON for newly created harnesses only** — enabling the feature never changed existing harnesses' settings. Setting changes apply immediately across replicas.
+- **Storage selection** (`REQUEST_RECORDING_STORAGE=auto|s3|filesystem|disabled`, default `auto`): complete S3 credentials win; otherwise self-hosted falls back to the filesystem path (`REQUEST_RECORDING_FILESYSTEM_PATH`, default `/data/request-recordings`). Managed Cloud never silently falls back to ephemeral local disk. S3 config: `REQUEST_RECORDING_S3_BUCKET/ENDPOINT/REGION/ACCESS_KEY_ID/SECRET_ACCESS_KEY/FORCE_PATH_STYLE`.
+- **Encryption at rest**: recordings are encrypted under the **current** `MANIFEST_ENCRYPTION_KEY` only. The `MANIFEST_ENCRYPTION_KEY_PREVIOUS` re-encryption pass does **not** rewrite recordings — after a key change, older recordings are unreadable until retention removes them. Pre-encryption gzip-only recordings stay readable.
+- **Retention** (`REQUEST_RECORDING_RETENTION_DAYS`): defaults Cloud Free 7d, Cloud Pro 365d, self-hosted 365d. Cleanup cron in `database/request-recording-retention.service.ts`.
+- **Privacy**: inline base64 images are stripped from recordings (and from Phoenix observation payloads).
+- **Code**: `common/services/request-recording-storage.service.ts` (storage backends), `common/utils/request-recording-codec.ts` (gzip + encryption codec), `routing/proxy/attempt-recording.service.ts` + `attempt-recording-capture.ts` (capture in the proxy path).
+- **Deploy templates** provision durable recording storage (see README deploy table). Volume-backed templates are single-instance; use S3-compatible storage before scaling horizontally.
 
 ## Content Security Policy (CSP)
 
@@ -647,11 +684,11 @@ The id is minted lazily by `InstallIdService.getOrCreate()` (exported from `Tele
 
 **Self-hosted consent is once, and rides on the per-agent enable.** On self-hosted, consent is remembered via `install_metadata.autofix_consented_at` — a single nullable column on the existing telemetry singleton. Consent is recorded by **any** enable path: the per-agent `PATCH …/autofix` with `enabled: true` (a disable never mints it), the enable-all endpoint, and the Autofix switch on first agent creation. The singleton row is upserted, minting an `install_id` if telemetry never did — so consent alone never starts telemetry.
 
-**The sidebar card drives per-agent enablement, not a fleet action.** `components/Sidebar.tsx` shows a bottom-left Autofix card in every deployment mode while `disabled_agents` is non-empty. Its Enable button opens a modal listing each uncovered agent (platform icon + name + `.settings-switch`); every toggle saves immediately and independently through the per-agent PATCH (optimistic, reverts its own row on error), a single Done button closes the modal, and the legal Terms/Privacy line makes the first enable the consent act. The card carries an X that dismisses it for the browser session (`sessionStorage`, key `autofix-card-dismissed`); it returns next session while any agent stays uncovered. Consequence: an operator who deliberately switched agents off sees the card again each new session — the old `needs_enable_all` "don't nag explicit opt-outs" gate no longer drives any UI.
+**The Autofix sidebar card is retired.** `components/Sidebar.tsx` now shows a `PivotAnnouncement` card instead (the "self-healing layer for APIs" pivot announcement + waiting-list modal, shown in every deployment mode with a per-session dismiss) — the old Autofix enablement card duplicated what notifications already cover. The per-harness **Settings** toggle (`SettingsAutofixSection.tsx`) is the enablement path in the dashboard.
 
-`POST /api/v1/autofix/enable-all` remains as an API-level fleet backfill (no dashboard caller anymore): it runs `UPDATE agents SET autofix_enabled = true` for every live, non-playground agent in the tenant (**including any previously turned off**), invalidates the per-tenant config cache, records consent, and returns the refreshed workspace status. Soft-deleted agents are left alone so resurrecting one doesn't silently arrive with Autofix on.
+`POST /api/v1/autofix/enable-all` remains as an API-level fleet backfill (no dashboard caller): it runs `UPDATE agents SET autofix_enabled = true` for every live, non-playground agent in the tenant (**including any previously turned off**), invalidates the per-tenant config cache, records consent, and returns the refreshed workspace status. Soft-deleted agents are left alone so resurrecting one doesn't silently arrive with Autofix on.
 
-`GET /api/v1/autofix/status` → `{ any_enabled, enabled_agents, disabled_agents, needs_enable_all, consented }`. `disabled_agents` (live, non-playground agents whose resolved flag is off) is what gates the sidebar card. `needs_enable_all` is kept for API compatibility but no UI consumes it. The per-agent PATCH busts the cached status (`${tenantId}:/api/v1/autofix/status`) on both enable and disable so the card tracks toggles without waiting out the dashboard cache TTL. Cloud never consults or writes the consent — `consented` is always true there.
+`GET /api/v1/autofix/status` → `{ any_enabled, enabled_agents, disabled_agents, needs_enable_all, consented }`. `needs_enable_all` is kept for API compatibility but no UI consumes it; with the sidebar card gone, no dashboard surface consumes `disabled_agents` either. The per-agent PATCH busts the cached status (`${tenantId}:/api/v1/autofix/status`) on both enable and disable. Cloud never consults or writes the consent — `consented` is always true there.
 
 **Endpoints:** `GET/PATCH /api/v1/routing/:agentName/autofix` → `{ enabled, consented }`; `GET /api/v1/autofix/status`; `POST /api/v1/autofix/enable-all`.
 
@@ -734,7 +771,9 @@ All pricing comes from a single source:
 
 ## Releases
 
-There are **no publishable npm packages** in this repo. `packages/backend`, `packages/frontend`, `packages/shared`, and `packages/manifest` are all `private: true`. Manifest ships exclusively as the Docker image at `manifestdotbuild/manifest` (built from `docker/Dockerfile`).
+The workspace packages are **not published to npm**: `packages/backend`, `packages/frontend`, `packages/shared`, and `packages/manifest` are all `private: true`. Manifest itself ships exclusively as the Docker image at `manifestdotbuild/manifest` (built from `docker/Dockerfile`).
+
+The one npm-published artifact in the repo is the **n8n community node** `n8n-nodes-manifest` (`integrations/n8n-nodes-manifest/`, currently v0.2.1). It is standalone — outside the npm workspaces, Turborepo, and Changesets — with its own build and publish flow. The repo-root `nodes/` and `credentials/` directories are identical mirrors of its sources (required by n8n's community-node scanner, which looks at the repo root).
 
 ### `packages/manifest/` is the canonical version
 
