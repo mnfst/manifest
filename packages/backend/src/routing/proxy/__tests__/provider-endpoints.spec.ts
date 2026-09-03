@@ -993,4 +993,40 @@ describe('buildProviderExtraHeaders', () => {
     expect(buildProviderExtraHeaders('openai', 'sess-abc')).toBeUndefined();
     expect(buildProviderExtraHeaders('unknown', 'sess-abc')).toBeUndefined();
   });
+
+  it('returns x-opencode-session for opencode-go and opencode-zen', () => {
+    expect(buildProviderExtraHeaders('opencode-go', 'v1:scoped-session')).toEqual({
+      'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+    });
+    expect(buildProviderExtraHeaders('opencode-zen', 'v1:scoped-session')).toEqual({
+      'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+    });
+  });
+
+  it('falls back to the agent scope key for opencode when no session key exists', () => {
+    expect(buildProviderExtraHeaders('opencode-go', undefined, 'tenant-1 agent-1')).toEqual({
+      'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+    });
+  });
+
+  it('prefers the per-conversation key over the agent scope fallback', () => {
+    const withSession = buildProviderExtraHeaders(
+      'opencode-go',
+      'v1:scoped-session',
+      'tenant-1 agent-1',
+    );
+    const fallbackOnly = buildProviderExtraHeaders('opencode-go', undefined, 'tenant-1 agent-1');
+    expect(withSession!['x-opencode-session']).not.toBe(fallbackOnly!['x-opencode-session']);
+    expect(withSession).toEqual(buildProviderExtraHeaders('opencode-go', 'v1:scoped-session'));
+  });
+
+  it('does not extend the agent scope fallback to xai or openrouter', () => {
+    expect(buildProviderExtraHeaders('xai', undefined, 'tenant-1 agent-1')).toBeUndefined();
+    expect(buildProviderExtraHeaders('openrouter', undefined, 'tenant-1 agent-1')).toBeUndefined();
+  });
+
+  it('returns undefined for opencode without any key', () => {
+    expect(buildProviderExtraHeaders('opencode-go')).toBeUndefined();
+    expect(buildProviderExtraHeaders('opencode-zen')).toBeUndefined();
+  });
 });
