@@ -664,7 +664,12 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey);
+    // Agent-scope fallback for providers (OpenCode) that need a session id on
+    // every request even when the caller sent no x-session-key. NUL-joined so
+    // distinct (tenant, agent) pairs can never collide before hashing.
+    const agentScopeKey =
+      opts.tenantId && opts.agentId ? `${opts.tenantId}\u0000${opts.agentId}` : undefined;
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey, agentScopeKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
