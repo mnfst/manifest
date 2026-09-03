@@ -915,11 +915,8 @@ describe('ProxyFallbackService', () => {
         sessionKey: 'default',
       });
 
-      expect(providerClient.forward).toHaveBeenCalledWith(
-        expect.objectContaining({
-          extraHeaders: expect.not.objectContaining({ 'x-opencode-session': expect.any(String) }),
-        }),
-      );
+      const forwardArgs = providerClient.forward.mock.calls[0][0];
+      expect(forwardArgs.extraHeaders?.['x-opencode-session']).toBeUndefined();
     });
 
     it('exchanges copilot token before forwarding', async () => {
