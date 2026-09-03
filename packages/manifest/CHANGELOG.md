@@ -1,5 +1,13 @@
 # manifest
 
+## 6.21.1
+
+### Patch Changes
+
+- b974b60: Send the `x-opencode-session` header on every OpenCode Go/Zen request — hashed per-conversation id when the caller provides `x-session-key`, stable per-agent fallback otherwise — ahead of OpenCode's 09/06 enforcement deadline.
+- 30ecba8: Stop listing OpenRouter `:batch` model variants in model discovery. These variants are only served through OpenRouter's asynchronous Batch API and always fail with a 404 on the synchronous chat completions proxy.
+- 51fa1b8: Security: bump fast-uri to 3.1.6 (fixes GHSA-5jgf-p345-68v8, GHSA-fph4-wmhf-6fwf, GHSA-f65p-4m7j-42xc, GHSA-jqff-g426-hqxp) and refresh Docker base images.
+
 ## 6.21.0
 
 ### Minor Changes
