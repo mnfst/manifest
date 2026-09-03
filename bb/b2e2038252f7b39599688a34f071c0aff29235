@@ -1,0 +1,21 @@
+packages/backend/test/proxy-fallback-auth.e2e-spec.ts
+  s_64dd7b487b3b84::t_89ee0456964e50 227-235,237-238,247,251
+  s_64dd7b487b3b84::t_a0d9536b840c89 225-226,236,239-246,248-249
+  s_64dd7b487b3b84::t_1085fa120d20c6 264,267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "bbb2e2038252f7b39599688a34f071c0aff29235",
+  "prompts": {},
+  "sessions": {
+    "s_64dd7b487b3b84": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "360e26ef-8e5f-440b-be75-a8f71796f5d3",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
