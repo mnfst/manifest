@@ -1003,8 +1003,17 @@ describe('buildProviderExtraHeaders', () => {
     });
   });
 
+  it('resolves registry aliases (opencodego / opencodezen) to the canonical builder', () => {
+    expect(buildProviderExtraHeaders('opencodego', 'v1:scoped-session')).toEqual({
+      'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+    });
+    expect(buildProviderExtraHeaders('opencodezen', 'v1:scoped-session')).toEqual({
+      'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+    });
+  });
+
   it('falls back to the agent scope key for opencode when no session key exists', () => {
-    expect(buildProviderExtraHeaders('opencode-go', undefined, 'tenant-1 agent-1')).toEqual({
+    expect(buildProviderExtraHeaders('opencode-go', undefined, 'tenant-1\u0000agent-1')).toEqual({
       'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
     });
   });
@@ -1013,16 +1022,22 @@ describe('buildProviderExtraHeaders', () => {
     const withSession = buildProviderExtraHeaders(
       'opencode-go',
       'v1:scoped-session',
-      'tenant-1 agent-1',
+      'tenant-1\u0000agent-1',
     );
-    const fallbackOnly = buildProviderExtraHeaders('opencode-go', undefined, 'tenant-1 agent-1');
+    const fallbackOnly = buildProviderExtraHeaders(
+      'opencode-go',
+      undefined,
+      'tenant-1\u0000agent-1',
+    );
     expect(withSession!['x-opencode-session']).not.toBe(fallbackOnly!['x-opencode-session']);
     expect(withSession).toEqual(buildProviderExtraHeaders('opencode-go', 'v1:scoped-session'));
   });
 
   it('does not extend the agent scope fallback to xai or openrouter', () => {
-    expect(buildProviderExtraHeaders('xai', undefined, 'tenant-1 agent-1')).toBeUndefined();
-    expect(buildProviderExtraHeaders('openrouter', undefined, 'tenant-1 agent-1')).toBeUndefined();
+    expect(buildProviderExtraHeaders('xai', undefined, 'tenant-1\u0000agent-1')).toBeUndefined();
+    expect(
+      buildProviderExtraHeaders('openrouter', undefined, 'tenant-1\u0000agent-1'),
+    ).toBeUndefined();
   });
 
   it('returns undefined for opencode without any key', () => {

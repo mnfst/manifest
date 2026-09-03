@@ -916,7 +916,9 @@ describe('ProxyFallbackService', () => {
       });
 
       expect(providerClient.forward).toHaveBeenCalledWith(
-        expect.objectContaining({ extraHeaders: undefined }),
+        expect.objectContaining({
+          extraHeaders: expect.not.objectContaining({ 'x-opencode-session': expect.any(String) }),
+        }),
       );
     });
 

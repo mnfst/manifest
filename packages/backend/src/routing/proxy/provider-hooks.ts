@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { PROVIDER_BY_ID_OR_ALIAS } from '../../common/constants/providers';
 
 /**
  * Provider-specific hooks — data-driven lookups that replace scattered
@@ -72,7 +73,11 @@ export function buildProviderExtraHeaders(
   providerCacheKey?: string,
   agentScopeKey?: string,
 ): Record<string, string> | undefined {
-  const builder = PROVIDER_EXTRA_HEADER_BUILDERS[provider.toLowerCase()];
+  // Canonicalize through the registry so alias-keyed providers (e.g.
+  // `opencodego` → `opencode-go`) hit the same builder as their canonical id.
+  const lower = provider.toLowerCase();
+  const canonical = PROVIDER_BY_ID_OR_ALIAS.get(lower)?.id ?? lower;
+  const builder = PROVIDER_EXTRA_HEADER_BUILDERS[canonical];
   if (!builder) return undefined;
   return builder({
     sessionKey: providerCacheKey ? buildProviderPromptCacheKey(providerCacheKey) : undefined,
