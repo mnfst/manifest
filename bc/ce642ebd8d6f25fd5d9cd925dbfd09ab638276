@@ -1,0 +1,333 @@
+packages/backend/src/common/utils/request-recording-codec.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1,4-5,7-17,86-133
+design-system/generate-registry.mjs
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-128
+packages/backend/.env.example
+  s_e101b52b4e195f::t_ba8c5c64fc9753 6,13-14,63-64
+packages/backend/src/cors-csp-config.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 273-302
+packages/frontend/src/components/SocialButtons.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 59-65,71-74
+packages/backend/src/database/database-seeder.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-7
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 16,41,142,321-327,334,562-566
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 31-32
+packages/backend/src/routing/proxy/attempt-recording.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-7
+.husky/pre-commit
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2-4
+packages/backend/src/waitlist/dto/pivot-claim.dto.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-43
+.github/dependabot.yml
+  s_e101b52b4e195f::t_ba8c5c64fc9753 36-47,56-57
+packages/frontend/src/services/formatters.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 24,56
+docker/docker-compose.yml
+  s_e101b52b4e195f::t_ba8c5c64fc9753 74-75
+packages/frontend/src/styles/data.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 263
+packages/backend/src/common/services/request-recording-storage.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 178-181
+packages/frontend/src/pages/Register.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 17,22,36-37,51-52,56-58,105,120-125,127,166,232-236
+packages/backend/src/cors-csp-config.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 185-219
+packages/backend/src/otlp/services/api-key.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 28
+packages/frontend/src/components/AuthGuard.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 7,24-30
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1031,1053
+packages/frontend/src/styles/pivot.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-132
+packages/shared/src/subscription/configs.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 15-18
+packages/backend/src/routing/routing-core/route-helpers.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 75-102
+  s_e101b52b4e195f::t_51a524af20b0a2 74
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1,324-350,607-644,1922-1942
+  s_e101b52b4e195f::t_2af440b616160a 1943
+packages/backend/src/routing/header-tiers/__tests__/header-tier.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 640,679,700
+packages/frontend/src/styles/tokens.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-5,19,28-29,35-36,54-55,73,99-100,117,119-120,123,125,135-144,147-150
+packages/backend/src/model-discovery/model-fallback.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 254-256,302,311-342,374
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 73,96,103,635-638,746-747
+packages/frontend/src/services/blob-canvas.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-169
+packages/backend/src/discovery/discovery-sync.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-94
+design-system/registry/llms.txt
+  s_e101b52b4e195f::t_190b795adf0db9 99,168,283,436-454,456-458,472-477,479-485,491,496-500,502-504,506-509
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-98,100-167,169-282,284-435,455,459-471,478,486-490,492-495,501,505,510-539
+packages/frontend/tests/services/blob-canvas.test.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-210
+packages/backend/src/routing/autofix/__tests__/http-healing-client.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 82,84,92,180,233,300
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 21-25,256,314,704,1379
+  s_e101b52b4e195f::t_546edf8993e095 20
+packages/frontend/src/services/discovery.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-168
+design-system/lib/parse-css.mjs
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-211
+packages/backend/package.json
+  s_e101b52b4e195f::t_ba8c5c64fc9753 28,41
+packages/manifest/package.json
+  s_e101b52b4e195f::t_ba8c5c64fc9753 3
+packages/backend/src/discovery/discovery.controller.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-15
+packages/backend/src/discovery/dto/complete-discovery.dto.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-33
+packages/backend/src/routing/proxy/attempt-recording-capture.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1,20-28,59
+packages/backend/src/routing/proxy/inline-image-redaction.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 17,21-27,48-66,68-70
+packages/backend/src/app.module.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 36,106
+packages/backend/src/waitlist/waitlist.controller.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-31,34-41,43-60,62-108
+packages/backend/src/discovery/discovery.controller.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-13
+packages/backend/src/waitlist/dto/pivot-claim.dto.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-23
+packages/frontend/tests/components/VirtualList.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-142
+docker/DOCKER_README.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 18-25,132-139
+packages/backend/src/routing/autofix/observation-payload.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 101-134,282-298
+packages/backend/src/waitlist/waitlist.controller.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-4,6-26,30-34,46-84,86
+  s_e101b52b4e195f::t_b1cd5964520402 85
+scripts/design-registry.test.js
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-203
+packages/backend/src/analytics/services/message-details.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-7,11,370
+packages/frontend/src/pages/Workspace.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 10,66-76,83-91,106-122,160-218,224-284,286-289,311-342,344-381,383-386,389-401,403-416
+  s_e101b52b4e195f::t_38191c5bce2e54 343
+  s_e101b52b4e195f::t_c427ccaf7b38f9 382
+CLAUDE.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 367,397,413,423,427
+packages/backend/test/waitlist.e2e-spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-141
+packages/backend/src/notifications/services/email-provider-config.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 6-12,52
+packages/backend/src/discovery/discovery.module.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-9
+.github/workflows/docker-smoke.yml
+  s_e101b52b4e195f::t_ba8c5c64fc9753 272,276
+design-system/README.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-41
+packages/backend/src/common/utils/crypto.util.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 75-102,135-160,174-216
+packages/backend/src/routing/proxy/attempt-recording-capture.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 49-75
+packages/frontend/tests/components/AuthGuard.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 43-66
+packages/backend/src/otlp/services/api-key.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 10-15,130
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 5,37-47,318,337,394-399,446-511
+  s_e101b52b4e195f::t_4e2c0ba14cbf58 512-513
+packages/backend/src/routing/autofix/http-healing-client.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 115
+packages/frontend/src/components/VirtualList.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-130
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 12-13,17-18,25,188,197-236,866-896,1867,2234,2237,2436,2439
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 14-16
+packages/frontend/tests/components/PivotAnnouncement.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-199
+packages/backend/test/request-recordings.e2e-spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 122-124,176-205,405-422
+  s_e101b52b4e195f::t_35d209434066ef 423-424
+packages/frontend/tests/pages/Workspace.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2,78-87,172,749-922
+  s_e101b52b4e195f::t_4b4a0ca56f5f02 923
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 13-15
+  s_e101b52b4e195f::t_ba8c5c64fc9753 11-12,16-17
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 65,71,720-731,745,751-754,758-759,1003-1009
+  s_e101b52b4e195f::t_e212cd0ab75e82 1010
+packages/frontend/tests/components/Sidebar.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 35-42,117-122,150,161,222-223,225-229,232-233,235-237,240,243,275-277,280,311,314,373-374,392-406
+  s_e101b52b4e195f::t_ee3c49df6daa62 407
+packages/backend/src/database/secret-reencryption.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-227
+packages/frontend/tests/components/ModelPickerModal.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1452-1539
+packages/frontend/src/pages/Setup.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 5-7,46,51-53,56-63
+packages/backend/src/waitlist/waitlist.module.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2-3,7
+README.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 41-50
+packages/frontend/tests/components/SocialButtons.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 104-113
+packages/frontend/src/styles/discovery.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-108
+design-system/migration-map.json
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-4
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 536-646,1417,1423-1466,2655
+packages/frontend/package.json
+  s_e101b52b4e195f::t_ba8c5c64fc9753 15,18
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 6,41-49
+  s_e101b52b4e195f::t_c8906bed6eafaa 50-51
+packages/backend/src/routing/proxy/chatgpt-adapter.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 603-671
+package.json
+  s_e101b52b4e195f::t_ba8c5c64fc9753 42-43
+packages/backend/src/routing/autofix/observation-payload.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 3,104-107,110-116
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 14-27,34-36
+packages/frontend/tests/services/formatters.test.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 45-50,193-201
+packages/backend/src/routing/proxy/__tests__/proxy-rate-limiter.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 6,9,15-19,273-305
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 16-18
+  s_e101b52b4e195f::t_ba8c5c64fc9753 14-15,19-20
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 25,306-308,310,403
+packages/backend/src/common/services/request-recording-storage.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 153,163,166-168
+packages/frontend/tests/pages/Register.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 5,9-10,39,58-59,69,72-73,232-297,300
+  s_e101b52b4e195f::t_91162f663acf4f 298-299,301
+packages/frontend/src/styles/agents.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 842-863
+packages/backend/src/common/utils/request-recording-codec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 4-9,14-23,25-26,30-40
+packages/backend/src/routing/routing-core/__tests__/tier.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 669,686,702,737,744-745,748
+.changeset/openrouter-hide-batch-variants.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-5
+design-system/lib/emit.mjs
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-163
+packages/frontend/src/index.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 38,55-59,152-153
+  s_e101b52b4e195f::t_7b89280c1b4be7 154
+packages/backend/src/common/utils/crypto.util.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-11,180-285
+packages/backend/src/discovery/dto/complete-discovery.dto.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-41
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 198-199,306,375,418,420,618,624-625
+packages/frontend/tests/services/waitlist.test.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-109
+docker/.env.example
+  s_e101b52b4e195f::t_ba8c5c64fc9753 81-83
+packages/backend/src/main.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 19-20,63-65,114-123
+  s_e101b52b4e195f::t_446ee3756ff122 124-125
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 128-131,162-165,168-171,177-180,197-202
+  s_e101b52b4e195f::t_ba8c5c64fc9753 120-127,132-161,166-167,172-176,181-196,203-206
+packages/frontend/src/styles/theme.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 24,36-38,820,833,844-845,850,865
+design-system/lib/cascade.mjs
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-269
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 142-177,185-188,211,215,217,219,222,267,276-281,283-286
+packages/backend/src/routing/routing-core/__tests__/response-mode-guard.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 16-26,29-31,35,39,45,48,73,77,85,87
+packages/frontend/tests/components/GuestGuard.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 31,48-79
+  s_e101b52b4e195f::t_074021a29c392b 80
+packages/frontend/src/services/waitlist.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-64
+packages/backend/src/notifications/services/email-provider-config.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 22-23,27-28
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 24-26
+packages/backend/src/database/database.module.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 27,94-99
+packages/frontend/tests/services/discovery.test.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-220
+packages/backend/src/model-discovery/model-capabilities.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 161
+packages/backend/src/routing/proxy/__tests__/anthropic-messages-adapter.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 176-382,1410-1416,1433-1435
+packages/manifest/CHANGELOG.md
+  s_e101b52b4e195f::t_ba8c5c64fc9753 3-40
+packages/backend/src/routing/routing-core/__tests__/route-helpers.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 8,130-189
+  s_e101b52b4e195f::t_74ce47242c32f2 190-191
+packages/frontend/src/components/Sidebar.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2,7,76-105,146-149,211
+packages/backend/src/routing/proxy/chatgpt-adapter.streaming.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 13-17,240-293
+packages/frontend/src/components/GuestGuard.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 7,27,29-36
+packages/backend/src/auth/session.guard.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 24-25,234,261,266-267,269-273,276,281,283-286,289
+packages/backend/src/routing/proxy/proxy-rate-limiter.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 3,9,22-23,87
+packages/backend/src/discovery/discovery-sync.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-37
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 11,355
+packages/frontend/src/components/PivotAnnouncement.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-251
+packages/frontend/src/pages/Discovery.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-202
+packages/backend/src/otlp/services/api-key.service.edge-cases.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 25
+packages/frontend/src/components/ModelPickerModal.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2-10,32-43,143,149-156,248,337-367,637-668,670-679,682,685,688,692,699,704,706-707,713,715-716,730,739-758,761-774,778-812,814-815,817,819-827
+  s_e101b52b4e195f::t_8720a9f6e32b9a 1
+packages/backend/src/model-discovery/model-capabilities.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 96-105
+packages/backend/src/routing/routing-core/__tests__/specificity.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 431,479,498
+design-system/registry/components.json
+  s_e101b52b4e195f::t_190b795adf0db9 1095,2479-2486,4414,4421,4428,4435,4442,4449,4456,4463,4470,4477,4484,4491,4498,4505,4512,4519,4526,4533,4540,4547,4554,4561,4641,4649,4657,4665,4673,4681,4697,4705,4713,4721,4729,4737,4745,4793,4833,4841,4849,4857,4865,4873,4881,4889,4904,4912,4920,4928,5082-5083
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-1094,1096-2478,2487-4413,4415-4420,4422-4427,4429-4434,4436-4441,4443-4448,4450-4455,4457-4462,4464-4469,4471-4476,4478-4483,4485-4490,4492-4497,4499-4504,4506-4511,4513-4518,4520-4525,4527-4532,4534-4539,4541-4546,4548-4553,4555-4560,4562-4640,4642-4648,4650-4656,4658-4664,4666-4672,4674-4680,4682-4696,4698-4704,4706-4712,4714-4720,4722-4728,4730-4736,4738-4744,4746-4792,4794-4832,4834-4840,4842-4848,4850-4856,4858-4864,4866-4872,4874-4880,4882-4888,4890-4903,4905-4911,4913-4919,4921-4927,4929-5081,5084-5087
+packages/frontend/src/styles/routing-modal.css
+  s_e101b52b4e195f::t_ba8c5c64fc9753 170-175,183-184,186,188,195-196,221-223,287,289-290,510-511
+  s_e101b52b4e195f::t_eec7d604ddb8ea 512-513
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 2074-2099,2493,2563
+scripts/check-design-tokens.mjs
+  s_e101b52b4e195f::t_ba8c5c64fc9753 6-9,22,38-39,58-106,125,138-177,179-189,223-225
+packages/backend/src/database/secret-reencryption.service.spec.ts
+  s_e101b52b4e195f::t_e4fbda2e3eeb01 59-66,263-266
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-58,67-262,267-289
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 13,3409-3534
+  s_e101b52b4e195f::t_21bc623a48a4f8 3535
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_e101b52b4e195f::t_ba8c5c64fc9753 64-65,85-86,155,159,186-189,391,588-605,688-690
+packages/frontend/tests/pages/Discovery.test.tsx
+  s_e101b52b4e195f::t_ba8c5c64fc9753 1-247
+package-lock.json
+  s_e101b52b4e195f::t_1f31c26c263399 1196-1198,1201,1210,1225-1227,1230,1232,1241-1243,1246,1257-1259,1262,1267-1269,1272,1283-1285,1288,1302-1317,1319-1321,1324,1895,1912,1929,1946,1963,1980,1997,2014,2031,2048,2065,2082,2099,2116,2133,2150,2167,2184,2201,2218,2235,2252,2269,2286,2303,2320,4651-4652,4665-4666,4679-4680,4693-4694,4707-4708,4721-4722,4735-4736,4749-4750,4763-4764,4777-4778,4791-4792,4805-4806,4819-4820,4833-4834,4847-4848,4861-4862,4875-4876,4889-4890,4903-4904,4917-4918,4931-4932,4945-4946,4959-4960,4973-4974,4987-4988,7036-7047,7050-7052,7054,7056,7066-7067,7141-7143,7146-7149,13861-13863,16542,16555,16617,16620,16657
+packages/frontend/tests/pages/Setup.test.tsx
+  s_e101b52b4e195f::t_812cf596def8ee 7,29,39,126-151,163,170-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "bcce642ebd8d6f25fd5d9cd925dbfd09ab638276",
+  "prompts": {},
+  "sessions": {
+    "s_e101b52b4e195f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2b19076a-c33d-445c-b1e8-d73cf4f071e9",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
