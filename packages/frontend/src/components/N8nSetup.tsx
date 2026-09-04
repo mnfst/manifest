@@ -60,9 +60,9 @@ const N8nSetup: Component<Props> = (props) => {
   return (
     <div class="setup-agents-card">
       <p class="setup-step__desc">
-        In n8n, install <code>n8n-nodes-manifest</code>, then add a Manifest node to your workflow.
-        Create or select Manifest credentials, paste the values below, and set the node model to{' '}
-        <code>auto</code>.
+        In n8n, install <code>n8n-nodes-manifest</code>, then add the Manifest Chat Model node to
+        your AI Agent or Basic LLM Chain, or the Manifest node for direct calls. Create or select
+        Manifest credentials, paste the values below, and set the node model to <code>auto</code>.
       </p>
 
       <p class="setup-method__hint">

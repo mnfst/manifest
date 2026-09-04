@@ -344,7 +344,7 @@ describe("SetupStepAddProvider", () => {
       ));
       expect(screen.getByText("Connect n8n to Manifest")).toBeDefined();
       expect(container.textContent).toContain("n8n-nodes-manifest");
-      expect(container.textContent).toContain("add a Manifest node");
+      expect(container.textContent).toContain("Manifest Chat Model node");
       expect(container.textContent).toContain("Create or select Manifest credentials");
       expect(container.textContent).toContain("set the node model to auto");
       expect(container.textContent).toContain("http://localhost:3001");
