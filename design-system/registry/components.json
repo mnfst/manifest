@@ -4379,21 +4379,21 @@
       "prop": "border",
       "value": "1px solid hsl(36 80% 50% / 0.24)",
       "file": "request-drawer.css",
-      "line": 911
+      "line": 917
     },
     {
       "selector": ".request-tool",
       "prop": "border-radius",
       "value": "var(--radius-sm)",
       "file": "request-drawer.css",
-      "line": 912
+      "line": 918
     },
     {
       "selector": ".request-tool",
       "prop": "background",
       "value": "hsl(36 80% 50% / 0.04)",
       "file": "request-drawer.css",
-      "line": 913
+      "line": 919
     },
     {
       "selector": ".hljs-attr",
@@ -4929,31 +4929,31 @@
       "prop": "border",
       "value": "1px solid hsl(var(--border))",
       "file": "request-drawer.css",
-      "line": 663,
-      "losesTo": "request-drawer.css:911"
+      "line": 669,
+      "losesTo": "request-drawer.css:917"
     },
     {
       "selector": ".request-tool",
       "prop": "border-radius",
       "value": "var(--radius)",
       "file": "request-drawer.css",
-      "line": 664,
-      "losesTo": "request-drawer.css:912"
+      "line": 670,
+      "losesTo": "request-drawer.css:918"
     },
     {
       "selector": ".request-tool",
       "prop": "background",
       "value": "hsl(var(--card))",
       "file": "request-drawer.css",
-      "line": 665,
-      "losesTo": "request-drawer.css:913"
+      "line": 671,
+      "losesTo": "request-drawer.css:919"
     },
     {
       "selector": ".hljs-attr",
       "prop": "color",
       "value": "hsl(187 60% 38%)",
       "file": "request-drawer.css",
-      "line": 1091,
+      "line": 1097,
       "losesTo": "syntax-highlight.css:41"
     },
     {

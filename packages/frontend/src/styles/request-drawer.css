@@ -78,6 +78,12 @@
   flex-shrink: 0;
 }
 
+.drawer__meta-row .drawer__meta-text {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .drawer__meta-sep {
   color: hsl(var(--border));
 }

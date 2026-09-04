@@ -2014,6 +2014,11 @@
     row-gap: 8px;
   }
 
+  .container--lg > div:not([class])[style*='space-between'] > div {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
   .routing-providers-info {
     flex-shrink: 0;
   }

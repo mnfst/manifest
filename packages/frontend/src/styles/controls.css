@@ -651,12 +651,6 @@
   }
 }
 
-@media (max-width: 768px) {
-  .wingman-fab {
-    display: none;
-  }
-}
-
 /* Slide-up drawer — DevTools-style.                                   */
 .wingman-drawer {
   position: fixed;
