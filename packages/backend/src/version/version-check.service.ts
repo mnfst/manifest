@@ -56,6 +56,8 @@ export class VersionCheckService {
   private readonly logger = new Logger(VersionCheckService.name);
   private cached: CachedCheck | null = null;
   private lastFailureAt: number | null = null;
+  /** The refresh in progress, so concurrent callers share one GitHub request. */
+  private inflight: Promise<void> | null = null;
 
   constructor(@Inject(VERSION_CHECK_CONFIG) private readonly config: VersionCheckConfig) {}
 
@@ -66,11 +68,22 @@ export class VersionCheckService {
     return this.buildInfo();
   }
 
-  private async refreshIfDue(): Promise<void> {
+  private refreshIfDue(): Promise<void> {
     const now = Date.now();
-    if (this.cached && now - this.cached.checkedAt < SUCCESS_TTL_MS) return;
-    if (this.lastFailureAt !== null && now - this.lastFailureAt < FAILURE_BACKOFF_MS) return;
+    if (this.cached && now - this.cached.checkedAt < SUCCESS_TTL_MS) return Promise.resolve();
+    if (this.lastFailureAt !== null && now - this.lastFailureAt < FAILURE_BACKOFF_MS) {
+      return Promise.resolve();
+    }
+    if (!this.inflight) {
+      this.inflight = this.refresh(now).finally(() => {
+        this.inflight = null;
+      });
+    }
+    return this.inflight;
+  }
 
+  /** Never rejects: a failure is recorded for backoff and the caller gets stale/null data. */
+  private async refresh(now: number): Promise<void> {
     try {
       const summary = await this.fetchReleases();
       this.cached = { ...summary, checkedAt: now };

@@ -55,7 +55,10 @@ body:has(.wingman-fab) .version-indicator {
   appearance: none;
   border: 0;
   background: transparent;
-  padding: 0 4px;
+  /* 24px minimum hit area so the × is tappable on touch screens. */
+  padding: 0 6px;
+  min-width: 24px;
+  min-height: 24px;
   font: inherit;
   font-size: var(--font-size-sm);
   line-height: 1;

@@ -118,6 +118,42 @@ describe('VersionCheckService', () => {
     expect(info.releases_behind).toBe(0);
   });
 
+  it('coalesces concurrent callers into a single GitHub request', async () => {
+    let resolveFetch: (value: unknown) => void = () => undefined;
+    fetchMock.mockReturnValue(new Promise((resolve) => (resolveFetch = resolve)));
+    const service = make();
+
+    const first = service.getVersionInfo();
+    const second = service.getVersionInfo();
+    const third = service.getVersionInfo();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    resolveFetch(releasesResponse('manifest@6.22.0'));
+    const results = await Promise.all([first, second, third]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    for (const info of results) {
+      expect(info.latest).toBe('6.22.0');
+      expect(info.update_available).toBe(true);
+    }
+  });
+
+  it('lets a caller after a coalesced failure see the failure, not hang', async () => {
+    let rejectFetch: (reason: unknown) => void = () => undefined;
+    fetchMock.mockReturnValue(new Promise((_, reject) => (rejectFetch = reject)));
+    const service = make();
+
+    const first = service.getVersionInfo();
+    const second = service.getVersionInfo();
+    rejectFetch(new Error('boom'));
+    const [a, b] = await Promise.all([first, second]);
+
+    expect(a.latest).toBeNull();
+    expect(b.latest).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('serves the cached result for 24 hours, then refreshes', async () => {
     fetchMock.mockResolvedValue(releasesResponse('manifest@6.22.0'));
     const service = make();
