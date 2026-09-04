@@ -25,9 +25,23 @@ export function subscriptionOpenAiModelId(provider: string, modelId: string): st
     : `${routeId}${SUBSCRIPTION_MODEL_SUFFIX}`;
 }
 
+/**
+ * Public id of a custom provider model. With an alias the model publishes as
+ * `<alias>/<model_name>`; without one it keeps the internal
+ * `custom:<uuid>/<model_name>` key. The internal key always resolves (see
+ * `routeForOpenAiModelId`), so client configs written before an alias was
+ * set keep working.
+ */
+function customOpenAiModelId(model: DiscoveredModel): string {
+  if (!model.providerAlias) return model.id;
+  const prefix = `${model.provider}/`;
+  const modelName = model.id.startsWith(prefix) ? model.id.slice(prefix.length) : model.id;
+  return `${model.providerAlias}/${modelName}`;
+}
+
 export function openAiModelId(model: DiscoveredModel): string {
   const provider = model.provider.toLowerCase();
-  if (provider.startsWith('custom:')) return model.id;
+  if (provider.startsWith('custom:')) return customOpenAiModelId(model);
 
   const prefix = `${provider}/`;
   const routeId = model.id.toLowerCase().startsWith(prefix) ? model.id : `${provider}/${model.id}`;

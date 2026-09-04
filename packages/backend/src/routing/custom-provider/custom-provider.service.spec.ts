@@ -368,6 +368,56 @@ describe('CustomProviderService', () => {
       expect(reloadPricing).toHaveBeenCalledTimes(1);
     });
 
+    describe('alias', () => {
+      it('derives a default alias from the name when none is sent', async () => {
+        const { svc } = makeDeps({ findOneResults: [null] });
+        const cp = await svc.create('tenant-1', { ...dto, name: 'Vercel AI Gateway' });
+        expect(cp.alias).toBe('vercel-ai-gateway');
+      });
+
+      it('leaves the default alias empty when the name yields a reserved one', async () => {
+        const { svc } = makeDeps({ findOneResults: [null] });
+        const cp = await svc.create('tenant-1', { ...dto, name: 'OpenAI' });
+        expect(cp.alias).toBeNull();
+      });
+
+      it('leaves the default alias empty when another provider already took it', async () => {
+        const { svc } = makeDeps({
+          findResult: [{ id: 'other', name: 'Other', alias: 'My-Provider' } as CustomProvider],
+        });
+        const cp = await svc.create('tenant-1', { ...dto, name: 'My Provider' });
+        expect(cp.alias).toBeNull();
+      });
+
+      it('stores an explicit alias, normalised', async () => {
+        const { svc } = makeDeps({ findOneResults: [null] });
+        const cp = await svc.create('tenant-1', { ...dto, alias: ' Vercel ' });
+        expect(cp.alias).toBe('vercel');
+      });
+
+      it('honours an explicit null as "no alias" instead of deriving one', async () => {
+        const { svc } = makeDeps({ findOneResults: [null] });
+        const cp = await svc.create('tenant-1', { ...dto, alias: null });
+        expect(cp.alias).toBeNull();
+      });
+
+      it('rejects an explicit alias that shadows a built-in provider', async () => {
+        const { svc } = makeDeps({ findOneResults: [null] });
+        await expect(svc.create('tenant-1', { ...dto, alias: 'openai' })).rejects.toBeInstanceOf(
+          BadRequestException,
+        );
+      });
+
+      it('rejects an explicit alias another provider of the tenant already uses', async () => {
+        const { svc } = makeDeps({
+          findResult: [{ id: 'other', name: 'Other', alias: 'Vercel' } as CustomProvider],
+        });
+        await expect(svc.create('tenant-1', { ...dto, alias: 'vercel' })).rejects.toBeInstanceOf(
+          ConflictException,
+        );
+      });
+    });
+
     it('tags the companion tenant_providers row as local when the name is LM Studio', async () => {
       const { svc, upsertProvider, txManager } = makeDeps({ findOneResults: [null] });
       await svc.create('tenant-1', { ...dto, name: 'LM Studio' });
@@ -582,6 +632,67 @@ describe('CustomProviderService', () => {
       // A rename-only update cannot affect prices, so the shared pricing
       // cache should be left alone (reload is expensive for large installs).
       expect(reloadPricing).not.toHaveBeenCalled();
+    });
+
+    describe('alias', () => {
+      it('leaves the alias alone on a rename so client configs survive', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: 'old' } as CustomProvider;
+        const { svc, find } = makeDeps({ findOneResults: [existing] });
+        await svc.update('cp1', 'tenant-1', { name: 'new' });
+        expect(existing.alias).toBe('old');
+        // The rename fetched the tenant list once; no second lookup for an alias.
+        expect(find).toHaveBeenCalledTimes(1);
+      });
+
+      it('sets a new alias after checking the tenant for collisions', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: null } as CustomProvider;
+        const { svc, save, find } = makeDeps({
+          findOneResults: [existing],
+          findResult: [existing, { id: 'other', name: 'Other', alias: 'taken' } as CustomProvider],
+        });
+        await svc.update('cp1', 'tenant-1', { alias: 'Fresh' });
+        expect(existing.alias).toBe('fresh');
+        expect(save).toHaveBeenCalledWith(existing);
+        expect(find).toHaveBeenCalledTimes(1);
+      });
+
+      it('clears the alias on null or an empty string', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: 'old' } as CustomProvider;
+        const { svc, find } = makeDeps({ findOneResults: [existing, existing] });
+        await svc.update('cp1', 'tenant-1', { alias: '' });
+        expect(existing.alias).toBeNull();
+        existing.alias = 'old';
+        await svc.update('cp1', 'tenant-1', { alias: null });
+        expect(existing.alias).toBeNull();
+        expect(find).not.toHaveBeenCalled();
+      });
+
+      it('skips the collision lookup when the alias is unchanged', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: 'same' } as CustomProvider;
+        const { svc, find } = makeDeps({ findOneResults: [existing] });
+        await svc.update('cp1', 'tenant-1', { alias: 'SAME' });
+        expect(existing.alias).toBe('same');
+        expect(find).not.toHaveBeenCalled();
+      });
+
+      it('rejects an alias that shadows a built-in provider', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: null } as CustomProvider;
+        const { svc } = makeDeps({ findOneResults: [existing] });
+        await expect(svc.update('cp1', 'tenant-1', { alias: 'gemini' })).rejects.toBeInstanceOf(
+          BadRequestException,
+        );
+      });
+
+      it('rejects an alias another provider of the tenant already uses, case-insensitively', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: null } as CustomProvider;
+        const { svc } = makeDeps({
+          findOneResults: [existing],
+          findResult: [existing, { id: 'other', name: 'Other', alias: 'Taken' } as CustomProvider],
+        });
+        await expect(svc.update('cp1', 'tenant-1', { alias: 'taken' })).rejects.toBeInstanceOf(
+          ConflictException,
+        );
+      });
     });
 
     it('validates and updates base_url when provided', async () => {

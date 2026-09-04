@@ -181,7 +181,9 @@ export class ProxyController {
         id,
         object: 'model',
         created: MODEL_CREATED_UNKNOWN,
-        owned_by: model.provider,
+        // Custom providers own their models under the name the user gave
+        // them, not the internal `custom:<uuid>` key.
+        owned_by: model.providerName ?? model.provider,
       };
       if (includeRouteMetadata) {
         entry.provider_model_id = model.id;

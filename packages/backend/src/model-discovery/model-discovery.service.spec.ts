@@ -840,6 +840,18 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].id).toBe('custom:cp-1/custom-llm');
       expect(result[1].provider).toBe('custom:cp-1');
       expect(result[1].displayName).toBe('custom-llm');
+      expect(result[1].providerName).toBe('My Custom');
+      expect(result[1]).not.toHaveProperty('providerAlias');
+    });
+
+    it('carries the custom provider alias so /v1/models can publish it', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([makeCustomProvider({ alias: 'my-custom' })]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result[0].providerAlias).toBe('my-custom');
+      expect(result[0].providerName).toBe('My Custom');
     });
 
     it('should filter stale unsupported OpenAI subscription cached models', async () => {

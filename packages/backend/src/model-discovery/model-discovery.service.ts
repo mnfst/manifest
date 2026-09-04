@@ -617,6 +617,8 @@ export class ModelDiscoveryService {
           capabilityReasoning: false,
           capabilityCode: false,
           qualityScore: 2,
+          providerName: cp.name,
+          ...(cp.alias ? { providerAlias: cp.alias } : {}),
         });
       }
     }

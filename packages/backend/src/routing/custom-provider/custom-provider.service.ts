@@ -12,6 +12,9 @@ import { randomUUID } from 'crypto';
 import {
   CANONICAL_LOCAL_IDS,
   SHARED_PROVIDER_BY_ID_OR_ALIAS,
+  deriveCustomProviderAlias,
+  isReservedCustomProviderAlias,
+  normalizeCustomProviderAlias,
   normalizeProviderName,
 } from 'manifest-shared';
 import type { AuthType } from 'manifest-shared';
@@ -89,6 +92,31 @@ export class CustomProviderService {
    */
   private notifyChange(tenantId: string, actorUserId?: string | null): void {
     this.eventBus.emit(tenantId, 'routing', actorUserId);
+  }
+
+  /**
+   * Reject an explicit alias that would shadow a built-in provider route or
+   * another custom provider of the tenant (case-insensitive, like the name).
+   */
+  private assertAliasAvailable(
+    alias: string,
+    allForTenant: CustomProvider[],
+    excludeId?: string,
+  ): void {
+    if (isReservedCustomProviderAlias(alias)) {
+      throw new BadRequestException(`Alias "${alias}" is reserved for a built-in provider`);
+    }
+    const dup = allForTenant.find((r) => r.id !== excludeId && r.alias?.toLowerCase() === alias);
+    if (dup) {
+      throw new ConflictException(`Alias "${alias}" is already used by "${dup.name}"`);
+    }
+  }
+
+  /** Default alias for a new provider: derived from the name, or none when taken. */
+  private defaultAlias(name: string, allForTenant: CustomProvider[]): string | null {
+    const derived = deriveCustomProviderAlias(name);
+    if (!derived) return null;
+    return allForTenant.some((r) => r.alias?.toLowerCase() === derived) ? null : derived;
   }
 
   /** Provider key used in TenantProvider tables. */
@@ -210,6 +238,16 @@ export class CustomProviderService {
       throw new ConflictException(`Custom provider "${dto.name}" already exists`);
     }
 
+    // An omitted alias gets a default derived from the name, silently left
+    // empty when that default is unusable or taken — the user can set one
+    // later. An explicit alias (including null, meaning "none") is honoured
+    // as sent and validated like the name is.
+    const alias =
+      dto.alias === undefined
+        ? this.defaultAlias(dto.name, allForTenant)
+        : normalizeCustomProviderAlias(dto.alias);
+    if (alias && dto.alias !== undefined) this.assertAliasAvailable(alias, allForTenant);
+
     try {
       await validatePublicUrl(dto.base_url, { allowPrivate: isSelfHosted() });
     } catch (err) {
@@ -224,6 +262,7 @@ export class CustomProviderService {
       tenant_id: tenantId,
       created_by_user_id: createdByUserId ?? null,
       name: dto.name,
+      alias,
       base_url: dto.base_url,
       api_kind: dto.api_kind ?? 'openai',
       models: this.enrichCustomProviderModels(dto.name, dto.models),
@@ -290,6 +329,18 @@ export class CustomProviderService {
         throw new ConflictException(`Custom provider "${dto.name}" already exists`);
       }
       cp.name = dto.name;
+    }
+
+    // Renaming never touches the alias: client configs carry
+    // `<alias>/<model>` and must survive a display-name change. Only an
+    // explicit alias field changes it (null or '' clears it).
+    if (dto.alias !== undefined) {
+      const alias = normalizeCustomProviderAlias(dto.alias);
+      if (alias && alias !== cp.alias) {
+        const allForTenant = await this.repo.find({ where: { tenant_id: tenantId } });
+        this.assertAliasAvailable(alias, allForTenant, id);
+      }
+      cp.alias = alias;
     }
 
     if (dto.base_url !== undefined) {
