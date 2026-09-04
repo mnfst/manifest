@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (314 BEM blocks, 1696 classes)
+## Blocks (315 BEM blocks, 1707 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -150,6 +150,7 @@ cloud-email-info (notifications.css): cloud-email-info cloud-email-info__desc cl
 complexity-empty (routing.css): complexity-empty complexity-empty__desc complexity-empty__title
 confirm-modal (limits.css): confirm-modal__confirm-row confirm-modal__footer confirm-modal__warning
 connection-delete-confirmation (routing-providers.css): connection-delete-confirmation connection-delete-confirmation__copy connection-delete-confirmation__footer connection-delete-confirmation__label connection-delete-confirmation__title connection-delete-confirmation__warning
+connection-detail (connection-detail.css): connection-detail__badge connection-detail__badges connection-detail__controls connection-detail__header connection-detail__identity connection-detail__meta connection-detail__title connection-detail__title-row
 connection-label-cell (routing-providers.css): connection-label-cell connection-label-cell__edit
 connections-panel (routing-providers.css): connections-panel connections-panel--collapsed connections-panel__body connections-panel__chevron connections-panel__toggle connections-panel__viewport
 container (layout.css, theme.css): container--full container--lg container--md container--sm
@@ -164,7 +165,7 @@ count-link (theme.css): count-link
 custom-provider-item (routing-providers.css): custom-provider-item custom-provider-item__delete custom-provider-item__icon custom-provider-item__info custom-provider-item__meta custom-provider-item__name
 custom-provider-model-row (routing-providers.css): custom-provider-model-row custom-provider-model-row__name custom-provider-model-row__price custom-provider-model-row__remove
 custom-provider-models (routing-providers.css): custom-provider-models custom-provider-models__column custom-provider-models__column--name custom-provider-models__column--price custom-provider-models__column-spacer custom-provider-models__columns custom-provider-models__label
-custom-select (custom-select.css, discovery.css, routing-providers.css): custom-select custom-select__chevron custom-select__dropdown custom-select__dropdown--portal custom-select__dropdown--wide custom-select__option custom-select__option--disabled custom-select__option--selected custom-select__option--top custom-select__option-desc custom-select__option-text custom-select__option-text--inline custom-select__trigger custom-select__trigger--open custom-select__value
+custom-select (connection-detail.css, custom-select.css, discovery.css, routing-providers.css): custom-select custom-select__chevron custom-select__dropdown custom-select__dropdown--portal custom-select__dropdown--wide custom-select__option custom-select__option--disabled custom-select__option--selected custom-select__option--top custom-select__option-desc custom-select__option-text custom-select__option-text--inline custom-select__trigger custom-select__trigger--open custom-select__value
 dark (agent-type-select.css, agents.css, analytics-overview.css, auth.css, controls.css, data.css, modals.css, model-filter.css, overview.css, pivot.css, platform-icons.css, request-drawer.css, routing-deprecation.css, routing-providers.css, routing.css, syntax-highlight.css, tokens.css, welcome.css, wizard.css): dark
 data-table (data.css, feedback.css, theme.css): data-table data-table__sortable
 data-table-scroll (data.css): data-table-scroll
@@ -199,7 +200,7 @@ free-models-logo-dark (data.css): free-models-logo-dark
 free-models-logo-light (data.css): free-models-logo-light
 free-tag (theme.css): free-tag
 function_ (syntax-highlight.css): function_
-header (controls.css, theme.css): header header__avatar header__avatar-btn header__breadcrumb-current header__breadcrumb-icon header__breadcrumb-link header__docs-link header__dropdown header__dropdown-divider header__dropdown-email header__dropdown-header header__dropdown-item header__dropdown-item--danger header__dropdown-name header__gear header__gear-btn header__github-icon header__github-star header__github-star-action header__github-star-btn header__github-star-close header__github-star-count header__github-star-label header__left header__logo header__logo-img header__logo-img--dark header__logo-img--light header__mode-badge header__mode-badge--dev header__pro-badge header__right header__separator header__star-separator
+header (controls.css, theme.css): header header__avatar header__avatar-btn header__breadcrumb-current header__breadcrumb-icon header__breadcrumb-label header__breadcrumb-link header__breadcrumb-provider-icon header__docs-link header__dropdown header__dropdown-divider header__dropdown-email header__dropdown-header header__dropdown-item header__dropdown-item--danger header__dropdown-name header__gear header__gear-btn header__github-icon header__github-star header__github-star-action header__github-star-btn header__github-star-close header__github-star-count header__github-star-label header__left header__logo header__logo-img header__logo-img--dark header__logo-img--light header__mode-badge header__mode-badge--dev header__pro-badge header__right header__separator header__star-separator
 header-combo (routing-header-tiers.css): header-combo header-combo--invalid header-combo__error header-combo__input header-combo__menu header-combo__option header-combo__option--free header-combo__option--hover header-combo__option-group header-combo__option-label header-combo__option-row header-combo__option-sublabel
 header-controls (layout.css, theme.css): header-controls
 header-tier-card (routing-header-tiers.css): header-tier-card__actions header-tier-card__icon-btn header-tier-card__kebab header-tier-card__kebab-btn header-tier-card__menu header-tier-card__menu-item header-tier-card__menu-item--danger header-tier-card__name header-tier-card__ordinal header-tier-card__rule header-tier-card__title
@@ -275,8 +276,8 @@ overview (agents.css): overview__platform-icon
 overview-discovery-banner (overview.css): overview-discovery-banner overview-discovery-banner__cta overview-discovery-banner__dismiss overview-discovery-banner__inner overview-discovery-banner__text
 overview-split (analytics-overview.css): overview-split
 overview-stat-card (analytics-overview.css): overview-stat-card overview-stat-card--autofix overview-stat-card--destructive overview-stat-card--fallback overview-stat-card__label overview-stat-card__value overview-stat-card__value-row
-overview-stats (analytics-overview.css): overview-stats
-page-header (analytics-overview.css, layout.css, theme.css): page-header page-header--wrap page-header__intro page-header__subtitle page-header__title
+overview-stats (analytics-overview.css): overview-stats overview-stats--5
+page-header (analytics-overview.css, connection-detail.css, layout.css, theme.css): page-header page-header--wrap page-header__intro page-header__subtitle page-header__title
 pagination (data.css): pagination pagination__btn pagination__controls pagination__summary
 panel (analytics-overview.css, cards.css, charts.css, limits.css, request-drawer.css, routing-providers.css, routing-tabs.css, theme.css, welcome.css, wizard.css): panel panel--disabled panel__header panel__tab panel__tab--active panel__tab-icon panel__tabs panel__title
 plan-picker (auth.css): plan-picker plan-picker__amount plan-picker__badge plan-picker__card plan-picker__card--expanded plan-picker__card--pro plan-picker__cta plan-picker__details plan-picker__features plan-picker__name plan-picker__period plan-picker__price-inline plan-picker__radio plan-picker__radio-dot plan-picker__row plan-picker__section-header plan-picker__section-subtitle plan-picker__section-title plan-picker__usage
@@ -418,8 +419,8 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 ## Migration map — legacy component → primitive to use instead (0)
 (empty until primitives exist)
 
-## Canonical rules — same selector+property declared twice with different values; the winner renders (46)
-.view-more-link { color: hsl(var(--foreground)) }  ← analytics-overview.css:170
+## Canonical rules — same selector+property declared twice with different values; the winner renders (49)
+.view-more-link { color: hsl(var(--foreground)) }  ← analytics-overview.css:206
 .custom-select__option--top > svg { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 14px) / 2) }  ← custom-select.css:142
 .setup-modal__header { align-items: center }  ← overview.css:15
@@ -456,26 +457,29 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
     0 25px 50px -12px rgb(0 0 0 / 0.25) }  ← theme.css:1102
 .modal__close { width: 2rem }  ← theme.css:1127
 .modal__close { height: 2rem }  ← theme.css:1128
-.toast { align-items: flex-start }  ← toast.css:16
-.toast { gap: var(--gap-sm) }  ← toast.css:17
-.toast { padding: 12px var(--gap-md) }  ← toast.css:18
+.toast { align-items: flex-start }  ← toast.css:25
+.toast { gap: var(--gap-sm) }  ← toast.css:26
+.toast { padding: 12px var(--gap-md) }  ← toast.css:27
 .toast { box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1) }  ← toast.css:22
-.toast { animation: toastSlideIn 200ms ease-out }  ← toast.css:26
+    0 2px 4px -2px rgb(0 0 0 / 0.1) }  ← toast.css:31
+.toast { animation: toastSlideIn 200ms ease-out }  ← toast.css:35
+.toast-container { left: var(--gap-sm) }  ← toast.css:98  [@media (max-width: 480px)]
+.toast-container { right: var(--gap-sm) }  ← toast.css:99  [@media (max-width: 480px)]
+.toast-container { bottom: var(--gap-sm) }  ← toast.css:100  [@media (max-width: 480px)]
 .welcome__progress-header span { letter-spacing: 0.02em }  ← welcome.css:554
 .welcome__text-link:focus-visible { outline: 2px solid hsl(var(--ring)) }  ← welcome.css:865
 .welcome__text-link:focus-visible { outline-offset: 3px }  ← welcome.css:866
 .welcome__route-test-heading { align-items: center }  ← welcome.css:903
 .welcome__route-test-heading { gap: 10px }  ← welcome.css:904
 
-## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (46)
+## Ghost rules — declared but always losing; edit the canonical rule instead, delete these in the refactor project (49)
 .summary-card { box-shadow: var(--card-shadow) }  at cards.css:7 loses to theme.css:197
 .trend--up { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:238
 .trend--down { color: hsl(var(--muted-foreground)) }  at cards.css:48 loses to theme.css:243
 .trend--up { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:239
 .trend--down { background: hsl(var(--muted)) }  at cards.css:49 loses to theme.css:244
 .panel { box-shadow: var(--card-shadow) }  at cards.css:59 loses to theme.css:269
-.view-more-link { color: hsl(var(--muted-foreground)) }  at cards.css:72 loses to analytics-overview.css:170
+.view-more-link { color: hsl(var(--muted-foreground)) }  at cards.css:72 loses to analytics-overview.css:206
 .chart-card { box-shadow: var(--card-shadow) }  at cards.css:86 loses to theme.css:285
 .chart-card__header { align-items: stretch }  at cards.css:92 loses to theme.css:291
 .chart-card__value-row { align-items: center }  at cards.css:160 loses to theme.css:323
@@ -483,11 +487,11 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .expandable-card__fade { height: 80px }  at charts.css:110 loses to theme.css:1045
 .expandable-card__fade { background: linear-gradient(transparent, hsl(var(--card)) 60%) }  at charts.css:111 loses to theme.css:1046
 .expandable-card__fade { padding-bottom: 16px }  at charts.css:116 loses to theme.css:1051
-.toast { align-items: center }  at controls.css:172 loses to toast.css:16
-.toast { gap: 10px }  at controls.css:173 loses to toast.css:17
-.toast { padding: 12px 16px }  at controls.css:174 loses to toast.css:18
-.toast { box-shadow: 0 4px 16px rgb(0 0 0 / 0.15) }  at controls.css:177 loses to toast.css:22
-.toast { animation: toast-in 200ms ease-out }  at controls.css:180 loses to toast.css:26
+.toast { align-items: center }  at controls.css:172 loses to toast.css:25
+.toast { gap: 10px }  at controls.css:173 loses to toast.css:26
+.toast { padding: 12px 16px }  at controls.css:174 loses to toast.css:27
+.toast { box-shadow: 0 4px 16px rgb(0 0 0 / 0.15) }  at controls.css:177 loses to toast.css:31
+.toast { animation: toast-in 200ms ease-out }  at controls.css:180 loses to toast.css:35
 .sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:785
 .custom-select__option--top > svg { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
@@ -511,15 +515,19 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .request-tool { border-radius: var(--radius) }  at request-drawer.css:647 loses to request-drawer.css:875
 .request-tool { background: hsl(var(--card)) }  at request-drawer.css:648 loses to request-drawer.css:876
 .hljs-attr { color: hsl(187 60% 38%) }  at request-drawer.css:1054 loses to syntax-highlight.css:41
+.toast-container { left: var(--gap-md) }  at toast.css:16 loses to toast.css:98
+.toast-container { right: var(--gap-md) }  at toast.css:17 loses to toast.css:99
+.toast-container { bottom: var(--gap-md) }  at toast.css:18 loses to toast.css:100
 .welcome__progress-header span { letter-spacing: 0.09em }  at welcome.css:548 loses to welcome.css:554
 .welcome__text-link:focus-visible { outline: 3px solid hsl(var(--ring)) }  at welcome.css:726 loses to welcome.css:865
 .welcome__text-link:focus-visible { outline-offset: 2px }  at welcome.css:727 loses to welcome.css:866
 .welcome__route-test-heading { align-items: flex-start }  at welcome.css:873 loses to welcome.css:903
 .welcome__route-test-heading { gap: 14px }  at welcome.css:875 loses to welcome.css:904
 
-## Component-loaded sheets — imported by components, not theme.css; they load after the global styles (19)
+## Component-loaded sheets — imported by components, not theme.css; they load after the global styles (20)
 agent-chart-tooltip.css ← components/ChartHoverTooltip.tsx
 analytics-overview.css ← components/AutofixKpiCards.tsx, pages/GlobalOverview.tsx, pages/providers/ConnectionDetail.tsx, pages/providers/ProviderConnectionsPage.tsx
+connection-detail.css ← pages/providers/ConnectionDetail.tsx
 discovery.css ← pages/Discovery.tsx
 filter-select.css ← components/FilterSelect.tsx
 model-filter.css ← components/ModelPricesFilterBar.tsx, pages/MessageLog.tsx

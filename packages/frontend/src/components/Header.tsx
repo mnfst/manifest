@@ -160,10 +160,7 @@ const Header: Component<HeaderProps> = (props) => {
         </Show>
         <Show when={getAgentName()}>
           <span class="header__separator">/</span>
-          <A
-            href="/harnesses"
-            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
-          >
+          <A href="/harnesses" class="header__breadcrumb-link" style="font-weight: 500;">
             Harnesses
           </A>
           <span class="header__separator">/</span>
@@ -251,22 +248,23 @@ const Header: Component<HeaderProps> = (props) => {
           <span class="header__separator">/</span>
           <A
             href={connectionBreadcrumbBackLink()}
-            style="color: hsl(var(--muted-foreground)); text-decoration: none; font-size: var(--font-size-sm); font-weight: 500;"
+            class="header__breadcrumb-link"
+            style="font-weight: 500;"
           >
             {connectionBreadcrumbBackLabel()}
           </A>
           <span class="header__separator">/</span>
-          <span style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-sm); font-weight: 500; color: hsl(var(--foreground));">
+          {/* Same classes as the harness crumb so the phone breakpoint hides the
+              parent link and truncates the name instead of wrapping it. */}
+          <span class="header__breadcrumb-current">
             <Show when={connectionBreadcrumbProviderId()}>
-              <span style="display: inline-flex; align-items: center; flex-shrink: 0;">
+              <span class="header__breadcrumb-provider-icon">
                 {providerIcon(connectionBreadcrumbProviderId()!, 14)}
               </span>
             </Show>
-            {connectionBreadcrumbName()}
+            <span>{connectionBreadcrumbName()}</span>
             <Show when={connectionBreadcrumbLabel()}>
-              <span style="color: hsl(var(--muted-foreground)); font-weight: 400;">
-                {connectionBreadcrumbLabel()}
-              </span>
+              <span class="header__breadcrumb-label">{connectionBreadcrumbLabel()}</span>
             </Show>
           </span>
         </Show>

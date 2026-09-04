@@ -347,6 +347,11 @@ describe('analytics chart surface components', () => {
     expect(screen.getByText('5')).toBeDefined();
     expect(screen.getByText('Recovered by Fallback')).toBeDefined();
     expect(screen.getByText('3')).toBeDefined();
+    // The five-card row relies on the responsive `overview-stats--5` modifier;
+    // an inline grid-template-columns would override the phone breakpoints.
+    const grid = screen.getByText('Success rate').closest('.overview-stats') as HTMLElement;
+    expect(grid.classList.contains('overview-stats--5')).toBe(true);
+    expect(grid.style.gridTemplateColumns).toBe('');
     unmount();
 
     // Trends: previous window present → percentage badges.

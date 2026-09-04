@@ -51,6 +51,7 @@ import { setConnectionBreadcrumb } from '../../services/connection-breadcrumb-st
 import { toast } from '../../services/toast-store.js';
 import '../../styles/charts.css';
 import '../../styles/analytics-overview.css';
+import '../../styles/connection-detail.css';
 import { getModelDisplayName } from '../../services/model-display.js';
 import CustomProviderForm from '../../components/CustomProviderForm.jsx';
 import '../../styles/routing.css';
@@ -702,62 +703,72 @@ const ConnectionDetail: Component = () => {
               </div>
 
               {/* Header */}
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                    <span style="display: flex; align-items: center; width: 32px; height: 32px;">
+              <div class="connection-detail__header">
+                <div class="connection-detail__identity">
+                  <div class="connection-detail__title-row">
+                    <div class="connection-detail__title">
+                      <span style="display: flex; align-items: center; flex-shrink: 0; width: 32px; height: 32px;">
+                        <Show
+                          when={providerIcon(c.provider, 32)}
+                          fallback={
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                'align-items': 'center',
+                                'justify-content': 'center',
+                                width: '32px',
+                                height: '32px',
+                                'border-radius': '8px',
+                                'font-size': '16px',
+                                'font-weight': '700',
+                                color: 'white',
+                                background: customProviderColor(providerDisplayName()),
+                              }}
+                            >
+                              {providerDisplayName().charAt(0).toUpperCase()}
+                            </span>
+                          }
+                        >
+                          {providerIcon(c.provider, 32)}
+                        </Show>
+                      </span>
+                      <h1 class="page-header__title">
+                        {providerDisplayName()}
+                        <span style="font-size: var(--font-size-sm); font-weight: 400; color: hsl(var(--muted-foreground));">
+                          {c.label}
+                        </span>
+                      </h1>
+                    </div>
+                    <div class="connection-detail__badges">
+                      <Show when={isCustomProvider()}>
+                        <span
+                          class="connection-detail__badge"
+                          style="padding: 2px 8px; border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;"
+                        >
+                          Custom
+                        </span>
+                      </Show>
                       <Show
-                        when={providerIcon(c.provider, 32)}
+                        when={c.is_active}
                         fallback={
                           <span
-                            style={{
-                              display: 'inline-flex',
-                              'align-items': 'center',
-                              'justify-content': 'center',
-                              width: '32px',
-                              height: '32px',
-                              'border-radius': '8px',
-                              'font-size': '16px',
-                              'font-weight': '700',
-                              color: 'white',
-                              background: customProviderColor(providerDisplayName()),
-                            }}
+                            class="connection-detail__badge"
+                            style="padding: 4px 12px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;"
                           >
-                            {providerDisplayName().charAt(0).toUpperCase()}
+                            Inactive
                           </span>
                         }
                       >
-                        {providerIcon(c.provider, 32)}
-                      </Show>
-                    </span>
-                    <h1
-                      class="page-header__title"
-                      style="margin: 0; display: flex; align-items: baseline; gap: 8px;"
-                    >
-                      {providerDisplayName()}
-                      <span style="font-size: var(--font-size-sm); font-weight: 400; color: hsl(var(--muted-foreground));">
-                        {c.label}
-                      </span>
-                    </h1>
-                    <Show when={isCustomProvider()}>
-                      <span style="display: inline-flex; align-items: center; padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-xs); font-weight: 500;">
-                        Custom
-                      </span>
-                    </Show>
-                    <Show
-                      when={c.is_active}
-                      fallback={
-                        <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: var(--font-size-sm); font-weight: 500;">
-                          Inactive
+                        <span
+                          class="connection-detail__badge"
+                          style="padding: 4px 12px; background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;"
+                        >
+                          Active
                         </span>
-                      }
-                    >
-                      <span style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-sm); background: hsl(var(--success)); color: white; font-size: var(--font-size-sm); font-weight: 600;">
-                        Active
-                      </span>
-                    </Show>
+                      </Show>
+                    </div>
                   </div>
-                  <div style="display: flex; gap: 24px; font-size: var(--font-size-sm);">
+                  <div class="connection-detail__meta">
                     <span>
                       <span style="font-weight: 600; color: hsl(var(--foreground));">
                         Connection name:
@@ -788,7 +799,7 @@ const ConnectionDetail: Component = () => {
                     </span>
                   </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <div class="connection-detail__controls">
                   <Show when={allAgents().length > 1}>
                     <FilterSelect
                       noun="harnesses"
@@ -817,10 +828,7 @@ const ConnectionDetail: Component = () => {
               {/* Attempt world cards: the connection's own numbers on the
                   filtered period. Fallback retries exist for everyone;
                   autofixed attempts only exist with the Doctor version. */}
-              <div
-                class="overview-stats"
-                style="grid-template-columns: repeat(5, 1fr); margin-bottom: 16px;"
-              >
+              <div class="overview-stats overview-stats--5" style="margin-bottom: 16px;">
                 <div class="overview-stat-card">
                   <span class="overview-stat-card__label">
                     Success rate

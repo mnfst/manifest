@@ -888,6 +888,21 @@
         "routing-providers.css"
       ]
     },
+    "connection-detail": {
+      "classes": [
+        "connection-detail__badge",
+        "connection-detail__badges",
+        "connection-detail__controls",
+        "connection-detail__header",
+        "connection-detail__identity",
+        "connection-detail__meta",
+        "connection-detail__title",
+        "connection-detail__title-row"
+      ],
+      "files": [
+        "connection-detail.css"
+      ]
+    },
     "connection-label-cell": {
       "classes": [
         "connection-label-cell",
@@ -1072,6 +1087,7 @@
         "custom-select__value"
       ],
       "files": [
+        "connection-detail.css",
         "custom-select.css",
         "discovery.css",
         "routing-providers.css"
@@ -1485,7 +1501,9 @@
         "header__avatar-btn",
         "header__breadcrumb-current",
         "header__breadcrumb-icon",
+        "header__breadcrumb-label",
         "header__breadcrumb-link",
+        "header__breadcrumb-provider-icon",
         "header__docs-link",
         "header__dropdown",
         "header__dropdown-divider",
@@ -2397,7 +2415,8 @@
     },
     "overview-stats": {
       "classes": [
-        "overview-stats"
+        "overview-stats",
+        "overview-stats--5"
       ],
       "files": [
         "analytics-overview.css"
@@ -2413,6 +2432,7 @@
       ],
       "files": [
         "analytics-overview.css",
+        "connection-detail.css",
         "layout.css",
         "theme.css"
       ]
@@ -4313,7 +4333,7 @@
       "prop": "color",
       "value": "hsl(var(--foreground))",
       "file": "analytics-overview.css",
-      "line": 170
+      "line": 206
     },
     {
       "selector": ".custom-select__option--top > svg",
@@ -4565,35 +4585,59 @@
       "prop": "align-items",
       "value": "flex-start",
       "file": "toast.css",
-      "line": 16
+      "line": 25
     },
     {
       "selector": ".toast",
       "prop": "gap",
       "value": "var(--gap-sm)",
       "file": "toast.css",
-      "line": 17
+      "line": 26
     },
     {
       "selector": ".toast",
       "prop": "padding",
       "value": "12px var(--gap-md)",
       "file": "toast.css",
-      "line": 18
+      "line": 27
     },
     {
       "selector": ".toast",
       "prop": "box-shadow",
       "value": "0 4px 6px -1px rgb(0 0 0 / 0.1),\n    0 2px 4px -2px rgb(0 0 0 / 0.1)",
       "file": "toast.css",
-      "line": 22
+      "line": 31
     },
     {
       "selector": ".toast",
       "prop": "animation",
       "value": "toastSlideIn 200ms ease-out",
       "file": "toast.css",
-      "line": 26
+      "line": 35
+    },
+    {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "left",
+      "value": "var(--gap-sm)",
+      "file": "toast.css",
+      "line": 98
+    },
+    {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "right",
+      "value": "var(--gap-sm)",
+      "file": "toast.css",
+      "line": 99
+    },
+    {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "bottom",
+      "value": "var(--gap-sm)",
+      "file": "toast.css",
+      "line": 100
     },
     {
       "selector": ".welcome__progress-header span",
@@ -4686,7 +4730,7 @@
       "value": "hsl(var(--muted-foreground))",
       "file": "cards.css",
       "line": 72,
-      "losesTo": "analytics-overview.css:170"
+      "losesTo": "analytics-overview.css:206"
     },
     {
       "selector": ".chart-card",
@@ -4750,7 +4794,7 @@
       "value": "center",
       "file": "controls.css",
       "line": 172,
-      "losesTo": "toast.css:16"
+      "losesTo": "toast.css:25"
     },
     {
       "selector": ".toast",
@@ -4758,7 +4802,7 @@
       "value": "10px",
       "file": "controls.css",
       "line": 173,
-      "losesTo": "toast.css:17"
+      "losesTo": "toast.css:26"
     },
     {
       "selector": ".toast",
@@ -4766,7 +4810,7 @@
       "value": "12px 16px",
       "file": "controls.css",
       "line": 174,
-      "losesTo": "toast.css:18"
+      "losesTo": "toast.css:27"
     },
     {
       "selector": ".toast",
@@ -4774,7 +4818,7 @@
       "value": "0 4px 16px rgb(0 0 0 / 0.15)",
       "file": "controls.css",
       "line": 177,
-      "losesTo": "toast.css:22"
+      "losesTo": "toast.css:31"
     },
     {
       "selector": ".toast",
@@ -4782,7 +4826,7 @@
       "value": "toast-in 200ms ease-out",
       "file": "controls.css",
       "line": 180,
-      "losesTo": "toast.css:26"
+      "losesTo": "toast.css:35"
     },
     {
       "selector": ".sidebar",
@@ -4961,6 +5005,33 @@
       "losesTo": "syntax-highlight.css:41"
     },
     {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "left",
+      "value": "var(--gap-md)",
+      "file": "toast.css",
+      "line": 16,
+      "losesTo": "toast.css:98"
+    },
+    {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "right",
+      "value": "var(--gap-md)",
+      "file": "toast.css",
+      "line": 17,
+      "losesTo": "toast.css:99"
+    },
+    {
+      "selector": ".toast-container",
+      "media": "(max-width: 480px)",
+      "prop": "bottom",
+      "value": "var(--gap-md)",
+      "file": "toast.css",
+      "line": 18,
+      "losesTo": "toast.css:100"
+    },
+    {
       "selector": ".welcome__progress-header span",
       "prop": "letter-spacing",
       "value": "0.09em",
@@ -5010,6 +5081,9 @@
       "pages/GlobalOverview.tsx",
       "pages/providers/ConnectionDetail.tsx",
       "pages/providers/ProviderConnectionsPage.tsx"
+    ],
+    "connection-detail.css": [
+      "pages/providers/ConnectionDetail.tsx"
     ],
     "discovery.css": [
       "pages/Discovery.tsx"
@@ -5079,9 +5153,9 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 314,
-    "classes": 1696,
-    "canonicalRules": 46,
-    "ghostRules": 46
+    "blocks": 315,
+    "classes": 1707,
+    "canonicalRules": 49,
+    "ghostRules": 49
   }
 }

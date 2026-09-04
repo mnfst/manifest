@@ -11,6 +11,15 @@
   width: 420px;
 }
 
+@media (max-width: 480px) {
+  .toast-container {
+    left: var(--gap-md);
+    right: var(--gap-md);
+    bottom: var(--gap-md);
+    width: auto;
+  }
+}
+
 .toast {
   display: flex;
   align-items: flex-start;
