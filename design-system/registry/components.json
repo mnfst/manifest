@@ -934,6 +934,7 @@
       ],
       "files": [
         "layout.css",
+        "routing.css",
         "theme.css"
       ]
     },

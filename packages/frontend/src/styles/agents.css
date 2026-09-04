@@ -883,3 +883,15 @@
 .workspace-table__icon {
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .settings-card__id-row {
+    display: flex;
+  }
+
+  .settings-card__id-value {
+    flex: 1;
+    min-width: 0;
+    word-break: break-all;
+  }
+}

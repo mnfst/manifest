@@ -2001,3 +2001,24 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .routing-cards:not(.routing-cards--wide),
+  .routing-cards--centered,
+  .routing-cards--unified-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .container--lg > div:not([class])[style*='space-between'] {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .routing-providers-info {
+    flex-shrink: 0;
+  }
+
+  .routing-providers-info__label {
+    white-space: nowrap;
+  }
+}

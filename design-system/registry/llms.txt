@@ -153,7 +153,7 @@ connection-delete-confirmation (routing-providers.css): connection-delete-confir
 connection-detail (connection-detail.css): connection-detail__badge connection-detail__badges connection-detail__controls connection-detail__header connection-detail__identity connection-detail__meta connection-detail__title connection-detail__title-row
 connection-label-cell (routing-providers.css): connection-label-cell connection-label-cell__edit
 connections-panel (routing-providers.css): connections-panel connections-panel--collapsed connections-panel__body connections-panel__chevron connections-panel__toggle connections-panel__viewport
-container (layout.css, theme.css): container--full container--lg container--md container--sm
+container (layout.css, routing.css, theme.css): container--full container--lg container--md container--sm
 conv-outline-row (request-drawer.css): conv-outline-row conv-outline-row--active conv-outline-row__badge conv-outline-row__badge--assistant conv-outline-row__badge--system conv-outline-row__badge--tool conv-outline-row__badge--unknown conv-outline-row__badge--user conv-outline-row__num conv-outline-row__preview conv-outline-row__tokens
 conv-rail (request-drawer.css): conv-rail conv-rail__empty conv-rail__list conv-rail__role-pill conv-rail__role-pill--assistant conv-rail__role-pill--off conv-rail__role-pill--system conv-rail__role-pill--tool conv-rail__role-pill--unknown conv-rail__role-pill--user conv-rail__roles conv-rail__search conv-rail__search-wrap
 conv-resize-handle (request-drawer.css): conv-resize-handle
