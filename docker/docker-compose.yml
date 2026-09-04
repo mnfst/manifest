@@ -151,6 +151,10 @@ services:
       # https://manifest.build/docs/self-hosted#telemetry for the payload shape.
       - MANIFEST_TELEMETRY_DISABLED=${MANIFEST_TELEMETRY_DISABLED:-0}
       - TELEMETRY_ENDPOINT=${TELEMETRY_ENDPOINT:-}
+      # Update check (opt-out). Once a day the dashboard asks GitHub for the
+      # latest Manifest release so it can show a "new version available"
+      # badge. Set MANIFEST_UPDATE_CHECK_DISABLED=1 on air-gapped installs.
+      - MANIFEST_UPDATE_CHECK_DISABLED=${MANIFEST_UPDATE_CHECK_DISABLED:-0}
     depends_on:
       postgres:
         condition: service_healthy

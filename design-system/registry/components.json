@@ -4153,7 +4153,10 @@
     },
     "version-indicator": {
       "classes": [
-        "version-indicator"
+        "version-indicator",
+        "version-indicator--update",
+        "version-indicator__dismiss",
+        "version-indicator__update"
       ],
       "files": [
         "version-indicator.css"
@@ -4312,7 +4315,8 @@
         "wingman-fab__label"
       ],
       "files": [
-        "controls.css"
+        "controls.css",
+        "version-indicator.css"
       ]
     },
     "workspace-table": {
@@ -5104,7 +5108,7 @@
     "tokens": 79,
     "darkOverrides": 38,
     "blocks": 315,
-    "classes": 1708,
+    "classes": 1711,
     "canonicalRules": 46,
     "ghostRules": 46
   }
