@@ -1,0 +1,88 @@
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_20a441dc1a69ab::t_f2ce2fd1cb5394 80,96
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_20a441dc1a69ab::t_8cdc61a7810764 18-23,25-44
+  s_20a441dc1a69ab::t_89860ade5738a6 144-146
+  s_20a441dc1a69ab::t_3b6de83d73b093 24
+  s_20a441dc1a69ab::t_29741cb7e7501d 89-91
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_20a441dc1a69ab::t_f453c6995f5f08 620-621
+packages/shared/src/index.ts
+  s_20a441dc1a69ab::t_3b6de83d73b093 191-198
+packages/backend/src/database/migrations/1802100000000-AddCustomProviderAlias.ts
+  s_20a441dc1a69ab::t_b3bebb3d25ab8e 2
+  s_20a441dc1a69ab::t_84f046d478d40f 1,3-58
+packages/backend/src/database/data-source-definitions.ts
+  s_20a441dc1a69ab::t_77bebb072f5959 44,324
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_20a441dc1a69ab::t_415b68ecf8e7d4 15-17
+  s_20a441dc1a69ab::t_1db3c0b9adac35 334-345
+  s_20a441dc1a69ab::t_b3bebb3d25ab8e 109
+  s_20a441dc1a69ab::t_f128059f1c7b9b 97-108,110-121
+  s_20a441dc1a69ab::t_d143454e352f51 241-250,265
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_20a441dc1a69ab::t_50c35be1c40f61 64,75-110
+  s_20a441dc1a69ab::t_e2c8f915d036c5 111
+packages/backend/src/database/migrations/1802100000000-AddCustomProviderAlias.spec.ts
+  s_20a441dc1a69ab::t_951249fbd5bc7d 1-85
+packages/shared/__tests__/custom-provider-alias.spec.ts
+  s_20a441dc1a69ab::t_3b6de83d73b093 1-89
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_20a441dc1a69ab::t_851cfe5d9cf249 110,176,211,252,774
+  s_20a441dc1a69ab::t_9aad71a90ca513 433,643,1335
+  s_20a441dc1a69ab::t_4da407243d1f13 905,945,1455,1542-1648
+  s_20a441dc1a69ab::t_a9c330d4b4f181 1649
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_20a441dc1a69ab::t_ba706a4d7acea7 42,90,116
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_20a441dc1a69ab::t_79e86e4ab1a968 270-276
+  s_20a441dc1a69ab::t_2d91142e66ad67 304-309
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_20a441dc1a69ab::t_b3bebb3d25ab8e 297
+  s_20a441dc1a69ab::t_b7d7a35954b949 170
+  s_20a441dc1a69ab::t_1fe97317f6be5d 189
+  s_20a441dc1a69ab::t_f5a3a4fc59d9e8 2
+  s_20a441dc1a69ab::t_e2f4ca660fefd2 273,279-296,298
+  s_20a441dc1a69ab::t_b5c6366a770537 71-80
+  s_20a441dc1a69ab::t_421ce0715f3697 299-300
+packages/backend/src/entities/custom-provider.entity.ts
+  s_20a441dc1a69ab::t_0e05757a2d6344 33-42
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_20a441dc1a69ab::t_906b6c3e5dd764 371-420
+  s_20a441dc1a69ab::t_241ba9ab0cba3e 661
+  s_20a441dc1a69ab::t_fe984193d82835 637-660,662-697
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_20a441dc1a69ab::t_fc36d9fcb9877a 843-854
+packages/backend/src/routing/dto/custom-provider.dto.spec.ts
+  s_20a441dc1a69ab::t_81ae4dd9458aa0 24-71
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_20a441dc1a69ab::t_eed521fae9e73f 28-41,44
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_20a441dc1a69ab::t_f1877100a885c6 46-53
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_20a441dc1a69ab::t_fc7b22b9d46edb 184-186
+.changeset/custom-provider-alias.md
+  s_20a441dc1a69ab::t_1371b9ebf6a8fb 1-5
+packages/frontend/src/services/api/routing.ts
+  s_20a441dc1a69ab::t_7bc552d9c1fc82 509
+  s_20a441dc1a69ab::t_d165d1d349b7ca 489
+  s_20a441dc1a69ab::t_ccbf4d62ce5ebe 442-443
+packages/shared/src/custom-provider-alias.ts
+  s_20a441dc1a69ab::t_3b6de83d73b093 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4bac955e63a4dc67bac2093625a1ee7e27322fe7",
+  "prompts": {},
+  "sessions": {
+    "s_20a441dc1a69ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b992073c-8f4d-40a2-83d5-94a36defa94e",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
