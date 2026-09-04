@@ -1,0 +1,117 @@
+.changeset/custom-provider-alias.md
+  s_3cda7960fe6983::t_f660db4b9f5647 1-5
+.changeset/self-hosted-update-check.md
+  s_3cda7960fe6983::t_b6f458ef5214a3 1-5
+CLAUDE.md
+  s_3cda7960fe6983::t_1653b9d2daa898 410,449
+design-system/registry/components.json
+  s_3cda7960fe6983::t_bff1fdc0dae5f8 4156-4159,4318-4319,5111
+design-system/registry/llms.txt
+  s_3cda7960fe6983::t_3a6be1ddff70b3 99,408,413
+docker/DOCKER_README.md
+  s_3cda7960fe6983::t_c55e6a9676fa5b 317-318
+docker/docker-compose.yml
+  s_3cda7960fe6983::t_79e0192c45704b 154-157
+packages/backend/.env.example
+  s_3cda7960fe6983::t_8a5221b81d2e3b 128-132
+packages/backend/src/app.module.ts
+  s_3cda7960fe6983::t_4ad90392402005 29,99
+packages/backend/src/database/data-source-definitions.ts
+  s_3cda7960fe6983::t_3e540070caab15 44,324
+packages/backend/src/database/migrations/1802100000000-AddCustomProviderAlias.spec.ts
+  s_3cda7960fe6983::t_ab9c477bbc2a2a 1-85
+packages/backend/src/database/migrations/1802100000000-AddCustomProviderAlias.ts
+  s_3cda7960fe6983::t_3f5caca6108ca0 1-58
+packages/backend/src/entities/custom-provider.entity.ts
+  s_3cda7960fe6983::t_969edce77ea7e8 33-42
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_3cda7960fe6983::t_807f59e23b3af5 843-854,1137-1149
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_3cda7960fe6983::t_db6e97900fb377 86,517-521,533-543,636-637
+packages/backend/src/model-discovery/model-fetcher.ts
+  s_3cda7960fe6983::t_77acfd009e1b4e 46-53
+packages/backend/src/routing/custom-provider.controller.spec.ts
+  s_3cda7960fe6983::t_13085c10b8b650 80,96
+packages/backend/src/routing/custom-provider/custom-provider.controller.ts
+  s_3cda7960fe6983::t_28dea862686095 42,90,116
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_3cda7960fe6983::t_c1a02120f4a44f 371-443,660-742
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_3cda7960fe6983::t_35d2053575d74f 15-17,72-85,111-135,255-264,279,298-318,355-366,384-393
+packages/backend/src/routing/dto/custom-provider.dto.spec.ts
+  s_3cda7960fe6983::t_3d76f6f0271454 24-71
+packages/backend/src/routing/dto/custom-provider.dto.ts
+  s_3cda7960fe6983::t_63dfd8df59ddf9 18-44,89-91,144-146
+packages/backend/src/routing/proxy/__tests__/openai-model-id.spec.ts
+  s_3cda7960fe6983::t_a698807ba47615 64,75-111
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_3cda7960fe6983::t_a4be3935642d66 270-276,304-309
+packages/backend/src/routing/proxy/openai-model-id.ts
+  s_3cda7960fe6983::t_44c43b637a7401 28-41,44
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_3cda7960fe6983::t_7fca80cab35e9c 184-186
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_3cda7960fe6983::t_ec3495cac0759b 140-143
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_3cda7960fe6983::t_04bef624ce36da 63-66,71-74,97,104,142-152
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_3cda7960fe6983::t_dfd311947eb387 76-78
+packages/backend/src/routing/routing-cache.service.spec.ts
+  s_3cda7960fe6983::t_94158f0fa58f73 427-459
+packages/backend/src/routing/routing-core/routing-cache.service.ts
+  s_3cda7960fe6983::t_8a2b77a4098bfa 43,60-62,167-175,209-215
+packages/backend/src/version/version-check.config.spec.ts
+  s_3cda7960fe6983::t_1e25e79775fd7b 1-182
+packages/backend/src/version/version-check.config.ts
+  s_3cda7960fe6983::t_c8c65043e7178b 1-102
+packages/backend/src/version/version-check.service.spec.ts
+  s_3cda7960fe6983::t_75ba91fb663b25 1-275
+packages/backend/src/version/version-check.service.ts
+  s_3cda7960fe6983::t_dcbcd15019244c 1-135
+packages/backend/src/version/version.controller.spec.ts
+  s_3cda7960fe6983::t_80fe3a51823813 1-34
+packages/backend/src/version/version.controller.ts
+  s_3cda7960fe6983::t_4f73ef154232e1 1-17
+packages/backend/src/version/version.module.ts
+  s_3cda7960fe6983::t_2a31ef76150b44 1-13
+packages/frontend/src/components/CustomProviderForm.tsx
+  s_3cda7960fe6983::t_e1dbd81dec150f 2,71-80,170,189,273,279-300
+packages/frontend/src/components/VersionIndicator.tsx
+  s_3cda7960fe6983::t_d32d7514610cd0 1-2,4-32,37-52,55-63,65-81
+packages/frontend/src/services/api.ts
+  s_3cda7960fe6983::t_eec6eed84a5a52 13
+packages/frontend/src/services/api/routing.ts
+  s_3cda7960fe6983::t_dfa52f33eafbab 442-443,489,509
+packages/frontend/src/services/api/version.ts
+  s_3cda7960fe6983::t_614886ec91c59e 1-22
+packages/frontend/src/styles/version-indicator.css
+  s_3cda7960fe6983::t_2c569e2bbddc9b 8-10,18-74
+packages/frontend/tests/components/CustomProviderForm.test.tsx
+  s_3cda7960fe6983::t_b2d58dd3c2e05b 110,176,211,252,433,643,774,905,945,1335,1455,1542-1649
+packages/frontend/tests/components/VersionIndicator.test.tsx
+  s_3cda7960fe6983::t_e17edab30a6903 1-43,47,50-51,53,57,59,62-69,71,74-177
+packages/frontend/tests/services/version-api.test.ts
+  s_3cda7960fe6983::t_8759e998092044 1-52
+packages/shared/__tests__/custom-provider-alias.spec.ts
+  s_3cda7960fe6983::t_5e5ba5b735106c 1-89
+packages/shared/src/custom-provider-alias.ts
+  s_3cda7960fe6983::t_128445db4cb3f7 1-71
+packages/shared/src/index.ts
+  s_3cda7960fe6983::t_776b776070bd78 191-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "549baab0405b7bb01306dab42a2e6e53d2a81460",
+  "prompts": {},
+  "sessions": {
+    "s_3cda7960fe6983": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29e6a8bb-9461-4399-a275-1bffd7259db2",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
