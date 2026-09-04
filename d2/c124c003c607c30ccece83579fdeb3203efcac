@@ -1,0 +1,19 @@
+packages/shared/src/custom-provider-alias.ts
+  s_20a441dc1a69ab::t_f54c608a576b9d 42,47-50,55-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d2c124c003c607c30ccece83579fdeb3203efcac",
+  "prompts": {},
+  "sessions": {
+    "s_20a441dc1a69ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b992073c-8f4d-40a2-83d5-94a36defa94e",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
