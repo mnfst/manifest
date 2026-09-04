@@ -1,4 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
 
 /**
  * Partial index over the requests Autofix repaired, for the CRM metrics feed.
@@ -39,6 +40,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * `npm run migration:revert` passes `--transaction none`, so `down()` runs
  * outside a transaction as CONCURRENTLY requires. Under the default
  * transaction mode Postgres would reject the statement.
+ *
+ * Cloud only, mirroring 1801300000000: a self-hosted install gets no schema
+ * change at all. Consequence to know about — an install that ran this while
+ * self-hosted and later switches `MANIFEST_MODE=cloud` will not re-run it,
+ * because TypeORM has already recorded it. The endpoint reports that state
+ * explicitly (503 naming the missing index) rather than silently scanning.
  */
 export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInterface {
   name = 'AddRequestsAutofixHealedIndex1802200000000';
@@ -47,6 +54,13 @@ export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInte
   private static readonly INDEX = 'IDX_requests_autofix_healed';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // The CRM feed is a Cloud outreach concern and its module is not even
+    // registered on self-hosted, so the index would be dead weight there.
+    // Skipping also spares self-hosted upgrades a CONCURRENTLY build, which
+    // scans the whole `requests` table however few rows match the predicate,
+    // and runs during boot where it would delay container startup.
+    if (isSelfHosted()) return;
+
     const { INDEX } = AddRequestsAutofixHealedIndex1802200000000;
     // A cancelled CONCURRENTLY build leaves an INVALID shell that
     // `CREATE ... IF NOT EXISTS` would skip over by name, leaving the feed
@@ -66,6 +80,7 @@ export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    if (isSelfHosted()) return;
     await queryRunner.query(
       `DROP INDEX CONCURRENTLY IF EXISTS "${AddRequestsAutofixHealedIndex1802200000000.INDEX}"`,
     );

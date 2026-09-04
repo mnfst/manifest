@@ -1,4 +1,8 @@
 import { AddRequestsAutofixHealedIndex1802200000000 } from './1802200000000-AddRequestsAutofixHealedIndex';
+import { isSelfHosted } from '../../common/utils/detect-self-hosted';
+
+jest.mock('../../common/utils/detect-self-hosted', () => ({ isSelfHosted: jest.fn() }));
+const mockedIsSelfHosted = jest.mocked(isSelfHosted);
 
 describe('AddRequestsAutofixHealedIndex1802200000000', () => {
   const migration = new AddRequestsAutofixHealedIndex1802200000000();
@@ -22,6 +26,7 @@ describe('AddRequestsAutofixHealedIndex1802200000000', () => {
     args = [];
     invalidRows = [];
     jest.clearAllMocks();
+    mockedIsSelfHosted.mockReturnValue(false);
   });
 
   it('exposes the expected migration name', () => {
@@ -74,5 +79,26 @@ describe('AddRequestsAutofixHealedIndex1802200000000', () => {
     await migration.down(mockQueryRunner);
 
     expect(queries).toEqual(['DROP INDEX CONCURRENTLY IF EXISTS "IDX_requests_autofix_healed"']);
+  });
+
+  describe('self-hosted', () => {
+    // The feed is Cloud-only and its module is not registered on self-hosted,
+    // so the index would be dead weight. Skipping also spares those upgrades a
+    // whole-table CONCURRENTLY scan during boot.
+    it('touches nothing on the way up', async () => {
+      mockedIsSelfHosted.mockReturnValue(true);
+
+      await migration.up(mockQueryRunner);
+
+      expect(queries).toEqual([]);
+    });
+
+    it('touches nothing on the way down either', async () => {
+      mockedIsSelfHosted.mockReturnValue(true);
+
+      await migration.down(mockQueryRunner);
+
+      expect(queries).toEqual([]);
+    });
   });
 });

@@ -32,6 +32,10 @@ describe('Internal CRM metrics (e2e)', () => {
 
   beforeAll(async () => {
     process.env['CRM_METRICS_SECRET'] = SECRET;
+    // The migration and the module registration are both Cloud-only. Pin the
+    // mode so this suite does not depend on whether the runner happens to look
+    // containerised to `isSelfHosted()`.
+    process.env['MANIFEST_MODE'] = 'cloud';
     app = await createTestApp();
     ds = app.get(DataSource);
 
@@ -69,6 +73,7 @@ describe('Internal CRM metrics (e2e)', () => {
   afterAll(async () => {
     await app.close();
     delete process.env['CRM_METRICS_SECRET'];
+    delete process.env['MANIFEST_MODE'];
   });
 
   beforeEach(async () => {
