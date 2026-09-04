@@ -1,0 +1,23 @@
+.changeset/n8n-agent-category.md
+  s_269b4efc204140::t_e61c78d050c411 1-5
+packages/frontend/src/components/N8nSetup.tsx
+  s_269b4efc204140::t_3934ee06d703d6 63-65
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_269b4efc204140::t_595c6bc8304bee 347
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "afb8d19f0be9b67704c60c703c712cc50ad93b30",
+  "prompts": {},
+  "sessions": {
+    "s_269b4efc204140": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "83abf028-c439-40a9-9d46-44316d62e03a",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
