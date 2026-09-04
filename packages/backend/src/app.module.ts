@@ -35,6 +35,8 @@ import { TelemetryModule } from './telemetry/telemetry.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { BillingModule } from './billing/billing.module';
 import { DiscoveryModule } from './discovery/discovery.module';
+import { CrmMetricsModule } from './crm-metrics/crm-metrics.module';
+import { isSelfHosted } from './common/utils/detect-self-hosted';
 import { DebugSentryController } from './sentry/debug-sentry.controller';
 
 const frontendPath = resolveFrontendDir();
@@ -66,6 +68,12 @@ const sentryProviders = sentryEnabled
   : [];
 const sentryDebugControllers =
   sentryEnabled && process.env['NODE_ENV'] !== 'production' ? [DebugSentryController] : [];
+
+// The CRM metrics feed drives Cloud outreach. Leaving it unregistered on
+// self-hosted means the routes do not exist there at all, rather than existing
+// and answering 401 forever, and pairs with migration 1802200000000 skipping
+// its index so a self-hosted install sees no trace of this feature.
+const crmMetricsImports = isSelfHosted() ? [] : [CrmMetricsModule];
 
 @Module({
   imports: [
@@ -106,6 +114,7 @@ const sentryDebugControllers =
     WaitlistModule,
     BillingModule,
     DiscoveryModule,
+    ...crmMetricsImports,
   ],
   providers: [
     ...sentryProviders,

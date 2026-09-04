@@ -1,5 +1,19 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 import { Logger as NestLogger } from '@nestjs/common';
+
+/**
+ * Constant-time string comparison for shared secrets sent in headers.
+ *
+ * `timingSafeEqual` requires equal-length inputs, and a length mismatch is a
+ * definite mismatch — the length of a configured secret is not itself worth
+ * hiding. Mirrors the logic in `ApiKeyGuard.safeCompare`.
+ */
+export function timingSafeCompare(actual: string, expected: string): boolean {
+  const actualBuf = Buffer.from(actual, 'utf8');
+  const expectedBuf = Buffer.from(expected, 'utf8');
+  if (actualBuf.length !== expectedBuf.length) return false;
+  return timingSafeEqual(actualBuf, expectedBuf);
+}
 
 const ALGORITHM = 'aes-256-gcm';
 // AES-GCM standard nonce length per NIST SP 800-38D §5.2.1.1. New ciphertexts
