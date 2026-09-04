@@ -8,6 +8,7 @@ import {
   isEncrypted,
   getDecryptionSecrets,
   decryptWithAny,
+  timingSafeCompare,
 } from './crypto.util';
 
 describe('getEncryptionSecret', () => {
@@ -281,5 +282,36 @@ describe('encryptBuffer / decryptBuffer', () => {
     expect(() => decryptBuffer(Buffer.from('MRE1short', 'ascii'), secret)).toThrow(
       'Invalid encrypted blob format',
     );
+  });
+});
+
+describe('timingSafeCompare', () => {
+  it('accepts identical strings', () => {
+    expect(timingSafeCompare('shared-secret', 'shared-secret')).toBe(true);
+  });
+
+  it('rejects a different string of the same length', () => {
+    expect(timingSafeCompare('aaaaaaaa', 'bbbbbbbb')).toBe(false);
+  });
+
+  it('rejects a length mismatch without throwing', () => {
+    expect(timingSafeCompare('short', 'much-longer-secret')).toBe(false);
+    expect(timingSafeCompare('much-longer-secret', 'short')).toBe(false);
+  });
+
+  it('treats two empty strings as equal', () => {
+    expect(timingSafeCompare('', '')).toBe(true);
+  });
+
+  it('compares by bytes, so multi-byte characters are handled', () => {
+    expect(timingSafeCompare('sécret', 'sécret')).toBe(true);
+    // Byte-length equal but different: the comparison itself has to reject
+    // these, not the length shortcut that catches 'sécret' vs 'secret'.
+    expect(Buffer.byteLength('é')).toBe(Buffer.byteLength('ab'));
+    expect(timingSafeCompare('é', 'ab')).toBe(false);
+    // Equal in characters, unequal in bytes: guarding on `String.length`
+    // instead would reach timingSafeEqual and make it throw.
+    expect(timingSafeCompare('é', 'a')).toBe(false);
+    expect(timingSafeCompare('sécret', 'secret')).toBe(false);
   });
 });

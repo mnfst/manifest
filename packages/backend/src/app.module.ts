@@ -35,6 +35,7 @@ import { TelemetryModule } from './telemetry/telemetry.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { BillingModule } from './billing/billing.module';
 import { DiscoveryModule } from './discovery/discovery.module';
+import { CrmMetricsModule } from './crm-metrics/crm-metrics.module';
 import { DebugSentryController } from './sentry/debug-sentry.controller';
 
 const frontendPath = resolveFrontendDir();
@@ -106,6 +107,7 @@ const sentryDebugControllers =
     WaitlistModule,
     BillingModule,
     DiscoveryModule,
+    CrmMetricsModule,
   ],
   providers: [
     ...sentryProviders,

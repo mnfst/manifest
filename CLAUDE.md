@@ -135,6 +135,7 @@ packages/
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
 │   │   ├── waitlist/                        # Pivot waiting-list claims + legacy Autofix claim compatibility route
 │   │   ├── discovery/                       # Self-hosted discovery onboarding (forwarded to Peacock)
+│   │   ├── crm-metrics/                     # Internal feed: Autofix-healed user cohort + waitlist claims (secret-gated)
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
 │   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
@@ -386,6 +387,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/overview/autofix-*`                    | Session/API Key                     | Autofix analytics (stats, timeseries, per-agent/provider/model)                                             |
 | POST                      | `/api/v1/discovery/complete`                    | Session/API Key                     | Best-effort self-hosted discovery submission forwarded to Peacock                                           |
 | GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
+| GET                       | `/api/v1/internal/crm-metrics*`                 | Public (`x-internal-secret` header) | Autofix-healed user cohort + pivot waitlist claims, for the outreach CRM (`CRM_METRICS_SECRET`)             |
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, recording, etc.) |
@@ -448,6 +450,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `MANIFEST_TELEMETRY_DISABLED` — Set `1` to opt out of anonymous telemetry (self-hosted only).
 - `MANIFEST_UPDATE_CHECK_DISABLED` — Set `1` to stop the self-hosted dashboard's daily "new version available" check against GitHub Releases (`GET /api/v1/version`, `version/` module). Separate from the telemetry opt-out: air-gapped installs want no outbound calls at all. Never runs in cloud mode.
 - `MANIFEST_PUBLIC_STATS` — Set `true` to expose `/api/v1/public/*` aggregate stats without auth (cloud-only marketing use).
+- `CRM_METRICS_SECRET` — Shared secret for `GET /api/v1/internal/crm-metrics*`, sent in the `x-internal-secret` header. Empty by default and anything under 32 chars counts as unset, because this is the only route that exports user email addresses across tenants. Separate from `ERROR_PAGE_PUSH_SECRET` on purpose: different consumer, different credential.
 - `TELEMETRY_ENDPOINT` — Where self-hosted installs POST the anonymous usage report. Default: `https://telemetry.manifest.build/v1/report`. See [Telemetry](#anonymous-usage-telemetry-self-hosted).
 - `DISCOVERY_ENDPOINT` — Optional override for the discovery submission endpoint. Default: `https://blue.manifest.build/v1/self-hosted/discovery`.
 - `SENTRY_DSN` / `SENTRY_ENVIRONMENT` / `SENTRY_RELEASE` — Opt-in Sentry error monitoring. Unset `SENTRY_DSN` disables Sentry entirely; `SENTRY_ENVIRONMENT` defaults to `NODE_ENV`. See [Error Monitoring](#error-monitoring-sentry-opt-in).

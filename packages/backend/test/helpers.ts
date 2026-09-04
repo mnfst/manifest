@@ -53,6 +53,7 @@ import { CommonModule } from '../src/common/common.module';
 import { PublicStatsModule } from '../src/public-stats/public-stats.module';
 import { SetupModule } from '../src/setup/setup.module';
 import { WaitlistModule } from '../src/waitlist/waitlist.module';
+import { CrmMetricsModule } from '../src/crm-metrics/crm-metrics.module';
 import { ProviderModelFetcherService } from '../src/model-discovery/provider-model-fetcher.service';
 
 export const TEST_USER_ID = 'test-user-001';
@@ -238,6 +239,7 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
         PublicStatsModule,
         SetupModule,
         WaitlistModule,
+        CrmMetricsModule,
       ],
       providers: [{ provide: APP_GUARD, useClass: MockSessionGuard }],
     })
