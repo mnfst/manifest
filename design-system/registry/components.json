@@ -460,7 +460,8 @@
         "agent-filter-select__trigger"
       ],
       "files": [
-        "filter-select.css"
+        "filter-select.css",
+        "theme.css"
       ]
     },
     "agent-type-select": {
