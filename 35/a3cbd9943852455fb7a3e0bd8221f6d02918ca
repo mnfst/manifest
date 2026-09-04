@@ -1,0 +1,28 @@
+integrations/n8n-nodes-manifest/README.md
+  s_aa380b7fa90e22::t_94b661597f5304 49-50,58-70
+  s_269b4efc204140::t_f1446d939333ff 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "35a3cbd9943852455fb7a3e0bd8221f6d02918ca",
+  "prompts": {},
+  "sessions": {
+    "s_269b4efc204140": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "83abf028-c439-40a9-9d46-44316d62e03a",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_aa380b7fa90e22": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e51b56f-8df0-4896-b9d5-2e6ce05a5bd4",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
