@@ -96,7 +96,7 @@
 --z-toast: 8000
 --z-tooltip: 9999
 
-## Blocks (315 BEM blocks, 1711 classes)
+## Blocks (313 BEM blocks, 1694 classes)
 account-back-btn (agents.css): account-back-btn
 account-email-footer (agents.css): account-email-footer
 account-email-toggle (agents.css): account-email-toggle--disabled
@@ -273,7 +273,6 @@ notification-rule (notifications.css): notification-rule__delete notification-ru
 notification-toggle (notifications.css): notification-toggle notification-toggle__slider
 output-controls (routing.css): output-controls output-controls--compact output-controls__field output-controls__label output-controls__segment output-controls__segment--active output-controls__segments
 overview (agents.css): overview__platform-icon
-overview-discovery-banner (overview.css): overview-discovery-banner overview-discovery-banner__cta overview-discovery-banner__dismiss overview-discovery-banner__inner overview-discovery-banner__text
 overview-split (analytics-overview.css): overview-split
 overview-stat-card (analytics-overview.css): overview-stat-card overview-stat-card--autofix overview-stat-card--destructive overview-stat-card--fallback overview-stat-card__label overview-stat-card__value overview-stat-card__value-row
 overview-stats (analytics-overview.css): overview-stats overview-stats--3 overview-stats--5
@@ -404,7 +403,6 @@ upgrade-pro-current (agents.css): upgrade-pro-current upgrade-pro-current__card 
 upgrade-success-modal (modals.css): upgrade-success-modal upgrade-success-modal__body upgrade-success-modal__done upgrade-success-modal__features upgrade-success-modal__icon upgrade-success-modal__subtitle upgrade-success-modal__title
 upgrade-terms (agents.css): upgrade-terms
 usage-limit-banner (modals.css): usage-limit-banner usage-limit-banner__actions usage-limit-banner__btn usage-limit-banner__text
-user-discovery-modal (modals.css): user-discovery-modal user-discovery-modal__banner user-discovery-modal__banner-img user-discovery-modal__body user-discovery-modal__close user-discovery-modal__cta user-discovery-modal__features user-discovery-modal__highlight user-discovery-modal__later user-discovery-modal__subtitle user-discovery-modal__title user-discovery-modal__title-logo
 version-indicator (version-indicator.css): version-indicator version-indicator--update version-indicator__dismiss version-indicator__update
 view-more-link (analytics-overview.css, cards.css): view-more-link
 waiting-banner (overview.css): waiting-banner waiting-banner--success
@@ -428,8 +426,8 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .setup-modal__next { background: hsl(var(--foreground)) }  ← overview.css:45
 .setup-modal__next { color: hsl(var(--background)) }  ← overview.css:46
 .setup-modal__next:hover { opacity: 0.85 }  ← overview.css:55
-.tier-badge--fallback { background: hsl(38 92% 50% / 0.15) }  ← overview.css:194
-.tier-badge--fallback { color: hsl(38 92% 40%) }  ← overview.css:195
+.tier-badge--fallback { background: hsl(38 92% 50% / 0.15) }  ← overview.css:105
+.tier-badge--fallback { color: hsl(38 92% 40%) }  ← overview.css:106
 .request-tool { border: 1px solid hsl(36 80% 50% / 0.24) }  ← request-drawer.css:874
 .request-tool { border-radius: var(--radius-sm) }  ← request-drawer.css:875
 .request-tool { background: hsl(36 80% 50% / 0.04) }  ← request-drawer.css:876
@@ -492,8 +490,8 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .sidebar { padding: var(--gap-md) 0 }  at controls.css:261 loses to theme.css:785
 .custom-select__option--top > svg { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
 .custom-select__option--top > img { margin-top: calc((18px - 13px) / 2) }  at custom-select.css:137 loses to custom-select.css:142
-.tier-badge--fallback { background: hsl(var(--muted-foreground) / 0.1) }  at data.css:299 loses to overview.css:194
-.tier-badge--fallback { color: hsl(var(--muted-foreground)) }  at data.css:300 loses to overview.css:195
+.tier-badge--fallback { background: hsl(var(--muted-foreground) / 0.1) }  at data.css:299 loses to overview.css:105
+.tier-badge--fallback { color: hsl(var(--muted-foreground)) }  at data.css:300 loses to overview.css:106
 .feed-item { align-items: flex-start }  at data.css:507 loses to theme.css:587
 .feed-item { gap: 12px }  at data.css:508 loses to theme.css:588
 .feed-item { padding: 12px 0 }  at data.css:509 loses to theme.css:589

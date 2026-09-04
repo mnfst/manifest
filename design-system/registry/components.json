@@ -2379,18 +2379,6 @@
         "agents.css"
       ]
     },
-    "overview-discovery-banner": {
-      "classes": [
-        "overview-discovery-banner",
-        "overview-discovery-banner__cta",
-        "overview-discovery-banner__dismiss",
-        "overview-discovery-banner__inner",
-        "overview-discovery-banner__text"
-      ],
-      "files": [
-        "overview.css"
-      ]
-    },
     "overview-split": {
       "classes": [
         "overview-split"
@@ -4132,25 +4120,6 @@
         "modals.css"
       ]
     },
-    "user-discovery-modal": {
-      "classes": [
-        "user-discovery-modal",
-        "user-discovery-modal__banner",
-        "user-discovery-modal__banner-img",
-        "user-discovery-modal__body",
-        "user-discovery-modal__close",
-        "user-discovery-modal__cta",
-        "user-discovery-modal__features",
-        "user-discovery-modal__highlight",
-        "user-discovery-modal__later",
-        "user-discovery-modal__subtitle",
-        "user-discovery-modal__title",
-        "user-discovery-modal__title-logo"
-      ],
-      "files": [
-        "modals.css"
-      ]
-    },
     "version-indicator": {
       "classes": [
         "version-indicator",
@@ -4394,14 +4363,14 @@
       "prop": "background",
       "value": "hsl(38 92% 50% / 0.15)",
       "file": "overview.css",
-      "line": 194
+      "line": 105
     },
     {
       "selector": ".tier-badge--fallback",
       "prop": "color",
       "value": "hsl(38 92% 40%)",
       "file": "overview.css",
-      "line": 195
+      "line": 106
     },
     {
       "selector": ".request-tool",
@@ -4839,7 +4808,7 @@
       "value": "hsl(var(--muted-foreground) / 0.1)",
       "file": "data.css",
       "line": 299,
-      "losesTo": "overview.css:194"
+      "losesTo": "overview.css:105"
     },
     {
       "selector": ".tier-badge--fallback",
@@ -4847,7 +4816,7 @@
       "value": "hsl(var(--muted-foreground))",
       "file": "data.css",
       "line": 300,
-      "losesTo": "overview.css:195"
+      "losesTo": "overview.css:106"
     },
     {
       "selector": ".feed-item",
@@ -5107,8 +5076,8 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 315,
-    "classes": 1711,
+    "blocks": 313,
+    "classes": 1694,
     "canonicalRules": 46,
     "ghostRules": 46
   }
