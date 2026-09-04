@@ -114,7 +114,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
   getConnectionAttemptsByAgentTimeseries: (...args: unknown[]) =>
     apiMocks.getConnectionAttemptsByAgentTimeseries(...args),
   getPerAgentCostTimeseries: (...args: unknown[]) => apiMocks.getPerAgentCostTimeseries(...args),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: () => Promise.resolve(null),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -981,9 +982,7 @@ describe('ConnectionDetail (analytics)', () => {
     await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
     expect(screen.getAllByText('Harnesses').length).toBeGreaterThan(0);
     expect(screen.getAllByText('gpt-5').length).toBeGreaterThan(0);
-    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain(
-      'autofixed attempts',
-    );
+    expect(screen.getByTestId('requests-info-tooltip').textContent).toContain('autofixed attempts');
     // Recent messages table renders model and token data (description is no longer displayed).
     expect(screen.getByText('Recent Requests')).toBeDefined();
     // BYOK connection → cost columns present
@@ -1077,6 +1076,23 @@ describe('ConnectionDetail (analytics)', () => {
     fireEvent.click(screen.getAllByText('All harnesses (2)').at(-1)!);
     fireEvent.click(screen.getByText('beta'));
     await waitFor(() => expect(screen.getByTestId('msg-agents').textContent).toBe('alpha'));
+  });
+
+  it('lays out the header, meta row, controls and stat grid with responsive classes', async () => {
+    const { container } = render(() => <ConnectionDetail />);
+    await waitFor(() => expect(screen.getAllByText('Default').length).toBeGreaterThan(0));
+    // The mobile layout lives in connection-detail.css: every block that used
+    // to be a fixed inline flex row / 5-column grid now carries a class the
+    // 768px breakpoint can reflow.
+    expect(container.querySelector('.connection-detail__header')).not.toBeNull();
+    expect(container.querySelector('.connection-detail__meta')).not.toBeNull();
+    expect(container.querySelector('.connection-detail__controls')).not.toBeNull();
+    // The status pill (and the Custom tag on custom connections) share one
+    // badge class so the phone breakpoint can size them as a matched pair.
+    expect(container.querySelector('.connection-detail__badge')?.textContent).toBe('Active');
+    const stats = container.querySelector('.overview-stats');
+    expect(stats?.classList.contains('overview-stats--5')).toBe(true);
+    expect((stats as HTMLElement).style.gridTemplateColumns).toBe('');
   });
 
   it('shows the attempt cards row: rate, counts and both retry families', async () => {

@@ -554,7 +554,8 @@ const ProviderConnectionsPage: Component<ProviderConnectionsPageProps> = (props)
       <Show when={connectedRows().length > 0}>
         <div
           class="overview-stats"
-          style={`grid-template-columns: repeat(${showMetricCard() ? 4 : 3}, 1fr); margin-bottom: 24px;`}
+          classList={{ 'overview-stats--3': !showMetricCard() }}
+          style="margin-bottom: 24px;"
         >
           <Show when={showMetricCard()}>
             <div class="overview-stat-card">

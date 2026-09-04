@@ -1233,6 +1233,9 @@ h6 {
 @media (max-width: 768px) {
   .header {
     padding: 0 var(--gap-md);
+    /* The left group grows to fill the row here, so without a gap the
+       truncated breadcrumb would butt against the nav toggle. */
+    gap: var(--gap-md);
   }
   .header__left {
     flex: 1;
@@ -1251,12 +1254,34 @@ h6 {
   }
   .header__breadcrumb-current {
     max-width: min(38vw, 180px);
+    /* Also shrink below the natural width when the logo + badge leave less
+       room than that cap, so the name ellipsizes instead of being clipped
+       by the left group's overflow. */
+    min-width: 0;
+    flex: 0 1 auto;
   }
   .header__breadcrumb-current > span {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .header__breadcrumb-current > .header__breadcrumb-provider-icon,
+  .header__breadcrumb-current > .header__breadcrumb-label {
+    display: none;
+  }
+  /* Tab bars (harness detail, routing layers, …) are inline-flex pills that
+     never shrink: when the tabs outgrow a phone screen the bar scrolls
+     sideways inside its own box instead of widening the whole page. The
+     pill is only 2.25rem tall, so the scrollbar is hidden rather than
+     squeezed in. */
+  .panel__tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .panel__tabs::-webkit-scrollbar {
+    display: none;
   }
   .header__gear {
     flex-shrink: 0;

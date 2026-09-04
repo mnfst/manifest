@@ -365,6 +365,10 @@
   border-radius: var(--radius);
   background: hsl(var(--success) / 0.15);
   color: hsl(var(--success));
+  /* The header's left group shrinks around the breadcrumb on small screens;
+     the badge must stay one line rather than break "SELF-" / "HOSTED". */
+  white-space: nowrap;
+  flex-shrink: 0;
   line-height: 1;
   user-select: none;
 }
@@ -403,6 +407,17 @@
 .header__breadcrumb-icon {
   width: 14px;
   height: 14px;
+}
+
+.header__breadcrumb-provider-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.header__breadcrumb-label {
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
 }
 
 .dark .header__breadcrumb-icon[src*='openai'],

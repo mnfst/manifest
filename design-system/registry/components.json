@@ -888,6 +888,21 @@
         "routing-providers.css"
       ]
     },
+    "connection-detail": {
+      "classes": [
+        "connection-detail__badge",
+        "connection-detail__badges",
+        "connection-detail__controls",
+        "connection-detail__header",
+        "connection-detail__identity",
+        "connection-detail__meta",
+        "connection-detail__title",
+        "connection-detail__title-row"
+      ],
+      "files": [
+        "connection-detail.css"
+      ]
+    },
     "connection-label-cell": {
       "classes": [
         "connection-label-cell",
@@ -1072,6 +1087,7 @@
         "custom-select__value"
       ],
       "files": [
+        "connection-detail.css",
         "custom-select.css",
         "discovery.css",
         "routing-providers.css"
@@ -1485,7 +1501,9 @@
         "header__avatar-btn",
         "header__breadcrumb-current",
         "header__breadcrumb-icon",
+        "header__breadcrumb-label",
         "header__breadcrumb-link",
+        "header__breadcrumb-provider-icon",
         "header__docs-link",
         "header__dropdown",
         "header__dropdown-divider",
@@ -2397,7 +2415,9 @@
     },
     "overview-stats": {
       "classes": [
-        "overview-stats"
+        "overview-stats",
+        "overview-stats--3",
+        "overview-stats--5"
       ],
       "files": [
         "analytics-overview.css"
@@ -2413,6 +2433,7 @@
       ],
       "files": [
         "analytics-overview.css",
+        "connection-detail.css",
         "layout.css",
         "theme.css"
       ]
@@ -4317,7 +4338,7 @@
       "prop": "color",
       "value": "hsl(var(--foreground))",
       "file": "analytics-overview.css",
-      "line": 170
+      "line": 213
     },
     {
       "selector": ".custom-select__option--top > svg",
@@ -4690,7 +4711,7 @@
       "value": "hsl(var(--muted-foreground))",
       "file": "cards.css",
       "line": 72,
-      "losesTo": "analytics-overview.css:170"
+      "losesTo": "analytics-overview.css:213"
     },
     {
       "selector": ".chart-card",
@@ -5015,6 +5036,9 @@
       "pages/providers/ConnectionDetail.tsx",
       "pages/providers/ProviderConnectionsPage.tsx"
     ],
+    "connection-detail.css": [
+      "pages/providers/ConnectionDetail.tsx"
+    ],
     "discovery.css": [
       "pages/Discovery.tsx"
     ],
@@ -5083,8 +5107,8 @@
   "stats": {
     "tokens": 79,
     "darkOverrides": 38,
-    "blocks": 314,
-    "classes": 1699,
+    "blocks": 315,
+    "classes": 1711,
     "canonicalRules": 46,
     "ghostRules": 46
   }
