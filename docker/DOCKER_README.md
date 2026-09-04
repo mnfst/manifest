@@ -314,6 +314,8 @@ docker compose up -d
 
 Database migrations run automatically on boot, no manual steps. Your data in the `pgdata` volume is preserved across upgrades. Pin to a specific major version (e.g. `manifestdotbuild/manifest:6`) in `docker-compose.yml` if you want control over when major upgrades happen.
 
+The dashboard checks GitHub once a day for the latest release and shows a "new version available" badge linking to the [changelog](https://manifest.build/changelog/). The check only reads the public release list and sends nothing about your install. To turn it off (for example on an air-gapped host), set `MANIFEST_UPDATE_CHECK_DISABLED=1` in `.env`.
+
 ## Backup & persistence
 
 PostgreSQL state lives in the `mnfst_pgdata` named volume mounted at `/var/lib/postgresql/data` in the `postgres` service. The Compose install also stores local request recordings in the `mnfst_recordings` volume mounted at `/data/request-recordings`; those recordings are not included in a PostgreSQL dump. For ephemeral hosts or multiple instances, configure durable S3-compatible storage instead.
