@@ -191,8 +191,38 @@ describe('Responses adapter', () => {
         },
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
-      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
+      expect(result.tools).toEqual([]);
       expect(result.tool_choice).toBe('auto');
+    });
+
+    it('folds role:"developer" instruction messages into "system"', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          { role: 'developer', content: [{ type: 'input_text', text: 'You are concise.' }] },
+          { role: 'user', content: [{ type: 'input_text', text: 'Hi' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'system', content: 'You are concise.' },
+        { role: 'user', content: 'Hi' },
+      ]);
+    });
+
+    it('drops hosted tools and keeps only function tools', () => {
+      const result = toChatCompletionsRequest({
+        input: 'go',
+        tools: [
+          { type: 'web_search' },
+          { type: 'file_search' },
+          { type: 'computer_use_preview' },
+          { type: 'function', name: 'lookup', parameters: { type: 'object' } },
+        ],
+      });
+
+      expect(result.tools).toEqual([
+        { type: 'function', function: { name: 'lookup', parameters: { type: 'object' } } },
+      ]);
     });
 
     it('drops non-message input items that have no chat-completions equivalent', () => {
