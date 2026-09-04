@@ -1,0 +1,23 @@
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_269b4efc204140::t_8bfe4dde3d8306 353
+packages/shared/__tests__/agent-type.spec.ts
+  s_269b4efc204140::t_548581c5d57cfd 21-22
+packages/shared/src/agent-type.ts
+  s_269b4efc204140::t_58c78888310df5 10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "40473966f80051032b108461ad23391d1b4f8998",
+  "prompts": {},
+  "sessions": {
+    "s_269b4efc204140": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "83abf028-c439-40a9-9d46-44316d62e03a",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
