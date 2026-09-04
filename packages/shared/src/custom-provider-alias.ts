@@ -39,16 +39,33 @@ export function isReservedCustomProviderAlias(alias: string): boolean {
  * provider keeps publishing under its internal `custom:<uuid>/…` id.
  */
 export function deriveCustomProviderAlias(name: string): string | null {
-  const derived = name
+  const collapsed = name
     .trim()
     .toLowerCase()
     .replace(/[\s_]+/g, '-')
     .replace(/[^a-z0-9.-]/g, '')
-    .replace(/[.-]{2,}/g, (run) => run[0])
-    .replace(/^[.-]+|[.-]+$/g, '')
-    .slice(0, CUSTOM_PROVIDER_ALIAS_MAX_LENGTH)
-    .replace(/[.-]+$/, '');
+    .replace(/[.-]{2,}/g, (run) => run[0]);
+  const derived = trimSeparators(
+    trimSeparators(collapsed).slice(0, CUSTOM_PROVIDER_ALIAS_MAX_LENGTH),
+  );
   if (!CUSTOM_PROVIDER_ALIAS_PATTERN.test(derived)) return null;
   if (isReservedCustomProviderAlias(derived)) return null;
   return derived;
+}
+
+/**
+ * Strip leading and trailing `.` / `-`. A loop rather than `/[.-]+$/`: that
+ * anchored-suffix regex backtracks polynomially on long separator runs, and
+ * the input here is a user-supplied name.
+ */
+function trimSeparators(value: string): string {
+  let start = 0;
+  let end = value.length;
+  while (start < end && isSeparator(value[start])) start++;
+  while (end > start && isSeparator(value[end - 1])) end--;
+  return value.slice(start, end);
+}
+
+function isSeparator(char: string): boolean {
+  return char === '.' || char === '-';
 }
