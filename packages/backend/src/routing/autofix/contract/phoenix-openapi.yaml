@@ -350,6 +350,7 @@ components:
             hermes,
             nanobot,
             craft,
+            n8n,
             claude-code,
             opencode,
             openai-sdk,
