@@ -60,12 +60,18 @@ describe('ResolveService', () => {
   let specificityService: jest.Mocked<Pick<SpecificityService, 'getActiveAssignments'>>;
   let pricingCache: jest.Mocked<Pick<ModelPricingCacheService, 'getByModel'>>;
   let discoveryService: jest.Mocked<
-    Pick<ModelDiscoveryService, 'getModelForAgent' | 'getModelsForAgent' | 'invalidate'>
+    Pick<
+      ModelDiscoveryService,
+      'getModelForAgent' | 'getModelsForAgent' | 'invalidate' | 'invalidateTenant'
+    >
   >;
   let penaltyService: jest.Mocked<Pick<SpecificityPenaltyService, 'getPenaltiesForAgent'>>;
   let headerTierService: jest.Mocked<Pick<HeaderTierService, 'list'>>;
   let agentRepo: { findOne: jest.Mock };
-  let routingCache: { addInvalidationListener: jest.Mock };
+  let routingCache: {
+    addInvalidationListener: jest.Mock;
+    addTenantInvalidationListener: jest.Mock;
+  };
   let svc: ResolveService;
 
   beforeEach(() => {
@@ -88,13 +94,14 @@ describe('ResolveService', () => {
       getModelForAgent: jest.fn().mockResolvedValue(null),
       getModelsForAgent: jest.fn().mockResolvedValue([]),
       invalidate: jest.fn(),
+      invalidateTenant: jest.fn(),
     };
     penaltyService = { getPenaltiesForAgent: jest.fn().mockResolvedValue(new Map()) };
     headerTierService = { list: jest.fn().mockResolvedValue([]) };
     agentRepo = {
       findOne: jest.fn().mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: true }),
     };
-    routingCache = { addInvalidationListener: jest.fn() };
+    routingCache = { addInvalidationListener: jest.fn(), addTenantInvalidationListener: jest.fn() };
 
     // Defaults — each test overrides as needed.
     mockedScore.mockReturnValue({
@@ -131,6 +138,17 @@ describe('ResolveService', () => {
       listener('agent-42');
 
       expect(discoveryService.invalidate).toHaveBeenCalledWith('agent-42');
+    });
+
+    it('registers a tenant listener that drops the discovery cache tenant-wide', () => {
+      expect(routingCache.addTenantInvalidationListener).toHaveBeenCalledTimes(1);
+      const listener = routingCache.addTenantInvalidationListener.mock.calls[0][0] as (
+        tenantId: string,
+      ) => void;
+
+      listener('tenant-42');
+
+      expect(discoveryService.invalidateTenant).toHaveBeenCalledWith('tenant-42');
     });
   });
 

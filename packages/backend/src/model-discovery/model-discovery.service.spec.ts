@@ -840,6 +840,18 @@ describe('ModelDiscoveryService', () => {
       expect(result[1].id).toBe('custom:cp-1/custom-llm');
       expect(result[1].provider).toBe('custom:cp-1');
       expect(result[1].displayName).toBe('custom-llm');
+      expect(result[1].providerName).toBe('My Custom');
+      expect(result[1]).not.toHaveProperty('providerAlias');
+    });
+
+    it('carries the custom provider alias so /v1/models can publish it', async () => {
+      providerRepo.find.mockResolvedValue([]);
+      customProviderRepo.find.mockResolvedValue([makeCustomProvider({ alias: 'my-custom' })]);
+
+      const result = await service.getModelsForAgent('agent-1');
+
+      expect(result[0].providerAlias).toBe('my-custom');
+      expect(result[0].providerName).toBe('My Custom');
     });
 
     it('should filter stale unsupported OpenAI subscription cached models', async () => {
@@ -1120,6 +1132,19 @@ describe('ModelDiscoveryService', () => {
       await service.getModelsForAgent('tenant-1', 'agent-1');
 
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
+    });
+
+    it('invalidateTenant drops every agent of that tenant and no other', async () => {
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      await service.getModelsForAgent('tenant-1', 'agent-2');
+      await service.getModelsForAgent('tenant-2', 'agent-3');
+      service.invalidateTenant('tenant-1');
+
+      await service.getModelsForAgent('tenant-1', 'agent-1'); // refetch
+      await service.getModelsForAgent('tenant-1', 'agent-2'); // refetch
+      await service.getModelsForAgent('tenant-2', 'agent-3'); // still cached
+
+      expect(providerRepo.find).toHaveBeenCalledTimes(5);
     });
 
     it('only invalidates the targeted agent', async () => {

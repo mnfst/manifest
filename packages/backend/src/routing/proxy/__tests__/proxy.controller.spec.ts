@@ -267,6 +267,13 @@ describe('ProxyController', () => {
         provider: 'custom:provider-1',
         authType: 'api_key',
       }),
+      makeDiscoveredModel({
+        id: 'custom:provider-2/alibaba/qwen-3-14b',
+        provider: 'custom:provider-2',
+        providerName: 'Vercel AI Gateway',
+        providerAlias: 'vercel-ai-gateway',
+        authType: 'api_key',
+      }),
       makeDiscoveredModel({ id: 'gpt-4o', provider: 'openai', authType: 'api_key' }),
     ]);
 
@@ -293,6 +300,12 @@ describe('ProxyController', () => {
           object: 'model',
           created: 0,
           owned_by: 'custom:provider-1',
+        },
+        {
+          id: 'vercel-ai-gateway/alibaba/qwen-3-14b',
+          object: 'model',
+          created: 0,
+          owned_by: 'Vercel AI Gateway',
         },
       ],
     });

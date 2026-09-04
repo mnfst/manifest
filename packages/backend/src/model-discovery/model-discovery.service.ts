@@ -83,6 +83,7 @@ function nonChatFilterKey(providerId: string, authType: AuthType): string {
 const MODELS_CACHE_TTL_MS = 120_000;
 
 interface ModelsCacheEntry {
+  tenantId: string;
   data: DiscoveredModel[];
   expiresAt: number;
 }
@@ -513,7 +514,11 @@ export class ModelDiscoveryService {
     for (const [key, entry] of this.modelsCache) {
       if (entry.expiresAt <= now) this.modelsCache.delete(key);
     }
-    this.modelsCache.set(agentId, { data: models, expiresAt: now + MODELS_CACHE_TTL_MS });
+    this.modelsCache.set(agentId, {
+      tenantId,
+      data: models,
+      expiresAt: now + MODELS_CACHE_TTL_MS,
+    });
     return models;
   }
 
@@ -523,6 +528,17 @@ export class ModelDiscoveryService {
    */
   invalidate(agentId: string): void {
     this.modelsCache.delete(agentId);
+  }
+
+  /**
+   * Drop the cached model list of every agent in a tenant. Custom providers
+   * are tenant-global, so their alias, name or model-list edits change what
+   * every agent publishes at once (bridged from RoutingCacheService).
+   */
+  invalidateTenant(tenantId: string): void {
+    for (const [agentId, entry] of this.modelsCache) {
+      if (entry.tenantId === tenantId) this.modelsCache.delete(agentId);
+    }
   }
 
   private async invalidateProviderAccess(provider: TenantProvider): Promise<void> {
@@ -617,6 +633,8 @@ export class ModelDiscoveryService {
           capabilityReasoning: false,
           capabilityCode: false,
           qualityScore: 2,
+          providerName: cp.name,
+          ...(cp.alias ? { providerAlias: cp.alias } : {}),
         });
       }
     }

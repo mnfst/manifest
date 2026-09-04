@@ -41,6 +41,7 @@ import { DropLegacyAutofixRolloutColumns1801600000000 } from './migrations/18016
 import { AddRequestApiMode1801720000000 } from './migrations/1801720000000-AddRequestApiMode';
 import { AddAutofixConsentToInstallMetadata1801900000000 } from './migrations/1801900000000-AddAutofixConsentToInstallMetadata';
 import { SlimTenantAgentModelIndex1802000000000 } from './migrations/1802000000000-SlimTenantAgentModelIndex';
+import { AddCustomProviderAlias1802100000000 } from './migrations/1802100000000-AddCustomProviderAlias';
 import { InitialSchema1771464895790 } from './migrations/1771464895790-InitialSchema';
 import { HashApiKeys1771500000000 } from './migrations/1771500000000-HashApiKeys';
 import { ModelPricingImprovements1771600000000 } from './migrations/1771600000000-ModelPricingImprovements';
@@ -320,4 +321,5 @@ export const migrations = [
   AddRequestApiMode1801720000000,
   AddAutofixConsentToInstallMetadata1801900000000,
   SlimTenantAgentModelIndex1802000000000,
+  AddCustomProviderAlias1802100000000,
 ];

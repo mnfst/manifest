@@ -43,6 +43,14 @@ export interface DiscoveredModel {
   supportedEndpoints?: readonly string[];
   qualityScore: number;
   authType?: AuthType;
+  /** Custom providers only: the display name the user gave the provider. */
+  providerName?: string;
+  /**
+   * Custom providers only: the alias `/v1/models` publishes the model under
+   * (`<providerAlias>/<model_name>`). Absent when the provider has no alias,
+   * in which case the internal `custom:<uuid>/<model_name>` id is published.
+   */
+  providerAlias?: string;
 }
 
 export interface FetcherConfig {
