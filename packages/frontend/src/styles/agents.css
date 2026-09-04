@@ -291,6 +291,28 @@
   background: hsl(var(--muted) / 0.3);
 }
 
+@media (max-width: 768px) {
+  .settings-card__row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--gap-sm);
+  }
+
+  .settings-card__label {
+    flex: none;
+    width: 100%;
+  }
+
+  .settings-card__control,
+  .settings-card--danger .settings-card__control {
+    width: 100%;
+  }
+
+  .account-modal__inner {
+    padding-bottom: 64px;
+  }
+}
+
 /* Billing: three stats on one line, divided, with the action in the footer. */
 .billing-stats {
   display: flex;
