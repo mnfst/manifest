@@ -65,6 +65,13 @@
   font-size: var(--font-size-sm);
 }
 
+/* A label with no break opportunity must not hold the row at its own
+   min-content width on a phone. */
+.connection-detail__meta > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .connection-detail__controls {
   display: flex;
   align-items: center;

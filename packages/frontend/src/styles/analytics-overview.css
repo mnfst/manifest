@@ -35,12 +35,17 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.overview-stats--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 /* Stat cards collapse toward one column as the viewport narrows. The
    modifier and the base share the same breakpoints so a five-card row
    never stays wider than the screen. */
 @media (max-width: 1024px) {
   .overview-stats,
-  .overview-stats--5 {
+  .overview-stats--5,
+  .overview-stats--3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px;
   }
@@ -48,7 +53,8 @@
 
 @media (max-width: 768px) {
   .overview-stats,
-  .overview-stats--5 {
+  .overview-stats--5,
+  .overview-stats--3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
@@ -62,7 +68,8 @@
 
 @media (max-width: 480px) {
   .overview-stats,
-  .overview-stats--5 {
+  .overview-stats--5,
+  .overview-stats--3 {
     grid-template-columns: 1fr;
   }
 }
