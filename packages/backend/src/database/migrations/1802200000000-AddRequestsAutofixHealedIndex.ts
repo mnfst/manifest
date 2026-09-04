@@ -79,8 +79,10 @@ export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInte
     await queryRunner.query(`ANALYZE "requests"`);
   }
 
+  // Deliberately ungated, unlike up(): a database migrated in cloud mode and
+  // reverted while MANIFEST_MODE=selfhosted would otherwise keep the index
+  // forever. DROP ... IF EXISTS is already a no-op where it was never created.
   public async down(queryRunner: QueryRunner): Promise<void> {
-    if (isSelfHosted()) return;
     await queryRunner.query(
       `DROP INDEX CONCURRENTLY IF EXISTS "${AddRequestsAutofixHealedIndex1802200000000.INDEX}"`,
     );

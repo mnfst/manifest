@@ -93,12 +93,14 @@ describe('AddRequestsAutofixHealedIndex1802200000000', () => {
       expect(queries).toEqual([]);
     });
 
-    it('touches nothing on the way down either', async () => {
+    it('still drops on the way down, so a cloud-built index is never orphaned', async () => {
+      // A database migrated in cloud mode can be reverted while the process
+      // looks self-hosted. DROP ... IF EXISTS is a no-op where it never existed.
       mockedIsSelfHosted.mockReturnValue(true);
 
       await migration.down(mockQueryRunner);
 
-      expect(queries).toEqual([]);
+      expect(queries).toEqual(['DROP INDEX CONCURRENTLY IF EXISTS "IDX_requests_autofix_healed"']);
     });
   });
 });

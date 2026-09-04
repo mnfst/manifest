@@ -1,7 +1,17 @@
-import { Controller, Get, Headers, Ip, Logger, Query, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Headers,
+  Ip,
+  Logger,
+  NotFoundException,
+  Query,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../common/decorators/public.decorator';
 import { timingSafeCompare } from '../common/utils/crypto.util';
+import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { CrmMetricsService } from './crm-metrics.service';
 import { CrmMetricsQueryDto } from './dto/crm-metrics-query.dto';
 import type { CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
@@ -18,6 +28,13 @@ import type { CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
  * modelled on: the comparison is constant-time, and a secret too short to be
  * worth anything counts as unconfigured rather than as a weak guard on a full
  * user list. Nothing here logs the payload.
+ *
+ * Cloud only. app.module.ts already leaves the module unregistered on
+ * self-hosted, but that check runs at import time, before ConfigModule reads
+ * `.env` — so a bare-metal install carrying `MANIFEST_MODE` only in its `.env`
+ * would look like Cloud there. Containers are unaffected (`/.dockerenv` is
+ * detected without any env), but this second check closes the gap: it resolves
+ * at construction, after configuration is loaded.
  */
 @Controller('api/v1/internal/crm-metrics')
 export class InternalCrmMetricsController {
@@ -28,10 +45,21 @@ export class InternalCrmMetricsController {
 
   private readonly logger = new Logger(InternalCrmMetricsController.name);
 
+  /** Resolved once at construction, which is after ConfigModule loads `.env`. */
+  private readonly selfHosted = isSelfHosted();
+
   constructor(
     private readonly service: CrmMetricsService,
     private readonly config: ConfigService,
   ) {}
+
+  /**
+   * Answer exactly as an unmounted route would. Checked before the secret so a
+   * self-hosted install never reveals whether one is configured.
+   */
+  private assertCloud(): void {
+    if (this.selfHosted) throw new NotFoundException();
+  }
 
   private assertSecret(provided: string | undefined, ip: string): void {
     const expected = this.config.get<string>('app.crmMetricsSecret') ?? '';
@@ -50,6 +78,7 @@ export class InternalCrmMetricsController {
     @Ip() ip: string,
     @Query() query: CrmMetricsQueryDto,
   ): Promise<CrmHealedUser[]> {
+    this.assertCloud();
     this.assertSecret(secret, ip);
     return this.service.getHealedCohort(
       query.days ?? InternalCrmMetricsController.DEFAULT_COHORT_DAYS,
@@ -64,6 +93,7 @@ export class InternalCrmMetricsController {
     @Ip() ip: string,
     @Query() query: CrmMetricsQueryDto,
   ): Promise<CrmWaitlistClaim[]> {
+    this.assertCloud();
     this.assertSecret(secret, ip);
     return this.service.getConversions(
       query.days ?? InternalCrmMetricsController.DEFAULT_CLAIM_DAYS,

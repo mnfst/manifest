@@ -1,7 +1,16 @@
-import { Logger, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
+import {
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { InternalCrmMetricsController } from './internal-crm-metrics.controller';
 import type { CrmMetricsService } from './crm-metrics.service';
+import { isSelfHosted } from '../common/utils/detect-self-hosted';
+
+jest.mock('../common/utils/detect-self-hosted', () => ({ isSelfHosted: jest.fn() }));
+const mockedIsSelfHosted = jest.mocked(isSelfHosted);
 
 const SECRET = 'a'.repeat(32);
 const IP = '203.0.113.7';
@@ -19,6 +28,7 @@ describe('InternalCrmMetricsController', () => {
   beforeEach(() => {
     mockService = { getHealedCohort: jest.fn(), getConversions: jest.fn() };
     warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    mockedIsSelfHosted.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -167,6 +177,46 @@ describe('InternalCrmMetricsController', () => {
       await makeController(SECRET).conversions(SECRET, IP, { days: 14 });
 
       expect(mockService.getConversions).toHaveBeenCalledWith(14);
+    });
+  });
+
+  describe('self-hosted', () => {
+    // app.module.ts normally leaves the module unregistered, but that check
+    // runs before ConfigModule loads `.env`. This one resolves at construction,
+    // so a bare-metal install carrying MANIFEST_MODE only in `.env` is covered.
+    it('answers like an unmounted route on both endpoints', async () => {
+      mockedIsSelfHosted.mockReturnValue(true);
+      const controller = makeController(SECRET);
+
+      await expect(controller.cohort(SECRET, IP, {})).rejects.toBeInstanceOf(NotFoundException);
+      await expect(controller.conversions(SECRET, IP, {})).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(mockService.getHealedCohort).not.toHaveBeenCalled();
+      expect(mockService.getConversions).not.toHaveBeenCalled();
+    });
+
+    it('checks the mode before the secret, so it never reveals whether one is set', async () => {
+      mockedIsSelfHosted.mockReturnValue(true);
+
+      // No secret configured at all: a Cloud install would answer 401 here.
+      await expect(makeController(undefined).cohort('anything', IP, {})).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('resolves the mode once, at construction', async () => {
+      mockedIsSelfHosted.mockReturnValue(false);
+      const controller = makeController(SECRET);
+      mockService.getHealedCohort.mockResolvedValue([]);
+      const callsAfterConstruction = mockedIsSelfHosted.mock.calls.length;
+      mockedIsSelfHosted.mockReturnValue(true);
+
+      // A later flip must not change an already-built controller's behaviour,
+      // and serving a request must not re-read the mode.
+      await expect(controller.cohort(SECRET, IP, {})).resolves.toEqual([]);
+      expect(mockedIsSelfHosted.mock.calls).toHaveLength(callsAfterConstruction);
     });
   });
 });

@@ -29,12 +29,14 @@ function localSqlTimestamp(d: Date): string {
 describe('Internal CRM metrics (e2e)', () => {
   let app: INestApplication;
   let ds: DataSource;
+  let previousMode: string | undefined;
 
   beforeAll(async () => {
     process.env['CRM_METRICS_SECRET'] = SECRET;
     // The migration and the module registration are both Cloud-only. Pin the
     // mode so this suite does not depend on whether the runner happens to look
     // containerised to `isSelfHosted()`.
+    previousMode = process.env['MANIFEST_MODE'];
     process.env['MANIFEST_MODE'] = 'cloud';
     app = await createTestApp();
     ds = app.get(DataSource);
@@ -73,7 +75,11 @@ describe('Internal CRM metrics (e2e)', () => {
   afterAll(async () => {
     await app.close();
     delete process.env['CRM_METRICS_SECRET'];
-    delete process.env['MANIFEST_MODE'];
+    // Restore rather than delete: e2e runs --runInBand, so every spec shares one
+    // process, and a shell that exports MANIFEST_MODE would otherwise lose it
+    // for every sibling suite that reads isSelfHosted().
+    if (previousMode === undefined) delete process.env['MANIFEST_MODE'];
+    else process.env['MANIFEST_MODE'] = previousMode;
   });
 
   beforeEach(async () => {
