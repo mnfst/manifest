@@ -8,6 +8,7 @@ import { AgentMessage } from '../entities/agent-message.entity';
 import { CustomProvider } from '../entities/custom-provider.entity';
 import { ProviderClient } from '../routing/proxy/provider-client';
 import { resolveForwardEndpoint } from '../routing/proxy/forward-endpoint-resolver';
+import { buildProviderExtraHeaders } from '../routing/proxy/provider-hooks';
 import { CustomProviderService } from '../routing/custom-provider/custom-provider.service';
 import {
   isRefreshableOAuthCredential,
@@ -177,7 +178,14 @@ export class PlaygroundService {
       return this.sendPreStreamError(res, status, message);
     }
 
-    const extraHeaders = sanitizeRequestHeaders(dto.requestHeaders);
+    // OpenCode Go/Zen pin the session via x-opencode-session and reject
+    // requests without it, so forward-time extras must ride here too — the
+    // per-tenant Playground agent provides the stable fallback scope.
+    const agentScopeKey = `${agent.tenant_id}\u0000${agent.id}`;
+    const extraHeaders = {
+      ...sanitizeRequestHeaders(dto.requestHeaders),
+      ...buildProviderExtraHeaders(dto.provider, undefined, agentScopeKey),
+    };
     const abort = new AbortController();
     res.on('close', () => abort.abort());
 

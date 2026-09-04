@@ -15,6 +15,7 @@ import {
   buildClaudeCodeSubscriptionHeaders,
 } from '../common/constants/subscription-clients';
 import { normalizeMinimaxSubscriptionBaseUrl } from '../routing/provider-base-url';
+import { buildProviderExtraHeaders } from '../routing/proxy/provider-hooks';
 import { getQwenCompatibleBaseUrl, normalizeQwenCompatibleBaseUrl } from '../routing/qwen-region';
 import { getBedrockMantleBaseUrl, normalizeBedrockMantleBaseUrl } from '../routing/bedrock-region';
 import {
@@ -1078,7 +1079,10 @@ export const PROVIDER_CONFIGS: Record<string, FetcherConfig> = {
   },
   'opencode-zen': {
     endpoint: 'https://opencode.ai/zen/v1/models',
-    buildHeaders: bearerHeaders,
+    buildHeaders: (key: string) => ({
+      ...bearerHeaders(key),
+      ...buildProviderExtraHeaders('opencode-zen', key),
+    }),
     parse: parseOpencodeZen,
   },
 };
@@ -1347,7 +1351,10 @@ export class ProviderModelFetcherService {
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     try {
       const res = await fetch(OPENCODE_GO_MODELS_URL, {
-        headers: apiKey ? bearerHeaders(apiKey) : {},
+        headers: {
+          ...(apiKey ? bearerHeaders(apiKey) : {}),
+          ...buildProviderExtraHeaders('opencode-go', apiKey),
+        },
         signal: controller.signal,
       });
       if (!res.ok) {

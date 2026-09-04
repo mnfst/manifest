@@ -2938,6 +2938,30 @@ describe('ProviderModelFetcherService', () => {
       expect(result[1].id).toBe('opencode-go/glm-5.1');
     });
 
+    it('sends a stable x-opencode-session header on the live /models fetch', async () => {
+      fetchSpy.mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [{ id: 'glm-5.2', object: 'model', owned_by: 'opencode' }] }),
+      });
+
+      await service.fetch('opencode-go', 'og-token', 'subscription');
+      await service.fetch('opencode-go', 'og-token', 'subscription');
+      await service.fetch('opencode-go', 'other-token', 'subscription');
+
+      const [, firstInit] = fetchSpy.mock.calls[0];
+      const [, secondInit] = fetchSpy.mock.calls[1];
+      const [, thirdInit] = fetchSpy.mock.calls[2];
+      expect((firstInit.headers as Record<string, string>)['x-opencode-session']).toMatch(
+        /^manifest-[a-f0-9]{32}$/,
+      );
+      expect((secondInit.headers as Record<string, string>)['x-opencode-session']).toBe(
+        (firstInit.headers as Record<string, string>)['x-opencode-session'],
+      );
+      expect((thirdInit.headers as Record<string, string>)['x-opencode-session']).not.toBe(
+        (firstInit.headers as Record<string, string>)['x-opencode-session'],
+      );
+    });
+
     it('falls back to a refreshed docs catalog when live /models is empty', async () => {
       const catalog = {
         list: jest.fn().mockResolvedValue([]),
@@ -3119,7 +3143,10 @@ describe('ProviderModelFetcherService', () => {
       expect(fetchSpy).toHaveBeenCalledWith(
         'https://opencode.ai/zen/v1/models',
         expect.objectContaining({
-          headers: expect.objectContaining({ Authorization: 'Bearer oz-token' }),
+          headers: expect.objectContaining({
+            Authorization: 'Bearer oz-token',
+            'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+          }),
         }),
       );
       expect(result).toHaveLength(3);

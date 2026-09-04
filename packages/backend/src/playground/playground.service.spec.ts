@@ -1314,6 +1314,34 @@ describe('PlaygroundService.runStream', () => {
     expect(forwardArgs.stream).toBe(true);
   });
 
+  it('sends a stable agent-scoped x-opencode-session on OpenCode Go/Zen forwards', async () => {
+    const { service, mocks } = buildService();
+    mocks.providerClient.forward.mockResolvedValue(
+      okStream(['data: {"usage":{"prompt_tokens":0,"completion_tokens":0}}\n\n']),
+    );
+    const res = mockRes();
+
+    await service.runStream(
+      CTX,
+      makeDto({ provider: 'opencode-go', authType: 'subscription' }),
+      asRes(res),
+    );
+    await service.runStream(
+      CTX,
+      makeDto({ provider: 'opencode-zen', model: 'opencode-zen/qwen3.6-plus' }),
+      asRes(mockRes()),
+    );
+
+    const goArgs = mocks.providerClient.forward.mock.calls[0][0];
+    const zenArgs = mocks.providerClient.forward.mock.calls[1][0];
+    expect(goArgs.extraHeaders['x-opencode-session']).toMatch(/^manifest-[a-f0-9]{32}$/);
+    expect(zenArgs.extraHeaders['x-opencode-session']).toMatch(/^manifest-[a-f0-9]{32}$/);
+    // Same tenant+agent scope, so both forwards pin to one stable session id.
+    expect(zenArgs.extraHeaders['x-opencode-session']).toBe(
+      goArgs.extraHeaders['x-opencode-session'],
+    );
+  });
+
   it('send() is a no-op once the response has ended (no write after end)', async () => {
     const { service, mocks } = buildService();
     // Stream that ends the response itself before the done event would be sent.
