@@ -1239,7 +1239,11 @@ h6 {
   }
   .header__left {
     flex: 1;
-    overflow: hidden;
+    min-width: 0;
+  }
+  .header__dropdown {
+    left: auto !important;
+    right: 0 !important;
   }
   .header__logo-img {
     width: 124px;
