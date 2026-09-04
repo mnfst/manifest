@@ -2021,4 +2021,13 @@
   .routing-providers-info__label {
     white-space: nowrap;
   }
+
+  .routing-footer {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .routing-footer .btn {
+    white-space: nowrap;
+  }
 }
