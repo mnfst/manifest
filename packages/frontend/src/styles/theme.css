@@ -1263,6 +1263,11 @@ h6 {
     left: auto !important;
     right: 0 !important;
   }
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
   .header__logo-img {
     width: 124px;
     margin-bottom: 7px;
