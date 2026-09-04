@@ -1,5 +1,15 @@
 # manifest
 
+## 6.23.0
+
+### Minor Changes
+
+- f1a50eb: Add an internal, secret-guarded feed of the users whose requests Autofix repaired, so outreach can reach them with their real repair counts.
+
+### Patch Changes
+
+- 8ccecc8: Remove the $25 Gemini credit user-discovery banner and modal from the Overview page.
+
 ## 6.22.0
 
 ### Minor Changes
