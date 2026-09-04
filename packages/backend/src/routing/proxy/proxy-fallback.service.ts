@@ -86,6 +86,7 @@ import {
   type RouteCredentialDeps,
 } from './route-credentials';
 import { recordingResponseFromText } from './attempt-recording-capture';
+import { ManifestError } from '../../common/errors/manifest-error';
 
 // Fallback cooldown applied when an upstream 429 carries no usable Retry-After.
 // Kept short (15s) on purpose: many providers rate-limit on brief RPM/burst
@@ -743,13 +744,19 @@ export class ProxyFallbackService {
     const providerResource =
       authType === 'subscription' && provider.toLowerCase() === 'gemini' ? resourceUrl : undefined;
 
-    const attempt = opts.startProviderAttempt?.({
-      provider,
-      model: opts.model,
-      authType,
-      tenantProviderId: opts.tenantProviderId,
-      keyLabel: opts.providerKeyLabel,
-    });
+    let attempt: ProviderAttemptRef | undefined;
+    const startAttempt = opts.startProviderAttempt
+      ? () => {
+          attempt ??= opts.startProviderAttempt?.({
+            provider,
+            model: opts.model,
+            authType,
+            tenantProviderId: opts.tenantProviderId,
+            keyLabel: opts.providerKeyLabel,
+          });
+          return attempt;
+        }
+      : undefined;
     try {
       const forward = await this.providerClient.forward({
         provider,
@@ -777,11 +784,13 @@ export class ProxyFallbackService {
             }
           : {}),
         providerResource,
-        attempt,
+        startAttempt,
       });
+      attempt = forward.attempt ?? attempt ?? startAttempt?.();
       if (attempt) attempt.completedAtMs = Date.now();
       return { ...forward, attempt, providerCallStarted: true };
     } catch (error) {
+      if (!attempt && !(error instanceof ManifestError)) attempt = startAttempt?.();
       if (attempt) attempt.completedAtMs = Date.now();
       if (attempt && error instanceof Error) {
         (error as AttemptTaggedError)[PROVIDER_ATTEMPT_REF] = attempt;

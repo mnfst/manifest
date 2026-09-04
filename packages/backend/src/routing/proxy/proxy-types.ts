@@ -120,6 +120,8 @@ export interface ForwardOptions {
   providerResource?: string;
   /** Persisted identity of this exact upstream call. */
   attempt?: ProviderAttemptRef;
+  /** Allocate the attempt only after local validation and request construction succeed. */
+  startAttempt?: () => ProviderAttemptRef | undefined;
 }
 
 /** Options for ProxyService.proxyRequest. */

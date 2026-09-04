@@ -15,34 +15,12 @@ const sanitizeToolUseId = (id: string): string => id.replace(/[^a-zA-Z0-9_-]/g, 
 
 type JsonRecord = Record<string, unknown>;
 
-const DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA = {
-  type: 'object',
-  properties: {},
-  additionalProperties: false,
-} as const;
-
-const ANTHROPIC_SERVER_TOOL_PREFIXES = [
-  'bash_',
-  'code_execution_',
-  'computer_',
-  'memory_',
-  'text_editor_',
-  'tool_search_tool_',
-  'web_fetch_',
-  'web_search_',
-] as const;
-
-const ANTHROPIC_SERVER_TOOL_TYPES = ['mcp_toolset'] as const;
-
 function isRecord(value: unknown): value is JsonRecord {
   return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isAnthropicServerToolType(type: string): boolean {
-  return (
-    ANTHROPIC_SERVER_TOOL_TYPES.includes(type as (typeof ANTHROPIC_SERVER_TOOL_TYPES)[number]) ||
-    ANTHROPIC_SERVER_TOOL_PREFIXES.some((prefix) => type.startsWith(prefix))
-  );
+function isImplicitAnthropicTool(tool: JsonRecord): tool is JsonRecord & { type: string } {
+  return tool.input_schema === undefined && typeof tool.type === 'string' && tool.type !== 'custom';
 }
 
 function normalizeOpenAiFunctionSchema(schema: unknown): unknown {
@@ -232,8 +210,10 @@ function buildUserMessages(content: unknown, pendingToolImages: JsonRecord[]): O
 // Messages — `toolCount` and the specificity detector read `function.name`
 // and array length, nothing else. The Anthropic wire body is emitted by
 // `applyAnthropicMessagesMutations` directly from the inbound body, so this
-// translation can lose Anthropic-only tool fields (e.g. server-tool `type`
-// tags, omitted input_schema) without affecting upstream behavior.
+// translation can lose Anthropic-only tool fields (e.g. provider-defined
+// `type` tags and implicit schemas) without affecting native upstream behavior.
+// Cross-protocol forwarding rejects those untranslatable tools only after the
+// provider is selected; the scorer must continue to see their names and count.
 function toChatTools(tools: unknown[]): JsonRecord[] {
   return tools.filter(isRecord).map((tool) => ({
     type: 'function',
@@ -242,11 +222,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
       ...(typeof tool.description === 'string' && { description: tool.description }),
       ...(tool.input_schema !== undefined
         ? { parameters: normalizeOpenAiFunctionSchema(tool.input_schema) }
-        : typeof tool.type === 'string' &&
-            tool.type !== 'custom' &&
-            !isAnthropicServerToolType(tool.type)
-          ? { parameters: DEFAULT_CUSTOM_TOOL_INPUT_SCHEMA }
-          : {}),
+        : {}),
     },
   }));
 }
@@ -259,6 +235,25 @@ function toChatToolChoice(choice: unknown): unknown {
     return { type: 'function', function: { name: choice.name } };
   }
   return undefined;
+}
+
+/**
+ * Find Anthropic-provided tools that another provider protocol cannot execute.
+ *
+ * Server tools need an executor and Anthropic-schema client tools need their
+ * provider-defined schemas. A cross-protocol target has neither. Reject these
+ * tools after routing instead of silently changing the request contract.
+ */
+export function unsupportedAnthropicToolNames(body: JsonRecord): string[] {
+  if (!Array.isArray(body.tools)) return [];
+  return [
+    ...new Set(
+      body.tools
+        .filter(isRecord)
+        .filter(isImplicitAnthropicTool)
+        .map((tool) => (typeof tool.name === 'string' ? tool.name : tool.type)),
+    ),
+  ];
 }
 
 /** Anthropic Messages request → chat_completions request (used for routing/forwarding). */

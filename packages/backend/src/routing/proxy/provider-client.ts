@@ -46,6 +46,7 @@ import { qualifyChatGptResponse } from './chatgpt-response-qualifier';
 import { isProviderAvailableForDeployment } from '../../common/utils/provider-availability';
 import { ManifestError } from '../../common/errors/manifest-error';
 import { MANAGED_FREE_PROVIDER_BY_ID } from '../../common/constants/managed-free-providers';
+import { unsupportedAnthropicToolNames } from './anthropic-messages-adapter';
 
 export interface ForwardResult {
   response: Response;
@@ -342,12 +343,23 @@ export class ProviderClient {
       opts.apiMode !== undefined &&
       opts.apiMode !== 'chat_completions' &&
       INPUT_WIRE_FORMATS[opts.apiMode] !== resolvedWireFormat;
+    if (opts.apiMode === 'messages' && needsChatBody) {
+      const unsupportedTools = unsupportedAnthropicToolNames(body);
+      if (unsupportedTools.length > 0) {
+        throw new ManifestError('M304', HttpStatus.BAD_REQUEST, {
+          tools: unsupportedTools.join(', '),
+          provider,
+        });
+      }
+    }
     const chatBody = needsChatBody ? await opts.resolveChatBody?.() : undefined;
+    let attempt = opts.attempt;
 
     const bareModel = stripModelPrefix(model, endpointKey);
     if (endpoint.format === 'kiro') {
       const requestSource = chatBody ?? body;
-      opts.attempt?.startRecording?.({
+      attempt ??= opts.startAttempt?.();
+      attempt?.startRecording?.({
         requestBody: requestSource,
         wireFormat: 'kiro_chat',
       });
@@ -369,6 +381,7 @@ export class ProviderClient {
         wireFormat: 'kiro_chat',
         wireApiMode: opts.apiMode,
         responsesTextFormat: textFormat,
+        attempt,
       };
     }
     const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
@@ -404,14 +417,8 @@ export class ProviderClient {
 
     const retryWireBody = async (
       wireRequestBody: Record<string, unknown>,
-      attempt: ProviderAttemptRef | undefined = opts.attempt,
+      retryAttempt: ProviderAttemptRef | undefined = attempt,
     ): Promise<ForwardResult> => {
-      if (resolvedWireFormat) {
-        attempt?.startRecording?.({
-          requestBody: wireRequestBody,
-          wireFormat: resolvedWireFormat,
-        });
-      }
       this.logger.debug(`Forwarding to ${endpointKey}: ${url.replace(/key=[^&]+/, 'key=***')}`);
 
       // SSRF defense in depth for user-supplied endpoint URLs (custom providers,
@@ -424,6 +431,15 @@ export class ProviderClient {
           const message = err instanceof Error ? err.message : String(err);
           throw new Error(`Refusing to forward to disallowed URL: ${message}`);
         }
+      }
+
+      retryAttempt ??= opts.startAttempt?.();
+      attempt ??= retryAttempt;
+      if (resolvedWireFormat) {
+        retryAttempt?.startRecording?.({
+          requestBody: wireRequestBody,
+          wireFormat: resolvedWireFormat,
+        });
       }
 
       const result = await this.executeFetch(url, finalHeaders, wireRequestBody, signal, stream, {
@@ -439,7 +455,7 @@ export class ProviderClient {
         !stream &&
         endpoint.format === 'openai' &&
         (opts.apiMode === undefined || opts.apiMode === 'chat_completions')
-          ? await qualifyEmptyChatCompletion(result.response, attempt)
+          ? await qualifyEmptyChatCompletion(result.response, retryAttempt)
           : result.response;
       const qualifiedResult =
         endpointKey === 'openai-subscription'
@@ -458,6 +474,7 @@ export class ProviderClient {
         wireFormat: resolvedWireFormat,
         wireApiMode: resolvedWireApiMode,
         retryWireBody,
+        attempt: retryAttempt,
       };
     };
 
