@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { createTestApp, TEST_TENANT_ID, TEST_AGENT_ID } from './helpers';
+import { AddRequestsAutofixHealedIndex1802200000000 } from '../src/database/migrations/1802200000000-AddRequestsAutofixHealedIndex';
 
 /**
  * Exercises the real SQL against real Postgres. The unit specs mock the
@@ -45,12 +46,24 @@ describe('Internal CRM metrics (e2e)', () => {
     );
 
     // The partial index lives in a migration, not on the entity, so
-    // synchronize() never creates it. Building it here also proves the exact
-    // definition the migration emits is valid Postgres.
-    await ds.query(
-      `CREATE INDEX IF NOT EXISTS "${HEALED_INDEX}" ON "requests" ("tenant_id", "timestamp") ` +
-        `INCLUDE ("status") WHERE "autofix_status" = 'retry_succeeded'`,
-    );
+    // synchronize() never creates it. Run the real migration rather than a
+    // copy of its DDL: a hand-copied index would keep passing even if the
+    // migration drifted, which is exactly the defect this suite exists to
+    // catch. CONCURRENTLY needs to be outside a transaction, and a bare
+    // queryRunner autocommits.
+    const runner = ds.createQueryRunner();
+    try {
+      await runner.connect();
+      await new AddRequestsAutofixHealedIndex1802200000000().up(runner);
+    } finally {
+      await runner.release();
+    }
+
+    const [built] = (await ds.query(`SELECT indexdef FROM pg_indexes WHERE indexname = $1`, [
+      HEALED_INDEX,
+    ])) as Array<{ indexdef: string }>;
+    expect(built?.indexdef).toContain('INCLUDE (status)');
+    expect(built?.indexdef).toContain(`WHERE ((autofix_status)::text = 'retry_succeeded'::text)`);
   });
 
   afterAll(async () => {

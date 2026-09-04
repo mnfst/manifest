@@ -525,12 +525,27 @@ describe('CrmMetricsService', () => {
 
     it('does not cache a failed scan, so the next call retries the database', async () => {
       setup({ cohort: [cohortRow()] });
-      query.mockRejectedValueOnce(new Error('canceling statement due to statement timeout'));
+      // Target the cohort scan itself, not whichever statement happens to run
+      // first: `mockRejectedValueOnce` would otherwise fail `SET LOCAL
+      // lock_timeout` and never reach the query this test is named after.
+      let failNextScan = true;
+      const scan = query.getMockImplementation()!;
+      query.mockImplementation((sql: string, ...params: unknown[]) => {
+        if (sql.includes('JOIN tenants t') && failNextScan) {
+          failNextScan = false;
+          return Promise.reject(new Error('canceling statement due to statement timeout'));
+        }
+        return scan(sql, ...params);
+      });
 
       await expect(service.getHealedCohort(7, NOW)).rejects.toThrow('statement timeout');
       const users = await service.getHealedCohort(7, NOW);
 
       expect(users.map((u) => u.email)).toEqual(['matheus@example.com']);
+      // Both calls reached the scan: the failure was not memoised.
+      expect(
+        query.mock.calls.filter(([sql]) => String(sql).includes('JOIN tenants t')),
+      ).toHaveLength(2);
     });
 
     it('does not cache a missing index either, so the feed recovers once it is rebuilt', async () => {

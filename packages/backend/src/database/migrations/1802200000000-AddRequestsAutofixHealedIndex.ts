@@ -36,22 +36,29 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * this one: two heap passes over ~6.6 GB, and it blocks autovacuum on
  * `requests` while it runs.
  *
- * `npm run migration:revert` cannot run `down()` — TypeORM opens a transaction
- * for reverts regardless of `transaction = false`, and Postgres rejects
- * CONCURRENTLY inside one. Run the statement by hand and delete the row from
- * `migrations`.
+ * `npm run migration:revert` passes `--transaction none`, so `down()` runs
+ * outside a transaction as CONCURRENTLY requires. Under the default
+ * transaction mode Postgres would reject the statement.
  */
 export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInterface {
   name = 'AddRequestsAutofixHealedIndex1802200000000';
   transaction = false;
 
+  private static readonly INDEX = 'IDX_requests_autofix_healed';
+
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Clear any invalid leftover from an interrupted CONCURRENTLY build, since
-    // CREATE ... IF NOT EXISTS matches on name and would skip over an INVALID
-    // shell, leaving the feed permanently unindexed.
-    await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_requests_autofix_healed"`);
+    const { INDEX } = AddRequestsAutofixHealedIndex1802200000000;
+    // A cancelled CONCURRENTLY build leaves an INVALID shell that
+    // `CREATE ... IF NOT EXISTS` would skip over by name, leaving the feed
+    // permanently unindexed. Drop only that shell: an unconditional drop would
+    // also destroy a *valid* index when a deploy is interrupted after the build
+    // succeeded but before TypeORM recorded the migration, costing minutes of
+    // 503s on the retry while it rebuilds.
+    if (await this.indexIsInvalid(queryRunner, INDEX)) {
+      await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "${INDEX}"`);
+    }
     await queryRunner.query(
-      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "IDX_requests_autofix_healed" ON "requests" ("tenant_id", "timestamp") INCLUDE ("status") WHERE "autofix_status" = 'retry_succeeded'`,
+      `CREATE INDEX CONCURRENTLY IF NOT EXISTS "${INDEX}" ON "requests" ("tenant_id", "timestamp") INCLUDE ("status") WHERE "autofix_status" = 'retry_succeeded'`,
     );
     // The planner only picks the index if it believes the predicate is
     // selective; refresh the stats it reasons from before the first read.
@@ -59,6 +66,17 @@ export class AddRequestsAutofixHealedIndex1802200000000 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX CONCURRENTLY IF EXISTS "IDX_requests_autofix_healed"`);
+    await queryRunner.query(
+      `DROP INDEX CONCURRENTLY IF EXISTS "${AddRequestsAutofixHealedIndex1802200000000.INDEX}"`,
+    );
+  }
+
+  /** True when an index of this name exists but is INVALID (interrupted build). */
+  private async indexIsInvalid(queryRunner: QueryRunner, indexName: string): Promise<boolean> {
+    const rows: unknown[] = await queryRunner.query(
+      `SELECT 1 FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = $1 AND NOT i.indisvalid`,
+      [indexName],
+    );
+    return rows.length > 0;
   }
 }
