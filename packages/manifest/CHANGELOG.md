@@ -1,5 +1,17 @@
 # manifest
 
+## 6.22.0
+
+### Minor Changes
+
+- 5b5eac7: Custom providers now have an alias, the readable prefix their models are published under in `/v1/models` (`vercel-ai-gateway/alibaba/qwen-3-14b` instead of `custom:<uuid>/alibaba/qwen-3-14b`). The alias defaults to the provider name, is editable at creation and later, and the proxy accepts both the alias form and the internal `custom:<uuid>/…` form in the `model` field, so existing client configs keep working. Existing custom providers are backfilled on upgrade.
+- e86c83a: Add an Automation harness category with n8n as its first platform, including n8n credential setup guidance in the harness creation flow.
+- 142d082: Add `GET /api/v1/version` for self-hosted installs: reports the running version, the latest GitHub release, and changelog/upgrade links so the dashboard can show a "new version available" badge. Checks once a day, never in cloud mode, and can be turned off with `MANIFEST_UPDATE_CHECK_DISABLED=1`.
+
+### Patch Changes
+
+- ed8ac04: Adapt the provider connection page, the Overview KPI cards, and the app header to phone-sized screens
+
 ## 6.21.1
 
 ### Patch Changes
