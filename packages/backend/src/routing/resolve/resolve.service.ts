@@ -73,6 +73,9 @@ export class ResolveService {
     this.routingCache.addInvalidationListener((agentId) =>
       this.discoveryService.invalidate(agentId),
     );
+    this.routingCache.addTenantInvalidationListener((tenantId) =>
+      this.discoveryService.invalidateTenant(tenantId),
+    );
   }
 
   async resolve(

@@ -1134,6 +1134,19 @@ describe('ModelDiscoveryService', () => {
       expect(providerRepo.find).toHaveBeenCalledTimes(2);
     });
 
+    it('invalidateTenant drops every agent of that tenant and no other', async () => {
+      await service.getModelsForAgent('tenant-1', 'agent-1');
+      await service.getModelsForAgent('tenant-1', 'agent-2');
+      await service.getModelsForAgent('tenant-2', 'agent-3');
+      service.invalidateTenant('tenant-1');
+
+      await service.getModelsForAgent('tenant-1', 'agent-1'); // refetch
+      await service.getModelsForAgent('tenant-1', 'agent-2'); // refetch
+      await service.getModelsForAgent('tenant-2', 'agent-3'); // still cached
+
+      expect(providerRepo.find).toHaveBeenCalledTimes(5);
+    });
+
     it('only invalidates the targeted agent', async () => {
       await service.getModelsForAgent('tenant-1', 'agent-1');
       await service.getModelsForAgent('tenant-1', 'agent-2');

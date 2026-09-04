@@ -416,6 +416,29 @@ describe('CustomProviderService', () => {
           ConflictException,
         );
       });
+
+      it('turns a lost race on the alias unique index into a 409', async () => {
+        const { svc, insert } = makeDeps({ findOneResults: [null] });
+        insert.mockRejectedValueOnce(
+          Object.assign(new Error('duplicate key'), {
+            code: '23505',
+            constraint: 'IDX_custom_providers_tenant_alias',
+          }),
+        );
+        await expect(svc.create('tenant-1', { ...dto, alias: 'vercel' })).rejects.toBeInstanceOf(
+          ConflictException,
+        );
+      });
+
+      it('rethrows other insert failures untouched', async () => {
+        const { svc, insert } = makeDeps({ findOneResults: [null] });
+        const boom = Object.assign(new Error('other index'), {
+          code: '23505',
+          constraint: 'some_other_index',
+        });
+        insert.mockRejectedValueOnce(boom);
+        await expect(svc.create('tenant-1', dto)).rejects.toBe(boom);
+      });
     });
 
     it('tags the companion tenant_providers row as local when the name is LM Studio', async () => {
@@ -681,6 +704,28 @@ describe('CustomProviderService', () => {
         await expect(svc.update('cp1', 'tenant-1', { alias: 'gemini' })).rejects.toBeInstanceOf(
           BadRequestException,
         );
+      });
+
+      it('turns a lost race on the alias unique index into a 409', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: null } as CustomProvider;
+        const { svc, save } = makeDeps({ findOneResults: [existing] });
+        save.mockRejectedValueOnce(
+          Object.assign(new Error('duplicate key'), {
+            code: '23505',
+            constraint: 'IDX_custom_providers_tenant_alias',
+          }),
+        );
+        await expect(svc.update('cp1', 'tenant-1', { alias: 'fresh' })).rejects.toBeInstanceOf(
+          ConflictException,
+        );
+      });
+
+      it('rethrows other save failures untouched', async () => {
+        const existing = { id: 'cp1', name: 'old', alias: null } as CustomProvider;
+        const { svc, save } = makeDeps({ findOneResults: [existing] });
+        const boom = new Error('connection reset');
+        save.mockRejectedValueOnce(boom);
+        await expect(svc.update('cp1', 'tenant-1', { alias: 'fresh' })).rejects.toBe(boom);
       });
 
       it('rejects an alias another provider of the tenant already uses, case-insensitively', async () => {
