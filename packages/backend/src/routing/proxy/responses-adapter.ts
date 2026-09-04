@@ -83,7 +83,8 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
   // strictly-validating providers reject with 400/422.
   if (!isNativeResponsesMessageItem(item)) return [];
 
-  const role = typeof item.role === 'string' ? item.role : 'user';
+  const rawRole = typeof item.role === 'string' ? item.role : 'user';
+  const role = rawRole === 'developer' ? 'system' : rawRole;
   const content = toChatContent(item.content, role);
   // A message item carrying no content at all is the same wire hazard: the
   // key is omitted on serialization and `{ role: 'user' }` goes out again.
@@ -155,9 +156,10 @@ function toChatResponseFormat(text: unknown): JsonRecord | undefined {
 }
 
 function toChatTools(tools: unknown[]): JsonRecord[] {
-  return tools.filter(isRecord).map((tool) => {
-    if (tool.type !== 'function') return tool;
-    return {
+  return tools
+    .filter(isRecord)
+    .filter((tool) => tool.type === 'function')
+    .map((tool) => ({
       type: 'function',
       function: {
         name: tool.name,
@@ -165,8 +167,7 @@ function toChatTools(tools: unknown[]): JsonRecord[] {
         ...(tool.parameters !== undefined && { parameters: tool.parameters }),
         ...(tool.strict !== undefined && { strict: tool.strict }),
       },
-    };
-  });
+    }));
 }
 
 function toChatToolChoice(toolChoice: unknown): unknown {

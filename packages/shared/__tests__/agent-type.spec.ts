@@ -20,6 +20,7 @@ describe('agent-type', () => {
       'n8n',
       'claude-code',
       'opencode',
+      'codex',
       'openai-sdk',
       'anthropic-sdk',
       'vercel-ai-sdk',
@@ -65,10 +66,13 @@ describe('agent-type', () => {
   it('places coding assistants under coding only, not personal or app', () => {
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.coding).toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.coding).toContain('codex');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.personal).not.toContain('codex');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('claude-code');
     expect(PLATFORMS_BY_CATEGORY.app).not.toContain('opencode');
+    expect(PLATFORMS_BY_CATEGORY.app).not.toContain('codex');
   });
 
   it('places n8n under automation only', () => {
@@ -150,6 +154,7 @@ describe('agent-type', () => {
       expect(platformIcon('n8n', 'automation')).toBe(PLATFORM_ICONS.n8n);
       expect(platformIcon('claude-code', 'coding')).toBe(PLATFORM_ICONS['claude-code']);
       expect(platformIcon('opencode', 'coding')).toBe(PLATFORM_ICONS.opencode);
+      expect(platformIcon('codex', 'coding')).toBe(PLATFORM_ICONS.codex);
       expect(platformIcon('openai-sdk', 'app')).toBe(PLATFORM_ICONS['openai-sdk']);
       expect(platformIcon('anthropic-sdk', 'app')).toBe(PLATFORM_ICONS['anthropic-sdk']);
       expect(platformIcon('vercel-ai-sdk', 'app')).toBe(PLATFORM_ICONS['vercel-ai-sdk']);
@@ -164,6 +169,10 @@ describe('agent-type', () => {
 
     it('opencode resolves to the providers/opencode.svg mark', () => {
       expect(platformIcon('opencode', 'coding')).toBe('/icons/providers/opencode.svg');
+    });
+
+    it('codex resolves to the providers/codex.svg mark', () => {
+      expect(platformIcon('codex', 'coding')).toBe('/icons/providers/codex.svg');
     });
 
     it('returns the platform icon regardless of the category passed (icon is keyed by platform)', () => {
