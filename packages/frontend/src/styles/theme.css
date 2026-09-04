@@ -1241,6 +1241,10 @@ h6 {
     flex: 1;
     min-width: 0;
   }
+  .chart-card__filters {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
   .header__dropdown {
     left: auto !important;
     right: 0 !important;
