@@ -111,7 +111,7 @@ afx-kpi-line (analytics-overview.css): afx-kpi-line afx-kpi-line__primary afx-kp
 agent-card (action-menu.css, agents.css): agent-card agent-card--skeleton agent-card__chart agent-card__menu agent-card__name agent-card__platform-icon agent-card__stat agent-card__stat-label agent-card__stat-value agent-card__stats agent-card__top
 agent-card-wrap (action-menu.css, agents.css): agent-card-wrap
 agent-chart-tooltip (agent-chart-tooltip.css): agent-chart-tooltip agent-chart-tooltip__columns agent-chart-tooltip__date agent-chart-tooltip__list agent-chart-tooltip__name agent-chart-tooltip__row agent-chart-tooltip__swatch agent-chart-tooltip__total agent-chart-tooltip__total-value agent-chart-tooltip__value
-agent-filter-select (filter-select.css): agent-filter-select agent-filter-select__action-btn agent-filter-select__actions agent-filter-select__dropdown agent-filter-select__item agent-filter-select__name agent-filter-select__swatch agent-filter-select__toggle agent-filter-select__toggle--on agent-filter-select__toggle-thumb agent-filter-select__trigger
+agent-filter-select (filter-select.css, theme.css): agent-filter-select agent-filter-select__action-btn agent-filter-select__actions agent-filter-select__dropdown agent-filter-select__item agent-filter-select__name agent-filter-select__swatch agent-filter-select__toggle agent-filter-select__toggle--on agent-filter-select__toggle-thumb agent-filter-select__trigger
 agent-type-select (agent-type-select.css): agent-type-select agent-type-select__caret agent-type-select__column agent-type-select__dropdown agent-type-select__dropdown--inline agent-type-select__group-label agent-type-select__option agent-type-select__option--selected agent-type-select__option-icon agent-type-select__trigger agent-type-select__trigger--open agent-type-select__trigger-icon agent-type-select__trigger-label
 agent-type-select-row (agent-type-select.css): agent-type-select-row
 agents-grid (agents.css): agents-grid
@@ -153,7 +153,7 @@ connection-delete-confirmation (routing-providers.css): connection-delete-confir
 connection-detail (connection-detail.css): connection-detail__badge connection-detail__badges connection-detail__controls connection-detail__header connection-detail__identity connection-detail__meta connection-detail__title connection-detail__title-row
 connection-label-cell (routing-providers.css): connection-label-cell connection-label-cell__edit
 connections-panel (routing-providers.css): connections-panel connections-panel--collapsed connections-panel__body connections-panel__chevron connections-panel__toggle connections-panel__viewport
-container (layout.css, theme.css): container--full container--lg container--md container--sm
+container (layout.css, routing.css, theme.css): container--full container--lg container--md container--sm
 conv-outline-row (request-drawer.css): conv-outline-row conv-outline-row--active conv-outline-row__badge conv-outline-row__badge--assistant conv-outline-row__badge--system conv-outline-row__badge--tool conv-outline-row__badge--unknown conv-outline-row__badge--user conv-outline-row__num conv-outline-row__preview conv-outline-row__tokens
 conv-rail (request-drawer.css): conv-rail conv-rail__empty conv-rail__list conv-rail__role-pill conv-rail__role-pill--assistant conv-rail__role-pill--off conv-rail__role-pill--system conv-rail__role-pill--tool conv-rail__role-pill--unknown conv-rail__role-pill--user conv-rail__roles conv-rail__search conv-rail__search-wrap
 conv-resize-handle (request-drawer.css): conv-resize-handle
@@ -428,9 +428,9 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .setup-modal__next:hover { opacity: 0.85 }  ← overview.css:55
 .tier-badge--fallback { background: hsl(38 92% 50% / 0.15) }  ← overview.css:105
 .tier-badge--fallback { color: hsl(38 92% 40%) }  ← overview.css:106
-.request-tool { border: 1px solid hsl(36 80% 50% / 0.24) }  ← request-drawer.css:874
-.request-tool { border-radius: var(--radius-sm) }  ← request-drawer.css:875
-.request-tool { background: hsl(36 80% 50% / 0.04) }  ← request-drawer.css:876
+.request-tool { border: 1px solid hsl(36 80% 50% / 0.24) }  ← request-drawer.css:917
+.request-tool { border-radius: var(--radius-sm) }  ← request-drawer.css:918
+.request-tool { background: hsl(36 80% 50% / 0.04) }  ← request-drawer.css:919
 .hljs-attr { color: hsl(var(--chart-4)) }  ← syntax-highlight.css:41
 .summary-card { box-shadow: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px }  ← theme.css:197
 .trend--up { color: hsl(var(--success)) }  ← theme.css:238
@@ -506,10 +506,10 @@ workspace-table (agents.css): workspace-table__actions workspace-table__icon wor
 .setup-modal__next { color: hsl(var(--primary-foreground)) }  at modals.css:101 loses to overview.css:46
 .setup-modal__next { background: hsl(var(--primary)) }  at modals.css:102 loses to overview.css:45
 .setup-modal__next:hover { opacity: 0.9 }  at modals.css:110 loses to overview.css:55
-.request-tool { border: 1px solid hsl(var(--border)) }  at request-drawer.css:646 loses to request-drawer.css:874
-.request-tool { border-radius: var(--radius) }  at request-drawer.css:647 loses to request-drawer.css:875
-.request-tool { background: hsl(var(--card)) }  at request-drawer.css:648 loses to request-drawer.css:876
-.hljs-attr { color: hsl(187 60% 38%) }  at request-drawer.css:1054 loses to syntax-highlight.css:41
+.request-tool { border: 1px solid hsl(var(--border)) }  at request-drawer.css:669 loses to request-drawer.css:917
+.request-tool { border-radius: var(--radius) }  at request-drawer.css:670 loses to request-drawer.css:918
+.request-tool { background: hsl(var(--card)) }  at request-drawer.css:671 loses to request-drawer.css:919
+.hljs-attr { color: hsl(187 60% 38%) }  at request-drawer.css:1097 loses to syntax-highlight.css:41
 .welcome__progress-header span { letter-spacing: 0.09em }  at welcome.css:548 loses to welcome.css:554
 .welcome__text-link:focus-visible { outline: 3px solid hsl(var(--ring)) }  at welcome.css:726 loses to welcome.css:865
 .welcome__text-link:focus-visible { outline-offset: 2px }  at welcome.css:727 loses to welcome.css:866

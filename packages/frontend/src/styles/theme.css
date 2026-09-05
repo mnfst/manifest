@@ -1239,7 +1239,34 @@ h6 {
   }
   .header__left {
     flex: 1;
-    overflow: hidden;
+    min-width: 0;
+  }
+  .chart-card__subtitle {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .chart-card__filters {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chart-card__filters > button {
+    flex: 1 1 140px;
+  }
+  .chart-card__filters > div {
+    flex: 1 1 100%;
+  }
+  .chart-card__filters .agent-filter-select__trigger {
+    width: 100%;
+  }
+  .header__dropdown {
+    left: auto !important;
+    right: 0 !important;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
   .header__logo-img {
     width: 124px;
