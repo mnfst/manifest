@@ -39,6 +39,7 @@ import {
 } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
 import { toNativeResponsesRequest } from './responses-adapter';
+import { responsesToolNames, ResponsesToolNames } from './responses-tools';
 import { forwardKiroChat } from './kiro-adapter';
 import { OpencodeGoCatalogService } from '../../model-discovery/opencode-go-catalog.service';
 import { ProviderModelRegistryService } from '../../model-discovery/provider-model-registry.service';
@@ -84,6 +85,7 @@ export interface ForwardResult {
   structuredOutputToolName?: string;
   /** Internal: original Responses text.format metadata for synthesized Responses bodies. */
   responsesTextFormat?: Record<string, unknown>;
+  responsesToolNames?: ResponsesToolNames;
 }
 
 function wireApiMode(endpoint: ProviderEndpoint): ProxyApiMode | undefined {
@@ -369,6 +371,8 @@ export class ProviderClient {
         wireFormat: 'kiro_chat',
         wireApiMode: opts.apiMode,
         responsesTextFormat: textFormat,
+        responsesToolNames:
+          opts.apiMode === 'responses' ? responsesToolNames(body.tools) : undefined,
       };
     }
     const { url, headers, requestBody, structuredOutputToolName } = this.buildRequest({
@@ -434,6 +438,8 @@ export class ProviderClient {
         isCodeAssist,
         structuredOutputToolName,
         responsesTextFormat: textFormat,
+        responsesToolNames:
+          opts.apiMode === 'responses' ? responsesToolNames(body.tools) : undefined,
       });
       const response =
         !stream &&
@@ -831,6 +837,7 @@ export class ProviderClient {
       isCodeAssist?: boolean;
       structuredOutputToolName?: string;
       responsesTextFormat?: Record<string, unknown>;
+      responsesToolNames?: ResponsesToolNames;
     },
   ): Promise<ForwardResult> {
     let fetchSignal: AbortSignal;

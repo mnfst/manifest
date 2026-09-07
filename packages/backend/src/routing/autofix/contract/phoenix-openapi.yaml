@@ -353,6 +353,7 @@ components:
             n8n,
             claude-code,
             opencode,
+            codex,
             openai-sdk,
             anthropic-sdk,
             vercel-ai-sdk,

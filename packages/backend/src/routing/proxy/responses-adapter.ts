@@ -2,10 +2,12 @@ import { randomUUID } from 'crypto';
 
 import { DEFAULT_INSTRUCTIONS } from './chatgpt-helpers';
 import { OpenAIMessage } from './proxy-types';
+import { chatToolName, chatTools, responsesToolNames, ResponsesToolNames } from './responses-tools';
 
 type JsonRecord = Record<string, unknown>;
 
 interface ChatCompletionToResponsesOptions {
+  toolNames?: ResponsesToolNames;
   structuredOutputToolName?: string;
   textFormat?: JsonRecord;
 }
@@ -41,7 +43,7 @@ function toChatContent(content: unknown, role: string): unknown {
   return converted;
 }
 
-function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
+function responseInputItemToMessage(item: JsonRecord, names: ResponsesToolNames): OpenAIMessage[] {
   if (item.type === 'function_call') {
     return [
       {
@@ -52,7 +54,7 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
             id: typeof item.call_id === 'string' ? item.call_id : randomUUID(),
             type: 'function',
             function: {
-              name: typeof item.name === 'string' ? item.name : 'unknown',
+              name: chatToolName(item, names),
               arguments: typeof item.arguments === 'string' ? item.arguments : '{}',
             },
           },
@@ -83,7 +85,8 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
   // strictly-validating providers reject with 400/422.
   if (!isNativeResponsesMessageItem(item)) return [];
 
-  const role = typeof item.role === 'string' ? item.role : 'user';
+  const rawRole = typeof item.role === 'string' ? item.role : 'user';
+  const role = rawRole === 'developer' ? 'system' : rawRole;
   const content = toChatContent(item.content, role);
   // A message item carrying no content at all is the same wire hazard: the
   // key is omitted on serialization and `{ role: 'user' }` goes out again.
@@ -94,6 +97,7 @@ function responseInputItemToMessage(item: JsonRecord): OpenAIMessage[] {
 
 export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const messages: OpenAIMessage[] = [];
+  const names = responsesToolNames(body.tools);
   const instructions = body.instructions;
   if (typeof instructions === 'string' && instructions.trim()) {
     messages.push({ role: 'system', content: instructions });
@@ -107,7 +111,16 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
       if (typeof item === 'string') {
         messages.push({ role: 'user', content: item });
       } else if (isRecord(item)) {
-        messages.push(...responseInputItemToMessage(item));
+        const converted = responseInputItemToMessage(item, names);
+        const previous = messages[messages.length - 1];
+        const next = converted[0];
+        // Parallel Responses calls are separate items, but Chat Completions
+        // requires one assistant turn followed by all matching tool results.
+        if (previous?.tool_calls && next?.tool_calls) {
+          previous.tool_calls.push(...next.tool_calls);
+        } else {
+          messages.push(...converted);
+        }
       }
     }
   }
@@ -129,8 +142,9 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.max_output_tokens !== undefined) chatBody.max_tokens = body.max_output_tokens;
   const responseFormat = toChatResponseFormat(body.text);
   if (responseFormat) chatBody.response_format = responseFormat;
-  if (Array.isArray(body.tools)) chatBody.tools = toChatTools(body.tools);
-  if (body.tool_choice !== undefined) chatBody.tool_choice = toChatToolChoice(body.tool_choice);
+  if (Array.isArray(body.tools)) chatBody.tools = chatTools(body.tools, names);
+  const toolChoice = toChatToolChoice(body.tool_choice, names);
+  if (toolChoice !== undefined) chatBody.tool_choice = toolChoice;
 
   return chatBody;
 }
@@ -154,24 +168,12 @@ function toChatResponseFormat(text: unknown): JsonRecord | undefined {
   return { type: 'json_schema', json_schema: jsonSchema };
 }
 
-function toChatTools(tools: unknown[]): JsonRecord[] {
-  return tools.filter(isRecord).map((tool) => {
-    if (tool.type !== 'function') return tool;
-    return {
-      type: 'function',
-      function: {
-        name: tool.name,
-        ...(tool.description !== undefined && { description: tool.description }),
-        ...(tool.parameters !== undefined && { parameters: tool.parameters }),
-        ...(tool.strict !== undefined && { strict: tool.strict }),
-      },
-    };
-  });
-}
-
-function toChatToolChoice(toolChoice: unknown): unknown {
-  if (!isRecord(toolChoice) || toolChoice.type !== 'function') return toolChoice;
-  return { type: 'function', function: { name: toolChoice.name } };
+function toChatToolChoice(toolChoice: unknown, names: ResponsesToolNames): unknown {
+  if (toolChoice === 'auto' || toolChoice === 'none' || toolChoice === 'required')
+    return toolChoice;
+  // A hosted tool removed from tools cannot remain as a forced tool choice.
+  if (!isRecord(toolChoice) || toolChoice.type !== 'function') return undefined;
+  return { type: 'function', function: { name: chatToolName(toolChoice, names) } };
 }
 
 /**
@@ -367,6 +369,7 @@ export function fromChatCompletionResponse(
         id: `fc_${randomUUID().replace(/-/g, '')}`,
         call_id: typeof toolCall.id === 'string' ? toolCall.id : randomUUID(),
         name: typeof toolCall.function.name === 'string' ? toolCall.function.name : '',
+        ...options.toolNames?.get(String(toolCall.function.name)),
         arguments:
           typeof toolCall.function.arguments === 'string' ? toolCall.function.arguments : '{}',
         status: 'completed',
@@ -595,11 +598,25 @@ export interface ResponsesStreamTransformer {
 }
 
 export interface ResponsesStreamTransformerOptions {
+  toolNames?: ResponsesToolNames;
   structuredOutputToolName?: string;
   textFormat?: JsonRecord;
 }
 
+interface StreamFunctionCall {
+  id: string;
+  callId: string;
+  name: string;
+  arguments: string;
+  outputIndex?: number;
+}
+
 interface ResponsesStreamState {
+  toolNames?: ResponsesToolNames;
+  toolCalls: Map<number, StreamFunctionCall>;
+  nextOutputIndex: number;
+  messageOutputIndex: number;
+
   responseId: string;
   itemId: string;
   model: string;
@@ -635,6 +652,10 @@ export function createResponsesStreamTransformer(
   options: ResponsesStreamTransformerOptions = {},
 ): ResponsesStreamTransformer {
   const state: ResponsesStreamState = {
+    toolNames: options.toolNames,
+    toolCalls: new Map(),
+    nextOutputIndex: 0,
+    messageOutputIndex: 0,
     responseId: `resp_${randomUUID().replace(/-/g, '')}`,
     itemId: `msg_${randomUUID().replace(/-/g, '')}`,
     model,
@@ -684,10 +705,11 @@ function emitCreated(state: ResponsesStreamState): string[] {
 function emitItemOpen(state: ResponsesStreamState): string[] {
   if (state.itemOpened) return [];
   state.itemOpened = true;
+  state.messageOutputIndex = state.nextOutputIndex++;
   return [
     formatResponsesEvent('response.output_item.added', {
       type: 'response.output_item.added',
-      output_index: 0,
+      output_index: state.messageOutputIndex,
       item: {
         id: state.itemId,
         type: 'message',
@@ -699,7 +721,7 @@ function emitItemOpen(state: ResponsesStreamState): string[] {
     formatResponsesEvent('response.content_part.added', {
       type: 'response.content_part.added',
       item_id: state.itemId,
-      output_index: 0,
+      output_index: state.messageOutputIndex,
       content_index: 0,
       part: { type: 'output_text', text: '', annotations: [] },
     }),
@@ -737,11 +759,76 @@ function emitOutputTextDelta(state: ResponsesStreamState, delta: string): string
     formatResponsesEvent('response.output_text.delta', {
       type: 'response.output_text.delta',
       item_id: state.itemId,
-      output_index: 0,
+      output_index: state.messageOutputIndex,
       content_index: 0,
       delta,
     }),
   );
+  return events;
+}
+
+function functionCallItem(
+  call: StreamFunctionCall,
+  state: ResponsesStreamState,
+  status: string,
+): JsonRecord {
+  return {
+    type: 'function_call',
+    id: call.id,
+    call_id: call.callId,
+    name: call.name,
+    ...state.toolNames?.get(call.name),
+    arguments: status === 'in_progress' ? '' : call.arguments,
+    status,
+  };
+}
+
+function openFunctionCall(call: StreamFunctionCall, state: ResponsesStreamState): string[] {
+  if (call.outputIndex !== undefined) return [];
+  call.outputIndex = state.nextOutputIndex++;
+  return [
+    formatResponsesEvent('response.output_item.added', {
+      type: 'response.output_item.added',
+      output_index: call.outputIndex,
+      item: functionCallItem(call, state, 'in_progress'),
+    }),
+  ];
+}
+
+function toolCallDeltas(toolCalls: unknown, state: ResponsesStreamState): string[] {
+  if (!Array.isArray(toolCalls)) return [];
+  const events: string[] = [];
+  for (const delta of toolCalls) {
+    if (!isRecord(delta) || !isRecord(delta.function)) continue;
+    const index = typeof delta.index === 'number' ? delta.index : 0;
+    let call = state.toolCalls.get(index);
+    if (!call) {
+      call = { id: `fc_${randomUUID().replace(/-/g, '')}`, callId: '', name: '', arguments: '' };
+      state.toolCalls.set(index, call);
+    }
+    if (typeof delta.id === 'string') call.callId = delta.id;
+    if (typeof delta.function.name === 'string') call.name += delta.function.name;
+    const args = typeof delta.function.arguments === 'string' ? delta.function.arguments : '';
+    call.arguments += args;
+    if (call.name === state.structuredOutputToolName) continue;
+    // Production forwards the declared names, so complete names can open
+    // immediately even before arguments. Undeclared/partial names wait for
+    // finalization; an arguments delta does not prove the name is complete.
+    if (!call.name || !call.callId) continue;
+    if (state.toolNames ? !state.toolNames.has(call.name) : !call.arguments) continue;
+    const first = call.outputIndex === undefined;
+    events.push(...openFunctionCall(call, state));
+    const text = first ? call.arguments : args;
+    if (text)
+      events.push(
+        formatResponsesEvent('response.function_call_arguments.delta', {
+          type: 'response.function_call_arguments.delta',
+          item_id: call.id,
+          output_index: call.outputIndex,
+          delta: text,
+        }),
+      );
+  }
   return events;
 }
 
@@ -766,6 +853,7 @@ function transformResponsesStreamChunk(chunk: string, state: ResponsesStreamStat
       events.push(...emitOutputTextDelta(state, delta.content));
     }
 
+    events.push(...toolCallDeltas(delta.tool_calls, state));
     const structuredDelta = structuredOutputTextDelta(delta.tool_calls, state);
     if (structuredDelta) {
       events.push(...emitOutputTextDelta(state, structuredDelta));
@@ -786,20 +874,20 @@ function finalizeResponsesStream(state: ResponsesStreamState): string | null {
       formatResponsesEvent('response.output_text.done', {
         type: 'response.output_text.done',
         item_id: state.itemId,
-        output_index: 0,
+        output_index: state.messageOutputIndex,
         content_index: 0,
         text: state.text,
       }),
       formatResponsesEvent('response.content_part.done', {
         type: 'response.content_part.done',
         item_id: state.itemId,
-        output_index: 0,
+        output_index: state.messageOutputIndex,
         content_index: 0,
         part: { type: 'output_text', text: state.text, annotations: [] },
       }),
       formatResponsesEvent('response.output_item.done', {
         type: 'response.output_item.done',
-        output_index: 0,
+        output_index: state.messageOutputIndex,
         item: {
           id: state.itemId,
           type: 'message',
@@ -807,6 +895,28 @@ function finalizeResponsesStream(state: ResponsesStreamState): string | null {
           role: 'assistant',
           content: [{ type: 'output_text', text: state.text, annotations: [] }],
         },
+      }),
+    );
+  }
+
+  const toolOutput: { index: number; item: JsonRecord }[] = [];
+  for (const call of state.toolCalls.values()) {
+    if (!call.name || call.name === state.structuredOutputToolName) continue;
+    if (!call.callId) call.callId = randomUUID();
+    events.push(...openFunctionCall(call, state));
+    const item = functionCallItem(call, state, 'completed');
+    toolOutput.push({ index: call.outputIndex!, item });
+    events.push(
+      formatResponsesEvent('response.function_call_arguments.done', {
+        type: 'response.function_call_arguments.done',
+        item_id: call.id,
+        output_index: call.outputIndex,
+        arguments: call.arguments,
+      }),
+      formatResponsesEvent('response.output_item.done', {
+        type: 'response.output_item.done',
+        output_index: call.outputIndex,
+        item,
       }),
     );
   }
@@ -833,6 +943,14 @@ function finalizeResponsesStream(state: ResponsesStreamState): string | null {
     const message = response.output.find((item) => isRecord(item) && item.type === 'message');
     if (isRecord(message)) message.id = state.itemId;
   }
+
+  const output = (response.output as JsonRecord[]).map((item) => ({
+    index: state.messageOutputIndex,
+    item,
+  }));
+  response.output = [...output, ...toolOutput]
+    .sort((a, b) => a.index - b.index)
+    .map(({ item }) => item);
 
   events.push(
     formatResponsesEvent('response.completed', { type: 'response.completed', response }),

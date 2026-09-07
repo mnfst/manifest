@@ -147,6 +147,7 @@ const OPENROUTER_MODELS_FIXTURE = {
 } as const;
 
 export interface CreateTestAppOptions {
+  configureApp?: (app: INestApplication) => void;
   dropSchema?: boolean;
   seed?: boolean;
 }
@@ -259,6 +260,7 @@ export async function createTestApp(options: CreateTestAppOptions = {}): Promise
         forbidNonWhitelisted: true,
       }),
     );
+    options.configureApp?.(app);
     await app.init();
 
     const ds = app.get(DataSource);

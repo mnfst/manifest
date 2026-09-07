@@ -19,13 +19,14 @@ vi.mock("manifest-shared", () => ({
     curl: "cURL",
     "claude-code": "Claude Code",
     opencode: "OpenCode",
+    codex: "Codex",
     other: "Other",
   },
   PLATFORMS_BY_CATEGORY: {
     personal: ["openclaw", "hermes", "other"],
     automation: ["n8n", "other"],
     app: ["openai-sdk", "vercel-ai-sdk", "langchain", "other"],
-    coding: ["claude-code", "opencode", "other"],
+    coding: ["claude-code", "opencode", "codex", "other"],
   },
   PLATFORM_ICONS: {
     openclaw: "/icons/openclaw.png",
@@ -36,6 +37,7 @@ vi.mock("manifest-shared", () => ({
     langchain: "/icons/langchain.svg",
     "claude-code": "/icons/providers/claude-code.svg",
     opencode: "/icons/providers/opencode.svg",
+    codex: "/icons/providers/codex.svg",
   },
 }));
 
@@ -93,8 +95,8 @@ describe("AgentTypeSelect", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // personal: 3, automation: 2, app: 4, coding: 3 = 12
-    expect(options).toHaveLength(12);
+    // personal: 3, automation: 2, app: 4, coding: 4 = 13
+    expect(options).toHaveLength(13);
   });
 
   it("shows platform names in options", () => {
@@ -109,13 +111,14 @@ describe("AgentTypeSelect", () => {
     expect(dropdown.textContent).toContain("LangChain");
     expect(dropdown.textContent).toContain("Claude Code");
     expect(dropdown.textContent).toContain("OpenCode");
+    expect(dropdown.textContent).toContain("Codex");
   });
 
   it("places Claude Code in the coding column with the official Claude mark", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // Coding column is rightmost: index 9 = claude-code, index 10 = opencode.
+    // Coding column is rightmost: index 9 = claude-code, index 10 = opencode, index 11 = codex.
     expect(options[9].textContent).toContain("Claude Code");
     const claudeIcon = options[9].querySelector(".agent-type-select__option-icon");
     expect(claudeIcon!.getAttribute("src")).toBe("/icons/providers/claude-code.svg");
@@ -128,6 +131,15 @@ describe("AgentTypeSelect", () => {
     expect(options[10].textContent).toContain("OpenCode");
     const opencodeIcon = options[10].querySelector(".agent-type-select__option-icon");
     expect(opencodeIcon!.getAttribute("src")).toBe("/icons/providers/opencode.svg");
+  });
+
+  it("places Codex in the coding column with the Codex mark", () => {
+    const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
+    fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
+    const options = container.querySelectorAll(".agent-type-select__option");
+    expect(options[11].textContent).toContain("Codex");
+    const codexIcon = options[11].querySelector(".agent-type-select__option-icon");
+    expect(codexIcon!.getAttribute("src")).toBe("/icons/providers/codex.svg");
   });
 
   it("places n8n in the automation column with the n8n mark", () => {
@@ -239,7 +251,7 @@ describe("AgentTypeSelect", () => {
     ));
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    fireEvent.click(options[11]); // coding Other
+    fireEvent.click(options[12]); // coding Other
     expect(onCategoryChange).toHaveBeenCalledWith("coding");
     expect(onPlatformChange).toHaveBeenCalledWith("other");
   });
@@ -313,11 +325,11 @@ describe("AgentTypeSelect", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll(".agent-type-select__option");
-    // personal other at index 2, automation other at index 4, app other at index 8, coding other at index 11
+    // personal other at index 2, automation other at index 4, app other at index 8, coding other at index 12
     expect(options[2].textContent).toContain("Other");
     expect(options[4].textContent).toContain("Other");
     expect(options[8].textContent).toContain("Other");
-    expect(options[11].textContent).toContain("Other");
+    expect(options[12].textContent).toContain("Other");
   });
 
   it("uses the personal-agent icon only for personal/Other (automation + app + coding share other.svg)", () => {
@@ -327,7 +339,7 @@ describe("AgentTypeSelect", () => {
     const personalOther = options[2].querySelector(".agent-type-select__option-icon");
     const automationOther = options[4].querySelector(".agent-type-select__option-icon");
     const appOther = options[8].querySelector(".agent-type-select__option-icon");
-    const codingOther = options[11].querySelector(".agent-type-select__option-icon");
+    const codingOther = options[12].querySelector(".agent-type-select__option-icon");
     expect(personalOther!.getAttribute("src")).toBe("/icons/other-agent.svg");
     expect(automationOther!.getAttribute("src")).toBe("/icons/other.svg");
     expect(appOther!.getAttribute("src")).toBe("/icons/other.svg");
@@ -359,7 +371,7 @@ describe("AgentTypeSelect", () => {
     const { container } = render(() => <AgentTypeSelect {...defaultProps} />);
     fireEvent.click(container.querySelector(".agent-type-select__trigger")!);
     const options = container.querySelectorAll('[role="option"]');
-    expect(options).toHaveLength(12);
+    expect(options).toHaveLength(13);
   });
 
   it("sets aria-selected on selected option", () => {
