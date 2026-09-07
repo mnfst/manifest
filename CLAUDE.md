@@ -1,6 +1,6 @@
 # Manifest Development Guidelines
 
-Last updated: 2026-09-03
+Last updated: 2026-09-07
 
 ## What Manifest Is
 
@@ -128,6 +128,7 @@ packages/
 │   │   ├── github/                          # GitHub stars endpoint
 │   │   ├── sse/                             # Server-Sent Events for real-time updates
 │   │   ├── setup/                           # First-run admin setup wizard
+│   │   ├── version/                         # Self-hosted update-check endpoint (GitHub Releases)
 │   │   ├── public-stats/                    # Public aggregate usage endpoints (opt-in)
 │   │   ├── free-models/                     # Free LLM model catalog
 │   │   ├── model-discovery/                 # Per-provider model fetching + fallback
@@ -155,7 +156,8 @@ packages/
 │   │   │   ├── Login.tsx, Register.tsx       # Auth pages
 │   │   │   ├── ResetPassword.tsx            # Password reset flow
 │   │   │   ├── Workspace.tsx                # Harness grid/table at /harnesses + create harness
-│   │   │   ├── GlobalOverview.tsx, AgentOverview.tsx # Cross-harness + per-harness dashboards (split from one Overview.tsx)
+│   │   │   ├── GlobalOverview.tsx           # Cross-harness dashboard (split out of the old Overview.tsx)
+│   │   │   ├── Overview.tsx, AgentOverview.tsx # Per-harness dashboard; `AgentOverview.tsx` just re-exports `Overview.tsx`'s default
 │   │   │   ├── AgentDetail.tsx, AgentProviders.tsx   # Per-harness detail shell (tabs) + provider connections
 │   │   │   ├── MessageLog.tsx               # Paginated Requests log (legacy filename)
 │   │   │   ├── Account.tsx                  # User profile (session data)
@@ -378,6 +380,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/agent/costs`                           | Bearer (mnfst\_\*)                  | Cost data for the calling agent                                                                             |
 | GET                       | `/api/v1/overview/*`                            | Session/API Key                     | Overview timeseries/breakdown sub-endpoints                                                                 |
 | GET                       | `/api/v1/providers` / `/api/v1/providers/usage` | Session/API Key                     | Connected provider list + usage                                                                             |
+| POST                      | `/api/v1/providers/:providerId/ensure`          | Session/API Key                     | Ensure a managed free provider (e.g. Gemini Free) is connected via the credits gateway                      |
 | GET                       | `/api/v1/provider-analytics/*`                  | Session/API Key                     | Per-provider analytics                                                                                      |
 | GET                       | `/api/v1/errors/breakdown`                      | Session/API Key                     | Error breakdown analytics                                                                                   |
 | GET/PATCH                 | `/api/v1/billing/*`                             | Session/API Key                     | Billing status, light `plan` endpoint, email preferences (Stripe)                                           |
@@ -405,7 +408,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | POST                      | `/v1/responses`                                 | Bearer (mnfst\_\*)                  | LLM proxy (OpenAI Responses API)                                                                            |
 | POST                      | `/v1/messages`                                  | Bearer (mnfst\_\*)                  | LLM proxy (Anthropic Messages API)                                                                          |
 | POST                      | `/chat/completions`                             | Public                              | Structured 404 pointing callers at `/v1/chat/completions` (missing `/v1` basePath — not a proxy alias)      |
-| ALL                       | `/otlp/v1/*`, `/v1/{traces,metrics,logs}`       | Public                              | Structured **410 Gone** — OTLP ingest is removed (`otlp-deprecated.controller.ts`)                          |
+| ALL                       | `/otlp/v1/*`, `/v1/{traces,metrics,logs}`, `/api/v1/otlp/v1/*` | Public                | Structured **410 Gone** — OTLP ingest is removed (`otlp-deprecated.controller.ts`); the `/api/v1/...` variant catches clients that prepend the dashboard's API prefix |
 | GET/POST/PATCH            | `/api/v1/playground/*`                          | Session/API Key                     | Playground runs (run, list, star, mark best)                                                                |
 | GET                       | `/api/v1/events`                                | Session                             | SSE real-time events                                                                                        |
 | GET                       | `/api/v1/github/stars`                          | Public                              | GitHub star count                                                                                           |
@@ -430,7 +433,12 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `THROTTLE_TTL` — Rate limit window in ms. Default: `60000`
 - `THROTTLE_LIMIT` — Max requests per window. Default: `100`
 - `DB_POOL_MAX` — PostgreSQL connection pool size. Default: `10`
+- `DB_TUNE_SESSION` — Set `false` to skip applying PgBouncer-safe planner defaults (jit off, larger work_mem, SSD-tuned random_page_cost) as role-level defaults at boot — needed on a managed Postgres where the role lacks `ALTER ROLE` on itself. Default: `true`.
 - `RUN_MIGRATIONS_ON_BOOT` — Whether the app runs pending migrations at startup. Default: `true`; set `false` for multi-replica deploys where only one instance should migrate.
+- `SHUTDOWN_DRAIN_MS` — On SIGTERM, how long to keep serving traffic before shutdown to ride out the deregistration lag (the rolling-deploy 5xx spike). Must be shorter than the platform's own drain window (e.g. Railway's `drainingSeconds`). `0` disables it. Default: `10000`.
+- `ERROR_PAGE_PUSH_SECRET` — Shared secret for `POST/GET/DELETE /api/v1/internal/error-pages*` (Peacock CMS push API), sent in the `x-internal-secret` header. Separate credential from `CRM_METRICS_SECRET` on purpose.
+- `MANIFEST_FRONTEND_DIR` — Override the path to the built frontend directory served in production. Rarely needed outside embedded deployments.
+- `MANIFEST_EMBEDDED` — Set when Manifest is booted as an embedded server (e.g. by another process) to skip its own auto-start behavior.
 - `MIGRATION_DATABASE_URL` / `BACKFILL_DATABASE_URL` — Cloud-only direct (non-PgBouncer) database URLs used for migrations and backfills; unset on self-hosted (falls back to `DATABASE_URL`).
 - `PROVIDER_TIMEOUT_MS` — Per-attempt timeout (ms) for upstream provider requests. Default: `180000`
 - `STREAM_WARMUP_MS` — Timeout (ms) to wait for the first chunk of a streaming response before trying a fallback. Default: `15000`
@@ -442,6 +450,7 @@ See `packages/backend/.env.example` for all variables. Key ones:
 - `EMAIL_DOMAIN` — Sending domain (required for Mailgun).
 - `EMAIL_FROM` — Sender address. Default: `noreply@manifest.build`
 - `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` / `NOTIFICATION_FROM_EMAIL` — Legacy Mailgun-only variables. Deprecated; use `EMAIL_*` instead. Still honored for backward compatibility.
+- `ANNOUNCE_APP_URL` / `DOCTOR_TUTORIAL_URL` — Feed the release-announcement email template (`notifications/emails/doctor-release.tsx`). The sending tool itself lives outside this repo; these only affect the template's rendered links. `DOCTOR_TUTORIAL_URL` is omitted from the email while empty.
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (optional)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth (optional)
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET` — Discord OAuth (optional)
@@ -605,7 +614,7 @@ configuration simply leaves it unset by default.
 
 ## Architecture Notes
 
-- **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/` with SPA fallback. API routes (`/api/*`, `/otlp/*`) are excluded.
+- **Single-service**: In production, `@nestjs/serve-static` serves `frontend/dist/`. `ServeStaticModule.forRoot()` excludes `/api/{*path}` and `/v1/{*path}` (`app.module.ts`); its `renderPath` is set to an unmatchable path, so any other unmatched route — including `/otlp/*` — falls through to Nest's router instead of getting an SPA fallback.
 - **Dev mode**: Vite dev server on `:3000` proxies `/api` and `/otlp` to backend on `:3001`. CORS enabled only in dev.
 - **Body parsing**: Disabled at NestJS level (`bodyParser: false`). Better Auth mounted first (needs raw body), then `express.json()` and `express.urlencoded()`.
 - **QueryBuilder API**: Analytics and ingestion services use TypeORM `Repository.createQueryBuilder()` instead of raw SQL. The `addTenantFilter()` helper in `query-helpers.ts` applies multi-tenant WHERE clauses. Only the database seeder and notification cron still use `DataSource.query()` with numbered `$1, $2, ...` placeholders.
