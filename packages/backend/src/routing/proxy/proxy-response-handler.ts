@@ -581,6 +581,7 @@ export async function handleStreamResponse(
       ? createResponsesStreamTransformer(meta.model, {
           structuredOutputToolName: forward.structuredOutputToolName,
           textFormat: forward.responsesTextFormat,
+          toolNames: forward.responsesToolNames,
         })
       : null;
   const streamTransformer = messagesTransformer ?? responsesTransformer;
@@ -829,6 +830,7 @@ export async function handleNonStreamResponse(
     responseBody = fromChatCompletionResponse(responseBody as Record<string, unknown>, meta.model, {
       structuredOutputToolName: forward.structuredOutputToolName,
       textFormat: forward.responsesTextFormat,
+      toolNames: forward.responsesToolNames,
     });
   } else if (apiMode === 'messages' && !forward.isAnthropic) {
     // Anthropic upstreams already returned a Messages-shaped body via the
