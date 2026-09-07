@@ -118,4 +118,18 @@ describe('Responses namespace tools', () => {
       { type: 'function', function: { name: 'bare' } },
     ]);
   });
+  it.each([{ type: 'web_search' }, { type: 'file_search' }, null, 'invalid'])(
+    'omits unsupported tool choices on the chat path: %j',
+    (tool_choice) => {
+      const body = { tools, input: 'Hello', tool_choice };
+      expect(toChatCompletionsRequest(body)).not.toHaveProperty('tool_choice');
+      expect(toNativeResponsesRequest(body, 'gpt-5').tool_choice).toEqual(tool_choice);
+    },
+  );
+
+  it.each(['auto', 'none', 'required'])('preserves the supported %s tool choice', (tool_choice) => {
+    expect(toChatCompletionsRequest({ tools, input: 'Hello', tool_choice }).tool_choice).toBe(
+      tool_choice,
+    );
+  });
 });

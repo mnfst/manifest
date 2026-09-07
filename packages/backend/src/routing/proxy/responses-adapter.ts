@@ -143,8 +143,8 @@ export function toChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const responseFormat = toChatResponseFormat(body.text);
   if (responseFormat) chatBody.response_format = responseFormat;
   if (Array.isArray(body.tools)) chatBody.tools = chatTools(body.tools, names);
-  if (body.tool_choice !== undefined)
-    chatBody.tool_choice = toChatToolChoice(body.tool_choice, names);
+  const toolChoice = toChatToolChoice(body.tool_choice, names);
+  if (toolChoice !== undefined) chatBody.tool_choice = toolChoice;
 
   return chatBody;
 }
@@ -169,7 +169,10 @@ function toChatResponseFormat(text: unknown): JsonRecord | undefined {
 }
 
 function toChatToolChoice(toolChoice: unknown, names: ResponsesToolNames): unknown {
-  if (!isRecord(toolChoice) || toolChoice.type !== 'function') return toolChoice;
+  if (toolChoice === 'auto' || toolChoice === 'none' || toolChoice === 'required')
+    return toolChoice;
+  // A hosted tool removed from tools cannot remain as a forced tool choice.
+  if (!isRecord(toolChoice) || toolChoice.type !== 'function') return undefined;
   return { type: 'function', function: { name: chatToolName(toolChoice, names) } };
 }
 
