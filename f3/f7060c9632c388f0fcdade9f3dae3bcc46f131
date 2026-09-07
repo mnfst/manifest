@@ -1,0 +1,49 @@
+packages/backend/src/routing/proxy/__tests__/responses-stream-tools.spec.ts
+  s_3375a7b487ecde::t_6861fae4623390 1-132
+packages/backend/src/routing/proxy/__tests__/responses-tools.spec.ts
+  s_c858514da5a4ba::t_40f0b1bf5cc237 1-121
+packages/backend/src/routing/proxy/provider-client.ts
+  s_fbb6d00cb77615::t_bca8d4ad5a8d8e 42,88,374-375,441-442,840
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_fbb6d00cb77615::t_dbaf03c12719eb 584,833
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_fbb6d00cb77615::t_c4bceaa5913578 564,608
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_3375a7b487ecde::t_3c15c04a3c8b6f 5,10,46,57,100,114-123,145-147,171,173,369,598,603-610,612-616,652-655,705,709,721,759,767-828,850,871,878,884,896-917,941-948
+packages/backend/src/routing/proxy/responses-tools.ts
+  s_c858514da5a4ba::t_ea0c5894eb2e95 1-78
+packages/backend/test/helpers.ts
+  s_fbb6d00cb77615::t_a21cf43d74de1a 149,261
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f3f7060c9632c388f0fcdade9f3dae3bcc46f131",
+  "prompts": {},
+  "sessions": {
+    "s_3375a7b487ecde": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-2692-7d22-ba5a-9cb7044375df",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c858514da5a4ba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-5030-7901-81a6-d3f659e1e607",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_fbb6d00cb77615": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079ce-0d8d-7fc0-84a4-44d3981e3fc2",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
