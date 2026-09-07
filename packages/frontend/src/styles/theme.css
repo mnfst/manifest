@@ -1239,7 +1239,37 @@ h6 {
   }
   .header__left {
     flex: 1;
-    overflow: hidden;
+    min-width: 0;
+  }
+  .chart-card__subtitle {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .chart-card__filters {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chart-card__filters > button {
+    flex: 1 1 140px;
+  }
+  .chart-card__filters > div {
+    flex: 1 1 100%;
+  }
+  .chart-card__filters .agent-filter-select__trigger {
+    width: 100%;
+  }
+  .header__gear .header__dropdown {
+    /* Anchor to the viewport so short harness names cannot push the menu off-screen. */
+    position: fixed;
+    top: var(--header-height);
+    left: auto !important;
+    right: var(--gap-md) !important;
+  }
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
   }
   .header__logo-img {
     width: 124px;
