@@ -1,0 +1,19 @@
+.github/workflows/docker-smoke.yml
+  s_f0101f3f9cf88b::t_03c314846ced9c 328-477
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "643a48e3b4ef092d9457fd046d7c43551445ecf4",
+  "prompts": {},
+  "sessions": {
+    "s_f0101f3f9cf88b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e7db29ba-94a0-4e5c-abe4-be231a18d096",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

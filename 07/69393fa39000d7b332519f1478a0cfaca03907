@@ -1,0 +1,28 @@
+.changeset/opencode-session-header.md
+  s_0d9b08cf1980fc::t_7c9cc48716c8ca 1-5
+packages/backend/src/routing/proxy/provider-hooks.ts
+  s_0d9b08cf1980fc::t_0094efad3a4a2a 36-54,61,63-67,73,77-80
+  s_0d9b08cf1980fc::t_6c5ce60d4d50f9 35
+packages/backend/src/routing/proxy/proxy-fallback.service.ts
+  s_0d9b08cf1980fc::t_2aa19b6913e43c 667-672
+packages/backend/src/routing/proxy/__tests__/proxy-fallback.service.spec.ts
+  s_0d9b08cf1980fc::t_609d48820fc2bc 844-922
+packages/backend/src/routing/proxy/__tests__/provider-endpoints.spec.ts
+  s_0d9b08cf1980fc::t_517b755261d63a 996-1031
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "0769393fa39000d7b332519f1478a0cfaca03907",
+  "prompts": {},
+  "sessions": {
+    "s_0d9b08cf1980fc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d25e966b-93a6-4103-812e-79c2bb1508c1",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

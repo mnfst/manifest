@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/inline-image-redaction.spec.ts
+  s_d750ff127765d5::t_68b7336a707407 172-190
+packages/backend/src/routing/proxy/inline-image-redaction.ts
+  s_d750ff127765d5::t_3074d81796d758 17,21-27,58,65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "38301069302ea77bb2ac627ea4a6b05d25437b10",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

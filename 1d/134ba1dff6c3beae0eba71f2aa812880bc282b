@@ -1,0 +1,14 @@
+docker/DOCKER_README.md
+  h_4314c622e2d856 132-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1d134ba1dff6c3beae0eba71f2aa812880bc282b",
+  "prompts": {},
+  "humans": {
+    "h_4314c622e2d856": {
+      "author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

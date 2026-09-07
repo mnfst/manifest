@@ -1,0 +1,55 @@
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_d750ff127765d5::t_9e7c76393455b5 23,186
+  s_d750ff127765d5::t_81059909533e1e 12-16
+packages/backend/src/routing/routing-core/__tests__/provider-key.service.spec.ts
+  s_d750ff127765d5::t_81059909533e1e 14-18
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 16,142
+packages/backend/src/common/utils/crypto.util.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 75-102,135-159
+  s_d750ff127765d5::t_58a5ba4af33d84 160
+packages/backend/src/notifications/services/email-provider-config.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 6-12,52
+packages/backend/src/routing/routing-core/provider.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 21-25,256,314,704,1379
+  s_d750ff127765d5::t_b7cc2f8e319de0 20
+packages/backend/src/otlp/services/api-key.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 10-15,130
+packages/backend/src/database/secret-reencryption.service.spec.ts
+  s_d750ff127765d5::t_2e3a87ed95296f 1-223
+.changeset/encryption-key-rotation.md
+  s_d750ff127765d5::t_52d10890ebda73 1-4
+packages/backend/src/routing/routing-core/provider-key.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 11,355
+packages/backend/src/common/utils/crypto.util.spec.ts
+  s_d750ff127765d5::t_52d10890ebda73 1-8,177-238
+  s_d750ff127765d5::t_c7b815d8f54316 239
+packages/backend/src/model-discovery/model-discovery.service.boundary.spec.ts
+  s_d750ff127765d5::t_81059909533e1e 11-15
+packages/backend/src/database/database.module.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 27,94-99
+CLAUDE.md
+  s_d750ff127765d5::t_52d10890ebda73 397
+packages/backend/src/database/secret-reencryption.service.ts
+  s_d750ff127765d5::t_0b5ee495d35ca5 1-204
+packages/backend/src/notifications/services/email-provider-config.service.spec.ts
+  s_d750ff127765d5::t_81059909533e1e 22-26
+packages/backend/.env.example
+  s_d750ff127765d5::t_52d10890ebda73 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1775cee38b24677bc2e84bd07130fc0734c2c782",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+packages/frontend/src/styles/version-indicator.css
+  s_8a9da4768f378b::t_2cb8c9eb85279a 58-61
+packages/backend/src/version/version-check.service.spec.ts
+  s_8a9da4768f378b::t_84716b90c55581 121-156
+packages/backend/src/version/version-check.service.ts
+  s_8a9da4768f378b::t_a9371bf1488c51 59-60,71,73-83,85-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "719b93afcb5afe5533715e4378e1c7cdda985d12",
+  "prompts": {},
+  "sessions": {
+    "s_8a9da4768f378b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "af3210d7-0125-44b7-a46c-bdfa4dff11f5",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

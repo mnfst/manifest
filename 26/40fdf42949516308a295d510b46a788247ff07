@@ -1,0 +1,19 @@
+packages/backend/src/routing/autofix/contract/phoenix-openapi.yaml
+  s_9fddee8d09d62d::t_8716bb1f693766 356
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "2640fdf42949516308a295d510b46a788247ff07",
+  "prompts": {},
+  "sessions": {
+    "s_9fddee8d09d62d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f942638faffeZztnPaKWI92mDO",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

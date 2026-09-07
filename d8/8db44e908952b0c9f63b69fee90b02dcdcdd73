@@ -1,0 +1,43 @@
+AGENTS.md
+  s_b5cdde5d46602f::t_be276de37445f1 9
+CLAUDE.md
+  s_b5cdde5d46602f::t_754a85380c6c8b 391
+  s_b5cdde5d46602f::t_ee5285fd35adc3 3,9-11
+  s_b5cdde5d46602f::t_ffd1693c252d72 193-200
+  s_b5cdde5d46602f::t_be953ce2ace753 459-460
+  s_b5cdde5d46602f::t_46393f8c1a29f5 91
+  s_b5cdde5d46602f::t_8c38f29040efa8 384-386
+  s_b5cdde5d46602f::t_9dbee9f53c8c41 431
+  s_b5cdde5d46602f::t_ba827837cc4ba9 405-406
+  s_b5cdde5d46602f::t_23ce51f40bdc85 113
+  s_b5cdde5d46602f::t_83c89b4d0cdf37 103
+  s_b5cdde5d46602f::t_9b4a873946a9ab 434
+  s_b5cdde5d46602f::t_c6dbe5682886ac 774-776
+  s_b5cdde5d46602f::t_80aba3cf226ef3 382
+  s_b5cdde5d46602f::t_f63aa7e5d95176 471
+  s_b5cdde5d46602f::t_ff5a59863ac4bc 156-158,161,163,166-169,174
+  s_b5cdde5d46602f::t_7450a38b903a47 136-137
+  s_b5cdde5d46602f::t_a8b2801611cd17 506-517
+  s_b5cdde5d46602f::t_581774ca3930a6 687,689,691
+  s_b5cdde5d46602f::t_7ecf9d38fbae8d 12
+README.md
+  s_b5cdde5d46602f::t_c4109fff1fe1a7 103-105
+  s_b5cdde5d46602f::t_b71bb0cb04ec55 94
+  s_b5cdde5d46602f::t_9b32e1127d4375 139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d88db44e908952b0c9f63b69fee90b02dcdcdd73",
+  "prompts": {},
+  "sessions": {
+    "s_b5cdde5d46602f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3841bad7-3b45-4994-95d0-70c33099485d",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

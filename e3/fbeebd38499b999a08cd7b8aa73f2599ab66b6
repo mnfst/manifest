@@ -1,0 +1,21 @@
+packages/backend/src/otlp/services/api-key.service.edge-cases.spec.ts
+  s_d750ff127765d5::t_e183b627e4d6ec 25
+packages/backend/src/otlp/services/api-key.service.spec.ts
+  s_d750ff127765d5::t_21aad30c54f05f 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e3fbeebd38499b999a08cd7b8aa73f2599ab66b6",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

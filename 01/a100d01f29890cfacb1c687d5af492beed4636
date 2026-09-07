@@ -1,0 +1,84 @@
+packages/backend/src/common/dto/create-agent.dto.spec.ts
+  s_9fddee8d09d62d::t_2d50a493110c2d 65-74
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_9fddee8d09d62d::t_c67b44e4848006 86-87
+  s_9fddee8d09d62d::t_aaa17fc7041280 159-162,170
+packages/frontend/public/icons/providers/codex.svg
+  s_9fddee8d09d62d::t_f624e157f81f3e 1
+packages/frontend/src/components/SetupStepAddProvider.tsx
+  s_9fddee8d09d62d::t_f7da602c714717 274-276
+  s_9fddee8d09d62d::t_596129954e5a79 10,14
+  s_9fddee8d09d62d::t_59e2c41b0916d2 62-64
+  s_9fddee8d09d62d::t_b585871e40d8e9 91-93
+  s_9fddee8d09d62d::t_df417d6bc378d6 236-251
+packages/shared/src/agent-type.ts
+  s_9fddee8d09d62d::t_51c5138aba2f71 68
+  s_9fddee8d09d62d::t_5a53e53018f7f0 12
+  s_9fddee8d09d62d::t_df66df747fad74 57
+  s_9fddee8d09d62d::t_aefd5803b2ad9d 44
+packages/backend/src/routing/proxy/__tests__/responses-adapter.spec.ts
+  s_9fddee8d09d62d::t_bf1e74c01e2a10 194,198-226
+  s_96b132b756ae28::t_594d801321bd66 227
+packages/frontend/tests/components/SetupStepAddProvider.test.tsx
+  s_9fddee8d09d62d::t_1aaf889b47cce4 426-441
+  s_9fddee8d09d62d::t_b005141fd37117 49,52,59
+  s_9fddee8d09d62d::t_bc3f4f18d283a9 94-102
+packages/frontend/tests/components/AgentTypeGrid.test.tsx
+  s_9fddee8d09d62d::t_b3f51643c08515 209
+  s_9fddee8d09d62d::t_165dbac1c8d794 31
+  s_9fddee8d09d62d::t_e8b7fe4b8589c8 208
+  s_9fddee8d09d62d::t_ecc4541c21c6fb 75
+  s_9fddee8d09d62d::t_6c0b12964ca737 155-170
+  s_9fddee8d09d62d::t_83284a86fb2e30 234-240
+  s_9fddee8d09d62d::t_505450ce7d98d9 24
+  s_9fddee8d09d62d::t_b831ad42916f13 44
+packages/frontend/tests/components/CodexSetup.test.tsx
+  s_9fddee8d09d62d::t_e246cedde8e163 1-81
+.changeset/codex-cli-agent-platform.md
+  s_9fddee8d09d62d::t_0bac15362af837 1-5
+packages/frontend/src/components/CodexSetup.tsx
+  s_9fddee8d09d62d::t_006d884f979ada 1-10,12-66,69-109
+  s_9fddee8d09d62d::t_e45395c9f606cc 67-68
+  s_9fddee8d09d62d::t_a0174731293473 11
+packages/frontend/tests/components/AgentTypeSelect.test.tsx
+  s_9fddee8d09d62d::t_8610b72416c967 98-99
+  s_9fddee8d09d62d::t_5aab12e35181ee 121
+  s_9fddee8d09d62d::t_c4805143569424 342
+  s_9fddee8d09d62d::t_1b809432025780 374
+  s_9fddee8d09d62d::t_34b26d3033fc34 22
+  s_9fddee8d09d62d::t_fe059e1df580e1 29
+  s_9fddee8d09d62d::t_409bec35d75705 136-144
+  s_9fddee8d09d62d::t_8c2946751e6141 254
+  s_9fddee8d09d62d::t_f12e67add5f2b5 40
+  s_9fddee8d09d62d::t_a32109b60ae093 328,332
+  s_9fddee8d09d62d::t_d5199655c684a1 114
+packages/shared/__tests__/agent-type.spec.ts
+  s_9fddee8d09d62d::t_569fcd00e2a848 23
+  s_9fddee8d09d62d::t_0e711e3966aeae 69,72,75
+  s_9fddee8d09d62d::t_0274339e14383d 157
+  s_9fddee8d09d62d::t_195fe89ac5ec34 174-177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "01a100d01f29890cfacb1c687d5af492beed4636",
+  "prompts": {},
+  "sessions": {
+    "s_96b132b756ae28": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f9446a72cffeTOqIk7aryeByYH",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_9fddee8d09d62d": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f942638faffeZztnPaKWI92mDO",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

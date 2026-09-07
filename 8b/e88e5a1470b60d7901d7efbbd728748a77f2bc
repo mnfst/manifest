@@ -1,0 +1,87 @@
+packages/frontend/src/services/api/version.ts
+  s_8a9da4768f378b::t_d9cd90ea520196 8-9
+  s_8a9da4768f378b::t_23a4dbddb4d351 1-7,10-22
+packages/backend/src/version/version-check.config.spec.ts
+  s_8a9da4768f378b::t_56987b29f8c48e 165-176
+  s_8a9da4768f378b::t_eb373a89c495f1 1-8,10-63,119-164,177-182
+  s_8a9da4768f378b::t_c33a4da60a2cad 113
+  s_8a9da4768f378b::t_3842bf62b37e8e 64-100,102-112,114-118
+  s_8a9da4768f378b::t_176044dc1abc56 9
+  s_8a9da4768f378b::t_7672b72d8a4a9f 101
+packages/backend/src/app.module.ts
+  s_8a9da4768f378b::t_a7f783ae8092e4 29,99
+docker/DOCKER_README.md
+  s_8a9da4768f378b::t_414a42009b8a91 317-318
+packages/backend/src/version/version-check.config.ts
+  s_8a9da4768f378b::t_23e9bcc634a435 5-8,10-11
+  s_8a9da4768f378b::t_a98bca1ff1f778 62-94
+  s_8a9da4768f378b::t_483aa3bc77662f 1-4,9,12-61,95-102
+packages/backend/src/version/version.module.ts
+  s_8a9da4768f378b::t_f167d87018dc1f 1-13
+.changeset/self-hosted-update-check.md
+  s_8a9da4768f378b::t_7447fb0b5d821c 1-5
+packages/frontend/tests/components/VersionIndicator.test.tsx
+  s_8a9da4768f378b::t_fdfa1b53f9e6b9 9-18,21,24,26-29,39-41,43,64-65,75-76,79-80,83-86,90-91,101-104,172-174,177
+  s_8a9da4768f378b::t_e4e96cbb63ce47 66,106,109,114-115,117,128,138,142-143,145,148-149,151-152,154,163-164,167-168
+  s_8a9da4768f378b::t_8f3abae203ce13 1,6-8,20,22-23,25,38,50-51,53,57,59,62-63,68-69,71,74,77-78,81-82,88,92-100,169-171,175-176
+  s_8a9da4768f378b::t_c45e6c5847869c 2-5,30-37,42,47,87,89,105,107-108,110-113,116,118-127,129-137,139-141,144,146-147,150,153,155-162,165-166
+  s_8a9da4768f378b::t_b3a3cd327be874 19
+  s_8a9da4768f378b::t_7d82cb9d19840a 67
+packages/frontend/src/styles/version-indicator.css
+  s_8a9da4768f378b::t_726c2286d4be0b 19-25
+  s_8a9da4768f378b::t_b6b2b3ceb28f45 30,54-59,61,63-64,67-70
+  s_8a9da4768f378b::t_feb6915c2eba18 8-10,18,26-29,31-53
+  s_8a9da4768f378b::t_5245af5a5a2fbc 62,65-66,71
+  s_8a9da4768f378b::t_1a78936e5c4eea 60
+packages/backend/src/version/version.controller.spec.ts
+  s_8a9da4768f378b::t_b00bd918a428ad 1-9,11-34
+  s_8a9da4768f378b::t_b39a10e1941041 10
+docker/docker-compose.yml
+  s_8a9da4768f378b::t_ecf852899abda1 154-157
+packages/backend/src/version/version-check.service.spec.ts
+  s_8a9da4768f378b::t_980e3f5a8cb0cf 153-161
+  s_8a9da4768f378b::t_5c99f57942c4ac 1-2,4-10,15-42,44-53,55-61,63-71,84,92-95,97-101,103-107,109-112,114-117,119-121,123-130,132-143,145-152,162-170,173-176,178-189,191-196,198-206,208-228,230-239
+  s_8a9da4768f378b::t_016a6bc043ed2f 3,11-14,43,54,62,72-83,85-91,96,102,108,113,118,122,131,144,171-172,177,190,197,207,229
+packages/backend/src/version/version-check.service.ts
+  s_8a9da4768f378b::t_b534a40e496f14 6-7,10,25-29,41,46-47,75-76,89-90,97-99,101,106-107,113,119
+  s_8a9da4768f378b::t_5ea8102671abfb 1-5,8-9,11-24,30-40,42-45,48-74,77-88,91-96,100,102-105,108-112,114-118,120-122
+CLAUDE.md
+  s_8a9da4768f378b::t_d4b2089eac8807 410
+  s_8a9da4768f378b::t_76d6d37d9343fb 449
+packages/frontend/src/components/VersionIndicator.tsx
+  s_8a9da4768f378b::t_5b0926789b6562 1,4-17,19-27,30-31,41-42,45,49-50,71-74,77-78
+  s_8a9da4768f378b::t_643f1f37e212cb 43,46,48
+  s_8a9da4768f378b::t_a4a63cd88781d9 2,28-29,32,37-40,44,47,52,55-63,65-70,76,79-81
+  s_8a9da4768f378b::t_1a0059e40e2fb0 51
+  s_8a9da4768f378b::t_7bd22c962d216b 75
+  s_8a9da4768f378b::t_34fb63e75f0b35 18
+packages/frontend/src/services/api.ts
+  s_8a9da4768f378b::t_e0ab2e61554307 13
+packages/frontend/tests/services/version-api.test.ts
+  s_8a9da4768f378b::t_fd716c9dc396f5 28
+  s_8a9da4768f378b::t_f7a1a2c316d694 1-27,29-52
+packages/backend/.env.example
+  s_8a9da4768f378b::t_cf9604265bb97c 128-132
+design-system/registry/components.json
+  s_8a9da4768f378b::t_ba487bea461741 4135-4138,4297-4298,5087
+design-system/registry/llms.txt
+  s_8a9da4768f378b::t_ba487bea461741 99,407,412
+packages/backend/src/version/version.controller.ts
+  s_8a9da4768f378b::t_12bc03181eeba5 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8be88e5a1470b60d7901d7efbbd728748a77f2bc",
+  "prompts": {},
+  "sessions": {
+    "s_8a9da4768f378b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "af3210d7-0125-44b7-a46c-bdfa4dff11f5",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

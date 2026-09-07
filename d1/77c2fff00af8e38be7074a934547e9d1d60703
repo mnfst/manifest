@@ -1,0 +1,19 @@
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_d750ff127765d5::t_10ec9d4dc70e67 3503-3507,3532
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "d177c2fff00af8e38be7074a934547e9d1d60703",
+  "prompts": {},
+  "sessions": {
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

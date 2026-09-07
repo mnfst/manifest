@@ -1,0 +1,53 @@
+packages/backend/src/discovery/discovery-sync.service.ts
+  s_c4117368f2548c::t_f483f7236fbeef 1-36
+packages/backend/src/discovery/discovery-sync.service.spec.ts
+  s_c4117368f2548c::t_f483f7236fbeef 1-79
+packages/frontend/src/services/discovery.ts
+  s_c4117368f2548c::t_1de9f7ea5cf9b1 7,12-15
+CLAUDE.md
+  s_45f68beab6e2ce::t_1c72eff12e330f 367
+packages/backend/src/app.module.ts
+  s_e62394123e4a62::t_24d485f0c64a3c 36,106
+packages/backend/src/discovery/discovery.controller.spec.ts
+  s_e62394123e4a62::t_dae00b9c755d85 1-13
+packages/backend/src/discovery/discovery.controller.ts
+  s_e62394123e4a62::t_48f7efc3e1d4fe 1-15
+packages/backend/src/discovery/discovery.module.ts
+  s_e62394123e4a62::t_33d83510382d0b 1-9
+packages/backend/src/discovery/dto/complete-discovery.dto.spec.ts
+  s_c4117368f2548c::t_d02b42cf89d198 1-39
+packages/backend/src/discovery/dto/complete-discovery.dto.ts
+  s_e62394123e4a62::t_f502553479ae5b 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "e454b4d4907b1b78a77cdf01816e15e076b97d0a",
+  "prompts": {},
+  "sessions": {
+    "s_45f68beab6e2ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a050c746-b9ee-48f8-a0ac-a75bff580779",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c4117368f2548c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05cf7-3c1a-7243-b69e-146265b724d0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_e62394123e4a62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05cc8-68af-77a2-8d21-9ae26efaed82",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

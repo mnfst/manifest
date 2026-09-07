@@ -1,0 +1,27 @@
+.changeset/openrouter-hide-batch-variants.md
+  s_66ab9de35e8444::t_ea55c645665c99 1-5
+packages/backend/src/model-discovery/provider-model-fetcher.service.ts
+  s_66ab9de35e8444::t_3404a94f171b25 635-638
+packages/backend/src/model-discovery/model-fallback.ts
+  s_66ab9de35e8444::t_233eedaa193837 254-256
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_66ab9de35e8444::t_8d8cc3234e08f7 2074-2099
+packages/backend/src/model-discovery/model-fallback.spec.ts
+  s_66ab9de35e8444::t_e56e406a63852b 37-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "a5de2f3542ebcff3eed4ef1c2729466b7ea7486d",
+  "prompts": {},
+  "sessions": {
+    "s_66ab9de35e8444": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d9fe0a46-f5e9-486b-a852-e1196b3fbc74",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

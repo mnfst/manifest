@@ -1,0 +1,23 @@
+.changeset/remove-gemini-credits-promo.md
+  s_96b132b756ae28::t_fc834b9e681cd1 1-5
+design-system/registry/components.json
+  s_96b132b756ae28::t_fc834b9e681cd1 4366,4373,4811,4819,5079-5080
+design-system/registry/llms.txt
+  s_96b132b756ae28::t_fc834b9e681cd1 99,429-430,493-494
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "92e01718903bcf8f1cba7f9b35f505f2711c8fad",
+  "prompts": {},
+  "sessions": {
+    "s_96b132b756ae28": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f9446a72cffeTOqIk7aryeByYH",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

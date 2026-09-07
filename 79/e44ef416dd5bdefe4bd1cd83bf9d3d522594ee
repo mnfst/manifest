@@ -1,0 +1,45 @@
+packages/backend/src/model-discovery/model-discovery.service.ts
+  s_20a441dc1a69ab::t_2b10bcfdaff42b 517-521,533-541
+  s_20a441dc1a69ab::t_c1e233ce4a5d3f 86
+  s_20a441dc1a69ab::t_81dfd9253e2c8c 542-543
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_20a441dc1a69ab::t_6837f8645c96cc 76-78
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_20a441dc1a69ab::t_3e88396b36af69 142-152
+  s_20a441dc1a69ab::t_e2a28dd127eba0 104
+  s_20a441dc1a69ab::t_c1b2f6a222a623 63-66,71-74,97
+packages/backend/src/routing/routing-cache.service.spec.ts
+  s_20a441dc1a69ab::t_576e59e84eeaa0 427-459
+packages/backend/src/routing/resolve/__tests__/resolve.service.edge.spec.ts
+  s_20a441dc1a69ab::t_c1b2f6a222a623 140-143
+packages/backend/src/routing/custom-provider/custom-provider.service.ts
+  s_20a441dc1a69ab::t_fdc12add8b97d9 298-318
+  s_20a441dc1a69ab::t_d1d6b67e5f2665 384-393
+  s_20a441dc1a69ab::t_325b95326b2f30 72-85
+packages/backend/src/routing/custom-provider/custom-provider.service.spec.ts
+  s_20a441dc1a69ab::t_1522e9b549746d 419-441
+  s_20a441dc1a69ab::t_1fcd719df6bb08 709-730
+packages/backend/src/model-discovery/model-discovery.service.spec.ts
+  s_20a441dc1a69ab::t_dfad777d855244 1137-1149
+packages/backend/src/routing/routing-core/routing-cache.service.ts
+  s_20a441dc1a69ab::t_bfc7f9149370b4 209-215
+  s_20a441dc1a69ab::t_277ed473a6c2ea 43
+  s_20a441dc1a69ab::t_d431c6306f3162 60-62
+  s_20a441dc1a69ab::t_a1d7e7c5966ddd 167-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "79e44ef416dd5bdefe4bd1cd83bf9d3d522594ee",
+  "prompts": {},
+  "sessions": {
+    "s_20a441dc1a69ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b992073c-8f4d-40a2-83d5-94a36defa94e",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+design-system/registry/components.json
+  s_3cda7960fe6983::t_7dfc1493f5aedf 891-905,1090,1504,1506,2418-2419,2435,4336,4588,4595,4602,4609,4616-4640,4733,4797,4805,4813,4821,4829,5007-5033,5085-5087,5156-5159
+packages/frontend/tests/pages/ProviderOverviewPages.test.tsx
+  s_3cda7960fe6983::t_f3803b90b68a2c 117-118,985
+  s_3cda7960fe6983::t_b840411ba8d385 1090-1092
+  s_3cda7960fe6983::t_bfdc21c24d06ce 1081-1089,1093-1097
+packages/frontend/src/styles/controls.css
+  s_3cda7960fe6983::t_5f50bb51ac9067 412-422
+  s_3cda7960fe6983::t_db63d070663361 368-371
+packages/frontend/tests/components/AnalyticsChartSurfaces.test.tsx
+  s_3cda7960fe6983::t_151d343ec21f2c 350-354
+packages/frontend/src/components/AutofixKpiCards.tsx
+  s_3cda7960fe6983::t_151d343ec21f2c 108
+.changeset/mobile-provider-connection-view.md
+  s_3cda7960fe6983::t_527eeb23601182 1-5
+packages/frontend/src/components/Header.tsx
+  s_3cda7960fe6983::t_5f50bb51ac9067 163,251-252,257-259,261,265,267
+packages/frontend/src/pages/providers/ConnectionDetail.tsx
+  s_3cda7960fe6983::t_3085858cca593f 709-741
+  s_3cda7960fe6983::t_4aa9903f4ac8cf 744-745,747
+  s_3cda7960fe6983::t_24bcc6806489f9 54,706-708,771,802,831
+  s_3cda7960fe6983::t_e80d973d52dec0 742-743,746,748-750,752,755-756,758,762-766,768-769
+design-system/registry/llms.txt
+  s_3cda7960fe6983::t_7dfc1493f5aedf 99,153,168,203,279-280,422-423,460-462,464-468,475,482,490-494,518-520,527,530
+packages/frontend/src/styles/analytics-overview.css
+  s_3cda7960fe6983::t_08740b42803f70 29,34-54,61-69,309-311
+  s_3cda7960fe6983::t_151d343ec21f2c 55-60
+packages/frontend/src/styles/theme.css
+  s_3cda7960fe6983::t_3046a149e1053f 1273-1285
+  s_3cda7960fe6983::t_b90126a35365f0 1257-1261
+  s_3cda7960fe6983::t_5f50bb51ac9067 1269-1272
+  s_3cda7960fe6983::t_7878c9ee8be271 1236-1238
+packages/frontend/src/styles/connection-detail.css
+  s_3cda7960fe6983::t_9bbf78a5e1114b 1-27,39-47,61-79,100-107,109-112
+  s_3cda7960fe6983::t_3085858cca593f 28-38,87-89,91-94
+  s_3cda7960fe6983::t_4aa9903f4ac8cf 55-60,80-81,84-86,90,95-99
+  s_3cda7960fe6983::t_e80d973d52dec0 48-54,82-83
+  s_3cda7960fe6983::t_24bcc6806489f9 108
+packages/frontend/tests/components/Header.test.tsx
+  s_3cda7960fe6983::t_5f50bb51ac9067 1-2,6,8-15,20,23,31,35,40,44,49,54,58,62,66-67,71,76,80,89-90,92,96,98,101,103,106,108-110,113,115-116,119,121-122,125,127-128,132,134-135,137,141,143-144,146,149,152-154,157,164-165,173-176,180,182,184-186,189-191,195,199-201,205,209-211,215,217,220-221,225,227,230-232,236,240-242,246,248-249,252-254,258,260-261,264-268,270,274-278,283-286,289,294-298,302,306-308,312,314-315,319-320,322-323,326-327,329-331,333,337,339,341-342,344,347-348,350,353-354,356,359-360,363,366,369,372,374,377-378,380,384-386,388,391,394,397-398,400-402,405-406,408,413-414,416-417,419,423-424,428,430,433,437,441-442,447-451,458,461,467-474,477,481,486-487,490,493,495-499
+packages/frontend/src/styles/toast.css
+  s_3cda7960fe6983::t_3046a149e1053f 14-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "41f61cd9a25cb755aff1633bc5169289591d8c8c",
+  "prompts": {},
+  "sessions": {
+    "s_3cda7960fe6983": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29e6a8bb-9461-4399-a275-1bffd7259db2",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

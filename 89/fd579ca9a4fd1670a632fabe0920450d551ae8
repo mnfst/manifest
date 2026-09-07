@@ -1,0 +1,33 @@
+packages/backend/src/routing/proxy/__tests__/proxy-response-handler.spec.ts
+  s_d750ff127765d5::t_648000f4947bbc 13,3409-3532
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_d750ff127765d5::t_362e87509e0b53 1,1922-1943
+packages/backend/src/routing/proxy/proxy-response-handler.ts
+  s_45f68beab6e2ce::t_b8cc4766d4e96e 25,306-308,310,403
+packages/backend/src/routing/proxy/proxy.controller.ts
+  s_45f68beab6e2ce::t_60084540c7f207 64,688-690
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "89fd579ca9a4fd1670a632fabe0920450d551ae8",
+  "prompts": {},
+  "sessions": {
+    "s_45f68beab6e2ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a050c746-b9ee-48f8-a0ac-a75bff580779",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_d750ff127765d5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "99815636-b734-49dc-8901-59869603906c",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
