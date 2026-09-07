@@ -1,0 +1,25 @@
+packages/frontend/src/styles/theme.css
+  s_c858514da5a4ba::t_fdf31217814538 1262-1265,1267
+packages/frontend/src/styles/request-drawer.css
+  s_c858514da5a4ba::t_fdf31217814538 260
+design-system/registry/components.json
+  s_c858514da5a4ba::t_89939f5d3ba424 4382,4389,4396,4932-4933,4940-4941,4948-4949,4956
+design-system/registry/llms.txt
+  s_c858514da5a4ba::t_94442df906fb34 431-433,509-512
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "1f98324e54b90bfc4ca7e77c3e1b4bd70854deee",
+  "prompts": {},
+  "sessions": {
+    "s_c858514da5a4ba": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-5030-7901-81a6-d3f659e1e607",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
