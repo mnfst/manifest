@@ -3,7 +3,7 @@ import { createHash } from 'crypto';
 type JsonRecord = Record<string, unknown>;
 export interface ResponsesToolName {
   name: string;
-  namespace: string;
+  namespace?: string;
 }
 export type ResponsesToolNames = ReadonlyMap<string, ResponsesToolName>;
 
@@ -39,6 +39,11 @@ export function responsesToolNames(tools: unknown): ResponsesToolNames {
       let salt = 0;
       while (reserved.has(name)) name = alias(tool.name, fn.name, ++salt);
       names.set(name, { name: fn.name, namespace: tool.name });
+    }
+  }
+  for (const tool of tools) {
+    if (isRecord(tool) && tool.type === 'function' && typeof tool.name === 'string') {
+      names.set(tool.name, { name: tool.name });
     }
   }
   return names;

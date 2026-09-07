@@ -44,6 +44,7 @@ describe('Codex Responses tool loop (e2e)', () => {
   const received: Json[] = [];
   const upstreamErrors: string[] = [];
   let makeReply: (body: Json) => Json;
+  let recordedBefore = 0;
 
   beforeAll(async () => {
     upstream = createServer(async (req, res) => {
@@ -142,6 +143,18 @@ describe('Codex Responses tool loop (e2e)', () => {
       .expect(200);
   }, 30000);
 
+  beforeEach(async () => {
+    received.length = 0;
+    upstreamErrors.length = 0;
+    makeReply = () => {
+      throw new Error('Unexpected provider request');
+    };
+    const [row] = await app
+      .get(DataSource)
+      .query('SELECT COUNT(*)::int AS count FROM requests WHERE agent_id = $1', [agentId]);
+    recordedBefore = row.count;
+  });
+
   afterAll(async () => {
     await app?.close();
     await new Promise<void>((resolve) => upstream?.close(() => resolve()));
@@ -170,7 +183,6 @@ describe('Codex Responses tool loop (e2e)', () => {
   it.each([false, true])(
     'completes the parallel namespaced tool loop (stream=%s)',
     async (stream) => {
-      const start = received.length;
       makeReply = (body) => {
         expect(body.tools).toHaveLength(2);
         expect(body.messages[0]).toEqual({ role: 'system', content: 'Use tools to answer.' });
@@ -233,7 +245,7 @@ describe('Codex Responses tool loop (e2e)', () => {
           content: [{ type: 'output_text', text: 'Paris is in France.', annotations: [] }],
         }),
       ]);
-      expect(received.length - start).toBe(2);
+      expect(received).toHaveLength(2);
       expect(upstreamErrors).toEqual([]);
       // Recording is queued after delivery; wait for both logical requests.
       let rows: Json[] = [];
@@ -241,10 +253,14 @@ describe('Codex Responses tool loop (e2e)', () => {
         rows = await app
           .get(DataSource)
           .query('SELECT status FROM requests WHERE agent_id = $1', [agentId]);
-        if (rows.length >= received.length && rows.every((row) => row.status === 'success')) break;
+        if (
+          rows.length >= recordedBefore + received.length &&
+          rows.every((row) => row.status === 'success')
+        )
+          break;
         await new Promise((resolve) => setTimeout(resolve, 20));
       }
-      expect(rows.length).toBe(received.length);
+      expect(rows.length).toBe(recordedBefore + received.length);
       expect(rows.every((row) => row.status === 'success')).toBe(true);
     },
   );

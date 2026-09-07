@@ -811,8 +811,11 @@ function toolCallDeltas(toolCalls: unknown, state: ResponsesStreamState): string
     const args = typeof delta.function.arguments === 'string' ? delta.function.arguments : '';
     call.arguments += args;
     if (call.name === state.structuredOutputToolName) continue;
-    // Providers may fragment the name before the first arguments delta.
-    if (!call.name || !call.callId || !call.arguments) continue;
+    // Production forwards the declared names, so complete names can open
+    // immediately even before arguments. Undeclared/partial names wait for
+    // finalization; an arguments delta does not prove the name is complete.
+    if (!call.name || !call.callId) continue;
+    if (state.toolNames ? !state.toolNames.has(call.name) : !call.arguments) continue;
     const first = call.outputIndex === undefined;
     events.push(...openFunctionCall(call, state));
     const text = first ? call.arguments : args;

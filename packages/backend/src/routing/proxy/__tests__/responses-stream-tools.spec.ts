@@ -129,4 +129,54 @@ describe('Responses streaming tool calls', () => {
         .map((e) => e.delta),
     ).toEqual(['{}']);
   });
+  it('opens declared parallel calls before arguments and preserves their order', () => {
+    const toolNames = responsesToolNames(
+      ['first', 'second'].map((name) => ({ type: 'function', name })),
+    );
+    const t = createResponsesStreamTransformer('auto', { toolNames });
+    const opened = t.transform(
+      chunk([
+        { index: 0, id: 'call0', function: { name: 'first', arguments: '' } },
+        { index: 1, id: 'call1', function: { name: 'second', arguments: '' } },
+      ]),
+    )!;
+    expect(
+      events(opened)
+        .filter((e) => e.type === 'response.output_item.added')
+        .map((e) => e.item.name),
+    ).toEqual(['first', 'second']);
+    const sse = [
+      opened,
+      t.transform(chunk([{ index: 1, function: { arguments: '{}' } }])),
+      t.transform(chunk([{ index: 0, function: { arguments: '{}' } }])),
+      t.finalize(),
+    ].join('');
+    expect((collectResponsesSseResponse(sse).output as any[]).map((i) => i.name)).toEqual([
+      'first',
+      'second',
+    ]);
+  });
+
+  it('buffers arguments until a fragmented name matches a declared tool', () => {
+    const toolNames = responsesToolNames([{ type: 'function', name: 'lookup' }]);
+    const t = createResponsesStreamTransformer('auto', { toolNames });
+    const first = t.transform(chunk([{ id: 'call', function: { name: 'look', arguments: '' } }]))!;
+    const args = t.transform(chunk([{ function: { arguments: '{"q":"Paris"}' } }])) || '';
+    expect(events(first + args).some((e) => e.type === 'response.output_item.added')).toBe(false);
+    const sse = [
+      first,
+      args,
+      t.transform(chunk([{ function: { name: 'up' } }])),
+      t.finalize(),
+    ].join('');
+    expect(
+      events(sse)
+        .filter((e) => e.item?.type === 'function_call')
+        .every((e) => e.item.name === 'lookup'),
+    ).toBe(true);
+    expect((collectResponsesSseResponse(sse).output as any[])[0]).toMatchObject({
+      name: 'lookup',
+      arguments: '{"q":"Paris"}',
+    });
+  });
 });

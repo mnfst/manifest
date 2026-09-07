@@ -33,6 +33,7 @@ describe('Responses namespace tools', () => {
     expect([...names.values()]).toEqual([
       { name: 'lookup', namespace: 'crm' },
       { name: 'lookup', namespace: 'billing' },
+      { name: 'lookup' },
     ]);
   });
 
