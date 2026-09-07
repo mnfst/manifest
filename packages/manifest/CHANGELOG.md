@@ -1,5 +1,19 @@
 # manifest
 
+## 6.23.0
+
+### Minor Changes
+
+- 8076d88: Add OpenAI Codex as a coding-assistant agent platform. Codex shows up in the agent picker with a copy-ready `~/.codex/config.toml` setup panel that points Codex CLI and Desktop at Manifest over the Responses API (`wire_api = "responses"`) and authenticates with your `mnfst_` key. Two upstream-compatibility fixes make Codex work against non-OpenAI providers: Responses-API `role: "developer"` instruction messages are folded into `system`, and OpenAI-hosted tools (`web_search`, `file_search`, …) are dropped on the Chat Completions path. Native Responses upstreams keep developer roles and hosted tools untouched.
+
+  Preserve streamed function calls and namespaced client tools through non-OpenAI providers, including parallel calls and tool-result replay.
+
+- f1a50eb: Add an internal, secret-guarded feed of the users whose requests Autofix repaired, so outreach can reach them with their real repair counts.
+
+### Patch Changes
+
+- 8ccecc8: Remove the $25 Gemini credit user-discovery banner and modal from the Overview page.
+
 ## 6.22.0
 
 ### Minor Changes
