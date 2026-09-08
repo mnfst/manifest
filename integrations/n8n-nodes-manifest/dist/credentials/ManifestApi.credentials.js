@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ManifestApi = void 0;
+const attribution_1 = require("../nodes/shared/attribution");
 class ManifestApi {
     constructor() {
         this.name = 'manifestApi';
@@ -37,6 +38,7 @@ class ManifestApi {
             properties: {
                 headers: {
                     Authorization: '=Bearer {{$credentials.apiKey}}',
+                    ...attribution_1.MANIFEST_ATTRIBUTION_HEADERS,
                 },
             },
         };
@@ -47,6 +49,7 @@ class ManifestApi {
                 url: '/v1/models',
                 headers: {
                     Authorization: '=Bearer {{$credentials.apiKey}}',
+                    ...attribution_1.MANIFEST_ATTRIBUTION_HEADERS,
                 },
             },
         };

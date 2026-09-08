@@ -5,6 +5,7 @@ exports.withoutRouteManagedStream = withoutRouteManagedStream;
 exports.parseServerSentEvents = parseServerSentEvents;
 exports.parseManifestResponse = parseManifestResponse;
 const n8n_workflow_1 = require("n8n-workflow");
+const attribution_1 = require("../shared/attribution");
 function trimTrailingSlash(value) {
     return value.replace(/\/+$/, '');
 }
@@ -152,6 +153,7 @@ async function requestManifest(executeFunctions, method, path, body) {
         url: `${baseUrl}${path}`,
         headers: {
             Authorization: `Bearer ${String(credentials.apiKey)}`,
+            ...attribution_1.MANIFEST_ATTRIBUTION_HEADERS,
         },
         encoding: 'text',
         returnFullResponse: true,
