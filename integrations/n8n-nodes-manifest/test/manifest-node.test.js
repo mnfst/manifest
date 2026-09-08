@@ -9,6 +9,15 @@ const {
 	parseServerSentEvents,
 	withoutRouteManagedStream,
 } = require('../dist/nodes/Manifest/Manifest.node.js');
+const { MANIFEST_ATTRIBUTION_HEADERS } = require('../dist/nodes/shared/attribution.js');
+
+test('identifies node traffic with Manifest attribution headers', () => {
+	assert.deepEqual(MANIFEST_ATTRIBUTION_HEADERS, {
+		'User-Agent': 'n8n-nodes-manifest',
+		'X-Title': 'n8n',
+		'HTTP-Referer': 'https://n8n.io',
+	});
+});
 
 test('keeps node metadata valid in package and repository files', () => {
 	const packageName = require('../package.json').name;
@@ -157,7 +166,12 @@ test('executes chat completions without overriding the route response mode', asy
 		{
 			method: 'POST',
 			url: 'http://manifest.test/v1/chat/completions',
-			headers: { Authorization: 'Bearer manifest_test_key' },
+			headers: {
+				Authorization: 'Bearer manifest_test_key',
+				'User-Agent': 'n8n-nodes-manifest',
+				'X-Title': 'n8n',
+				'HTTP-Referer': 'https://n8n.io',
+			},
 			encoding: 'text',
 			returnFullResponse: true,
 			json: true,
