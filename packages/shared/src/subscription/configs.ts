@@ -224,6 +224,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     knownModels: Object.freeze([
       'glm-5.3',
+      'glm-5.3-flash',
       'glm-5.2',
       'glm-5.1',
       'glm-5-turbo',
