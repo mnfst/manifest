@@ -97,11 +97,7 @@ describe('Internal CRM metrics (e2e)', () => {
     ]);
   });
 
-  async function seedHealedRequest(
-    ageDays: number,
-    provider: string,
-    status = 'success',
-  ): Promise<void> {
+  async function seedHealedRequest(ageDays: number, status = 'success'): Promise<void> {
     const requestId = uuid();
     const at = localSqlTimestamp(new Date(Date.now() - ageDays * 86_400_000));
     await ds.query(
@@ -112,7 +108,7 @@ describe('Internal CRM metrics (e2e)', () => {
     await ds.query(
       `INSERT INTO agent_messages (id, tenant_id, agent_id, agent_name, request_id, timestamp, provider, model, autofix_applied)
        VALUES ($1, $2, $3, 'demo-agent', $4, $5, $6, 'some-model', true)`,
-      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, requestId, at, provider],
+      [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, requestId, at, 'openai'],
     );
   }
 
@@ -154,10 +150,10 @@ describe('Internal CRM metrics (e2e)', () => {
   });
 
   describe('cohort', () => {
-    it('returns a healed user with their counts and providers', async () => {
-      await seedHealedRequest(1, 'openrouter');
-      await seedHealedRequest(2, 'openrouter');
-      await seedHealedRequest(3, 'anthropic');
+    it('returns a healed user with their counts', async () => {
+      await seedHealedRequest(1);
+      await seedHealedRequest(2);
+      await seedHealedRequest(3);
 
       const res = await get(nextWindow()).set('x-internal-secret', SECRET).expect(200);
 
@@ -167,14 +163,12 @@ describe('Internal CRM metrics (e2e)', () => {
         name: 'Healed User',
         healed_recent: 3,
         healed_all: 3,
-        providers: ['openrouter', 'anthropic'],
-        top_provider: 'openrouter',
       });
     });
 
     it('counts older heals in the all-time total but not the window', async () => {
-      await seedHealedRequest(1, 'openai');
-      await seedHealedRequest(40, 'openai');
+      await seedHealedRequest(1);
+      await seedHealedRequest(40);
 
       const res = await get(nextWindow()).set('x-internal-secret', SECRET).expect(200);
 
@@ -182,7 +176,7 @@ describe('Internal CRM metrics (e2e)', () => {
     });
 
     it('ignores a retry that succeeded on a request which still failed', async () => {
-      await seedHealedRequest(1, 'openai', 'failed');
+      await seedHealedRequest(1, 'failed');
 
       const res = await get(nextWindow()).set('x-internal-secret', SECRET).expect(200);
 
@@ -190,7 +184,7 @@ describe('Internal CRM metrics (e2e)', () => {
     });
 
     it('omits users whose email is unverified', async () => {
-      await seedHealedRequest(1, 'openai');
+      await seedHealedRequest(1);
       await ds.query(`UPDATE "user" SET "emailVerified" = false WHERE id = $1`, [OWNER_ID]);
 
       const res = await get(nextWindow()).set('x-internal-secret', SECRET).expect(200);
@@ -199,7 +193,7 @@ describe('Internal CRM metrics (e2e)', () => {
     });
 
     it('omits internal addresses', async () => {
-      await seedHealedRequest(1, 'openai');
+      await seedHealedRequest(1);
       await ds.query(`UPDATE "user" SET email = 'bruno@buddyweb.fr' WHERE id = $1`, [OWNER_ID]);
 
       const res = await get(nextWindow()).set('x-internal-secret', SECRET).expect(200);

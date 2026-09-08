@@ -12,10 +12,6 @@ export interface CrmHealedUser {
   healed_all: number;
   first_heal_at: string;
   last_heal_at: string;
-  /** Providers Autofix repaired against in the window, most-repaired first. */
-  providers: string[];
-  /** Convenience alias for `providers[0]`; null when no attempts were found. */
-  top_provider: string | null;
 }
 
 /** One pivot waiting-list claim: the conversion signal for the campaign. */
@@ -34,11 +30,4 @@ export interface CohortRow {
   healed_all: string | number;
   first_heal_at: Date | string;
   last_heal_at: Date | string;
-}
-
-/** Raw provider-breakdown row, one per (tenant, provider) pair. */
-export interface ProviderRow {
-  tenant_id: string;
-  provider: string | null;
-  n: string | number;
 }
