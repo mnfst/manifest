@@ -1,0 +1,79 @@
+nodes/Manifest/Manifest.node.ts
+  s_8336d6ecc613da::t_65846fccd22ae8 14,229
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js
+  s_8336d6ecc613da::t_4ab572bbd35384 4,41,52
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.js
+  s_8336d6ecc613da::t_4ab572bbd35384 38,170,201
+packages/backend/src/routing/proxy/caller-classifier.spec.ts
+  s_8336d6ecc613da::t_7ad48d5865266f 61-80
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js
+  s_8336d6ecc613da::t_4ab572bbd35384 8,156
+integrations/n8n-nodes-manifest/dist/nodes/shared/attribution.d.ts
+  s_8336d6ecc613da::t_4ab572bbd35384 1-5
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_8336d6ecc613da::t_806de7cfd3b9a2 169-174
+  s_8336d6ecc613da::t_ff358bef07a8d9 12
+  s_8336d6ecc613da::t_4656591d9d75b6 14-20
+  s_8336d6ecc613da::t_a397be1add0e3a 13
+.changeset/n8n-node-caller-attribution.md
+  s_8336d6ecc613da::t_e34f39b4511bd5 1-5
+nodes/shared/attribution.ts
+  s_8336d6ecc613da::t_bc869e4e4c431d 1-5
+CLAUDE.md
+  s_8336d6ecc613da::t_e17aaf7fdc8afd 781
+nodes/LmChatManifest/LmChatManifest.node.ts
+  s_8336d6ecc613da::t_65846fccd22ae8 10,168,210
+integrations/n8n-nodes-manifest/package.json
+  s_8336d6ecc613da::t_488f328b960e45 3
+integrations/n8n-nodes-manifest/dist/nodes/shared/attribution.js
+  s_8336d6ecc613da::t_4ab572bbd35384 1-9
+integrations/n8n-nodes-manifest/dist/package.json
+  s_8336d6ecc613da::t_4ab572bbd35384 3
+integrations/n8n-nodes-manifest/credentials/ManifestApi.credentials.ts
+  s_8336d6ecc613da::t_21f4cd636d6161 49,61
+  s_8336d6ecc613da::t_958072ac4204a8 7
+integrations/n8n-nodes-manifest/nodes/Manifest/Manifest.node.ts
+  s_8336d6ecc613da::t_52da54dc9c0fde 229
+  s_8336d6ecc613da::t_5be84c45fc0815 14
+integrations/n8n-nodes-manifest/nodes/shared/attribution.ts
+  s_8336d6ecc613da::t_cf876cd251d838 1,3-5
+  s_8336d6ecc613da::t_cbda3a4cf37ed6 2
+integrations/n8n-nodes-manifest/CHANGELOG.md
+  s_8336d6ecc613da::t_9b57ea327d1406 3-6
+packages/backend/src/routing/proxy/caller-classifier.ts
+  s_8336d6ecc613da::t_9ef19beaa2e0f3 109-111
+integrations/n8n-nodes-manifest/nodes/LmChatManifest/LmChatManifest.node.ts
+  s_8336d6ecc613da::t_2ee2989876b84c 168
+  s_8336d6ecc613da::t_607ec7c77f6371 10
+  s_8336d6ecc613da::t_1305a1944412d2 210
+integrations/n8n-nodes-manifest/README.md
+  s_8336d6ecc613da::t_0f89129ae6fcb2 56-58,61
+  s_8336d6ecc613da::t_bc58bfbcff5c5b 62
+credentials/ManifestApi.credentials.ts
+  s_8336d6ecc613da::t_65846fccd22ae8 49
+  s_8336d6ecc613da::t_8c46e436404f10 7,61
+integrations/n8n-nodes-manifest/dist/credentials/ManifestApi.credentials.js.map
+  s_8336d6ecc613da::t_77dbf51141d51c 1
+integrations/n8n-nodes-manifest/dist/nodes/LmChatManifest/LmChatManifest.node.js.map
+  s_8336d6ecc613da::t_2e1c6642ce1db3 1
+integrations/n8n-nodes-manifest/dist/nodes/Manifest/Manifest.node.js.map
+  s_8336d6ecc613da::t_a1956f3c9c4cd4 1
+integrations/n8n-nodes-manifest/dist/nodes/shared/attribution.js.map
+  s_8336d6ecc613da::t_6bdeb6bf20bf74 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a5369deb58212ed59a1aec82803bf6d430a7418b",
+  "prompts": {},
+  "sessions": {
+    "s_8336d6ecc613da": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7eacb25cffeg5VtXxrCKd4d1n",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
