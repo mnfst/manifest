@@ -4,7 +4,7 @@ import { TtlCache } from '../common/utils/ttl-cache';
 import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
 import { sqlIsSuccessStatus } from '../analytics/services/query-helpers';
 import { isExcludedEmail } from './crm-metrics.filters';
-import type { CohortRow, CrmHealedUser, CrmWaitlistClaim, ProviderRow } from './crm-metrics.types';
+import type { CohortRow, CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
 
 /**
  * Answers on the cheap: the requests Autofix repaired lately, grouped by the
@@ -73,23 +73,6 @@ const COHORT_SQL = `
   HAVING count(*) FILTER (WHERE r.timestamp > $1) > 0
 `;
 
-/**
- * Driven off the healed requests, not off "any autofix-touched attempt in the
- * window". That is both cheaper (it rides the partial index, then ~1.6k
- * request_id lookups, instead of scanning every tenant's whole window) and the
- * question we actually mean: which providers were failing on the requests
- * Autofix went on to repair.
- */
-const PROVIDERS_SQL = `
-  SELECT r.tenant_id AS tenant_id, am.provider AS provider, count(*) AS n
-  FROM requests r
-  JOIN agent_messages am ON am.request_id = r.id
-  WHERE ${IS_HEALED}
-    AND r.timestamp > $1
-    AND am.autofix_applied = true
-  GROUP BY r.tenant_id, am.provider
-`;
-
 const CLAIMS_SQL = `
   SELECT email, source, claimed_at
   FROM waitlist_claims
@@ -124,9 +107,7 @@ export class CrmMetricsService {
         );
       }
       const merged = mergeByEmail((await runner.query(COHORT_SQL, [cutoff])) as CohortRow[]);
-      if (merged.size === 0) return [];
-      const providers = (await runner.query(PROVIDERS_SQL, [cutoff])) as ProviderRow[];
-      return buildUsers(merged, providers);
+      return buildUsers(merged);
     });
 
     this.cohortCache.set(days, users);
@@ -187,7 +168,6 @@ interface Merged {
   healed_all: number;
   first_heal_at: number;
   last_heal_at: number;
-  tenantIds: string[];
 }
 
 /**
@@ -224,7 +204,6 @@ function mergeByEmail(rows: CohortRow[]): Map<string, Merged> {
         healed_all: Number(row.healed_all),
         first_heal_at: first,
         last_heal_at: last,
-        tenantIds: [row.tenant_id],
       });
       continue;
     }
@@ -233,45 +212,19 @@ function mergeByEmail(rows: CohortRow[]): Map<string, Merged> {
     existing.first_heal_at = Math.min(existing.first_heal_at, first);
     existing.last_heal_at = Math.max(existing.last_heal_at, last);
     existing.name = existing.name ?? row.user_name;
-    existing.tenantIds.push(row.tenant_id);
   }
   return merged;
 }
 
-function buildUsers(merged: Map<string, Merged>, providerRows: ProviderRow[]): CrmHealedUser[] {
-  const byTenant = new Map<string, ProviderRow[]>();
-  for (const row of providerRows) {
-    if (!row.provider) continue;
-    const bucket = byTenant.get(row.tenant_id);
-    if (bucket) bucket.push(row);
-    else byTenant.set(row.tenant_id, [row]);
-  }
-
-  const users = [...merged.values()].map((entry) => {
-    const providers = rankProviders(entry.tenantIds, byTenant);
-    return {
-      email: entry.email,
-      name: entry.name,
-      healed_recent: entry.healed_recent,
-      healed_all: entry.healed_all,
-      first_heal_at: new Date(entry.first_heal_at).toISOString(),
-      last_heal_at: new Date(entry.last_heal_at).toISOString(),
-      providers,
-      top_provider: providers[0] ?? null,
-    };
-  });
+function buildUsers(merged: Map<string, Merged>): CrmHealedUser[] {
+  const users = [...merged.values()].map((entry) => ({
+    email: entry.email,
+    name: entry.name,
+    healed_recent: entry.healed_recent,
+    healed_all: entry.healed_all,
+    first_heal_at: new Date(entry.first_heal_at).toISOString(),
+    last_heal_at: new Date(entry.last_heal_at).toISOString(),
+  }));
 
   return users.sort((a, b) => b.healed_recent - a.healed_recent);
-}
-
-/** Providers this person's tenants healed against, most-repaired first. */
-function rankProviders(tenantIds: string[], byTenant: Map<string, ProviderRow[]>): string[] {
-  const totals = new Map<string, number>();
-  for (const tenantId of tenantIds) {
-    for (const row of byTenant.get(tenantId) ?? []) {
-      const provider = row.provider as string;
-      totals.set(provider, (totals.get(provider) ?? 0) + Number(row.n));
-    }
-  }
-  return [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([provider]) => provider);
 }

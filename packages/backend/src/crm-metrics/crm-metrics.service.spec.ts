@@ -8,7 +8,6 @@ const NOW = new Date('2026-09-04T12:00:00.000Z');
 interface Scripted {
   index?: unknown[];
   cohort?: unknown[];
-  providers?: unknown[];
   claims?: unknown[];
 }
 
@@ -41,7 +40,6 @@ describe('CrmMetricsService', () => {
       if (sql.includes('SET LOCAL')) return Promise.resolve([]);
       if (sql.includes('pg_index')) return Promise.resolve(scripted.index ?? []);
       if (sql.includes('JOIN tenants t')) return Promise.resolve(scripted.cohort ?? []);
-      if (sql.includes('JOIN agent_messages am')) return Promise.resolve(scripted.providers ?? []);
       if (sql.includes('FROM waitlist_claims')) return Promise.resolve(scripted.claims ?? []);
       throw new Error(`unexpected SQL: ${sql}`);
     });
@@ -162,14 +160,23 @@ describe('CrmMetricsService', () => {
   });
 
   describe('cohort window', () => {
-    it('bounds both queries with a local wall-clock cutoff, not UTC', async () => {
+    it('bounds the cohort query with a local wall-clock cutoff, not UTC', async () => {
       setup({ cohort: [cohortRow()] });
 
       await service.getHealedCohort(7, NOW);
 
       const expected = toLocalSqlTimestamp(new Date(NOW.getTime() - 7 * 86_400_000));
       expect(paramsFor('JOIN tenants t')).toEqual([expected]);
-      expect(paramsFor('JOIN agent_messages am')).toEqual([expected]);
+    });
+
+    it('never joins agent_messages: that breakdown cost 1.1s against a 1.5s timeout', async () => {
+      setup({ cohort: [cohortRow()] });
+
+      await service.getHealedCohort(365, NOW);
+
+      // The provider join scaled with the window and 500d the endpoint at 365
+      // days. It fed a field the outreach email no longer uses.
+      expect(sqlFor('agent_messages')).toBe('');
     });
 
     it('defaults to the current time when no clock is injected', async () => {
@@ -202,31 +209,11 @@ describe('CrmMetricsService', () => {
       // "heals since Autofix shipped" number into a duplicate of the window.
       expect(sql).not.toContain('AND r.timestamp >');
     });
-
-    it('breaks providers down over patched attempts only, inside the window', async () => {
-      setup({ cohort: [cohortRow()] });
-
-      await service.getHealedCohort(7, NOW);
-
-      const sql = sqlFor('JOIN agent_messages am');
-      expect(sql).toContain('am.autofix_applied = true');
-      expect(sql).toContain('AND r.timestamp > $1');
-      // The status disjunction has to stay parenthesised: bare
-      // `A AND B OR C AND D` binds OR last and would let failed requests into
-      // the breakdown.
-      expect(sql).toContain(`(r.status IS NULL OR r.status IN ('ok', 'success'))`);
-    });
   });
 
   describe('cohort shaping', () => {
-    it('maps a single person with their provider breakdown', async () => {
-      setup({
-        cohort: [cohortRow()],
-        providers: [
-          { tenant_id: 'tenant-a', provider: 'openrouter', n: '200' },
-          { tenant_id: 'tenant-a', provider: 'anthropic', n: '60' },
-        ],
-      });
+    it('maps a single person', async () => {
+      setup({ cohort: [cohortRow()] });
 
       const [user] = await service.getHealedCohort(7, NOW);
 
@@ -237,8 +224,6 @@ describe('CrmMetricsService', () => {
         healed_all: 1241,
         first_heal_at: '2026-07-30T15:17:31.000Z',
         last_heal_at: '2026-09-04T09:47:30.000Z',
-        providers: ['openrouter', 'anthropic'],
-        top_provider: 'openrouter',
       });
     });
 
@@ -255,11 +240,6 @@ describe('CrmMetricsService', () => {
             last_heal_at: '2026-09-05T00:00:00.000Z',
           }),
         ],
-        providers: [
-          { tenant_id: 'tenant-a', provider: 'openai', n: '4' },
-          { tenant_id: 'tenant-b', provider: 'openai', n: '6' },
-          { tenant_id: 'tenant-b', provider: 'gemini', n: '9' },
-        ],
       });
 
       const [user] = await service.getHealedCohort(7, NOW);
@@ -268,8 +248,6 @@ describe('CrmMetricsService', () => {
       expect(user.healed_all).toBe(27);
       expect(user.first_heal_at).toBe('2026-07-01T00:00:00.000Z');
       expect(user.last_heal_at).toBe('2026-09-05T00:00:00.000Z');
-      // openai totals 10 across both tenants, so it outranks gemini's 9.
-      expect(user.providers).toEqual(['openai', 'gemini']);
       expect(user.name).toBe('Matheus Vitorio');
     });
 
@@ -354,91 +332,6 @@ describe('CrmMetricsService', () => {
       const users = await service.getHealedCohort(7, NOW);
 
       expect(users.map((u) => u.email)).toEqual(['loud@example.com', 'quiet@example.com']);
-    });
-
-    it('skips the provider query entirely when nobody qualifies', async () => {
-      setup({ cohort: [cohortRow({ email: 'bruno@buddyweb.fr' })] });
-
-      await expect(service.getHealedCohort(7, NOW)).resolves.toEqual([]);
-      expect(sqlFor('JOIN agent_messages am')).toBe('');
-    });
-
-    it('ranks providers by their numeric attempt count, not by concatenated strings', async () => {
-      setup({
-        cohort: [cohortRow({ tenant_id: 'tenant-a' }), cohortRow({ tenant_id: 'tenant-b' })],
-        providers: [
-          { tenant_id: 'tenant-a', provider: 'anthropic', n: '1' },
-          { tenant_id: 'tenant-b', provider: 'anthropic', n: '2' },
-          { tenant_id: 'tenant-a', provider: 'openai', n: '5' },
-        ],
-      });
-
-      const [user] = await service.getHealedCohort(7, NOW);
-
-      // pg returns bigint counts as strings: anthropic is 1 + 2 = 3 and loses
-      // to openai's 5. Dropping the Number() would make it '012' and win.
-      expect(user.providers).toEqual(['openai', 'anthropic']);
-      expect(user.top_provider).toBe('openai');
-    });
-
-    it('keeps both sides of a tie, in the order the database returned them', async () => {
-      setup({
-        cohort: [cohortRow()],
-        providers: [
-          { tenant_id: 'tenant-a', provider: 'openai', n: '5' },
-          { tenant_id: 'tenant-a', provider: 'anthropic', n: '5' },
-        ],
-      });
-
-      const [user] = await service.getHealedCohort(7, NOW);
-
-      expect(user.providers).toEqual(['openai', 'anthropic']);
-      expect(user.top_provider).toBe(user.providers[0]);
-    });
-
-    it('ignores provider rows belonging to a tenant this person does not own', async () => {
-      setup({
-        cohort: [cohortRow({ tenant_id: 'tenant-a' })],
-        providers: [
-          { tenant_id: 'tenant-a', provider: 'openai', n: '3' },
-          { tenant_id: 'someone-elses-tenant', provider: 'gemini', n: '900' },
-        ],
-      });
-
-      const [user] = await service.getHealedCohort(7, NOW);
-
-      expect(user.providers).toEqual(['openai']);
-      expect(user.top_provider).toBe('openai');
-    });
-
-    it('drops attempts with no provider instead of letting them top the ranking', async () => {
-      setup({
-        cohort: [cohortRow()],
-        providers: [
-          { tenant_id: 'tenant-a', provider: null, n: '99' },
-          { tenant_id: 'tenant-a', provider: 'openai', n: '3' },
-        ],
-      });
-
-      const [user] = await service.getHealedCohort(7, NOW);
-
-      expect(user.providers).toEqual(['openai']);
-      expect(user.top_provider).toBe('openai');
-    });
-
-    it('reports no providers when the attempts carry none', async () => {
-      setup({
-        cohort: [cohortRow()],
-        providers: [
-          { tenant_id: 'tenant-a', provider: null, n: '5' },
-          { tenant_id: 'other-tenant', provider: 'openai', n: '5' },
-        ],
-      });
-
-      const [user] = await service.getHealedCohort(7, NOW);
-
-      expect(user.providers).toEqual([]);
-      expect(user.top_provider).toBeNull();
     });
   });
 
