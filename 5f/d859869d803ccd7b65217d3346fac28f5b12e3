@@ -1,0 +1,22 @@
+integrations/n8n-nodes-manifest/test/manifest-node.test.js
+  s_8336d6ecc613da::t_f283f3e8ef3c11 220
+  s_8336d6ecc613da::t_06f60109f96a91 143-161
+  s_8336d6ecc613da::t_5ba41373fa7fea 13-18
+  s_8336d6ecc613da::t_e337f665c8fd99 186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5fd859869d803ccd7b65217d3346fac28f5b12e3",
+  "prompts": {},
+  "sessions": {
+    "s_8336d6ecc613da": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7eacb25cffeg5VtXxrCKd4d1n",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
