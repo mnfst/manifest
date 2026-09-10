@@ -142,7 +142,6 @@ export class StreamProtocolObserver {
     }
 
     // Google streams have no portable terminal event; clean EOF is terminal.
-    this.completed = true;
   }
 
   isComplete(): boolean {

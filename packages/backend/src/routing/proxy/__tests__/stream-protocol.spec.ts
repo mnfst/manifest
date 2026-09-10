@@ -91,10 +91,11 @@ describe('StreamProtocolObserver', () => {
   });
 
   it.each(['google_generate_content', 'google_code_assist'] as const)(
-    'treats clean EOF as terminal for %s',
+    'treats clean EOF as terminal for %s without marking a provider outcome',
     (protocol) => {
       const observer = new StreamProtocolObserver(protocol);
       observer.observe(event('not-json'));
+      expect(observer.isComplete()).toBe(false);
       expect(() => observer.assertComplete()).not.toThrow();
     },
   );

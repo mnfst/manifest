@@ -261,6 +261,31 @@ describe('pipeStream', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('still fails a Google stream aborted after a content chunk', async () => {
+    const { res } = mockResponse();
+    const encoder = new TextEncoder();
+    let sentContent = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentContent) {
+          sentContent = true;
+          controller.enqueue(
+            encoder.encode('data: {"candidates":[{"content":{"parts":[{"text":"hi"}]}}]}\n\n'),
+          );
+          return;
+        }
+        controller.error(new Error('aborted'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'google_generate_content',
+      }),
+    ).rejects.toBeInstanceOf(UpstreamStreamError);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
   it('still fails when an upstream abort happens before a terminal event', async () => {
     const { res } = mockResponse();
     const encoder = new TextEncoder();
