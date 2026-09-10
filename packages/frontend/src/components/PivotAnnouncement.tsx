@@ -11,7 +11,8 @@ import { checkIsSelfHosted } from '../services/setup-status.js';
 import { useFocusTrap } from '../services/use-focus-trap.js';
 import { hasPivotJoined, markPivotJoined, submitPivotClaim } from '../services/waitlist.js';
 
-export const PIVOT_ARTICLE_URL = 'https://manifest.build/blog/introducing-paid-plans/';
+export const PIVOT_ARTICLE_URL =
+  'https://manifest.build/blog/manifest-is-taking-a-new-direction/';
 const PIVOT_CARD_DISMISSED_KEY = 'pivot-card-dismissed';
 
 /**
@@ -212,7 +213,7 @@ const PivotAnnouncement: Component = () => {
                       rel="noopener noreferrer"
                       class="modal-card__field-link"
                     >
-                      Read about the new direction →
+                      Read more
                     </a>
                     <button type="submit" class="btn btn--primary btn--sm" disabled={busy()}>
                       {busy() ? <span class="spinner" /> : 'Join the waiting list'}
@@ -228,7 +229,7 @@ const PivotAnnouncement: Component = () => {
                     rel="noopener noreferrer"
                     class="modal-card__field-link"
                   >
-                    Read about the new direction →
+                    Read more
                   </a>
                   <button
                     ref={closeBtnRef}

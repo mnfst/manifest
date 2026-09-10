@@ -107,6 +107,7 @@ describe('PivotAnnouncement', () => {
     expect(input.value).toBe('test@test.com');
     const link = document.querySelector(`a[href="${PIVOT_ARTICLE_URL}"]`);
     expect(link).not.toBeNull();
+    expect(link?.textContent?.trim()).toBe('Read more');
     // The Manifest logotype sits above the title, in both theme variants.
     const logo = document.querySelector('.sidebar-pivot-modal__logo');
     expect(logo?.querySelector('img.auth-logo__img--light')).not.toBeNull();

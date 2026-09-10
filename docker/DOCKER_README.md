@@ -21,7 +21,7 @@
 >
 > **This open-source gateway stays available and maintained.**
 >
-> **[Read about the new direction →](https://manifest.build/blog/introducing-paid-plans/)**
+> **[Read more](https://manifest.build/blog/manifest-is-taking-a-new-direction/)**
 
 ## What is Manifest?
 
