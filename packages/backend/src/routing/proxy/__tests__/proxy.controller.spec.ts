@@ -3036,6 +3036,96 @@ describe('ProxyController', () => {
       expect(headers['X-Manifest-Provider']).toBe('OpenAI');
     });
 
+    function makeAbortingSseResponse(firstChunk: string, onFirstChunk: () => void): Response {
+      const encoder = new TextEncoder();
+      let sentFirstChunk = false;
+      const stream = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          if (!sentFirstChunk) {
+            sentFirstChunk = true;
+            controller.enqueue(encoder.encode(firstChunk));
+            onFirstChunk();
+            return;
+          }
+          controller.error(new Error('aborted'));
+        },
+      });
+      return new Response(stream, {
+        status: 200,
+        headers: { 'Content-Type': 'text/event-stream' },
+      });
+    }
+
+    it('records success when the caller closes after finish_reason but before upstream EOF', async () => {
+      let closeListener: (() => void) | undefined;
+      const successSpy = jest.spyOn(recorder, 'recordSuccessMessage');
+      const cancelledSpy = jest.spyOn(recorder, 'recordCancelledRequest');
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: makeAbortingSseResponse(
+            'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n' +
+              'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n',
+            () => closeListener?.(),
+          ),
+          wireFormat: 'openai_chat_completions',
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      const { res, written } = mockResponse();
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+        if (event === 'close') closeListener = cb;
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(written.join('')).toContain('"finish_reason":"stop"');
+      expect(cancelledSpy).not.toHaveBeenCalled();
+      expect(successSpy).toHaveBeenCalled();
+    });
+
+    it('records cancelled when the caller closes before a terminal provider event', async () => {
+      let closeListener: (() => void) | undefined;
+      const successSpy = jest.spyOn(recorder, 'recordSuccessMessage');
+      const cancelledSpy = jest.spyOn(recorder, 'recordCancelledRequest');
+      proxyService.proxyRequest.mockResolvedValue({
+        forward: {
+          response: makeAbortingSseResponse(
+            'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n',
+            () => closeListener?.(),
+          ),
+          wireFormat: 'openai_chat_completions',
+          isGoogle: false,
+          isAnthropic: false,
+          isChatGpt: false,
+        },
+        meta: { tier: 'standard', model: 'gpt-4o', provider: 'OpenAI', confidence: 0.8 },
+      });
+
+      const req = mockRequest({
+        messages: [{ role: 'user', content: 'hi' }],
+        stream: true,
+      });
+      const { res } = mockResponse();
+      (res.once as jest.Mock).mockImplementation((event: string, cb: () => void) => {
+        if (event === 'close') closeListener = cb;
+      });
+
+      await controller.chatCompletions(req as never, res as never);
+      await flushRecorderMicrotasks();
+
+      expect(successSpy).not.toHaveBeenCalled();
+      expect(cancelledSpy).toHaveBeenCalled();
+    });
+
     it('should emit a terminal SSE error when the upstream dies after the first chunk', async () => {
       proxyService.proxyRequest.mockResolvedValue({
         forward: {

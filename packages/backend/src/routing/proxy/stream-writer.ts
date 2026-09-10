@@ -78,6 +78,13 @@ function createProtocolParser(options: StreamRelayOptions): {
   };
 }
 
+function isAbortAfterProviderOutcome(
+  error: unknown,
+  observer: StreamProtocolObserver | null,
+): boolean {
+  return error instanceof UpstreamStreamError && observer?.isComplete() === true;
+}
+
 /**
  * Read a usage block in either OpenAI-compat (`prompt_tokens`/`completion_tokens`)
  * or Anthropic-native (`input_tokens`/`output_tokens`) shape and normalise it
@@ -337,6 +344,7 @@ export async function pipePassthrough(
     }
     protocol.observer?.assertComplete();
   } catch (error) {
+    if (isAbortAfterProviderOutcome(error, protocol.observer)) return capturedUsage;
     streamFailed = error instanceof StreamFailure;
     if (error instanceof StreamIdleTimeoutError) await reader.cancel(error).catch(() => undefined);
     throw error;
@@ -450,6 +458,7 @@ export async function pipeStream(
       }
     }
   } catch (error) {
+    if (isAbortAfterProviderOutcome(error, protocol.observer)) return capturedUsage;
     streamFailed = error instanceof StreamFailure;
     if (error instanceof StreamIdleTimeoutError) await reader.cancel(error).catch(() => undefined);
     throw error;

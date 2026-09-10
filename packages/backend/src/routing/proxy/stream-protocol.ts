@@ -145,6 +145,10 @@ export class StreamProtocolObserver {
     this.completed = true;
   }
 
+  isComplete(): boolean {
+    return this.completed;
+  }
+
   assertComplete(): void {
     if (this.protocol === 'google_generate_content' || this.protocol === 'google_code_assist') {
       return;
