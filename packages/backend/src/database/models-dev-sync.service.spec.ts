@@ -402,11 +402,11 @@ describe('ModelsDevSyncService', () => {
         'https://models.dev/api.json',
         expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
-      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 1,
-      // fireworks: 1, mistral: 6, xai: 3, bedrock: 8, groq: 2,
-      // nvidia: 1, opencode-go: 1, opencode: 1, cerebras: 1,
-      // ollama-cloud: 3 = 32
-      expect(count).toBe(32);
+      // anthropic: 2, google: 1 (audio excluded), openai: 1, deepseek: 2
+      // (deepseek-chat + deepseek-flash stub), fireworks: 1, mistral: 6, xai: 3,
+      // bedrock: 8, groq: 2, nvidia: 1, opencode-go: 1, opencode: 1, cerebras: 1,
+      // ollama-cloud: 3 = 33
+      expect(count).toBe(33);
     });
 
     it('should filter out non-text-output models', async () => {
@@ -1190,12 +1190,27 @@ describe('ModelsDevSyncService', () => {
       ]);
     });
 
-    it('seeds DeepSeek V4 peak pricing when the catalog carries no time tiers', async () => {
+    const flashPeakTier = {
+      windows: ['01:00-04:00', '06:00-10:00'],
+      days: [1, 2, 3, 4, 5],
+      inputPricePerToken: 0.3 / 1_000_000,
+      outputPricePerToken: 1.2 / 1_000_000,
+      cacheReadPricePerToken: 0.006 / 1_000_000,
+      cacheWritePricePerToken: null,
+    };
+
+    it('seeds DeepSeek V4.1 Flash peak pricing when the catalog carries no time tiers', async () => {
       const response = {
         deepseek: {
           id: 'deepseek',
           name: 'DeepSeek',
           models: {
+            'deepseek-flash': {
+              id: 'deepseek-flash',
+              name: 'DeepSeek V4.1 Flash',
+              cost: { input: 0.14, output: 0.28, cache_read: 0.0028, cache_write: 0.35 },
+              modalities: { input: ['text', 'image'], output: ['text'] },
+            },
             'deepseek-v4-flash': {
               id: 'deepseek-v4-flash',
               name: 'DeepSeek V4 Flash',
@@ -1215,29 +1230,50 @@ describe('ModelsDevSyncService', () => {
 
       await service.refreshCache();
 
-      const flash = service.lookupModel('deepseek', 'deepseek-v4-flash');
-      // Stale catalog rates are replaced by the real off-peak base…
-      expect(flash!.inputPricePerToken).toBe(0.22 / 1_000_000);
-      expect(flash!.outputPricePerToken).toBe(0.66 / 1_000_000);
-      expect(flash!.cacheReadPricePerToken).toBe(0.007 / 1_000_000);
+      const flash = service.lookupModel('deepseek', 'deepseek-flash');
+      // Stale catalog rates are replaced by the V4.1 Flash off-peak base…
+      expect(flash!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(flash!.outputPricePerToken).toBe(0.6 / 1_000_000);
+      expect(flash!.cacheReadPricePerToken).toBe(0.003 / 1_000_000);
       // The stale catalog cache-write rate must not survive either: DeepSeek
       // bills cache writes at the input rate, which null falls back to.
       expect(flash!.cacheWritePricePerToken).toBeNull();
       // …plus the peak windows at double.
-      expect(flash!.timeTiers).toEqual([
-        {
-          windows: ['01:00-04:00', '06:00-10:00'],
-          days: [1, 2, 3, 4, 5],
-          inputPricePerToken: 0.44 / 1_000_000,
-          outputPricePerToken: 1.32 / 1_000_000,
-          cacheReadPricePerToken: 0.014 / 1_000_000,
-          cacheWritePricePerToken: null,
-        },
-      ]);
-      // Models outside the seed (legacy aliases) are untouched.
+      expect(flash!.timeTiers).toEqual([flashPeakTier]);
+      // Retired aliases still accepted by DeepSeek are billed on the same card.
+      const legacy = service.lookupModel('deepseek', 'deepseek-v4-flash');
+      expect(legacy!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(legacy!.timeTiers).toEqual([flashPeakTier]);
+      // Models outside the seed are untouched.
       const chat = service.lookupModel('deepseek', 'deepseek-chat');
       expect(chat!.inputPricePerToken).toBe(0.14 / 1_000_000);
       expect(chat!.timeTiers).toBeNull();
+    });
+
+    it('synthesizes deepseek-flash when the catalog has not listed it yet', async () => {
+      const response = {
+        deepseek: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          models: {
+            'deepseek-v4-flash': {
+              id: 'deepseek-v4-flash',
+              name: 'DeepSeek V4 Flash',
+              cost: { input: 0.14, output: 0.28, cache_read: 0.0028 },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+      fetchSpy.mockResolvedValue({ ok: true, json: async () => response });
+
+      await service.refreshCache();
+
+      const ga = service.lookupModel('deepseek', 'deepseek-flash');
+      expect(ga).not.toBeNull();
+      expect(ga!.name).toBe('DeepSeek V4.1 Flash');
+      expect(ga!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(ga!.timeTiers).toEqual([flashPeakTier]);
     });
 
     it('seeds the vision preview on the Flash card', async () => {
@@ -1260,9 +1296,65 @@ describe('ModelsDevSyncService', () => {
       await service.refreshCache();
 
       const vision = service.lookupModel('deepseek', 'deepseek-v4-flash-vision-exp');
-      expect(vision!.inputPricePerToken).toBe(0.22 / 1_000_000);
-      expect(vision!.outputPricePerToken).toBe(0.66 / 1_000_000);
-      expect(vision!.timeTiers![0].days).toEqual([1, 2, 3, 4, 5]);
+      expect(vision!.inputPricePerToken).toBe(0.15 / 1_000_000);
+      expect(vision!.outputPricePerToken).toBe(0.6 / 1_000_000);
+      expect(vision!.timeTiers).toEqual([flashPeakTier]);
+    });
+
+    describe('deepseek-v4-pro Flash cutover', () => {
+      const proResponse = {
+        deepseek: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          models: {
+            'deepseek-v4-pro': {
+              id: 'deepseek-v4-pro',
+              name: 'DeepSeek V4 Pro',
+              cost: { input: 0.435, output: 0.87, cache_read: 0.003625 },
+              modalities: { input: ['text'], output: ['text'] },
+            },
+          },
+        },
+      };
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      it('keeps the Pro card until 2026-09-14 04:00 UTC', async () => {
+        jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-14T03:59:59Z'));
+        fetchSpy.mockResolvedValue({ ok: true, json: async () => proResponse });
+
+        await service.refreshCache();
+
+        const pro = service.lookupModel('deepseek', 'deepseek-v4-pro');
+        expect(pro!.inputPricePerToken).toBe(0.66 / 1_000_000);
+        expect(pro!.outputPricePerToken).toBe(1.98 / 1_000_000);
+        expect(pro!.cacheReadPricePerToken).toBe(0.022 / 1_000_000);
+        expect(pro!.timeTiers).toEqual([
+          {
+            windows: ['01:00-04:00', '06:00-10:00'],
+            days: [1, 2, 3, 4, 5],
+            inputPricePerToken: 1.32 / 1_000_000,
+            outputPricePerToken: 3.96 / 1_000_000,
+            cacheReadPricePerToken: 0.044 / 1_000_000,
+            cacheWritePricePerToken: null,
+          },
+        ]);
+      });
+
+      it('bills Pro on the Flash card from 2026-09-14 04:00 UTC', async () => {
+        jest.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-14T04:00:00Z'));
+        fetchSpy.mockResolvedValue({ ok: true, json: async () => proResponse });
+
+        await service.refreshCache();
+
+        const pro = service.lookupModel('deepseek', 'deepseek-v4-pro');
+        expect(pro!.inputPricePerToken).toBe(0.15 / 1_000_000);
+        expect(pro!.outputPricePerToken).toBe(0.6 / 1_000_000);
+        expect(pro!.cacheReadPricePerToken).toBe(0.003 / 1_000_000);
+        expect(pro!.timeTiers).toEqual([flashPeakTier]);
+      });
     });
 
     it('carries a catalog day list through to the tier', async () => {
@@ -1690,7 +1782,7 @@ describe('ModelsDevSyncService', () => {
       fetchSpy.mockResolvedValue({ ok: true, json: async () => MOCK_API_RESPONSE });
       // Same total as refreshCache asserts: the kilo model is cached for
       // capabilities but never counted or priced.
-      expect(await service.refreshCache()).toBe(32);
+      expect(await service.refreshCache()).toBe(33);
     });
 
     it('should declare tool support for OpenRouter models', () => {
