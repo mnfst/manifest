@@ -1,0 +1,30 @@
+packages/backend/src/database/models-dev-sync.service.spec.ts
+  s_c4ae8896e10579::t_92fa0dbedf4628 1347
+  s_c4ae8896e10579::t_83e36d98d9d207 1321,1325
+  s_c4ae8896e10579::t_98b81a0153c503 405-409
+  s_c4ae8896e10579::t_9c5c3f150e29b5 1193-1202,1208-1213,1233-1237,1242-1247,1253-1278,1299-1320,1322-1324,1326-1346,1348-1357
+  s_c4ae8896e10579::t_0a6e81866ffae4 1785
+packages/backend/src/database/models-dev-sync.service.ts
+  s_c4ae8896e10579::t_9f1abca92fbaee 161-167,172,177-211,213-229
+  s_c4ae8896e10579::t_dc2a746da8e0a9 338-344
+  s_c4ae8896e10579::t_458463dba724c8 230
+  s_c4ae8896e10579::t_81c8db5388dc8e 743,746
+.changeset/deepseek-v41-flash-pricing.md
+  s_c4ae8896e10579::t_585083064b0cd9 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "156abf37540a8df9b9b1ad31328a59efad58e252",
+  "prompts": {},
+  "sessions": {
+    "s_c4ae8896e10579": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f75fcad98ffez4e2dlESDIu46x",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
