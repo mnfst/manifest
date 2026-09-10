@@ -479,6 +479,157 @@ describe('Responses adapter', () => {
     expect(result.top_p).toBe(0.5);
   });
 
+  describe('duplicate call_id normalization', () => {
+    const call = (callId: string, name: string, args: string) => ({
+      type: 'function_call',
+      call_id: callId,
+      name,
+      arguments: args,
+    });
+    const output = (callId: string, text: string) => ({
+      type: 'function_call_output',
+      call_id: callId,
+      output: text,
+    });
+
+    it('gives repeated call/output pairs unique ids without touching the payloads', () => {
+      const result = toNativeResponsesRequest(
+        {
+          input: [
+            { role: 'user', content: 'run it' },
+            call('terminal:0', 'terminal', '{"cmd":"ls"}'),
+            output('terminal:0', 'one'),
+            call('vision_analyze:0', 'vision_analyze', '{"id":1}'),
+            output('vision_analyze:0', 'first look'),
+            call('terminal:0', 'terminal', '{"cmd":"pwd"}'),
+            output('terminal:0', 'two'),
+            call('vision_analyze:0', 'vision_analyze', '{"id":2}'),
+            output('vision_analyze:0', 'second look'),
+            call('terminal:0', 'terminal', '{"cmd":"whoami"}'),
+            output('terminal:0', 'three'),
+          ],
+        },
+        'muse-spark-1.3-contributor',
+      );
+
+      expect(result.input).toEqual([
+        { role: 'user', content: [{ type: 'input_text', text: 'run it' }] },
+        call('terminal:0', 'terminal', '{"cmd":"ls"}'),
+        output('terminal:0', 'one'),
+        call('vision_analyze:0', 'vision_analyze', '{"id":1}'),
+        output('vision_analyze:0', 'first look'),
+        call('terminal:0-mnfst-2', 'terminal', '{"cmd":"pwd"}'),
+        output('terminal:0-mnfst-2', 'two'),
+        call('vision_analyze:0-mnfst-2', 'vision_analyze', '{"id":2}'),
+        output('vision_analyze:0-mnfst-2', 'second look'),
+        call('terminal:0-mnfst-3', 'terminal', '{"cmd":"whoami"}'),
+        output('terminal:0-mnfst-3', 'three'),
+      ]);
+    });
+
+    it('extends a replacement id that the history already uses', () => {
+      const result = toNativeResponsesRequest(
+        {
+          input: [
+            call('terminal:0', 'terminal', '{}'),
+            output('terminal:0', 'one'),
+            call('terminal:0-mnfst-2', 'terminal', '{}'),
+            output('terminal:0-mnfst-2', 'other tool'),
+            call('terminal:0', 'terminal', '{}'),
+            output('terminal:0', 'two'),
+          ],
+        },
+        'muse-spark-1.3-contributor',
+      );
+
+      expect(result.input).toEqual([
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'one'),
+        call('terminal:0-mnfst-2', 'terminal', '{}'),
+        output('terminal:0-mnfst-2', 'other tool'),
+        call('terminal:0-mnfst-2-x', 'terminal', '{}'),
+        output('terminal:0-mnfst-2-x', 'two'),
+      ]);
+    });
+
+    it('leaves unique, ambiguous, and id-less histories untouched', () => {
+      const unique = [
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'one'),
+        call('terminal:1', 'terminal', '{}'),
+        output('terminal:1', 'two'),
+      ];
+      expect(toNativeResponsesRequest({ input: unique }, 'gpt-5.4').input).toEqual(unique);
+
+      // Two calls in a row: which output belongs to which call is a guess.
+      const unpaired = [
+        call('terminal:0', 'terminal', '{}'),
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'one'),
+        output('terminal:0', 'two'),
+      ];
+      expect(toNativeResponsesRequest({ input: unpaired }, 'gpt-5.4').input).toEqual(unpaired);
+
+      // An output with no matching call leaves an odd number of entries.
+      const orphan = [
+        output('terminal:0', 'one'),
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'two'),
+      ];
+      expect(toNativeResponsesRequest({ input: orphan }, 'gpt-5.4').input).toEqual(orphan);
+
+      const idLess = ['plain', { type: 'reasoning', id: 'rs_1' }, { type: 'function_call' }];
+      expect(toNativeResponsesRequest({ input: idLess }, 'gpt-5.4').input).toEqual(idLess);
+    });
+
+    it('leaves ids alone when the provider holds the earlier turns', () => {
+      const input = [
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'one'),
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'two'),
+      ];
+
+      expect(
+        toNativeResponsesRequest({ input, previous_response_id: 'resp_123' }, 'gpt-5.4').input,
+      ).toEqual(input);
+      expect(
+        toNativeResponsesRequest({ input, previous_response_id: '' }, 'gpt-5.4').input,
+      ).toEqual([
+        call('terminal:0', 'terminal', '{}'),
+        output('terminal:0', 'one'),
+        call('terminal:0-mnfst-2', 'terminal', '{}'),
+        output('terminal:0-mnfst-2', 'two'),
+      ]);
+    });
+
+    it('normalizes ids on backends that require input lists', () => {
+      const result = toNativeResponsesRequest(
+        {
+          input: [
+            call('terminal:0', 'terminal', '{}'),
+            output('terminal:0', 'one'),
+            call('terminal:0', 'terminal', '{}'),
+            output('terminal:0', 'two'),
+          ],
+        },
+        'gpt-5.4',
+        { inputList: true },
+      );
+
+      expect((result.input as Record<string, unknown>[]).map((item) => item.call_id)).toEqual([
+        'terminal:0',
+        'terminal:0',
+        'terminal:0-mnfst-2',
+        'terminal:0-mnfst-2',
+      ]);
+    });
+
+    it('keeps a non-list input as it was sent', () => {
+      expect(toNativeResponsesRequest({ input: 'hi' }, 'gpt-5.4').input).toBe('hi');
+    });
+  });
+
   describe('fromChatCompletionResponse', () => {
     it('converts text, tool calls, and usage to a Response object', () => {
       const result = fromChatCompletionResponse(
