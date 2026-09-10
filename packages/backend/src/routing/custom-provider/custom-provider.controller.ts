@@ -39,6 +39,7 @@ export class CustomProviderController {
       return {
         id: cp.id,
         name: cp.name,
+        alias: cp.alias,
         base_url: cp.base_url,
         api_kind: cp.api_kind,
         has_api_key: !!up?.api_key_encrypted,
@@ -86,6 +87,7 @@ export class CustomProviderController {
     return {
       id: cp.id,
       name: cp.name,
+      alias: cp.alias,
       base_url: cp.base_url,
       api_kind: cp.api_kind,
       has_api_key: !!up?.api_key_encrypted,
@@ -111,6 +113,7 @@ export class CustomProviderController {
     return {
       id: cp.id,
       name: cp.name,
+      alias: cp.alias,
       base_url: cp.base_url,
       api_kind: cp.api_kind,
       has_api_key: !!up?.api_key_encrypted,

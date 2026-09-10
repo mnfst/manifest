@@ -3,9 +3,10 @@
 //
 // Scans the ADDED lines of the current diff for styling values that bypass
 // the design tokens (packages/frontend/src/styles/tokens.css): raw hex
-// colors, hsl()/rgb() literals not going through var(--token), and
-// font-family literals. Token definitions themselves (--foo: lines) are
-// exempt, so adding a new token never trips the check.
+// colors, hsl()/rgb() literals not going through var(--token), font-family
+// literals, font-size in px, z-index literals above local stacking, and
+// pill radii written as 99/999/9999px. Token definitions themselves
+// (--foo: lines) are exempt, so adding a new token never trips the check.
 //
 // Usage:  node scripts/check-design-tokens.mjs [base-ref]
 //   base-ref defaults to the merge-base with origin/main; the diff includes
@@ -18,8 +19,7 @@
 import { execSync } from 'node:child_process';
 
 const run = (cmd) =>
-  execSync(cmd, { maxBuffer: 128 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
-    .toString();
+  execSync(cmd, { maxBuffer: 128 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).toString();
 
 let base = process.argv[2];
 if (!base) {
@@ -35,8 +35,8 @@ const INCLUDED = /^packages\/frontend\/src\//;
 
 const EXCLUDED_PATHS = [
   /^packages\/frontend\/src\/styles\/tokens\.css$/, // the tokens live here
-  /ProviderIcon\.tsx$/,          // provider BRAND colors (data, not design) — sole color allowlist
-  /provider-icons\//,            // future brand-icon library (same rationale)
+  /ProviderIcon\.tsx$/, // provider BRAND colors (data, not design) — sole color allowlist
+  /provider-icons\//, // future brand-icon library (same rationale)
   /\.svg$/,
   /\.md$/,
 ];
@@ -55,6 +55,55 @@ const RGB_LITERAL = /rgba?\(\s*[\d.]/;
 // font-family literals are only allowed when they reference a token.
 const FONT_FAMILY = /font-family\s*:/;
 const FONT_OK = /font-family\s*:\s*(var\(--|inherit)/;
+// The font-size scale lives in tokens.css (--font-size-3xs … 4xl).
+const FONT_SIZE_PX = /font-size\s*:\s*[\d.]+px/;
+// z-index 0-2 is local in-component stacking; anything above takes a --z-* layer.
+const Z_INDEX = /z-index\s*:\s*(\d+)|zIndex\s*[:=]\s*['"]?(\d+)/;
+// Pill radii hand-written as 99px / 999px / 9999px.
+const PILL_RADIUS = /border-radius\s*:[^;}\n]*\b9{2,4}px\b/;
+
+function maskInlineComments(line) {
+  let out = '';
+  let quote = null;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (quote) {
+      out += char;
+      if (char === quote && line[i - 1] !== '\\') quote = null;
+    } else if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+      out += char;
+    } else if (char === '/' && line[i + 1] === '/') {
+      break;
+    } else if (char === '/' && line[i + 1] === '*') {
+      const end = line.indexOf('*/', i + 2);
+      if (end === -1) break;
+      out += ' '.repeat(end + 2 - i);
+      i = end + 1;
+    } else {
+      out += char;
+    }
+  }
+  return out;
+}
+
+function isInsideString(line, index) {
+  let quote = null;
+  for (let i = 0; i < index; i++) {
+    const char = line[i];
+    if (quote) {
+      if (char === quote && line[i - 1] !== '\\') quote = null;
+    } else if (char === '"' || char === "'" || char === '`') {
+      quote = char;
+    }
+  }
+  return quote !== null;
+}
+
+function matchCode(regex, line) {
+  const match = line.match(regex);
+  return match && !isInsideString(line, match.index ?? 0) ? match : null;
+}
 
 let diff;
 try {
@@ -73,9 +122,7 @@ for (const raw of diff.split('\n')) {
   if (raw.startsWith('+++ b/')) {
     file = raw.slice(6);
     skip =
-      !INCLUDED.test(file) ||
-      !CHECKED_EXT.test(file) ||
-      EXCLUDED_PATHS.some((re) => re.test(file));
+      !INCLUDED.test(file) || !CHECKED_EXT.test(file) || EXCLUDED_PATHS.some((re) => re.test(file));
     continue;
   }
   if (raw.startsWith('@@')) {
@@ -88,17 +135,58 @@ for (const raw of diff.split('\n')) {
   if (skip) continue;
 
   const line = raw.slice(1);
-  if (TOKEN_DEF.test(line)) continue;
+  const code = maskInlineComments(line);
+  if (TOKEN_DEF.test(code)) continue;
 
-  if (RAW_HEX.test(line)) {
-    findings.push({ file, lineNo, line: line.trim(), rule: 'raw hex color — use hsl(var(--token))' });
-  } else if (HSL_LITERAL.test(line)) {
-    findings.push({ file, lineNo, line: line.trim(), rule: 'hsl() literal — use hsl(var(--token))' });
-  } else if (RGB_LITERAL.test(line)) {
-    findings.push({ file, lineNo, line: line.trim(), rule: 'rgb()/rgba() literal — use hsl(var(--token) / alpha)' });
+  if (matchCode(RAW_HEX, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'raw hex color — use hsl(var(--token))',
+    });
+  } else if (matchCode(HSL_LITERAL, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'hsl() literal — use hsl(var(--token))',
+    });
+  } else if (matchCode(RGB_LITERAL, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'rgb()/rgba() literal — use hsl(var(--token) / alpha)',
+    });
   }
-  if (FONT_FAMILY.test(line) && !FONT_OK.test(line)) {
-    findings.push({ file, lineNo, line: line.trim(), rule: 'font-family literal — use var(--font-*)' });
+  if (matchCode(FONT_FAMILY, code) && !matchCode(FONT_OK, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'font-family literal — use var(--font-*)',
+    });
+  }
+  if (matchCode(FONT_SIZE_PX, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'font-size in px — use var(--font-size-*)',
+    });
+  }
+  const z = matchCode(Z_INDEX, code);
+  if (z && Number(z[1] ?? z[2]) > 2) {
+    findings.push({ file, lineNo, line: line.trim(), rule: 'z-index literal — use var(--z-*)' });
+  }
+  if (matchCode(PILL_RADIUS, code)) {
+    findings.push({
+      file,
+      lineNo,
+      line: line.trim(),
+      rule: 'pill radius literal — use var(--radius-pill)',
+    });
   }
 }
 
@@ -132,5 +220,7 @@ if (verbose) {
   for (const f of findings) console.log(`  ${f.file}:${f.lineNo}  ${f.line.slice(0, 120)}`);
 }
 console.log('\nFix: use the tokens from packages/frontend/src/styles/tokens.css.');
-console.log('Intentional exception? Justify it in the PR description. Re-run with --all for every line.');
+console.log(
+  'Intentional exception? Justify it in the PR description. Re-run with --all for every line.',
+);
 process.exit(1);

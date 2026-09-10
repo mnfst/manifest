@@ -162,6 +162,11 @@ const PROVIDER_UI: Record<string, ProviderUIOverlay> = {
     subscriptionAuthMode: 'popup_paste',
     models: [],
   },
+  vertex: {
+    initial: 'GV',
+    subtitle: 'Gemini via Google Cloud Vertex AI',
+    models: [],
+  },
   atlascloud: {
     initial: 'AC',
     subtitle: 'DeepSeek, Qwen, GLM, Kimi, MiniMax and more',
@@ -516,6 +521,7 @@ const PROVIDER_ORDER = [
   'gemini-free',
   'copilot',
   'gemini',
+  'vertex',
   'groq',
   'huggingface',
   'kilo',

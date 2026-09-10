@@ -251,7 +251,10 @@ export class PublicStatsService {
     const eligible: TopModel[] = [];
     for (const candidate of topCandidates.values()) {
       const modelName = candidate.modelName;
-      const pricing = this.pricingCache.getByModel(modelName);
+      // Scoped to the seller: this payload publishes the provider right next
+      // to the price, so an unscoped lookup would print one seller's name
+      // beside another seller's rate on the one surface that is public.
+      const pricing = this.pricingCache.getByModel(modelName, candidate.provider);
       const key = providerModelKey(candidate.provider, modelName);
 
       eligible.push({

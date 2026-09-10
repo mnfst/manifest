@@ -205,7 +205,7 @@ const Settings: Component = () => {
                   alt=""
                   width="18"
                   height="18"
-                  class="settings-type__icon"
+                  class="platform-icon settings-type__icon"
                 />
               </Show>
               {currentPlatform()

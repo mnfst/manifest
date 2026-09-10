@@ -600,6 +600,75 @@ describe('chatgpt-adapter', () => {
   });
 
   describe('collectChatGptSseResponse', () => {
+    it('maps a context error event to HTTP 400 without losing provider details', () => {
+      const sse =
+        'event: error\ndata: {"type":"invalid_request_error","code":"context_length_exceeded","message":"Your input exceeds the context window of this model."}';
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5.6-sol');
+        fail('Expected ResponsesSseError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(400);
+        expect(JSON.parse((err as ResponsesSseError).body)).toEqual({
+          error: {
+            message: 'Your input exceeds the context window of this model.',
+            code: 'context_length_exceeded',
+            type: 'invalid_request_error',
+          },
+        });
+      }
+    });
+
+    it('maps a nested response.failed context error to HTTP 400', () => {
+      const sse =
+        'event: response.failed\ndata: {"response":{"error":{"type":"invalid_request_error","code":"context_length_exceeded","message":"Prompt is too large"}}}';
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5.6-terra');
+        fail('Expected ResponsesSseError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(400);
+      }
+    });
+
+    it('uses a useful error type when an unfamiliar code is present', () => {
+      const sse =
+        'event: error\ndata: {"type":"invalid_request_error","code":"request_rejected","message":"Invalid request"}';
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5.6-sol');
+        fail('Expected ResponsesSseError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(400);
+      }
+    });
+
+    it.each([
+      [{ code: 'resource_not_found' }, 404],
+      [{ code: 'unauthorized' }, 401],
+      [{ code: 'opaque', type: 'authentication_error' }, 401],
+      [{ code: 'forbidden' }, 403],
+      [{ code: 'opaque', type: 'permission_denied' }, 403],
+      [{ code: 'server_error' }, 500],
+      [{ code: 'rate_limit_exceeded' }, 429],
+      [{ code: 'bad_request' }, 400],
+      [{ type: 'invalid_request_error' }, 400],
+      [{}, 502],
+    ])('preserves Responses error status precedence for %j', (details, expectedStatus) => {
+      const sse = `event: error\ndata: ${JSON.stringify({ ...details, message: 'failed' })}`;
+
+      try {
+        collectChatGptSseResponse(sse, 'gpt-5.6-sol');
+        fail('Expected ResponsesSseError');
+      } catch (err) {
+        expect(err).toBeInstanceOf(ResponsesSseError);
+        expect((err as ResponsesSseError).status).toBe(expectedStatus);
+      }
+    });
+
     it('collects text deltas and completed usage into a non-streaming envelope', () => {
       const sse = [
         'event: response.output_text.delta\ndata: {"delta":"Hello "}',

@@ -3,14 +3,17 @@ import { OPENCODE_GO_BUDGET_5H_USD, OpencodeGoCatalogService } from './opencode-
 const BT = String.fromCharCode(96);
 const OAI = BT + 'https://opencode.ai/zen/go/v1/chat/completions' + BT;
 const ANT = BT + 'https://opencode.ai/zen/go/v1/messages' + BT;
+const RESP = BT + 'https://opencode.ai/zen/go/v1/responses' + BT;
 const OAI_SDK = BT + '@ai-sdk/openai-compatible' + BT;
 const ANT_SDK = BT + '@ai-sdk/anthropic' + BT;
+const RESP_SDK = BT + '@ai-sdk/openai' + BT;
 
 const ENDPOINTS_TABLE = [
   '## Endpoints',
   '',
   '| Model        | Model ID     | Endpoint                                         | AI SDK Package              |',
   '| ------------ | ------------ | ------------------------------------------------ | --------------------------- |',
+  `| Grok 4.5     | grok-4.5     | ${RESP} | ${RESP_SDK} |`,
   `| GLM-5.1      | glm-5.1      | ${OAI} | ${OAI_SDK} |`,
   `| GLM-5        | glm-5        | ${OAI} | ${OAI_SDK} |`,
   `| Kimi K2.5    | kimi-k2.5    | ${OAI} | ${OAI_SDK} |`,
@@ -27,6 +30,7 @@ const LIMITS_TABLE = [
   '',
   '| Model              | requests per 5 hour | requests per week | requests per month |',
   '| ------------------ | ------------------- | ----------------- | ------------------ |',
+  '| Grok 4.5           | 120                 | 300               | 600                |',
   '| GLM-5.1            | 880                 | 2,150             | 4,300              |',
   '| GLM-5              | 1,150               | 2,880             | 5,750              |',
   '| Kimi K2.5          | 1,850               | 4,630             | 9,250              |',
@@ -65,6 +69,7 @@ describe('OpencodeGoCatalogService', () => {
     it('extracts every model in the endpoints table', () => {
       const entries = service.parse(SAMPLE_MDX);
       expect(entries.map((e) => e.id)).toEqual([
+        'grok-4.5',
         'glm-5.1',
         'glm-5',
         'kimi-k2.5',
@@ -79,6 +84,7 @@ describe('OpencodeGoCatalogService', () => {
     it('keeps the docs display name verbatim', () => {
       const entries = service.parse(SAMPLE_MDX);
       const labels = Object.fromEntries(entries.map((e) => [e.id, e.displayName]));
+      expect(labels['grok-4.5']).toBe('Grok 4.5');
       expect(labels['glm-5.1']).toBe('GLM-5.1');
       expect(labels['kimi-k2.5']).toBe('Kimi K2.5');
       expect(labels['mimo-v2-omni']).toBe('MiMo-V2-Omni');
@@ -89,6 +95,7 @@ describe('OpencodeGoCatalogService', () => {
     it('tags docs rows with the endpoint format they declare', () => {
       const entries = service.parse(SAMPLE_MDX);
       const byId = Object.fromEntries(entries.map((e) => [e.id, e.format]));
+      expect(byId['grok-4.5']).toBe('responses');
       expect(byId['glm-5.1']).toBe('openai');
       expect(byId['kimi-k2.5']).toBe('openai');
       expect(byId['mimo-v2-pro']).toBe('openai');
@@ -119,6 +126,8 @@ describe('OpencodeGoCatalogService', () => {
     it('attaches per-request cost derived from the Usage Limits table', () => {
       const entries = service.parse(SAMPLE_MDX);
       const cost = Object.fromEntries(entries.map((e) => [e.id, e.costPerRequestUsd]));
+      // $12 / 120 = $0.10
+      expect(cost['grok-4.5']).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 120, 12);
       // $12 / 880 = ~0.01364
       expect(cost['glm-5.1']).toBeCloseTo(OPENCODE_GO_BUDGET_5H_USD / 880, 12);
       // $12 / 1150 = ~0.01043
@@ -199,6 +208,7 @@ describe('OpencodeGoCatalogService', () => {
       expect(service.getFormat('qwen3.7-max')).toBe('anthropic');
       expect(service.getFormat('opencode-go/qwen3.7-max')).toBe('anthropic');
       expect(service.getFormat('opencode-go/mimo-v2-pro')).toBe('openai');
+      expect(service.getFormat('opencode-go/grok-4.5')).toBe('responses');
     });
 
     it('warms the catalog for async format lookup', async () => {
@@ -351,7 +361,7 @@ describe('OpencodeGoCatalogService', () => {
       } as Response);
 
       const first = await service.list();
-      expect(first).toHaveLength(8);
+      expect(first).toHaveLength(9);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
 
       const second = await service.list();
@@ -366,7 +376,7 @@ describe('OpencodeGoCatalogService', () => {
         text: async () => SAMPLE_MDX,
       } as Response);
       const good = await service.list();
-      expect(good).toHaveLength(8);
+      expect(good).toHaveLength(9);
 
       // Force the success cache to look expired, but keep lastGood populated.
       (service as unknown as { cache: unknown }).cache = null;

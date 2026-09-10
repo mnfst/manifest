@@ -60,6 +60,7 @@ const OPENCODE_GO_MODELS_URL = 'https://opencode.ai/zen/go/v1/models';
 const PIONEER_MODELS_URL = 'https://api.pioneer.ai/v1/models';
 const PIONEER_BASE_MODELS_URL = 'https://api.pioneer.ai/base-models';
 const META_MODELS_URL = 'https://api.meta.ai/v1/models';
+const COPILOT_AI_CREDIT_USD = 0.01;
 
 /* ── Generic parser factory ── */
 
@@ -69,6 +70,7 @@ interface ModelParserConfig<T> {
   getId: (entry: T) => string;
   getDisplayName: (entry: T, id: string) => string;
   contextWindow?: number | ((entry: T) => number);
+  contextWindowSource?: (entry: T) => DiscoveredModel['contextWindowSource'];
   inputPricePerToken?: number | null;
   outputPricePerToken?: number | null;
   capabilityReasoning?: boolean;
@@ -91,12 +93,14 @@ function createModelParser<T>(
         const entry = m as T;
         const id = config.getId(entry);
         const ctxVal = config.contextWindow ?? DEFAULT_CONTEXT_WINDOW;
+        const contextWindowSource = config.contextWindowSource?.(entry);
         const supportedEndpoints = config.supportedEndpoints?.(entry);
         return {
           id,
           displayName: config.getDisplayName(entry, id),
           provider,
           contextWindow: typeof ctxVal === 'function' ? ctxVal(entry) : ctxVal,
+          ...(contextWindowSource ? { contextWindowSource } : {}),
           inputPricePerToken: config.inputPricePerToken ?? null,
           outputPricePerToken: config.outputPricePerToken ?? null,
           capabilityReasoning: config.capabilityReasoning ?? false,
@@ -420,6 +424,10 @@ export const PROVIDER_NON_CHAT: Record<string, RegExp> = {
   // must NOT be filtered.
   gemini:
     /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^gemini-2\.0-flash-lite$|flash-lite-preview-\d{2}-\d{4}$|robotics)/i,
+  // Vertex serves the same non-chat families as the Gemini API, plus Imagen
+  // and Veo under their own names.
+  vertex:
+    /(?:^aqs-|nano-banana|^deep-research|computer-use|^lyria|^imagen|^veo|robotics|flash-lite-preview-\d{2}-\d{4}$)/i,
   ...Object.fromEntries(
     MANAGED_FREE_PROVIDER_CONFIGS.map((config) => [config.id, config.nonChatModelPattern]),
   ),
@@ -624,6 +632,10 @@ function parseOpenRouter(body: unknown, provider: string): DiscoveredModel[] {
     .filter((m: unknown) => {
       const entry = m as OpenRouterModelEntry;
       if (typeof entry.id !== 'string') return false;
+      // `:batch` variants are only served through OpenRouter's async Batch API,
+      // never through the synchronous chat completions proxy — listing them
+      // advertises models that are guaranteed to 404.
+      if (entry.id.endsWith(':batch')) return false;
       const output = entry.architecture?.output_modalities?.map((o) => o.toLowerCase());
       if (output && output.length > 0 && !output.every((o) => o === 'text')) {
         return false;
@@ -731,6 +743,8 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
   getId: (entry) => entry.slug,
   getDisplayName: (entry, id) => entry.display_name || id,
   contextWindow: (entry) => entry.context_window ?? 200000,
+  contextWindowSource: (entry) =>
+    typeof entry.context_window === 'number' ? 'provider' : 'subscription_config',
   inputPricePerToken: 0,
   outputPricePerToken: 0,
   capabilityCode: true,
@@ -738,15 +752,110 @@ const parseOpenaiSubscription = createModelParser<OpenAISubscriptionModelEntry>(
 
 /* ── GitHub Copilot (subscription-only, OpenAI-compatible /models) ── */
 
-const parseCopilot = createModelParser<OpenAIModelEntry>({
-  arrayKey: 'data',
-  filter: (entry) => typeof entry.id === 'string' && entry.id.length > 0,
-  getId: (entry) => `copilot/${entry.id}`,
-  getDisplayName: (entry) => entry.id,
-  inputPricePerToken: 0,
-  outputPricePerToken: 0,
-  supportedEndpoints: (entry) => getStringArray(entry.supported_endpoints),
-});
+interface CopilotTokenPriceTier {
+  input_price?: unknown;
+  output_price?: unknown;
+  cache_price?: unknown;
+  cache_read_price?: unknown;
+  cache_write_price?: unknown;
+  context_max?: unknown;
+  max_prompt_tokens?: unknown;
+}
+
+interface CopilotModelEntry extends OpenAIModelEntry {
+  billing?: {
+    token_prices?: {
+      batch_size?: unknown;
+      default?: CopilotTokenPriceTier;
+      long_context?: CopilotTokenPriceTier;
+    };
+  };
+}
+
+function copilotUsdPerToken(price: unknown, batchSize: unknown): number | null {
+  if (typeof price !== 'number' || !Number.isFinite(price) || price < 0) return null;
+  const tokenBatchSize = batchSize ?? 1_000_000;
+  if (
+    typeof tokenBatchSize !== 'number' ||
+    !Number.isFinite(tokenBatchSize) ||
+    tokenBatchSize <= 0
+  ) {
+    return null;
+  }
+  return (price * COPILOT_AI_CREDIT_USD) / tokenBatchSize;
+}
+
+function copilotContextMax(tier: CopilotTokenPriceTier | undefined): number | null {
+  const value = tier?.context_max ?? tier?.max_prompt_tokens;
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
+function copilotPriceTier(
+  tier: CopilotTokenPriceTier | undefined,
+  batchSize: unknown,
+): Omit<NonNullable<DiscoveredModel['longContextPricing']>, 'thresholdTokens'> | null {
+  const inputPricePerToken = copilotUsdPerToken(tier?.input_price, batchSize);
+  const outputPricePerToken = copilotUsdPerToken(tier?.output_price, batchSize);
+  if (inputPricePerToken === null || outputPricePerToken === null) return null;
+
+  const cacheReadPricePerToken = copilotUsdPerToken(
+    tier?.cache_read_price ?? tier?.cache_price,
+    batchSize,
+  );
+  const cacheWritePricePerToken = copilotUsdPerToken(tier?.cache_write_price, batchSize);
+  return {
+    inputPricePerToken,
+    outputPricePerToken,
+    ...(cacheReadPricePerToken !== null ? { cacheReadPricePerToken } : {}),
+    ...(cacheWritePricePerToken !== null ? { cacheWritePricePerToken } : {}),
+  };
+}
+
+function parseCopilot(body: unknown, provider: string): DiscoveredModel[] {
+  const data = (body as { data?: unknown })?.data;
+  if (!Array.isArray(data)) return [];
+
+  return data.flatMap((raw): DiscoveredModel[] => {
+    const entry = raw as CopilotModelEntry;
+    if (typeof entry.id !== 'string' || entry.id.length === 0) return [];
+
+    const tokenPrices = entry.billing?.token_prices;
+    const defaultPricing = copilotPriceTier(tokenPrices?.default, tokenPrices?.batch_size);
+    const longContextThreshold = copilotContextMax(tokenPrices?.default);
+    const longContextTier = copilotPriceTier(tokenPrices?.long_context, tokenPrices?.batch_size);
+    const longContextPricing =
+      defaultPricing && longContextTier && longContextThreshold
+        ? { thresholdTokens: longContextThreshold, ...longContextTier }
+        : null;
+    const contextWindow =
+      copilotContextMax(tokenPrices?.long_context) ??
+      longContextThreshold ??
+      DEFAULT_CONTEXT_WINDOW;
+    const supportedEndpoints = getStringArray(entry.supported_endpoints);
+
+    return [
+      {
+        id: `copilot/${entry.id}`,
+        displayName: entry.id,
+        provider,
+        contextWindow,
+        inputPricePerToken: defaultPricing?.inputPricePerToken ?? 0,
+        outputPricePerToken: defaultPricing?.outputPricePerToken ?? 0,
+        ...(defaultPricing?.cacheReadPricePerToken !== undefined
+          ? { cacheReadPricePerToken: defaultPricing.cacheReadPricePerToken }
+          : {}),
+        ...(defaultPricing?.cacheWritePricePerToken !== undefined
+          ? { cacheWritePricePerToken: defaultPricing.cacheWritePricePerToken }
+          : {}),
+        ...(longContextPricing ? { longContextPricing } : {}),
+        capabilityReasoning: false,
+        capabilityCode: false,
+        ...(supportedEndpoints ? { supportedEndpoints } : {}),
+        qualityScore: 3,
+      },
+    ];
+  });
+}
 
 /* ── OpenCode Zen (aggregator, OpenAI-compatible /models) ── */
 

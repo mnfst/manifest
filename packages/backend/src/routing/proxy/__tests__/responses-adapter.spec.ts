@@ -191,8 +191,91 @@ describe('Responses adapter', () => {
         },
         { role: 'tool', tool_call_id: 'call_1', content: '{"ok":true}' },
       ]);
-      expect(result.tools).toEqual([{ type: 'web_search_preview' }]);
+      expect(result.tools).toEqual([]);
       expect(result.tool_choice).toBe('auto');
+    });
+
+    it('folds role:"developer" instruction messages into "system"', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          { role: 'developer', content: [{ type: 'input_text', text: 'You are concise.' }] },
+          { role: 'user', content: [{ type: 'input_text', text: 'Hi' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'system', content: 'You are concise.' },
+        { role: 'user', content: 'Hi' },
+      ]);
+    });
+
+    it('drops hosted tools and keeps only function tools', () => {
+      const result = toChatCompletionsRequest({
+        input: 'go',
+        tools: [
+          { type: 'web_search' },
+          { type: 'file_search' },
+          { type: 'computer_use_preview' },
+          { type: 'function', name: 'lookup', parameters: { type: 'object' } },
+        ],
+      });
+
+      expect(result.tools).toEqual([
+        { type: 'function', function: { name: 'lookup', parameters: { type: 'object' } } },
+      ]);
+    });
+
+    it('drops non-message input items that have no chat-completions equivalent', () => {
+      const result = toChatCompletionsRequest({
+        instructions: 'You are a helpful assistant.',
+        input: [
+          { type: 'message', role: 'user', content: [{ type: 'input_text', text: 'total?' }] },
+          {
+            type: 'reasoning',
+            id: 'rs_1',
+            encrypted_content: 'gAAAAA',
+            summary: [{ type: 'summary_text', text: 'thinking about the totals' }],
+          },
+          { type: 'item_reference', id: 'msg_1' },
+          { type: 'web_search_call', id: 'ws_1', status: 'completed' },
+          { type: 'message', role: 'assistant', content: [{ type: 'output_text', text: 'ok' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: 'total?' },
+        { role: 'assistant', content: [{ type: 'text', text: 'ok' }] },
+      ]);
+    });
+
+    it('never emits a message without content for reasoning items', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          { role: 'user', content: [{ type: 'input_text', text: 'hi' }] },
+          { type: 'reasoning', id: 'rs_1', encrypted_content: 'gAAAAA' },
+        ],
+      });
+      const messages = result.messages as Record<string, unknown>[];
+
+      expect(messages).toHaveLength(1);
+      for (const message of messages) {
+        expect(Object.prototype.hasOwnProperty.call(message, 'content')).toBe(true);
+        expect(message.content).not.toBeUndefined();
+      }
+      expect(JSON.stringify(messages)).not.toContain('{"role":"user"}');
+    });
+
+    it('drops message items that carry no content at all', () => {
+      const result = toChatCompletionsRequest({
+        input: [
+          { type: 'message', role: 'user' },
+          { role: 'assistant' },
+          { role: 'user', content: [{ type: 'input_text', text: 'still here' }] },
+        ],
+      });
+
+      expect(result.messages).toEqual([{ role: 'user', content: 'still here' }]);
     });
 
     it('uses safe defaults for malformed input items', () => {

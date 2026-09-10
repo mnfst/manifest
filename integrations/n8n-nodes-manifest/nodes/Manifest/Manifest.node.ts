@@ -11,6 +11,7 @@ import type {
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { MANIFEST_ATTRIBUTION_HEADERS } from '../shared/attribution';
 
 type ManifestOperation = 'chatCompletion' | 'createResponse' | 'listModels';
 type ManifestHttpMethod = 'GET' | 'POST';
@@ -225,6 +226,7 @@ async function requestManifest(
 		url: `${baseUrl}${path}`,
 		headers: {
 			Authorization: `Bearer ${String(credentials.apiKey)}`,
+			...MANIFEST_ATTRIBUTION_HEADERS,
 		},
 		encoding: 'text',
 		returnFullResponse: true,

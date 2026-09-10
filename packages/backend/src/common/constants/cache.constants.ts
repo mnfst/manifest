@@ -19,7 +19,16 @@ export const FREE_MODELS_CACHE_TTL_MS = 3_600_000;
  * variant collapses to one of two keys keyed on that boolean — never the raw
  * URL. This keeps the key set bounded (exactly two per tenant) so invalidation can
  * enumerate it exhaustively and no variant is ever left stale.
+ *
+ * `generation` retires a tenant's keys without having to delete them: bumping it
+ * makes the next read miss, and a response that started under the previous
+ * generation writes back to a key nobody reads any more. See
+ * AgentListCacheService.
  */
-export function agentListCacheKey(tenantId: string, includePlayground: boolean): string {
-  return `${tenantId}:/api/v1/agents:playground=${includePlayground}`;
+export function agentListCacheKey(
+  tenantId: string,
+  includePlayground: boolean,
+  generation = 0,
+): string {
+  return `${tenantId}:/api/v1/agents:playground=${includePlayground}:g${generation}`;
 }

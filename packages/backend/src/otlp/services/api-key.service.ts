@@ -7,7 +7,12 @@ import { Tenant } from '../../entities/tenant.entity';
 import { Agent } from '../../entities/agent.entity';
 import { AgentApiKey } from '../../entities/agent-api-key.entity';
 import { hashKey, keyPrefix } from '../../common/utils/hash.util';
-import { encrypt, decrypt, getEncryptionSecret } from '../../common/utils/crypto.util';
+import {
+  encrypt,
+  decryptWithAny,
+  getEncryptionSecret,
+  getDecryptionSecrets,
+} from '../../common/utils/crypto.util';
 import { API_KEY_PREFIX } from '../../common/constants/api-key.constants';
 import { AgentKeyAuthGuard } from '../guards/agent-key-auth.guard';
 
@@ -122,7 +127,7 @@ export class ApiKeyGeneratorService {
 
     if (keyRecord.key) {
       try {
-        const fullKey = decrypt(keyRecord.key, getEncryptionSecret());
+        const fullKey = decryptWithAny(keyRecord.key, getDecryptionSecrets()).plaintext;
         return { keyPrefix: keyRecord.key_prefix, fullKey };
       } catch {
         return { keyPrefix: keyRecord.key_prefix };

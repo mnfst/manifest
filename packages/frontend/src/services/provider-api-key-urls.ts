@@ -6,6 +6,7 @@ export const ROUTING_PROVIDER_API_KEY_URLS: Record<string, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
   atlascloud: 'https://www.atlascloud.ai/docs/api-keys',
   bedrock: 'https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys-generate.html',
+  vertex: 'https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview',
   cerebras: 'https://cloud.cerebras.ai',
   'cline-pass': 'https://app.cline.bot/settings/api-keys',
   deepseek: 'https://platform.deepseek.com/api_keys',

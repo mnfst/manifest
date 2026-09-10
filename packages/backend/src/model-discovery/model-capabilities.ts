@@ -122,7 +122,9 @@ export async function resolveModelCapabilityMetadata(
       model: string | undefined,
     ): Promise<readonly ModelCapability[] | null>;
   },
-  modelsDevSync: { lookupModel(providerId: string, modelId: string): ModelsDevModelEntry | null },
+  modelsDevSync: {
+    lookupModelCapabilities(providerId: string, modelId: string): ModelsDevModelEntry | null;
+  },
 ): Promise<ResolvedCapabilityMetadata> {
   const specCapabilities = await paramSpecs.getCapabilities(
     model.provider,
@@ -133,7 +135,10 @@ export async function resolveModelCapabilityMetadata(
   // Bedrock vendor-prefixed ids). Resolve that provenance for metadata only.
   const metadata = resolveProviderMetadataIdentity(model.provider, model.id);
   const metadataProvider = metadata.provider ?? model.provider;
-  const modelsDevEntry = modelsDevSync.lookupModel(metadataProvider, metadata.model);
+  // Capability-only providers (Kilo, Pioneer, Cline Pass, Xiaomi, OpenRouter)
+  // resolve here too; every field read off this entry is capability metadata or
+  // a display name, never a price.
+  const modelsDevEntry = modelsDevSync.lookupModelCapabilities(metadataProvider, metadata.model);
   // Curated facts are the last resort, and applying them here (not only at
   // discovery time) means stale cached_models still resolve correctly.
   const known = lookupKnownModalities(metadataProvider, metadata.model);
@@ -153,6 +158,7 @@ export async function resolveModelCapabilityMetadata(
 
 export function modelSupportsStreaming(providerId: string, modelId: string): boolean {
   const provider = resolveProviderId(providerId);
+  if (provider.startsWith('custom:')) return true;
   if (!STREAMING_ENDPOINT_PROVIDERS.has(provider)) return false;
   if (provider === 'openai' && isOpenAiNonStreamingModel(modelId)) return false;
   return true;

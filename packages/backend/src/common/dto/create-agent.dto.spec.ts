@@ -62,6 +62,16 @@ describe('CreateAgentDto', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('accepts coding category with codex platform', async () => {
+    const dto = plainToInstance(CreateAgentDto, {
+      name: 'my-agent',
+      agent_category: 'coding',
+      agent_platform: 'codex',
+    });
+    const errors = await validate(dto);
+    expect(errors).toHaveLength(0);
+  });
+
   it('accepts other platform', async () => {
     const dto = plainToInstance(CreateAgentDto, {
       name: 'my-agent',

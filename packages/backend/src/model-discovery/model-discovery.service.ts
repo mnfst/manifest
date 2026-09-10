@@ -13,7 +13,7 @@ import {
 } from './provider-model-fetcher.service';
 import { ProviderModelRegistryService } from './provider-model-registry.service';
 import { DiscoveredModel, DEFAULT_CONTEXT_WINDOW } from './model-fetcher';
-import { decrypt, getEncryptionSecret } from '../common/utils/crypto.util';
+import { decryptWithAny, getDecryptionSecrets } from '../common/utils/crypto.util';
 import { computeQualityScore } from '../database/quality-score.util';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
@@ -38,6 +38,7 @@ import {
   buildFallbackModels,
   buildModelsDevFallback,
   buildSubscriptionFallbackModels,
+  reconcileCachedSubscriptionContextWindow,
   supplementWithKnownModels,
 } from './model-fallback';
 import { lookupKnownPrice } from './known-model-prices';
@@ -82,6 +83,7 @@ function nonChatFilterKey(providerId: string, authType: AuthType): string {
 const MODELS_CACHE_TTL_MS = 120_000;
 
 interface ModelsCacheEntry {
+  tenantId: string;
   data: DiscoveredModel[];
   expiresAt: number;
 }
@@ -138,7 +140,7 @@ export class ModelDiscoveryService {
     const lowerProvider = provider.provider.toLowerCase();
     if (provider.api_key_encrypted) {
       try {
-        apiKey = decrypt(provider.api_key_encrypted, getEncryptionSecret());
+        apiKey = decryptWithAny(provider.api_key_encrypted, getDecryptionSecrets()).plaintext;
       } catch {
         this.logger.warn(`Failed to decrypt key for provider ${provider.provider}`);
         return [];
@@ -317,16 +319,23 @@ export class ModelDiscoveryService {
       ...this.enrichModel(model, provider.provider),
       authType,
     }));
+    const reconciled =
+      provider.auth_type === 'subscription'
+        ? enriched.map((model) => {
+            const current = reconcileCachedSubscriptionContextWindow(model, provider.provider);
+            return current === model ? model : this.computeScore(current);
+          })
+        : enriched;
 
     // Filter out models confirmed to lack tool support (models.dev toolCall === false).
     // AI agents (OpenClaw, Hermes, SDK-based agents) almost always
     // include tools in every request, so models without tool calling are
     // unusable. Only filter when models.dev has data — if no entry exists we
     // keep the model (we don't know its capabilities).
-    const filtered = enriched.filter((model) => {
+    const filtered = reconciled.filter((model) => {
       const metadata = resolveProviderMetadataIdentity(provider.provider, model.id);
       const metadataProvider = metadata.provider ?? provider.provider;
-      const mdEntry = this.modelsDevSync?.lookupModel(metadataProvider, metadata.model);
+      const mdEntry = this.modelsDevSync?.lookupModelCapabilities(metadataProvider, metadata.model);
       if (mdEntry && mdEntry.toolCall === false) return false;
       return true;
     });
@@ -505,7 +514,11 @@ export class ModelDiscoveryService {
     for (const [key, entry] of this.modelsCache) {
       if (entry.expiresAt <= now) this.modelsCache.delete(key);
     }
-    this.modelsCache.set(agentId, { data: models, expiresAt: now + MODELS_CACHE_TTL_MS });
+    this.modelsCache.set(agentId, {
+      tenantId,
+      data: models,
+      expiresAt: now + MODELS_CACHE_TTL_MS,
+    });
     return models;
   }
 
@@ -515,6 +528,17 @@ export class ModelDiscoveryService {
    */
   invalidate(agentId: string): void {
     this.modelsCache.delete(agentId);
+  }
+
+  /**
+   * Drop the cached model list of every agent in a tenant. Custom providers
+   * are tenant-global, so their alias, name or model-list edits change what
+   * every agent publishes at once (bridged from RoutingCacheService).
+   */
+  invalidateTenant(tenantId: string): void {
+    for (const [agentId, entry] of this.modelsCache) {
+      if (entry.tenantId === tenantId) this.modelsCache.delete(agentId);
+    }
   }
 
   private async invalidateProviderAccess(provider: TenantProvider): Promise<void> {
@@ -551,7 +575,11 @@ export class ModelDiscoveryService {
       const providerId = p.provider.toLowerCase();
       const filterKey = nonChatFilterKey(providerId, providerAuthType);
       const cached = filterNonChatModels(rawCached, filterKey);
-      for (const m of cached) {
+      for (const cachedModel of cached) {
+        const m =
+          providerAuthType === 'subscription'
+            ? reconcileCachedSubscriptionContextWindow(cachedModel, p.provider)
+            : cachedModel;
         const effectiveAuthType = m.authType ?? providerAuthType;
         // Deduplicate by the routable tuple, not just model ID. Multiple
         // providers can expose the same native model name, and the picker must
@@ -605,6 +633,8 @@ export class ModelDiscoveryService {
           capabilityReasoning: false,
           capabilityCode: false,
           qualityScore: 2,
+          providerName: cp.name,
+          ...(cp.alias ? { providerAlias: cp.alias } : {}),
         });
       }
     }
@@ -731,33 +761,29 @@ export class ModelDiscoveryService {
     }
 
     // Priority 3: OpenRouter cache — broader coverage, needs prefix + variant matching
+    let priced = modelWithMetadataName;
     if (this.pricingSync && !isBedrock) {
       const orPrefix = findOpenRouterPrefix(metadataProvider);
-      if (orPrefix) {
-        const orPricing = lookupWithVariants(this.pricingSync, orPrefix, metadataModel);
-        if (orPricing) {
-          return this.computeScore({
-            ...modelWithMetadataName,
-            inputPricePerToken: orPricing.input,
-            outputPricePerToken: orPricing.output,
-            contextWindow: orPricing.contextWindow ?? modelWithMetadataName.contextWindow,
-            displayName: orPricing.displayName || modelWithMetadataName.displayName,
-          });
-        }
-      }
-      const exactPricing = this.pricingSync.lookupPricing(model.id);
-      if (exactPricing) {
-        return this.computeScore({
+      const orPricing = orPrefix
+        ? lookupWithVariants(this.pricingSync, orPrefix, metadataModel)
+        : null;
+      const pricing = orPricing ?? this.pricingSync.lookupPricing(model.id);
+      if (pricing) {
+        priced = {
           ...modelWithMetadataName,
-          inputPricePerToken: exactPricing.input,
-          outputPricePerToken: exactPricing.output,
-          contextWindow: exactPricing.contextWindow ?? modelWithMetadataName.contextWindow,
-          displayName: exactPricing.displayName || modelWithMetadataName.displayName,
-        });
+          inputPricePerToken: pricing.input,
+          outputPricePerToken: pricing.output,
+          contextWindow: pricing.contextWindow ?? modelWithMetadataName.contextWindow,
+          displayName: pricing.displayName || modelWithMetadataName.displayName,
+        };
       }
     }
 
-    return this.computeScore(modelWithMetadataName);
+    // Capabilities are independent of which catalog priced the model: a miss on
+    // every pricing source still leaves modalities and capability flags to
+    // apply. Providers whose own /models endpoint publishes no modality data
+    // (Kilo, Pioneer, Cline Pass, Xiaomi) reach models.dev only here.
+    return this.computeScore(this.applyCapabilities(priced, providerId));
   }
 
   /** Merge capability flags from models.dev without touching pricing or display name. */
@@ -765,7 +791,7 @@ export class ModelDiscoveryService {
     if (!this.modelsDevSync) return model;
     const metadata = resolveProviderMetadataIdentity(providerId, model.id);
     const metadataProvider = metadata.provider ?? providerId;
-    const mdEntry = this.modelsDevSync.lookupModel(metadataProvider, metadata.model);
+    const mdEntry = this.modelsDevSync.lookupModelCapabilities(metadataProvider, metadata.model);
     if (!mdEntry) return model;
     return {
       ...model,

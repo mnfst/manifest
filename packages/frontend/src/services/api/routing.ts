@@ -439,6 +439,8 @@ export interface CustomProviderModel {
 export interface CustomProviderData {
   id: string;
   name: string;
+  /** Public prefix of the provider's model ids (`<alias>/<model>`); null = internal id. */
+  alias: string | null;
   base_url: string;
   api_kind: CustomProviderApiKind;
   has_api_key: boolean;
@@ -484,6 +486,7 @@ export function createCustomProvider(
   agentName: string,
   data: {
     name: string;
+    alias?: string | null;
     base_url: string;
     api_kind?: CustomProviderApiKind;
     apiKey?: string;
@@ -503,6 +506,7 @@ export function updateCustomProvider(
   id: string,
   data: {
     name?: string;
+    alias?: string | null;
     base_url?: string;
     api_kind?: CustomProviderApiKind;
     apiKey?: string;

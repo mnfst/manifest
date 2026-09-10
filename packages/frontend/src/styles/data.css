@@ -260,7 +260,7 @@ a.status-badge:hover {
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
-  font-size: var(--font-size-2xs, 10px);
+  font-size: var(--font-size-3xs);
   padding: 1px 6px;
   border-radius: var(--radius-sm);
   font-weight: 500;

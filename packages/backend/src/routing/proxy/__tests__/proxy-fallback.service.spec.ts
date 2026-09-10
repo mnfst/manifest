@@ -841,6 +841,84 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('adds x-opencode-session header for opencode-go with a scoped session key', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'opencode-go',
+        apiKey: 'sk-oc',
+        model: 'opencode-go/deepseek-v4-flash',
+        body,
+        stream: false,
+        sessionKey: 'my-session',
+        providerCacheKey: 'v1:scoped-session',
+      });
+
+      expect(providerClient.forward).toHaveBeenCalledWith(
+        expect.objectContaining({
+          extraHeaders: {
+            'x-opencode-session': expect.stringMatching(/^manifest-[a-f0-9]{32}$/),
+          },
+        }),
+      );
+    });
+
+    it('adds a stable agent-scoped x-opencode-session when the caller sent no session key', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      const forwardTwice = async () =>
+        service.tryForwardToProvider({
+          provider: 'opencode-go',
+          apiKey: 'sk-oc',
+          model: 'opencode-go/deepseek-v4-flash',
+          body,
+          stream: false,
+          sessionKey: 'default',
+          tenantId: 'tenant-1',
+          agentId: 'agent-1',
+        });
+      await forwardTwice();
+      await forwardTwice();
+
+      const calls = providerClient.forward.mock.calls.map(
+        ([opts]: [{ extraHeaders?: Record<string, string> }]) =>
+          opts.extraHeaders?.['x-opencode-session'],
+      );
+      expect(calls[0]).toMatch(/^manifest-[a-f0-9]{32}$/);
+      expect(calls[1]).toBe(calls[0]);
+    });
+
+    it('omits x-opencode-session without a session key or agent identity', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+
+      await service.tryForwardToProvider({
+        provider: 'opencode-go',
+        apiKey: 'sk-oc',
+        model: 'opencode-go/deepseek-v4-flash',
+        body,
+        stream: false,
+        sessionKey: 'default',
+      });
+
+      const forwardArgs = providerClient.forward.mock.calls[0][0];
+      expect(forwardArgs.extraHeaders?.['x-opencode-session']).toBeUndefined();
+    });
+
     it('exchanges copilot token before forwarding', async () => {
       providerClient.forward.mockResolvedValue({
         response: new Response('{}', { status: 200 }),
