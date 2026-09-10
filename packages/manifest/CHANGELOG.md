@@ -1,5 +1,14 @@
 # manifest
 
+## 6.23.1
+
+### Patch Changes
+
+- b2edaaa: Stop the internal CRM metrics feed timing out over long windows by dropping the provider breakdown it no longer needs.
+- 3c8ffb6: Bill DeepSeek V4.1 Flash at the published peak/off-peak rates, and switch `deepseek-v4-pro` onto that card from 2026-09-14 04:00 UTC.
+- b60eeb4: Recognize n8n community node requests from User-Agent so request details can show the node as the caller.
+- 3efbe8e: Keep streaming requests as success when the caller closes after a terminal provider event.
+
 ## 6.23.0
 
 ### Minor Changes
