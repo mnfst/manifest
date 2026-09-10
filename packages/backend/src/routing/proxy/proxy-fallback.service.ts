@@ -30,10 +30,8 @@ interface ForwardProviderOptions {
   stream: boolean;
   sessionKey: string;
   /**
-   * Scoped replay-cache key (`sessionScope.cacheKey`). The reasoning replay
-   * cache must read with the same key the response handler wrote with; the raw
-   * caller `sessionKey` (`default` without an x-session-key) never matches a
-   * stored entry, so DeepSeek's thinking mode saw an empty replay and 400ed.
+   * Scoped replay-cache key (`sessionScope.cacheKey`). The reasoning cache must
+   * read with the same key the response handler wrote with.
    */
   reasoningCacheKey?: string;
   providerCacheKey?: string;

@@ -30,11 +30,10 @@ export const MAX_CACHE_ENTRIES = 10_000;
  * rebuild conversation history, so Manifest caches tool turns by the first tool
  * call id.
  *
- * Turns with no tool call are not cached: content-based matching can attach
- * reasoning to the wrong visible turn. They are still replayed, using the
- * empty-string fallback, once the conversation contains a tool call, because
- * DeepSeek's thinking mode rejects the request when any assistant turn omits
- * the key. A conversation without tool calls keeps its exact turn shape.
+ * Turns with no tool call are never cached (content-based matching can attach
+ * reasoning to the wrong visible turn) but are still replayed, using the
+ * empty-string fallback, once the conversation contains a tool call: DeepSeek
+ * rejects the request when any assistant turn omits the key.
  */
 @Injectable()
 export class ReasoningContentCache {
@@ -137,9 +136,8 @@ export class ReasoningContentCache {
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
-    // DeepSeek's thinking mode only enforces the reasoning echo once tools are
-    // in play, so the wider candidate set is scoped to tool conversations and a
-    // plain chat thread keeps its exact turn shape.
+    // Only tool conversations enforce the echo; a plain chat thread keeps its
+    // exact turn shape.
     const includeNonToolTurns = messages.some(
       (message) =>
         !!message &&
@@ -274,11 +272,7 @@ function reasoningReplayCandidate(
   if (typeof record.reasoning_content === 'string' && record.reasoning_content) return null;
 
   if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) {
-    // A non-tool assistant turn. Once tools are in play, DeepSeek's thinking
-    // mode requires the reasoning_content key on every assistant turn — an
-    // omitted key 400s exactly like a dropped tool-turn replay would, so these
-    // turns are replayed with the same empty-string fallback. Plain chat
-    // threads stay untouched.
+    // Once tools are in play DeepSeek wants the key on every assistant turn.
     return includeNonToolTurns ? { cacheKey: null } : null;
   }
 
