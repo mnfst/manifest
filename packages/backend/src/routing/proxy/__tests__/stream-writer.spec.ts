@@ -232,6 +232,85 @@ describe('pipeStream', () => {
     expect(res.end).toHaveBeenCalled();
   });
 
+  it('treats an upstream abort after finish_reason as a completed stream', async () => {
+    const { res, written } = mockResponse();
+    const encoder = new TextEncoder();
+    let sentTerminal = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentTerminal) {
+          sentTerminal = true;
+          controller.enqueue(
+            encoder.encode(
+              'data: {"choices":[{"delta":{"content":"hello"}}]}\n\n' +
+                'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n',
+            ),
+          );
+          return;
+        }
+        controller.error(new Error('aborted'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).resolves.toBeNull();
+    expect(written.join('')).toContain('"finish_reason":"stop"');
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it('still fails a Google stream aborted after a content chunk', async () => {
+    const { res } = mockResponse();
+    const encoder = new TextEncoder();
+    let sentContent = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentContent) {
+          sentContent = true;
+          controller.enqueue(
+            encoder.encode('data: {"candidates":[{"content":{"parts":[{"text":"hi"}]}}]}\n\n'),
+          );
+          return;
+        }
+        controller.error(new Error('aborted'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'google_generate_content',
+      }),
+    ).rejects.toBeInstanceOf(UpstreamStreamError);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('still fails when an upstream abort happens before a terminal event', async () => {
+    const { res } = mockResponse();
+    const encoder = new TextEncoder();
+    let sentContent = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentContent) {
+          sentContent = true;
+          controller.enqueue(
+            encoder.encode('data: {"choices":[{"delta":{"content":"hello"}}]}\n\n'),
+          );
+          return;
+        }
+        controller.error(new Error('aborted'));
+      },
+    });
+
+    await expect(
+      pipeStream(stream, res as never, undefined, undefined, undefined, {
+        protocol: 'openai_chat_completions',
+      }),
+    ).rejects.toBeInstanceOf(UpstreamStreamError);
+    expect(res.end).not.toHaveBeenCalled();
+  });
+
   function createReadableStream(chunks: string[]): ReadableStream<Uint8Array> {
     const encoder = new TextEncoder();
     let index = 0;
@@ -1049,6 +1128,35 @@ describe('pipePassthrough', () => {
 
     expect(stream.locked).toBe(false);
     expect(res.end).not.toHaveBeenCalled();
+  });
+
+  it('treats an upstream abort after message_stop as a completed stream', async () => {
+    const { res, written } = mockResponse();
+    const encoder = new TextEncoder();
+    let sentTerminal = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (!sentTerminal) {
+          sentTerminal = true;
+          controller.enqueue(
+            encoder.encode(
+              'event: content_block_delta\ndata: {"type":"content_block_delta","delta":{"text":"hi"}}\n\n' +
+                'event: message_stop\ndata: {"type":"message_stop"}\n\n',
+            ),
+          );
+          return;
+        }
+        controller.error(new Error('aborted'));
+      },
+    });
+
+    await expect(
+      pipePassthrough(stream, res as never, () => null, undefined, {
+        protocol: 'anthropic_messages',
+      }),
+    ).resolves.toBeNull();
+    expect(written.join('')).toContain('message_stop');
+    expect(res.end).toHaveBeenCalled();
   });
 });
 
