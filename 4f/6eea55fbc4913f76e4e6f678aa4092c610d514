@@ -1,0 +1,26 @@
+packages/backend/src/routing/proxy/__tests__/stream-protocol.spec.ts
+  s_f54af23cf1d6e7::t_2270de895af7f0 94,98
+packages/backend/src/routing/proxy/__tests__/stream-writer.spec.ts
+  s_f54af23cf1d6e7::t_082430b188add0 264-286,288
+  s_f54af23cf1d6e7::t_58b58f8f4f96ab 287
+packages/backend/src/routing/proxy/__tests__/proxy.controller.spec.ts
+  s_f54af23cf1d6e7::t_ed398bc1145912 97-100,108,111
+  s_f54af23cf1d6e7::t_ac9656565eb165 3049,3052
+  s_f54af23cf1d6e7::t_1c6d539925a97b 3085,3087
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4f6eea55fbc4913f76e4e6f678aa4092c610d514",
+  "prompts": {},
+  "sessions": {
+    "s_f54af23cf1d6e7": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f75b1f4fdffec1I5oeI4No4d08",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
