@@ -133,7 +133,21 @@ export class ReasoningContentCache {
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
-    const candidates = messages.map(reasoningReplayCandidate);
+    // DeepSeek's thinking mode only enforces the reasoning echo once tools are
+    // in play, so the wider candidate set is scoped to tool conversations and a
+    // plain chat thread keeps its exact turn shape.
+    const includeNonToolTurns = messages.some(
+      (message) =>
+        !!message &&
+        typeof message === 'object' &&
+        !Array.isArray(message) &&
+        Array.isArray((message as Record<string, unknown>).tool_calls) &&
+        ((message as Record<string, unknown>).tool_calls as unknown[]).length > 0,
+    );
+
+    const candidates = messages.map((message) =>
+      reasoningReplayCandidate(message, includeNonToolTurns),
+    );
     if (!candidates.some(Boolean)) return body;
 
     const keys = candidates.flatMap((candidate) =>
@@ -246,11 +260,24 @@ interface ReasoningReplayCandidate {
   cacheKey: string | null;
 }
 
-function reasoningReplayCandidate(message: unknown): ReasoningReplayCandidate | null {
+function reasoningReplayCandidate(
+  message: unknown,
+  includeNonToolTurns: boolean,
+): ReasoningReplayCandidate | null {
   if (!message || typeof message !== 'object' || Array.isArray(message)) return null;
   const record = message as Record<string, unknown>;
+  if (record.role !== 'assistant') return null;
   if (typeof record.reasoning_content === 'string' && record.reasoning_content) return null;
-  if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) return null;
+
+  if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) {
+    // A non-tool assistant turn. Once tools are in play, DeepSeek's thinking
+    // mode requires the reasoning_content key on every assistant turn — an
+    // omitted key 400s exactly like a dropped tool-turn replay would, so these
+    // turns are replayed with the same empty-string fallback. Plain chat
+    // threads stay untouched.
+    return includeNonToolTurns ? { cacheKey: null } : null;
+  }
+
   const firstToolCall = record.tool_calls[0];
   if (!firstToolCall || typeof firstToolCall !== 'object' || Array.isArray(firstToolCall)) {
     return { cacheKey: null };
