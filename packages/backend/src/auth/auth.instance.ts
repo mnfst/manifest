@@ -4,6 +4,7 @@ import { stripe as stripePlugin } from '@better-auth/stripe';
 import { render } from '@react-email/render';
 import { VerifyEmailEmail } from '../notifications/emails/verify-email';
 import { ResetPasswordEmail } from '../notifications/emails/reset-password';
+import { ExistingAccountEmail } from '../notifications/emails/existing-account';
 import { sendEmail } from '../notifications/services/email-providers/send-email';
 import { isBillingEnabled, getStripeClient } from '../billing/billing.config';
 import { optionalPositiveInteger } from '../config/env.util';
@@ -15,6 +16,7 @@ import {
 } from '../billing/subscription-webhook-emails';
 
 const port = process.env['PORT'] ?? '3001';
+const appBaseUrl = process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`;
 const isDev = (process.env['NODE_ENV'] ?? '') !== 'production';
 const hasEmailProvider = !!(
   (process.env['EMAIL_PROVIDER'] && process.env['EMAIL_API_KEY']) ||
@@ -102,7 +104,7 @@ function buildPlugins() {
 
 export const auth = betterAuth({
   database,
-  baseURL: process.env['BETTER_AUTH_URL'] ?? `http://localhost:${port}`,
+  baseURL: appBaseUrl,
   basePath: '/api/auth',
   secret: betterAuthSecret,
   logger: { level: 'debug' },
@@ -118,6 +120,27 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     requireEmailVerification: !isDev && hasEmailProvider,
+    // With `requireEmailVerification` on, Better Auth answers a sign-up for an
+    // existing email with a synthetic 200 instead of an error, so the address is
+    // never confirmed to whoever submitted the form. That anti-enumeration
+    // response is also a dead end: the browser shows "check your email" and no
+    // email is ever sent. This hook closes the loop for the one party entitled to
+    // know — the account holder — without leaking anything to the submitter.
+    onExistingUserSignUp: async ({ user }) => {
+      const element = ExistingAccountEmail({
+        userName: user.name,
+        signInUrl: `${appBaseUrl}/login`,
+        resetPasswordUrl: `${appBaseUrl}/reset-password`,
+      });
+      const html = await render(element);
+      const text = await render(element, { plainText: true });
+      void sendEmail({
+        to: user.email,
+        subject: 'You already have a Manifest account',
+        html,
+        text,
+      });
+    },
     sendResetPassword: async ({ user, url }) => {
       const element = ResetPasswordEmail({
         userName: user.name,
