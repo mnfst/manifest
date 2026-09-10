@@ -28,9 +28,13 @@ export const MAX_CACHE_ENTRIES = 10_000;
  * be replayed with the same `reasoning_content` they returned. Generic
  * OpenAI-compatible SDKs often drop that provider-specific field when they
  * rebuild conversation history, so Manifest caches tool turns by the first tool
- * call id. Normal assistant turns are intentionally not cached for replay:
- * DeepSeek does not require them, and content-based matching can attach
- * reasoning to the wrong visible turn.
+ * call id.
+ *
+ * Turns with no tool call are not cached: content-based matching can attach
+ * reasoning to the wrong visible turn. They are still replayed, using the
+ * empty-string fallback, once the conversation contains a tool call, because
+ * DeepSeek's thinking mode rejects the request when any assistant turn omits
+ * the key. A conversation without tool calls keeps its exact turn shape.
  */
 @Injectable()
 export class ReasoningContentCache {
