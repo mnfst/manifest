@@ -747,6 +747,45 @@ describe('ProxyFallbackService', () => {
       );
     });
 
+    it('reads the reasoning cache with the scoped key the response handler wrote with', async () => {
+      providerClient.forward.mockResolvedValue({
+        response: new Response('{}', { status: 200 }),
+        isGoogle: false,
+        isAnthropic: false,
+        isChatGpt: false,
+      });
+      const requestBody = {
+        messages: [
+          {
+            role: 'assistant',
+            content: '',
+            tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+          },
+        ],
+      };
+
+      await service.tryForwardToProvider({
+        provider: 'deepseek',
+        apiKey: 'sk-test',
+        model: 'deepseek-chat',
+        body: requestBody,
+        stream: false,
+        sessionKey: 'sess-1',
+        reasoningCacheKey: 'v1:scoped-digest',
+        authType: 'api_key',
+      });
+
+      // Stored entries live under the scoped key; reading with the raw caller
+      // session key misses every one of them and DeepSeek 400s on the empty
+      // replay it then receives.
+      expect(reasoningCache.prepareRequest).toHaveBeenCalledWith(
+        requestBody,
+        'v1:scoped-digest',
+        'deepseek',
+        'deepseek-chat',
+      );
+    });
+
     it('rethrows when signal is aborted', async () => {
       const ac = new AbortController();
       ac.abort();
