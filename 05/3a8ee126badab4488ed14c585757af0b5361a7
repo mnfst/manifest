@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_8fcdce0ea81bea::t_077b129942b02d 3025-3117
+  s_8fcdce0ea81bea::t_dc16b1a132a314 1,12-39
+  s_8fcdce0ea81bea::t_20362ab77de9ab 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "053a8ee126badab4488ed14c585757af0b5361a7",
+  "prompts": {},
+  "sessions": {
+    "s_8fcdce0ea81bea": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6e302c88ffe7kOD5dnM0K5B58",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
