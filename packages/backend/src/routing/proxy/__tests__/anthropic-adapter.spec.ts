@@ -459,6 +459,60 @@ describe('Anthropic Adapter', () => {
       });
     });
 
+    it('closes object schemas across every schema-valued keyword', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return structured data.' }],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              schema: {
+                // No `type`, but `properties` still describes an object.
+                properties: {
+                  a: { type: 'object' },
+                  b: { type: ['object', 'null'] },
+                },
+                // Tuple form of `items`.
+                items: [{ type: 'object' }, { type: 'string' }],
+                // Combinators are lists of subschemas.
+                anyOf: [{ type: 'object' }, { type: 'string' }],
+                // Maps of subschemas.
+                $defs: { node: { type: 'object' } },
+                dependencies: { a: { type: 'object' } },
+                patternProperties: { '^x': { type: 'object' } },
+                // Single-subschema applicators.
+                not: { type: 'object' },
+                if: { type: 'object' },
+                // `additionalProperties` may itself be a schema.
+                additionalProperties: { type: 'object' },
+              },
+            },
+          },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: {
+            properties: {
+              a: { type: 'object', additionalProperties: false },
+              b: { type: ['object', 'null'], additionalProperties: false },
+            },
+            items: [{ type: 'object', additionalProperties: false }, { type: 'string' }],
+            anyOf: [{ type: 'object', additionalProperties: false }, { type: 'string' }],
+            $defs: { node: { type: 'object', additionalProperties: false } },
+            dependencies: { a: { type: 'object', additionalProperties: false } },
+            patternProperties: { '^x': { type: 'object', additionalProperties: false } },
+            not: { type: 'object', additionalProperties: false },
+            if: { type: 'object', additionalProperties: false },
+            additionalProperties: { type: 'object', additionalProperties: false },
+          },
+        },
+      });
+    });
+
     it('preserves a property literally named __proto__ without polluting the prototype', () => {
       const schema = JSON.parse(
         '{"type":"object","properties":{"__proto__":{"type":"object"}}}',
@@ -2332,6 +2386,20 @@ describe('Anthropic Adapter', () => {
         },
       });
       expect(inbound.output_config.format.schema).toEqual({ type: 'object' });
+    });
+
+    it('leaves an output_config that carries no format schema unchanged', () => {
+      const noFormat = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        output_config: { effort: 'high' },
+      });
+      expect(noFormat.output_config).toEqual({ effort: 'high' });
+
+      const noSchema = applyAnthropicMessagesMutations({
+        messages: [{ role: 'user', content: 'hi' }],
+        output_config: { format: { type: 'json_schema' } },
+      });
+      expect(noSchema.output_config).toEqual({ format: { type: 'json_schema' } });
     });
 
     it('preserves the manual budget in native adaptive thinking', () => {

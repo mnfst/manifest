@@ -299,6 +299,7 @@ const ANTHROPIC_SCHEMA_MAP_KEYWORDS = new Set([
   '$defs',
   'definitions',
   'dependentSchemas',
+  'dependencies',
 ]);
 
 /**
