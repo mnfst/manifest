@@ -1,0 +1,37 @@
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_acfec66364fc1e::t_a546b53b1f5b30 399-400
+  s_acfec66364fc1e::t_f2b1ff103101d8 426
+  s_acfec66364fc1e::t_ff3b408dd962de 446,462-463
+  s_acfec66364fc1e::t_765a1a0f6e3955 1005,1016-1017
+  s_acfec66364fc1e::t_2a69f027a7919a 140,151
+  s_acfec66364fc1e::t_3b402f27de8831 487,501
+  s_acfec66364fc1e::t_39056d11071e81 504,518
+  s_acfec66364fc1e::t_5daa005ecac1c4 26,43-50
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_acfec66364fc1e::t_8e18dd9a8ef8e7 4285,4296-4297
+  s_acfec66364fc1e::t_f6f270af6e71a7 4452,4465,4471,4484,4487,4500
+  s_acfec66364fc1e::t_2ee1a2e8060378 4792,4810
+  s_acfec66364fc1e::t_ea0dde43a276c9 4235,4246-4249
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_acfec66364fc1e::t_d4f207612f959b 92-96,102-120
+  s_acfec66364fc1e::t_f1d6be74e739f1 275-285
+  s_acfec66364fc1e::t_7ebe5d9d7280ec 339-348
+.changeset/calm-otters-heal.md
+  s_acfec66364fc1e::t_6871c855378631 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e267125efbd0e1bd1fb2f4eebd0757b5341f95e4",
+  "prompts": {},
+  "sessions": {
+    "s_acfec66364fc1e": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7040f0c0ffeeDmNVmeii82ah1",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
