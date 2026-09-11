@@ -459,7 +459,7 @@ describe('Anthropic Adapter', () => {
       });
     });
 
-    it('closes object schemas across every schema-valued keyword', () => {
+    it('closes object schemas across every category of schema-valued keyword', () => {
       const result = toAnthropicRequest(
         {
           messages: [{ role: 'user', content: 'Return structured data.' }],
