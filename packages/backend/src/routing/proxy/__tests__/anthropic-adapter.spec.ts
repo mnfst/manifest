@@ -327,7 +327,10 @@ describe('Anthropic Adapter', () => {
       expect(result.tool_choice).toBeUndefined();
       expect(result.tools).toBeUndefined();
       expect(result.output_config).toEqual({
-        format: { type: 'json_schema', schema: { type: 'object' } },
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object', additionalProperties: false },
+        },
       });
     });
 
@@ -353,7 +356,7 @@ describe('Anthropic Adapter', () => {
       expect(result.output_config).toEqual({
         format: {
           type: 'json_schema',
-          schema: { type: 'object' },
+          schema: { type: 'object', additionalProperties: false },
         },
       });
       expect(result.tools).toEqual([
@@ -379,6 +382,47 @@ describe('Anthropic Adapter', () => {
       expect(result.output_config).toBeUndefined();
     });
 
+    it('closes object nodes in a structured-output schema recursively', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return structured data.' }],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              schema: {
+                type: 'object',
+                properties: {
+                  outer: { type: 'object', properties: { inner: { type: 'string' } } },
+                  list: { type: 'array', items: { type: 'object' } },
+                  open: { type: 'object', additionalProperties: true },
+                },
+              },
+            },
+          },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              outer: {
+                type: 'object',
+                additionalProperties: false,
+                properties: { inner: { type: 'string' } },
+              },
+              list: { type: 'array', items: { type: 'object', additionalProperties: false } },
+              open: { type: 'object', additionalProperties: true },
+            },
+          },
+        },
+      });
+    });
+
     it('preserves thinking when native structured output is requested', () => {
       const result = toAnthropicRequest(
         {
@@ -393,7 +437,7 @@ describe('Anthropic Adapter', () => {
       expect(result.output_config).toEqual({
         format: {
           type: 'json_schema',
-          schema: { type: 'object' },
+          schema: { type: 'object', additionalProperties: false },
         },
       });
       expect(result.thinking).toEqual({ type: 'enabled', budget_tokens: 1024 });
@@ -2224,6 +2268,23 @@ describe('Anthropic Adapter', () => {
   });
 
   describe('applyAnthropicMessagesMutations', () => {
+    it('closes object schemas on a native output_config without mutating the inbound body', () => {
+      const inbound = {
+        messages: [{ role: 'user', content: 'hi' }],
+        output_config: { format: { type: 'json_schema', schema: { type: 'object' } } },
+      };
+
+      const result = applyAnthropicMessagesMutations(inbound);
+
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: { type: 'object', additionalProperties: false },
+        },
+      });
+      expect(inbound.output_config.format.schema).toEqual({ type: 'object' });
+    });
+
     it('preserves the manual budget in native adaptive thinking', () => {
       const inbound = {
         messages: [{ role: 'user', content: 'hi' }],

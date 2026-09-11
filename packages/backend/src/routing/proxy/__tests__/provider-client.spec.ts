@@ -1420,7 +1420,14 @@ describe('ProviderClient', () => {
       const sent = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sent.tool_choice).toBeUndefined();
       expect(sent.output_config).toEqual({
-        format: { type: 'json_schema', schema },
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: { title: { type: 'string' } },
+            additionalProperties: false,
+          },
+        },
       });
       expect(result.structuredOutputToolName).toBeUndefined();
       expect(result.responsesTextFormat).toEqual({
@@ -1456,7 +1463,7 @@ describe('ProviderClient', () => {
       expect(sent.output_config).toEqual({
         format: {
           type: 'json_schema',
-          schema: { type: 'object' },
+          schema: { type: 'object', additionalProperties: false },
         },
       });
       expect(result.structuredOutputToolName).toBeUndefined();
