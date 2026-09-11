@@ -606,10 +606,16 @@ function buildKiroConversation(body: Record<string, unknown>, model: string): Ki
     !!currentMessage.userInputMessage.userInputMessageContext?.toolResults?.length;
   if (hasToolResults && !currentText) {
     // The latest turn is a tool result with no new user text: Kiro continues the
-    // pending task only when `content` is empty. Fabricating "continue" (or
-    // prepending the system prompt) reads as a fresh, context-free user message
-    // and makes the model drop the conversation.
+    // pending task only when `content` is empty. A fabricated "continue" (or the
+    // system prompt) reads as a fresh, context-free user message and makes the
+    // model drop the conversation. The system prompt has no dedicated Kiro field
+    // and lands on the current turn everywhere else, so move it onto the
+    // conversation's first user turn to keep delivering it.
     currentMessage.userInputMessage.content = '';
+    const firstUser = history.find(isUserMessage);
+    if (systemText && firstUser) {
+      firstUser.userInputMessage.content = `System instructions:\n${systemText}\n\nUser:\n${firstUser.userInputMessage.content}`;
+    }
   } else {
     currentMessage.userInputMessage.content = systemText
       ? `System instructions:\n${systemText}\n\nUser:\n${currentText || 'Hello'}`

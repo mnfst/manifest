@@ -329,7 +329,12 @@ describe('kiro-adapter', () => {
     };
 
     expect(request.conversationState.history).toEqual([
-      { userInputMessage: { content: 'List the files.', origin: 'KIRO_CLI' } },
+      {
+        userInputMessage: {
+          content: 'System instructions:\nYou can run commands.\n\nUser:\nList the files.',
+          origin: 'KIRO_CLI',
+        },
+      },
       {
         assistantResponseMessage: {
           content: '...',
@@ -340,7 +345,9 @@ describe('kiro-adapter', () => {
 
     const current = request.conversationState.currentMessage.userInputMessage;
     // A tool result with no new user text must stay empty: fabricating
-    // "continue" (or prepending the system prompt) makes Kiro drop the task.
+    // "continue" (or leaving the system prompt here) makes Kiro read a fresh,
+    // context-free instruction and drop the task. The system prompt moves to the
+    // first user turn (above) so it still reaches the model.
     expect(current.content).toBe('');
     expect(current.userInputMessageContext.toolResults).toEqual([
       { toolUseId: 'call_1', status: 'success', content: [{ text: 'a.txt\nb.txt' }] },
@@ -359,35 +366,6 @@ describe('kiro-adapter', () => {
           },
         },
       },
-    ]);
-  });
-
-  it('keeps the current turn empty when a tool result is the last message', () => {
-    // Agents (opencode, Claude Code, …) send the follow-up turn with only the
-    // tool result and no new user text. Kiro continues the pending task only
-    // when that turn's `content` is empty — a fabricated "continue" or a
-    // prepended system prompt is read as a fresh instruction and drops the
-    // conversation.
-    const request = buildKiro({
-      messages: [
-        { role: 'system', content: 'You can run commands.' },
-        { role: 'user', content: 'Run echo hi and report the output.' },
-        {
-          role: 'assistant',
-          content: null,
-          tool_calls: [
-            { id: 'c1', function: { name: 'bash', arguments: '{"command":"echo hi"}' } },
-          ],
-        },
-        { role: 'tool', tool_call_id: 'c1', content: 'hi' },
-      ],
-      tools: [{ function: { name: 'bash' } }],
-    });
-
-    const current = request.conversationState.currentMessage.userInputMessage;
-    expect(current.content).toBe('');
-    expect(current.userInputMessageContext?.toolResults).toEqual([
-      { toolUseId: 'c1', status: 'success', content: [{ text: 'hi' }] },
     ]);
   });
 
@@ -942,6 +920,22 @@ describe('kiro-adapter', () => {
         { userInputMessage: { content: 'q', origin: 'KIRO_CLI' } },
         { assistantResponseMessage: { content: 'a' } },
       ]);
+    });
+
+    it('falls back to a Hello turn for an empty user message', () => {
+      expect(
+        buildKiro({ messages: [{ role: 'user', content: '' }] }).conversationState.currentMessage
+          .userInputMessage.content,
+      ).toBe('Hello');
+
+      expect(
+        buildKiro({
+          messages: [
+            { role: 'system', content: 'Be terse.' },
+            { role: 'user', content: '' },
+          ],
+        }).conversationState.currentMessage.userInputMessage.content,
+      ).toBe('System instructions:\nBe terse.\n\nUser:\nHello');
     });
 
     it('folds developer instructions and string/array content parts', () => {
