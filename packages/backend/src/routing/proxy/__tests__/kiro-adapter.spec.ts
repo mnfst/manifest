@@ -369,29 +369,29 @@ describe('kiro-adapter', () => {
     ]);
   });
 
-  it('gives the system prompt its own turn when a tool result has no earlier user turn', () => {
+  it('inlines a lone tool result that has no assistant call to pair with', () => {
     const withSystem = buildKiro({
       messages: [
         { role: 'system', content: 'You can run commands.' },
         { role: 'tool', tool_call_id: 'c1', content: 'hi' },
       ],
     });
-    expect(withSystem.conversationState.currentMessage.userInputMessage.content).toBe('');
-    expect(withSystem.conversationState.history).toEqual([
-      {
-        userInputMessage: {
-          content: 'System instructions:\nYou can run commands.',
-          origin: 'KIRO_CLI',
-        },
-      },
-      { assistantResponseMessage: { content: '...' } },
-    ]);
+    expect(withSystem.conversationState.history).toEqual([]);
+    expect(withSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      'System instructions:\nYou can run commands.\n\nUser:\n[Tool result: hi]',
+    );
+    expect(
+      withSystem.conversationState.currentMessage.userInputMessage.userInputMessageContext
+        ?.toolResults,
+    ).toBeUndefined();
 
     const withoutSystem = buildKiro({
       messages: [{ role: 'tool', tool_call_id: 'c1', content: 'hi' }],
     });
-    expect(withoutSystem.conversationState.currentMessage.userInputMessage.content).toBe('');
     expect(withoutSystem.conversationState.history).toEqual([]);
+    expect(withoutSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      '[Tool result: hi]',
+    );
   });
 
   it('sanitizes invalid Kiro tool names and restores them on the response', async () => {

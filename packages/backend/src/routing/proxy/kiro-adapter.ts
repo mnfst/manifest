@@ -602,8 +602,8 @@ function buildKiroConversation(body: Record<string, unknown>, model: string): Ki
   }
 
   const currentText = currentMessage.userInputMessage.content;
-  const hasToolResults =
-    !!currentMessage.userInputMessage.userInputMessageContext?.toolResults?.length;
+  const toolResults = currentMessage.userInputMessage.userInputMessageContext?.toolResults ?? [];
+  const hasToolResults = toolResults.length > 0;
   if (hasToolResults && !currentText) {
     // The latest turn is a tool result with no new user text: Kiro continues the
     // pending task only when `content` is empty. A fabricated "continue" (or the
@@ -613,14 +613,21 @@ function buildKiroConversation(body: Record<string, unknown>, model: string): Ki
     // conversation's first user turn to keep delivering it.
     currentMessage.userInputMessage.content = '';
     const firstUser = history.find(isUserMessage);
-    if (firstUser && systemText) {
-      firstUser.userInputMessage.content = `System instructions:\n${systemText}\n\nUser:\n${firstUser.userInputMessage.content}`;
-    } else if (!firstUser && systemText) {
-      // No earlier user turn to carry the prompt (a lone tool result). Give it
-      // its own user/assistant pair so it still reaches Kiro without text on the
-      // current turn; the assistant turn keeps the history alternating.
-      history.push(toUserMessage(`System instructions:\n${systemText}`));
-      history.push(toAssistantMessage('...'));
+    if (firstUser) {
+      if (systemText) {
+        firstUser.userInputMessage.content = `System instructions:\n${systemText}\n\nUser:\n${firstUser.userInputMessage.content}`;
+      }
+    } else {
+      // No earlier user turn: this tool result is the conversation's first turn
+      // and has no assistant tool-use to pair with, so Kiro rejects it as an
+      // orphan. Inline the result; the system prompt belongs on this first turn.
+      const context = currentMessage.userInputMessage.userInputMessageContext!;
+      const inlined = toolResults.map(flattenToolResult).join('\n\n');
+      currentMessage.userInputMessage.content = systemText
+        ? `System instructions:\n${systemText}\n\nUser:\n${inlined}`
+        : inlined;
+      delete context.toolResults;
+      deleteEmptyContext(currentMessage);
     }
   } else {
     currentMessage.userInputMessage.content = systemText
