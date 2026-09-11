@@ -274,20 +274,65 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
 }
 
 /**
+ * JSON Schema keywords whose value is a subschema, an array of subschemas, or a
+ * map of subschemas. Only these recurse: `enum`/`default`/`examples`/`const` hold
+ * data values that can look like schemas and must pass through untouched.
+ */
+const ANTHROPIC_SCHEMA_KEYWORDS = new Set([
+  'items',
+  'contains',
+  'additionalProperties',
+  'additionalItems',
+  'unevaluatedProperties',
+  'unevaluatedItems',
+  'propertyNames',
+  'not',
+  'if',
+  'then',
+  'else',
+  'contentSchema',
+]);
+const ANTHROPIC_SCHEMA_LIST_KEYWORDS = new Set(['allOf', 'anyOf', 'oneOf', 'prefixItems']);
+const ANTHROPIC_SCHEMA_MAP_KEYWORDS = new Set([
+  'properties',
+  'patternProperties',
+  '$defs',
+  'definitions',
+  'dependentSchemas',
+]);
+
+/**
  * Anthropic structured outputs reject any object schema that omits
  * `additionalProperties` ("For 'object' type, 'additionalProperties' must be
  * explicitly set to false"). Clients and our own `json_object` fallback routinely
  * emit a bare `{ type: 'object' }`, so close every object node while leaving an
- * author's explicit value untouched. Recurses through the whole schema
- * (properties, items, $defs, combinators) because the rule applies at every level.
+ * author's explicit value untouched. Only schema-valued keywords recurse, so data
+ * in `enum`/`default`/`examples` is never rewritten, and entries are copied with
+ * `Object.fromEntries` so a property literally named `__proto__` survives.
  */
 export function closeAnthropicObjectSchemas(schema: unknown): unknown {
   if (Array.isArray(schema)) return schema.map(closeAnthropicObjectSchemas);
   if (!isObjectRecord(schema)) return schema;
-  const result: Record<string, unknown> = {};
+
+  const entries: Array<[string, unknown]> = [];
   for (const [key, value] of Object.entries(schema)) {
-    result[key] = closeAnthropicObjectSchemas(value);
+    if (ANTHROPIC_SCHEMA_KEYWORDS.has(key)) {
+      entries.push([key, closeAnthropicObjectSchemas(value)]);
+    } else if (ANTHROPIC_SCHEMA_LIST_KEYWORDS.has(key) && Array.isArray(value)) {
+      entries.push([key, value.map(closeAnthropicObjectSchemas)]);
+    } else if (ANTHROPIC_SCHEMA_MAP_KEYWORDS.has(key) && isObjectRecord(value)) {
+      entries.push([
+        key,
+        Object.fromEntries(
+          Object.entries(value).map(([name, sub]) => [name, closeAnthropicObjectSchemas(sub)]),
+        ),
+      ]);
+    } else {
+      entries.push([key, value]);
+    }
   }
+
+  const result = Object.fromEntries(entries) as Record<string, unknown>;
   const type = result.type;
   const isObjectType =
     type === 'object' || (Array.isArray(type) && type.some((entry) => entry === 'object'));

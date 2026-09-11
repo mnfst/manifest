@@ -1,6 +1,7 @@
 import {
   applyAnthropicAutomaticCacheControl,
   applyAnthropicMessagesMutations,
+  closeAnthropicObjectSchemas,
   extractThinkingBlocksFromMessagesResponse,
   toAnthropicRequest,
   fromAnthropicResponse,
@@ -421,6 +422,54 @@ describe('Anthropic Adapter', () => {
           },
         },
       });
+    });
+
+    it('leaves enum/default data values untouched while closing schema nodes', () => {
+      const result = toAnthropicRequest(
+        {
+          messages: [{ role: 'user', content: 'Return structured data.' }],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              schema: {
+                type: 'object',
+                properties: {
+                  kind: { type: 'string', enum: ['a', { type: 'object' }] },
+                  fallback: { type: 'string', default: { type: 'object' } },
+                },
+              },
+            },
+          },
+        },
+        'claude-sonnet-4-20250514',
+      );
+
+      expect(result.output_config).toEqual({
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              kind: { type: 'string', enum: ['a', { type: 'object' }] },
+              fallback: { type: 'string', default: { type: 'object' } },
+            },
+          },
+        },
+      });
+    });
+
+    it('preserves a property literally named __proto__ without polluting the prototype', () => {
+      const schema = JSON.parse(
+        '{"type":"object","properties":{"__proto__":{"type":"object"}}}',
+      ) as Record<string, unknown>;
+      expect(Object.prototype.hasOwnProperty.call(schema.properties, '__proto__')).toBe(true);
+
+      const closed = closeAnthropicObjectSchemas(schema) as Record<string, unknown>;
+      const props = closed.properties as Record<string, unknown>;
+      expect(Object.prototype.hasOwnProperty.call(props, '__proto__')).toBe(true);
+      expect((props['__proto__'] as Record<string, unknown>).additionalProperties).toBe(false);
+      expect(({} as Record<string, unknown>).additionalProperties).toBeUndefined();
     });
 
     it('preserves thinking when native structured output is requested', () => {
