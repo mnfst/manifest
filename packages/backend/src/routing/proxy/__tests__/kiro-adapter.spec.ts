@@ -329,7 +329,12 @@ describe('kiro-adapter', () => {
     };
 
     expect(request.conversationState.history).toEqual([
-      { userInputMessage: { content: 'List the files.', origin: 'KIRO_CLI' } },
+      {
+        userInputMessage: {
+          content: 'System instructions:\nYou can run commands.\n\nUser:\nList the files.',
+          origin: 'KIRO_CLI',
+        },
+      },
       {
         assistantResponseMessage: {
           content: '...',
@@ -339,7 +344,11 @@ describe('kiro-adapter', () => {
     ]);
 
     const current = request.conversationState.currentMessage.userInputMessage;
-    expect(current.content).toBe('System instructions:\nYou can run commands.\n\nUser:\ncontinue');
+    // A tool result with no new user text must stay empty: fabricating
+    // "continue" (or leaving the system prompt here) makes Kiro read a fresh,
+    // context-free instruction and drop the task. The system prompt moves to the
+    // first user turn (above) so it still reaches the model.
+    expect(current.content).toBe('');
     expect(current.userInputMessageContext.toolResults).toEqual([
       { toolUseId: 'call_1', status: 'success', content: [{ text: 'a.txt\nb.txt' }] },
     ]);
@@ -358,6 +367,31 @@ describe('kiro-adapter', () => {
         },
       },
     ]);
+  });
+
+  it('inlines a lone tool result that has no assistant call to pair with', () => {
+    const withSystem = buildKiro({
+      messages: [
+        { role: 'system', content: 'You can run commands.' },
+        { role: 'tool', tool_call_id: 'c1', content: 'hi' },
+      ],
+    });
+    expect(withSystem.conversationState.history).toEqual([]);
+    expect(withSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      'System instructions:\nYou can run commands.\n\nUser:\n[Tool result: hi]',
+    );
+    expect(
+      withSystem.conversationState.currentMessage.userInputMessage.userInputMessageContext
+        ?.toolResults,
+    ).toBeUndefined();
+
+    const withoutSystem = buildKiro({
+      messages: [{ role: 'tool', tool_call_id: 'c1', content: 'hi' }],
+    });
+    expect(withoutSystem.conversationState.history).toEqual([]);
+    expect(withoutSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      '[Tool result: hi]',
+    );
   });
 
   it('sanitizes invalid Kiro tool names and restores them on the response', async () => {
@@ -911,6 +945,22 @@ describe('kiro-adapter', () => {
         { userInputMessage: { content: 'q', origin: 'KIRO_CLI' } },
         { assistantResponseMessage: { content: 'a' } },
       ]);
+    });
+
+    it('falls back to a Hello turn for an empty user message', () => {
+      expect(
+        buildKiro({ messages: [{ role: 'user', content: '' }] }).conversationState.currentMessage
+          .userInputMessage.content,
+      ).toBe('Hello');
+
+      expect(
+        buildKiro({
+          messages: [
+            { role: 'system', content: 'Be terse.' },
+            { role: 'user', content: '' },
+          ],
+        }).conversationState.currentMessage.userInputMessage.content,
+      ).toBe('System instructions:\nBe terse.\n\nUser:\nHello');
     });
 
     it('folds developer instructions and string/array content parts', () => {
