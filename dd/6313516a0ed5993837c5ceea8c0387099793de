@@ -1,0 +1,19 @@
+.changeset/calm-otters-heal.md
+  s_acfec66364fc1e::t_da446179bfb314 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "dd6313516a0ed5993837c5ceea8c0387099793de",
+  "prompts": {},
+  "sessions": {
+    "s_acfec66364fc1e": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7040f0c0ffeeDmNVmeii82ah1",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
