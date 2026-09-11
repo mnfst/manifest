@@ -18,6 +18,7 @@ import {
   safeParse,
 } from './chatgpt-helpers';
 import { OpenAIMessage } from './proxy-types';
+import { deduplicateCallIds } from './responses-call-ids';
 
 export class ResponsesSseError extends Error {
   constructor(
@@ -100,7 +101,7 @@ export function toResponsesRequest(
 
   const request: Record<string, unknown> = {
     model,
-    input,
+    input: deduplicateCallIds(input),
     stream: options.stream ?? body.stream !== false,
     store: false,
     instructions: extractInstructions(messages),
