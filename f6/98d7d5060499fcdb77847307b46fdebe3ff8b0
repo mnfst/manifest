@@ -1,0 +1,24 @@
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_6cd9d53401221c::t_30be9e1d6d70b6 299-301
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_6cd9d53401221c::t_5f5a6621d73207 1168-1230
+packages/backend/src/routing/proxy/provider-client.ts
+  s_6cd9d53401221c::t_9a0bbd708a48bc 799-802
+  s_6cd9d53401221c::t_d19e284d084812 252-266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f698d7d5060499fcdb77847307b46fdebe3ff8b0",
+  "prompts": {},
+  "sessions": {
+    "s_6cd9d53401221c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d2813159-4530-4dd9-9488-f7bd24fed540",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

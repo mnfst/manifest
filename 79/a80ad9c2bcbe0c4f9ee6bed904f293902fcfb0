@@ -1,0 +1,41 @@
+.changeset/calm-otters-heal.md
+  s_148105036b91b0::t_7143e12852c717 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client-converters.spec.ts
+  s_148105036b91b0::t_315001f1726943 180,182,190,248,256,311,319,347,354,399-400,426,446,462-463,485,487,501,504,518
+  s_148105036b91b0::t_faa52fb277afd4 8,26,43-50,140,151,168-174,176-177
+  s_148105036b91b0::t_cc3ea478ae2f5e 1262
+  s_148105036b91b0::t_2a08c238e1723e 1005,1016-1017
+  s_148105036b91b0::t_bae7cfb512e565 1273,1281
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_148105036b91b0::t_bcc92c6d6335cf 355,365-366
+  s_148105036b91b0::t_a7748e5d619286 363-364
+packages/backend/src/routing/proxy/provider-client-converters.ts
+  s_148105036b91b0::t_bcc92c6d6335cf 90,92-94,97,187,252,254-255,259-261,265-266,269,274-275,293
+packages/backend/src/routing/proxy/provider-client.ts
+  s_148105036b91b0::t_cc3ea478ae2f5e 2,774
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_148105036b91b0::t_028b3c146c0119 9
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_148105036b91b0::t_c0e7e20f76bf21 4139,4172,4183-4186,4222,4233-4234,4261,4273,4276,4288,4291,4303,4306,4319,4341,4354,4357,4370,4389,4402-4404,4410,4423-4425,4428,4441-4443,4503,4735,4753,5329
+  s_148105036b91b0::t_a6166e96579811 5292
+  s_148105036b91b0::t_cc3ea478ae2f5e 5317
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_148105036b91b0::t_5b392e0c557075 157,163-169,196,204,2227,2235,2789,2795
+  s_148105036b91b0::t_2a08c238e1723e 2790-2793,2799-2802
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "79a80ad9c2bcbe0c4f9ee6bed904f293902fcfb0",
+  "prompts": {},
+  "sessions": {
+    "s_148105036b91b0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04732-85d1-7991-908e-c14dc2059e0d",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
