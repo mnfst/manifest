@@ -602,12 +602,19 @@ function buildKiroConversation(body: Record<string, unknown>, model: string): Ki
   }
 
   const currentText = currentMessage.userInputMessage.content;
-  const fallbackText = currentMessage.userInputMessage.userInputMessageContext?.toolResults?.length
-    ? 'continue'
-    : 'Hello';
-  currentMessage.userInputMessage.content = systemText
-    ? `System instructions:\n${systemText}\n\nUser:\n${currentText || fallbackText}`
-    : currentText || fallbackText;
+  const hasToolResults =
+    !!currentMessage.userInputMessage.userInputMessageContext?.toolResults?.length;
+  if (hasToolResults && !currentText) {
+    // The latest turn is a tool result with no new user text: Kiro continues the
+    // pending task only when `content` is empty. Fabricating "continue" (or
+    // prepending the system prompt) reads as a fresh, context-free user message
+    // and makes the model drop the conversation.
+    currentMessage.userInputMessage.content = '';
+  } else {
+    currentMessage.userInputMessage.content = systemText
+      ? `System instructions:\n${systemText}\n\nUser:\n${currentText || 'Hello'}`
+      : currentText || 'Hello';
+  }
   currentMessage.userInputMessage.modelId ??= model;
 
   return {
