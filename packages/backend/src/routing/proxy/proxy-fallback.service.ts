@@ -29,6 +29,11 @@ interface ForwardProviderOptions {
   resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
+  /**
+   * Scoped replay-cache key (`sessionScope.cacheKey`). The reasoning cache must
+   * read with the same key the response handler wrote with.
+   */
+  reasoningCacheKey?: string;
   providerCacheKey?: string;
   signal?: AbortSignal;
   authType?: string;
@@ -198,6 +203,7 @@ export class ProxyFallbackService {
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
     providerCacheKey?: string,
+    reasoningCacheKey?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -313,6 +319,7 @@ export class ProxyFallbackService {
         resolveChatBody,
         stream,
         sessionKey,
+        reasoningCacheKey,
         providerCacheKey,
         signal,
         agentId,
@@ -721,7 +728,7 @@ export class ProxyFallbackService {
             );
             resolved = await this.reasoningCache.prepareRequest(
               resolved,
-              opts.sessionKey,
+              opts.reasoningCacheKey ?? opts.sessionKey,
               reasoningEndpointKey,
               forwardModel,
             );
@@ -732,7 +739,7 @@ export class ProxyFallbackService {
       : undefined;
     body = await this.reasoningCache.prepareRequest(
       body,
-      opts.sessionKey,
+      opts.reasoningCacheKey ?? opts.sessionKey,
       reasoningEndpointKey,
       forwardModel,
     );

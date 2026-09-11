@@ -186,6 +186,7 @@ interface HealedReforwardContext {
   tenantId: string;
   apiMode: ProxyApiMode;
   sessionKey: string;
+  sessionCacheKey?: string;
   providerCacheKey?: string;
   sessionMomentumKey?: string;
   signal?: AbortSignal;
@@ -395,6 +396,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionCacheKey,
           providerCacheKey,
           sessionMomentumKey,
           signal,
@@ -426,6 +428,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      reasoningCacheKey: sessionCacheKey,
       providerCacheKey,
       signal,
       agentId,
@@ -473,6 +476,7 @@ export class ProxyService {
                 tenantId,
                 apiMode: autofixApiMode,
                 sessionKey,
+                sessionCacheKey,
                 providerCacheKey,
                 sessionMomentumKey,
                 signal,
@@ -516,6 +520,7 @@ export class ProxyService {
         resolveChatBody,
         stream,
         sessionKey,
+        sessionCacheKey,
         providerCacheKey,
         sessionMomentumKey,
         signal,
@@ -624,6 +629,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionCacheKey,
           providerCacheKey,
           sessionMomentumKey,
           signal,
@@ -801,6 +807,7 @@ export class ProxyService {
       resolveChatBody,
       stream: ctx.stream,
       sessionKey: ctx.sessionKey,
+      reasoningCacheKey: ctx.sessionCacheKey,
       providerCacheKey: ctx.providerCacheKey,
       signal: ctx.signal,
       agentId: ctx.agentId,
@@ -1161,6 +1168,7 @@ export class ProxyService {
     resolveChatBody?: ResolveChatBody;
     stream: boolean;
     sessionKey: string;
+    sessionCacheKey?: string;
     providerCacheKey?: string;
     sessionMomentumKey?: string;
     signal?: AbortSignal;
@@ -1187,6 +1195,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      sessionCacheKey,
       providerCacheKey,
       sessionMomentumKey,
       signal,
@@ -1226,6 +1235,7 @@ export class ProxyService {
       args.startProviderAttempt,
       args.credentialDashboardUrl,
       providerCacheKey,
+      sessionCacheKey,
     );
 
     this.recordTierIfScoring(sessionMomentumKey, resolved.tier);
