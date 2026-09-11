@@ -1,5 +1,12 @@
 # manifest
 
+## 6.23.3
+
+### Patch Changes
+
+- 5f02d11: Leave model-specific provider corrections to Autofix. Keep provider-level protocol strips (OpenAI-only fields, OpenRouter and Ollama dialect fields) so traffic does not regress when Autofix is off.
+- 07a962b: Fix Kiro tool calling. Forward OpenAI tool definitions as Kiro tool specifications, map assistant `tool_calls` and `tool` role messages into Kiro `toolUses`/`toolResults`, and return Kiro `toolUseEvent` frames as OpenAI `tool_calls` (with `finish_reason: tool_calls`) in both streaming and non-streaming responses.
+
 ## 6.23.2
 
 ### Patch Changes
