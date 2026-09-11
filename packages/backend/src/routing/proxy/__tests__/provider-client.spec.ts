@@ -2,6 +2,7 @@ import { ProviderClient } from '../provider-client';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { buildCustomEndpoint, buildEndpointOverride } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
+import { ModelsDevReasoningCatalog } from '../reasoning-model-catalog';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
 const mockFetch = jest.fn();
@@ -1187,14 +1188,17 @@ describe('ProviderClient', () => {
       expect(sentBody).not.toHaveProperty('reasoning_effort');
     });
 
-    it('translates disabled Anthropic thinking to reasoning_effort none', async () => {
+    it('translates disabled Anthropic thinking to reasoning_effort none for a reasoning model', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const reasoningClient = new ProviderClient(undefined, undefined, undefined, {
+        isReasoningModel: () => true,
+      } as unknown as ModelsDevReasoningCatalog);
       const chatBody = {
         messages: [{ role: 'user', content: 'hi' }],
         thinking: { type: 'disabled' },
       };
 
-      await client.forward({
+      await reasoningClient.forward({
         provider: 'openai',
         apiKey: 'sk-test',
         model: 'gpt-5.6-sol',
@@ -1207,6 +1211,28 @@ describe('ProviderClient', () => {
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody).not.toHaveProperty('thinking');
       expect(sentBody.reasoning_effort).toBe('none');
+    });
+
+    it('drops disabled Anthropic thinking without an effort tier for a non-reasoning model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { model: 'gpt-4o', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody).not.toHaveProperty('reasoning_effort');
     });
 
     it('leaves a caller-sent thinking param alone outside messages mode', async () => {
@@ -2011,6 +2037,60 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
+    });
+
+    it('translates disabled Anthropic thinking to Responses reasoning none', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const reasoningClient = new ProviderClient(undefined, undefined, undefined, {
+        isReasoningModel: () => true,
+      } as unknown as ModelsDevReasoningCatalog);
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await reasoningClient.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o1-pro',
+        body: {
+          model: 'o1-pro',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'none' });
+      expect(sentBody).not.toHaveProperty('thinking');
+    });
+
+    it('does not translate disabled Anthropic thinking to Responses for a non-reasoning model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o1-pro',
+        body: {
+          model: 'o1-pro',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        }),
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('reasoning');
+      expect(sentBody).not.toHaveProperty('thinking');
     });
 
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {

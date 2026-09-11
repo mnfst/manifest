@@ -36,6 +36,7 @@ import {
   type ProviderAttemptRef,
 } from './proxy-types';
 import { CodexSessionAffinity } from './codex-session-affinity';
+import { ModelsDevReasoningCatalog } from './reasoning-model-catalog';
 import { toNativeResponsesRequest } from './responses-adapter';
 import { responsesToolNames, ResponsesToolNames } from './responses-tools';
 import { forwardKiroChat } from './kiro-adapter';
@@ -249,18 +250,33 @@ function applyAnthropicUserIdForOpenAi(
     userId.length <= 64 ? userId : createHash('sha256').update(userId).digest('hex');
 }
 
-// Anthropic thinking configures extended reasoning. OpenAI chat completions
-// reject the field as an unknown parameter and express the same control as
-// reasoning_effort, so translate instead of forwarding. Only `disabled` has a
-// lossless equivalent (`none`); adaptive/enabled budgets map to no single
-// effort tier, so those fall back to the provider's default reasoning.
-function applyAnthropicThinkingForOpenAi(body: Record<string, unknown>): void {
+// Anthropic thinking configures extended reasoning. OpenAI rejects the field
+// as an unknown parameter and expresses the same control as an effort tier, so
+// translate instead of forwarding. Only `disabled` has a lossless equivalent
+// (`reasoning_effort: none`); adaptive/enabled budgets map to no single effort
+// tier and fall back to the provider's default reasoning.
+//
+// The effort tier is emitted only for models that actually reason: a
+// non-reasoning model rejects `reasoning_effort` outright, so for it dropping
+// `thinking` is the whole fix.
+function anthropicThinkingEffort(
+  body: Record<string, unknown>,
+  supportsReasoning: boolean,
+): 'none' | undefined {
+  if (!supportsReasoning) return undefined;
+  return isRecord(body.thinking) && body.thinking.type === 'disabled' ? 'none' : undefined;
+}
+
+function applyAnthropicThinkingForOpenAi(
+  body: Record<string, unknown>,
+  supportsReasoning: boolean,
+): void {
   if (!('thinking' in body)) return;
-  const thinking = isRecord(body.thinking) ? body.thinking : undefined;
+  const effort = anthropicThinkingEffort(body, supportsReasoning);
   delete body.thinking;
 
-  if (thinking?.type === 'disabled' && body.reasoning_effort === undefined) {
-    body.reasoning_effort = 'none';
+  if (effort !== undefined && body.reasoning_effort === undefined) {
+    body.reasoning_effort = effort;
   }
 }
 
@@ -314,8 +330,15 @@ export class ProviderClient {
     private readonly modelRegistry?: ProviderModelRegistryService,
     @Optional()
     codexAffinity?: CodexSessionAffinity,
+    @Optional()
+    private readonly reasoningCatalog?: ModelsDevReasoningCatalog,
   ) {
     this.codexAffinity = codexAffinity ?? new CodexSessionAffinity();
+  }
+
+  /** Whether the target model reasons, so an OpenAI effort tier is meaningful. */
+  private modelSupportsReasoning(endpointKey: string, model: string): boolean {
+    return this.reasoningCatalog?.isReasoningModel(endpointKey, model) === true;
   }
 
   async forward(opts: ForwardOptions): Promise<ForwardResult> {
@@ -768,6 +791,24 @@ export class ProviderClient {
       if (endpointKey === 'openai-responses' && ctx.apiMode === 'messages') {
         applyAnthropicUserIdForOpenAi(requestBody, requestSource);
       }
+      // Anthropic Messages carry `thinking`, which the Responses shape has no
+      // field for. Translate a disabled request to an explicit no-reasoning
+      // effort so the caller's intent survives the cross-protocol route. The
+      // same reasoning-support and endpoint gates as the chat path apply:
+      // only OpenAI infrastructure accepts `reasoning`, and only a reasoning
+      // model accepts the effort tier.
+      if (
+        (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') &&
+        ctx.apiMode === 'messages'
+      ) {
+        const effort = anthropicThinkingEffort(
+          requestSource,
+          this.modelSupportsReasoning('openai', ctx.model),
+        );
+        if (effort !== undefined && requestBody.reasoning === undefined) {
+          requestBody.reasoning = { effort };
+        }
+      }
       if (endpointKey === 'openai-responses' || endpointKey === 'openai-subscription') {
         applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
       }
@@ -798,7 +839,10 @@ export class ProviderClient {
     if (endpointKey === 'openai') {
       if (ctx.apiMode === 'messages') {
         applyAnthropicUserIdForOpenAi(requestBody);
-        applyAnthropicThinkingForOpenAi(requestBody);
+        applyAnthropicThinkingForOpenAi(
+          requestBody,
+          this.modelSupportsReasoning(endpointKey, ctx.model),
+        );
       }
       applyHashedPromptCacheKey(requestBody, ctx.providerCacheKey);
     }
