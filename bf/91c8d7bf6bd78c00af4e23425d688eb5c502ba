@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/reasoning-catalog-di.spec.ts
+  s_7c117a1620ca5e::t_403c275b6630b3 3,10,14,25-27
+packages/backend/src/routing/proxy/anthropic-messages-adapter.ts
+  s_7c117a1620ca5e::t_c866806ae6fe98 300-304
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bf91c8d7bf6bd78c00af4e23425d688eb5c502ba",
+  "prompts": {},
+  "sessions": {
+    "s_7c117a1620ca5e": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6fed0282ffeMd002M94oIin6k",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
