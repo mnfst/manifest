@@ -1,0 +1,31 @@
+.changeset/anthropic-structured-output-schema.md
+  s_8c5348260910a5::t_a220b9d59a6e13 1-5
+packages/backend/src/routing/proxy/__tests__/provider-client.spec.ts
+  s_8c5348260910a5::t_f36f8d0e126a12 1466
+  s_8c5348260910a5::t_4f179f83fdaf6c 1423-1430
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_8c5348260910a5::t_a8d8c1d3c9c285 385-425
+  s_8c5348260910a5::t_ceba17fede69e2 440
+  s_8c5348260910a5::t_e36f5e54a9d0f9 330-333
+  s_8c5348260910a5::t_130243fc2d6a72 2271-2287
+  s_8c5348260910a5::t_e507141ee332a7 359
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_8c5348260910a5::t_971fd3fe1a8fa4 276-313,319-329,331-332
+  s_8c5348260910a5::t_8cbb0ad112765d 462-467
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7c9d459ddc11e37be2a319d3999482f9908fdec6",
+  "prompts": {},
+  "sessions": {
+    "s_8c5348260910a5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6e25a639ffeldWh1Hff0Fvtk7",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
