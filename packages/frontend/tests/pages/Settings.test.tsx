@@ -632,10 +632,10 @@ describe("Settings", () => {
     });
   });
 
-  it("uses app.manifest.build URL when hostname matches", async () => {
+  it("uses gateway.manifest.build URL when hostname matches", async () => {
     const originalLocation = window.location;
     Object.defineProperty(window, "location", {
-      value: { ...originalLocation, hostname: "app.manifest.build", origin: "https://app.manifest.build" },
+      value: { ...originalLocation, hostname: "gateway.manifest.build", origin: "https://gateway.manifest.build" },
       writable: true,
       configurable: true,
     });
@@ -644,7 +644,7 @@ describe("Settings", () => {
     await vi.waitFor(() => {
       const el = container.querySelector('[data-testid="setup-add-provider"]');
       expect(el).not.toBeNull();
-      expect(el!.getAttribute("data-base-url")).toBe("https://app.manifest.build/v1");
+      expect(el!.getAttribute("data-base-url")).toBe("https://gateway.manifest.build/v1");
     });
     Object.defineProperty(window, "location", { value: originalLocation, writable: true, configurable: true });
   });

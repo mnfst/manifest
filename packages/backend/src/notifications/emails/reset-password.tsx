@@ -1,3 +1,4 @@
+import { getEmailAssetUrl } from '../../common/utils/dashboard-url';
 import * as React from 'react';
 import {
   Html,
@@ -20,7 +21,7 @@ export interface ResetPasswordEmailProps {
 }
 
 export function ResetPasswordEmail(props: ResetPasswordEmailProps) {
-  const { userName, resetUrl, logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const { userName, resetUrl, logoUrl = getEmailAssetUrl('manifest-logo.png') } = props;
 
   return (
     <Html>

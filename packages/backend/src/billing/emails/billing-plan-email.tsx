@@ -1,3 +1,4 @@
+import { getEmailAssetUrl } from '../../common/utils/dashboard-url';
 import * as React from 'react';
 import {
   Html,
@@ -150,7 +151,7 @@ function subscriptionCopy(props: SubscriptionPlanEmailProps): {
 }
 
 export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
-  const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
+  const logoUrl = props.logoUrl ?? getEmailAssetUrl('manifest-logo.png', props.appUrl);
   const copy = subscriptionCopy(props);
   const accent = props.kind === 'cancellation_confirmed' ? '#ea580c' : '#0f766e';
   const accentBg = props.kind === 'cancellation_confirmed' ? '#fff7ed' : '#ecfdf5';
@@ -217,7 +218,7 @@ export function SubscriptionPlanEmail(props: SubscriptionPlanEmailProps) {
 }
 
 export function PlanUsageEmail(props: PlanUsageEmailProps) {
-  const logoUrl = props.logoUrl ?? 'https://app.manifest.build/manifest-logo.png';
+  const logoUrl = props.logoUrl ?? getEmailAssetUrl('manifest-logo.png', props.appUrl);
   const isLimit = props.kind === 'requests_limit_reached';
   const percentage = Math.min(100, Math.round((props.used / props.limit) * 100));
   const accent = isLimit ? '#dc2626' : '#ea580c';

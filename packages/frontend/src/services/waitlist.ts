@@ -6,7 +6,7 @@
  * side dedupes by email, so a re-submit from another browser is harmless.
  */
 
-const CLOUD_CLAIM_URL = 'https://app.manifest.build/api/v1/waitlist/pivot/claim';
+const CLOUD_CLAIM_URL = 'https://gateway.manifest.build/api/v1/waitlist/pivot/claim';
 const SAME_ORIGIN_CLAIM_PATH = '/api/v1/waitlist/pivot/claim';
 const JOINED_PREFIX = 'manifest_pivot_waitlist_joined_';
 

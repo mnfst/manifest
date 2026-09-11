@@ -1,3 +1,4 @@
+import { getEmailAssetUrl } from '../../common/utils/dashboard-url';
 import * as React from 'react';
 import {
   Html,
@@ -32,8 +33,8 @@ export function DoctorReleaseEmail(props: DoctorReleaseProps) {
   const {
     appUrl,
     tutorialUrl,
-    logoUrl = 'https://app.manifest.build/manifest-logo.png',
-    autofixIconUrl = 'https://app.manifest.build/autofix-icon-email.png',
+    logoUrl = getEmailAssetUrl('manifest-logo.png', props.appUrl),
+    autofixIconUrl = getEmailAssetUrl('autofix-icon-email.png', props.appUrl),
   } = props;
 
   return (

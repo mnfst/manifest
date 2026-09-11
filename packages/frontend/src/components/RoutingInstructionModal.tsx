@@ -26,8 +26,6 @@ const RoutingInstructionModal: Component<Props> = (props) => {
   );
 
   const baseUrl = () => {
-    const host = window.location.hostname;
-    if (host === 'app.manifest.build') return 'https://app.manifest.build/v1';
     return `${window.location.origin}/v1`;
   };
 
