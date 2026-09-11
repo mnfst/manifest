@@ -1,0 +1,27 @@
+packages/backend/src/routing/proxy/__tests__/responses-stream-tools.spec.ts
+  s_3375a7b487ecde::t_a068b168e48713 132-181
+packages/backend/src/routing/proxy/__tests__/responses-tools.spec.ts
+  s_3375a7b487ecde::t_1f31376656bea3 36
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_3375a7b487ecde::t_4da69d640edbf1 814-818
+packages/backend/src/routing/proxy/responses-tools.ts
+  s_3375a7b487ecde::t_4d2ec0b967d679 6,44-48
+packages/backend/test/codex-responses.e2e-spec.ts
+  s_3375a7b487ecde::t_a490a7b2a6d3b9 47,146-157,248,256-260,263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9cd41337eddc8039119c801b4e2c3c6aac586472",
+  "prompts": {},
+  "sessions": {
+    "s_3375a7b487ecde": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-2692-7d22-ba5a-9cb7044375df",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+packages/backend/test/codex-responses.e2e-spec.ts
+  s_3375a7b487ecde::t_d8243cd84f8bd6 101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "97b0d08b69acc1adfef37242374ea260e893eca4",
+  "prompts": {},
+  "sessions": {
+    "s_3375a7b487ecde": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-2692-7d22-ba5a-9cb7044375df",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

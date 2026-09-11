@@ -1,0 +1,21 @@
+packages/backend/src/routing/proxy/__tests__/responses-tools.spec.ts
+  s_3375a7b487ecde::t_188486b90a4439 121-134
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_3375a7b487ecde::t_96500d88b2e636 146-147,172-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "7f43591783d0e07a4f73acb434c17558b4cbcb25",
+  "prompts": {},
+  "sessions": {
+    "s_3375a7b487ecde": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a079e0-2692-7d22-ba5a-9cb7044375df",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
