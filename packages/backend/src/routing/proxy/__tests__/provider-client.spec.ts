@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { ProviderClient } from '../provider-client';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { buildCustomEndpoint, buildEndpointOverride } from '../provider-endpoints';
@@ -7,6 +8,35 @@ import type { ProviderModelRegistryService } from '../../../model-discovery/prov
 
 const mockFetch = jest.fn();
 (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch;
+
+function kiroStringHeader(name: string, value: string): Buffer {
+  const nameBytes = Buffer.from(name);
+  const valueBytes = Buffer.from(value);
+  const valueLength = Buffer.alloc(2);
+  valueLength.writeUInt16BE(valueBytes.length, 0);
+  return Buffer.concat([
+    Buffer.from([nameBytes.length]),
+    nameBytes,
+    Buffer.from([7]),
+    valueLength,
+    valueBytes,
+  ]);
+}
+
+function kiroEventFrame(eventType: string, payload: unknown, messageType = 'event'): Uint8Array {
+  const headers = Buffer.concat([
+    kiroStringHeader(':message-type', messageType),
+    kiroStringHeader(':event-type', eventType),
+  ]);
+  const payloadBytes = Buffer.from(JSON.stringify(payload));
+  const totalLength = 12 + headers.length + payloadBytes.length + 4;
+  const frame = Buffer.alloc(totalLength);
+  frame.writeUInt32BE(totalLength, 0);
+  frame.writeUInt32BE(headers.length, 4);
+  headers.copy(frame, 12);
+  payloadBytes.copy(frame, 12 + headers.length);
+  return frame;
+}
 
 describe('ProviderClient', () => {
   const previousMode = process.env['MANIFEST_MODE'];
@@ -2991,6 +3021,99 @@ describe('ProviderClient', () => {
         'Hello from Responses',
       );
       expect(resolveChatBody).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards tools and returns Kiro tool calls end to end', async () => {
+      mockFetch.mockResolvedValue(
+        new Response(
+          new ReadableStream<Uint8Array>({
+            start(controller) {
+              controller.enqueue(
+                kiroEventFrame('toolUseEvent', {
+                  toolUseId: 'call_1',
+                  name: 'bash',
+                  input: '{"command":"ls"}',
+                  stop: true,
+                }),
+              );
+              controller.close();
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+
+      const result = await client.forward({
+        provider: 'kiro',
+        apiKey: 'ksk_test',
+        model: 'kiro/auto',
+        body: {
+          messages: [
+            { role: 'user', content: 'List files' },
+            {
+              role: 'assistant',
+              content: null,
+              tool_calls: [
+                {
+                  id: 'call_1',
+                  type: 'function',
+                  function: { name: 'bash', arguments: '{"command":"ls"}' },
+                },
+              ],
+            },
+            { role: 'tool', tool_call_id: 'call_1', content: 'a.txt' },
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'bash',
+                parameters: {
+                  type: 'object',
+                  properties: { command: { type: 'string' } },
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+        },
+        stream: true,
+        authType: 'subscription',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.conversationState.history).toEqual([
+        { userInputMessage: { content: 'List files', origin: 'KIRO_CLI' } },
+        {
+          assistantResponseMessage: {
+            content: '...',
+            toolUses: [{ toolUseId: 'call_1', name: 'bash', input: { command: 'ls' } }],
+          },
+        },
+      ]);
+      const current = sentBody.conversationState.currentMessage.userInputMessage;
+      expect(current.userInputMessageContext.tools).toEqual([
+        {
+          toolSpecification: {
+            name: 'bash',
+            description: 'Tool: bash',
+            inputSchema: {
+              json: {
+                type: 'object',
+                properties: { command: { type: 'string' } },
+              },
+            },
+          },
+        },
+      ]);
+      expect(current.userInputMessageContext.toolResults).toEqual([
+        { toolUseId: 'call_1', status: 'success', content: [{ text: 'a.txt' }] },
+      ]);
+
+      const text = await result.response.text();
+      expect(text).toContain('"id":"call_1"');
+      expect(text).toContain('"name":"bash"');
+      expect(text).toContain('"finish_reason":"tool_calls"');
     });
   });
 
