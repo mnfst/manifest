@@ -2,6 +2,7 @@ import { ProviderClient } from '../provider-client';
 import { ManifestError } from '../../../common/errors/manifest-error';
 import { buildCustomEndpoint, buildEndpointOverride } from '../provider-endpoints';
 import { ThinkingBlockCache, type ThinkingBlockRouteContext } from '../thinking-block-cache';
+import { ModelsDevReasoningCatalog } from '../reasoning-model-catalog';
 import type { ProviderModelRegistryService } from '../../../model-discovery/provider-model-registry.service';
 
 const mockFetch = jest.fn();
@@ -1165,6 +1166,94 @@ describe('ProviderClient', () => {
       expect(sentBody.safety_identifier).toBeUndefined();
     });
 
+    it('translates adaptive Anthropic thinking to the OpenAI default reasoning effort', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'adaptive' },
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: { model: 'gpt-5.6-sol', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody).not.toHaveProperty('reasoning_effort');
+    });
+
+    it('translates disabled Anthropic thinking to reasoning_effort none for a reasoning model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const reasoningClient = new ProviderClient(undefined, undefined, undefined, {
+        isReasoningModel: () => true,
+      } as unknown as ModelsDevReasoningCatalog);
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await reasoningClient.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: { model: 'gpt-5.6-sol', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody.reasoning_effort).toBe('none');
+    });
+
+    it('drops disabled Anthropic thinking without an effort tier for a non-reasoning model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-4o',
+        body: { model: 'gpt-4o', ...chatBody },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('thinking');
+      expect(sentBody).not.toHaveProperty('reasoning_effort');
+    });
+
+    it('leaves a caller-sent thinking param alone outside messages mode', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'gpt-5.6-sol',
+        body: {
+          model: 'gpt-5.6-sol',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'adaptive' },
+        },
+        stream: false,
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.thinking).toEqual({ type: 'adaptive' });
+    });
+
     it('forwards Anthropic-Messages inbound to an Anthropic upstream without OpenAI translation (issue #1886)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
@@ -1948,6 +2037,60 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.reasoning).toEqual({ effort: 'xhigh', summary: 'auto' });
+    });
+
+    it('translates disabled Anthropic thinking to Responses reasoning none', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+      const reasoningClient = new ProviderClient(undefined, undefined, undefined, {
+        isReasoningModel: () => true,
+      } as unknown as ModelsDevReasoningCatalog);
+      const chatBody = {
+        messages: [{ role: 'user', content: 'hi' }],
+        thinking: { type: 'disabled' },
+      };
+
+      await reasoningClient.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o1-pro',
+        body: {
+          model: 'o1-pro',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        },
+        resolveChatBody: async () => chatBody,
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody.reasoning).toEqual({ effort: 'none' });
+      expect(sentBody).not.toHaveProperty('thinking');
+    });
+
+    it('does not translate disabled Anthropic thinking to Responses for a non-reasoning model', async () => {
+      mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
+
+      await client.forward({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        model: 'o1-pro',
+        body: {
+          model: 'o1-pro',
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        },
+        resolveChatBody: async () => ({
+          messages: [{ role: 'user', content: 'hi' }],
+          thinking: { type: 'disabled' },
+        }),
+        stream: false,
+        apiMode: 'messages',
+      });
+
+      const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(sentBody).not.toHaveProperty('reasoning');
+      expect(sentBody).not.toHaveProperty('thinking');
     });
 
     it('sets isChatGpt=false for regular OpenAI api_key auth', async () => {
@@ -4136,7 +4279,7 @@ describe('ProviderClient', () => {
     });
   });
 
-  describe('Body sanitization for non-OpenAI providers', () => {
+  describe('Body wire normalization for non-OpenAI providers', () => {
     const bodyWithOpenAiFields = {
       messages: [{ role: 'user', content: 'Hello' }],
       temperature: 0.7,
@@ -4258,7 +4401,7 @@ describe('ProviderClient', () => {
       expect(result.wireRequestBody).toEqual(sentBody);
     });
 
-    it('caps DeepSeek max_tokens at the provider limit', async () => {
+    it('preserves DeepSeek max_tokens above a possible provider limit', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -4270,10 +4413,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.max_tokens).toBe(8192);
+      expect(sentBody.max_tokens).toBe(12000);
     });
 
-    it('drops non-positive DeepSeek max_tokens values', async () => {
+    it('preserves non-positive DeepSeek max_tokens values for Autofix', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -4285,10 +4428,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.max_tokens).toBeUndefined();
+      expect(sentBody.max_tokens).toBe(0);
     });
 
-    it('normalizes string DeepSeek max_tokens values', async () => {
+    it('preserves string DeepSeek max_tokens values for Autofix', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       await client.forward({
@@ -4300,10 +4443,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.max_tokens).toBe(8192);
+      expect(sentBody.max_tokens).toBe('9000');
     });
 
-    it('strips reasoning_content for Mistral assistant messages without mutating the input', async () => {
+    it('preserves reasoning_content for Mistral Autofix without mutating the input', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningContent = makeBodyWithReasoningContent();
 
@@ -4316,7 +4459,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
       expect(bodyWithReasoningContent.messages[1].reasoning_content).toBe(
         'Detailed internal reasoning',
       );
@@ -4338,7 +4481,7 @@ describe('ProviderClient', () => {
       expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
     });
 
-    it('strips reasoning_content for native OpenAI targets', async () => {
+    it('preserves reasoning_content for native OpenAI Autofix', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningContent = makeBodyWithReasoningContent();
 
@@ -4351,10 +4494,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
     });
 
-    it('strips reasoning_content for non-DeepSeek OpenRouter targets', async () => {
+    it('preserves reasoning_content for non-DeepSeek OpenRouter targets', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningContent = makeBodyWithReasoningContent();
 
@@ -4367,7 +4510,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
     });
 
     it('preserves reasoning_content for DeepSeek models on OpenRouter', async () => {
@@ -4494,7 +4637,7 @@ describe('ProviderClient', () => {
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(sentBody.messages[0]).toBe('unexpected-entry');
-      expect(sentBody.messages[1].reasoning_content).toBeUndefined();
+      expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
     });
 
     it('normalizes non-compliant tool call ids for Mistral while preserving references', async () => {
@@ -5283,7 +5426,7 @@ describe('ProviderClient', () => {
   });
 });
 
-describe('ProviderClient reasoning catalog', () => {
+describe('ProviderClient provider-specific message fields', () => {
   const previousMode = process.env['MANIFEST_MODE'];
 
   beforeEach(() => {
@@ -5308,24 +5451,7 @@ describe('ProviderClient reasoning catalog', () => {
     ],
   };
 
-  it('forwards reasoning_content to Zen when the injected catalog vouches for the model', async () => {
-    const catalogClient = new ProviderClient(undefined, undefined, undefined, {
-      isReasoningModel: () => true,
-    });
-
-    await catalogClient.forward({
-      provider: 'opencode-zen',
-      apiKey: 'zen-token',
-      model: 'opencode-zen/big-pickle',
-      body: reasoningBody,
-      stream: false,
-    });
-
-    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(sentBody.messages[0].reasoning_content).toBe('upstream thinking');
-  });
-
-  it('strips reasoning_content for Zen when no catalog is wired', async () => {
+  it('preserves reasoning_content for Zen without consulting model capabilities', async () => {
     const bareClient = new ProviderClient();
 
     await bareClient.forward({
@@ -5337,6 +5463,6 @@ describe('ProviderClient reasoning catalog', () => {
     });
 
     const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-    expect(sentBody.messages[0].reasoning_content).toBeUndefined();
+    expect(sentBody.messages[0].reasoning_content).toBe('upstream thinking');
   });
 });

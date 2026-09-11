@@ -22,8 +22,6 @@ import {
 import {
   normalizeOpenAiReasoningDelta,
   type OpenAiReasoningStreamFormat,
-  supportsReasoningContent,
-  type ReasoningModelCatalog,
 } from './reasoning-format';
 
 /** Convert a ChatGPT Responses API response to OpenAI format. */
@@ -89,11 +87,24 @@ export type { GoogleStreamChunkResult } from './google-adapter';
 export type { ThinkingBlocksCallback } from './anthropic-adapter';
 export type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
 
-// ─── OpenAI body sanitization (used by ProviderClient.forward) ───────────────
+// ─── OpenAI wire normalization (used by ProviderClient.forward) ─────────────
+
+// This layer keeps unconditional wire-format adaptations: provider-level
+// protocol facts (a field that is simply not part of a given API) and
+// cross-protocol translations. Model- and version-specific corrections — a
+// parameter that some models accept and others reject — stay out of here and
+// belong to Autofix, where the provider error can scope a patch.
 
 /**
- * OpenAI-only fields that other providers reject as "extra inputs not permitted".
- * Stripped before forwarding to non-OpenAI, non-OpenRouter providers.
+ * Providers that use `max_completion_tokens` without a legacy alias rewrite.
+ */
+const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+
+/**
+ * OpenAI-only fields other providers reject as "extra inputs not permitted".
+ * Stripped before forwarding to non-OpenAI, non-OpenRouter providers: these are
+ * not part of those wire protocols, so dropping them cannot remove a parameter
+ * the target would have honoured.
  */
 const OPENAI_ONLY_FIELDS = new Set([
   'store',
@@ -106,14 +117,8 @@ const OPENAI_ONLY_FIELDS = new Set([
   'reasoning_effort',
 ]);
 
-/**
- * Providers that accept the full OpenAI top-level request schema without modification.
- * Nested message fields may still need target-aware cleanup.
- */
-const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
 const OLLAMA_ENDPOINTS = new Set(['ollama', 'ollama-cloud']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
-const DEEPSEEK_MAX_TOKENS_LIMIT = 8192;
 
 /**
  * OpenAI models that require `max_completion_tokens` instead of `max_tokens`.
@@ -200,28 +205,9 @@ export function createReasoningContentStreamTransformer(
   };
 }
 
-/**
- * `reasoning_details` is OpenRouter's structured echo of extended-thinking
- * blocks in assistant messages (array of `{type, thinking, signature}`).
- * Only OpenRouter accepts it as an input field — every other OpenAI-compatible
- * provider (Mistral, native OpenAI, Groq, etc.) rejects unknown message fields
- * with `extra_forbidden` / 422. Strip it before forwarding to those targets so
- * that turn N+1 doesn't fail when routing flips off a reasoning model.
- */
-function supportsReasoningDetails(endpointKey: string): boolean {
-  return endpointKey === 'openrouter';
-}
-
-function sanitizeOpenAiMessages(
-  messages: unknown,
-  endpointKey: string,
-  model: string,
-  catalog?: ReasoningModelCatalog,
-): unknown {
+function normalizeOpenAiMessages(messages: unknown, endpointKey: string): unknown {
   if (!Array.isArray(messages)) return messages;
 
-  const preserveReasoningContent = supportsReasoningContent(endpointKey, model, catalog);
-  const preserveReasoningDetails = supportsReasoningDetails(endpointKey);
   const isMistral = endpointKey === 'mistral';
   const mistralIdMap = new Map<string, string>();
   const reservedMistralIds = new Set<string>();
@@ -284,61 +270,46 @@ function sanitizeOpenAiMessages(
       return message;
     }
 
-    const cleaned = { ...(message as Record<string, unknown>) };
-    if (!preserveReasoningContent) {
-      delete cleaned.reasoning_content;
-    }
-    if (endpointKey !== 'openrouter') {
-      delete cleaned.reasoning;
-    }
-    delete cleaned.reasoning_text;
-    if (!preserveReasoningDetails) {
-      delete cleaned.reasoning_details;
-    }
+    const normalized = { ...(message as Record<string, unknown>) };
 
-    if (isMistral && Array.isArray(cleaned.tool_calls)) {
-      cleaned.tool_calls = cleaned.tool_calls.map((toolCall) => {
+    // OpenRouter dialect fields. Every other OpenAI-compatible host rejects them
+    // as unknown message inputs, so their presence is a wire-protocol fact, not a
+    // model-specific correction. `reasoning_content` is deliberately NOT touched:
+    // it is required by DeepSeek-dialect hosts and rejected by strict hosts
+    // serving the same model, a split only the provider error can settle.
+    if (endpointKey !== 'openrouter') {
+      delete normalized.reasoning;
+      delete normalized.reasoning_details;
+    }
+    delete normalized.reasoning_text;
+
+    if (isMistral && Array.isArray(normalized.tool_calls)) {
+      normalized.tool_calls = normalized.tool_calls.map((toolCall) => {
         if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
           return toolCall;
         }
-        const cleanedToolCall = { ...(toolCall as Record<string, unknown>) };
-        cleanedToolCall.id = normalizeMistralToolCallId(cleanedToolCall.id);
-        return cleanedToolCall;
+        const normalizedToolCall = { ...(toolCall as Record<string, unknown>) };
+        normalizedToolCall.id = normalizeMistralToolCallId(normalizedToolCall.id);
+        return normalizedToolCall;
       });
     }
 
-    if (isMistral && 'tool_call_id' in cleaned) {
-      cleaned.tool_call_id = normalizeMistralToolCallId(cleaned.tool_call_id);
+    if (isMistral && 'tool_call_id' in normalized) {
+      normalized.tool_call_id = normalizeMistralToolCallId(normalized.tool_call_id);
     }
 
-    return cleaned;
+    return normalized;
   });
 }
 
-function normalizeDeepSeekMaxTokens(body: Record<string, unknown>): void {
-  if (!('max_tokens' in body)) return;
-
-  const raw = body.max_tokens;
-  const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' ? Number(raw) : Number.NaN;
-
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    delete body.max_tokens;
-    return;
-  }
-
-  body.max_tokens = Math.min(Math.trunc(parsed), DEEPSEEK_MAX_TOKENS_LIMIT);
-  if ((body.max_tokens as number) < 1) delete body.max_tokens;
-}
-
 /**
- * Strip OpenAI-specific fields and normalise `max_completion_tokens` -> `max_tokens`
- * for providers that use the OpenAI format but reject unknown fields.
+ * Normalize unconditional OpenAI-compatible wire differences. Provider- and
+ * model-specific parameter corrections are intentionally left to Autofix.
  */
 export function sanitizeOpenAiBody(
   body: Record<string, unknown>,
   endpointKey: string,
   model: string,
-  catalog?: ReasoningModelCatalog,
 ): Record<string, unknown> {
   const passthroughTopLevel = PASSTHROUGH_PROVIDERS.has(endpointKey);
 
@@ -351,7 +322,7 @@ export function sanitizeOpenAiBody(
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
     if (key === 'messages') {
-      cleaned[key] = sanitizeOpenAiMessages(value, endpointKey, model, catalog);
+      cleaned[key] = normalizeOpenAiMessages(value, endpointKey);
       continue;
     }
     // Rewrite max_tokens → max_completion_tokens for OpenAI-backed endpoints that
@@ -365,11 +336,15 @@ export function sanitizeOpenAiBody(
       cleaned[key] = value;
       continue;
     }
+    // xAI and DeepSeek implement `reasoning_effort`; keep it there. Every other
+    // non-passthrough provider gets the OpenAI-only field stripped below.
     if (key === 'reasoning_effort' && (endpointKey === 'xai' || endpointKey === 'deepseek')) {
       cleaned[key] = value;
       continue;
     }
     if (OPENAI_ONLY_FIELDS.has(key)) continue;
+    // Ollama's OpenAI-compatible endpoint does not accept the Anthropic-style
+    // `thinking` block; other non-passthrough providers are left to Autofix.
     if (key === 'thinking' && OLLAMA_ENDPOINTS.has(endpointKey.toLowerCase())) continue;
     if (key === 'max_completion_tokens') {
       // Preserve max_completion_tokens for endpoints that require it; otherwise
@@ -384,6 +359,5 @@ export function sanitizeOpenAiBody(
     }
     cleaned[key] = value;
   }
-  if (endpointKey === 'deepseek') normalizeDeepSeekMaxTokens(cleaned);
   return cleaned;
 }
