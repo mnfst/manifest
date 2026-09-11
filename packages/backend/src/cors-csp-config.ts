@@ -216,4 +216,4 @@ export function applyPivotClaimCors(
  * post the claim cross-origin from the browser, so the CSP `connect-src`
  * must allow it — CORS alone is not enough, the CSP blocks the fetch first.
  */
-export const PIVOT_CLAIM_CLOUD_ORIGIN = 'https://app.manifest.build';
+export const PIVOT_CLAIM_CLOUD_ORIGIN = 'https://gateway.manifest.build';
