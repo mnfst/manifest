@@ -201,16 +201,11 @@ describe('kiro-adapter', () => {
         history: [
           { userInputMessage: { content: 'First question', origin: 'KIRO_CLI' } },
           { assistantResponseMessage: { content: 'First answer' } },
-          {
-            userInputMessage: {
-              content: 'Tool result tool-1:\n{"ok":true}',
-              origin: 'KIRO_CLI',
-            },
-          },
         ],
         currentMessage: {
           userInputMessage: {
-            content: 'System instructions:\nUse concise answers.\n\nUser:\nSecond question',
+            content:
+              'System instructions:\nUse concise answers.\n\nUser:\nSecond question\n\n[Tool result: {"ok":true}]',
             origin: 'KIRO_CLI',
             modelId: 'auto',
           },
@@ -219,6 +214,123 @@ describe('kiro-adapter', () => {
       },
       agentMode: 'SUPERVISED',
     });
+  });
+
+  it('maps OpenAI tools, tool calls, and tool results onto Kiro tool fields', () => {
+    const request = buildKiroChatRequest(
+      {
+        messages: [
+          { role: 'system', content: 'You can run commands.' },
+          { role: 'user', content: 'List the files.' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'bash', arguments: '{"command":"ls"}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: 'a.txt\nb.txt' },
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'bash',
+              description: 'Run a shell command.',
+              parameters: {
+                type: 'object',
+                properties: { command: { type: 'string' } },
+                required: ['command'],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+      },
+      'auto',
+    ) as {
+      conversationState: {
+        history: Array<Record<string, unknown>>;
+        currentMessage: {
+          userInputMessage: {
+            content: string;
+            userInputMessageContext: {
+              tools: unknown[];
+              toolResults: unknown[];
+            };
+          };
+        };
+      };
+    };
+
+    expect(request.conversationState.history).toEqual([
+      { userInputMessage: { content: 'List the files.', origin: 'KIRO_CLI' } },
+      {
+        assistantResponseMessage: {
+          content: '...',
+          toolUses: [{ toolUseId: 'call_1', name: 'bash', input: { command: 'ls' } }],
+        },
+      },
+    ]);
+
+    const current = request.conversationState.currentMessage.userInputMessage;
+    expect(current.content).toBe('System instructions:\nYou can run commands.\n\nUser:\ncontinue');
+    expect(current.userInputMessageContext.toolResults).toEqual([
+      { toolUseId: 'call_1', status: 'success', content: [{ text: 'a.txt\nb.txt' }] },
+    ]);
+    expect(current.userInputMessageContext.tools).toEqual([
+      {
+        toolSpecification: {
+          name: 'bash',
+          description: 'Run a shell command.',
+          inputSchema: {
+            json: {
+              type: 'object',
+              properties: { command: { type: 'string' } },
+              required: ['command'],
+            },
+          },
+        },
+      },
+    ]);
+  });
+
+  it('sanitizes invalid Kiro tool names and restores them on the response', async () => {
+    const request = buildKiroChatRequest(
+      {
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [
+          { type: 'function', function: { name: 'my.tool', parameters: { type: 'object' } } },
+        ],
+      },
+      'auto',
+    ) as {
+      conversationState: {
+        currentMessage: {
+          userInputMessage: {
+            userInputMessageContext: { tools: Array<{ toolSpecification: { name: string } }> };
+          };
+        };
+      };
+    };
+
+    expect(
+      request.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools[0]
+        .toolSpecification.name,
+    ).toBe('my_tool');
+
+    const source = streamFrom([
+      eventFrame('toolUseEvent', { toolUseId: 'c1', name: 'my_tool', input: '{}', stop: true }),
+    ]);
+    const response = new Response(
+      createKiroOpenAiStream(source, 'auto', new Map([['my_tool', 'my.tool']])),
+    );
+    const text = await response.text();
+    expect(text).toContain('"name":"my.tool"');
   });
 
   it('handles image parts, empty parts, and circular object content defensively', () => {
@@ -357,6 +469,109 @@ describe('kiro-adapter', () => {
     expect(text).toContain('"finish_reason":"stop"');
     expect(text).toContain('"prompt_tokens":7');
     expect(text).toContain('data: [DONE]');
+  });
+
+  it('converts Kiro toolUseEvent frames into OpenAI tool_calls', async () => {
+    const source = streamFrom([
+      eventFrame('toolUseEvent', { toolUseId: 'call_1', name: 'bash', input: '{"command":' }),
+      eventFrame('toolUseEvent', { toolUseId: 'call_1', name: 'bash', input: '"ls"}', stop: true }),
+      eventFrame('messageStopEvent', { stopReason: 'tool_use' }),
+    ]);
+
+    const response = new Response(createKiroOpenAiStream(source, 'auto'));
+    const text = await response.text();
+    const chunks = text
+      .split('\n')
+      .filter((line) => line.startsWith('data: ') && !line.includes('[DONE]'))
+      .map(
+        (line) =>
+          JSON.parse(line.slice(6)) as {
+            choices: Array<{
+              delta: {
+                tool_calls?: Array<{
+                  index: number;
+                  id: string;
+                  type: string;
+                  function: { name: string; arguments: string };
+                }>;
+              };
+              finish_reason: string | null;
+            }>;
+          },
+      );
+
+    const toolCalls = chunks.flatMap((chunk) => chunk.choices[0].delta.tool_calls ?? []);
+    expect(toolCalls).toEqual([
+      {
+        index: 0,
+        id: 'call_1',
+        type: 'function',
+        function: { name: 'bash', arguments: '{"command":"ls"}' },
+      },
+    ]);
+    expect(chunks.at(-1)?.choices[0].finish_reason).toBe('tool_calls');
+    expect(text).toContain('data: [DONE]');
+  });
+
+  it('forwards tools and returns Kiro tool calls in the non-streaming completion', async () => {
+    mockFetch.mockResolvedValue(
+      new Response(
+        streamFrom([
+          eventFrame('toolUseEvent', {
+            toolUseId: 'call_1',
+            name: 'read',
+            input: '{"path":"a"}',
+            stop: true,
+          }),
+        ]),
+        { status: 200 },
+      ),
+    );
+
+    const response = await forwardKiroChat({
+      apiKey: 'ksk_test',
+      model: 'auto',
+      body: {
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [{ type: 'function', function: { name: 'read', parameters: { type: 'object' } } }],
+      },
+      stream: false,
+      timeoutMs: 1000,
+    });
+    const json = await response.json();
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string) as {
+      conversationState: {
+        currentMessage: {
+          userInputMessage: { userInputMessageContext: { tools: unknown[] } };
+        };
+      };
+    };
+    expect(
+      sentBody.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools,
+    ).toEqual([
+      {
+        toolSpecification: {
+          name: 'read',
+          description: 'Tool: read',
+          inputSchema: { json: { type: 'object', properties: {} } },
+        },
+      },
+    ]);
+
+    expect(json.choices[0]).toMatchObject({
+      finish_reason: 'tool_calls',
+      message: {
+        role: 'assistant',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: { name: 'read', arguments: '{"path":"a"}' },
+          },
+        ],
+      },
+    });
   });
 
   it('forwards streaming Kiro chat as OpenAI-compatible SSE', async () => {
