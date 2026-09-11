@@ -89,14 +89,35 @@ export type { SignatureLookup, ThinkingBlockLookup } from './proxy-types';
 
 // ─── OpenAI wire normalization (used by ProviderClient.forward) ─────────────
 
-// Keep this layer limited to unconditional wire-format adaptations. Whether a
-// provider or model accepts a parameter is request-specific and belongs in
-// Autofix, where the provider error can produce a scoped patch.
+// This layer keeps unconditional wire-format adaptations: provider-level
+// protocol facts (a field that is simply not part of a given API) and
+// cross-protocol translations. Model- and version-specific corrections — a
+// parameter that some models accept and others reject — stay out of here and
+// belong to Autofix, where the provider error can scope a patch.
 
 /**
  * Providers that use `max_completion_tokens` without a legacy alias rewrite.
  */
 const PASSTHROUGH_PROVIDERS = new Set(['openai', 'openrouter']);
+
+/**
+ * OpenAI-only fields other providers reject as "extra inputs not permitted".
+ * Stripped before forwarding to non-OpenAI, non-OpenRouter providers: these are
+ * not part of those wire protocols, so dropping them cannot remove a parameter
+ * the target would have honoured.
+ */
+const OPENAI_ONLY_FIELDS = new Set([
+  'store',
+  'metadata',
+  'service_tier',
+  'stream_options',
+  'modalities',
+  'audio',
+  'prediction',
+  'reasoning_effort',
+]);
+
+const OLLAMA_ENDPOINTS = new Set(['ollama', 'ollama-cloud']);
 const MISTRAL_TOOL_CALL_ID_REGEX = /^[A-Za-z0-9]{9}$/;
 
 /**
@@ -251,6 +272,17 @@ function normalizeOpenAiMessages(messages: unknown, endpointKey: string): unknow
 
     const normalized = { ...(message as Record<string, unknown>) };
 
+    // OpenRouter dialect fields. Every other OpenAI-compatible host rejects them
+    // as unknown message inputs, so their presence is a wire-protocol fact, not a
+    // model-specific correction. `reasoning_content` is deliberately NOT touched:
+    // it is required by DeepSeek-dialect hosts and rejected by strict hosts
+    // serving the same model, a split only the provider error can settle.
+    if (endpointKey !== 'openrouter') {
+      delete normalized.reasoning;
+      delete normalized.reasoning_details;
+    }
+    delete normalized.reasoning_text;
+
     if (isMistral && Array.isArray(normalized.tool_calls)) {
       normalized.tool_calls = normalized.tool_calls.map((toolCall) => {
         if (!toolCall || typeof toolCall !== 'object' || Array.isArray(toolCall)) {
@@ -304,6 +336,16 @@ export function sanitizeOpenAiBody(
       cleaned[key] = value;
       continue;
     }
+    // xAI and DeepSeek implement `reasoning_effort`; keep it there. Every other
+    // non-passthrough provider gets the OpenAI-only field stripped below.
+    if (key === 'reasoning_effort' && (endpointKey === 'xai' || endpointKey === 'deepseek')) {
+      cleaned[key] = value;
+      continue;
+    }
+    if (OPENAI_ONLY_FIELDS.has(key)) continue;
+    // Ollama's OpenAI-compatible endpoint does not accept the Anthropic-style
+    // `thinking` block; other non-passthrough providers are left to Autofix.
+    if (key === 'thinking' && OLLAMA_ENDPOINTS.has(endpointKey.toLowerCase())) continue;
     if (key === 'max_completion_tokens') {
       // Preserve max_completion_tokens for endpoints that require it; otherwise
       // downconvert to max_tokens for OpenAI-compatible providers that only know

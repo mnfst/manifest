@@ -23,7 +23,7 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('stream_options');
     });
 
-    it('should preserve provider-specific fields for Autofix', () => {
+    it('should strip OpenAI-only fields for non-passthrough providers', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
         model: 'mistral-large',
@@ -40,14 +40,14 @@ describe('provider-client-converters', () => {
 
       const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large');
 
-      expect(result).toHaveProperty('store', true);
-      expect(result).toHaveProperty('metadata', {});
-      expect(result).toHaveProperty('service_tier', 'auto');
-      expect(result).toHaveProperty('stream_options', {});
-      expect(result).toHaveProperty('modalities', ['text']);
-      expect(result).toHaveProperty('audio', {});
-      expect(result).toHaveProperty('prediction', {});
-      expect(result).toHaveProperty('reasoning_effort', 'medium');
+      expect(result).not.toHaveProperty('store');
+      expect(result).not.toHaveProperty('metadata');
+      expect(result).not.toHaveProperty('service_tier');
+      expect(result).not.toHaveProperty('stream_options');
+      expect(result).not.toHaveProperty('modalities');
+      expect(result).not.toHaveProperty('audio');
+      expect(result).not.toHaveProperty('prediction');
+      expect(result).not.toHaveProperty('reasoning_effort');
       expect(result).toHaveProperty('temperature', 0.5);
     });
 
@@ -137,7 +137,7 @@ describe('provider-client-converters', () => {
       expect(result).toHaveProperty('metadata');
     });
 
-    it('should preserve Anthropic-style thinking params for Ollama Autofix', () => {
+    it('should strip Anthropic-style thinking params for Ollama endpoints', () => {
       const body = {
         messages: [{ role: 'user', content: 'Hi' }],
         thinking: { type: 'enabled' },
@@ -148,7 +148,7 @@ describe('provider-client-converters', () => {
       for (const endpointKey of ['ollama', 'ollama-cloud', 'Ollama']) {
         const result = sanitizeOpenAiBody(body, endpointKey, 'qwen3.5:9b-q4_K_M');
 
-        expect(result).toHaveProperty('thinking', { type: 'enabled' });
+        expect(result).not.toHaveProperty('thinking');
         expect(result).toHaveProperty('max_tokens', 4096);
         expect(result).toHaveProperty('temperature', 0.5);
       }
@@ -396,8 +396,8 @@ describe('provider-client-converters', () => {
       const messages = result.messages as any[];
 
       expect(messages[0]).not.toHaveProperty('reasoning_content');
-      expect(messages[0]).toHaveProperty('reasoning', 'plain provider reasoning');
-      expect(messages[0]).toHaveProperty('reasoning_text', 'provider reasoning');
+      expect(messages[0]).not.toHaveProperty('reasoning');
+      expect(messages[0]).not.toHaveProperty('reasoning_text');
     });
 
     it('does not flatten reasoning_details to reasoning_content for compatible tool-call messages', () => {
@@ -423,7 +423,7 @@ describe('provider-client-converters', () => {
       const messages = result.messages as any[];
 
       expect(messages[0]).not.toHaveProperty('reasoning_content');
-      expect(messages[0]).toHaveProperty('reasoning_details', body.messages[0].reasoning_details);
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
     });
 
     it('does not add reasoning_content to strict providers', () => {
@@ -443,7 +443,7 @@ describe('provider-client-converters', () => {
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
-    it('preserves reasoning aliases for strict-provider Autofix', () => {
+    it('strips reasoning aliases for strict providers', () => {
       const body = {
         messages: [
           {
@@ -459,8 +459,8 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'mistral', 'mistral-large');
       const messages = result.messages as any[];
 
-      expect(messages[0]).toHaveProperty('reasoning_text', 'provider reasoning');
-      expect(messages[0]).toHaveProperty('reasoning', 'plain provider reasoning');
+      expect(messages[0]).not.toHaveProperty('reasoning_text');
+      expect(messages[0]).not.toHaveProperty('reasoning');
       expect(messages[0]).not.toHaveProperty('reasoning_content');
     });
 
@@ -484,7 +484,7 @@ describe('provider-client-converters', () => {
 
     /* ── Message shape edge cases ── */
 
-    it('should preserve reasoning_details for non-openrouter providers', () => {
+    it('should strip reasoning_details for non-openrouter providers', () => {
       const body = {
         messages: [
           {
@@ -498,10 +498,10 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'mistral', 'ministral-3b-2512');
       const messages = result.messages as any[];
 
-      expect(messages[0]).toHaveProperty('reasoning_details', body.messages[0].reasoning_details);
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
     });
 
-    it('should preserve reasoning_details for native openai targets', () => {
+    it('should strip reasoning_details for native openai targets', () => {
       const body = {
         messages: [
           {
@@ -515,7 +515,7 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'openai', 'gpt-4o');
       const messages = result.messages as any[];
 
-      expect(messages[0]).toHaveProperty('reasoning_details', body.messages[0].reasoning_details);
+      expect(messages[0]).not.toHaveProperty('reasoning_details');
     });
 
     it('should preserve reasoning_details for openrouter targets', () => {
@@ -1002,7 +1002,7 @@ describe('provider-client-converters', () => {
       expect(result).not.toHaveProperty('max_completion_tokens');
     });
 
-    it('should preserve provider-specific fields for Copilot GPT-5 Autofix', () => {
+    it('should still strip OPENAI_ONLY_FIELDS for Copilot GPT-5', () => {
       const body = {
         messages: [],
         max_tokens: 4096,
@@ -1013,8 +1013,8 @@ describe('provider-client-converters', () => {
       const result = sanitizeOpenAiBody(body, 'copilot', 'gpt-5');
 
       expect(result).toHaveProperty('max_completion_tokens', 4096);
-      expect(result).toHaveProperty('store', true);
-      expect(result).toHaveProperty('service_tier', 'auto');
+      expect(result).not.toHaveProperty('store');
+      expect(result).not.toHaveProperty('service_tier');
     });
   });
 

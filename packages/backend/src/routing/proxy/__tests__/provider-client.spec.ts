@@ -4232,7 +4232,7 @@ describe('ProviderClient', () => {
       temperature: 0.7,
     });
 
-    it('preserves provider-specific fields for Mistral Autofix', async () => {
+    it('strips OpenAI-only fields for Mistral', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
         provider: 'mistral',
@@ -4243,10 +4243,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.store).toBe(false);
-      expect(sentBody.metadata).toEqual({ user: 'test' });
-      expect(sentBody.service_tier).toBe('default');
-      expect(sentBody.stream_options).toEqual({ include_usage: true });
+      expect(sentBody.store).toBeUndefined();
+      expect(sentBody.metadata).toBeUndefined();
+      expect(sentBody.service_tier).toBeUndefined();
+      expect(sentBody.stream_options).toBeUndefined();
       expect(sentBody.messages).toEqual(bodyWithOpenAiFields.messages);
       expect(sentBody.temperature).toBe(0.7);
     });
@@ -4282,7 +4282,7 @@ describe('ProviderClient', () => {
       expect(sentBody.max_completion_tokens).toBeUndefined();
     });
 
-    it('preserves provider-specific fields for DeepSeek Autofix', async () => {
+    it('strips OpenAI-only fields for DeepSeek', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       await client.forward({
         provider: 'deepseek',
@@ -4293,10 +4293,8 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.store).toBe(false);
-      expect(sentBody.metadata).toEqual({ user: 'test' });
-      expect(sentBody.service_tier).toBe('default');
-      expect(sentBody.stream_options).toEqual({ include_usage: true });
+      expect(sentBody.store).toBeUndefined();
+      expect(sentBody.service_tier).toBeUndefined();
     });
 
     it('preserves DeepSeek reasoning_effort in the provider-facing request', async () => {
@@ -4451,7 +4449,7 @@ describe('ProviderClient', () => {
       expect(sentBody.messages[1].reasoning_content).toBe('Detailed internal reasoning');
     });
 
-    it('preserves reasoning_details for Mistral Autofix without mutating the input', async () => {
+    it('strips reasoning_details for Mistral assistant messages without mutating the input', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
 
@@ -4464,15 +4462,13 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_details).toEqual([
-        { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
-      ]);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
       expect(bodyWithReasoningDetails.messages[1].reasoning_details).toEqual([
         { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
       ]);
     });
 
-    it('preserves reasoning_details for native OpenAI Autofix', async () => {
+    it('strips reasoning_details for native OpenAI targets', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
 
@@ -4485,12 +4481,10 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_details).toEqual([
-        { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
-      ]);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
     });
 
-    it('preserves reasoning_details for DeepSeek Autofix', async () => {
+    it('strips reasoning_details for DeepSeek (does not support reasoning_details)', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
       const bodyWithReasoningDetails = makeBodyWithReasoningDetails();
 
@@ -4503,9 +4497,7 @@ describe('ProviderClient', () => {
       });
 
       const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(sentBody.messages[1].reasoning_details).toEqual([
-        { type: 'thinking', thinking: 'add them', signature: 'sig-abc' },
-      ]);
+      expect(sentBody.messages[1].reasoning_details).toBeUndefined();
     });
 
     it('preserves reasoning_details for OpenRouter targets', async () => {
@@ -4797,7 +4789,7 @@ describe('ProviderClient', () => {
       expect(sentBody.stream_options).toEqual({ include_usage: true });
     });
 
-    it('preserves Anthropic-style thinking params for Ollama Autofix', async () => {
+    it('does not forward Anthropic-style thinking params to Ollama endpoints', async () => {
       mockFetch.mockResolvedValue(new Response('{}', { status: 200 }));
 
       for (const provider of ['ollama', 'ollama-cloud']) {
@@ -4815,7 +4807,7 @@ describe('ProviderClient', () => {
         });
 
         const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body);
-        expect(sentBody).toHaveProperty('thinking', { type: 'enabled' });
+        expect(sentBody).not.toHaveProperty('thinking');
         expect(sentBody).toEqual(
           expect.objectContaining({
             model: 'qwen3.5:9b-q4_K_M',
