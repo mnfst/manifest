@@ -369,6 +369,31 @@ describe('kiro-adapter', () => {
     ]);
   });
 
+  it('gives the system prompt its own turn when a tool result has no earlier user turn', () => {
+    const withSystem = buildKiro({
+      messages: [
+        { role: 'system', content: 'You can run commands.' },
+        { role: 'tool', tool_call_id: 'c1', content: 'hi' },
+      ],
+    });
+    expect(withSystem.conversationState.currentMessage.userInputMessage.content).toBe('');
+    expect(withSystem.conversationState.history).toEqual([
+      {
+        userInputMessage: {
+          content: 'System instructions:\nYou can run commands.',
+          origin: 'KIRO_CLI',
+        },
+      },
+      { assistantResponseMessage: { content: '...' } },
+    ]);
+
+    const withoutSystem = buildKiro({
+      messages: [{ role: 'tool', tool_call_id: 'c1', content: 'hi' }],
+    });
+    expect(withoutSystem.conversationState.currentMessage.userInputMessage.content).toBe('');
+    expect(withoutSystem.conversationState.history).toEqual([]);
+  });
+
   it('sanitizes invalid Kiro tool names and restores them on the response', async () => {
     const request = buildKiroChatRequest(
       {

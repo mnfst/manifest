@@ -613,8 +613,14 @@ function buildKiroConversation(body: Record<string, unknown>, model: string): Ki
     // conversation's first user turn to keep delivering it.
     currentMessage.userInputMessage.content = '';
     const firstUser = history.find(isUserMessage);
-    if (systemText && firstUser) {
+    if (firstUser && systemText) {
       firstUser.userInputMessage.content = `System instructions:\n${systemText}\n\nUser:\n${firstUser.userInputMessage.content}`;
+    } else if (!firstUser && systemText) {
+      // No earlier user turn to carry the prompt (a lone tool result). Give it
+      // its own user/assistant pair so it still reaches Kiro without text on the
+      // current turn; the assistant turn keeps the history alternating.
+      history.push(toUserMessage(`System instructions:\n${systemText}`));
+      history.push(toAssistantMessage('...'));
     }
   } else {
     currentMessage.userInputMessage.content = systemText
