@@ -1,3 +1,4 @@
+import { getEmailAssetUrl } from '../../common/utils/dashboard-url';
 import * as React from 'react';
 import {
   Html,
@@ -55,7 +56,7 @@ export function ThresholdAlertEmail(props: ThresholdAlertProps) {
     period,
     timestamp,
     agentUrl,
-    logoUrl = 'https://app.manifest.build/manifest-logo.png',
+    logoUrl = getEmailAssetUrl('manifest-logo.png'),
     alertType = 'hard',
     periodResetDate,
   } = props;

@@ -1,3 +1,4 @@
+import { getEmailAssetUrl } from '../../common/utils/dashboard-url';
 import * as React from 'react';
 import {
   Html,
@@ -17,7 +18,7 @@ interface TestEmailProps {
 }
 
 export function TestEmail(props: TestEmailProps = {}) {
-  const { logoUrl = 'https://app.manifest.build/manifest-logo.png' } = props;
+  const { logoUrl = getEmailAssetUrl('manifest-logo.png') } = props;
   return (
     <Html>
       <Head />
