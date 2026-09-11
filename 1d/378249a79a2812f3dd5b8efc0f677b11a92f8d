@@ -1,0 +1,29 @@
+packages/backend/src/routing/proxy/responses-adapter.ts
+  s_fd3123c0c89da6::t_9a2d0c4cd39c0b 5
+packages/backend/src/routing/proxy/responses-call-ids.ts
+  s_fd3123c0c89da6::t_1f3271ff318ea5 1-72
+packages/backend/src/routing/proxy/chatgpt-adapter.ts
+  s_fd3123c0c89da6::t_a9e3f2fe6ffa46 21,104
+packages/backend/src/routing/proxy/__tests__/chatgpt-request-tools.spec.ts
+  s_fd3123c0c89da6::t_f8876e93b47ac1 159-222,227-240,245-277
+  s_fd3123c0c89da6::t_0824588efde42a 223-226,241-244
+.changeset/responses-duplicate-call-ids-chat.md
+  s_fd3123c0c89da6::t_88b7f8153ec181 2,5
+  s_fd3123c0c89da6::t_f865ebb2526abe 1,3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1d378249a79a2812f3dd5b8efc0f677b11a92f8d",
+  "prompts": {},
+  "sessions": {
+    "s_fd3123c0c89da6": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f7059f0b6ffe8Hgv40TNEnRfnP",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
