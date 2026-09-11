@@ -244,3 +244,17 @@ test('executes Responses API calls with parsed streaming output', async () => {
 		],
 	]);
 });
+
+test('sends requests to the gateway API when no base URL was saved', async () => {
+	const requests = [];
+	const context = executionContext(
+		{ operation: 'listModels' },
+		{ body: '{"data":[]}', headers: { 'content-type': 'application/json' }, statusCode: 200 },
+		requests,
+	);
+	context.getCredentials = async () => ({ apiKey: 'manifest_test_key' });
+
+	await new Manifest().execute.call(context);
+
+	assert.equal(requests[0].url, 'https://gateway.manifest.build/v1/models');
+});
