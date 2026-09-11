@@ -305,6 +305,7 @@ describe('kiro-adapter', () => {
         messages: [{ role: 'user', content: 'go' }],
         tools: [
           { type: 'function', function: { name: 'my.tool', parameters: { type: 'object' } } },
+          { type: 'function', function: { name: '__a..b__', parameters: { type: 'object' } } },
         ],
       },
       'auto',
@@ -319,9 +320,10 @@ describe('kiro-adapter', () => {
     };
 
     expect(
-      request.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools[0]
-        .toolSpecification.name,
-    ).toBe('my_tool');
+      request.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools.map(
+        (tool) => tool.toolSpecification.name,
+      ),
+    ).toEqual(['my_tool', 'a_b']);
 
     const source = streamFrom([
       eventFrame('toolUseEvent', { toolUseId: 'c1', name: 'my_tool', input: '{}', stop: true }),

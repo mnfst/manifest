@@ -20,6 +20,7 @@ const KIRO_TOOL_NAME_MAX_LENGTH = 64;
 const KIRO_TOOL_DESCRIPTION_MAX_LENGTH = 10237;
 const KIRO_TOOL_ID_MAX_LENGTH = 64;
 const KIRO_TOOL_NAME_ILLEGAL = /[^a-zA-Z0-9_-]/g;
+const KIRO_TOOL_NAME_ALLOWED = /^[a-zA-Z0-9_-]$/;
 const KIRO_TOOL_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
 
 export function buildKiroHeaders(apiKey: string, target: string): Record<string, string> {
@@ -253,13 +254,34 @@ function normalizeToolSchema(schema: unknown): Record<string, unknown> {
   return cleaned;
 }
 
+/**
+ * Normalize a caller tool name to Kiro's `[A-Za-z0-9_-]+` alphabet in one
+ * linear pass. The obvious regex chain (`_+` with anchored alternatives) is a
+ * polynomial-time match on adversarial input, which CodeQL flags.
+ */
+function sanitizeToolName(rawName: string): string {
+  const chars: string[] = [];
+  let previousUnderscore = false;
+  for (const char of rawName.trim()) {
+    const sanitized = KIRO_TOOL_NAME_ALLOWED.test(char) ? char : '_';
+    if (sanitized === '_') {
+      if (previousUnderscore) continue;
+      previousUnderscore = true;
+    } else {
+      previousUnderscore = false;
+    }
+    chars.push(sanitized);
+  }
+
+  let start = 0;
+  let end = chars.length;
+  while (start < end && chars[start] === '_') start += 1;
+  while (end > start && chars[end - 1] === '_') end -= 1;
+  return chars.slice(start, end).join('');
+}
+
 function uniqueToolName(rawName: string, used: Set<string>): string {
-  const cleaned = rawName
-    .trim()
-    .replace(KIRO_TOOL_NAME_ILLEGAL, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '');
-  const base = trimToLength(cleaned || 'tool', KIRO_TOOL_NAME_MAX_LENGTH);
+  const base = trimToLength(sanitizeToolName(rawName) || 'tool', KIRO_TOOL_NAME_MAX_LENGTH);
   let candidate = base;
   let suffix = 2;
   while (used.has(candidate)) {
