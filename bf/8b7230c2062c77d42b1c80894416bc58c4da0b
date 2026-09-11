@@ -1,0 +1,22 @@
+packages/backend/src/routing/proxy/anthropic-adapter.ts
+  s_8c5348260910a5::t_eae61cdc4a24fb 302
+packages/backend/src/routing/proxy/__tests__/anthropic-adapter.spec.ts
+  s_8c5348260910a5::t_c994cd43398c62 462-515
+  s_8c5348260910a5::t_887b0e303c7d97 2391-2404
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bf8b7230c2062c77d42b1c80894416bc58c4da0b",
+  "prompts": {},
+  "sessions": {
+    "s_8c5348260910a5": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6e25a639ffeldWh1Hff0Fvtk7",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
