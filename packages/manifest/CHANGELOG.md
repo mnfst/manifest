@@ -1,5 +1,13 @@
 # manifest
 
+## 6.23.2
+
+### Patch Changes
+
+- 6b0bbc9: Fix DeepSeek thinking-mode 400s by replaying `reasoning_content` under the scoped session key and covering non-tool assistant turns in tool conversations.
+- 340628f: Give repeated tool call ids unique values when converting a Chat Completions request to Responses, so reused ids no longer trip a strict Responses provider's "Duplicate function_call_output for call_id".
+- 922fefd: Give repeated tool call ids unique values before forwarding a Responses history, so strict Responses providers stop rejecting resubmitted turns with "Duplicate function_call_output for call_id".
+
 ## 6.23.1
 
 ### Patch Changes
