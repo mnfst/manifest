@@ -1,0 +1,73 @@
+packages/backend/src/common/guards/api-key.guard.ts
+  s_c03dc0ae96aac3::t_5397e24e9ab24f 56-66,87-91,101-102
+packages/backend/src/auth/cli-auth.service.spec.ts
+  s_c03dc0ae96aac3::t_e52bf4eb359124 29,50,55,62-63,74-86,89-93,103,105-106,117,124-160,166,173-174,182-185,193,195
+  s_c03dc0ae96aac3::t_551f5fe5d6f5fc 3,6-8,25-27,30-43
+packages/backend/src/entities/cli-auth-code.entity.ts
+  s_c03dc0ae96aac3::t_c196367d6cbf84 23-34
+packages/frontend/tests/pages/CliAuth.test.tsx
+  s_c03dc0ae96aac3::t_302411949a42f1 22-27
+  s_c03dc0ae96aac3::t_e40f4ef27dadf7 72
+  s_c03dc0ae96aac3::t_0b0cf357f2b6a7 121-138,151-155
+packages/backend/src/database/migrations/1801730000000-AddCliAuthCodeChallenge.ts
+  s_c03dc0ae96aac3::t_4b560fc4517f77 1-39
+packages/backend/src/auth/cli-auth.service.ts
+  s_c03dc0ae96aac3::t_c26382cc62131e 50-58,72-73,81-85,91-99,105,109-113,123
+  s_c03dc0ae96aac3::t_25676c34b603bb 5
+  s_c03dc0ae96aac3::t_f7028ea49b78d4 22-33
+packages/backend/src/config/app.config.ts
+  s_c03dc0ae96aac3::t_0124fd218dfe6b 91-95
+packages/cli/src/oauth-login.ts
+  s_c03dc0ae96aac3::t_de3ddac3b0ee03 63-67,74
+  s_c03dc0ae96aac3::t_fd58f1a52d39f2 3,11-14
+  s_c03dc0ae96aac3::t_0f0a1f911985ef 130
+  s_c03dc0ae96aac3::t_c4b07ed3ff2166 15
+packages/frontend/src/pages/CliAuth.tsx
+  s_c03dc0ae96aac3::t_fbdc3b1357163f 39-46,48,54-55,59,61,67-71
+  s_c03dc0ae96aac3::t_a8f77d22c8bb82 118-119
+  s_c03dc0ae96aac3::t_22c72848d0c2b2 8-10
+packages/backend/src/config/app.config.spec.ts
+  s_c03dc0ae96aac3::t_66d0d51c9194aa 153-173
+packages/backend/src/entities/api-key.entity.ts
+  s_c03dc0ae96aac3::t_ce334916499277 39-46
+packages/backend/src/database/migrations/1801730000000-AddCliAuthCodeChallenge.spec.ts
+  s_c03dc0ae96aac3::t_7193338a189195 1-48
+packages/backend/src/database/data-source-definitions.ts
+  s_c03dc0ae96aac3::t_c7200538697d80 45-46
+  s_c03dc0ae96aac3::t_eab3ae2c7a62cd 331-332
+packages/backend/src/database/migrations/1801740000000-AddApiKeyAbsoluteExpiresAt.ts
+  s_c03dc0ae96aac3::t_c0251ccc08bf0e 1-31
+packages/backend/src/common/guards/api-key.guard.spec.ts
+  s_c03dc0ae96aac3::t_93c246ae94f0d5 418-471
+packages/backend/.env.example
+  s_c03dc0ae96aac3::t_87d3e14a935fc5 52
+packages/cli/src/oauth-login.spec.ts
+  s_c03dc0ae96aac3::t_17d951bef8e111 3
+  s_c03dc0ae96aac3::t_7950d5ac8b03af 37-40,43-44,49-63
+packages/backend/src/auth/cli-auth.controller.ts
+  s_c03dc0ae96aac3::t_ffeba06e92836f 61
+  s_c03dc0ae96aac3::t_7322cf67796869 3,10,16-24,37-40
+  s_c03dc0ae96aac3::t_a640834eecc792 62-66,78
+packages/backend/test/cli-auth.e2e-spec.ts
+  s_c03dc0ae96aac3::t_b19732cd6a8be0 6,10,15,30,48,65,69-86,93,97,105,109,127,136,140-145,149-153,157,165
+packages/backend/src/database/migrations/1801740000000-AddApiKeyAbsoluteExpiresAt.spec.ts
+  s_c03dc0ae96aac3::t_1c1236a539edcb 1-46
+packages/backend/src/auth/cli-auth.controller.spec.ts
+  s_c03dc0ae96aac3::t_7536b6d8bd4adf 16-18,24,32-33,41,52,59,62-66,68-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "298b316f63a66036ccb8f7f6969d5e4b631e7e88",
+  "prompts": {},
+  "sessions": {
+    "s_c03dc0ae96aac3": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68d31b96ffeZq8O7BCNwR3dk1",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
