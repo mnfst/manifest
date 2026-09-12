@@ -101,8 +101,17 @@ const COHORT_SQL = `
  *
  * Domain rules are deliberately *not* in this SQL. They live in
  * crm-metrics.filters.ts so one list governs every consumer and stays under
- * test; the cost of returning all ~7k tenants and filtering in TypeScript is
- * under 100ms, because the per-tenant probe is what dominates either way.
+ * test; the cost of returning all ~8k users and filtering in TypeScript is
+ * one probe each, which measured 59-93ms warm and 999ms cold against
+ * production. That worst case still fits the 1.5s budget, but the margin is
+ * the reason this stays one probe per row and never an aggregate.
+ *
+ * The join to `tenants` must stay LEFT. Tenants are created lazily on first
+ * agent creation, so a user who signed up and never built anything has no
+ * tenant row at all — 1,274 verified users in production, 144 of them on
+ * corporate domains. An inner join drops exactly the people this feed exists
+ * to find. With no tenant the lateral matches nothing, which is the correct
+ * answer: `last_request_at` null, `has_traffic` false.
  */
 const SIGNUPS_SQL = `
   WITH signups AS MATERIALIZED (
@@ -111,7 +120,7 @@ const SIGNUPS_SQL = `
            u."createdAt"    AS signed_up_at,
            t.id             AS tenant_id
     FROM "user" u
-    JOIN tenants t ON t.owner_user_id = u.id
+    LEFT JOIN tenants t ON t.owner_user_id = u.id
     WHERE u."emailVerified" = true
       AND u."createdAt" > $1
   )

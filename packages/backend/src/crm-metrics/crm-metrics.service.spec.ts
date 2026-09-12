@@ -563,6 +563,20 @@ describe('CrmMetricsService', () => {
       ]);
     });
 
+    it('keeps a verified user who never created a tenant', async () => {
+      // Tenants are created lazily on first agent creation, so someone who
+      // signed up and never built anything has no tenant row. They are exactly
+      // who this feed is for, and an inner join would drop them: 1,274 verified
+      // users in production, 144 of them corporate.
+      setup({ signups: [signupRow({ last_request_at: null })] });
+
+      const [signup] = await service.getCorporateSignups(365, NOW);
+
+      expect(signup.has_traffic).toBe(false);
+      expect(signup.last_request_at).toBeNull();
+      expect(sqlFor('WITH signups AS MATERIALIZED')).toContain('LEFT JOIN tenants t');
+    });
+
     it('marks a tenant that has sent a request', async () => {
       setup({ signups: [signupRow({ last_request_at: '2026-09-01T08:00:00.000Z' })] });
 

@@ -43,9 +43,15 @@ export class InternalCrmMetricsController {
   private static readonly DEFAULT_COHORT_DAYS = 7;
   private static readonly DEFAULT_CLAIM_DAYS = 90;
   /**
-   * The full history, because the signup campaign emails each person once ever
-   * and remembers who via the CRM rather than via a window. A shorter default
-   * would strand anyone a late or failed run skipped.
+   * The widest window `CrmMetricsQueryDto` allows, which today is every signup
+   * ever (the first one is from February 2026).
+   *
+   * Wide on purpose: the signup campaign emails each person once ever and
+   * remembers who in the CRM rather than via a window, so a narrow default
+   * would strand anyone a late or failed run skipped. Once Manifest is more
+   * than a year old this stops being the full history, and someone who was
+   * never successfully contacted before ageing out would be missed. Raise the
+   * DTO cap then rather than assuming this number still means "everyone".
    */
   private static readonly DEFAULT_SIGNUP_DAYS = 365;
 
