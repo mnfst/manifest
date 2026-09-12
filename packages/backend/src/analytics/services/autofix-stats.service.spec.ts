@@ -50,9 +50,6 @@ describe('AutofixStatsService', () => {
   };
   const requestVolume = {
     getDispositionTimeseries: jest.fn().mockResolvedValue([]),
-    getDispositionTotals: jest
-      .fn()
-      .mockResolvedValue({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 }),
     getDispositionTotalsForWindows: jest.fn().mockResolvedValue({
       current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
       previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
@@ -68,13 +65,6 @@ describe('AutofixStatsService', () => {
     messageRepo.createQueryBuilder.mockReset();
     autofix.resolveEnabled.mockImplementation((stored: boolean | null) => stored ?? true);
     requestVolume.getDispositionTimeseries.mockResolvedValue([]);
-    requestVolume.getDispositionTotals.mockResolvedValue({
-      total: 0,
-      success: 0,
-      healed: 0,
-      fallback: 0,
-      error: 0,
-    });
     requestVolume.getDispositionTotalsForWindows.mockResolvedValue({
       current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
       previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
@@ -245,6 +235,7 @@ describe('AutofixStatsService', () => {
       dispositions: { healed: 2, no_fix_found: 2, resolving: 0, ineffective: 0 },
       needs_attention: [{ error_message: 'bad' }],
     });
+    expect(requestVolume.getDispositionTotalsForWindows).toHaveBeenCalledTimes(1);
     expect(requestVolume.getDispositionTotalsForWindows).toHaveBeenCalledWith({
       tenantId: 'tenant',
       from: expect.any(String),

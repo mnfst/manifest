@@ -217,50 +217,14 @@ export class RequestVolumeService {
   }
 
   /**
-   * Request-level disposition totals over an explicit [from, to) window: the
-   * SINGLE definition behind the KPI cards, the Recovered tab count and the
-   * By request status chart. One request, one disposition.
-   */
-  async getDispositionTotals(params: {
-    tenantId: string | null;
-    from: string;
-    to?: string;
-    agentName?: string;
-  }): Promise<DispositionTotals> {
-    const empty = { total: 0, success: 0, healed: 0, fallback: 0, error: 0 };
-    if (!params.tenantId) return empty;
-    const sqlParams: unknown[] = [params.tenantId, params.from];
-    if (params.to) sqlParams.push(params.to);
-    if (params.agentName) sqlParams.push(params.agentName);
-    const sql = `${this.terminalCte(params.agentName, !!params.to)}
-      SELECT ${DISPOSITION_EXPR} AS dim, COUNT(*)::int AS count
-      FROM terminal t
-      GROUP BY 1`;
-    const rows = (await this.messageRepo.query(sql, sqlParams)) as Array<{
-      dim: string;
-      count: number;
-    }>;
-    const totals = { ...empty };
-    for (const r of rows) {
-      const n = Number(r.count);
-      totals.total += n;
-      if (r.dim === 'success') totals.success += n;
-      else if (r.dim === 'healed') totals.healed += n;
-      else if (r.dim === 'fallback') totals.fallback += n;
-      else totals.error += n;
-    }
-    return totals;
-  }
-
-  /**
-   * Current + previous disposition totals from ONE terminal-CTE scan.
+   * Request-level disposition totals for the current and previous window from
+   * ONE terminal-CTE scan.
    *
-   * The harness Overview's KPI card reports the current window and needs the
-   * previous window only for the trend arrow. Calling {@link getDispositionTotals}
-   * twice scans the same request/attempt window twice; this scans `[from, to)`
-   * once and splits the counts at `splitAt` with FILTER aggregates. Same
-   * terminal reduction as {@link getDispositionTotals}, so both windows still
-   * cover the identical request universe.
+   * The KPI cards report the current window and need the previous window only
+   * for the trend arrow. Scanning `[from, to)` once and splitting the counts at
+   * `splitAt` with FILTER aggregates replaces two scans of the same
+   * request/attempt window. The terminal reduction is the same one the By
+   * request status chart uses, so both windows cover the identical universe.
    */
   async getDispositionTotalsForWindows(params: {
     tenantId: string | null;
