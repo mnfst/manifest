@@ -40,7 +40,11 @@ export async function agentConfigure(io: CliIo, argv: string[]): Promise<void> {
   });
   const agent = slugifyAgentName(requirePositional(args, 0, '<agent-name>'));
 
-  const wantsRoute = Boolean(args.strings['models'] || args.strings['provider']);
+  const wantsRoute =
+    args.strings['models'] !== undefined ||
+    args.strings['provider'] !== undefined ||
+    args.strings['auth-type'] !== undefined ||
+    args.strings['key-label'] !== undefined;
   const wantsAutofix = args.strings['autofix'] !== undefined;
   const wantsRecording = args.strings['recording'] !== undefined;
   if (!wantsRoute && !wantsAutofix && !wantsRecording) {
@@ -49,8 +53,11 @@ export async function agentConfigure(io: CliIo, argv: string[]): Promise<void> {
       'Nothing to configure — pass --models + --provider, --autofix, and/or --recording',
     );
   }
-  if (args.strings['tier'] && !wantsRoute) {
+  if (args.strings['tier'] !== undefined && !wantsRoute) {
     throw new CliError('missing_flag', '--tier needs --models and --provider');
+  }
+  if (args.strings['tier'] === '') {
+    throw new CliError('missing_flag', '--tier must name a custom tier');
   }
 
   const { client } = clientFromFlags(io, args);

@@ -29,11 +29,11 @@ printf '%s' "$MY_KEY" | mnfst login --token-stdin --url http://localhost:2099
 # or: mnfst login --token-env MY_KEY --url http://localhost:2099
 
 mnfst whoami
-mnfst agent create --name coding-assistant --key-file ./coding-assistant.key
-mnfst provider connect --provider openai --agent coding-assistant --credential-env OPENAI_API_KEY
-mnfst routing tier set coding-assistant --tier default --model gpt-4o-mini --provider openai
-mnfst routing status coding-assistant
-mnfst overview --range 7d
+mnfst agent create --name coding-assistant --platform openclaw --category coding --if-absent
+mnfst provider connect xai --auth-type api_key --credential-env XAI_API_KEY
+mnfst agent configure coding-assistant --models grok-4.5,grok-4 --provider xai
+mnfst routing test coding-assistant
+mnfst requests get --agent coding-assistant --range 7d
 ```
 
 Credentials resolve as: `MANIFEST_API_KEY` env var → the stored credential whose origin
@@ -42,11 +42,12 @@ stored for one host is never sent to another. Config lives at
 `~/.config/manifest/config.json` (mode `0600`).
 
 Browser login runs a one-shot loopback listener on `127.0.0.1`, sends the browser to
-`/cli/auth?port=…&state=…`, and exchanges the returned one-time code for a token over a
-direct CLI→server call — the token itself never travels through the browser. It needs an
-interactive terminal (`no_tty` otherwise, so scripts get a clear pointer to
-`--token-stdin`). `mnfst logout` revokes the stored token server-side on a best-effort
-basis before deleting it locally, and reports `revoked` in its JSON.
+`/cli/auth?port=…&state=…&code_challenge=…` (PKCE S256), and exchanges the returned
+one-time code plus the verifier for a token over a direct CLI→server call — the token
+itself never travels through the browser. It needs an interactive terminal (`no_tty`
+otherwise, so scripts get a clear pointer to `--token-stdin`). `mnfst logout` revokes the
+stored token server-side on a best-effort basis before deleting it locally, and reports
+`revoked` in its JSON.
 
 Destructive commands (`delete`, `rotate-key`, `disconnect`, `clear`) require `--yes`
 and fail rather than prompt. Run `mnfst --help` for the full command list.
@@ -63,10 +64,12 @@ The CLI sends one anonymous event per command, on by default. The **entire** pay
 | `ok`          | Whether the command exited `0`.                                                                                                                                                                                                   |
 | `duration_ms` | Wall-clock duration, clamped to 0–600000.                                                                                                                                                                                         |
 | `os`          | `darwin`, `linux`, `win32`, or `other`.                                                                                                                                                                                           |
+| `schema_version` | Payload schema version (currently `1`).                                                                                                                                                                                        |
+| `agent_runtime`  | Coarse coding-agent id (for example `claude-code` or `codex`) when a supported agent drives the CLI; omitted otherwise.                                                                                                        |
 
 Nothing else is collected: no arguments, agent or provider names, URLs, hostnames, prompts,
-API keys, tokens, file paths, or IP-derived data. The request is fire-and-forget with a 500 ms
-timeout, and every failure is swallowed.
+API keys, tokens, file paths, or IP-derived data. The last two fields are fixed enums, never
+free text. The request is fire-and-forget with a 500 ms timeout, and every failure is swallowed.
 
 - **Opt out:** `MANIFEST_TELEMETRY_DISABLED=1` (also accepts `true`).
 - **Redirect:** `MANIFEST_CLI_TELEMETRY_ENDPOINT=<url>` overrides the default endpoint

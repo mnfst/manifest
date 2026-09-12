@@ -52,13 +52,20 @@ export async function runCmd(io: CliIo, argv: string[]): Promise<number> {
   const args = parseArgs(argv.slice(0, sep), { strings: ['url', 'agent', 'env'] });
   const agentName = slugifyAgentName(requireString(args, 'agent'));
   const envVar = args.strings['env'] ?? 'MANIFEST_AGENT_KEY';
-  if (!ENV_NAME_RE.test(envVar)) {
-    throw new CliError('invalid_env_name', `Not a valid environment variable name: ${envVar}`);
+  if (!ENV_NAME_RE.test(envVar) || envVar === 'MANIFEST_AGENT_URL') {
+    throw new CliError(
+      'invalid_env_name',
+      `Not a valid --env name: ${envVar}`,
+      'MANIFEST_AGENT_URL is reserved for the proxy URL',
+    );
   }
 
   const resolved = await resolveAgentKey(io, args, agentName);
+  // The child gets the agent key, not the management credential: io.env may
+  // carry MANIFEST_API_KEY (a full-workspace PAT), which must not leak into an
+  // arbitrary child command.
   const childEnv: Record<string, string | undefined> = {
-    ...io.env,
+    ...Object.fromEntries(Object.entries(io.env).filter(([name]) => name !== 'MANIFEST_API_KEY')),
     [envVar]: resolved.key,
     MANIFEST_AGENT_URL: `${resolved.origin}/v1`,
   };

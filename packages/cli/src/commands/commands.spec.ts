@@ -261,7 +261,7 @@ describe('auth commands', () => {
     expect(await run(io, ['login'])).toBe(1);
     expect(io.lastJson()).toMatchObject({
       error: 'login_validation_failed',
-      message: 'stream torn',
+      message: expect.stringContaining('stream torn'),
     });
     const config = JSON.parse(
       fs.readFileSync(path.join(io.configDir, 'manifest', 'config.json'), 'utf8'),

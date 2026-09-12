@@ -20,6 +20,11 @@ export class CreateCliAuthCodes1801710000000 implements MigrationInterface {
     await queryRunner.query(
       `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_cli_auth_codes_code_hash" ON "cli_auth_codes" ("code_hash")`,
     );
+    // Every /cli/authorize sweeps expired rows; without this the sweep is a
+    // full-table scan once abandoned logins accumulate.
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "IDX_cli_auth_codes_expires_at" ON "cli_auth_codes" ("expires_at")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

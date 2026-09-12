@@ -81,14 +81,17 @@ export class ApiKeyGuard implements CanActivate {
         };
       }
       (request as Request & { authMethod: string }).authMethod = 'api_key';
-      (request as Request & { apiKeyExpiresAt?: string | null }).apiKeyExpiresAt =
-        found.expires_at ?? null;
       const ttlDays = this.configService.get<number>('app.cliTokenTtlDays', 30);
       const slidExpiryAt = now + ttlDays * 86_400_000;
       const nextExpiryAt =
         absoluteExpiryAt !== null && absoluteExpiryAt < slidExpiryAt
           ? absoluteExpiryAt
           : slidExpiryAt;
+      // Stamp the REFRESHED deadline, not the pre-refresh one, so /me reports
+      // what the next request will actually enforce.
+      (request as Request & { apiKeyExpiresAt?: string | null }).apiKeyExpiresAt = found.expires_at
+        ? toLocalSqlTimestamp(new Date(nextExpiryAt))
+        : null;
       this.apiKeyRepo
         .createQueryBuilder()
         .update(ApiKey)

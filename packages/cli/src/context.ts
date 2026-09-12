@@ -53,7 +53,12 @@ export function getConfig(io: CliIo): CliConfig {
 }
 
 export function resolveFromFlags(io: CliIo, args: ParsedArgs): ResolvedTarget {
-  return resolveTarget(args.strings['url'], io.env, getConfig(io));
+  // An explicit env credential + target needs nothing from the stored config,
+  // so a corrupt config file must not abort scripted commands.
+  const envCredential = io.env['MANIFEST_API_KEY'];
+  const explicitTarget = args.strings['url'] ?? io.env['MANIFEST_URL'];
+  const config = envCredential && explicitTarget ? {} : getConfig(io);
+  return resolveTarget(args.strings['url'], io.env, config);
 }
 
 /** Build an authenticated client, failing closed when no credential resolves. */

@@ -487,7 +487,7 @@ describe('ApiKeyGuard', () => {
     expect(mockSet).toHaveBeenCalledWith({ last_used_at: expect.any(Function) });
   });
 
-  it('attaches apiKeyExpiresAt to the request', async () => {
+  it('attaches the refreshed apiKeyExpiresAt to the request', async () => {
     const rawKey = 'mnfst_pat_live2';
     const expiresAt = new Date(Date.now() + 86_400_000).toISOString();
     mockFind.mockResolvedValueOnce([
@@ -511,7 +511,11 @@ describe('ApiKeyGuard', () => {
     } as unknown as ExecutionContext;
 
     await guard.canActivate(ctx);
-    expect(request.apiKeyExpiresAt).toBe(expiresAt);
+    // /me must report the slid deadline, not the pre-refresh one.
+    expect(request.apiKeyExpiresAt).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+    expect(new Date(request.apiKeyExpiresAt!).getTime()).toBeGreaterThan(
+      new Date(expiresAt).getTime(),
+    );
   });
 
   it('attaches a null apiKeyExpiresAt for non-expiring keys', async () => {

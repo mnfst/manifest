@@ -357,6 +357,7 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
             messages: [{ role: 'user', content: prompt }],
           };
   let response: Response;
+  let text: string;
   try {
     response = await io.fetchImpl(endpoint, {
       method: 'POST',
@@ -369,6 +370,9 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
       body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
+    // Consume the body inside the abort scope so a stalled response cannot
+    // hang the verifier after the timer was cleared.
+    text = await response.text();
   } catch (error) {
     throw new CliError(
       'network_error',
@@ -380,19 +384,32 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
   }
   const durationMs = Date.now() - started;
 
-  const text = await response.text();
   let parsed: Record<string, unknown> = {};
+  let parsedOk = false;
   try {
     const raw: unknown = JSON.parse(text);
-    if (typeof raw === 'object' && raw !== null) parsed = raw as Record<string, unknown>;
+    if (typeof raw === 'object' && raw !== null) {
+      parsed = raw as Record<string, unknown>;
+      parsedOk = true;
+    }
   } catch {
-    /* non-JSON body → generic failure below */
+    /* non-JSON body → handled below */
   }
   if (!response.ok) {
     const err = (parsed['error'] as { message?: string } | undefined)?.message;
     throw new CliError(
       'route_test_failed',
       err ?? `Route test failed with HTTP ${response.status}`,
+      'See mnfst routing status ' + agent,
+      response.status,
+    );
+  }
+  // A 2xx with a non-JSON or empty body is not a verified route; without this
+  // the surface parser returns an empty reply and the test falsely passes.
+  if (!parsedOk) {
+    throw new CliError(
+      'route_test_failed',
+      `Route test got HTTP ${response.status} but no JSON body`,
       'See mnfst routing status ' + agent,
       response.status,
     );

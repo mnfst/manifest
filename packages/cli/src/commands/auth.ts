@@ -21,8 +21,15 @@ export async function login(io: CliIo, argv: string[]): Promise<void> {
   const origin = normalizeOrigin(args.strings['url'] ?? io.env['MANIFEST_URL'] ?? DEFAULT_URL);
   const useStdin = Boolean(args.booleans['token-stdin']);
   const tokenEnv = args.strings['token-env'];
+  if (tokenEnv === '') {
+    throw new CliError(
+      'missing_value',
+      '--token-env requires an environment variable name',
+      'Pass a name, e.g. --token-env MANIFEST_TOKEN',
+    );
+  }
 
-  const viaBrowser = !useStdin && !tokenEnv;
+  const viaBrowser = !useStdin && tokenEnv === undefined;
 
   let token: string;
   let expiresAt: string | null = null;

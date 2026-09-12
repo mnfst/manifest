@@ -64,12 +64,12 @@ describe('CliAuth', () => {
     expect(screen.getByRole('button', { name: /authorize/i })).toBeTruthy();
   });
 
-  it('states the full scope, the 30-day term, and how to revoke', () => {
+  it('states the full scope and how to revoke', () => {
     render(() => <CliAuth />);
     // The informed-consent boundary: understating the grant is a spec failure.
     expect(
       screen.getByText(
-        /full access to your workspace for 30 days \(renewed while you keep using it, up to a fixed maximum\)/i,
+        /full access to your workspace, renewed while you keep using it up to a fixed maximum/i,
       ),
     ).toBeTruthy();
     expect(screen.getByText('mnfst logout')).toBeTruthy();

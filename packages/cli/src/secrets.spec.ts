@@ -20,8 +20,25 @@ describe('key files', () => {
 
   it('refuses a destination whose directory does not exist', () => {
     expect(() => validateKeyFileDestination(path.join(dir, 'missing-dir', 'agent.key'))).toThrow(
-      'Directory does not exist',
+      'Not a directory',
     );
+  });
+
+  it('refuses a destination whose parent is a regular file', () => {
+    const file = path.join(dir, 'not-a-dir');
+    fs.writeFileSync(file, 'x');
+    expect(() => validateKeyFileDestination(path.join(file, 'agent.key'))).toThrow(
+      'Not a directory',
+    );
+  });
+
+  it('refuses to write when the destination appeared after validation', () => {
+    const target = path.join(dir, 'raced.key');
+    validateKeyFileDestination(target);
+    // Another process creates the file between validation and write.
+    fs.writeFileSync(target, 'someone-else');
+    expect(() => writeKeyFile(target, 'mnfst_super_secret')).toThrow();
+    expect(fs.readFileSync(target, 'utf8')).toBe('someone-else');
   });
 
   it('writes the secret with mode 0600', () => {

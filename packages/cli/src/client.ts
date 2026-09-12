@@ -32,9 +32,8 @@ export class ApiClient {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
 
-    let response: Response;
     try {
-      response = await this.opts.fetchImpl(url.toString(), {
+      const response = await this.opts.fetchImpl(url.toString(), {
         method,
         headers: {
           'X-API-Key': this.opts.apiKey,
@@ -44,7 +43,24 @@ export class ApiClient {
         ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
         signal: controller.signal,
       });
+      // Read the body inside the abort scope too: a server that sends headers
+      // then stalls would otherwise hang forever after the timer was cleared.
+      const text = await response.text();
+      let parsed: unknown = null;
+      if (text) {
+        try {
+          parsed = JSON.parse(text);
+        } catch {
+          parsed = null;
+        }
+      }
+
+      if (!response.ok) {
+        throw this.toError(response.status, parsed);
+      }
+      return parsed;
     } catch (error) {
+      if (error instanceof CliError) throw error;
       throw new CliError(
         'network_error',
         `Could not reach ${this.opts.origin}: ${error instanceof Error ? error.message : String(error)}`,
@@ -53,35 +69,26 @@ export class ApiClient {
     } finally {
       clearTimeout(timeout);
     }
-
-    const text = await response.text();
-    let parsed: unknown = null;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = null;
-      }
-    }
-
-    if (!response.ok) {
-      throw this.toError(response.status, parsed);
-    }
-    return parsed;
   }
 
   private toError(status: number, body: unknown): CliError {
     const record =
       typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
+    // The server echoes request context in some errors. Make sure our own
+    // credential can never ride back out through an error message.
+    const redact = (value: string): string =>
+      this.opts.apiKey ? value.replaceAll(this.opts.apiKey, '[REDACTED]') : value;
     // Nest error shape: { statusCode, message: string | string[], error }
     const rawMessage = record['message'];
-    const message = Array.isArray(rawMessage)
-      ? rawMessage.join('; ')
-      : typeof rawMessage === 'string'
-        ? rawMessage
-        : `Request failed with HTTP ${status}`;
+    const message = redact(
+      Array.isArray(rawMessage)
+        ? rawMessage.join('; ')
+        : typeof rawMessage === 'string'
+          ? rawMessage
+          : `Request failed with HTTP ${status}`,
+    );
     const code =
-      typeof record['error'] === 'string' ? slugify(record['error'] as string) : 'http_error';
+      typeof record['error'] === 'string' ? slugify(redact(record['error'])) : 'http_error';
     const hint =
       status === 401
         ? 'Run mnfst login, or set MANIFEST_API_KEY'

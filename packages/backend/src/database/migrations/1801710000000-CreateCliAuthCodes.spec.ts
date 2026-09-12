@@ -25,6 +25,9 @@ describe('CreateCliAuthCodes1801710000000', () => {
     expect(queries).toContain(
       `CREATE UNIQUE INDEX IF NOT EXISTS "IDX_cli_auth_codes_code_hash" ON "cli_auth_codes" ("code_hash")`,
     );
+    expect(queries).toContain(
+      `CREATE INDEX IF NOT EXISTS "IDX_cli_auth_codes_expires_at" ON "cli_auth_codes" ("expires_at")`,
+    );
   });
 
   it('up creates naive timestamp columns', async () => {

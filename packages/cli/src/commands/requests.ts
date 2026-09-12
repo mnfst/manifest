@@ -56,8 +56,12 @@ export async function requestsGet(io: CliIo, argv: string[]): Promise<void> {
   });
   let limit: number | undefined;
   if (args.strings['limit'] !== undefined) {
-    limit = Number.parseInt(args.strings['limit'], 10);
-    if (!Number.isInteger(limit) || limit < 1 || limit > 200) {
+    // Digits only: parseInt would silently truncate "2.5" or accept "2abc".
+    if (!/^\d+$/.test(args.strings['limit'])) {
+      throw new CliError('invalid_flag', '--limit must be an integer between 1 and 200');
+    }
+    limit = Number(args.strings['limit']);
+    if (limit < 1 || limit > 200) {
       throw new CliError('invalid_flag', '--limit must be an integer between 1 and 200');
     }
   }

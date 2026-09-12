@@ -86,7 +86,18 @@ export async function browserLogin(
         );
       }, timeoutMs);
       server.on('request', (req, res) => {
-        const url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+        let url: URL;
+        try {
+          url = new URL(req.url ?? '/', `http://127.0.0.1:${port}`);
+        } catch {
+          // A malformed request from any local process must not throw out of
+          // the handler (that would crash the login); answer and keep waiting.
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(FAILURE_HTML);
+          return;
+        }
         const gotCode = url.searchParams.get('code');
         if (url.pathname !== '/callback' || url.searchParams.get('state') !== state || !gotCode) {
           res.statusCode = 400;
@@ -123,6 +134,7 @@ export async function browserLogin(
   const controller = new AbortController();
   const exchangeTimer = setTimeout(() => controller.abort(), exchangeTimeoutMs);
   let response: Response;
+  let text: string;
   try {
     response = await io.fetchImpl(`${origin}/api/v1/cli/token`, {
       method: 'POST',
@@ -130,6 +142,9 @@ export async function browserLogin(
       body: JSON.stringify({ code, state, code_verifier: codeVerifier }),
       signal: controller.signal,
     });
+    // Consume the body inside the abort scope: a server that sends headers then
+    // stalls must not hang the CLI holding a code that is about to expire.
+    text = await response.text();
   } catch (error) {
     throw new CliError(
       'network_error',
@@ -139,7 +154,6 @@ export async function browserLogin(
   } finally {
     clearTimeout(exchangeTimer);
   }
-  const text = await response.text();
   let parsed: Record<string, unknown> = {};
   try {
     parsed = JSON.parse(text) as Record<string, unknown>;

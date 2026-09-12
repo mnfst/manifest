@@ -983,7 +983,7 @@ describe('AgentKeyAuthGuard', () => {
       const { ctx } = makeContext({ authorization: `Bearer ${token}` });
       await expect(guard.canActivate(ctx)).resolves.toBe(true); // warms the shared cache
 
-      const rotatePathInstance = createGuard(); // a different instance, as in production
+      const rotatePathInstance = new AgentKeyAuthGuard(buildMockRepo(), createMockConfig()); // a different instance, as in production
       firstGetMany.mockResolvedValue([]); // rotation deleted the row
       rotatePathInstance.invalidateCache(token); // rotate clears via the OTHER instance
 

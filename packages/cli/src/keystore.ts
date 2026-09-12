@@ -21,7 +21,13 @@ export function agentKeyPath(env: Env, origin: string, agentName: string): strin
 
 export function saveAgentKey(env: Env, origin: string, agentName: string, key: string): string {
   const filePath = agentKeyPath(env, origin, agentName);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true, mode: 0o700 });
+  const originDir = path.dirname(filePath);
+  const keysDir = path.dirname(originDir);
+  fs.mkdirSync(originDir, { recursive: true, mode: 0o700 });
+  // mkdirSync only applies mode on create, so an existing directory created
+  // with broader permissions would keep them. Enforce the 0700 boundary.
+  fs.chmodSync(keysDir, 0o700);
+  fs.chmodSync(originDir, 0o700);
   fs.writeFileSync(filePath, key, { mode: 0o600 });
   // writeFileSync only applies mode on create — enforce on rewrite too.
   fs.chmodSync(filePath, 0o600);

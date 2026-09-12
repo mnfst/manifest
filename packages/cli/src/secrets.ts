@@ -17,11 +17,11 @@ export function validateKeyFileDestination(keyFile: string): string {
     );
   }
   const dir = path.dirname(absolute);
-  if (!fs.existsSync(dir)) {
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) {
     throw new CliError(
       'key_file_dir_missing',
-      `Directory does not exist: ${dir}`,
-      'Create it first',
+      `Not a directory: ${dir}`,
+      'Create the directory first',
     );
   }
   return absolute;
@@ -29,7 +29,9 @@ export function validateKeyFileDestination(keyFile: string): string {
 
 /** Write a raw secret to disk with mode 0600. Callers print only the path + prefix. */
 export function writeKeyFile(absolutePath: string, secret: string): void {
-  fs.writeFileSync(absolutePath, secret, { mode: 0o600 });
+  // `wx` fails instead of following/overwriting a path that appeared (or was
+  // swapped) after validation, so the fresh key can never clobber a file.
+  fs.writeFileSync(absolutePath, secret, { mode: 0o600, flag: 'wx' });
 }
 
 export function keyPrefixOf(secret: string): string {

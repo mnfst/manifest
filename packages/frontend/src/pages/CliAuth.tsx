@@ -5,8 +5,8 @@ import { fetchMutate } from '../services/api/core.js';
 
 /** Mirrors the backend's `state` contract on POST /api/v1/cli/authorize. */
 const STATE_RE = /^[A-Za-z0-9_-]{16,128}$/;
-/** Mirrors the backend's PKCE `code_challenge` contract. */
-const CODE_CHALLENGE_RE = /^[A-Za-z0-9_-]{43,128}$/;
+/** Mirrors the backend's PKCE `code_challenge` contract (S256 output is 43 chars). */
+const CODE_CHALLENGE_RE = /^[A-Za-z0-9_-]{43}$/;
 const CHALLENGE_METHOD = 'S256';
 /** The CLI listens on an ephemeral unprivileged loopback port. */
 const PORT_RE = /^\d{1,5}$/;
@@ -114,9 +114,9 @@ const CliAuth: Component = () => {
                 <div class="auth-header">
                   <h1 class="auth-header__title">Authorize the Manifest CLI?</h1>
                   <p class="auth-header__subtitle">
-                    This grants the CLI on this machine full access to your workspace for 30 days
-                    (renewed while you keep using it, up to a fixed maximum). Revoke it any time by
-                    running <code>mnfst logout</code>.
+                    This grants the CLI on this machine full access to your workspace, renewed while
+                    you keep using it up to a fixed maximum. Revoke it any time by running{' '}
+                    <code>mnfst logout</code>.
                   </p>
                 </div>
                 {/* .auth-form is the column that stretches the submit button edge

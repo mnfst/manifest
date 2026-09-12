@@ -41,6 +41,7 @@ export class CliAuthCode {
   @Column(timestampType(), { default: timestampDefault() })
   created_at!: string;
 
+  @Index()
   @Column(timestampType())
   expires_at!: string;
 }

@@ -14,9 +14,11 @@ class AuthorizeDto {
   @Matches(/^[A-Za-z0-9_-]{16,128}$/, { message: STATE_MESSAGE })
   state!: string;
 
-  /** PKCE S256 challenge: base64url(SHA-256(verifier)), 43 chars. */
+  /** PKCE S256 challenge: base64url(SHA-256(verifier)), always exactly 43 chars. */
   @IsString()
-  @Matches(/^[A-Za-z0-9_-]{43,128}$/, { message: `code_challenge ${PKCE_MESSAGE}` })
+  @Matches(/^[A-Za-z0-9_-]{43}$/, {
+    message: 'code_challenge must be exactly 43 URL-safe characters (S256 output)',
+  })
   code_challenge!: string;
 
   @IsOptional()

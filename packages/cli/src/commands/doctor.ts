@@ -75,7 +75,12 @@ export async function doctor(io: CliIo, argv: string[]): Promise<number> {
   const healthUrl = `${target.origin}/api/v1/health`;
   let hostOk = false;
   try {
-    const response = await io.fetchImpl(healthUrl, { method: 'GET' });
+    const response = await io.fetchImpl(healthUrl, {
+      method: 'GET',
+      // Bound the probe: a host that accepts the connection then stalls must
+      // not hang doctor forever.
+      signal: AbortSignal.timeout(30_000),
+    });
     const text = await response.text();
     let status: unknown;
     try {

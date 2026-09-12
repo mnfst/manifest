@@ -171,10 +171,12 @@ export async function agentCreate(io: CliIo, argv: string[]): Promise<void> {
         agent: { agent_platform?: string | null } | null;
       };
       const resolved = await resolveAgentKey(io, args, slug);
+      if (keyFile) writeKeyFile(keyFile, resolved.key);
       printJson(io, {
         agent: existing.agent,
         existed: true,
         keyPrefix: keyPrefixOf(resolved.key),
+        ...(keyFile ? { keyFile } : {}),
         keyPath: resolved.path,
         // Same wiring instructions the create path prints — an --if-absent
         // re-run is the idempotent setup path, so it must not be poorer.
@@ -234,8 +236,11 @@ export async function agentUpdate(io: CliIo, argv: string[]): Promise<void> {
       'Nothing to update — pass --name, --category, or --platform',
     );
   }
-  const { client } = clientFromFlags(io, args);
+  const { client, target } = clientFromFlags(io, args);
   const result = await client.request('PATCH', `/agents/${encodeURIComponent(name)}`, { body });
+  // A rename leaves the old cache entry behind. If that name is later reused,
+  // resolveAgentKey would hand back the previous agent's key, so drop it.
+  if (body['name'] !== undefined) deleteAgentKey(io.env, target.origin, name);
   printJson(io, result);
 }
 
