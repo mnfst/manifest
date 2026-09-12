@@ -1,0 +1,82 @@
+packages/cli/src/context.ts
+  s_c03dc0ae96aac3::t_95641c5750dc74 56-61
+packages/frontend/tests/pages/CliAuth.test.tsx
+  s_c03dc0ae96aac3::t_4dda8f8c4b5351 67,72
+packages/cli/src/commands/auth.ts
+  s_c03dc0ae96aac3::t_40fe6fadce10d7 24-30,32
+packages/backend/src/entities/cli-auth-code.entity.ts
+  s_c03dc0ae96aac3::t_58dd33e75bfcec 44
+packages/cli/src/commands/doctor.ts
+  s_c03dc0ae96aac3::t_d75dbd41725dec 78-83
+packages/cli/src/commands/requests.ts
+  s_c03dc0ae96aac3::t_5056c204b3307c 59-64
+packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
+  s_c03dc0ae96aac3::t_2f02af6c673de6 986
+packages/frontend/src/pages/CliAuth.tsx
+  s_c03dc0ae96aac3::t_4870f093ebea9d 117-119
+  s_c03dc0ae96aac3::t_871ae12cfe2e7d 8-9
+packages/cli/src/commands/run.ts
+  s_c03dc0ae96aac3::t_24f440d55f8635 55-60,64-66,68
+packages/backend/src/common/guards/api-key.guard.ts
+  s_c03dc0ae96aac3::t_5c96263b0ecf54 90-93
+  s_c03dc0ae96aac3::t_8918c812aea9ca 94
+packages/cli/README.md
+  s_c03dc0ae96aac3::t_a6d38914c833c2 32-36
+  s_c03dc0ae96aac3::t_fe49f30bd37983 45-50
+  s_c03dc0ae96aac3::t_4948d4833c4e5d 67-68,71-72
+packages/cli/src/secrets.spec.ts
+  s_c03dc0ae96aac3::t_3c24c579efead4 23,27-42
+  s_c03dc0ae96aac3::t_7b624dca679e91 43
+packages/backend/src/database/migrations/1801710000000-CreateCliAuthCodes.spec.ts
+  s_c03dc0ae96aac3::t_490e4f91d0021b 28-30
+packages/backend/src/common/guards/api-key.guard.spec.ts
+  s_c03dc0ae96aac3::t_eed7846e70f0ba 490,514-518
+packages/cli/src/commands/commands.spec.ts
+  s_c03dc0ae96aac3::t_b5ee479bb974c4 264
+packages/cli/src/commands/configure.ts
+  s_c03dc0ae96aac3::t_ec6139101d0c6a 43-47,56,59-60
+  s_28d53427986818::t_8a17aeacd3f43c 61
+packages/cli/src/secrets.ts
+  s_c03dc0ae96aac3::t_a9f68f95af39a7 20,23-24,32-34
+packages/cli/src/keystore.ts
+  s_c03dc0ae96aac3::t_d8bd30ddd55bf6 24-30
+packages/cli/src/client.ts
+  s_c03dc0ae96aac3::t_3eb42936b9aa5b 36,46-61,63,77-80,83-89,91
+packages/cli/src/commands/agent.ts
+  s_c03dc0ae96aac3::t_9ef1f9180cc5d1 174,179
+  s_c03dc0ae96aac3::t_6ac185a546a4f1 239,241-243
+packages/cli/src/commands/routing.ts
+  s_c03dc0ae96aac3::t_4fa2a8dd981a8f 360,373-375,388,391-394,396,407-412
+  s_28d53427986818::t_2ab1d18097dfad 413-416
+packages/cli/src/oauth-login.ts
+  s_c03dc0ae96aac3::t_e55181bb665776 89-100
+  s_c03dc0ae96aac3::t_76fb83f439682e 137,145-147
+packages/backend/src/database/migrations/1801710000000-CreateCliAuthCodes.ts
+  s_c03dc0ae96aac3::t_895ad7a2232077 23-27
+packages/backend/src/auth/cli-auth.controller.ts
+  s_c03dc0ae96aac3::t_3a69b6f22c59f1 17,19-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c89d20023f989eaaab6e068da0ed7e95a3b38195",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c03dc0ae96aac3": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68d31b96ffeZq8O7BCNwR3dk1",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
