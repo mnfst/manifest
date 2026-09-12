@@ -31,3 +31,36 @@ export interface CohortRow {
   first_heal_at: Date | string;
   last_heal_at: Date | string;
 }
+
+/**
+ * One corporate signup: a verified user on an organisation domain.
+ *
+ * Deliberately thinner than `CrmHealedUser`. Per-tenant request aggregates
+ * (error counts, 30-day volume) cost a heap fetch per row and took 22s across
+ * this cohort in production; a single index probe for the latest request is
+ * 93ms and answers the only question the copy branches on — has this person
+ * ever actually used the gateway.
+ */
+export interface CrmCorporateSignup {
+  /** Lowercased primary address. The CRM dedupes people on this. */
+  email: string;
+  /** Display name from the auth record, or null when never set. */
+  name: string | null;
+  /** Lowercased domain part, so the CRM can group people onto a company. */
+  domain: string;
+  signed_up_at: string;
+  /** Null when this tenant has never sent a request. */
+  last_request_at: string | null;
+  /** `last_request_at !== null`, precomputed so template branching is trivial. */
+  has_traffic: boolean;
+  /** Verified signups sharing this domain — the "team behind it" signal. */
+  domain_signups: number;
+}
+
+/** Raw signup row, one per (user, tenant) pair, before filtering. */
+export interface SignupRow {
+  email: string;
+  user_name: string | null;
+  signed_up_at: Date | string;
+  last_request_at: Date | string | null;
+}

@@ -22,11 +22,19 @@ function makeConfig(secret: string | undefined): ConfigService {
 }
 
 describe('InternalCrmMetricsController', () => {
-  let mockService: { getHealedCohort: jest.Mock; getConversions: jest.Mock };
+  let mockService: {
+    getHealedCohort: jest.Mock;
+    getConversions: jest.Mock;
+    getCorporateSignups: jest.Mock;
+  };
   let warn: jest.SpyInstance;
 
   beforeEach(() => {
-    mockService = { getHealedCohort: jest.fn(), getConversions: jest.fn() };
+    mockService = {
+      getHealedCohort: jest.fn(),
+      getConversions: jest.fn(),
+      getCorporateSignups: jest.fn(),
+    };
     warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
     mockedIsSelfHosted.mockReturnValue(false);
   });
@@ -121,6 +129,15 @@ describe('InternalCrmMetricsController', () => {
       expect(mockService.getConversions).not.toHaveBeenCalled();
     });
 
+    it('guards the signups route too', async () => {
+      const controller = makeController(SECRET);
+
+      await expect(controller.signups('nope', IP, {})).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+      expect(mockService.getCorporateSignups).not.toHaveBeenCalled();
+    });
+
     it('logs the source ip of a rejected attempt', async () => {
       await expect(makeController(SECRET).cohort('nope', IP, {})).rejects.toThrow();
 
@@ -160,6 +177,36 @@ describe('InternalCrmMetricsController', () => {
     });
   });
 
+  describe('signups', () => {
+    it('defaults to the full 365 day history', async () => {
+      const signups = [{ email: 'ada@stripe.com' }];
+      mockService.getCorporateSignups.mockResolvedValue(signups);
+
+      const result = await makeController(SECRET).signups(SECRET, IP, {});
+
+      expect(result).toBe(signups);
+      expect(mockService.getCorporateSignups).toHaveBeenCalledWith(365);
+    });
+
+    it('passes an explicit window through', async () => {
+      mockService.getCorporateSignups.mockResolvedValue([]);
+
+      await makeController(SECRET).signups(SECRET, IP, { days: 30 });
+
+      expect(mockService.getCorporateSignups).toHaveBeenCalledWith(30);
+    });
+
+    it('propagates an unavailable index instead of answering with an empty list', async () => {
+      mockService.getCorporateSignups.mockRejectedValue(
+        new ServiceUnavailableException('IDX_requests_tenant_timestamp is missing or invalid'),
+      );
+
+      await expect(makeController(SECRET).signups(SECRET, IP, {})).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+    });
+  });
+
   describe('conversions', () => {
     it('defaults to a 90 day window', async () => {
       const claims = [{ email: 'a@b.com', source: 'cloud', claimed_at: 'x' }];
@@ -192,8 +239,10 @@ describe('InternalCrmMetricsController', () => {
       await expect(controller.conversions(SECRET, IP, {})).rejects.toBeInstanceOf(
         NotFoundException,
       );
+      await expect(controller.signups(SECRET, IP, {})).rejects.toBeInstanceOf(NotFoundException);
       expect(mockService.getHealedCohort).not.toHaveBeenCalled();
       expect(mockService.getConversions).not.toHaveBeenCalled();
+      expect(mockService.getCorporateSignups).not.toHaveBeenCalled();
     });
 
     it('checks the mode before the secret, so it never reveals whether one is set', async () => {

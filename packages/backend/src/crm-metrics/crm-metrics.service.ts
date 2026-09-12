@@ -3,8 +3,19 @@ import { DataSource, QueryRunner } from 'typeorm';
 import { TtlCache } from '../common/utils/ttl-cache';
 import { toLocalSqlTimestamp } from '../common/utils/postgres-sql';
 import { sqlIsSuccessStatus } from '../analytics/services/query-helpers';
-import { isExcludedEmail } from './crm-metrics.filters';
-import type { CohortRow, CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
+import {
+  domainOf,
+  isCorporateSignupEmail,
+  isSignupCluster,
+  isExcludedEmail,
+} from './crm-metrics.filters';
+import type {
+  CohortRow,
+  CrmCorporateSignup,
+  CrmHealedUser,
+  CrmWaitlistClaim,
+  SignupRow,
+} from './crm-metrics.types';
 
 /**
  * Answers on the cheap: the requests Autofix repaired lately, grouped by the
@@ -18,6 +29,13 @@ import type { CohortRow, CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.t
  */
 
 const HEALED_INDEX = 'IDX_requests_autofix_healed';
+
+/**
+ * The signup feed's whole cost model is one index probe per tenant. Without
+ * this index the lateral degrades to a sequential scan of `requests` per row,
+ * which measured 22s and 6.9 GB of reads against production.
+ */
+const TENANT_TIMESTAMP_INDEX = 'IDX_requests_tenant_timestamp';
 
 /**
  * Short on purpose. The cache exists to stop a retrying client from replaying
@@ -73,6 +91,41 @@ const COHORT_SQL = `
   HAVING count(*) FILTER (WHERE r.timestamp > $1) > 0
 `;
 
+/**
+ * Every verified signup in the window, with the timestamp of that tenant's most
+ * recent request.
+ *
+ * `LIMIT 1` on a backward index scan rather than an aggregate: it answers
+ * "have they ever used this, and when last" from the index alone, whereas
+ * `count(*)` or a filtered aggregate must visit the heap for every row.
+ *
+ * Domain rules are deliberately *not* in this SQL. They live in
+ * crm-metrics.filters.ts so one list governs every consumer and stays under
+ * test; the cost of returning all ~7k tenants and filtering in TypeScript is
+ * under 100ms, because the per-tenant probe is what dominates either way.
+ */
+const SIGNUPS_SQL = `
+  WITH signups AS MATERIALIZED (
+    SELECT lower(u.email)   AS email,
+           u.name           AS user_name,
+           u."createdAt"    AS signed_up_at,
+           t.id             AS tenant_id
+    FROM "user" u
+    JOIN tenants t ON t.owner_user_id = u.id
+    WHERE u."emailVerified" = true
+      AND u."createdAt" > $1
+  )
+  SELECT s.email, s.user_name, s.signed_up_at, a.last_request_at
+  FROM signups s
+  LEFT JOIN LATERAL (
+    SELECT r.timestamp AS last_request_at
+    FROM requests r
+    WHERE r.tenant_id = s.tenant_id
+    ORDER BY r.timestamp DESC
+    LIMIT 1
+  ) a ON true
+`;
+
 const CLAIMS_SQL = `
   SELECT email, source, claimed_at
   FROM waitlist_claims
@@ -87,6 +140,10 @@ export class CrmMetricsService {
     ttlMs: CACHE_TTL_MS,
   });
   private readonly claimsCache = new TtlCache<number, CrmWaitlistClaim[]>({
+    maxSize: 8,
+    ttlMs: CACHE_TTL_MS,
+  });
+  private readonly signupsCache = new TtlCache<number, CrmCorporateSignup[]>({
     maxSize: 8,
     ttlMs: CACHE_TTL_MS,
   });
@@ -112,6 +169,35 @@ export class CrmMetricsService {
 
     this.cohortCache.set(days, users);
     return users;
+  }
+
+  /**
+   * Verified signups on organisation domains within `days`, newest first.
+   *
+   * Consumer mailboxes, relays, role addresses and scripted signup clusters are
+   * removed here rather than in the CRM, so every consumer inherits the same
+   * rules.
+   */
+  async getCorporateSignups(days: number, now: Date = new Date()): Promise<CrmCorporateSignup[]> {
+    const cached = this.signupsCache.get(days);
+    if (cached) return cached;
+
+    // `user."createdAt"` is `timestamp WITH time zone`, unlike the naive
+    // `requests.timestamp` the cohort query compares against — so a UTC
+    // boundary is correct here and a local one would be off by the offset.
+    const cutoff = new Date(now.getTime() - days * 86_400_000).toISOString();
+    const signups = await this.withRunner(async (runner) => {
+      const ready = (await runner.query(INDEX_READY_SQL, [TENANT_TIMESTAMP_INDEX])) as unknown[];
+      if (ready.length === 0) {
+        throw new ServiceUnavailableException(
+          `${TENANT_TIMESTAMP_INDEX} is missing or invalid; refusing to run an unindexed scan`,
+        );
+      }
+      return buildSignups((await runner.query(SIGNUPS_SQL, [cutoff])) as SignupRow[]);
+    });
+
+    this.signupsCache.set(days, signups);
+    return signups;
   }
 
   /** Pivot waiting-list claims in the window: who converted, and from where. */
@@ -227,4 +313,52 @@ function buildUsers(merged: Map<string, Merged>): CrmHealedUser[] {
   }));
 
   return users.sort((a, b) => b.healed_recent - a.healed_recent);
+}
+
+/**
+ * Turns raw signup rows into the payload: drop addresses that are not
+ * organisations, drop domains whose signups look scripted, then annotate each
+ * survivor with how many people share its domain.
+ *
+ * Ordered by domain size then recency, so if the CRM ever caps a batch it takes
+ * the strongest team signals first.
+ */
+function buildSignups(rows: SignupRow[]): CrmCorporateSignup[] {
+  const byDomain = new Map<string, CrmCorporateSignup[]>();
+
+  for (const row of rows) {
+    const email = row.email.trim().toLowerCase();
+    if (!isCorporateSignupEmail(email)) continue;
+
+    const lastRequest = row.last_request_at ? new Date(row.last_request_at) : null;
+    const signup: CrmCorporateSignup = {
+      email,
+      name: row.user_name,
+      domain: domainOf(email),
+      signed_up_at: new Date(row.signed_up_at).toISOString(),
+      last_request_at: lastRequest ? lastRequest.toISOString() : null,
+      has_traffic: lastRequest !== null,
+      // Filled in below, once the domain's full membership is known.
+      domain_signups: 0,
+    };
+
+    const bucket = byDomain.get(signup.domain);
+    if (bucket) bucket.push(signup);
+    else byDomain.set(signup.domain, [signup]);
+  }
+
+  const kept: CrmCorporateSignup[] = [];
+  for (const signups of byDomain.values()) {
+    if (isSignupCluster(signups)) continue;
+    for (const signup of signups) {
+      signup.domain_signups = signups.length;
+      kept.push(signup);
+    }
+  }
+
+  return kept.sort(
+    (a, b) =>
+      b.domain_signups - a.domain_signups ||
+      Date.parse(b.signed_up_at) - Date.parse(a.signed_up_at),
+  );
 }

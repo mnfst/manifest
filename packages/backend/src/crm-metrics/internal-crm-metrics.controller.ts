@@ -14,7 +14,7 @@ import { timingSafeCompare } from '../common/utils/crypto.util';
 import { isSelfHosted } from '../common/utils/detect-self-hosted';
 import { CrmMetricsService } from './crm-metrics.service';
 import { CrmMetricsQueryDto } from './dto/crm-metrics-query.dto';
-import type { CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
+import type { CrmCorporateSignup, CrmHealedUser, CrmWaitlistClaim } from './crm-metrics.types';
 
 /**
  * Internal read API for the CRM outreach pipeline.
@@ -42,6 +42,12 @@ export class InternalCrmMetricsController {
   private static readonly MIN_SECRET_LENGTH = 32;
   private static readonly DEFAULT_COHORT_DAYS = 7;
   private static readonly DEFAULT_CLAIM_DAYS = 90;
+  /**
+   * The full history, because the signup campaign emails each person once ever
+   * and remembers who via the CRM rather than via a window. A shorter default
+   * would strand anyone a late or failed run skipped.
+   */
+  private static readonly DEFAULT_SIGNUP_DAYS = 365;
 
   private readonly logger = new Logger(InternalCrmMetricsController.name);
 
@@ -82,6 +88,27 @@ export class InternalCrmMetricsController {
     this.assertSecret(secret, ip);
     return this.service.getHealedCohort(
       query.days ?? InternalCrmMetricsController.DEFAULT_COHORT_DAYS,
+    );
+  }
+
+  /**
+   * Verified signups on organisation domains — the Autofix outreach cohort.
+   *
+   * A corporate address implies a team, and a team calling third-party APIs is
+   * the product's audience whether or not they ever routed an LLM request
+   * through the gateway. `has_traffic` is what the copy branches on.
+   */
+  @Public()
+  @Get('signups')
+  async signups(
+    @Headers('x-internal-secret') secret: string,
+    @Ip() ip: string,
+    @Query() query: CrmMetricsQueryDto,
+  ): Promise<CrmCorporateSignup[]> {
+    this.assertCloud();
+    this.assertSecret(secret, ip);
+    return this.service.getCorporateSignups(
+      query.days ?? InternalCrmMetricsController.DEFAULT_SIGNUP_DAYS,
     );
   }
 
