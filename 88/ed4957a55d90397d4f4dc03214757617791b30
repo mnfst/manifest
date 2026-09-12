@@ -1,0 +1,19 @@
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_28d53427986818::t_d9642dde8ba89f 141-142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "88ed4957a55d90397d4f4dc03214757617791b30",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
