@@ -997,6 +997,27 @@ describe('ProxyService — orchestration', () => {
       const body = await result.forward.response.text();
       expect(body).toContain('M101');
     });
+
+    it('returns M302 when a pinned override names an unavailable model', async () => {
+      resolveService.resolve.mockResolvedValue({
+        tier: 'standard',
+        route: null,
+        fallback_routes: null,
+        confidence: 0,
+        score: 0,
+        reason: 'scored',
+        override_model_unavailable: 'gpt-6-astra',
+      });
+      const result = await svc.proxyRequest(baseOpts());
+      const body = await result.forward.response.text();
+      expect(body).toContain('M302');
+      expect(body).toContain('gpt-6-astra');
+      expect(body).not.toContain('M101');
+      expect(result.meta).toMatchObject({
+        reason: 'model_not_available',
+        manifest_error_code: 'M302',
+      });
+    });
   });
 
   describe('no credentials', () => {
