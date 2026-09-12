@@ -1,0 +1,47 @@
+packages/frontend/tests/pages/Overview.test.tsx
+  s_28d53427986818::t_661d0de18e44c5 17-20,122-123
+  s_28d53427986818::t_066782878dc3f0 361,408-413,423,475,477-478,483-487
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_28d53427986818::t_56463a38c69c56 229,255-281,287-322
+  s_28d53427986818::t_661d0de18e44c5 282-286
+  s_28d53427986818::t_9e977d371d6870 57-65
+  s_28d53427986818::t_7ba715e0c82e96 323-324
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_28d53427986818::t_3a2ead490cef29 379,381-387,390-392
+  s_28d53427986818::t_6f7cc3602e06a8 231,245
+  s_28d53427986818::t_39c84fe8e214da 78-81
+  s_28d53427986818::t_b2e303246687c1 56-59
+  s_28d53427986818::t_9218fc22f30f8d 228-230,232-233,248-254
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_28d53427986818::t_29d3513d679d9c 145-187
+packages/backend/src/analytics/services/autofix-stats.service.ts
+  s_28d53427986818::t_b91e2478b44624 480-482,484
+  s_28d53427986818::t_a312c08f3c583c 203-210,213-214
+  s_28d53427986818::t_e6b1b1a997d0a9 24
+packages/frontend/src/pages/Overview.tsx
+  s_28d53427986818::t_901352fe70d949 555
+  s_28d53427986818::t_4ec262ec64344a 522,534-535,538
+  s_28d53427986818::t_661d0de18e44c5 282-287
+  s_28d53427986818::t_05997e087648fe 412-413
+  s_28d53427986818::t_091a4c6a5d6d0a 115-137
+  s_28d53427986818::t_220db68beedf93 610
+  s_28d53427986818::t_bc17663c61bafb 279-281,288-289,293,297,303-304,310-311,314-315,319-326,333-335,344,361-363
+.changeset/harness-overview-perf.md
+  s_28d53427986818::t_49b22b4a9fd78b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "3e2cd87818544ca63bbd994aed4722af082ad2fa",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
