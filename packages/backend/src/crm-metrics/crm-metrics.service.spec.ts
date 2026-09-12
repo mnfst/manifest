@@ -9,6 +9,7 @@ interface Scripted {
   index?: unknown[];
   cohort?: unknown[];
   claims?: unknown[];
+  signups?: unknown[];
 }
 
 function cohortRow(over: Record<string, unknown> = {}) {
@@ -20,6 +21,16 @@ function cohortRow(over: Record<string, unknown> = {}) {
     healed_all: '1241',
     first_heal_at: '2026-07-30T15:17:31.000Z',
     last_heal_at: '2026-09-04T09:47:30.000Z',
+    ...over,
+  };
+}
+
+function signupRow(over: Record<string, unknown> = {}) {
+  return {
+    email: 'ada@stripe.com',
+    user_name: 'Ada Lovelace',
+    signed_up_at: '2026-08-01T10:00:00.000Z',
+    last_request_at: null,
     ...over,
   };
 }
@@ -39,6 +50,9 @@ describe('CrmMetricsService', () => {
     query = jest.fn().mockImplementation((sql: string) => {
       if (sql.includes('SET LOCAL')) return Promise.resolve([]);
       if (sql.includes('pg_index')) return Promise.resolve(scripted.index ?? []);
+      // Checked before the cohort branch: both queries join `tenants t`.
+      if (sql.includes('WITH signups AS MATERIALIZED'))
+        return Promise.resolve(scripted.signups ?? []);
       if (sql.includes('JOIN tenants t')) return Promise.resolve(scripted.cohort ?? []);
       if (sql.includes('FROM waitlist_claims')) return Promise.resolve(scripted.claims ?? []);
       throw new Error(`unexpected SQL: ${sql}`);
@@ -184,6 +198,7 @@ describe('CrmMetricsService', () => {
 
       await expect(service.getHealedCohort(7)).resolves.toHaveLength(1);
       await expect(service.getConversions(90)).resolves.toEqual([]);
+      await expect(service.getCorporateSignups(365)).resolves.toEqual([]);
 
       const cutoff = paramsFor('JOIN tenants t')[0] as string;
       expect(cutoff).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
@@ -502,6 +517,175 @@ describe('CrmMetricsService', () => {
       const first = await service.getConversions(90, NOW);
       const callsAfterFirst = query.mock.calls.length;
       const second = await service.getConversions(90, NOW);
+
+      expect(second).toBe(first);
+      expect(query.mock.calls).toHaveLength(callsAfterFirst);
+    });
+  });
+
+  describe('getCorporateSignups', () => {
+    it('refuses to run when the tenant/timestamp index is missing', async () => {
+      setup({ index: [] });
+
+      await expect(service.getCorporateSignups(365, NOW)).rejects.toBeInstanceOf(
+        ServiceUnavailableException,
+      );
+      expect(sqlFor('WITH signups AS MATERIALIZED')).toBe('');
+    });
+
+    it('checks for the index the lateral probe depends on', async () => {
+      await service.getCorporateSignups(365, NOW);
+
+      expect(paramsFor('pg_index')).toEqual(['IDX_requests_tenant_timestamp']);
+    });
+
+    it('cuts off on a UTC boundary, matching a timestamptz column', async () => {
+      await service.getCorporateSignups(30, NOW);
+
+      expect(paramsFor('WITH signups AS MATERIALIZED')).toEqual([
+        new Date(NOW.getTime() - 30 * 86_400_000).toISOString(),
+      ]);
+    });
+
+    it('maps a signup onto the payload shape', async () => {
+      setup({ signups: [signupRow()] });
+
+      expect(await service.getCorporateSignups(365, NOW)).toEqual([
+        {
+          email: 'ada@stripe.com',
+          name: 'Ada Lovelace',
+          domain: 'stripe.com',
+          signed_up_at: '2026-08-01T10:00:00.000Z',
+          last_request_at: null,
+          has_traffic: false,
+          domain_signups: 1,
+        },
+      ]);
+    });
+
+    it('keeps a verified user who never created a tenant', async () => {
+      // Tenants are created lazily on first agent creation, so someone who
+      // signed up and never built anything has no tenant row. They are exactly
+      // who this feed is for, and an inner join would drop them: 1,274 verified
+      // users in production, 144 of them corporate.
+      setup({ signups: [signupRow({ last_request_at: null })] });
+
+      const [signup] = await service.getCorporateSignups(365, NOW);
+
+      expect(signup.has_traffic).toBe(false);
+      expect(signup.last_request_at).toBeNull();
+      expect(sqlFor('WITH signups AS MATERIALIZED')).toContain('LEFT JOIN tenants t');
+    });
+
+    it('marks a tenant that has sent a request', async () => {
+      setup({ signups: [signupRow({ last_request_at: '2026-09-01T08:00:00.000Z' })] });
+
+      const [signup] = await service.getCorporateSignups(365, NOW);
+
+      expect(signup.has_traffic).toBe(true);
+      expect(signup.last_request_at).toBe('2026-09-01T08:00:00.000Z');
+    });
+
+    it('normalises the address and derives the domain from it', async () => {
+      setup({ signups: [signupRow({ email: '  Ada@Stripe.COM ' })] });
+
+      const [signup] = await service.getCorporateSignups(365, NOW);
+
+      expect(signup.email).toBe('ada@stripe.com');
+      expect(signup.domain).toBe('stripe.com');
+    });
+
+    it('keeps a missing display name as null', async () => {
+      setup({ signups: [signupRow({ user_name: null })] });
+
+      expect((await service.getCorporateSignups(365, NOW))[0].name).toBeNull();
+    });
+
+    it('drops consumer and already-excluded addresses', async () => {
+      setup({
+        signups: [
+          signupRow({ email: 'ada@gmail.com' }),
+          signupRow({ email: 'support@stripe.com' }),
+          signupRow({ email: 'dev@manifest.build' }),
+          signupRow({ email: 'ada@stripe.com' }),
+        ],
+      });
+
+      expect((await service.getCorporateSignups(365, NOW)).map((s) => s.email)).toEqual([
+        'ada@stripe.com',
+      ]);
+    });
+
+    it('counts how many verified signups share a domain', async () => {
+      setup({
+        signups: [signupRow({ email: 'ada@stripe.com' }), signupRow({ email: 'grace@stripe.com' })],
+      });
+
+      const signups = await service.getCorporateSignups(365, NOW);
+
+      expect(signups).toHaveLength(2);
+      expect(signups.every((s) => s.domain_signups === 2)).toBe(true);
+    });
+
+    it('drops a scripted signup cluster wholesale', async () => {
+      setup({
+        signups: [
+          signupRow({ email: 'a@scraped.com', signed_up_at: '2026-03-01T00:00:00.000Z' }),
+          signupRow({ email: 'b@scraped.com', signed_up_at: '2026-03-08T00:00:00.000Z' }),
+          signupRow({ email: 'c@scraped.com', signed_up_at: '2026-03-15T00:00:00.000Z' }),
+          signupRow({ email: 'ada@stripe.com' }),
+        ],
+      });
+
+      expect((await service.getCorporateSignups(365, NOW)).map((s) => s.email)).toEqual([
+        'ada@stripe.com',
+      ]);
+    });
+
+    it('keeps a burst where somebody actually used the gateway', async () => {
+      setup({
+        signups: [
+          signupRow({ email: 'a@real.com', signed_up_at: '2026-03-01T00:00:00.000Z' }),
+          signupRow({ email: 'b@real.com', signed_up_at: '2026-03-08T00:00:00.000Z' }),
+          signupRow({
+            email: 'c@real.com',
+            signed_up_at: '2026-03-15T00:00:00.000Z',
+            last_request_at: '2026-04-01T00:00:00.000Z',
+          }),
+        ],
+      });
+
+      expect(await service.getCorporateSignups(365, NOW)).toHaveLength(3);
+    });
+
+    it('orders by domain size, then by newest signup', async () => {
+      setup({
+        signups: [
+          signupRow({ email: 'solo@alone.com', signed_up_at: '2026-08-20T00:00:00.000Z' }),
+          signupRow({ email: 'older@team.com', signed_up_at: '2026-01-01T00:00:00.000Z' }),
+          signupRow({ email: 'newer@team.com', signed_up_at: '2026-08-01T00:00:00.000Z' }),
+        ],
+      });
+
+      expect((await service.getCorporateSignups(365, NOW)).map((s) => s.email)).toEqual([
+        'newer@team.com',
+        'older@team.com',
+        'solo@alone.com',
+      ]);
+    });
+
+    it('returns nothing when no signup survives the filters', async () => {
+      setup({ signups: [signupRow({ email: 'ada@gmail.com' })] });
+
+      expect(await service.getCorporateSignups(365, NOW)).toEqual([]);
+    });
+
+    it('caches signups per window', async () => {
+      setup({ signups: [signupRow()] });
+
+      const first = await service.getCorporateSignups(365, NOW);
+      const callsAfterFirst = query.mock.calls.length;
+      const second = await service.getCorporateSignups(365, NOW);
 
       expect(second).toBe(first);
       expect(query.mock.calls).toHaveLength(callsAfterFirst);

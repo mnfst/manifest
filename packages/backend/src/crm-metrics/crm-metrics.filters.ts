@@ -70,3 +70,134 @@ export function isExcludedEmail(email: string): boolean {
 function matchesDomain(domain: string, list: string[]): boolean {
   return list.some((entry) => domain === entry || domain.endsWith(`.${entry}`));
 }
+
+/**
+ * Consumer mail and privacy-relay providers.
+ *
+ * Separate from JUNK_DOMAINS because these addresses are perfectly real — the
+ * healed-user feed emails plenty of them. They are excluded from the *signup*
+ * feed only, where the whole premise is "a corporate domain implies a team
+ * behind it". A gmail.com signup carries no such signal.
+ *
+ * The relay entries matter more than the obvious freemail ones: duck.com,
+ * pm.me and simplelogin addresses read as custom domains to a naive
+ * `not freemail` check, and were the largest "corporate" domains in the
+ * database by signup count until they were listed here.
+ */
+const CONSUMER_DOMAINS = [
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'outlook.fr',
+  'hotmail.com',
+  'hotmail.fr',
+  'hotmail.co.uk',
+  'live.com',
+  'live.fr',
+  'msn.com',
+  'yahoo.com',
+  'yahoo.co.uk',
+  'yahoo.fr',
+  'ymail.com',
+  'aol.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'proton.me',
+  'protonmail.com',
+  'pm.me',
+  'duck.com',
+  'simplelogin.com',
+  'simplelogin.io',
+  'anonaddy.com',
+  'posteo.de',
+  'gmx.com',
+  'gmx.de',
+  'gmx.net',
+  'web.de',
+  't-online.de',
+  'free.fr',
+  'orange.fr',
+  'wanadoo.fr',
+  'laposte.net',
+  'sfr.fr',
+  'comcast.net',
+  'qq.com',
+  '163.com',
+  '126.com',
+  'foxmail.com',
+  'sina.com',
+  'naver.com',
+  'daum.net',
+  'yandex.ru',
+  'yandex.com',
+  'mail.ru',
+  'rambler.ru',
+  'seznam.cz',
+  'zoho.com',
+  'fastmail.com',
+  'hey.com',
+  'example.com',
+  'test.com',
+];
+
+/** Signups on one domain inside this span, with no traffic, look scripted. */
+const CLUSTER_WINDOW_MS = 30 * 86_400_000;
+
+/** Fewer than this on a domain is a small team, not a cluster. */
+const CLUSTER_MIN_SIGNUPS = 3;
+
+/** The domain part of an address, lowercased; empty when unroutable. */
+export function domainOf(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  const at = normalized.lastIndexOf('@');
+  if (at <= 0 || at === normalized.length - 1) return '';
+  return normalized.slice(at + 1);
+}
+
+/**
+ * True when the address belongs to a consumer mailbox or a privacy relay,
+ * rather than to an organisation.
+ *
+ * Subdomains count (`mail.duck.com`), matching `isExcludedEmail`.
+ */
+export function isConsumerEmail(email: string): boolean {
+  const domain = domainOf(email);
+  if (!domain) return true;
+  return matchesDomain(domain, CONSUMER_DOMAINS);
+}
+
+/**
+ * The signup feed's admission rule: a routable address, on a domain that looks
+ * like an organisation, that we are not already excluding for other reasons.
+ */
+export function isCorporateSignupEmail(email: string): boolean {
+  return !isExcludedEmail(email) && !isConsumerEmail(email);
+}
+
+/** One signup, reduced to what the cluster rule needs to judge a domain. */
+export interface ClusterCandidate {
+  signed_up_at: string;
+  has_traffic: boolean;
+}
+
+/**
+ * True when a domain's signups look automated rather than like a real team.
+ *
+ * Three or more accounts, created inside a month, none of which ever sent a
+ * request. A genuine team trickles in over quarters and at least one of them
+ * points something at the gateway; the scraped-address clusters we have seen
+ * arrive in a burst and never call the API.
+ *
+ * Any traffic at all clears the whole domain: a real user among them means the
+ * burst was a launch, not a script.
+ */
+export function isSignupCluster(signups: ClusterCandidate[]): boolean {
+  if (signups.length < CLUSTER_MIN_SIGNUPS) return false;
+  if (signups.some((signup) => signup.has_traffic)) return false;
+
+  const times = signups
+    .map((signup) => new Date(signup.signed_up_at).getTime())
+    .sort((a, b) => a - b);
+  return times[times.length - 1] - times[0] <= CLUSTER_WINDOW_MS;
+}

@@ -135,7 +135,7 @@ packages/
 │   │   ├── error-pages/                     # Custom error-page config (internal + public)
 │   │   ├── waitlist/                        # Pivot waiting-list claims + legacy Autofix claim compatibility route
 │   │   ├── discovery/                       # Self-hosted discovery onboarding (forwarded to Peacock)
-│   │   ├── crm-metrics/                     # Cloud-only internal feed: Autofix-healed cohort + waitlist claims (secret-gated)
+│   │   ├── crm-metrics/                     # Cloud-only internal feed: Autofix-healed cohort + waitlist claims + corporate signups (secret-gated)
 │   │   ├── cors-csp-config.ts               # Wingman CORS/CSP origin allowlists
 │   │   ├── sentry/                          # Sentry init-options builder (SENTRY_DSN-gated)
 │   │   └── telemetry/                       # Anonymous self-hosted telemetry
@@ -387,7 +387,7 @@ Every resource belongs to a tenant; users only authenticate and (optionally) app
 | GET                       | `/api/v1/overview/autofix-*`                    | Session/API Key                     | Autofix analytics (stats, timeseries, per-agent/provider/model)                                             |
 | POST                      | `/api/v1/discovery/complete`                    | Session/API Key                     | Best-effort self-hosted discovery submission forwarded to Peacock                                           |
 | GET/POST/DELETE           | `/api/v1/internal/error-pages*`                 | Public (`x-internal-secret` header) | Custom error-page config (Peacock CMS push API)                                                             |
-| GET                       | `/api/v1/internal/crm-metrics*`                 | Public (`x-internal-secret` header) | **Cloud only.** Autofix-healed user cohort + pivot waitlist claims, for the outreach CRM (`CRM_METRICS_SECRET`) |
+| GET                       | `/api/v1/internal/crm-metrics*`                 | Public (`x-internal-secret` header) | **Cloud only.** Autofix-healed user cohort, pivot waitlist claims, and corporate signups, for the outreach CRM (`CRM_METRICS_SECRET`) |
 | GET/PUT/DELETE            | `/api/v1/agents/:agentName/enabled-providers*`  | Session/API Key                     | Per-agent provider enable/disable + impact preview                                                          |
 | GET/POST/PATCH/DELETE     | `/api/v1/notifications/*`                       | Session/API Key                     | Notification rules CRUD + email provider config                                                             |
 | GET/POST/PUT/PATCH/DELETE | `/api/v1/routing/:agentName/*`                  | Session/API Key                     | Routing config (tiers, providers, model-params, header-tiers, custom-providers, specificity, autofix, recording, etc.) |
