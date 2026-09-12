@@ -13,6 +13,7 @@ import { AddRequestsAutofixHealedIndex1802200000000 } from '../src/database/migr
 
 const SECRET = 'e2e-crm-metrics-secret-at-least-32-chars';
 const HEALED_INDEX = 'IDX_requests_autofix_healed';
+const TENANT_TIMESTAMP_INDEX = 'IDX_requests_tenant_timestamp';
 
 const OWNER_ID = 'crm-owner-001';
 const OWNER_EMAIL = 'healed.user@example.com';
@@ -47,7 +48,8 @@ describe('Internal CRM metrics (e2e)', () => {
          id VARCHAR PRIMARY KEY,
          name VARCHAR,
          email VARCHAR,
-         "emailVerified" BOOLEAN
+         "emailVerified" BOOLEAN,
+         "createdAt" TIMESTAMPTZ
        )`,
     );
 
@@ -64,6 +66,16 @@ describe('Internal CRM metrics (e2e)', () => {
     } finally {
       await runner.release();
     }
+
+    // The signups feed refuses to run without this one, because the lateral
+    // degrades to a sequential scan of `requests` per row (22s and 6.9 GB of
+    // reads, measured). Production gets it from migration 1801000000000, which
+    // also creates the tables synchronize() has already built here — so run
+    // just the index. It is a plain two-column btree with no partial predicate
+    // to drift, unlike the healed index above.
+    await ds.query(
+      `CREATE INDEX IF NOT EXISTS "${TENANT_TIMESTAMP_INDEX}" ON "requests" ("tenant_id", "timestamp")`,
+    );
 
     const [built] = (await ds.query(`SELECT indexdef FROM pg_indexes WHERE indexname = $1`, [
       HEALED_INDEX,
@@ -88,7 +100,8 @@ describe('Internal CRM metrics (e2e)', () => {
     await ds.query('DELETE FROM waitlist_claims');
     await ds.query('DELETE FROM "user"');
     await ds.query(
-      `INSERT INTO "user" (id, name, email, "emailVerified") VALUES ($1, $2, $3, true)`,
+      `INSERT INTO "user" (id, name, email, "emailVerified", "createdAt")
+       VALUES ($1, $2, $3, true, now() - interval '10 days')`,
       [OWNER_ID, 'Healed User', OWNER_EMAIL],
     );
     await ds.query(`UPDATE tenants SET owner_user_id = $1 WHERE id = $2`, [
@@ -224,6 +237,116 @@ describe('Internal CRM metrics (e2e)', () => {
 
       expect(res.body).toHaveLength(1);
       expect(res.body[0]).toMatchObject({ email: 'converted@example.com', source: 'cloud' });
+    });
+  });
+
+  describe('signups', () => {
+    // Same cache caveat as the cohort block: distinct windows per assertion.
+    let signupWindow = 100;
+    const nextSignupWindow = () => `/signups?days=${++signupWindow}`;
+
+    /** A corporate address, so the filters in crm-metrics.filters.ts keep it. */
+    const addUser = async (
+      id: string,
+      email: string,
+      opts: { tenantId?: string; name?: string } = {},
+    ): Promise<void> => {
+      await ds.query(
+        `INSERT INTO "user" (id, name, email, "emailVerified", "createdAt")
+         VALUES ($1, $2, $3, true, now() - interval '5 days')`,
+        [id, opts.name ?? 'Ada Lovelace', email],
+      );
+      if (opts.tenantId) {
+        await ds.query(`UPDATE tenants SET owner_user_id = $1 WHERE id = $2`, [id, opts.tenantId]);
+      }
+    };
+
+    interface SignupRow {
+      email: string;
+      last_request_at: string | null;
+    }
+
+    const signupFor = (body: unknown[], email: string): SignupRow | undefined =>
+      (body as SignupRow[]).find((row) => row.email === email);
+
+    it('returns a corporate signup that never sent a request', async () => {
+      await addUser('signup-1', 'ada@acmecorp.io', { tenantId: TEST_TENANT_ID });
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+
+      expect(signupFor(res.body, 'ada@acmecorp.io')).toMatchObject({
+        email: 'ada@acmecorp.io',
+        name: 'Ada Lovelace',
+        domain: 'acmecorp.io',
+        last_request_at: null,
+        has_traffic: false,
+        domain_signups: 1,
+      });
+    });
+
+    it('keeps a verified user who never created a tenant', async () => {
+      // The regression this exists for. Tenants are created lazily on first
+      // agent creation, so this user has no tenant row at all — and is exactly
+      // who the campaign targets. An inner join would drop them silently.
+      await addUser('signup-orphan', 'grace@orphancorp.io');
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+
+      expect(signupFor(res.body, 'grace@orphancorp.io')).toMatchObject({
+        has_traffic: false,
+        last_request_at: null,
+      });
+    });
+
+    it('marks a signup whose tenant has sent a request', async () => {
+      await addUser('signup-2', 'ada@trafficcorp.io', { tenantId: TEST_TENANT_ID });
+      await ds.query(
+        `INSERT INTO requests (id, tenant_id, agent_id, agent_name, timestamp, status)
+         VALUES ($1, $2, $3, 'demo-agent', $4, 'success')`,
+        [uuid(), TEST_TENANT_ID, TEST_AGENT_ID, localSqlTimestamp(new Date())],
+      );
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+      const signup = signupFor(res.body, 'ada@trafficcorp.io');
+
+      expect(signup).toMatchObject({ has_traffic: true });
+      expect(signup?.last_request_at).not.toBeNull();
+    });
+
+    it('counts people sharing a domain', async () => {
+      await addUser('signup-3a', 'ada@teamcorp.io');
+      await addUser('signup-3b', 'grace@teamcorp.io');
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+
+      expect(signupFor(res.body, 'ada@teamcorp.io')).toMatchObject({ domain_signups: 2 });
+      expect(signupFor(res.body, 'grace@teamcorp.io')).toMatchObject({ domain_signups: 2 });
+    });
+
+    it('omits consumer mailboxes and role addresses', async () => {
+      await addUser('signup-4', 'ada@gmail.com');
+      await addUser('signup-5', 'support@acmecorp.io');
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+
+      expect(signupFor(res.body, 'ada@gmail.com')).toBeUndefined();
+      expect(signupFor(res.body, 'support@acmecorp.io')).toBeUndefined();
+    });
+
+    it('omits unverified signups', async () => {
+      await ds.query(
+        `INSERT INTO "user" (id, name, email, "emailVerified", "createdAt")
+         VALUES ($1, 'Un Verified', $2, false, now())`,
+        ['signup-6', 'ada@unverifiedcorp.io'],
+      );
+
+      const res = await get(nextSignupWindow()).set('x-internal-secret', SECRET).expect(200);
+
+      expect(signupFor(res.body, 'ada@unverifiedcorp.io')).toBeUndefined();
+    });
+
+    it('requires the secret', async () => {
+      await get('/signups').expect(401);
     });
   });
 });
