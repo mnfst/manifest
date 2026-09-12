@@ -1,4 +1,5 @@
 import { ProviderModelFetcherService, PROVIDER_CONFIGS } from './provider-model-fetcher.service';
+import { CODEX_CLI_VERSION } from '../common/constants/subscription-clients';
 
 describe('ProviderModelFetcherService', () => {
   let service: ProviderModelFetcherService;
@@ -2609,7 +2610,7 @@ describe('ProviderModelFetcherService', () => {
       await service.fetch('openai', 'my-oauth-token', 'subscription');
 
       expect(fetchSpy).toHaveBeenCalledWith(
-        'https://chatgpt.com/backend-api/codex/models?client_version=0.128.0',
+        `https://chatgpt.com/backend-api/codex/models?client_version=${CODEX_CLI_VERSION}`,
         expect.objectContaining({
           headers: expect.objectContaining({
             Authorization: 'Bearer my-oauth-token',
