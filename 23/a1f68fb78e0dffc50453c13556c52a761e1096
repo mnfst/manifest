@@ -1,0 +1,23 @@
+packages/frontend/src/pages/Overview.tsx
+  s_28d53427986818::t_8cc0ac7f2ec271 256,260,264,270-275,281-286,289-294,298-304,311,320,337-339,388-390,499,511-512,515,532,587
+packages/frontend/tests/pages/Overview.test.tsx
+  s_28d53427986818::t_8cc0ac7f2ec271 17,119,357,403,405-406,411,414,418,470,476-480,484,489
+.changeset/harness-overview-perf.md
+  s_28d53427986818::t_d025d0017c2812 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "23a1f68fb78e0dffc50453c13556c52a761e1096",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
