@@ -1,5 +1,6 @@
 packages/backend/src/otlp/guards/agent-key-auth.guard.ts
   s_55e9f8f22551f6::t_de7415e7311bac 48-54,68,148,152,156-157,179,182-183,189,192,198,216-217,297-298,300,303,361-362,364,366,371-372,374-375
+  s_c03dc0ae96aac3::t_afeb700f5097fb 211
 packages/backend/src/otlp/guards/agent-key-auth.guard.edge.spec.ts
   s_55e9f8f22551f6::t_c7cc57e95e7893 200
 packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
@@ -18,6 +19,14 @@ packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
         "tool": "claude",
         "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
         "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c03dc0ae96aac3": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68d31b96ffeZq8O7BCNwR3dk1",
+        "model": "auto"
       },
       "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
     }
