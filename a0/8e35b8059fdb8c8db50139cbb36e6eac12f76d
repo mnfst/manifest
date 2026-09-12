@@ -1,0 +1,20 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_b05c9cbdbeb035::t_cbb86490bdd3db 2
+  s_b05c9cbdbeb035::t_68039ee4446562 2613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a08e35b8059fdb8c8db50139cbb36e6eac12f76d",
+  "prompts": {},
+  "sessions": {
+    "s_b05c9cbdbeb035": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68e42d6effePB6lVzaf747vOT",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
