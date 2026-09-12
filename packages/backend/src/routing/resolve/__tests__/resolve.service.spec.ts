@@ -969,6 +969,28 @@ describe('ResolveService', () => {
       expect(result.override_model_unavailable).toBe('gpt-6-astra');
     });
 
+    it('keeps the neutral no-provider signal on the scored tier path', async () => {
+      mockedScore.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.7,
+        score: 5,
+        reason: 'scored',
+      } as never);
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'standard',
+          override_route: null,
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      providerKeyService.hasRouteCredentials.mockResolvedValue(false);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toBeNull();
+      expect(result.override_model_unavailable).toBeUndefined();
+    });
+
     it('falls back to the default tier when the scored tier is missing', async () => {
       mockedScore.mockReturnValue({
         tier: 'reasoning',
