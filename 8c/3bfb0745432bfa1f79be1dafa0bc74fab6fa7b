@@ -1,0 +1,25 @@
+packages/backend/src/otlp/guards/agent-key-auth.guard.ts
+  s_55e9f8f22551f6::t_de7415e7311bac 48-54,68,148,152,156-157,179,182-183,189,192,198,216-217,297-298,300,303,361-362,364,366,371-372,374-375
+packages/backend/src/otlp/guards/agent-key-auth.guard.edge.spec.ts
+  s_55e9f8f22551f6::t_c7cc57e95e7893 200
+packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
+  s_55e9f8f22551f6::t_776a0c278999bb 944-968
+  s_55e9f8f22551f6::t_c7dbf2dc30a376 354
+  s_55e9f8f22551f6::t_65f41ae30b8cb6 355-356,399,544,580,628,651,685,708,733,809-810,969-973
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "8c3bfb0745432bfa1f79be1dafa0bc74fab6fa7b",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}

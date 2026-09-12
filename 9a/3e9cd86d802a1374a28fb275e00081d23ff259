@@ -1,0 +1,27 @@
+.claude/skills/mnfst-cli/SKILL.md
+  s_55e9f8f22551f6::t_4e6a8d8e362f11 1-45
+  s_55e9f8f22551f6::t_d12bc05d4dbb87 46-50
+packages/backend/test/tenant-request-usage-migration.e2e-spec.ts
+  s_55e9f8f22551f6::t_7d092aebee6237 4-5,10-24,26-29
+  s_55e9f8f22551f6::t_9f0bb7435c3f4f 25
+  s_55e9f8f22551f6::t_04ed953485cd6e 111,116-119
+  s_55e9f8f22551f6::t_b25fd2013b3f92 251,263
+  s_55e9f8f22551f6::t_b28e25158a42a3 194-197
+  s_55e9f8f22551f6::t_415a0df03a9ef6 198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "9a3e9cd86d802a1374a28fb275e00081d23ff259",
+  "prompts": {},
+  "sessions": {
+    "s_55e9f8f22551f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "34e98b3e-8f77-4d77-b2e7-e0119624b802",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
