@@ -1,0 +1,23 @@
+packages/backend/src/analytics/services/autofix-stats.service.spec.ts
+  s_28d53427986818::t_ec3a1694bfe05e 238
+packages/backend/src/analytics/services/request-volume.service.spec.ts
+  s_28d53427986818::t_ba30e229b018d9 122,124-125,127,130-134,137,139-146
+packages/backend/src/analytics/services/request-volume.service.ts
+  s_28d53427986818::t_7b8020f1193b85 220-221,223-227
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ffd4a2bb0d35d2f9369f45622c14deab4bd2825a",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
