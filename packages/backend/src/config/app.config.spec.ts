@@ -150,6 +150,27 @@ describe('appConfig', () => {
     },
   );
 
+  it('defaults the CLI token absolute ceiling to 90 days', async () => {
+    delete process.env['CLI_TOKEN_ABSOLUTE_TTL_DAYS'];
+    const config = await loadConfig();
+    expect(config.cliTokenAbsoluteTtlDays).toBe(90);
+  });
+
+  it('reads a positive CLI token absolute ceiling override', async () => {
+    process.env['CLI_TOKEN_ABSOLUTE_TTL_DAYS'] = '365';
+    const config = await loadConfig();
+    expect(config.cliTokenAbsoluteTtlDays).toBe(365);
+  });
+
+  it.each(['0', '-1', '1.5', 'invalid', ''])(
+    'falls back to 90 days for a malformed CLI token absolute ceiling %s',
+    async (value) => {
+      process.env['CLI_TOKEN_ABSOLUTE_TTL_DAYS'] = value;
+      const config = await loadConfig();
+      expect(config.cliTokenAbsoluteTtlDays).toBe(90);
+    },
+  );
+
   it('defaults request recording storage selection to auto', async () => {
     delete process.env['REQUEST_RECORDING_STORAGE'];
     const config = await loadConfig();

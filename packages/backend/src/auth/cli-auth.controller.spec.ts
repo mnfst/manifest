@@ -13,12 +13,15 @@ function makeController() {
 
 const req = (extra: Record<string, unknown>) => ({ headers: {}, ...extra }) as unknown as Request;
 
+const CHALLENGE = 'A'.repeat(43);
+const VERIFIER = 'B'.repeat(43);
+
 describe('CliAuthController', () => {
   it('authorize mints a code for a session user', async () => {
     const { controller, service } = makeController();
     await expect(
       controller.authorize(
-        { state: 'state-abcdef1234567890' },
+        { state: 'state-abcdef1234567890', code_challenge: CHALLENGE },
         { tenantId: 't1', userId: 'u1' },
         req({ authMethod: 'session' }),
       ),
@@ -26,6 +29,8 @@ describe('CliAuthController', () => {
     expect(service.createAuthorization).toHaveBeenCalledWith(
       { tenantId: 't1', userId: 'u1' },
       'state-abcdef1234567890',
+      CHALLENGE,
+      'S256',
     );
   });
 
@@ -33,7 +38,7 @@ describe('CliAuthController', () => {
     const { controller } = makeController();
     await expect(
       controller.authorize(
-        { state: 'state-abcdef1234567890' },
+        { state: 'state-abcdef1234567890', code_challenge: CHALLENGE },
         { tenantId: 't1', userId: 'u1' },
         req({ authMethod: 'api_key' }),
       ),
@@ -44,19 +49,27 @@ describe('CliAuthController', () => {
     const { controller } = makeController();
     await expect(
       controller.authorize(
-        { state: 'state-abcdef1234567890' },
+        { state: 'state-abcdef1234567890', code_challenge: CHALLENGE },
         { tenantId: null, userId: 'u1' },
         req({ authMethod: 'session' }),
       ),
     ).rejects.toThrow(ForbiddenException);
   });
 
-  it('token delegates to exchange', async () => {
+  it('token delegates to exchange with the PKCE verifier', async () => {
     const { controller, service } = makeController();
     await expect(
-      controller.token({ code: 'rawcode-abcdefghijklmnop', state: 'state-abcdef1234567890' }),
+      controller.token({
+        code: 'rawcode-abcdefghijklmnop',
+        state: 'state-abcdef1234567890',
+        code_verifier: VERIFIER,
+      }),
     ).resolves.toEqual({ token: 'mnfst_pat_x', expiresAt: 'e' });
-    expect(service.exchange).toHaveBeenCalled();
+    expect(service.exchange).toHaveBeenCalledWith(
+      'rawcode-abcdefghijklmnop',
+      'state-abcdef1234567890',
+      VERIFIER,
+    );
   });
 
   it('revoke uses the raw X-API-Key header', async () => {

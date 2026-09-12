@@ -42,6 +42,8 @@ import { DropLegacyAutofixRolloutColumns1801600000000 } from './migrations/18016
 import { AddApiKeyExpiresAt1801700000000 } from './migrations/1801700000000-AddApiKeyExpiresAt';
 import { CreateCliAuthCodes1801710000000 } from './migrations/1801710000000-CreateCliAuthCodes';
 import { AddRequestApiMode1801720000000 } from './migrations/1801720000000-AddRequestApiMode';
+import { AddCliAuthCodeChallenge1801730000000 } from './migrations/1801730000000-AddCliAuthCodeChallenge';
+import { AddApiKeyAbsoluteExpiresAt1801740000000 } from './migrations/1801740000000-AddApiKeyAbsoluteExpiresAt';
 import { AddAutofixConsentToInstallMetadata1801900000000 } from './migrations/1801900000000-AddAutofixConsentToInstallMetadata';
 import { SlimTenantAgentModelIndex1802000000000 } from './migrations/1802000000000-SlimTenantAgentModelIndex';
 import { AddCustomProviderAlias1802100000000 } from './migrations/1802100000000-AddCustomProviderAlias';
@@ -326,6 +328,8 @@ export const migrations = [
   AddApiKeyExpiresAt1801700000000,
   CreateCliAuthCodes1801710000000,
   AddRequestApiMode1801720000000,
+  AddCliAuthCodeChallenge1801730000000,
+  AddApiKeyAbsoluteExpiresAt1801740000000,
   AddAutofixConsentToInstallMetadata1801900000000,
   SlimTenantAgentModelIndex1802000000000,
   AddCustomProviderAlias1802100000000,

@@ -1,17 +1,27 @@
 import { Body, Controller, Delete, ForbiddenException, HttpCode, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
-import { IsString, Matches } from 'class-validator';
+import { IsIn, IsOptional, IsString, Matches } from 'class-validator';
 import { Public } from '../common/decorators/public.decorator';
 import { TenantCtx, TenantContext } from '../common/decorators/tenant-context.decorator';
 import { CliAuthService } from './cli-auth.service';
 
 const STATE_MESSAGE =
   'state must be 16-128 URL-safe characters (letters, numbers, dashes, underscores)';
+const PKCE_MESSAGE = 'must be 43-128 URL-safe characters (letters, numbers, dashes, underscores)';
 
 class AuthorizeDto {
   @IsString()
   @Matches(/^[A-Za-z0-9_-]{16,128}$/, { message: STATE_MESSAGE })
   state!: string;
+
+  /** PKCE S256 challenge: base64url(SHA-256(verifier)), 43 chars. */
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{43,128}$/, { message: `code_challenge ${PKCE_MESSAGE}` })
+  code_challenge!: string;
+
+  @IsOptional()
+  @IsIn(['S256'], { message: 'code_challenge_method must be S256' })
+  code_challenge_method?: 'S256';
 }
 
 class ExchangeDto {
@@ -24,6 +34,10 @@ class ExchangeDto {
   @IsString()
   @Matches(/^[A-Za-z0-9_-]{16,128}$/, { message: STATE_MESSAGE })
   state!: string;
+
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{43,128}$/, { message: `code_verifier ${PKCE_MESSAGE}` })
+  code_verifier!: string;
 }
 
 @Controller('api/v1/cli')
@@ -44,7 +58,12 @@ export class CliAuthController {
     if (!ctx.tenantId) {
       throw new ForbiddenException('No workspace yet — create your first agent in the dashboard');
     }
-    return this.cliAuth.createAuthorization(ctx, dto.state);
+    return this.cliAuth.createAuthorization(
+      ctx,
+      dto.state,
+      dto.code_challenge,
+      dto.code_challenge_method ?? 'S256',
+    );
   }
 
   /**
@@ -56,7 +75,7 @@ export class CliAuthController {
   @Post('token')
   @HttpCode(200)
   async token(@Body() dto: ExchangeDto) {
-    return this.cliAuth.exchange(dto.code, dto.state);
+    return this.cliAuth.exchange(dto.code, dto.state, dto.code_verifier);
   }
 
   /** Best-effort logout revocation of the calling cli PAT. */

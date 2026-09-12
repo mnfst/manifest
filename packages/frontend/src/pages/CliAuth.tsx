@@ -5,6 +5,9 @@ import { fetchMutate } from '../services/api/core.js';
 
 /** Mirrors the backend's `state` contract on POST /api/v1/cli/authorize. */
 const STATE_RE = /^[A-Za-z0-9_-]{16,128}$/;
+/** Mirrors the backend's PKCE `code_challenge` contract. */
+const CODE_CHALLENGE_RE = /^[A-Za-z0-9_-]{43,128}$/;
+const CHALLENGE_METHOD = 'S256';
 /** The CLI listens on an ephemeral unprivileged loopback port. */
 const PORT_RE = /^\d{1,5}$/;
 const MIN_PORT = 1024;
@@ -33,26 +36,39 @@ const CliAuth: Component = () => {
     return STATE_RE.test(raw) ? raw : null;
   };
 
+  /** PKCE S256 challenge; the method is pinned (only S256 is accepted). */
+  const codeChallenge = () => {
+    const raw = String(params.code_challenge ?? '');
+    if (!CODE_CHALLENGE_RE.test(raw)) return null;
+    const method = String(params.code_challenge_method ?? CHALLENGE_METHOD);
+    return method === CHALLENGE_METHOD ? raw : null;
+  };
+
   /**
-   * The whole request, or null if either half is unusable. One accessor so the
+   * The whole request, or null if any part is unusable. One accessor so the
    * button's visibility and the values `authorize` sends can never disagree.
    */
   const request = () => {
     const p = port();
     const s = state();
-    return p !== null && s !== null ? { port: p, state: s } : null;
+    const c = codeChallenge();
+    return p !== null && s !== null && c !== null ? { port: p, state: s, codeChallenge: c } : null;
   };
 
   const authorize = async () => {
-    // Snapshot both params before the await: the callback URL must echo exactly
+    // Snapshot every param before the await: the callback URL must echo exactly
     // the state we POSTed. The button only renders when `request()` is non-null.
-    const { port: loopbackPort, state: requestState } = request()!;
+    const { port: loopbackPort, state: requestState, codeChallenge: requestChallenge } = request()!;
     setPhase('working');
     try {
       const { code } = await fetchMutate<{ code: string }>('/cli/authorize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: requestState }),
+        body: JSON.stringify({
+          state: requestState,
+          code_challenge: requestChallenge,
+          code_challenge_method: CHALLENGE_METHOD,
+        }),
       });
       // Hand the one-time code back over loopback. The CLI exchanges it for the
       // token itself, so nothing long-lived ever rides in this URL.
@@ -99,8 +115,8 @@ const CliAuth: Component = () => {
                   <h1 class="auth-header__title">Authorize the Manifest CLI?</h1>
                   <p class="auth-header__subtitle">
                     This grants the CLI on this machine full access to your workspace for 30 days
-                    (renewed while you keep using it). Revoke it any time by running{' '}
-                    <code>mnfst logout</code>.
+                    (renewed while you keep using it, up to a fixed maximum). Revoke it any time by
+                    running <code>mnfst logout</code>.
                   </p>
                 </div>
                 {/* .auth-form is the column that stretches the submit button edge

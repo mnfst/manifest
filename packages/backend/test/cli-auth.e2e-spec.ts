@@ -3,13 +3,16 @@ import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
 import { toLocalSqlTimestamp } from '../src/common/utils/postgres-sql';
+import { deriveCodeChallenge } from '../src/auth/cli-auth.service';
 import { createTestApp, TEST_API_KEY } from './helpers';
 
 const STATE = 'e2e-state-abcdef1234567890';
+const VERIFIER = 'e2e-verifier-abcdefghijklmnopqrstuvwxyz0123456789';
 
 describe('CLI browser login (e2e)', () => {
   let app: INestApplication;
   let ds: DataSource;
+  const challenge = deriveCodeChallenge(VERIFIER);
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -24,7 +27,7 @@ describe('CLI browser login (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/cli/authorize')
       .set('x-api-key', TEST_API_KEY)
-      .send({ state: STATE })
+      .send({ state: STATE, code_challenge: challenge })
       .expect(201);
     expect(typeof res.body.code).toBe('string');
     return res.body.code as string;
@@ -42,7 +45,7 @@ describe('CLI browser login (e2e)', () => {
     const code = await authorize();
     const res = await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(200);
     expect(res.body.token).toMatch(/^mnfst_pat_/);
 
@@ -59,21 +62,39 @@ describe('CLI browser login (e2e)', () => {
     expect(daysOut).toBeLessThanOrEqual(ttlDays);
 
     const rows = await ds.query(
-      `SELECT name, expires_at, key FROM api_keys WHERE name = 'cli' ORDER BY created_at DESC LIMIT 1`,
+      `SELECT name, expires_at, absolute_expires_at, key FROM api_keys WHERE name = 'cli' ORDER BY created_at DESC LIMIT 1`,
     );
     expect(rows[0].key).toBeNull();
     expect(rows[0].expires_at).not.toBeNull();
+    // The hard ceiling is persisted and outlives the sliding window.
+    expect(rows[0].absolute_expires_at).not.toBeNull();
+    expect(new Date(rows[0].absolute_expires_at).getTime()).toBeGreaterThan(
+      new Date(rows[0].expires_at).getTime(),
+    );
+  });
+
+  it('a wrong PKCE verifier is rejected and does not consume the code', async () => {
+    const code = await authorize();
+    await request(app.getHttpServer())
+      .post('/api/v1/cli/token')
+      .send({ code, state: STATE, code_verifier: 'wrong-verifier-0123456789abcdefghijklmnopq' })
+      .expect(400);
+    // The code survives the failed attempt, so the real CLI can still redeem it.
+    await request(app.getHttpServer())
+      .post('/api/v1/cli/token')
+      .send({ code, state: STATE, code_verifier: VERIFIER })
+      .expect(200);
   });
 
   it('a code is single-use', async () => {
     const code = await authorize();
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(200);
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(400);
   });
 
@@ -81,11 +102,11 @@ describe('CLI browser login (e2e)', () => {
     const code = await authorize();
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: 'wrong-state-1234567890' })
+      .send({ code, state: 'wrong-state-1234567890', code_verifier: VERIFIER })
       .expect(400);
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(200);
   });
 
@@ -103,7 +124,7 @@ describe('CLI browser login (e2e)', () => {
     ]);
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(400);
   });
 
@@ -112,19 +133,28 @@ describe('CLI browser login (e2e)', () => {
       .post('/api/v1/cli/authorize')
       .set('x-api-key', TEST_API_KEY)
       .set('x-test-auth-method', 'api_key')
-      .send({ state: STATE })
+      .send({ state: STATE, code_challenge: challenge })
       .expect(403);
   });
 
-  it('malformed state/code are rejected by validation', async () => {
+  it('malformed state/code/challenge are rejected by validation', async () => {
     await request(app.getHttpServer())
       .post('/api/v1/cli/authorize')
       .set('x-api-key', TEST_API_KEY)
-      .send({ state: 'no spaces allowed!' })
+      .send({ state: 'no spaces allowed!', code_challenge: challenge })
+      .expect(400);
+    await request(app.getHttpServer())
+      .post('/api/v1/cli/authorize')
+      .set('x-api-key', TEST_API_KEY)
+      .send({ state: STATE })
       .expect(400);
     await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code: 'short', state: STATE })
+      .send({ code: 'short', state: STATE, code_verifier: VERIFIER })
+      .expect(400);
+    await request(app.getHttpServer())
+      .post('/api/v1/cli/token')
+      .send({ code: 'rawcode-abcdefghijklmnop', state: STATE, code_verifier: 'short' })
       .expect(400);
   });
 
@@ -132,7 +162,7 @@ describe('CLI browser login (e2e)', () => {
     const code = await authorize();
     const res = await request(app.getHttpServer())
       .post('/api/v1/cli/token')
-      .send({ code, state: STATE })
+      .send({ code, state: STATE, code_verifier: VERIFIER })
       .expect(200);
     const token = res.body.token as string;
     const before = await countCliKeys();

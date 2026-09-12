@@ -19,7 +19,12 @@ vi.mock('../../src/services/api/core.js', () => ({
 
 import CliAuth from '../../src/pages/CliAuth';
 
-const VALID = { port: '43210', state: 'state-abcdef1234567890' };
+const VALID = {
+  port: '43210',
+  state: 'state-abcdef1234567890',
+  code_challenge: 'C'.repeat(43),
+  code_challenge_method: 'S256',
+};
 
 /** Replace `window.location` with a spy-able stand-in for one test. */
 function stubLocation() {
@@ -64,7 +69,7 @@ describe('CliAuth', () => {
     // The informed-consent boundary: understating the grant is a spec failure.
     expect(
       screen.getByText(
-        /full access to your workspace for 30 days \(renewed while you keep using it\)/i,
+        /full access to your workspace for 30 days \(renewed while you keep using it, up to a fixed maximum\)/i,
       ),
     ).toBeTruthy();
     expect(screen.getByText('mnfst logout')).toBeTruthy();
@@ -113,6 +118,24 @@ describe('CliAuth', () => {
     expect(screen.queryByRole('button', { name: /authorize/i })).toBeNull();
   });
 
+  it('rejects a missing PKCE challenge', () => {
+    searchParams = { port: VALID.port, state: VALID.state };
+    render(() => <CliAuth />);
+    expect(screen.queryByRole('button', { name: /authorize/i })).toBeNull();
+  });
+
+  it('rejects a malformed PKCE challenge', () => {
+    searchParams = { ...VALID, code_challenge: 'tooshort' };
+    render(() => <CliAuth />);
+    expect(screen.queryByRole('button', { name: /authorize/i })).toBeNull();
+  });
+
+  it('rejects an unsupported PKCE method', () => {
+    searchParams = { ...VALID, code_challenge_method: 'plain' };
+    render(() => <CliAuth />);
+    expect(screen.queryByRole('button', { name: /authorize/i })).toBeNull();
+  });
+
   it('authorize posts the state then navigates to the loopback callback', async () => {
     mockFetchMutate.mockResolvedValue({ code: 'the-code' });
     const { assign, restore } = stubLocation();
@@ -125,7 +148,11 @@ describe('CliAuth', () => {
     expect(mockFetchMutate).toHaveBeenCalledWith('/cli/authorize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ state: VALID.state }),
+      body: JSON.stringify({
+        state: VALID.state,
+        code_challenge: VALID.code_challenge,
+        code_challenge_method: 'S256',
+      }),
     });
     expect(assign.mock.calls[0][0]).toBe(
       'http://127.0.0.1:43210/callback?code=the-code&state=state-abcdef1234567890',

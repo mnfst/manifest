@@ -415,6 +415,60 @@ describe('ApiKeyGuard', () => {
     expect(slid).toBeLessThanOrEqual(Date.now() + 30 * 86_400_000 + 1000);
   });
 
+  it('rejects a key past its absolute ceiling even when the sliding window is live', async () => {
+    const rawKey = 'mnfst_pat_at-ceiling';
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k-ceiling',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        // Sliding window still has a day left, but the hard ceiling passed.
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+        absolute_expires_at: new Date(Date.now() - 1000).toISOString(),
+      },
+    ]);
+    const request = {
+      headers: { 'x-api-key': rawKey },
+      ip: '127.0.0.1',
+    } as { headers: Record<string, string>; ip: string; tenantContext?: unknown };
+    const ctx = {
+      switchToHttp: () => ({ getRequest: () => request }),
+      getHandler: () => ({}),
+      getClass: () => ({}),
+    } as unknown as ExecutionContext;
+
+    await expect(guard.canActivate(ctx)).rejects.toThrow('API key expired — run mnfst login');
+    // No credential attached, no renewal written.
+    expect(request.tenantContext).toBeUndefined();
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('caps the sliding renewal at the absolute ceiling', async () => {
+    const rawKey = 'mnfst_pat_capped';
+    const ceiling = Date.now() + 2 * 86_400_000;
+    mockFind.mockResolvedValueOnce([
+      {
+        id: 'k-cap',
+        key_hash: hashKey(rawKey),
+        key_prefix: rawKey.substring(0, 12),
+        tenant_id: 't1',
+        created_by_user_id: 'u1',
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+        absolute_expires_at: new Date(ceiling).toISOString(),
+      },
+    ]);
+    const ctx = makeContext({ 'x-api-key': rawKey });
+
+    await expect(guard.canActivate(ctx)).resolves.toBe(true);
+    const setArg = mockSet.mock.calls[0][0] as { expires_at: string };
+    const renewed = new Date(setArg.expires_at).getTime();
+    // 30 days of slide would overshoot; the ceiling wins.
+    expect(renewed).toBeLessThanOrEqual(ceiling);
+    expect(renewed).toBeGreaterThan(ceiling - 2000);
+  });
+
   it('does not touch expires_at for non-expiring keys', async () => {
     const rawKey = 'test-api-key-001';
     mockFind.mockResolvedValueOnce([

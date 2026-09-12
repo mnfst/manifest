@@ -20,6 +20,18 @@ export class CliAuthCode {
   @Column('varchar', { length: 128 })
   state!: string;
 
+  /**
+   * PKCE (RFC 7636) challenge bound to the CLI that started the flow. The raw
+   * code is useless without the matching `code_verifier`, which never leaves
+   * the CLI — so a code intercepted from the browser redirect cannot be
+   * exchanged. Only S256 is accepted.
+   */
+  @Column('varchar', { length: 128, nullable: true })
+  code_challenge!: string | null;
+
+  @Column('varchar', { length: 10, nullable: true })
+  code_challenge_method!: string | null;
+
   @Column('varchar')
   tenant_id!: string;
 

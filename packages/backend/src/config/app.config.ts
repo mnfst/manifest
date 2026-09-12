@@ -88,4 +88,9 @@ export const appConfig = registerAs('app', () => ({
   // authentication pushes the key's `expires_at` this far into the future, so
   // an active CLI never has to re-login and an abandoned one lapses.
   cliTokenTtlDays: optionalPositiveInteger(process.env['CLI_TOKEN_TTL_DAYS']) ?? 30,
+  // Absolute ceiling for a CLI PAT, in days from issuance. The sliding window
+  // renews on every use, so this is what ultimately retires a token that is in
+  // constant use. Must be >= cliTokenTtlDays to be meaningful.
+  cliTokenAbsoluteTtlDays:
+    optionalPositiveInteger(process.env['CLI_TOKEN_ABSOLUTE_TTL_DAYS']) ?? 90,
 }));

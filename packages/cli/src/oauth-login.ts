@@ -1,12 +1,17 @@
 import * as http from 'http';
 import { spawn } from 'child_process';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { AddressInfo } from 'net';
 import { CliError } from './errors';
 import { CliIo } from './context';
 
 export const LOGIN_TIMEOUT_MS = 120_000;
 const EXCHANGE_TIMEOUT_MS = 30_000;
+
+/** PKCE S256: base64url(SHA-256(verifier)) — RFC 7636 §4.2. */
+export function deriveCodeChallenge(codeVerifier: string): string {
+  return createHash('sha256').update(codeVerifier).digest('base64url');
+}
 
 const SUCCESS_HTML = `<!doctype html><meta charset="utf-8"><title>Manifest CLI</title><body style="font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>&#10003; Connected</h1><p>You can close this page and return to the terminal.</p></div></body>`;
 const FAILURE_HTML = `<!doctype html><meta charset="utf-8"><title>Manifest CLI</title><body style="font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0"><div style="text-align:center"><h1>Login failed</h1><p>State mismatch &mdash; return to the terminal and retry.</p></div></body>`;
@@ -55,13 +60,18 @@ export async function browserLogin(
   exchangeTimeoutMs: number = EXCHANGE_TIMEOUT_MS,
 ): Promise<{ token: string; expiresAt: string | null }> {
   const state = randomBytes(24).toString('base64url');
+  // PKCE binds the one-time code to this process: the verifier never leaves the
+  // CLI, so a code captured from the browser redirect (history, extension, log)
+  // is inert without it.
+  const codeVerifier = randomBytes(32).toString('base64url');
+  const codeChallenge = deriveCodeChallenge(codeVerifier);
   const server = http.createServer();
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
     server.listen(0, '127.0.0.1', resolve);
   });
   const port = (server.address() as AddressInfo).port;
-  const authUrl = `${origin}/cli/auth?port=${port}&state=${state}`;
+  const authUrl = `${origin}/cli/auth?port=${port}&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
   let code: string;
   try {
@@ -117,7 +127,7 @@ export async function browserLogin(
     response = await io.fetchImpl(`${origin}/api/v1/cli/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, state }),
+      body: JSON.stringify({ code, state, code_verifier: codeVerifier }),
       signal: controller.signal,
     });
   } catch (error) {

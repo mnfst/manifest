@@ -1,6 +1,6 @@
 import * as http from 'http';
 import { EventEmitter } from 'events';
-import { browserLogin } from './oauth-login';
+import { browserLogin, deriveCodeChallenge } from './oauth-login';
 import { CliError } from './errors';
 import { CliIo } from './context';
 
@@ -34,18 +34,33 @@ describe('browserLogin', () => {
       text: async () =>
         JSON.stringify({ token: 'mnfst_pat_ok', expiresAt: '2026-09-01T00:00:00Z' }),
     });
-    const io = makeIo(
-      exchange as unknown as typeof fetch,
-      fakeBrowser(
+    let openedUrl = '';
+    const io = makeIo(exchange as unknown as typeof fetch, (url: string) => {
+      openedUrl = url;
+      return fakeBrowser(
         (u) =>
           `http://127.0.0.1:${u.searchParams.get('port')}/callback?code=code-abcdefghijklmnop&state=${u.searchParams.get('state')}`,
-      ),
-    );
+      )(url);
+    });
     const result = await browserLogin(io, 'http://localhost:3001');
     expect(result).toEqual({ token: 'mnfst_pat_ok', expiresAt: '2026-09-01T00:00:00Z' });
     const [url, init] = exchange.mock.calls[0];
     expect(url).toBe('http://localhost:3001/api/v1/cli/token');
-    expect(JSON.parse(init.body).code).toBe('code-abcdefghijklmnop');
+    const body = JSON.parse(init.body);
+    expect(body.code).toBe('code-abcdefghijklmnop');
+    // PKCE: the auth URL advertises the S256 challenge, and the matching
+    // verifier rides the exchange — never the browser redirect.
+    const sentChallenge = new URL(openedUrl).searchParams.get('code_challenge');
+    expect(new URL(openedUrl).searchParams.get('code_challenge_method')).toBe('S256');
+    expect(body.code_verifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(sentChallenge).toBe(deriveCodeChallenge(body.code_verifier));
+  });
+
+  it('deriveCodeChallenge produces the RFC 7636 S256 vector', () => {
+    // RFC 7636 Appendix B: verifier "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk".
+    expect(deriveCodeChallenge('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk')).toBe(
+      'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+    );
   });
 
   it('ignores a callback with the wrong state and times out', async () => {

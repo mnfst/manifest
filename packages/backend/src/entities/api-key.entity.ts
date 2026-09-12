@@ -36,4 +36,12 @@ export class ApiKey {
   /** NULL = non-expiring (dashboard/CI keys). CLI-minted PATs slide on use. */
   @Column(timestampType(), { nullable: true, default: null })
   expires_at!: string | null;
+
+  /**
+   * Hard ceiling for CLI PATs: the sliding renewal on each request never pushes
+   * `expires_at` past this instant, so a token in constant use still dies at
+   * the absolute cap. NULL = no cap (dashboard/CI keys).
+   */
+  @Column(timestampType(), { nullable: true, default: null })
+  absolute_expires_at!: string | null;
 }

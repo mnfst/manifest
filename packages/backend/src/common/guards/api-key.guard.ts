@@ -53,7 +53,17 @@ export class ApiKeyGuard implements CanActivate {
     const found = candidates.find((c) => verifyKey(apiKey, c.key_hash));
 
     if (found) {
-      if (found.expires_at && new Date(found.expires_at).getTime() <= Date.now()) {
+      const now = Date.now();
+      const absoluteExpiryAt = found.absolute_expires_at
+        ? new Date(found.absolute_expires_at).getTime()
+        : null;
+      // Two independent deadlines: the sliding window (`expires_at`) and the
+      // hard ceiling (`absolute_expires_at`). A token in constant use keeps the
+      // window alive forever, so the ceiling is what ultimately retires it.
+      const expired =
+        (found.expires_at && new Date(found.expires_at).getTime() <= now) ||
+        (absoluteExpiryAt !== null && absoluteExpiryAt <= now);
+      if (expired) {
         this.logger.warn(`Rejected expired API key from ${request.ip}`);
         throw new UnauthorizedException('API key expired — run mnfst login');
       }
@@ -74,6 +84,11 @@ export class ApiKeyGuard implements CanActivate {
       (request as Request & { apiKeyExpiresAt?: string | null }).apiKeyExpiresAt =
         found.expires_at ?? null;
       const ttlDays = this.configService.get<number>('app.cliTokenTtlDays', 30);
+      const slidExpiryAt = now + ttlDays * 86_400_000;
+      const nextExpiryAt =
+        absoluteExpiryAt !== null && absoluteExpiryAt < slidExpiryAt
+          ? absoluteExpiryAt
+          : slidExpiryAt;
       this.apiKeyRepo
         .createQueryBuilder()
         .update(ApiKey)
@@ -83,8 +98,8 @@ export class ApiKeyGuard implements CanActivate {
                 last_used_at: () => 'CURRENT_TIMESTAMP',
                 // Node clock, not CURRENT_TIMESTAMP: CliAuthService mints
                 // expiries with toLocalSqlTimestamp, and one column must not
-                // be written by two different clocks.
-                expires_at: toLocalSqlTimestamp(new Date(Date.now() + ttlDays * 86_400_000)),
+                // be written by two different clocks. Never past the ceiling.
+                expires_at: toLocalSqlTimestamp(new Date(nextExpiryAt)),
               }
             : { last_used_at: () => 'CURRENT_TIMESTAMP' },
         )
