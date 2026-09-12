@@ -1,0 +1,23 @@
+packages/backend/src/model-discovery/provider-model-fetcher.service.spec.ts
+  s_b05c9cbdbeb035::t_81c8d4e415019f 2612
+packages/backend/src/common/constants/subscription-clients.ts
+  s_b05c9cbdbeb035::t_81853071366a46 16
+.changeset/codex-client-version-gpt-6-astra.md
+  s_b05c9cbdbeb035::t_0b049657d3a866 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "eccd1c2e05f0d99f595abe9a60c0af3bc6571368",
+  "prompts": {},
+  "sessions": {
+    "s_b05c9cbdbeb035": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68e42d6effePB6lVzaf747vOT",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
