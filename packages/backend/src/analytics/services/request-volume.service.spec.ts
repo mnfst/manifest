@@ -138,6 +138,8 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain('AND r.timestamp < $3');
     expect(sql).toContain('FILTER (WHERE t.ts >= $4)');
     expect(sql).toContain('FILTER (WHERE t.ts < $4)');
+    // Still one terminal-CTE execution for both windows.
+    expect(messageRepo.query).toHaveBeenCalledTimes(1);
     const params = lastParams();
     expect(params).toHaveLength(4);
     expect(params[0]).toBe('t1');
