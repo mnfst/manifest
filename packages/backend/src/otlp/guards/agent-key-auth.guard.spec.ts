@@ -296,7 +296,7 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx: afterRevocation } = makeContext({ authorization: `Bearer ${token}` });
     await expect(guard.canActivate(afterRevocation)).rejects.toThrow('Invalid API key');
 
-    const internalCache = (guard as unknown as { cache: Map<string, unknown> }).cache;
+    const internalCache = (AgentKeyAuthGuard as unknown as { cache: Map<string, unknown> }).cache;
     expect(internalCache.has(testCacheKey(token))).toBe(false);
   });
 
@@ -351,8 +351,9 @@ describe('AgentKeyAuthGuard', () => {
 
     // Simulate the key being set to expire in the past while still cached: its
     // cache entry TTL is well in the future, but keyExpiresAt is now stale.
-    const internalCache = (guard as unknown as { cache: Map<string, { keyExpiresAt: number }> })
-      .cache;
+    const internalCache = (
+      AgentKeyAuthGuard as unknown as { cache: Map<string, { keyExpiresAt: number }> }
+    ).cache;
     const entry = internalCache.get(testCacheKey(token))!;
     expect(entry).toBeDefined();
     entry.keyExpiresAt = Date.now() - 1000;
@@ -395,7 +396,7 @@ describe('AgentKeyAuthGuard', () => {
     await guard.canActivate(ctx);
 
     const internalCache = (
-      guard as unknown as { cache: Map<string, { keyExpiresAt: number | null }> }
+      AgentKeyAuthGuard as unknown as { cache: Map<string, { keyExpiresAt: number | null }> }
     ).cache;
     const entry = internalCache.get(testCacheKey(token));
     expect(entry).toBeDefined();
@@ -540,7 +541,7 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   it('evicts the first cache entry when cache reaches MAX_CACHE_SIZE', async () => {
-    const internalCache = (guard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
 
     const firstFillerHash = testCacheKey('mnfst_filler-0');
     for (let i = 0; i < 10_000; i++) {
@@ -576,7 +577,7 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   it('evictExpired removes entries whose expiresAt has passed', async () => {
-    const internalCache = (guard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
 
     const expiredHash = testCacheKey('mnfst_expired-cache');
     const validHash = testCacheKey('mnfst_valid-cache');
@@ -624,7 +625,7 @@ describe('AgentKeyAuthGuard', () => {
     const repo = buildMockRepo();
     const timedGuard = new AgentKeyAuthGuard(repo, createMockConfig());
 
-    const internalCache = (timedGuard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
     internalCache.set(testCacheKey('mnfst_stale'), {
       tenantId: 't',
       agentId: 'a',
@@ -647,7 +648,7 @@ describe('AgentKeyAuthGuard', () => {
     const repo = buildMockRepo();
     const timedGuard = new AgentKeyAuthGuard(repo, createMockConfig());
 
-    const internalCache = (timedGuard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
     timedGuard.onModuleDestroy();
 
     internalCache.set(testCacheKey('mnfst_leftover'), {
@@ -662,6 +663,27 @@ describe('AgentKeyAuthGuard', () => {
     expect(internalCache.size).toBe(1);
 
     jest.useRealTimers();
+  });
+
+  it('onModuleDestroy clears the static caches so they cannot leak between contexts', () => {
+    const destroyedGuard = new AgentKeyAuthGuard(buildMockRepo(), createMockConfig());
+    const internalCache = (AgentKeyAuthGuard as unknown as { cache: Map<string, unknown> }).cache;
+    const negativeCache = (AgentKeyAuthGuard as unknown as { negativeCache: Map<string, number> })
+      .negativeCache;
+    internalCache.set(testCacheKey('mnfst_survivor'), {
+      tenantId: 't',
+      agentId: 'a',
+      agentName: 'n',
+      userId: 'u',
+      expiresAt: Date.now() + 60_000,
+      keyExpiresAt: null,
+    });
+    negativeCache.set(testCacheKey('mnfst_rejected'), Date.now() + 60_000);
+
+    destroyedGuard.onModuleDestroy();
+
+    expect(internalCache.size).toBe(0);
+    expect(negativeCache.size).toBe(0);
   });
 
   it('does not store plaintext tokens in cache', async () => {
@@ -681,7 +703,7 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx } = makeContext({ authorization: `Bearer ${token}` });
     await guard.canActivate(ctx);
 
-    const internalCache = (guard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
     expect(internalCache.has(token)).toBe(false);
     expect(internalCache.has(testCacheKey(token))).toBe(true);
   });
@@ -704,7 +726,7 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx } = makeContext({ authorization: `Bearer ${token}` });
     await guard.canActivate(ctx);
 
-    const internalCache = (guard as any).cache as Map<string, { expiresAt: number }>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, { expiresAt: number }>;
     const entry = internalCache.get(testCacheKey(token));
     expect(entry).toBeDefined();
     const ttlMs = entry!.expiresAt - before;
@@ -729,7 +751,7 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx } = makeContext({ authorization: `Bearer ${token}` });
     await guard.canActivate(ctx);
 
-    const internalCache = (guard as any).cache as Map<string, unknown>;
+    const internalCache = (AgentKeyAuthGuard as any).cache as Map<string, unknown>;
     internalCache.set(testCacheKey('mnfst_other-1'), {
       tenantId: 't',
       agentId: 'a',
@@ -805,8 +827,8 @@ describe('AgentKeyAuthGuard', () => {
   });
 
   describe('negative cache (rejected-key storm protection)', () => {
-    const negativeCacheOf = (g: AgentKeyAuthGuard) =>
-      (g as unknown as { negativeCache: Map<string, number> }).negativeCache;
+    const negativeCacheOf = (_g: AgentKeyAuthGuard) =>
+      (AgentKeyAuthGuard as unknown as { negativeCache: Map<string, number> }).negativeCache;
 
     it('serves a repeated bad key from the negative cache without a second DB lookup or log', async () => {
       mockGetMany.mockResolvedValue([]); // unknown key — DB returns no candidates
@@ -938,6 +960,36 @@ describe('AgentKeyAuthGuard', () => {
 
       guard.invalidateCache(token);
       expect(negCache.has(testCacheKey(token))).toBe(false);
+    });
+
+    it('invalidation reaches every guard instance (proxy vs otlp enhancer split)', async () => {
+      // Nest instantiates class-referenced @UseGuards enhancers per host
+      // module, so rotate-key clears a DIFFERENT guard instance than the one
+      // authenticating proxy traffic. The caches are static so a clear issued
+      // through ANY instance revokes the warm entry every instance sees.
+      const token = 'mnfst_cross-instance-key';
+      const firstGetMany = mockGetMany;
+      firstGetMany.mockResolvedValue([
+        {
+          id: 'key-x',
+          tenant_id: 'tenant-x',
+          agent_id: 'agent-x',
+          key_hash: hashKey(token),
+          expires_at: null,
+          agent: { name: 'x' },
+          tenant: { owner_user_id: 'user-x' },
+        },
+      ]);
+      const { ctx } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx)).resolves.toBe(true); // warms the shared cache
+
+      const rotatePathInstance = new AgentKeyAuthGuard(buildMockRepo(), createMockConfig()); // a different instance, as in production
+      firstGetMany.mockResolvedValue([]); // rotation deleted the row
+      rotatePathInstance.invalidateCache(token); // rotate clears via the OTHER instance
+
+      const { ctx: ctx2 } = makeContext({ authorization: `Bearer ${token}` });
+      await expect(guard.canActivate(ctx2)).rejects.toThrow('Invalid API key');
+      rotatePathInstance.onModuleDestroy();
     });
 
     it('clearCache empties the negative cache', async () => {

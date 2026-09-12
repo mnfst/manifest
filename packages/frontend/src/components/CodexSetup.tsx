@@ -1,4 +1,5 @@
 import { createSignal, Show, type Component } from 'solid-js';
+import { getCodexConfigSnippet, getCodexKeyExportSnippet } from 'manifest-shared';
 import CopyButton from './CopyButton.jsx';
 import CodeBlock from './CodeBlock.jsx';
 
@@ -6,21 +7,6 @@ interface Props {
   apiKey: string | null;
   keyPrefix: string | null;
   baseUrl: string;
-}
-
-function getCodexConfig(baseUrl: string): string {
-  return `model = "auto"
-model_provider = "manifest"
-
-[model_providers.manifest]
-name = "Manifest"
-base_url = "${baseUrl}"
-env_key = "MANIFEST_API_KEY"
-wire_api = "responses"`;
-}
-
-function getCodexKeyExport(apiKey: string): string {
-  return `export MANIFEST_API_KEY="${apiKey}"`;
 }
 
 const EyeIcon: Component<{ open: boolean }> = (props) => (
@@ -64,10 +50,10 @@ const CodexSetup: Component<Props> = (props) => {
     return keyRevealed() ? props.apiKey : masked();
   };
 
-  const configCopy = () => getCodexConfig(props.baseUrl);
-  const configShown = () => getCodexConfig(props.baseUrl);
-  const keyExportCopy = () => getCodexKeyExport(copyKey());
-  const keyExportShown = () => getCodexKeyExport(visibleKey());
+  const configCopy = () => getCodexConfigSnippet(props.baseUrl);
+  const configShown = () => getCodexConfigSnippet(props.baseUrl);
+  const keyExportCopy = () => getCodexKeyExportSnippet(copyKey());
+  const keyExportShown = () => getCodexKeyExportSnippet(visibleKey());
 
   return (
     <div class="setup-agents-card">
