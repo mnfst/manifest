@@ -14,7 +14,10 @@ const mockNavigate = vi.fn();
 // updates `agentName` in place without remounting the route component — a
 // plain object here would miss that. The getter re-reads the signal on every
 // access, which is enough for Solid's tracking to pick it up as a dependency.
-const agentNameBox = vi.hoisted(() => ({ read: (): string => 'test-agent', set: (_: string) => {} }));
+const agentNameBox = vi.hoisted(() => ({
+  read: (): string => 'test-agent',
+  set: (_: string) => {},
+}));
 vi.mock('@solidjs/router', () => ({
   useParams: () => ({
     get agentName() {
@@ -116,7 +119,8 @@ vi.mock('../../src/services/api/analytics.js', () => ({
       fallbacked_attempts: { value: 5, previous: 4 },
     }),
   getAttemptTimeseries: () => Promise.resolve({ range: '7d', by: 'metric', keys: [], buckets: [] }),
-  getWorkspaceAutofixStatus: () => Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
+  getWorkspaceAutofixStatus: () =>
+    Promise.resolve({ any_enabled: false, enabled_agents: [], consented: true }),
   getAutofixStats: (...a: unknown[]) => mockGetAutofixStats(...a),
   getAutofixTimeseries: () =>
     Promise.resolve({ range: '7d', by: 'disposition', keys: [], buckets: [] }),
@@ -354,7 +358,7 @@ describe('Overview', () => {
     expect(container.textContent).not.toContain('$3.50');
   });
 
-  it('keeps the skeleton until the new agent secondary metrics finish loading', async () => {
+  it('paints the new agent shell before its secondary metrics finish, without stale numbers', async () => {
     const firstAgentStats = {
       success_rate: { value: 0.9, previous: 0.8 },
       autofix_saves: { value: 777, previous: 5 },
@@ -400,22 +404,23 @@ describe('Overview', () => {
     await vi.waitFor(() => {
       expect(overviewResolved).toBe(true);
     });
-    await Promise.resolve();
 
-    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
-    expect(container.textContent).not.toContain('$9.99');
+    // The shell paints on `/overview` alone; the previous scope's secondary KPI
+    // must not bleed through while the new agent's stats are in flight.
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$9.99');
+    });
+    expect(container.querySelectorAll('.skeleton').length).toBe(0);
     expect(container.textContent).not.toContain('777');
 
     resolveSecondAgentStats(secondAgentStats);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('$9.99');
       expect(container.textContent).toContain('888');
     });
-    expect(container.querySelectorAll('.skeleton').length).toBe(0);
     expect(container.textContent).not.toContain('777');
   });
 
-  it('keeps the skeleton when switching back before secondary metrics finish', async () => {
+  it('never renders a superseded scope\u2019s secondary metrics when switching back', async () => {
     const firstAgentStats = {
       success_rate: { value: 0.9, previous: 0.8 },
       autofix_saves: { value: 777, previous: 5 },
@@ -467,26 +472,26 @@ describe('Overview', () => {
 
     agentNameBox.set('other-agent');
     await vi.waitFor(() => {
-      expect(mockGetOverview).toHaveBeenCalledWith('30d', 'other-agent');
+      expect(container.textContent).toContain('$9.99');
     });
+    expect(container.textContent).not.toContain('777');
+
     agentNameBox.set('test-agent');
     await vi.waitFor(() => {
       expect(firstAgentStatsCalls).toBe(2);
     });
-    await Promise.resolve();
-
-    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
-    expect(container.textContent).not.toContain('$9.99');
-    expect(container.textContent).not.toContain('777');
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain('$3.50');
+    });
+    // B's still-in-flight stats must never render under A.
+    expect(container.textContent).not.toContain('888');
 
     resolveSecondAgentStats(secondAgentStats);
     await Promise.resolve();
-    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
     expect(container.textContent).not.toContain('888');
 
     resolveReturningAgentStats(returningAgentStats);
     await vi.waitFor(() => {
-      expect(container.textContent).toContain('$3.50');
       expect(container.textContent).toContain('999');
     });
     expect(container.querySelectorAll('.skeleton').length).toBe(0);

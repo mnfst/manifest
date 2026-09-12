@@ -54,6 +54,15 @@ export interface DispositionRow {
   count: string;
 }
 
+/** Request-level disposition totals over one window: one row per logical request. */
+export interface DispositionTotals {
+  total: number;
+  success: number;
+  healed: number;
+  fallback: number;
+  error: number;
+}
+
 export interface VolumeSeriesRow {
   [bucketAlias: string]: unknown;
   messages: string | number;
@@ -217,7 +226,7 @@ export class RequestVolumeService {
     from: string;
     to?: string;
     agentName?: string;
-  }): Promise<{ total: number; success: number; healed: number; fallback: number; error: number }> {
+  }): Promise<DispositionTotals> {
     const empty = { total: 0, success: 0, healed: 0, fallback: 0, error: 0 };
     if (!params.tenantId) return empty;
     const sqlParams: unknown[] = [params.tenantId, params.from];
@@ -241,6 +250,76 @@ export class RequestVolumeService {
       else totals.error += n;
     }
     return totals;
+  }
+
+  /**
+   * Current + previous disposition totals from ONE terminal-CTE scan.
+   *
+   * The harness Overview's KPI card reports the current window and needs the
+   * previous window only for the trend arrow. Calling {@link getDispositionTotals}
+   * twice scans the same request/attempt window twice; this scans `[from, to)`
+   * once and splits the counts at `splitAt` with FILTER aggregates. Same
+   * terminal reduction as {@link getDispositionTotals}, so both windows still
+   * cover the identical request universe.
+   */
+  async getDispositionTotalsForWindows(params: {
+    tenantId: string | null;
+    from: string;
+    splitAt: string;
+    to?: string;
+    agentName?: string;
+  }): Promise<{ current: DispositionTotals; previous: DispositionTotals }> {
+    const empty = (): DispositionTotals => ({
+      total: 0,
+      success: 0,
+      healed: 0,
+      fallback: 0,
+      error: 0,
+    });
+    if (!params.tenantId) return { current: empty(), previous: empty() };
+    // `terminalCte(..., hasTo=true)` expects $2 = lower bound, $3 = upper bound,
+    // $4 = agent name. The window split then becomes the next parameter.
+    const sqlParams: unknown[] = [
+      params.tenantId,
+      params.from,
+      params.to ?? computeCutoff('0 hours'),
+    ];
+    if (params.agentName) sqlParams.push(params.agentName);
+    sqlParams.push(params.splitAt);
+    const splitIdx = sqlParams.length;
+    const sql = `${this.terminalCte(params.agentName, true)}
+      SELECT ${DISPOSITION_EXPR} AS dim,
+        COUNT(*) FILTER (WHERE t.ts >= $${splitIdx})::int AS current_count,
+        COUNT(*) FILTER (WHERE t.ts < $${splitIdx})::int AS previous_count
+      FROM terminal t
+      GROUP BY 1`;
+    const rows = (await this.messageRepo.query(sql, sqlParams)) as Array<{
+      dim: string;
+      current_count: number;
+      previous_count: number;
+    }>;
+    const current = empty();
+    const previous = empty();
+    for (const r of rows) {
+      const c = Number(r.current_count);
+      const p = Number(r.previous_count);
+      current.total += c;
+      previous.total += p;
+      if (r.dim === 'success') {
+        current.success += c;
+        previous.success += p;
+      } else if (r.dim === 'healed') {
+        current.healed += c;
+        previous.healed += p;
+      } else if (r.dim === 'fallback') {
+        current.fallback += c;
+        previous.fallback += p;
+      } else {
+        current.error += c;
+        previous.error += p;
+      }
+    }
+    return { current, previous };
   }
 
   /**

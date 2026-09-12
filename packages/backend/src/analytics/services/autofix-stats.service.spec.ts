@@ -53,6 +53,10 @@ describe('AutofixStatsService', () => {
     getDispositionTotals: jest
       .fn()
       .mockResolvedValue({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 }),
+    getDispositionTotalsForWindows: jest.fn().mockResolvedValue({
+      current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+      previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+    }),
     getVolumeByDimension: jest.fn().mockResolvedValue([]),
     getVolumeByProviderTimeseries: jest.fn().mockResolvedValue([]),
     getVolumeByAgentTimeseries: jest.fn().mockResolvedValue([]),
@@ -70,6 +74,10 @@ describe('AutofixStatsService', () => {
       healed: 0,
       fallback: 0,
       error: 0,
+    });
+    requestVolume.getDispositionTotalsForWindows.mockResolvedValue({
+      current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+      previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
     });
     requestVolume.getVolumeByDimension.mockResolvedValue([]);
     service = new AutofixStatsService(
@@ -215,33 +223,14 @@ describe('AutofixStatsService', () => {
 
   it('computes Autofix-only stats for current and previous windows', async () => {
     const internals = service as unknown as {
-      queryWindow: jest.Mock;
       queryNeedsAttention: jest.Mock;
     };
-    internals.queryWindow = jest
-      .fn()
-      .mockResolvedValueOnce({
-        total: 10,
-        successes: 8,
-        saves: 2,
-        fallback_saves: 1,
-        errors: 2,
-        healed: 2,
-        no_fix_found: 1,
-        resolving: 1,
-        ineffective: 0,
-      })
-      .mockResolvedValueOnce({
-        total: 0,
-        successes: 0,
-        saves: 0,
-        fallback_saves: 0,
-        errors: 0,
-        healed: 0,
-        no_fix_found: 0,
-        resolving: 0,
-        ineffective: 0,
-      });
+    // ONE terminal-CTE scan yields both windows; getStats derives the KPI
+    // counts from that single result instead of scanning twice.
+    requestVolume.getDispositionTotalsForWindows.mockResolvedValue({
+      current: { total: 10, success: 5, healed: 2, fallback: 1, error: 2 },
+      previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+    });
     internals.queryNeedsAttention = jest.fn().mockResolvedValue([{ error_message: 'bad' }]);
 
     await expect(
@@ -253,8 +242,15 @@ describe('AutofixStatsService', () => {
       total_requests: { value: 10, previous: 0 },
       errors_remaining: { value: 2, previous: 0 },
       coverage: { rate: 0.5, previous_rate: 0 },
-      dispositions: { healed: 2, no_fix_found: 1, resolving: 1, ineffective: 0 },
+      dispositions: { healed: 2, no_fix_found: 2, resolving: 0, ineffective: 0 },
       needs_attention: [{ error_message: 'bad' }],
+    });
+    expect(requestVolume.getDispositionTotalsForWindows).toHaveBeenCalledWith({
+      tenantId: 'tenant',
+      from: expect.any(String),
+      splitAt: expect.any(String),
+      to: expect.any(String),
+      agentName: 'agent',
     });
   });
 
@@ -380,24 +376,20 @@ describe('AutofixStatsService', () => {
     },
   );
 
-  it('derives window counts from the request-level disposition totals', async () => {
+  it('derives window counts from the request-level disposition totals', () => {
     const internals = service as unknown as {
-      queryWindow: (
-        from: string,
-        to: string,
-        tenantId: string | null,
-        agentName?: string,
-      ) => Promise<unknown>;
+      windowCounts: (t: {
+        total: number;
+        success: number;
+        healed: number;
+        fallback: number;
+        error: number;
+      }) => unknown;
     };
     // ONE definition: the KPI window reads the same reducer as the chart.
-    requestVolume.getDispositionTotals.mockResolvedValue({
-      total: 100,
-      success: 70,
-      healed: 4,
-      fallback: 6,
-      error: 20,
-    });
-    await expect(internals.queryWindow('from', 'to', 'tenant', 'demo')).resolves.toEqual({
+    expect(
+      internals.windowCounts({ total: 100, success: 70, healed: 4, fallback: 6, error: 20 }),
+    ).toEqual({
       total: 100,
       successes: 80, // success + recovered by Autofix + recovered by fallback
       saves: 4, // autofix_status = retry_succeeded
@@ -407,12 +399,6 @@ describe('AutofixStatsService', () => {
       no_fix_found: 20,
       resolving: 0,
       ineffective: 0,
-    });
-    expect(requestVolume.getDispositionTotals).toHaveBeenCalledWith({
-      tenantId: 'tenant',
-      from: 'from',
-      to: 'to',
-      agentName: 'demo',
     });
     // No attempt-table scan and no sibling join anymore.
     expect(messageRepo.createQueryBuilder).not.toHaveBeenCalled();

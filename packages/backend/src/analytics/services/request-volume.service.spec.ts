@@ -142,6 +142,49 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(sql).toContain("t.autofix_status = 'retry_succeeded'");
   });
 
+  it('splits current and previous disposition totals from ONE scan', async () => {
+    messageRepo.query.mockResolvedValue([
+      { dim: 'success', current_count: 70, previous_count: 60 },
+      { dim: 'healed', current_count: 4, previous_count: 3 },
+      { dim: 'fallback', current_count: 6, previous_count: 5 },
+      { dim: 'error', current_count: 20, previous_count: 30 },
+    ]);
+    const windows = await service.getDispositionTotalsForWindows({
+      tenantId: 't1',
+      from: '2026-01-01',
+      splitAt: '2026-01-08',
+      to: '2026-01-15',
+      agentName: 'demo',
+    });
+    expect(windows).toEqual({
+      current: { total: 100, success: 70, healed: 4, fallback: 6, error: 20 },
+      previous: { total: 98, success: 60, healed: 3, fallback: 5, error: 30 },
+    });
+    // A single terminal-CTE execution for both windows.
+    expect(messageRepo.query).toHaveBeenCalledTimes(1);
+    const sql = lastSql();
+    // One scan bounded by [from, to), split at the current-window start.
+    expect(sql).toContain('AND r.timestamp < $3');
+    expect(sql).toContain('name = $4');
+    expect(sql).toContain('FILTER (WHERE t.ts >= $5)');
+    expect(sql).toContain('FILTER (WHERE t.ts < $5)');
+    expect(lastParams()).toEqual(['t1', '2026-01-01', '2026-01-15', 'demo', '2026-01-08']);
+  });
+
+  it('returns empty current and previous windows without a tenant, never querying', async () => {
+    await expect(
+      service.getDispositionTotalsForWindows({
+        tenantId: null,
+        from: '2026-01-01',
+        splitAt: '2026-01-08',
+      }),
+    ).resolves.toEqual({
+      current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+      previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+    });
+    expect(messageRepo.query).not.toHaveBeenCalled();
+  });
+
   it('returns empty without a tenant, never querying', async () => {
     await expect(
       service.getDispositionTimeseries({ tenantId: null, range: '7d', hourly: false }),
