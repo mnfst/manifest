@@ -619,6 +619,48 @@ describe('ResolveService', () => {
       expect(providerKeyService.isRouteAvailable).not.toHaveBeenCalled();
     });
 
+    // A pinned override whose model the connection no longer offers must name
+    // itself so the proxy can return M302, not the neutral "no providers
+    // configured" M101. The flag only applies while the connection still exists.
+    it('flags the unavailable override model when its connection exists', async () => {
+      agentRepo.findOne.mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: false });
+      const override = route('openai', 'subscription', 'gpt-6-astra');
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: override,
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenant, r: ModelRoute) => r === override,
+      );
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toBeNull();
+      expect(result.override_model_unavailable).toBe('gpt-6-astra');
+    });
+
+    it('keeps the neutral no-provider signal when the override connection is gone', async () => {
+      agentRepo.findOne.mockResolvedValue({ id: 'agent-1', complexity_routing_enabled: false });
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'default',
+          override_route: route('openai', 'subscription', 'gpt-6-astra'),
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+      providerKeyService.hasRouteCredentials.mockResolvedValue(false);
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toBeNull();
+      expect(result.override_model_unavailable).toBeUndefined();
+    });
+
     // A configured fallback provider stays eligible when the auto-assigned
     // route's provider is not connected.
     it('promotes an available fallback when the auto_assigned_route is unavailable', async () => {
@@ -899,6 +941,32 @@ describe('ResolveService', () => {
       expect(result.tier).toBe('complex');
       expect(result.route).toEqual(route('anthropic', 'api_key', 'claude-opus'));
       expect(result.fallback_routes).toEqual([route('openai', 'api_key', 'gpt-4o')]);
+    });
+
+    it('flags the unavailable override model on the scored tier path', async () => {
+      mockedScore.mockReturnValue({
+        tier: 'standard',
+        confidence: 0.7,
+        score: 5,
+        reason: 'scored',
+      } as never);
+      const override = route('openai', 'subscription', 'gpt-6-astra');
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'standard',
+          override_route: override,
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenant, r: ModelRoute) => r === override,
+      );
+
+      const result = await svc.resolve('agent-1', 'user-1', messages);
+      expect(result.route).toBeNull();
+      expect(result.override_model_unavailable).toBe('gpt-6-astra');
     });
 
     it('falls back to the default tier when the scored tier is missing', async () => {

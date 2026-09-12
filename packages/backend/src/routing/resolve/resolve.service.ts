@@ -36,6 +36,13 @@ import type { SpecificityAssignment } from '../../entities/specificity-assignmen
 interface ResolvedRouteChain {
   primaryRoute: ModelRoute | null;
   fallbackRoutes: ModelRoute[] | null;
+  /**
+   * The model named by a pinned override that could not be resolved even
+   * though its own provider connection exists. Surfaces M302 at the proxy
+   * instead of the neutral M101, which misreads a missing model as missing
+   * configuration.
+   */
+  unavailableOverrideModel: string | null;
 }
 
 /**
@@ -183,6 +190,7 @@ export class ResolveService {
         confidence: result.confidence,
         score: result.score,
         reason: result.reason,
+        override_model_unavailable: routeChain.unavailableOverrideModel ?? undefined,
       };
     }
 
@@ -243,6 +251,9 @@ export class ResolveService {
       confidence: 1,
       score: 0,
       reason,
+      override_model_unavailable: effectiveRoutes.primaryRoute
+        ? undefined
+        : (routeChain.unavailableOverrideModel ?? undefined),
     };
   }
 
@@ -444,13 +455,25 @@ export class ResolveService {
       return {
         primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, override),
         fallbackRoutes,
+        unavailableOverrideModel: null,
       };
     }
+
+    // A configured override whose model the connection no longer offers still
+    // gets a fallback/auto route below. When none of those has credentials,
+    // name the override model so the proxy can return M302: M101 ("no providers
+    // are set up") misreads a model that is missing at this client version as
+    // missing configuration. Only flag it when the override's own connection
+    // exists, so a genuinely unconfigured agent keeps the neutral M101 (#2494).
+    let unavailableOverrideModel: string | null = null;
     if (override) {
       this.logger.warn(
         `Override ${override.model} unavailable for agent=${agentId} — ` +
           `falling back to configured routes`,
       );
+      if (await this.providerKeyService.hasRouteCredentials(tenantId, override, agentId)) {
+        unavailableOverrideModel = override.model;
+      }
     }
 
     // An orphaned override walks its fallbacks before the legacy auto-assigned
@@ -464,10 +487,11 @@ export class ResolveService {
         return {
           primaryRoute: await this.enrichRouteKeyLabel(agentId, tenantId, candidates[i]),
           fallbackRoutes: rest.length > 0 ? rest : null,
+          unavailableOverrideModel: null,
         };
       }
     }
-    return { primaryRoute: null, fallbackRoutes: null };
+    return { primaryRoute: null, fallbackRoutes: null, unavailableOverrideModel };
   }
 
   /**

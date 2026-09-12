@@ -280,12 +280,10 @@ export class ProxyService {
         `No route available for agent=${agentId}: ` +
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      if (resolved.explicit_model_unavailable) {
-        return this.buildModelUnavailableResult(
-          stream,
-          agentName,
-          resolved.explicit_model_unavailable,
-        );
+      const unavailableModel =
+        resolved.explicit_model_unavailable ?? resolved.override_model_unavailable;
+      if (unavailableModel) {
+        return this.buildModelUnavailableResult(stream, agentName, unavailableModel);
       }
       return this.buildNoProviderResult(stream, agentName);
     }
