@@ -112,29 +112,6 @@ type PivotedTimeseries = {
 type ProviderView = 'requests' | 'selfheal' | 'cost' | 'tokens';
 type TimeseriesKey = { range: string; agent: string; _ping: number };
 
-interface ScopedValue<T> {
-  scope: string;
-  data: T;
-}
-
-/**
- * Fetch keyed on `source`, tagging the resolved value with the range/agent
- * scope it belongs to. Unlike the main `/overview` resource, a scoped
- * supporting resource does NOT block the dashboard shell: on a range or agent
- * change the widget reads as pending until its value matches the current scope,
- * so the page never shows the previous scope's Autofix/model numbers and never
- * waits on them to paint.
- */
-function createScopedResource<P extends { range: string; agent: string }, T>(
-  source: () => (P & { _ping: number }) | false,
-  fetcher: (params: P & { _ping: number }) => Promise<T>,
-) {
-  return createResource(source, async (p: P & { _ping: number }): Promise<ScopedValue<T>> => ({
-    scope: `${p.range}\u0000${p.agent}`,
-    data: await fetcher(p),
-  }));
-}
-
 const Overview: Component = () => {
   const params = useParams<{ agentName: string }>();
   const location = useLocation<{ newApiKey?: string }>();
@@ -276,63 +253,62 @@ const Overview: Component = () => {
     agent: params.agentName,
     _ping: analyticsPing(),
   });
-  // Scope every supporting resource shares (range + agent, ping excluded). A
-  // resolved value whose scope doesn't match the current one reads as pending.
-  const supportScope = createMemo(() => `${effectiveRange()}\u0000${params.agentName}`);
-  const inScope =
-    <T,>(res: () => ScopedValue<T> | undefined) =>
-    () => {
-      const v = res();
-      return v && v.scope === supportScope() ? v.data : undefined;
-    };
-
-  const [providerTokenTs] = createScopedResource(
+  const [providerTokenTs] = createResource(
     () => (tokenChartRequested() ? tsKey() : false),
     (p) => getPerProviderTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
-  const [providerMessageTs] = createScopedResource(
+  const [providerMessageTs] = createResource(
     () => tsKey(),
     (p) => getPerProviderMessageTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
-  const [providerCostTs] = createScopedResource(
+  const [providerCostTs] = createResource(
     () => (costChartRequested() ? tsKey() : false),
     (p) => getPerProviderCostTimeseries(p.agent, p.range) as Promise<PivotedTimeseries>,
   );
 
   // ── Autofix resources ─────────────────────────────────
-  const [autofixStats] = createScopedResource(
-    () => tsKey(),
+  const [autofixStats] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: analyticsPing(),
+    }),
     (p) => getAutofixStats(p.range, p.agent),
   );
   // Disposition timeseries: the Requests chart's ONLY view on this page (an
   // agent is the harness, and a request may touch several providers, so no
   // other grouping is meaningful) + the Healed requests tab subset.
-  const [statusTimeseries] = createScopedResource(
-    () => tsKey(),
+  const [statusTimeseries] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: analyticsPing(),
+    }),
     (p) => getAutofixTimeseries(p.range, 'disposition', p.agent),
   );
-  const [modelReliability] = createScopedResource(
-    () => tsKey(),
+  const [modelReliability] = createResource(
+    () => ({
+      range: effectiveRange(),
+      agent: decodeURIComponent(params.agentName),
+      _ping: analyticsPing(),
+    }),
     (p) => getPerModelReliability(p.range, p.agent),
   );
 
-  // Scope-filtered accessors: undefined until the value belongs to the current
-  // range/agent scope, so the shell can render on `/overview` alone.
-  const providerToken = inScope(providerTokenTs);
-  const providerMessage = inScope(providerMessageTs);
-  const providerCost = inScope(providerCostTs);
-  const autofix = inScope(autofixStats);
-  const statusTs = inScope(statusTimeseries);
-  const reliability = inScope(modelReliability);
+  const supportingDataLoading = () =>
+    providerTokenTs.loading ||
+    providerMessageTs.loading ||
+    providerCostTs.loading ||
+    autofixStats.loading ||
+    statusTimeseries.loading ||
+    modelReliability.loading;
 
   createEffect(() => {
     if (overviewResult.loading) return;
     if (overviewResult.error === undefined) {
       const result = overviewResult();
       if (result === undefined || result.scope !== overviewScope()) return;
-      // Supporting Autofix/model widgets are scope-filtered rather than
-      // blocking: the shell paints on `/overview` and they fill in (never with
-      // the previous scope's numbers). See createScopedResource.
+      if (showDashboard() && supportingDataLoading()) return;
       setLoadedScope(result.scope);
       return;
     }
@@ -341,7 +317,7 @@ const Overview: Component = () => {
   const scopeChanging = () => loadedScope() !== overviewScope();
 
   const selfHealedTs = () => {
-    const ts = statusTs();
+    const ts = statusTimeseries();
     if (!ts) return undefined;
     const picked = ts.keys
       .map((k, i) => ({ k, i }))
@@ -358,9 +334,9 @@ const Overview: Component = () => {
 
   const allProviders = createMemo(() => {
     const set = new Set<string>([
-      ...(providerToken()?.agents ?? []),
-      ...(providerMessage()?.agents ?? []),
-      ...(providerCost()?.agents ?? []),
+      ...(providerTokenTs()?.agents ?? []),
+      ...(providerMessageTs()?.agents ?? []),
+      ...(providerCostTs()?.agents ?? []),
     ]);
     return [...set].sort();
   });
@@ -409,8 +385,9 @@ const Overview: Component = () => {
       }),
     };
   };
-  const filteredTokenTs = createMemo(() => filterTs(providerToken()));
-  const filteredCostTs = createMemo(() => filterTs(providerCost()));
+  const filteredTokenTs = createMemo(() => filterTs(providerTokenTs()));
+  const filteredMessageTs = createMemo(() => filterTs(providerMessageTs()));
+  const filteredCostTs = createMemo(() => filterTs(providerCostTs()));
 
   const providerDisplayName = (provId: string): string =>
     PROVIDERS.find((p) => p.id === provId)?.name ?? provId;
@@ -519,7 +496,7 @@ const Overview: Component = () => {
                     </div>
                   </Show>
                   <AutofixKpiCards
-                    stats={autofix()}
+                    stats={autofixStats()}
                     agentName={decodeURIComponent(params.agentName)}
                     range={effectiveRange()}
                   />
@@ -531,11 +508,11 @@ const Overview: Component = () => {
                         requestsValue={d().summary?.messages?.value ?? 0}
                         requestsTrendPct={d().summary?.messages?.trend_pct ?? 0}
                         selfHealedValue={
-                          (autofix()?.autofix_saves.value ?? 0) +
-                          (autofix()?.fallback_saves?.value ?? 0)
+                          (autofixStats()?.autofix_saves.value ?? 0) +
+                          (autofixStats()?.fallback_saves?.value ?? 0)
                         }
                         selfHealedTrendPct={(() => {
-                          const s = autofix();
+                          const s = autofixStats();
                           if (!s) return 0;
                           const cur = s.autofix_saves.value + (s.fallback_saves?.value ?? 0);
                           const prev = s.autofix_saves.previous + (s.fallback_saves?.previous ?? 0);
@@ -552,7 +529,7 @@ const Overview: Component = () => {
                         tokensValue={d().summary?.tokens_today?.value ?? 0}
                         tokensTrendPct={d().summary?.tokens_today?.trend_pct ?? 0}
                         range={effectiveRange()}
-                        requestStatusTimeseries={statusTs()}
+                        requestStatusTimeseries={statusTimeseries()}
                         agentTimeseries={filteredTokenTs() ?? undefined}
                         agentCostTimeseries={filteredCostTs() ?? undefined}
                         colorMap={providerColorMap()}
@@ -607,7 +584,7 @@ const Overview: Component = () => {
 
                   <CostByModelTable
                     rows={d().cost_by_model ?? []}
-                    reliability={reliability()}
+                    reliability={modelReliability()}
                     doctorAvailable
                   />
                 </>
