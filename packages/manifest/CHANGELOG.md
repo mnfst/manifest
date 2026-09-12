@@ -1,5 +1,12 @@
 # manifest
 
+## 6.23.5
+
+### Patch Changes
+
+- 62433aa: Fix OpenAI subscription model discovery so newer Codex CLI models (e.g. `gpt-6-astra`) appear. OpenAI gates `gpt-6-astra` behind Codex CLI `0.153.0`+, and the `/backend-api/codex/models` endpoint silently returns the older model subset for older `client_version` values. Bump `CODEX_CLI_VERSION` from `0.128.0` to `0.154.0`.
+- abc0183: Return `M302` ("model not available") instead of `M101` ("no providers configured") when a pinned routing override names a model its connection no longer offers and no fallback route resolves. Only applies while the override's provider connection still exists, so a genuinely unconfigured agent keeps the neutral `M101`.
+
 ## 6.23.4
 
 ### Patch Changes
