@@ -1,0 +1,57 @@
+packages/cli/src/commands/routing.ts
+  s_c03dc0ae96aac3::t_f66a3bccbc66e7 337-339,350-358
+  s_c03dc0ae96aac3::t_9c20571a4b2637 275-295
+  s_c03dc0ae96aac3::t_7fcc549cf1274a 402-406
+packages/shared/src/index.ts
+  s_c03dc0ae96aac3::t_a066113ea38268 18-19
+packages/cli/scripts/generate-provider-catalog.cjs
+  s_c03dc0ae96aac3::t_c7a9e3edc2f558 63,79
+packages/frontend/src/components/CodexSetup.tsx
+  s_c03dc0ae96aac3::t_f5399cd6d94842 2
+  s_c03dc0ae96aac3::t_c016f0d668cee3 53-56
+packages/shared/src/agent-type.ts
+  s_c03dc0ae96aac3::t_4d9e1231433646 42,50,53
+packages/backend/src/otlp/guards/agent-key-auth.guard.spec.ts
+  s_c03dc0ae96aac3::t_17a53769a50ac8 299
+packages/cli/src/index.ts
+  s_c03dc0ae96aac3::t_8aad91fea3ea8b 20
+  s_c03dc0ae96aac3::t_16d5f5c0c3507d 99
+packages/shared/__tests__/setup-snippets.spec.ts
+  s_c03dc0ae96aac3::t_49749faf4d2181 3-4
+  s_c03dc0ae96aac3::t_9ecc6b3cf816f1 37-43,46-47,50-51
+packages/cli/src/commands/commands.spec.ts
+  s_c03dc0ae96aac3::t_4700b9fc3533f5 535
+  s_c03dc0ae96aac3::t_f32ff88c6cdd11 1872-1898
+packages/shared/__tests__/agent-type-surfaces.spec.ts
+  s_c03dc0ae96aac3::t_d0f639e795e685 20-24
+packages/shared/src/setup-snippets.ts
+  s_c03dc0ae96aac3::t_00e06b8fc3f88c 73-110,118-119
+package-lock.json
+  s_28d53427986818::t_0ecc501a796c0a 16288-16289
+packages/cli/src/provider-catalog.gen.ts
+  s_c03dc0ae96aac3::t_cfe7f1e1ae006a 30-35,114-118,213,233-236,245-248,276,286-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cee7a9d3f8a1ced5b18161454af874734a43da1e",
+  "prompts": {},
+  "sessions": {
+    "s_28d53427986818": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68c6be65ffehRion2ZnxWovzQ",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    },
+    "s_c03dc0ae96aac3": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68d31b96ffeZq8O7BCNwR3dk1",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
