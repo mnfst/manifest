@@ -532,7 +532,7 @@ describe('agent commands', () => {
     ).toBe(1);
     expect(io.lastJson()).toMatchObject({
       error: 'invalid_category',
-      message: expect.stringContaining('personal, app, coding'),
+      message: expect.stringContaining('personal, automation, app, coding'),
     });
     expect(calls).toHaveLength(0);
   });
@@ -1867,6 +1867,33 @@ describe('routing test', () => {
     expect(calls[0].url).toBe(`${HOST}/v1/messages`);
     expect(JSON.parse(calls[0].body!).model).toBe('claude-opus-5');
     expect(io.lastJson()).toMatchObject({ requested_model: 'claude-opus-5' });
+  });
+
+  it('tests Codex through /v1/responses with a Responses body', async () => {
+    const { io, calls } = authedIo([
+      {
+        status: 200,
+        body: {
+          model: 'gpt-5.3-codex',
+          output: [{ type: 'message', content: [{ type: 'output_text', text: 'OK' }] }],
+          usage: { input_tokens: 8, output_tokens: 3 },
+        },
+      },
+    ]);
+    saveAgentKey(io.env, HOST, 'john', 'mnfst_test_key');
+    expect(await run(io, ['routing', 'test', 'john', '--as', 'codex'])).toBe(0);
+    expect(calls[0].url).toBe(`${HOST}/v1/responses`);
+    const body = JSON.parse(calls[0].body!);
+    expect(body.model).toBe('auto');
+    expect(body.input).toContain('Reply with exactly: OK');
+    expect(io.lastJson()).toMatchObject({
+      surface: 'responses',
+      platform: 'codex',
+      requested_model: 'auto',
+      served_model: 'gpt-5.3-codex',
+      tokens: 11,
+      reply: 'OK',
+    });
   });
 
   it('rejects an unknown --as before any network call', async () => {

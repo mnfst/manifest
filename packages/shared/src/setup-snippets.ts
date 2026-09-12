@@ -70,6 +70,44 @@ export function getNanobotConfigSnippet(baseUrl: string, apiKey: string): string
 }`;
 }
 
+/** The `~/.codex/config.toml` block. Codex CLI and Desktop both read this file. */
+export function getCodexConfigSnippet(baseUrl: string): string {
+  return `model = "auto"
+model_provider = "manifest"
+
+[model_providers.manifest]
+name = "Manifest"
+base_url = "${baseUrl}"
+env_key = "MANIFEST_API_KEY"
+wire_api = "responses"`;
+}
+
+export function getCodexKeyExportSnippet(apiKey: string): string {
+  return `export MANIFEST_API_KEY="${apiKey}"`;
+}
+
+/** CLI-facing combined Codex setup (config block + key export). */
+function getCodexSnippet(baseUrl: string, apiKey: string): string {
+  return `# Add to ~/.codex/config.toml
+${getCodexConfigSnippet(baseUrl)}
+
+# Then, in the terminal that launches Codex:
+${getCodexKeyExportSnippet(apiKey)}`;
+}
+
+/**
+ * CLI-facing n8n guidance. The dashboard renders these as copyable credential
+ * fields; the CLI emits the same values as a pasteable comment block.
+ */
+function getN8nSnippet(baseUrl: string, apiKey: string): string {
+  return `# In n8n, install the n8n-nodes-manifest community node, then add the Manifest
+# Chat Model node to your AI Agent / Basic LLM Chain (or the Manifest node for
+# direct calls). Create Manifest credentials with:
+#   Base URL: ${stripV1Suffix(baseUrl)}
+#   API Key:  ${apiKey}
+#   Model:    auto`;
+}
+
 /** Which platforms have a first-class setup snippet, and which function renders it. */
 export const PLATFORM_SETUP_SNIPPETS: Readonly<
   Record<string, (baseUrl: string, apiKey: string) => string>
@@ -77,4 +115,6 @@ export const PLATFORM_SETUP_SNIPPETS: Readonly<
   openclaw: getOpenClawSnippet,
   'claude-code': getClaudeCodeSettingsSnippet,
   nanobot: getNanobotConfigSnippet,
+  codex: getCodexSnippet,
+  n8n: getN8nSnippet,
 };

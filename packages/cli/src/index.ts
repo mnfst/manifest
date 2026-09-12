@@ -17,6 +17,7 @@ import * as requests from './commands/requests';
 import * as doctorCommand from './commands/doctor';
 import * as modelPrices from './commands/model-prices';
 import * as skill from './commands/skill';
+import { CATEGORY_CATALOG } from './provider-catalog.gen';
 
 type Handler = (io: CliIo, argv: string[]) => Promise<number | void>;
 
@@ -95,7 +96,7 @@ Diagnostics
 Agents
   mnfst agent list [--include-playground]
   mnfst agent platforms
-  mnfst agent create --name <name> --platform <p> [--category <personal|app|coding>] [--key-file <path>] [--if-absent]
+  mnfst agent create --name <name> --platform <p> [--category <${CATEGORY_CATALOG.join('|')}>] [--key-file <path>] [--if-absent]
   mnfst agent configure <name> --models <primary,fb1,fb2> --provider <p> [--auth-type <a>] [--key-label <l>] [--tier <custom>] [--autofix true|false] [--recording true|false] [--force]
     (--models is the full chain: first = route, rest = fallbacks, one entry clears fallbacks;
      default route unless --tier names a custom tier, upserted on "x-manifest-tier: <name>";

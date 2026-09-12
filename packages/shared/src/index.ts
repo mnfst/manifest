@@ -15,6 +15,8 @@ export {
   getOpenClawSnippet,
   getClaudeCodeSettingsSnippet,
   getNanobotConfigSnippet,
+  getCodexConfigSnippet,
+  getCodexKeyExportSnippet,
   PLATFORM_SETUP_SNIPPETS,
 } from './setup-snippets';
 export {

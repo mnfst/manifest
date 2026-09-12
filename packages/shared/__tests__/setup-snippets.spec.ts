@@ -1,5 +1,7 @@
 import {
   getClaudeCodeSettingsSnippet,
+  getCodexConfigSnippet,
+  getCodexKeyExportSnippet,
   getNanobotConfigSnippet,
   getOpenClawSnippet,
   PLATFORM_SETUP_SNIPPETS,
@@ -32,10 +34,21 @@ describe('setup snippets', () => {
     expect(s).toContain(KEY);
   });
 
+  it('codex config pins the Responses wire API and the key export is shell-safe', () => {
+    const config = getCodexConfigSnippet(URL);
+    expect(config).toContain('wire_api = "responses"');
+    expect(config).toContain(`base_url = "${URL}"`);
+    expect(getCodexKeyExportSnippet(KEY)).toBe(`export MANIFEST_API_KEY="${KEY}"`);
+  });
+
   it('registry maps platforms to their renderers', () => {
     expect(PLATFORM_SETUP_SNIPPETS['openclaw']('u', 'k')).toContain('openclaw');
+    expect(PLATFORM_SETUP_SNIPPETS['codex']('u/v1', 'k')).toContain('wire_api = "responses"');
+    expect(PLATFORM_SETUP_SNIPPETS['n8n']('u/v1', 'k')).toContain('Base URL: u');
     expect(Object.keys(PLATFORM_SETUP_SNIPPETS).sort()).toEqual([
       'claude-code',
+      'codex',
+      'n8n',
       'nanobot',
       'openclaw',
     ]);

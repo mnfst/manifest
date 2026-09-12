@@ -60,6 +60,7 @@ async function main() {
   const platforms = derivePlatforms(shared);
   const categories = deriveCategories(shared);
   const setupTemplates = deriveSetupTemplates(shared);
+  const surfaceUnion = shared.API_SURFACES.map((s) => `'${s}'`).join(' | ');
   const out = `// GENERATED FILE — do not edit by hand.
 // Source: manifest-shared (SHARED_PROVIDERS + SUPPORTED_SUBSCRIPTION_PROVIDER_IDS).
 // Refresh with: npm run gen (runs automatically in npm run build).
@@ -75,7 +76,7 @@ export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = ${JSON.stringif
 
 export interface PlatformCatalogEntry {
   id: string;
-  surface: 'chat_completions' | 'messages';
+  surface: ${surfaceUnion};
 }
 
 export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = ${JSON.stringify(platforms, null, 2)};

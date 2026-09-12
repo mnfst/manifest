@@ -39,7 +39,7 @@ export const CATEGORY_LABELS: Readonly<Record<AgentCategory, string>> = {
  * (CLI `routing test`, Wingman profiles, docs). Adding a platform above
  * without a surface here is a type error — the mapping can never go stale.
  */
-export const API_SURFACES = ['chat_completions', 'messages'] as const;
+export const API_SURFACES = ['chat_completions', 'messages', 'responses'] as const;
 export type ApiSurface = (typeof API_SURFACES)[number];
 
 export const PLATFORM_API_SURFACES: Readonly<Record<AgentPlatform, ApiSurface>> = {
@@ -47,8 +47,10 @@ export const PLATFORM_API_SURFACES: Readonly<Record<AgentPlatform, ApiSurface>> 
   hermes: 'chat_completions',
   nanobot: 'chat_completions',
   craft: 'chat_completions',
+  n8n: 'chat_completions',
   'claude-code': 'messages',
   opencode: 'chat_completions',
+  codex: 'responses',
   'openai-sdk': 'chat_completions',
   'anthropic-sdk': 'messages',
   'vercel-ai-sdk': 'chat_completions',

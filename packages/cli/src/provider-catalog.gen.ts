@@ -28,6 +28,12 @@ export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
     authTypes: ['api_key'],
   },
   {
+    id: 'vertex',
+    displayName: 'Google Vertex AI',
+    aliases: ['google-vertex', 'google vertex', 'vertex-ai', 'vertex ai'],
+    authTypes: ['api_key'],
+  },
+  {
     id: 'byteplus',
     displayName: 'BytePlus',
     aliases: ['byteplus-plan', 'byteplus plan', 'modelark', 'modelark-coding-plan'],
@@ -104,6 +110,11 @@ export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
     id: 'minimax',
     displayName: 'MiniMax',
     authTypes: ['api_key', 'subscription'],
+  },
+  {
+    id: 'meta',
+    displayName: 'Meta',
+    authTypes: ['api_key'],
   },
   {
     id: 'xiaomi',
@@ -199,7 +210,7 @@ export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
 
 export interface PlatformCatalogEntry {
   id: string;
-  surface: 'chat_completions' | 'messages';
+  surface: 'chat_completions' | 'messages' | 'responses';
 }
 
 export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = [
@@ -220,12 +231,20 @@ export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = [
     surface: 'chat_completions',
   },
   {
+    id: 'n8n',
+    surface: 'chat_completions',
+  },
+  {
     id: 'claude-code',
     surface: 'messages',
   },
   {
     id: 'opencode',
     surface: 'chat_completions',
+  },
+  {
+    id: 'codex',
+    surface: 'responses',
   },
   {
     id: 'openai-sdk',
@@ -254,7 +273,7 @@ export const PLATFORM_CATALOG: readonly PlatformCatalogEntry[] = [
 ];
 
 /** Valid --category values (source: manifest-shared AGENT_CATEGORIES). */
-export const CATEGORY_CATALOG: readonly string[] = ['personal', 'app', 'coding'];
+export const CATEGORY_CATALOG: readonly string[] = ['personal', 'automation', 'app', 'coding'];
 
 /** Setup snippets with {{ORIGIN}} / {{API_KEY}} placeholders, rendered from manifest-shared. */
 export const SETUP_TEMPLATES: Readonly<Record<string, string>> = {
@@ -264,4 +283,7 @@ export const SETUP_TEMPLATES: Readonly<Record<string, string>> = {
     '{\n  "model": "auto",\n  "env": {\n    "ANTHROPIC_BASE_URL": "{{ORIGIN}}",\n    "ANTHROPIC_AUTH_TOKEN": "{{API_KEY}}"\n  }\n}',
   nanobot:
     '{\n  "agents": {\n    "defaults": {\n      "provider": "custom",\n      "model": "auto"\n    }\n  },\n  "providers": {\n    "custom": {\n      "apiKey": "{{API_KEY}}",\n      "apiBase": "{{ORIGIN}}/v1"\n    }\n  }\n}',
+  codex:
+    '# Add to ~/.codex/config.toml\nmodel = "auto"\nmodel_provider = "manifest"\n\n[model_providers.manifest]\nname = "Manifest"\nbase_url = "{{ORIGIN}}/v1"\nenv_key = "MANIFEST_API_KEY"\nwire_api = "responses"\n\n# Then, in the terminal that launches Codex:\nexport MANIFEST_API_KEY="{{API_KEY}}"',
+  n8n: '# In n8n, install the n8n-nodes-manifest community node, then add the Manifest\n# Chat Model node to your AI Agent / Basic LLM Chain (or the Manifest node for\n# direct calls). Create Manifest credentials with:\n#   Base URL: {{ORIGIN}}\n#   API Key:  {{API_KEY}}\n#   Model:    auto',
 };

@@ -272,6 +272,27 @@ function parseMessagesSurface(parsed: Record<string, unknown>): SurfaceResult {
   };
 }
 
+/** OpenAI Responses API: reply lives in `output[].content[].output_text`. */
+function parseResponsesSurface(parsed: Record<string, unknown>): SurfaceResult {
+  const output = parsed['output'] as Array<Record<string, unknown>> | undefined;
+  let reply = '';
+  for (const item of output ?? []) {
+    if (item['type'] !== 'message') continue;
+    const content = item['content'] as Array<Record<string, unknown>> | undefined;
+    for (const part of content ?? []) {
+      if (part['type'] === 'output_text' && typeof part['text'] === 'string') reply += part['text'];
+    }
+  }
+  const usage = parsed['usage'] as { input_tokens?: number; output_tokens?: number } | undefined;
+  return {
+    reply,
+    servedModel: typeof parsed['model'] === 'string' ? parsed['model'] : null,
+    ...(usage?.input_tokens !== undefined
+      ? { tokens: (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) }
+      : {}),
+  };
+}
+
 /**
  * Send ONE real request through the agent's route to prove the config works
  * end-to-end — the closing move after `agent configure`. Not an inference
@@ -313,7 +334,9 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
   const endpoint =
     surface === 'messages'
       ? `${resolved.origin}/v1/messages`
-      : `${resolved.origin}/v1/chat/completions`;
+      : surface === 'responses'
+        ? `${resolved.origin}/v1/responses`
+        : `${resolved.origin}/v1/chat/completions`;
   const requestBody =
     surface === 'messages'
       ? {
@@ -324,10 +347,15 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
           max_tokens: 64,
           messages: [{ role: 'user', content: prompt }],
         }
-      : {
-          model: args.strings['model'] ?? 'auto',
-          messages: [{ role: 'user', content: prompt }],
-        };
+      : surface === 'responses'
+        ? {
+            model: args.strings['model'] ?? 'auto',
+            input: prompt,
+          }
+        : {
+            model: args.strings['model'] ?? 'auto',
+            messages: [{ role: 'user', content: prompt }],
+          };
   let response: Response;
   try {
     response = await io.fetchImpl(endpoint, {
@@ -371,7 +399,11 @@ export async function routingTest(io: CliIo, argv: string[]): Promise<number | v
   }
 
   const result =
-    surface === 'messages' ? parseMessagesSurface(parsed) : parseCompletionSurface(parsed);
+    surface === 'messages'
+      ? parseMessagesSurface(parsed)
+      : surface === 'responses'
+        ? parseResponsesSurface(parsed)
+        : parseCompletionSurface(parsed);
   if (/^\[🦚 Manifest M\d+\]/.test(result.reply)) {
     throw new CliError('route_test_failed', result.reply, 'See mnfst routing status ' + agent);
   }

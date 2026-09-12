@@ -296,7 +296,7 @@ describe('AgentKeyAuthGuard', () => {
     const { ctx: afterRevocation } = makeContext({ authorization: `Bearer ${token}` });
     await expect(guard.canActivate(afterRevocation)).rejects.toThrow('Invalid API key');
 
-    const internalCache = (guard as unknown as { cache: Map<string, unknown> }).cache;
+    const internalCache = (AgentKeyAuthGuard as unknown as { cache: Map<string, unknown> }).cache;
     expect(internalCache.has(testCacheKey(token))).toBe(false);
   });
 

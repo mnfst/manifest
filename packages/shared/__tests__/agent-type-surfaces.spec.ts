@@ -17,4 +17,9 @@ describe('PLATFORM_API_SURFACES', () => {
     expect(PLATFORM_API_SURFACES['anthropic-sdk']).toBe('messages');
     expect(PLATFORM_API_SURFACES['openclaw']).toBe('chat_completions');
   });
+
+  it('routes Codex through the Responses API and n8n through chat completions', () => {
+    expect(PLATFORM_API_SURFACES['codex']).toBe('responses');
+    expect(PLATFORM_API_SURFACES['n8n']).toBe('chat_completions');
+  });
 });
