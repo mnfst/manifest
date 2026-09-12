@@ -119,27 +119,78 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     expect(lastParams()).toEqual(['t1', expect.any(String), 'openai', 'api_key', 'Default']);
   });
 
-  it('sums disposition totals over an explicit window', async () => {
+  it('defaults the upper bound and splits at $4 when no agent is scoped', async () => {
     messageRepo.query.mockResolvedValue([
-      { dim: 'success', count: 70 },
-      { dim: 'healed', count: 4 },
-      { dim: 'fallback', count: 6 },
-      { dim: 'error', count: 20 },
+      { dim: 'success', current_count: 3, previous_count: 4 },
+      { dim: 'error', current_count: 2, previous_count: 1 },
     ]);
-    const totals = await service.getDispositionTotals({
+    const windows = await service.getDispositionTotalsForWindows({
       tenantId: 't1',
       from: '2026-01-01',
-      to: '2026-01-08',
-      agentName: 'demo',
+      splitAt: '2026-01-08',
     });
-    expect(totals).toEqual({ total: 100, success: 70, healed: 4, fallback: 6, error: 20 });
+    expect(windows).toEqual({
+      current: { total: 5, success: 3, healed: 0, fallback: 0, error: 2 },
+      previous: { total: 5, success: 4, healed: 0, fallback: 0, error: 1 },
+    });
     const sql = lastSql();
-    // Bounded window + agent scope shift the parameter positions.
+    // No agent scope: the split is the 4th parameter, after the defaulted `to`.
     expect(sql).toContain('AND r.timestamp < $3');
-    expect(sql).toContain('name = $4');
-    expect(lastParams()).toEqual(['t1', '2026-01-01', '2026-01-08', 'demo']);
+    expect(sql).toContain('FILTER (WHERE t.ts >= $4)');
+    expect(sql).toContain('FILTER (WHERE t.ts < $4)');
+    // Still one terminal-CTE execution for both windows.
+    expect(messageRepo.query).toHaveBeenCalledTimes(1);
+    const params = lastParams();
+    expect(params).toHaveLength(4);
+    expect(params[0]).toBe('t1');
+    expect(params[1]).toBe('2026-01-01');
+    expect(typeof params[2]).toBe('string'); // `to` defaulted to now
+    expect(params[3]).toBe('2026-01-08');
     // Recovered by Autofix reads the materialized request verdict.
     expect(sql).toContain("t.autofix_status = 'retry_succeeded'");
+  });
+
+  it('splits current and previous disposition totals from ONE scan', async () => {
+    messageRepo.query.mockResolvedValue([
+      { dim: 'success', current_count: 70, previous_count: 60 },
+      { dim: 'healed', current_count: 4, previous_count: 3 },
+      { dim: 'fallback', current_count: 6, previous_count: 5 },
+      { dim: 'error', current_count: 20, previous_count: 30 },
+    ]);
+    const windows = await service.getDispositionTotalsForWindows({
+      tenantId: 't1',
+      from: '2026-01-01',
+      splitAt: '2026-01-08',
+      to: '2026-01-15',
+      agentName: 'demo',
+    });
+    expect(windows).toEqual({
+      current: { total: 100, success: 70, healed: 4, fallback: 6, error: 20 },
+      previous: { total: 98, success: 60, healed: 3, fallback: 5, error: 30 },
+    });
+    // A single terminal-CTE execution for both windows.
+    expect(messageRepo.query).toHaveBeenCalledTimes(1);
+    const sql = lastSql();
+    // One scan bounded by [from, to), split at the current-window start.
+    expect(sql).toContain('AND r.timestamp < $3');
+    expect(sql).toContain('name = $4');
+    expect(sql).toContain('FILTER (WHERE t.ts >= $5)');
+    expect(sql).toContain('FILTER (WHERE t.ts < $5)');
+    expect(lastParams()).toEqual(['t1', '2026-01-01', '2026-01-15', 'demo', '2026-01-08']);
+  });
+
+  it('returns empty current and previous windows without a tenant, never querying', async () => {
+    await expect(
+      service.getDispositionTotalsForWindows({
+        tenantId: null,
+        from: '2026-01-01',
+        splitAt: '2026-01-08',
+      }),
+    ).resolves.toEqual({
+      current: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+      previous: { total: 0, success: 0, healed: 0, fallback: 0, error: 0 },
+    });
+    expect(messageRepo.query).not.toHaveBeenCalled();
   });
 
   it('returns empty without a tenant, never querying', async () => {
@@ -148,9 +199,6 @@ describe('RequestVolumeService (#2511 request-level volume)', () => {
     ).resolves.toEqual([]);
     await expect(service.getVolumeByAgentTimeseries('7d', null, false)).resolves.toEqual([]);
     await expect(service.getVolumeByDimension('model', { tenantId: null })).resolves.toEqual([]);
-    await expect(
-      service.getDispositionTotals({ tenantId: null, from: '2026-01-01' }),
-    ).resolves.toEqual({ total: 0, success: 0, healed: 0, fallback: 0, error: 0 });
     expect(messageRepo.query).not.toHaveBeenCalled();
   });
 });

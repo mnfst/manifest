@@ -21,7 +21,7 @@ import {
   sqlIsFailedStatus,
   sqlIsSuccessStatus,
 } from './query-helpers';
-import { RequestVolumeService } from './request-volume.service';
+import { RequestVolumeService, type DispositionTotals } from './request-volume.service';
 
 export interface AutofixStatusResponse {
   /** At least one agent is effectively enabled after deployment-mode defaults. */
@@ -200,11 +200,18 @@ export class AutofixStatsService {
     const cutoff = computeCutoff(rangeToInterval(range));
     const prevCutoff = computeCutoff(rangeToPreviousInterval(range));
 
-    const [current, previous, attention] = await Promise.all([
-      this.queryWindow(cutoff, computeCutoff('0 hours'), params.tenantId, params.agentName),
-      this.queryWindow(prevCutoff, cutoff, params.tenantId, params.agentName),
+    const [windows, attention] = await Promise.all([
+      this.requestVolume.getDispositionTotalsForWindows({
+        tenantId: params.tenantId,
+        from: prevCutoff,
+        splitAt: cutoff,
+        to: computeCutoff('0 hours'),
+        agentName: params.agentName,
+      }),
       this.queryNeedsAttention(cutoff, params.tenantId, params.agentName),
     ]);
+    const current = this.windowCounts(windows.current);
+    const previous = this.windowCounts(windows.previous);
 
     const rate = (c: WindowCounts) => (c.total > 0 ? c.successes / c.total : 0);
     const afxTotal = (c: WindowCounts) => c.healed + c.no_fix_found + c.resolving + c.ineffective;
@@ -470,20 +477,11 @@ export class AutofixStatsService {
    * KPI window counts, read from the SAME request-level reducer as the
    * By request status chart (one request, one disposition; Recovered by
    * Autofix = requests.autofix_status = 'retry_succeeded'). One definition,
-   * every surface.
+   * every surface. Pure — the window totals come from a single
+   * `getDispositionTotalsForWindows` scan for both the current and previous
+   * window, so the KPI no longer scans the request/attempt window twice.
    */
-  private async queryWindow(
-    from: string,
-    to: string,
-    tenantId: string | null,
-    agentName?: string,
-  ): Promise<WindowCounts> {
-    const t = await this.requestVolume.getDispositionTotals({
-      tenantId,
-      from,
-      to,
-      agentName,
-    });
+  private windowCounts(t: DispositionTotals): WindowCounts {
     return {
       total: t.total,
       successes: t.success + t.healed + t.fallback,
