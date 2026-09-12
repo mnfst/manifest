@@ -1117,6 +1117,26 @@ describe('ResolveService', () => {
       expect(result.reason).toBe('heartbeat');
     });
 
+    it('keeps the neutral signal for heartbeats even with an unavailable override', async () => {
+      const override = route('openai', 'subscription', 'gpt-6-astra');
+      tierService.getTiers.mockResolvedValue([
+        {
+          tier: 'simple',
+          override_route: override,
+          auto_assigned_route: null,
+          fallback_routes: null,
+        } as unknown as TierAssignment,
+      ]);
+      providerKeyService.isRouteAvailable.mockResolvedValue(false);
+      providerKeyService.hasRouteCredentials.mockImplementation(
+        async (_tenant, r: ModelRoute) => r === override,
+      );
+
+      const result = await svc.resolveForTier('agent-1', 'user-1', 'simple', 'heartbeat');
+      expect(result.route).toBeNull();
+      expect(result.override_model_unavailable).toBeUndefined();
+    });
+
     it('returns the override route when present', async () => {
       tierService.getTiers.mockResolvedValue([
         {

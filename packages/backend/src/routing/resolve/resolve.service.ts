@@ -251,9 +251,13 @@ export class ResolveService {
       confidence: 1,
       score: 0,
       reason,
-      override_model_unavailable: effectiveRoutes.primaryRoute
-        ? undefined
-        : (routeChain.unavailableOverrideModel ?? undefined),
+      // Heartbeats are keep-alives, not routed chat. Keep their existing
+      // neutral M101 so an unavailable simple-tier override can't repaint
+      // every periodic heartbeat as a model-not-available response.
+      override_model_unavailable:
+        effectiveRoutes.primaryRoute || reason === 'heartbeat'
+          ? undefined
+          : (routeChain.unavailableOverrideModel ?? undefined),
     };
   }
 
