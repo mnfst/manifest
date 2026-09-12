@@ -1,0 +1,19 @@
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_b05c9cbdbeb035::t_f1afeb92b9cd2b 972-993
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "98ca23e15c871bb8ace7c24777a7b298426b3490",
+  "prompts": {},
+  "sessions": {
+    "s_b05c9cbdbeb035": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68e42d6effePB6lVzaf747vOT",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
