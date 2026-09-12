@@ -1,0 +1,33 @@
+packages/backend/src/routing/dto/resolve-response.ts
+  s_b05c9cbdbeb035::t_3852009d616047 37-42
+packages/backend/src/routing/resolve/__tests__/resolve.service.spec.ts
+  s_b05c9cbdbeb035::t_693553515c655a 622-663
+  s_b05c9cbdbeb035::t_7bd1734de88ab3 946-971
+.changeset/m302-unavailable-override-model.md
+  s_b05c9cbdbeb035::t_0b74e24b4a9b8e 1-5
+packages/backend/src/routing/proxy/proxy.service.ts
+  s_b05c9cbdbeb035::t_46ad5ff42cd7a7 283-286
+packages/backend/src/routing/resolve/resolve.service.ts
+  s_b05c9cbdbeb035::t_66af2231fdbd99 254-256
+  s_b05c9cbdbeb035::t_0f5edfd2dedf41 39-45
+  s_b05c9cbdbeb035::t_6a9555115f9658 458,461-468,474-476,490,494
+  s_b05c9cbdbeb035::t_64ac1d556a4d84 193
+packages/backend/src/routing/proxy/__tests__/proxy.service.spec.ts
+  s_b05c9cbdbeb035::t_7acc9bc207c4e0 1000-1020
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0e45413c32751fd6b5120b6ab727ae6527809592",
+  "prompts": {},
+  "sessions": {
+    "s_b05c9cbdbeb035": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f68e42d6effePB6lVzaf747vOT",
+        "model": "auto"
+      },
+      "human_author": "Guillaume Gay <guillaume.gay@protonmail.com>"
+    }
+  }
+}
