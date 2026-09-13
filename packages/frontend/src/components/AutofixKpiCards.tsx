@@ -105,7 +105,7 @@ const AutofixKpiCards: Component<AutofixKpiCardsProps> = (props) => {
   return (
     <Show when={props.stats}>
       {(s) => (
-        <div class="overview-stats" style="grid-template-columns: repeat(5, 1fr);">
+        <div class="overview-stats overview-stats--5">
           <div class="overview-stat-card">
             <span class="overview-stat-card__label">
               Success rate

@@ -8,6 +8,7 @@ import { OpencodeGoCatalogService } from '../model-discovery/opencode-go-catalog
 import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
+import { RoutingCacheService } from './routing-core/routing-cache.service';
 import { resolveProviderMetadataIdentity } from 'manifest-shared';
 import {
   inputModalitiesFromCapabilities,
@@ -63,6 +64,7 @@ export class ModelController {
     private readonly providerParamSpecs: ProviderParamSpecService,
     private readonly modelsDevSync: ModelsDevSyncService,
     private readonly opencodeGoCatalog: OpencodeGoCatalogService,
+    private readonly routingCache: RoutingCacheService,
   ) {}
 
   @Get('pricing-health')
@@ -87,6 +89,9 @@ export class ModelController {
   async refreshModels(@TenantCtx() ctx: TenantContext, @Param() params: AgentNameParamDto) {
     const agent = await this.resolveAgentService.resolve(ctx.tenantId, params.agentName);
     await this.discoveryService.discoverAllForAgent(agent.tenant_id, { forceRefresh: true });
+    // Discovery bypasses ProviderService, so clear its caches explicitly.
+    this.routingCache.invalidateAgent(agent.id);
+    this.routingCache.invalidateTenant(agent.tenant_id);
     return { ok: true };
   }
 
@@ -102,6 +107,8 @@ export class ModelController {
       params.provider,
       query.authType,
     );
+    this.routingCache.invalidateAgent(agent.id);
+    this.routingCache.invalidateTenant(agent.tenant_id);
     return result;
   }
 

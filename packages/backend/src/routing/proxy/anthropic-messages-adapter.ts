@@ -139,7 +139,42 @@ function buildAssistantMessage(content: unknown): OpenAIMessage[] {
   return [message];
 }
 
-function buildUserMessages(content: unknown): OpenAIMessage[] {
+function splitToolResultContent(content: unknown): {
+  toolContent: string;
+  imageParts: JsonRecord[];
+} {
+  // Tool messages are text-only in chat_completions, so a nested image block
+  // would otherwise ride inside the stringified tool output as raw base64 —
+  // which downstream providers tokenize as TEXT at roughly 1.5 chars/token
+  // (a single screenshot becomes 100K+ input tokens). Pull images out for a
+  // follow-up user message and leave a short placeholder in the tool output.
+  if (!Array.isArray(content)) {
+    return { toolContent: safeJsonStringify(content), imageParts: [] };
+  }
+  const imageParts: JsonRecord[] = [];
+  const sanitized = content.map((block) => {
+    if (!isRecord(block) || block.type !== 'image') return block;
+    const part = imageBlockToImagePart(block);
+    if (!part) return block;
+    imageParts.push(part);
+    return { type: 'text', text: '[image attached below]' };
+  });
+  return { toolContent: safeJsonStringify(sanitized), imageParts };
+}
+
+function flushToolImages(messages: OpenAIMessage[], pendingToolImages: JsonRecord[]): void {
+  if (pendingToolImages.length === 0) return;
+  messages.push({
+    role: 'user',
+    content: [
+      { type: 'text', text: 'Images from the preceding tool result:' },
+      ...pendingToolImages,
+    ],
+  });
+  pendingToolImages.length = 0;
+}
+
+function buildUserMessages(content: unknown, pendingToolImages: JsonRecord[]): OpenAIMessage[] {
   // Walk Anthropic content blocks in input order and emit chat_completions
   // messages without reshuffling. Each `tool_result` becomes a standalone
   // `role: tool` message; intermediate text/image blocks accumulate into a
@@ -147,7 +182,10 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
   // the end of the turn. Preserves the relative order of tool_result blocks
   // vs. surrounding text in mixed-content user turns.
   if (typeof content === 'string') {
-    return content ? [{ role: 'user', content }] : [];
+    const messages: OpenAIMessage[] = [];
+    flushToolImages(messages, pendingToolImages);
+    if (content) messages.push({ role: 'user', content });
+    return messages;
   }
   if (!Array.isArray(content)) return [];
 
@@ -170,14 +208,18 @@ function buildUserMessages(content: unknown): OpenAIMessage[] {
     if (!isRecord(block)) continue;
     if (block.type === 'tool_result') {
       flushPendingUser();
+      const { toolContent, imageParts } = splitToolResultContent(block.content);
       messages.push({
         role: 'tool',
         tool_call_id: typeof block.tool_use_id === 'string' ? block.tool_use_id : 'unknown',
-        content: safeJsonStringify(block.content),
+        content: toolContent,
       });
+      pendingToolImages.push(...imageParts);
     } else if (block.type === 'text' && typeof block.text === 'string') {
+      flushToolImages(messages, pendingToolImages);
       pendingParts.push({ type: 'text', text: block.text });
     } else if (block.type === 'image') {
+      flushToolImages(messages, pendingToolImages);
       const part = imageBlockToImagePart(block);
       if (part) pendingParts.push(part);
     }
@@ -222,6 +264,7 @@ function toChatToolChoice(choice: unknown): unknown {
 /** Anthropic Messages request → chat_completions request (used for routing/forwarding). */
 export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   const messages: OpenAIMessage[] = [];
+  const pendingToolImages: JsonRecord[] = [];
 
   const systemText = systemToString(body.system);
   if (systemText) messages.push({ role: 'system', content: systemText });
@@ -230,12 +273,17 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   for (const item of inputMessages) {
     if (!isRecord(item)) continue;
     const role = item.role === 'assistant' ? 'assistant' : 'user';
-    messages.push(
-      ...(role === 'assistant'
-        ? buildAssistantMessage(item.content)
-        : buildUserMessages(item.content)),
-    );
+    if (role === 'assistant') {
+      flushToolImages(messages, pendingToolImages);
+      messages.push(...buildAssistantMessage(item.content));
+    } else {
+      messages.push(...buildUserMessages(item.content, pendingToolImages));
+    }
   }
+  // Anthropic combines consecutive user messages into one logical turn.
+  // Keep extracted images buffered across those message boundaries so all
+  // sibling tool results stay contiguous in the OpenAI-compatible request.
+  flushToolImages(messages, pendingToolImages);
 
   const chatBody: JsonRecord = { messages };
 
@@ -248,7 +296,12 @@ export function messagesToChatCompletionsRequest(body: JsonRecord): JsonRecord {
   if (body.stop_sequences !== undefined) chatBody.stop = body.stop_sequences;
   // Anthropic-native fields with no chat_completions analogue. Carried on
   // chatBody so toAnthropicRequest can forward them when the resolved
-  // provider is Anthropic; harmlessly ignored by other adapters.
+  // provider is Anthropic. Native OpenAI rejects `thinking` as an unknown
+  // parameter, so the forwarding boundary only preserves the lossless case:
+  // `thinking: {type: disabled}` becomes reasoning_effort `none` (and only on a
+  // model that reasons); every other thinking config is dropped and falls back
+  // to the provider's default reasoning (see applyAnthropicThinkingForOpenAi
+  // in provider-client).
   if (body.thinking !== undefined) chatBody.thinking = body.thinking;
   if (body.top_k !== undefined) chatBody.top_k = body.top_k;
 

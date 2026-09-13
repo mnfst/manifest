@@ -28,9 +28,12 @@ export const MAX_CACHE_ENTRIES = 10_000;
  * be replayed with the same `reasoning_content` they returned. Generic
  * OpenAI-compatible SDKs often drop that provider-specific field when they
  * rebuild conversation history, so Manifest caches tool turns by the first tool
- * call id. Normal assistant turns are intentionally not cached for replay:
- * DeepSeek does not require them, and content-based matching can attach
- * reasoning to the wrong visible turn.
+ * call id.
+ *
+ * Turns with no tool call are never cached (content-based matching can attach
+ * reasoning to the wrong visible turn) but are still replayed, using the
+ * empty-string fallback, once the conversation contains a tool call: DeepSeek
+ * rejects the request when any assistant turn omits the key.
  */
 @Injectable()
 export class ReasoningContentCache {
@@ -133,7 +136,20 @@ export class ReasoningContentCache {
     const messages = body.messages;
     if (!Array.isArray(messages)) return body;
 
-    const candidates = messages.map(reasoningReplayCandidate);
+    // Only tool conversations enforce the echo; a plain chat thread keeps its
+    // exact turn shape.
+    const includeNonToolTurns = messages.some(
+      (message) =>
+        !!message &&
+        typeof message === 'object' &&
+        !Array.isArray(message) &&
+        Array.isArray((message as Record<string, unknown>).tool_calls) &&
+        ((message as Record<string, unknown>).tool_calls as unknown[]).length > 0,
+    );
+
+    const candidates = messages.map((message) =>
+      reasoningReplayCandidate(message, includeNonToolTurns),
+    );
     if (!candidates.some(Boolean)) return body;
 
     const keys = candidates.flatMap((candidate) =>
@@ -246,11 +262,20 @@ interface ReasoningReplayCandidate {
   cacheKey: string | null;
 }
 
-function reasoningReplayCandidate(message: unknown): ReasoningReplayCandidate | null {
+function reasoningReplayCandidate(
+  message: unknown,
+  includeNonToolTurns: boolean,
+): ReasoningReplayCandidate | null {
   if (!message || typeof message !== 'object' || Array.isArray(message)) return null;
   const record = message as Record<string, unknown>;
+  if (record.role !== 'assistant') return null;
   if (typeof record.reasoning_content === 'string' && record.reasoning_content) return null;
-  if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) return null;
+
+  if (!Array.isArray(record.tool_calls) || record.tool_calls.length === 0) {
+    // Once tools are in play DeepSeek wants the key on every assistant turn.
+    return includeNonToolTurns ? { cacheKey: null } : null;
+  }
+
   const firstToolCall = record.tool_calls[0];
   if (!firstToolCall || typeof firstToolCall !== 'object' || Array.isArray(firstToolCall)) {
     return { cacheKey: null };

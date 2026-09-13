@@ -35,38 +35,7 @@ interface AnthropicTool {
 
 const CACHE = { type: 'ephemeral' } as const;
 const MAX_CACHE_CONTROL_BLOCKS = 4;
-const ANTHROPIC_PREFIX = 'anthropic/';
 const DATA_IMAGE_URL_RE = /^data:([^;,]+)(?:;[^,]*)?;base64,(.*)$/is;
-
-function bareAnthropicModel(model: string): string {
-  return model.startsWith(ANTHROPIC_PREFIX) ? model.slice(ANTHROPIC_PREFIX.length) : model;
-}
-
-function isClaudeHaikuModel(model: string): boolean {
-  const bare = bareAnthropicModel(model).replace(/\./g, '-');
-  return bare.startsWith('claude-haiku-');
-}
-
-function shouldForwardAnthropicThinking(thinking: unknown, model: string): boolean {
-  if (
-    thinking &&
-    typeof thinking === 'object' &&
-    !Array.isArray(thinking) &&
-    (thinking as Record<string, unknown>).type === 'adaptive'
-  ) {
-    return !isClaudeHaikuModel(model);
-  }
-  return true;
-}
-
-function normalizeAnthropicThinking(thinking: unknown): unknown {
-  if (!isObjectRecord(thinking) || thinking.type !== 'adaptive' || !('budget_tokens' in thinking)) {
-    return thinking;
-  }
-  const normalized = { ...thinking };
-  delete normalized.budget_tokens;
-  return normalized;
-}
 
 /**
  * System prompt required by Anthropic's subscription OAuth API to unlock
@@ -128,17 +97,6 @@ export function applyAnthropicAutomaticCacheControl(body: Record<string, unknown
   // explicit cache plan instead of risking a provider-side 400.
   if (hasOneHourCacheControl(body)) return;
   body.cache_control = CACHE;
-}
-
-function isClaudeSonnetModel(model: string | undefined): boolean {
-  if (!model) return false;
-  return bareAnthropicModel(model).replace(/\./g, '-').startsWith('claude-sonnet-');
-}
-
-function normalizeOutputConfigForModel(outputConfig: unknown, model: string | undefined): unknown {
-  if (!isObjectRecord(outputConfig)) return outputConfig;
-  if (outputConfig.effort !== 'xhigh' || !isClaudeSonnetModel(model)) return outputConfig;
-  return { ...outputConfig, effort: 'high' };
 }
 
 function hasReplayableThinkingSignature(block: ContentBlock): boolean {
@@ -315,31 +273,109 @@ function convertTools(tools?: Array<Record<string, unknown>>): AnthropicTool[] |
   return out.length > 0 ? out : undefined;
 }
 
+/**
+ * JSON Schema keywords whose value is a subschema, an array of subschemas, or a
+ * map of subschemas. Only these recurse: `enum`/`default`/`examples`/`const` hold
+ * data values that can look like schemas and must pass through untouched.
+ */
+const ANTHROPIC_SCHEMA_KEYWORDS = new Set([
+  'items',
+  'contains',
+  'additionalProperties',
+  'additionalItems',
+  'unevaluatedProperties',
+  'unevaluatedItems',
+  'propertyNames',
+  'not',
+  'if',
+  'then',
+  'else',
+  'contentSchema',
+]);
+const ANTHROPIC_SCHEMA_LIST_KEYWORDS = new Set(['allOf', 'anyOf', 'oneOf', 'prefixItems']);
+const ANTHROPIC_SCHEMA_MAP_KEYWORDS = new Set([
+  'properties',
+  'patternProperties',
+  '$defs',
+  'definitions',
+  'dependentSchemas',
+  'dependencies',
+]);
+
+/**
+ * Anthropic structured outputs reject any object schema that omits
+ * `additionalProperties` ("For 'object' type, 'additionalProperties' must be
+ * explicitly set to false"). Clients and our own `json_object` fallback routinely
+ * emit a bare `{ type: 'object' }`, so close every object node while leaving an
+ * author's explicit value untouched. Only schema-valued keywords recurse, so data
+ * in `enum`/`default`/`examples` is never rewritten, and entries are copied with
+ * `Object.fromEntries` so a property literally named `__proto__` survives.
+ */
+export function closeAnthropicObjectSchemas(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(closeAnthropicObjectSchemas);
+  if (!isObjectRecord(schema)) return schema;
+
+  const entries: Array<[string, unknown]> = [];
+  for (const [key, value] of Object.entries(schema)) {
+    if (ANTHROPIC_SCHEMA_KEYWORDS.has(key)) {
+      entries.push([key, closeAnthropicObjectSchemas(value)]);
+    } else if (ANTHROPIC_SCHEMA_LIST_KEYWORDS.has(key) && Array.isArray(value)) {
+      entries.push([key, value.map(closeAnthropicObjectSchemas)]);
+    } else if (ANTHROPIC_SCHEMA_MAP_KEYWORDS.has(key) && isObjectRecord(value)) {
+      entries.push([
+        key,
+        Object.fromEntries(
+          Object.entries(value).map(([name, sub]) => [name, closeAnthropicObjectSchemas(sub)]),
+        ),
+      ]);
+    } else {
+      entries.push([key, value]);
+    }
+  }
+
+  const result = Object.fromEntries(entries) as Record<string, unknown>;
+  const type = result.type;
+  const isObjectType =
+    type === 'object' || (Array.isArray(type) && type.some((entry) => entry === 'object'));
+  // `properties` without an explicit `type` still describes an object.
+  const isObject = isObjectType || (result.properties !== undefined && type === undefined);
+  if (isObject && result.additionalProperties === undefined) {
+    result.additionalProperties = false;
+  }
+  return result;
+}
+
+/** Close object schemas on an Anthropic `output_config` (returns a new object). */
+function closeOutputConfigObjectSchemas(
+  outputConfig: Record<string, unknown>,
+): Record<string, unknown> {
+  const format = outputConfig.format;
+  if (!isObjectRecord(format) || !('schema' in format)) return outputConfig;
+  return {
+    ...outputConfig,
+    format: { ...format, schema: closeAnthropicObjectSchemas(format.schema) },
+  };
+}
+
 function toAnthropicOutputConfig(
   responseFormat: unknown,
   outputConfig: unknown,
 ): Record<string, unknown> | undefined {
   const out: Record<string, unknown> = isObjectRecord(outputConfig) ? { ...outputConfig } : {};
-  if (!isObjectRecord(responseFormat)) return Object.keys(out).length > 0 ? out : undefined;
-
-  if (responseFormat.type === 'json_object') {
-    // Anthropic has no `json_object` shorthand; use native JSON output with
-    // an unconstrained object schema instead of forcing tool use.
-    out.format = {
-      type: 'json_schema',
-      schema: { type: 'object' },
-    };
-    return out;
-  } else if (responseFormat.type === 'json_schema') {
-    const jsonSchema = isObjectRecord(responseFormat.json_schema) ? responseFormat.json_schema : {};
-    out.format = {
-      type: 'json_schema',
-      schema: jsonSchema.schema ?? { type: 'object' },
-    };
-    return out;
-  } else {
-    return Object.keys(out).length > 0 ? out : undefined;
+  if (isObjectRecord(responseFormat)) {
+    if (responseFormat.type === 'json_object') {
+      // Anthropic has no `json_object` shorthand; use native JSON output with
+      // an unconstrained object schema instead of forcing tool use.
+      out.format = { type: 'json_schema', schema: { type: 'object' } };
+    } else if (responseFormat.type === 'json_schema') {
+      const jsonSchema = isObjectRecord(responseFormat.json_schema)
+        ? responseFormat.json_schema
+        : {};
+      out.format = { type: 'json_schema', schema: jsonSchema.schema ?? { type: 'object' } };
+    }
   }
+  // Also closes an `output_config` that arrived already shaped on the inbound body.
+  return Object.keys(out).length > 0 ? closeOutputConfigObjectSchemas(out) : undefined;
 }
 
 /* ── Request conversion ── */
@@ -351,8 +387,6 @@ export interface AnthropicRequestOptions {
   thinkingLookup?: ThinkingBlockLookup;
   /** Route context for replaying only compatible cached thinking blocks. */
   thinkingRouteContext?: ThinkingBlockRouteContext;
-  /** Resolved Anthropic upstream model, used for model-specific body normalization. */
-  targetModel?: string;
 }
 
 export function toAnthropicRequest(
@@ -396,10 +430,7 @@ export function toAnthropicRequest(
 
   const outputConfig = toAnthropicOutputConfig(body.response_format, body.output_config);
   if (outputConfig) {
-    result.output_config = normalizeOutputConfigForModel(
-      outputConfig,
-      options?.targetModel ?? _model,
-    );
+    result.output_config = outputConfig;
   }
 
   if (body.temperature !== undefined) result.temperature = body.temperature;
@@ -407,9 +438,10 @@ export function toAnthropicRequest(
   if (body.top_k !== undefined) result.top_k = body.top_k;
   // Anthropic-native fields forwarded when the inbound request originated as
   // Anthropic Messages (POST /v1/messages). Chat-completions clients won't
-  // set these, so this is a no-op for the OpenAI-compat path.
-  if (body.thinking !== undefined && shouldForwardAnthropicThinking(body.thinking, _model)) {
-    result.thinking = normalizeAnthropicThinking(body.thinking);
+  // set these, so this is a no-op for the OpenAI-compat path. Model-specific
+  // rejection fixes belong in Autofix, not in this protocol adapter.
+  if (body.thinking !== undefined) {
+    result.thinking = body.thinking;
   }
   // chat_completions `stop` accepts string OR string[]; Anthropic
   // `stop_sequences` is always an array. Wrap a bare string so a single
@@ -473,8 +505,11 @@ export function applyAnthropicMessagesMutations(
   const result: Record<string, unknown> = { ...body };
   result.max_tokens = resolveAnthropicMaxTokens(body);
   delete result.max_completion_tokens;
-  if (body.thinking !== undefined) {
-    result.thinking = normalizeAnthropicThinking(body.thinking);
+  // Anthropic rejects structured-output schemas whose object nodes omit
+  // `additionalProperties`; native Messages clients pass `output_config` straight
+  // through, so close those schemas here too (not just on the translated path).
+  if (isObjectRecord(result.output_config)) {
+    result.output_config = closeOutputConfigObjectSchemas(result.output_config);
   }
   const cacheBudget = {
     remaining: Math.max(0, MAX_CACHE_CONTROL_BLOCKS - countCacheControlBlocks(body)),
@@ -512,13 +547,6 @@ export function applyAnthropicMessagesMutations(
     const tools = (body.tools as Array<Record<string, unknown>>).map((t) => ({ ...t }));
     tryAddCacheControl(tools[tools.length - 1], cacheBudget);
     result.tools = tools;
-  }
-
-  if (result.output_config !== undefined) {
-    result.output_config = normalizeOutputConfigForModel(
-      result.output_config,
-      options?.targetModel,
-    );
   }
 
   const thinkingLookup = options?.thinkingLookup;

@@ -86,6 +86,12 @@ function resolveProviderId(providerId: string): string {
  */
 export interface ModelsDevTimeTier {
   windows: readonly string[];
+  /**
+   * ISO weekdays (1 = Monday … 7 = Sunday) the windows apply on. Null means
+   * every day — a tier with no schedule is unrestricted, as it was before this
+   * field existed.
+   */
+  days: readonly number[] | null;
   inputPricePerToken: number | null;
   outputPricePerToken: number | null;
   cacheReadPricePerToken: number | null;
@@ -112,7 +118,7 @@ export interface ModelsDevModelEntry {
 }
 
 interface RawModelsDevCostTier {
-  tier?: { type?: string; size?: number; windows?: string[] };
+  tier?: { type?: string; size?: number; windows?: string[]; days?: unknown };
   input?: number;
   output?: number;
   cache_read?: number;
@@ -152,48 +158,76 @@ const FETCH_TIMEOUT_MS = 10000;
 const TIME_WINDOW_RE = /^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$/;
 
 /**
- * DeepSeek V4 moved to peak/off-peak billing on 2026-08-16: peak hours are
- * 01:00-04:00 and 06:00-10:00 UTC, every other hour is off-peak at half the
- * peak rate. models.dev cannot express time-of-day pricing yet
- * (anomalyco/models.dev#4892 adds `cost.tiers[].tier.type = "time"`; #4891
- * corrects the flat numbers in the meantime), so until the catalog carries a
- * time tier for these models this seed replaces whatever flat rate the sync
- * returns with the real off-peak base plus a peak-window tier.
+ * DeepSeek bills peak/off-peak: peak hours are 01:00-04:00 and 06:00-10:00 UTC
+ * **Monday through Friday**, and every other hour — including all 48 weekend
+ * hours — is off-peak at half the peak rate. models.dev cannot express
+ * time-of-day pricing yet (anomalyco/models.dev#4892 adds
+ * `cost.tiers[].tier.type = "time"`), so until the catalog carries a time tier
+ * this seed replaces whatever flat rate the sync returns with the real
+ * off-peak base plus a peak-window tier.
  *
  * DELETE once models.dev serves time tiers for DeepSeek — the seed only
  * applies when `parseTimeTiers` finds nothing, so it retires itself, but the
  * dead constant should not outlive that. Prices are USD per 1M tokens from
- * https://api-docs.deepseek.com/quick_start/pricing/ (accessed 2026-08-17).
+ * https://api-docs.deepseek.com/quick_start/pricing/ (accessed 2026-09-10).
  */
 const DEEPSEEK_PEAK_WINDOWS: readonly string[] = ['01:00-04:00', '06:00-10:00'];
-const DEEPSEEK_V4_PEAK_SEED: ReadonlyMap<
-  string,
-  {
-    input: number;
-    output: number;
-    cacheRead: number;
-    peak: { input: number; output: number; cacheRead: number };
-  }
-> = new Map([
-  [
-    'deepseek-v4-flash',
-    {
-      input: 0.22,
-      output: 0.66,
-      cacheRead: 0.007,
-      peak: { input: 0.44, output: 1.32, cacheRead: 0.014 },
-    },
-  ],
-  [
-    'deepseek-v4-pro',
-    {
-      input: 0.66,
-      output: 1.98,
-      cacheRead: 0.022,
-      peak: { input: 1.32, output: 3.96, cacheRead: 0.044 },
-    },
-  ],
+/** Monday–Friday: DeepSeek's peak schedule does not run on weekends. */
+const DEEPSEEK_PEAK_DAYS: readonly number[] = [1, 2, 3, 4, 5];
+
+type DeepSeekRateCard = {
+  input: number;
+  output: number;
+  cacheRead: number;
+  peak: { input: number; output: number; cacheRead: number };
+};
+
+/** V4.1 Flash, in effect from 2026-09-10 04:00 UTC. */
+const DEEPSEEK_FLASH_RATES: DeepSeekRateCard = {
+  input: 0.15,
+  output: 0.6,
+  cacheRead: 0.003,
+  peak: { input: 0.3, output: 1.2, cacheRead: 0.006 },
+};
+
+/** V4 Pro, unchanged until it starts routing to Flash. */
+const DEEPSEEK_PRO_RATES: DeepSeekRateCard = {
+  input: 0.66,
+  output: 1.98,
+  cacheRead: 0.022,
+  peak: { input: 1.32, output: 3.96, cacheRead: 0.044 },
+};
+
+/**
+ * 12:00 Beijing on 2026-09-14 = 04:00 UTC. From then, `deepseek-v4-pro` is
+ * served by V4.1 Flash and billed on the Flash card.
+ */
+const DEEPSEEK_PRO_FLASH_CUTOVER_MS = Date.parse('2026-09-14T04:00:00Z');
+
+/** GA id plus the retired aliases DeepSeek still accepts at Flash prices. */
+const DEEPSEEK_FLASH_MODEL_IDS: ReadonlySet<string> = new Set([
+  'deepseek-flash',
+  'deepseek-v4-flash',
+  'deepseek-v4-flash-vision-exp',
 ]);
+
+/** Stub used when the catalog has not listed `deepseek-flash` yet. */
+const DEEPSEEK_FLASH_CATALOG_STUB: RawModelsDevModel = {
+  id: 'deepseek-flash',
+  name: 'DeepSeek V4.1 Flash',
+  reasoning: true,
+  tool_call: true,
+  modalities: { input: ['text', 'image'], output: ['text'] },
+};
+
+function deepseekSeedRates(modelId: string, atMs = Date.now()): DeepSeekRateCard | undefined {
+  if (DEEPSEEK_FLASH_MODEL_IDS.has(modelId)) return DEEPSEEK_FLASH_RATES;
+  if (modelId === 'deepseek-v4-pro') {
+    return atMs >= DEEPSEEK_PRO_FLASH_CUTOVER_MS ? DEEPSEEK_FLASH_RATES : DEEPSEEK_PRO_RATES;
+  }
+  return undefined;
+}
+
 /** Matches trailing version suffixes like -001, -002 (Google API convention). */
 const VERSION_SUFFIX_RE = /-\d{3}$/;
 /** Matches trailing date suffixes like -20250514, -2025-04-14. */
@@ -299,6 +333,13 @@ export class ModelsDevSyncService implements OnModuleInit {
         if (!this.isChatCompatible(model)) continue;
         const entry = this.parseModel(ourId, modelId, model);
         modelMap.set(modelId, entry);
+        totalModels++;
+      }
+      if (ourId === 'deepseek' && !modelMap.has('deepseek-flash')) {
+        modelMap.set(
+          'deepseek-flash',
+          this.parseModel(ourId, 'deepseek-flash', DEEPSEEK_FLASH_CATALOG_STUB),
+        );
         totalModels++;
       }
 
@@ -637,6 +678,23 @@ export class ModelsDevSyncService implements OnModuleInit {
   }
 
   /**
+   * ISO weekdays a time tier is restricted to, or null for "every day".
+   *
+   * A malformed list is dropped **whole**, never filtered entry by entry:
+   * salvaging `[1,2,3,4,5,'6']` down to `[1..5]` would read as a clean weekday
+   * rule and quietly discount a day the provider charges peak for. Dropping it
+   * falls back to the unrestricted tier, which is what the catalog meant
+   * before the field existed and never bills below the published rate.
+   */
+  private parseTierDays(days: unknown): readonly number[] | null {
+    if (!Array.isArray(days) || days.length === 0) return null;
+    const valid = days.every(
+      (day) => typeof day === 'number' && Number.isInteger(day) && day >= 1 && day <= 7,
+    );
+    return valid ? (days as number[]) : null;
+  }
+
+  /**
    * Extract time-of-day pricing tiers from a raw models.dev cost block.
    * Context-size tiers (`tier.type = "context"`) are ignored — Manifest does
    * not price by context band. Returns null when no valid time tier exists.
@@ -660,6 +718,7 @@ export class ModelsDevSyncService implements OnModuleInit {
       if (windows.length === 0) continue;
       parsed.push({
         windows,
+        days: this.parseTierDays(tier.tier.days),
         inputPricePerToken: tier.input != null ? tier.input / 1_000_000 : null,
         outputPricePerToken: tier.output != null ? tier.output / 1_000_000 : null,
         cacheReadPricePerToken: tier.cache_read != null ? tier.cache_read / 1_000_000 : null,
@@ -681,10 +740,10 @@ export class ModelsDevSyncService implements OnModuleInit {
     let timeTiers = this.parseTimeTiers(raw);
 
     // Peak/off-peak seed for DeepSeek's own API until models.dev can carry
-    // the schedule itself (see DEEPSEEK_V4_PEAK_SEED). Catalog data wins the
+    // the schedule itself (see deepseekSeedRates). Catalog data wins the
     // moment it exists.
     if (providerId === 'deepseek' && !timeTiers) {
-      const seed = DEEPSEEK_V4_PEAK_SEED.get(modelId);
+      const seed = deepseekSeedRates(modelId);
       if (seed) {
         inputPerMillion = seed.input;
         outputPerMillion = seed.output;
@@ -696,6 +755,7 @@ export class ModelsDevSyncService implements OnModuleInit {
         timeTiers = [
           {
             windows: DEEPSEEK_PEAK_WINDOWS,
+            days: DEEPSEEK_PEAK_DAYS,
             inputPricePerToken: seed.peak.input / 1_000_000,
             outputPricePerToken: seed.peak.output / 1_000_000,
             cacheReadPricePerToken: seed.peak.cacheRead / 1_000_000,

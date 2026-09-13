@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Agent } from '../entities/agent.entity';
 import { AgentMessage } from '../entities/agent-message.entity';
+import { ManifestRequest } from '../entities/request.entity';
 import { PayloadBuilderService } from './payload-builder.service';
 
 interface ProviderRow {
@@ -25,6 +26,11 @@ interface TotalsRow {
   cost?: string | null;
 }
 
+interface RequestTotalsRow {
+  total: string;
+  failed: string | null;
+}
+
 interface MockData {
   providers: ProviderRow[];
   tiers: BucketRow[];
@@ -32,6 +38,8 @@ interface MockData {
   totals: TotalsRow | undefined;
   agentPlatforms: CategoryPlatformRow[];
   agentsCount: number;
+  requestTotals: RequestTotalsRow | undefined;
+  errorClasses: BucketRow[];
 }
 
 function defaultData(): MockData {
@@ -42,6 +50,8 @@ function defaultData(): MockData {
     totals: { total: '0', input_tokens: '0', output_tokens: '0' },
     agentPlatforms: [],
     agentsCount: 0,
+    requestTotals: { total: '0', failed: '0' },
+    errorClasses: [],
   };
 }
 
@@ -71,12 +81,18 @@ async function makeServiceWithRepo(partial: Partial<MockData>): Promise<MakeServ
     { row: { count: String(data.agentsCount) }, mode: 'getRawOne' as const },
     { rows: data.agentPlatforms, mode: 'getRawMany' as const },
   ];
+  // requestCounts() uses getRawOne; failedRequestsByClass() uses getRawMany.
+  const requestsQueue = [
+    { row: data.requestTotals, mode: 'getRawOne' as const },
+    { rows: data.errorClasses, mode: 'getRawMany' as const },
+  ];
 
   function makeQb(entry: { rows?: unknown; row?: unknown; mode: 'getRawMany' | 'getRawOne' }) {
     return {
       select: jest.fn().mockReturnThis(),
       addSelect: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
       groupBy: jest.fn().mockReturnThis(),
       addGroupBy: jest.fn().mockReturnThis(),
       getRawMany: jest.fn().mockResolvedValue(entry.rows ?? []),
@@ -90,12 +106,16 @@ async function makeServiceWithRepo(partial: Partial<MockData>): Promise<MakeServ
   const agentsRepoMock = {
     createQueryBuilder: jest.fn(() => makeQb(agentsQueue.shift()!)),
   };
+  const requestsRepo = {
+    createQueryBuilder: jest.fn(() => makeQb(requestsQueue.shift()!)),
+  };
 
   const module: TestingModule = await Test.createTestingModule({
     providers: [
       PayloadBuilderService,
       { provide: getRepositoryToken(AgentMessage), useValue: messagesRepo },
       { provide: getRepositoryToken(Agent), useValue: agentsRepoMock },
+      { provide: getRepositoryToken(ManifestRequest), useValue: requestsRepo },
     ],
   }).compile();
 
@@ -190,6 +210,47 @@ describe('PayloadBuilderService', () => {
     expect(payload.messages_total).toBe(0);
     expect(payload.tokens_input_total).toBe(0);
     expect(payload.tokens_output_total).toBe(0);
+  });
+
+  it('emits request-level counters split by error class', async () => {
+    const service = await makeService({
+      requestTotals: { total: '20', failed: '6' },
+      errorClasses: [
+        { bucket: 'rate_limit', count: '4' },
+        { bucket: 'auth', count: '2' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.requests_total).toBe(20);
+    expect(payload.errors_total).toBe(6);
+    expect(payload.errors_by_class).toEqual({ rate_limit: 4, auth: 2 });
+  });
+
+  it('buckets NULL error classes as "unknown" and off-taxonomy strings as "other"', async () => {
+    const service = await makeService({
+      requestTotals: { total: '9', failed: '3' },
+      errorClasses: [
+        { bucket: null, count: '1' },
+        { bucket: 'totally-novel-class', count: '2' },
+      ],
+    });
+
+    const payload = await service.build('inst', '1.0.0');
+
+    expect(payload.errors_by_class).toEqual({ unknown: 1, other: 2 });
+  });
+
+  it('treats a NULL failed sum (empty window) and a missing row as zero errors', async () => {
+    const withNullSum = await makeService({ requestTotals: { total: '0', failed: null } });
+    expect((await withNullSum.build('inst', '1.0.0')).errors_total).toBe(0);
+
+    const withNoRow = await makeService({ requestTotals: undefined });
+    const payload = await withNoRow.build('inst', '1.0.0');
+    expect(payload.requests_total).toBe(0);
+    expect(payload.errors_total).toBe(0);
+    expect(payload.errors_by_class).toEqual({});
   });
 
   it('emits cost_usd_total = 0 and cost_usd_by_provider = {} when no cost data', async () => {

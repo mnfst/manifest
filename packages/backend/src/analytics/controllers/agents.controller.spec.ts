@@ -10,6 +10,7 @@ import { AgentLifecycleService } from '../services/agent-lifecycle.service';
 import { AgentDuplicationService } from '../services/agent-duplication.service';
 import { ApiKeyGeneratorService } from '../../otlp/services/api-key.service';
 import { TenantCacheService } from '../../common/services/tenant-cache.service';
+import { AgentListCacheService } from '../../common/services/agent-list-cache.service';
 import { IngestEventBusService } from '../../common/services/ingest-event-bus.service';
 import { ProviderService } from '../../routing/routing-core/provider.service';
 import { AutofixStatsService } from '../services/autofix-stats.service';
@@ -139,6 +140,7 @@ describe('AgentsController', () => {
           useValue: { emit: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(mockRecordAutofixConsent),
       ],
     }).compile();
@@ -250,10 +252,10 @@ describe('AgentsController', () => {
       'bot-renamed',
       'Bot Renamed',
     );
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false:g0');
     // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a rename.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true:g0');
   });
 
   it('rejects rename with empty slug', async () => {
@@ -312,8 +314,8 @@ describe('AgentsController', () => {
     expect(mockDeleteAgent).toHaveBeenCalledWith('tenant-123', 'bot-1');
     // Both canonical variants are cleared so neither the Workspace list nor the
     // Messages filter (playground agents included) goes stale after a delete.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false:g0');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true:g0');
   });
 
   it('passes agent_category and agent_platform to onboardAgent', async () => {
@@ -348,6 +350,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -411,6 +414,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -469,6 +473,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -483,8 +488,8 @@ describe('AgentsController', () => {
     // Both canonical variants are cleared so neither the Workspace list nor the
     // Messages filter (playground agents included) goes stale after a create. The
     // cache is keyed by the tenant the onboard returned (t1), not the user id.
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false:g0');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true:g0');
     expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/autofix/status');
   });
 
@@ -525,6 +530,7 @@ describe('AgentsController', () => {
           provide: ProviderService,
           useValue: { enableAllProvidersForAgent: jest.fn().mockRejectedValue(enableErr) },
         },
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -543,8 +549,8 @@ describe('AgentsController', () => {
     expect(mockDelete).toHaveBeenCalledWith('t1', 'my-agent');
     // ...and the agent-list cache is cleared so the briefly-visible agent does
     // not linger in a cached list (both tenant-keyed entries).
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false');
-    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=false:g0');
+    expect(delSpy).toHaveBeenCalledWith('t1:/api/v1/agents:playground=true:g0');
     // ...along with the Autofix status entry, which would otherwise keep
     // reporting the rolled-back agent as enabled until the dashboard TTL, so
     // the sidebar contradicts a workspace the agent no longer appears in.
@@ -588,6 +594,7 @@ describe('AgentsController', () => {
             enableAllProvidersForAgent: jest.fn().mockRejectedValue(new Error('enable boom')),
           },
         },
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -628,6 +635,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -669,6 +677,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();
@@ -708,10 +717,10 @@ describe('AgentsController', () => {
       name: 'bot-copy',
       displayName: 'Bot Copy',
     });
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=false:g0');
     // The Messages-filter variant (playground agents included) is a distinct cache
     // entry and must also be cleared so it never goes stale after a duplicate.
-    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true');
+    expect(cacheManager.del).toHaveBeenCalledWith('tenant-123:/api/v1/agents:playground=true:g0');
   });
 
   it('rejects duplicateAgent with empty slug', async () => {
@@ -791,6 +800,7 @@ describe('AgentsController', () => {
           useValue: { duplicate: jest.fn(), getCopySummary: jest.fn(), suggestName: jest.fn() },
         },
         providerServiceProvider(),
+        AgentListCacheService,
         autofixStatsProvider(),
       ],
     }).compile();

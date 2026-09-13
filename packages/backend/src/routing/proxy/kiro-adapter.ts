@@ -11,6 +11,18 @@ const KIRO_AGENT_MODE = 'SUPERVISED';
 const DEFAULT_KIRO_CONTEXT_WINDOW = 200000;
 const AUTO_KIRO_CONTEXT_WINDOW = 1000000;
 
+/**
+ * Kiro's tool schema bounds. Names must match `[A-Za-z0-9_-]+`, tool-use ids are
+ * limited to the same character set, and descriptions are capped to keep the
+ * upstream request under CodeWhisperer's size limit.
+ */
+const KIRO_TOOL_NAME_MAX_LENGTH = 64;
+const KIRO_TOOL_DESCRIPTION_MAX_LENGTH = 10237;
+const KIRO_TOOL_ID_MAX_LENGTH = 64;
+const KIRO_TOOL_NAME_ILLEGAL = /[^a-zA-Z0-9_-]/g;
+const KIRO_TOOL_NAME_ALLOWED = /^[a-zA-Z0-9_-]$/;
+const KIRO_TOOL_ID_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
 export function buildKiroHeaders(apiKey: string, target: string): Record<string, string> {
   return {
     Authorization: `Bearer ${apiKey}`,
@@ -33,8 +45,7 @@ function readNumber(value: unknown): number | undefined {
 
 function readKiroContextWindow(entry: Record<string, unknown>, modelId: string): number {
   const tokenLimits = (entry.tokenLimits ?? entry.token_limits) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   return (
     readNumber(entry.contextWindowTokens) ??
     readNumber(entry.context_window_tokens) ??
@@ -66,30 +77,72 @@ export function parseKiroModels(body: unknown, provider = 'kiro'): DiscoveredMod
         outputPricePerToken: 0,
         capabilityReasoning: false,
         capabilityCode: true,
+        capabilities: ['tools'] as const,
         qualityScore: 3,
       };
     });
 }
 
+type OpenAiToolCall = {
+  id?: unknown;
+  function?: { name?: unknown; arguments?: unknown };
+};
+
 type OpenAiMessage = {
   role?: string;
   content?: unknown;
-  tool_call_id?: string;
+  tool_call_id?: unknown;
+  tool_calls?: unknown;
 };
 
-type KiroMessage =
-  | {
-      userInputMessage: {
-        content: string;
-        origin: string;
-        modelId?: string;
-      };
-    }
-  | {
-      assistantResponseMessage: {
-        content: string;
-      };
-    };
+type KiroToolSpec = {
+  toolSpecification: {
+    name: string;
+    description?: string;
+    inputSchema: { json: Record<string, unknown> };
+  };
+};
+
+type KiroToolUse = {
+  toolUseId: string;
+  name: string;
+  input: Record<string, unknown>;
+};
+
+type KiroToolResult = {
+  toolUseId: string;
+  status: 'success' | 'error';
+  content: Array<{ text: string }>;
+};
+
+type KiroUserContext = {
+  tools?: KiroToolSpec[];
+  toolResults?: KiroToolResult[];
+};
+
+type KiroUserMessage = {
+  userInputMessage: {
+    content: string;
+    origin: string;
+    modelId?: string;
+    userInputMessageContext?: KiroUserContext;
+  };
+};
+
+type KiroAssistantMessage = {
+  assistantResponseMessage: {
+    content: string;
+    toolUses?: KiroToolUse[];
+  };
+};
+
+type KiroMessage = KiroUserMessage | KiroAssistantMessage;
+
+export interface KiroConversation {
+  body: Record<string, unknown>;
+  /** Kiro-side sanitized tool name → the caller's original tool name. */
+  toolNameMap: Map<string, string>;
+}
 
 function stringifyContent(content: unknown): string {
   if (typeof content === 'string') return content;
@@ -114,28 +167,421 @@ function stringifyContent(content: unknown): string {
   }
 }
 
-function toUserMessage(content: string, modelId?: string): KiroMessage {
+function appendText(current: string, extra: string): string {
+  if (!extra) return current;
+  return current ? `${current}\n\n${extra}` : extra;
+}
+
+function trimToLength(value: string, max: number): string {
+  return [...value].slice(0, max).join('');
+}
+
+function isUserMessage(message: KiroMessage): message is KiroUserMessage {
+  return 'userInputMessage' in message;
+}
+
+function isAssistantMessage(message: KiroMessage): message is KiroAssistantMessage {
+  return 'assistantResponseMessage' in message;
+}
+
+function toUserMessage(
+  content: string,
+  options: { modelId?: string; toolResults?: KiroToolResult[] } = {},
+): KiroUserMessage {
+  const context: KiroUserContext | undefined = options.toolResults?.length
+    ? { toolResults: options.toolResults }
+    : undefined;
   return {
     userInputMessage: {
       content,
       origin: KIRO_ORIGIN,
-      ...(modelId ? { modelId } : {}),
+      ...(options.modelId ? { modelId: options.modelId } : {}),
+      ...(context ? { userInputMessageContext: context } : {}),
     },
   };
 }
 
-function toAssistantMessage(content: string): KiroMessage {
+function toAssistantMessage(content: string, toolUses?: KiroToolUse[]): KiroAssistantMessage {
   return {
     assistantResponseMessage: {
       content,
+      ...(toolUses && toolUses.length > 0 ? { toolUses } : {}),
     },
   };
 }
 
-export function buildKiroChatRequest(
-  body: Record<string, unknown>,
+/**
+ * Recursively drop schema keywords Kiro rejects. `additionalProperties` and an
+ * empty `required` array are valid JSON Schema but make CodeWhisperer answer the
+ * whole request with REQUEST_BODY_INVALID.
+ */
+function cleanSchemaValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(cleanSchemaValue);
+  if (!value || typeof value !== 'object') return value;
+
+  const cleaned: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    if (key === 'additionalProperties') continue;
+    if (key === 'required' && Array.isArray(child) && child.length === 0) continue;
+    cleaned[key] = cleanSchemaValue(child);
+  }
+  return cleaned;
+}
+
+function normalizeToolSchema(schema: unknown): Record<string, unknown> {
+  const cleaned =
+    schema && typeof schema === 'object' && !Array.isArray(schema)
+      ? (cleanSchemaValue(schema) as Record<string, unknown>)
+      : {};
+  cleaned.type = 'object';
+  if (
+    !cleaned.properties ||
+    typeof cleaned.properties !== 'object' ||
+    Array.isArray(cleaned.properties)
+  ) {
+    cleaned.properties = {};
+  }
+  if (Array.isArray(cleaned.required)) {
+    const properties = new Set(Object.keys(cleaned.properties as Record<string, unknown>));
+    const required = [
+      ...new Set(
+        cleaned.required.filter((name) => typeof name === 'string' && properties.has(name)),
+      ),
+    ];
+    if (required.length === 0) delete cleaned.required;
+    else cleaned.required = required;
+  }
+  return cleaned;
+}
+
+/**
+ * Normalize a caller tool name to Kiro's `[A-Za-z0-9_-]+` alphabet in one
+ * linear pass. The obvious regex chain (`_+` with anchored alternatives) is a
+ * polynomial-time match on adversarial input, which CodeQL flags.
+ */
+function sanitizeToolName(rawName: string): string {
+  const chars: string[] = [];
+  let previousUnderscore = false;
+  for (const char of rawName.trim()) {
+    const sanitized = KIRO_TOOL_NAME_ALLOWED.test(char) ? char : '_';
+    if (sanitized === '_') {
+      if (previousUnderscore) continue;
+      previousUnderscore = true;
+    } else {
+      previousUnderscore = false;
+    }
+    chars.push(sanitized);
+  }
+
+  let start = 0;
+  let end = chars.length;
+  while (start < end && chars[start] === '_') start += 1;
+  while (end > start && chars[end - 1] === '_') end -= 1;
+  return chars.slice(start, end).join('');
+}
+
+function uniqueToolName(rawName: string, used: Set<string>): string {
+  const base = trimToLength(sanitizeToolName(rawName) || 'tool', KIRO_TOOL_NAME_MAX_LENGTH);
+  let candidate = base;
+  let suffix = 2;
+  while (used.has(candidate)) {
+    const tail = `_${suffix}`;
+    suffix += 1;
+    candidate = `${base.slice(0, KIRO_TOOL_NAME_MAX_LENGTH - tail.length)}${tail}`;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+function buildKiroToolSpecs(tools: unknown): {
+  specs: KiroToolSpec[];
+  toKiroName: Map<string, string>;
+  toolNameMap: Map<string, string>;
+} {
+  const specs: KiroToolSpec[] = [];
+  const toKiroName = new Map<string, string>();
+  const toolNameMap = new Map<string, string>();
+  const used = new Set<string>();
+  if (!Array.isArray(tools)) return { specs, toKiroName, toolNameMap };
+
+  for (const raw of tools) {
+    if (!raw || typeof raw !== 'object') continue;
+    const tool = raw as Record<string, unknown>;
+    const fn = (tool.function ?? {}) as Record<string, unknown>;
+    const rawName = fn.name ?? tool.name;
+    if (typeof rawName !== 'string' || !rawName.trim()) continue;
+    if (toKiroName.has(rawName)) continue;
+
+    const name = uniqueToolName(rawName, used);
+    toKiroName.set(rawName, name);
+    if (name !== rawName) toolNameMap.set(name, rawName);
+
+    const rawDescription = fn.description ?? tool.description;
+    const description = trimToLength(
+      typeof rawDescription === 'string' && rawDescription.trim()
+        ? rawDescription
+        : `Tool: ${rawName}`,
+      KIRO_TOOL_DESCRIPTION_MAX_LENGTH,
+    );
+    const schema = fn.parameters ?? tool.parameters ?? tool.input_schema;
+    specs.push({
+      toolSpecification: { name, description, inputSchema: { json: normalizeToolSchema(schema) } },
+    });
+  }
+
+  return { specs, toKiroName, toolNameMap };
+}
+
+function parseToolInput(value: unknown): Record<string, unknown> {
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Malformed argument JSON carries no usable input.
+    }
+  }
+  return {};
+}
+
+function toolUsesFromAssistant(
+  message: OpenAiMessage,
+  toKiroName: Map<string, string>,
+): KiroToolUse[] {
+  if (!Array.isArray(message.tool_calls)) return [];
+
+  const uses: KiroToolUse[] = [];
+  message.tool_calls.forEach((raw, index) => {
+    if (!raw || typeof raw !== 'object') return;
+    const call = raw as OpenAiToolCall;
+    const name = call.function?.name;
+    if (typeof name !== 'string' || !name) return;
+    uses.push({
+      toolUseId: typeof call.id === 'string' && call.id ? call.id : `call_${index + 1}`,
+      name: toKiroName.get(name) ?? name,
+      input: parseToolInput(call.function?.arguments),
+    });
+  });
+  return uses;
+}
+
+function toolResultFromMessage(message: OpenAiMessage): KiroToolResult {
+  return {
+    toolUseId: typeof message.tool_call_id === 'string' ? message.tool_call_id : '',
+    status: 'success',
+    content: [{ text: stringifyContent(message.content) }],
+  };
+}
+
+/**
+ * Convert OpenAI chat messages into Kiro's strictly alternating user/assistant
+ * turns. Consecutive same-role messages merge because Kiro rejects two turns in
+ * a row; assistant `tool_calls` become `toolUses`, and `tool` role messages
+ * become `toolResults` on the following (merged) user turn.
+ */
+function buildKiroTurns(messages: OpenAiMessage[], toKiroName: Map<string, string>): KiroMessage[] {
+  const turns: KiroMessage[] = [];
+  let user: KiroUserMessage | null = null;
+  let assistant: KiroAssistantMessage | null = null;
+
+  const flushUser = (): void => {
+    if (user) {
+      turns.push(user);
+      user = null;
+    }
+  };
+  const flushAssistant = (): void => {
+    if (assistant) {
+      turns.push(assistant);
+      assistant = null;
+    }
+  };
+
+  for (const message of messages) {
+    if (message.role === 'system' || message.role === 'developer') continue;
+
+    if (message.role === 'assistant') {
+      flushUser();
+      const content = stringifyContent(message.content);
+      const toolUses = toolUsesFromAssistant(message, toKiroName);
+      if (!content && toolUses.length === 0) continue;
+
+      if (assistant) {
+        assistant.assistantResponseMessage.content = appendText(
+          assistant.assistantResponseMessage.content,
+          content,
+        );
+        if (toolUses.length > 0) {
+          assistant.assistantResponseMessage.toolUses = [
+            ...(assistant.assistantResponseMessage.toolUses ?? []),
+            ...toolUses,
+          ];
+        }
+      } else {
+        assistant = toAssistantMessage(content || '...', toolUses);
+      }
+      continue;
+    }
+
+    flushAssistant();
+    const result = message.role === 'tool' ? toolResultFromMessage(message) : null;
+    const content = result ? '' : stringifyContent(message.content);
+    if (user) {
+      user.userInputMessage.content = appendText(user.userInputMessage.content, content);
+      if (result) {
+        const context = (user.userInputMessage.userInputMessageContext ??= {});
+        context.toolResults = [...(context.toolResults ?? []), result];
+      }
+    } else {
+      user = toUserMessage(content, { toolResults: result ? [result] : undefined });
+    }
+  }
+
+  flushAssistant();
+  flushUser();
+  return turns;
+}
+
+function flattenToolUse(toolUse: KiroToolUse): string {
+  return `[Tool call: ${toolUse.name}(${JSON.stringify(toolUse.input)})]`;
+}
+
+function flattenToolResult(result: KiroToolResult): string {
+  const text = result.content.map((part) => part.text).join('\n');
+  return `[Tool result${result.status === 'error' ? ' (error)' : ''}: ${text}]`;
+}
+
+function deleteEmptyContext(message: KiroUserMessage): void {
+  const context = message.userInputMessage.userInputMessageContext;
+  if (!context) return;
+  if (!context.toolResults?.length) delete context.toolResults;
+  if (!context.tools?.length) delete context.tools;
+  if (Object.keys(context).length === 0) delete message.userInputMessage.userInputMessageContext;
+}
+
+function reserveToolUseId(rawId: string, fallback: string, used: Set<string>): string {
+  const sanitized = rawId.replace(KIRO_TOOL_NAME_ILLEGAL, '');
+  const base = trimToLength(
+    KIRO_TOOL_ID_PATTERN.test(sanitized) && sanitized ? sanitized : fallback,
+    KIRO_TOOL_ID_MAX_LENGTH,
+  );
+  let candidate = base;
+  let suffix = 2;
+  while (used.has(candidate)) {
+    const tail = `_${suffix}`;
+    suffix += 1;
+    candidate = `${base.slice(0, KIRO_TOOL_ID_MAX_LENGTH - tail.length)}${tail}`;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
+/**
+ * Kiro requires each assistant `toolUses` entry to have a matching `toolResults`
+ * entry in the very next user turn, and every called tool to be declared in the
+ * request's tool specs. When a caller has a broken history (missing result, an
+ * orphan result, or a call to an undeclared tool), inline it as text rather than
+ * sending a body Kiro answers with REQUEST_BODY_INVALID.
+ */
+function reconcileToolPairs(turns: KiroMessage[], specNames: Set<string>): void {
+  const usedIds = new Set<string>();
+
+  for (let index = 0; index < turns.length - 1; index += 1) {
+    const assistant = turns[index];
+    const user = turns[index + 1];
+    if (!isAssistantMessage(assistant) || !isUserMessage(user)) continue;
+
+    const calls = assistant.assistantResponseMessage.toolUses ?? [];
+    const context = user.userInputMessage.userInputMessageContext;
+    const results = context?.toolResults ?? [];
+
+    if (calls.length === 0) {
+      if (results.length > 0) {
+        user.userInputMessage.content = appendText(
+          user.userInputMessage.content,
+          results.map(flattenToolResult).join('\n\n'),
+        );
+        if (context) delete context.toolResults;
+        deleteEmptyContext(user);
+      }
+      continue;
+    }
+
+    const resultQueues = new Map<string, KiroToolResult[]>();
+    for (const result of results) {
+      const queue = resultQueues.get(result.toolUseId) ?? [];
+      queue.push(result);
+      resultQueues.set(result.toolUseId, queue);
+    }
+
+    const keptCalls: KiroToolUse[] = [];
+    const keptResults: KiroToolResult[] = [];
+    const flattened: string[] = [];
+
+    for (const call of calls) {
+      const result = resultQueues.get(call.toolUseId)?.shift();
+      if (result && specNames.has(call.name)) {
+        const toolUseId = reserveToolUseId(
+          call.toolUseId,
+          `call_${index}_${keptCalls.length}`,
+          usedIds,
+        );
+        keptCalls.push({ ...call, toolUseId });
+        keptResults.push({ ...result, toolUseId });
+      } else {
+        flattened.push(flattenToolUse(call));
+        if (result) flattened.push(flattenToolResult(result));
+      }
+    }
+
+    for (const queue of resultQueues.values()) {
+      for (const result of queue) flattened.push(flattenToolResult(result));
+    }
+
+    if (flattened.length > 0) {
+      user.userInputMessage.content = appendText(
+        user.userInputMessage.content,
+        flattened.join('\n\n'),
+      );
+    }
+    if (keptCalls.length > 0) assistant.assistantResponseMessage.toolUses = keptCalls;
+    else delete assistant.assistantResponseMessage.toolUses;
+    if (context && keptResults.length > 0) context.toolResults = keptResults;
+    else if (context) delete context.toolResults;
+    deleteEmptyContext(user);
+  }
+}
+
+function finalizeKiroConversation(
+  turns: KiroMessage[],
+  specs: KiroToolSpec[],
   model: string,
-): Record<string, unknown> {
+): { history: KiroMessage[]; currentMessage: KiroUserMessage } {
+  const working = [...turns];
+  if (working.length === 0) {
+    working.push(toUserMessage('continue', { modelId: model }));
+  }
+  if (isAssistantMessage(working[0])) {
+    working.unshift(toUserMessage('continue'));
+  }
+  if (isAssistantMessage(working[working.length - 1])) {
+    working.push(toUserMessage('continue'));
+  }
+
+  reconcileToolPairs(working, new Set(specs.map((spec) => spec.toolSpecification.name)));
+
+  let currentIndex = working.length - 1;
+  while (currentIndex >= 0 && !isUserMessage(working[currentIndex])) currentIndex -= 1;
+  const currentMessage = working[currentIndex] as KiroUserMessage;
+  return { history: working.slice(0, currentIndex), currentMessage };
+}
+
+function buildKiroConversation(body: Record<string, unknown>, model: string): KiroConversation {
   const messages = Array.isArray(body.messages) ? (body.messages as OpenAiMessage[]) : [];
   const systemText = messages
     .filter((message) => message.role === 'system' || message.role === 'developer')
@@ -143,46 +589,72 @@ export function buildKiroChatRequest(
     .filter(Boolean)
     .join('\n\n');
 
-  const lastUserIndex = messages.reduce(
-    (last, message, index) => (message.role === 'user' ? index : last),
-    -1,
+  const { specs, toKiroName, toolNameMap } = buildKiroToolSpecs(body.tools);
+  const { history, currentMessage } = finalizeKiroConversation(
+    buildKiroTurns(messages, toKiroName),
+    specs,
+    model,
   );
-  const currentIndex = lastUserIndex >= 0 ? lastUserIndex : messages.length - 1;
-  const history: KiroMessage[] = [];
 
-  for (let index = 0; index < currentIndex; index += 1) {
-    const message = messages[index];
-    if (message.role === 'system' || message.role === 'developer') continue;
-    const content = stringifyContent(message.content);
-    if (!content) continue;
-    if (message.role === 'assistant') {
-      history.push(toAssistantMessage(content));
-    } else if (message.role === 'tool') {
-      history.push(
-        toUserMessage(
-          `Tool result${message.tool_call_id ? ` ${message.tool_call_id}` : ''}:\n${content}`,
-        ),
-      );
-    } else {
-      history.push(toUserMessage(content));
-    }
+  if (specs.length > 0) {
+    const context = (currentMessage.userInputMessage.userInputMessageContext ??= {});
+    context.tools = specs;
   }
 
-  const currentMessage = currentIndex >= 0 ? messages[currentIndex] : undefined;
-  const currentText = currentMessage ? stringifyContent(currentMessage.content) : '';
-  const content = systemText
-    ? `System instructions:\n${systemText}\n\nUser:\n${currentText}`
-    : currentText;
+  const currentText = currentMessage.userInputMessage.content;
+  const toolResults = currentMessage.userInputMessage.userInputMessageContext?.toolResults ?? [];
+  const hasToolResults = toolResults.length > 0;
+  if (hasToolResults && !currentText) {
+    // The latest turn is a tool result with no new user text: Kiro continues the
+    // pending task only when `content` is empty. A fabricated "continue" (or the
+    // system prompt) reads as a fresh, context-free user message and makes the
+    // model drop the conversation. The system prompt has no dedicated Kiro field
+    // and lands on the current turn everywhere else, so move it onto the
+    // conversation's first user turn to keep delivering it.
+    currentMessage.userInputMessage.content = '';
+    const firstUser = history.find(isUserMessage);
+    if (firstUser) {
+      if (systemText) {
+        firstUser.userInputMessage.content = `System instructions:\n${systemText}\n\nUser:\n${firstUser.userInputMessage.content}`;
+      }
+    } else {
+      // No earlier user turn: this tool result is the conversation's first turn
+      // and has no assistant tool-use to pair with, so Kiro rejects it as an
+      // orphan. Inline the result; the system prompt belongs on this first turn.
+      const context = currentMessage.userInputMessage.userInputMessageContext!;
+      const inlined = toolResults.map(flattenToolResult).join('\n\n');
+      currentMessage.userInputMessage.content = systemText
+        ? `System instructions:\n${systemText}\n\nUser:\n${inlined}`
+        : inlined;
+      delete context.toolResults;
+      deleteEmptyContext(currentMessage);
+    }
+  } else {
+    currentMessage.userInputMessage.content = systemText
+      ? `System instructions:\n${systemText}\n\nUser:\n${currentText || 'Hello'}`
+      : currentText || 'Hello';
+  }
+  currentMessage.userInputMessage.modelId ??= model;
 
   return {
-    conversationState: {
-      conversationId: randomUUID(),
-      history,
-      currentMessage: toUserMessage(content || 'Hello', model),
-      chatTriggerType: 'MANUAL',
+    body: {
+      conversationState: {
+        conversationId: randomUUID(),
+        history,
+        currentMessage,
+        chatTriggerType: 'MANUAL',
+      },
+      agentMode: KIRO_AGENT_MODE,
     },
-    agentMode: KIRO_AGENT_MODE,
+    toolNameMap,
   };
+}
+
+export function buildKiroChatRequest(
+  body: Record<string, unknown>,
+  model: string,
+): Record<string, unknown> {
+  return buildKiroConversation(body, model).body;
 }
 
 export interface KiroEvent {
@@ -295,10 +767,22 @@ interface OpenAiUsage {
   total_tokens: number;
 }
 
+interface KiroToolCallState {
+  id: string;
+  name: string;
+  input: string;
+}
+
 interface KiroCollectState {
   content: string;
   reasoning: string;
   usage?: OpenAiUsage;
+  toolCalls: Map<string, KiroToolCallState>;
+  toolOrder: string[];
+}
+
+function createKiroCollectState(): KiroCollectState {
+  return { content: '', reasoning: '', toolCalls: new Map(), toolOrder: [] };
 }
 
 function eventPayload(event: KiroEvent): Record<string, unknown> {
@@ -344,6 +828,31 @@ function extractErrorMessage(event: KiroEvent): string | null {
   return typeof message === 'string' ? message : null;
 }
 
+/**
+ * Kiro streams tool calls as `toolUseEvent` frames whose `input` is a JSON
+ * fragment; fragments accumulate per `toolUseId` until the frame sets `stop`.
+ */
+function collectKiroToolUse(state: KiroCollectState, payload: Record<string, unknown>): void {
+  const name = typeof payload.name === 'string' ? payload.name.trim() : '';
+  if (!name) return;
+
+  const rawId = typeof payload.toolUseId === 'string' ? payload.toolUseId : '';
+  const id = rawId || `call_${state.toolOrder.length + 1}`;
+  let tool = state.toolCalls.get(id);
+  if (!tool) {
+    tool = { id, name, input: '' };
+    state.toolCalls.set(id, tool);
+    state.toolOrder.push(id);
+  }
+
+  const input = payload.input;
+  if (typeof input === 'string') {
+    tool.input += input;
+  } else if (input && typeof input === 'object') {
+    tool.input = JSON.stringify(input);
+  }
+}
+
 function applyKiroEvent(state: KiroCollectState, event: KiroEvent): Record<string, unknown> | null {
   const eventType = event.eventType?.toLowerCase() ?? '';
   const payload = eventPayload(event);
@@ -361,10 +870,36 @@ function applyKiroEvent(state: KiroCollectState, event: KiroEvent): Record<strin
     state.reasoning += text;
     return text ? { reasoning_content: text } : null;
   }
+  if (eventType.includes('tooluse')) {
+    const values = Array.isArray(payload) ? payload : [payload];
+    for (const value of values) {
+      if (value && typeof value === 'object') {
+        collectKiroToolUse(state, value as Record<string, unknown>);
+      }
+    }
+    return null;
+  }
   if (eventType.includes('metadata')) {
     state.usage = normalizeUsage(payload.tokenUsage ?? payload.token_usage);
   }
   return null;
+}
+
+interface KiroToolCall {
+  id: string;
+  name: string;
+  arguments: string;
+}
+
+function kiroToolCalls(state: KiroCollectState, toolNameMap?: Map<string, string>): KiroToolCall[] {
+  return state.toolOrder.map((id) => {
+    const tool = state.toolCalls.get(id) as KiroToolCallState;
+    return {
+      id: tool.id,
+      name: toolNameMap?.get(tool.name) ?? tool.name,
+      arguments: tool.input.trim() || '{}',
+    };
+  });
 }
 
 function openAiChunk(
@@ -386,10 +921,11 @@ function openAiChunk(
 export function createKiroOpenAiStream(
   source: ReadableStream<Uint8Array>,
   model: string,
+  toolNameMap?: Map<string, string>,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   const parser = new KiroEventStreamParser();
-  const state: KiroCollectState = { content: '', reasoning: '' };
+  const state = createKiroCollectState();
 
   return new ReadableStream<Uint8Array>({
     async start(controller) {
@@ -404,7 +940,27 @@ export function createKiroOpenAiStream(
           }
         }
         parser.finish();
-        controller.enqueue(encoder.encode(openAiChunk(model, {}, 'stop', state.usage)));
+
+        const toolCalls = kiroToolCalls(state, toolNameMap);
+        toolCalls.forEach((tool, index) => {
+          controller.enqueue(
+            encoder.encode(
+              openAiChunk(model, {
+                tool_calls: [
+                  {
+                    index,
+                    id: tool.id,
+                    type: 'function',
+                    function: { name: tool.name, arguments: tool.arguments },
+                  },
+                ],
+              }),
+            ),
+          );
+        });
+
+        const finishReason = toolCalls.length > 0 ? 'tool_calls' : 'stop';
+        controller.enqueue(encoder.encode(openAiChunk(model, {}, finishReason, state.usage)));
         controller.enqueue(encoder.encode('data: [DONE]\n\n'));
         controller.close();
       } catch (err) {
@@ -417,9 +973,10 @@ export function createKiroOpenAiStream(
 async function collectKiroCompletion(
   source: ReadableStream<Uint8Array>,
   model: string,
+  toolNameMap?: Map<string, string>,
 ): Promise<Record<string, unknown>> {
   const parser = new KiroEventStreamParser();
-  const state: KiroCollectState = { content: '', reasoning: '' };
+  const state = createKiroCollectState();
   const reader = source.getReader();
 
   for (;;) {
@@ -437,12 +994,27 @@ async function collectKiroCompletion(
   };
   if (state.reasoning) message.reasoning_content = state.reasoning;
 
+  const toolCalls = kiroToolCalls(state, toolNameMap);
+  if (toolCalls.length > 0) {
+    message.tool_calls = toolCalls.map((tool) => ({
+      id: tool.id,
+      type: 'function',
+      function: { name: tool.name, arguments: tool.arguments },
+    }));
+  }
+
   return {
     id: `chatcmpl-${randomUUID()}`,
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
     model,
-    choices: [{ index: 0, message, finish_reason: 'stop' }],
+    choices: [
+      {
+        index: 0,
+        message,
+        finish_reason: toolCalls.length > 0 ? 'tool_calls' : 'stop',
+      },
+    ],
     ...(state.usage ? { usage: state.usage } : {}),
   };
 }
@@ -463,23 +1035,24 @@ export async function forwardKiroChat(opts: {
     'x-amzn-kiro-agent-mode': KIRO_AGENT_MODE,
     ...opts.extraHeaders,
   };
+  const { body, toolNameMap } = buildKiroConversation(opts.body, opts.model);
   const upstream = await fetch(KIRO_BASE_URL, {
     method: 'POST',
     headers,
-    body: JSON.stringify(buildKiroChatRequest(opts.body, opts.model)),
+    body: JSON.stringify(body),
     signal: fetchSignal,
     redirect: 'error',
   });
 
   if (!upstream.ok || !upstream.body) return upstream;
   if (opts.stream) {
-    return new Response(createKiroOpenAiStream(upstream.body, opts.model), {
+    return new Response(createKiroOpenAiStream(upstream.body, opts.model, toolNameMap), {
       status: 200,
       headers: { 'Content-Type': 'text/event-stream' },
     });
   }
 
-  const completion = await collectKiroCompletion(upstream.body, opts.model);
+  const completion = await collectKiroCompletion(upstream.body, opts.model, toolNameMap);
   return new Response(JSON.stringify(completion), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },

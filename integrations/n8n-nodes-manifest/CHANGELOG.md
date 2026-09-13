@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Identify Manifest requests from this node with `User-Agent: n8n-nodes-manifest`, `X-Title: n8n`, and `HTTP-Referer: https://n8n.io`, so Manifest can attribute usage to the node itself.
+
 ## 0.2.1
 
 - Mark the Manifest action node as usable by AI agents, as required by the n8n community-node linter.

@@ -168,6 +168,53 @@ describe('ReasoningContentCache', () => {
     expect((body.messages[0] as Record<string, unknown>).reasoning_content).toBeUndefined();
   });
 
+  it('replays an empty reasoning_content key onto non-tool assistant turns in a tool conversation', async () => {
+    const body = {
+      messages: [
+        { role: 'user', content: 'read the file' },
+        { role: 'assistant', content: 'on it' },
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+        { role: 'tool', tool_call_id: 'call_1', content: 'contents' },
+      ],
+    };
+
+    const result = await cache.prepareRequest(body, 'session-1', 'deepseek', 'deepseek-v4-flash');
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    // DeepSeek's thinking mode rejects the request when any assistant turn omits
+    // the key once tools are in play, so the plain turn is replayed empty too.
+    expect(messages[1].reasoning_content).toBe('');
+    expect(messages[2].reasoning_content).toBe('');
+    expect(messages[0].reasoning_content).toBeUndefined();
+    expect(messages[3].reasoning_content).toBeUndefined();
+  });
+
+  it('leaves an existing non-tool reasoning_content untouched in a tool conversation', async () => {
+    const body = {
+      messages: [
+        {
+          role: 'assistant',
+          content: 'on it',
+          reasoning_content: 'client thinking',
+        },
+        {
+          role: 'assistant',
+          content: '',
+          tool_calls: [{ id: 'call_1', type: 'function', function: {} }],
+        },
+      ],
+    };
+
+    const result = await cache.prepareRequest(body, 'session-1', 'deepseek', 'deepseek-v4-flash');
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages[0].reasoning_content).toBe('client thinking');
+  });
+
   it('leaves request bodies without messages unchanged', async () => {
     const body = { prompt: 'The answer is 42.' };
 

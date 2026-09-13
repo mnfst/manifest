@@ -1,5 +1,154 @@
 # manifest
 
+## 6.23.4
+
+### Patch Changes
+
+- 483d6c1: Close object schemas in Anthropic structured output. Every `type: object` node in `output_config.format.schema` now gets `additionalProperties: false` (unless the author set it), on both the chat-completions → Anthropic translation and the native `/v1/messages` pass-through, so Anthropic no longer rejects requests with "For 'object' type, 'additionalProperties' must be explicitly set to false".
+- 8f4fd02: Fix Kiro agent loops. When a request ends on a tool result with no new user text, leave the current Kiro turn empty instead of synthesizing `continue` (or leaving the system prompt there). Kiro read that fabricated text as a fresh instruction and dropped the in-flight task, so tool-calling agents (opencode et al.) lost context immediately after the first tool call. The system prompt now rides the conversation's first user turn so it still reaches the model.
+
+## 6.23.3
+
+### Patch Changes
+
+- 5f02d11: Leave model-specific provider corrections to Autofix. Keep provider-level protocol strips (OpenAI-only fields, OpenRouter and Ollama dialect fields) so traffic does not regress when Autofix is off.
+- 07a962b: Fix Kiro tool calling. Forward OpenAI tool definitions as Kiro tool specifications, map assistant `tool_calls` and `tool` role messages into Kiro `toolUses`/`toolResults`, and return Kiro `toolUseEvent` frames as OpenAI `tool_calls` (with `finish_reason: tool_calls`) in both streaming and non-streaming responses.
+
+## 6.23.2
+
+### Patch Changes
+
+- 6b0bbc9: Fix DeepSeek thinking-mode 400s by replaying `reasoning_content` under the scoped session key and covering non-tool assistant turns in tool conversations.
+- 340628f: Give repeated tool call ids unique values when converting a Chat Completions request to Responses, so reused ids no longer trip a strict Responses provider's "Duplicate function_call_output for call_id".
+- 922fefd: Give repeated tool call ids unique values before forwarding a Responses history, so strict Responses providers stop rejecting resubmitted turns with "Duplicate function_call_output for call_id".
+
+## 6.23.1
+
+### Patch Changes
+
+- b2edaaa: Stop the internal CRM metrics feed timing out over long windows by dropping the provider breakdown it no longer needs.
+- 3c8ffb6: Bill DeepSeek V4.1 Flash at the published peak/off-peak rates, and switch `deepseek-v4-pro` onto that card from 2026-09-14 04:00 UTC.
+- b60eeb4: Recognize n8n community node requests from User-Agent so request details can show the node as the caller.
+- 3efbe8e: Keep streaming requests as success when the caller closes after a terminal provider event.
+
+## 6.23.0
+
+### Minor Changes
+
+- 8076d88: Add OpenAI Codex as a coding-assistant agent platform. Codex shows up in the agent picker with a copy-ready `~/.codex/config.toml` setup panel that points Codex CLI and Desktop at Manifest over the Responses API (`wire_api = "responses"`) and authenticates with your `mnfst_` key. Two upstream-compatibility fixes make Codex work against non-OpenAI providers: Responses-API `role: "developer"` instruction messages are folded into `system`, and OpenAI-hosted tools (`web_search`, `file_search`, …) are dropped on the Chat Completions path. Native Responses upstreams keep developer roles and hosted tools untouched.
+
+  Preserve streamed function calls and namespaced client tools through non-OpenAI providers, including parallel calls and tool-result replay.
+
+- f1a50eb: Add an internal, secret-guarded feed of the users whose requests Autofix repaired, so outreach can reach them with their real repair counts.
+
+### Patch Changes
+
+- 8ccecc8: Remove the $25 Gemini credit user-discovery banner and modal from the Overview page.
+
+## 6.22.0
+
+### Minor Changes
+
+- 5b5eac7: Custom providers now have an alias, the readable prefix their models are published under in `/v1/models` (`vercel-ai-gateway/alibaba/qwen-3-14b` instead of `custom:<uuid>/alibaba/qwen-3-14b`). The alias defaults to the provider name, is editable at creation and later, and the proxy accepts both the alias form and the internal `custom:<uuid>/…` form in the `model` field, so existing client configs keep working. Existing custom providers are backfilled on upgrade.
+- e86c83a: Add an Automation harness category with n8n as its first platform, including n8n credential setup guidance in the harness creation flow.
+- 142d082: Add `GET /api/v1/version` for self-hosted installs: reports the running version, the latest GitHub release, and changelog/upgrade links so the dashboard can show a "new version available" badge. Checks once a day, never in cloud mode, and can be turned off with `MANIFEST_UPDATE_CHECK_DISABLED=1`.
+
+### Patch Changes
+
+- ed8ac04: Adapt the provider connection page, the Overview KPI cards, and the app header to phone-sized screens
+
+## 6.21.1
+
+### Patch Changes
+
+- b974b60: Send the `x-opencode-session` header on every OpenCode Go/Zen request — hashed per-conversation id when the caller provides `x-session-key`, stable per-agent fallback otherwise — ahead of OpenCode's 09/06 enforcement deadline.
+- 30ecba8: Stop listing OpenRouter `:batch` model variants in model discovery. These variants are only served through OpenRouter's asynchronous Batch API and always fail with a 404 on the synchronous chat completions proxy.
+- 51fa1b8: Security: bump fast-uri to 3.1.6 (fixes GHSA-5jgf-p345-68v8, GHSA-fph4-wmhf-6fwf, GHSA-f65p-4m7j-42xc, GHSA-jqff-g426-hqxp) and refresh Docker base images.
+
+## 6.21.0
+
+### Minor Changes
+
+- ae39136: Encrypt stored request recordings with the at-rest encryption key. Existing gzip-only recordings remain readable.
+- 760e21c: Add MANIFEST_ENCRYPTION_KEY_PREVIOUS and a boot-time re-encryption pass so the at-rest key can be introduced or rotated without losing stored provider credentials.
+
+### Patch Changes
+
+- 6b88368: Route an explicit bare model id to the subscription connection when both a subscription and an api_key connection of the same provider serve it, instead of silently metering the key.
+- 39fdbe0: Add claude-fable-5-1 to the Anthropic subscription model catalog so Claude Max / Pro connections can serve it instead of silently falling through to an API key
+- 478c64b: Strip inline base64 images from stored request recordings and Phoenix observations.
+- 15998da: Remove the self-hosted loopback auto-login. Requests from 127.0.0.1 without a session are no longer treated as a signed-in local user.
+- 686656a: The routing model picker now window-renders long catalogs so scrolling stays in place instead of lagging or jumping back to the top.
+- 9534911: Scrub provider credentials from upstream error bodies before they are written to logs.
+- 65e318b: Waiting-list claims now record where they were made (cloud or self-hosted) instead of a generic label, and a repeat claim updates the attribution to the latest origin.
+
+## 6.20.0
+
+### Minor Changes
+
+- b7d5368: New self-hosted users now see a one-time optional discovery form (name, email, project type, company size) right after signup, before reaching the dashboard. Submitting or skipping persists the choice, and the step never appears on Manifest Cloud or for existing users.
+- 54a6356: The sidebar now announces that Manifest is becoming the self-healing layer for APIs, with a modal to join the waiting list using a prefilled but editable email. The old Autofix sidebar card is retired since notifications cover it.
+- b3bd178: Add grok-4.6 to the Grok subscription known-models list so xAI subscription connections can select it.
+- 1f6e851: Limit the Grok subscription catalog to grok-4.6 and grok-4.5, the models Grok Build actually offers, and advertise their 500k context window.
+
+### Patch Changes
+
+- 4de42c1: Open Anthropic subscription popups before the OAuth request so adding another account is not blocked by the browser.
+- 597d183: Allow custom provider models to use streaming response mode.
+- 4b824d7: Stop serializing tool_result images as base64 text on OpenAI-compatible routes (a single screenshot inflated to 100K+ input tokens and could overflow the provider context window), and return deterministic ChatGPT Codex context errors as HTTP 400 instead of 502.
+- e0105a2: Keep configured subscription context windows current without replacing provider values.
+- 5cd26a1: Fix fallback drag-and-drop reordering below the second position.
+- 3c5af56: Allow deployments to configure the per-tenant concurrent request limit with `MANIFEST_CONCURRENCY_MAX`.
+- 29f0316: Keep Phoenix model remaps provider-native while preserving subscription routing and legacy Autofix compatibility.
+- eb0992c: Pin Better Auth to 1.6.25 to restore upgrades from populated 1.6 databases.
+- c86273b: Translate Anthropic user metadata when routing Messages requests to OpenAI.
+
+## 6.19.1
+
+### Patch Changes
+
+- 196f3b9: Stop accepting rotated or deleted agent API keys immediately across backend replicas.
+- 810319e: Make Auto-fix setting changes take effect immediately across all backend replicas.
+- 2fac033: Apply hard-limit rule and usage changes immediately across backend replicas.
+- f9eecad: Apply message-recording setting changes immediately across backend replicas.
+- 94e3f9f: Fix the harness sidebar rendering after creation in Safari.
+
+## 6.19.0
+
+### Minor Changes
+
+- 44cb47b: Add Meta Model API support for Muse Spark 1.1, Muse Spark 1.2, and the Contributor route.
+- f83ba4f: Support the full Kimi Coding Plan model lineup for Moonshot subscriptions using the wire-format ids the api.kimi.com/coding endpoint expects: k3, k3-256k, kimi-for-coding, and kimi-for-coding-highspeed (the previous curated list sent kimi-k3, which the endpoint does not accept). Includes correct per-model context windows (1M for k3, 256k for the rest, with an explicit k3-256k entry so prefix matching cannot inherit the 1M window), curated input modalities (image+video for k3 and both kimi-for-coding variants, image-only for k3-256k), provider inference for the bare k3 ids, and quality-score overrides so the zero-priced k3 models are not mis-tiered as ultra-low in auto-routing.
+
+### Patch Changes
+
+- c40e550: Show the loading skeleton on the Agent Overview page while switching between agents, instead of leaving the previous agent's data on screen until the new fetch resolves.
+- 215f863: Rename the "AI agents" harness category to "AI agent" so it matches the other singular category labels
+- b27a578: Fix empty non-streaming responses for Bedrock GPT-5.x models (openai.gpt-5.6-luna/sol/terra, gpt-5.5, gpt-5.4). The non-streaming Responses handler assumed the upstream always returns SSE, but the Bedrock mantle /openai/v1/responses endpoint returns a plain JSON Responses object when stream:false, so content came back null with zero usage. The handler now detects the response shape and parses JSON Responses objects directly.
+- 87475e2: Route Bedrock GPT-5.4, GPT-5.5, and GPT-5.6 models through the namespaced OpenAI Responses API path.
+- 9b2704c: Keep OpenAI subscription requests streaming upstream when clients request buffered responses.
+- e821268: Bound dashboard query concurrency and reduce default PostgreSQL pool sizes.
+- 6b4bf29: Cap the provider connections list at six and a half rows so the supported-provider catalog below it stays reachable. The card scrolls, and a "Show all" button expands it to full height.
+- b24ddcb: Calculate GitHub Copilot request costs from live token prices, including long-context tiers.
+- ba1d7b6: Prefer the cost a provider reports over any catalogue estimate. Manifest already read `usage.cost` from responses but only used it for subscription providers, so an exact figure from a gateway such as OpenRouter was captured and then discarded in favour of catalogue arithmetic. Local inference (Ollama, llama.cpp, LM Studio) now records a known `$0` instead of an unknown `null`.
+- 2d5fb92: Bill DeepSeek V4 at its real peak/off-peak rates. Pricing entries can now carry time-of-day tiers (the models.dev `cost.tiers` time variant), cost calculation resolves them against the attempt timestamp, and a built-in seed supplies DeepSeek's schedule until the catalog carries it.
+- ba1d7b6: Stop billing DeepSeek V4 peak rates on weekends: time-of-day pricing tiers now carry the weekdays they apply on, and DeepSeek's 01:00-04:00 / 06:00-10:00 UTC peak windows are Monday-Friday only. Also prices `deepseek-v4-flash-vision-exp`, which billed at the stale flat catalog rate.
+- 061d351: Continue fallback routing when a non-streaming Chat Completions provider returns no output.
+- 3330dae: Refresh cached harness message counts when new requests arrive.
+- 633455b: Show the Meta logo anywhere the dashboard renders provider icons.
+- ab1a544: Keep model parameter specs current: the modelparams catalog now refreshes hourly from the modelparams.dev API (ETag-conditional, validated before swap, stale-on-error) instead of being frozen at the bundled package version, and the bundled fallback is bumped to modelparams 0.0.40.
+- 6b04574: Report modalities and capability flags for Ollama Cloud models. `ollama-cloud` was missing from the models.dev provider map, so every lookup missed and `GET /v1/models?capabilities=true` returned no `input_modalities`, `output_modalities`, or `features` for those models. Release tags that models.dev omits from its key (`:preview`, `:0813`) now fall back to the base model.
+- 0259c8d: Show refreshed provider metadata immediately after manual model discovery.
+- ca21b97: Route OpenCode Go Responses-only models (Grok 4.5, GPT 5.6 Luna, Muse Spark) to `/v1/responses` instead of `/v1/chat/completions`.
+- 7b09c5e: Report tool support and modalities for OpenRouter models. OpenRouter reached neither models.dev provider map, so all 323 published models declared only `stream` and never `tools`, and anything reasoning about capability — the dashboard picker, `/v1/models?capabilities=true`, agents choosing a remap target — treated every one of them as tool-incapable. OpenRouter now sits in the capability-only map, so its rates stay with its own live `/models` feed while models.dev supplies the modalities and tool-call flags that feed omits. Routing variants (`:free`, `:nitro`, `:batch`) resolve to their base model's capabilities.
+- fe8677e: Cost each request with the price of the provider that actually served it. The pricing cache was keyed by model name alone, so every provider selling a model wrote to the same key and only the last one survived — 24 providers list `deepseek-v4-pro`, and DeepSeek is not the one that won. A request to DeepSeek's own API was billed at OpenCode Zen's resale rate, roughly 3.7x the real price on an agent-shaped token mix.
+- 0d244d0: Fix Responses→chat-completions conversion emitting content-less `{"role":"user"}` messages for `reasoning`, `item_reference`, and other non-message input items, which strict OpenAI-compatible providers rejected with 400/422.
+- bf7876a: Restore the $25 Gemini credit user-discovery banner and modal on the Overview page
+- 6c29c71: Sanitize tool_use ids emitted on /v1/messages responses so non-Anthropic upstream ids (e.g. `Edit:0`) no longer poison session histories against Anthropic's id pattern
+- ecb3c8d: Spell Autofix without a hyphen across the dashboard, notifications, and emails.
+- 549bece: Stop advertising Gemini 3.1 Pro Preview and Gemini 3 Flash Preview for Google Code Assist subscriptions because the Code Assist API returns model-not-found responses for both routes.
+- 7b09c5e: Report modalities and capability flags for Kilo, Pioneer, Cline Pass and Xiaomi models. These providers publish no modality data on their own `/models` endpoints, and models.dev may not price them: they list resold vendor models under the vendor's own ID, so their rates would overwrite the real vendor price in the shared cache. A new capability-only provider map carries them, separate from the map that grants pricing authority.
+
 ## 6.18.0
 
 ### Minor Changes

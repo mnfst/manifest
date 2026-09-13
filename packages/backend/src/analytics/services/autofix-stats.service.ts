@@ -165,7 +165,6 @@ export class AutofixStatsService {
       { tenant_id: tenantId, is_playground: false, deleted_at: IsNull() },
       { autofix_enabled: true },
     );
-    this.autofix.invalidateTenantConfig(tenantId);
     await this.recordAutofixConsent();
     return this.getWorkspaceStatus(tenantId);
   }

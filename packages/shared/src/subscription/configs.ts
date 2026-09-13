@@ -12,6 +12,10 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionTokenPrefix: 'sk-ant-oat',
     knownModels: Object.freeze([
       'claude-fable-5',
+      // Anthropic subscription membership comes exclusively from this curated
+      // list (no live discovery), so point releases callers address directly
+      // need their own entry — the claude-fable-5 prefix alone never emits it.
+      'claude-fable-5-1',
       'claude-opus-4',
       'claude-sonnet-4',
       'claude-haiku-4',
@@ -220,6 +224,7 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     subscriptionKeyPlaceholder: 'Paste your Z.ai API key',
     knownModels: Object.freeze([
       'glm-5.3',
+      'glm-5.3-flash',
       'glm-5.2',
       'glm-5.1',
       'glm-5-turbo',
@@ -276,15 +281,9 @@ export const SUBSCRIPTION_PROVIDER_CONFIGS: Readonly<
     supportsSubscription: true as const,
     subscriptionLabel: 'Grok subscription',
     subscriptionAuthMode: 'popup_oauth' as const,
-    knownModels: Object.freeze([
-      'grok-4.5',
-      'grok-4.3',
-      'grok-4.20-0309-reasoning',
-      'grok-4.20-0309-non-reasoning',
-      'grok-build-0.1',
-    ]),
+    knownModels: Object.freeze(['grok-4.6', 'grok-4.5']),
     subscriptionCapabilities: Object.freeze({
-      maxContextWindow: 128000,
+      maxContextWindow: 500000,
       supportsPromptCaching: true,
       supportsBatching: false,
     }),

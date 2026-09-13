@@ -62,11 +62,13 @@ import { peekStream, STREAM_WARMUP_MS } from './stream-warmup';
 import { toChatCompletionsRequest } from './responses-adapter';
 import { messagesToChatCompletionsRequest } from './anthropic-messages-adapter';
 import { effectiveRoutesForResponseMode } from '../routing-core/response-mode-guard';
+import { subscriptionPreferredRoute } from '../routing-core/route-helpers';
 import {
   explicitModelRouteCandidate,
   OPENAI_MODEL_ID_AUTO,
   routeForOpenAiModelId,
   SUBSCRIPTION_MODEL_SUFFIX,
+  subscriptionOpenAiModelId,
 } from './openai-model-id';
 import { AutofixService } from '../autofix/autofix.service';
 import type { AutofixRecord } from '../autofix/autofix.types';
@@ -184,6 +186,7 @@ interface HealedReforwardContext {
   tenantId: string;
   apiMode: ProxyApiMode;
   sessionKey: string;
+  sessionCacheKey?: string;
   providerCacheKey?: string;
   sessionMomentumKey?: string;
   signal?: AbortSignal;
@@ -277,12 +280,10 @@ export class ProxyService {
         `No route available for agent=${agentId}: ` +
           `tier=${resolved.tier} confidence=${resolved.confidence} reason=${resolved.reason}`,
       );
-      if (resolved.explicit_model_unavailable) {
-        return this.buildModelUnavailableResult(
-          stream,
-          agentName,
-          resolved.explicit_model_unavailable,
-        );
+      const unavailableModel =
+        resolved.explicit_model_unavailable ?? resolved.override_model_unavailable;
+      if (unavailableModel) {
+        return this.buildModelUnavailableResult(stream, agentName, unavailableModel);
       }
       return this.buildNoProviderResult(stream, agentName);
     }
@@ -393,6 +394,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionCacheKey,
           providerCacheKey,
           sessionMomentumKey,
           signal,
@@ -424,6 +426,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      reasoningCacheKey: sessionCacheKey,
       providerCacheKey,
       signal,
       agentId,
@@ -471,6 +474,7 @@ export class ProxyService {
                 tenantId,
                 apiMode: autofixApiMode,
                 sessionKey,
+                sessionCacheKey,
                 providerCacheKey,
                 sessionMomentumKey,
                 signal,
@@ -514,6 +518,7 @@ export class ProxyService {
         resolveChatBody,
         stream,
         sessionKey,
+        sessionCacheKey,
         providerCacheKey,
         sessionMomentumKey,
         signal,
@@ -559,6 +564,7 @@ export class ProxyService {
           isCodeAssist: forward.isCodeAssist,
           structuredOutputToolName: forward.structuredOutputToolName,
           responsesTextFormat: forward.responsesTextFormat,
+          responsesToolNames: forward.responsesToolNames,
           wireRequestBody: forward.wireRequestBody,
           wireRequestUrl: forward.wireRequestUrl,
           wireFormat: forward.wireFormat,
@@ -602,6 +608,7 @@ export class ProxyService {
         isCodeAssist: forward.isCodeAssist,
         structuredOutputToolName: forward.structuredOutputToolName,
         responsesTextFormat: forward.responsesTextFormat,
+        responsesToolNames: forward.responsesToolNames,
         wireRequestBody: forward.wireRequestBody,
         wireRequestUrl: forward.wireRequestUrl,
         wireFormat: forward.wireFormat,
@@ -620,6 +627,7 @@ export class ProxyService {
           resolveChatBody,
           stream,
           sessionKey,
+          sessionCacheKey,
           providerCacheKey,
           sessionMomentumKey,
           signal,
@@ -715,7 +723,18 @@ export class ProxyService {
     const originalModel = originalForward.wireRequestBody?.model;
     const healedModel = typeof healedBody.model === 'string' ? healedBody.model : undefined;
     if (healedModel && healedModel !== originalModel) {
-      return this.forwardResolvedHealed(healedBody, originalForward, ctx);
+      // Phoenix speaks in provider-native model ids. Manifest owns the public
+      // `-subscription` route syntax, so add it only while resolving the healed
+      // retry. The helper is idempotent for older Phoenix patches that already
+      // carry the legacy route id.
+      const routingBody =
+        ctx.authType === 'subscription'
+          ? {
+              ...healedBody,
+              model: subscriptionOpenAiModelId(ctx.provider, healedModel),
+            }
+          : healedBody;
+      return this.forwardResolvedHealed(routingBody, healedBody, originalForward, ctx);
     }
     return this.fallbackService.retryWireBody(originalForward, healedBody, {
       provider: ctx.provider,
@@ -729,16 +748,21 @@ export class ProxyService {
   }
 
   private async forwardResolvedHealed(
+    routingBody: Record<string, unknown>,
     healedBody: Record<string, unknown>,
     originalForward: ForwardResult,
     ctx: HealedReforwardContext,
   ): Promise<ForwardResult> {
     const resolveChatBody = this.createChatBodyResolver(ctx.apiMode, healedBody);
+    const resolveRoutingChatBody =
+      routingBody === healedBody
+        ? resolveChatBody
+        : this.createChatBodyResolver(ctx.apiMode, routingBody);
     const resolved = await this.resolveRouting(
       ctx.agentId,
       ctx.tenantId,
-      healedBody,
-      resolveChatBody,
+      routingBody,
+      resolveRoutingChatBody,
       ctx.sessionMomentumKey,
       ctx.specificityOverride,
       ctx.headers,
@@ -781,6 +805,7 @@ export class ProxyService {
       resolveChatBody,
       stream: ctx.stream,
       sessionKey: ctx.sessionKey,
+      reasoningCacheKey: ctx.sessionCacheKey,
       providerCacheKey: ctx.providerCacheKey,
       signal: ctx.signal,
       agentId: ctx.agentId,
@@ -982,6 +1007,14 @@ export class ProxyService {
     const catalogRoute = routeForOpenAiModelId(requestedModel, models);
     if (catalogRoute) return this.explicitRouting(agentId, tenantId, catalogRoute);
 
+    // A bare ID served by both the subscription and api_key connections of
+    // one provider is not ambiguous: the flat-fee subscription already covers
+    // the request, so route it there instead of silently metering the key.
+    if (!requestedModel.includes('/')) {
+      const preferred = subscriptionPreferredRoute(requestedModel, models);
+      if (preferred) return this.explicitRouting(agentId, tenantId, preferred);
+    }
+
     // A bare ID already present under multiple connections is ambiguous, not
     // undiscovered. Preserve M302 instead of silently picking an auth type.
     const hasAmbiguousCatalogMatch =
@@ -1133,6 +1166,7 @@ export class ProxyService {
     resolveChatBody?: ResolveChatBody;
     stream: boolean;
     sessionKey: string;
+    sessionCacheKey?: string;
     providerCacheKey?: string;
     sessionMomentumKey?: string;
     signal?: AbortSignal;
@@ -1159,6 +1193,7 @@ export class ProxyService {
       resolveChatBody,
       stream,
       sessionKey,
+      sessionCacheKey,
       providerCacheKey,
       sessionMomentumKey,
       signal,
@@ -1198,6 +1233,7 @@ export class ProxyService {
       args.startProviderAttempt,
       args.credentialDashboardUrl,
       providerCacheKey,
+      sessionCacheKey,
     );
 
     this.recordTierIfScoring(sessionMomentumKey, resolved.tier);

@@ -16,6 +16,8 @@ import {
   createProxyBodyBudgetMiddleware,
 } from './common/middleware/body-parser-limits';
 import {
+  PIVOT_CLAIM_CLOUD_ORIGIN,
+  applyPivotClaimCors,
   applyPrivateNetworkAllow,
   buildCorsOptions,
   buildDevAllowedOrigins,
@@ -58,7 +60,9 @@ export async function bootstrap() {
           scriptSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:'],
-          connectSrc: ["'self'"],
+          // The pivot waiting-list claim is posted cross-origin to the cloud
+          // from self-hosted dashboards; the CSP must allow that connection.
+          connectSrc: ["'self'", PIVOT_CLAIM_CLOUD_ORIGIN],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           frameSrc,
@@ -105,6 +109,18 @@ export async function bootstrap() {
   // already-allow-listed origins, so it's a no-op for a public gateway.
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     applyPrivateNetworkAllow(req, corsAllowedOrigins, (name, value) => res.setHeader(name, value));
+    next();
+  });
+  // The pivot waiting-list claim is posted from self-hosted dashboards in the
+  // browser, so this one route answers CORS for any origin. Registered before
+  // the allow-list cors middleware so its preflight wins; see
+  // `applyPivotClaimCors` for why this is safe.
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const handled = applyPivotClaimCors(req, (name, value) => res.setHeader(name, value));
+    if (handled) {
+      res.sendStatus(204);
+      return;
+    }
     next();
   });
   app.enableCors(buildCorsOptions(corsAllowedOrigins));

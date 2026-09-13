@@ -99,7 +99,7 @@ vi.mock("manifest-shared", () => ({
     return icons[plat];
   },
   CATEGORY_LABELS: {
-    personal: "AI agents",
+    personal: "AI agent",
     app: "App AI SDK",
     coding: "Coding Assistant",
   },
@@ -161,6 +161,15 @@ describe("Settings", () => {
   it("renders Harness type label", () => {
     render(() => <Settings />);
     expect(screen.getByText("Harness type")).toBeDefined();
+  });
+
+  it("applies the platform-icon theming class to the harness type icon", async () => {
+    const { container } = render(() => <Settings />);
+    await vi.waitFor(() => {
+      expect(container.querySelector("img.settings-type__icon")).not.toBeNull();
+    });
+    const icon = container.querySelector("img.settings-type__icon");
+    expect(icon?.classList.contains("platform-icon")).toBe(true);
   });
 
   it("renders Change button for agent type", async () => {
@@ -434,7 +443,7 @@ describe("Settings", () => {
     const { container } = render(() => <Settings />);
     await vi.waitFor(() => {
       expect(container.textContent).toContain("OpenClaw");
-      expect(container.textContent).toContain("AI agents");
+      expect(container.textContent).toContain("AI agent");
     });
   });
 

@@ -157,9 +157,7 @@ describe('PublicStatsService', () => {
         [{ model: 'gpt-5.5', provider: 'openai', tokens: '5000000' }],
         [{ model: 'gpt-5.5', provider: 'openai', tokens: '18000000' }],
       );
-      mockPricingCache.getByModel.mockReturnValue(
-        makePricingEntry({ provider: 'OpenCode Zen' }),
-      );
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenCode Zen' }));
 
       const result = await service.getUsageStats();
 
@@ -904,9 +902,7 @@ describe('PublicStatsService', () => {
           cost: '0.10',
         },
       ]);
-      mockPricingCache.getByModel.mockReturnValue(
-        makePricingEntry({ provider: 'OpenCode Zen' }),
-      );
+      mockPricingCache.getByModel.mockReturnValue(makePricingEntry({ provider: 'OpenCode Zen' }));
 
       const result = await service.getProviderDailyTokens();
 
@@ -1086,7 +1082,7 @@ describe('PublicStatsService', () => {
       expect(result).toHaveLength(2);
       expect(result[0].agent_category).toBe('personal');
       expect(result[0].agent_platform).toBe('openclaw');
-      expect(result[0].category_label).toBe('AI agents');
+      expect(result[0].category_label).toBe('AI agent');
       expect(result[0].platform_label).toBe('OpenClaw');
       expect(result[0].total_tokens).toBe(1100000);
       expect(result[0].models).toHaveLength(1);

@@ -4,6 +4,7 @@ import { authClient } from '../services/auth-client.js';
 import { buildLoginRedirect } from '../services/auth-redirects.js';
 import { hasPlanBeenChosen, markPlanChosen } from '../services/plan-selection.js';
 import { hasOnboardingBeenDone } from '../services/onboarding.js';
+import { getDiscoveryPendingNext } from '../services/discovery.js';
 import { loadPlan } from '../services/plan-store.js';
 
 const AuthGuard: ParentComponent = (props) => {
@@ -20,6 +21,13 @@ const AuthGuard: ParentComponent = (props) => {
       return;
     }
     const userId = s.data.user?.id;
+    // A freshly signed-up user with the discovery step still pending is sent
+    // back to it from anywhere in the app except the form itself.
+    const pendingNext = getDiscoveryPendingNext(userId ?? '');
+    if (pendingNext !== null && location.pathname !== '/discovery') {
+      navigate(`/discovery?next=${encodeURIComponent(pendingNext)}`, { replace: true });
+      return;
+    }
     if (planChecked()) return;
     // Resolve the plan store before rendering any page — downstream consumers
     // (range locks) read it synchronously. loadPlan never rejects (fail-open)

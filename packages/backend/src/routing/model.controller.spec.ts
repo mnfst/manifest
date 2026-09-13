@@ -7,6 +7,7 @@ import { OllamaSyncService } from '../database/ollama-sync.service';
 import { PricingSyncService } from '../database/pricing-sync.service';
 import { ModelsDevSyncService } from '../database/models-dev-sync.service';
 import { ProviderParamSpecService } from './routing-core/provider-param-spec.service';
+import { RoutingCacheService } from './routing-core/routing-cache.service';
 import { DiscoveredModel } from '../model-discovery/model-fetcher';
 import { Agent } from '../entities/agent.entity';
 
@@ -41,6 +42,7 @@ describe('ModelController', () => {
   let mockProviderParamSpecs: Record<string, jest.Mock>;
   let mockModelsDevSync: Record<string, jest.Mock>;
   let mockOpencodeGoCatalog: Record<string, jest.Mock>;
+  let routingCache: RoutingCacheService;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -82,6 +84,7 @@ describe('ModelController', () => {
     mockOpencodeGoCatalog = {
       resolveCostPerRequest: jest.fn().mockResolvedValue(null),
     };
+    routingCache = new RoutingCacheService();
 
     controller = new ModelController(
       mockDiscoveryService as unknown as ModelDiscoveryService,
@@ -92,6 +95,7 @@ describe('ModelController', () => {
       mockProviderParamSpecs as unknown as ProviderParamSpecService,
       mockModelsDevSync as unknown as ModelsDevSyncService,
       mockOpencodeGoCatalog as unknown as OpencodeGoCatalogService,
+      routingCache,
     );
   });
 
@@ -188,6 +192,16 @@ describe('ModelController', () => {
       });
       expect(result).toEqual({ ok: true });
     });
+
+    it('clears agent and tenant caches after refreshing all providers', async () => {
+      routingCache.setModelParams(TEST_AGENT_ID, []);
+      routingCache.setProviders(TEST_TENANT_ID, []);
+
+      await controller.refreshModels(mockCtx, mockAgentName);
+
+      expect(routingCache.getModelParams(TEST_AGENT_ID)).toBeNull();
+      expect(routingCache.getProviders(TEST_TENANT_ID)).toBeNull();
+    });
   });
 
   /* ── refreshProviderModels ── */
@@ -239,6 +253,22 @@ describe('ModelController', () => {
 
       expect(result.ok).toBe(false);
       expect(result.error).toBe('Provider returned no models');
+    });
+
+    it('clears agent and tenant caches after refreshing one provider', async () => {
+      mockDiscoveryService.refreshProvider.mockResolvedValue({
+        ok: true,
+        model_count: 3,
+        last_fetched_at: '2026-04-12T12:00:00.000Z',
+        error: null,
+      });
+      routingCache.setModelParams(TEST_AGENT_ID, []);
+      routingCache.setProviders(TEST_TENANT_ID, []);
+
+      await controller.refreshProviderModels(mockCtx, mockParams, {});
+
+      expect(routingCache.getModelParams(TEST_AGENT_ID)).toBeNull();
+      expect(routingCache.getProviders(TEST_TENANT_ID)).toBeNull();
     });
   });
 

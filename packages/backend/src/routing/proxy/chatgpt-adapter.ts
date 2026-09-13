@@ -18,6 +18,7 @@ import {
   safeParse,
 } from './chatgpt-helpers';
 import { OpenAIMessage } from './proxy-types';
+import { deduplicateCallIds } from './responses-call-ids';
 
 export class ResponsesSseError extends Error {
   constructor(
@@ -100,7 +101,7 @@ export function toResponsesRequest(
 
   const request: Record<string, unknown> = {
     model,
-    input,
+    input: deduplicateCallIds(input),
     stream: options.stream ?? body.stream !== false,
     store: false,
     instructions: extractInstructions(messages),
@@ -195,6 +196,8 @@ function reasoningDeltaText(data: Record<string, unknown>): string {
 /** Tracks whether reasoning summary text was already streamed to the client. */
 interface ReasoningStreamState {
   streamed: boolean;
+  /** True once the stream has emitted any function_call output item / delta. */
+  sawToolCall: boolean;
 }
 
 /**
@@ -301,7 +304,7 @@ export function fromResponsesResponse(
  * summaries that never streamed as recognizable deltas.
  */
 export function createChatGptStreamTransformer(model: string): (chunk: string) => string | null {
-  const state: ReasoningStreamState = { streamed: false };
+  const state: ReasoningStreamState = { streamed: false, sawToolCall: false };
   return (chunk) => transformResponsesStreamChunk(chunk, model, state);
 }
 
@@ -370,6 +373,7 @@ export function transformResponsesStreamChunk(
     if (!data) return null;
     const item = isObjectRecord(data.item) ? data.item : undefined;
     if (item?.type !== 'function_call') return null;
+    if (state) state.sawToolCall = true;
     return formatSSE(
       {
         delta: {
@@ -412,8 +416,9 @@ function handleCompletedEvent(
   const response = isObjectRecord(data?.response) ? data.response : undefined;
   const responseOutput = responseOutputItems(response);
   const hasFunctionCalls = responseOutput.some((item) => item.type === 'function_call');
+  const sawToolCall = state?.sawToolCall ?? false;
   const finish = formatSSE(
-    { delta: {}, finish_reason: hasFunctionCalls ? 'tool_calls' : 'stop' },
+    { delta: {}, finish_reason: hasFunctionCalls || sawToolCall ? 'tool_calls' : 'stop' },
     model,
     extractResponseUsage(response),
   );
@@ -611,12 +616,13 @@ export function buildResponsesSseError(data: Record<string, unknown>): Responses
 }
 
 function statusFromResponsesError(code: string | undefined, type: string | undefined): number {
-  const value = (code ?? type ?? '').toLowerCase();
+  const value = `${code ?? ''} ${type ?? ''}`.toLowerCase();
   if (value.includes('model_not_found') || value.includes('not_found')) return 404;
   if (value.includes('rate_limit')) return 429;
-  if (value.includes('invalid') || value.includes('bad_request')) return 400;
   if (value.includes('unauthorized') || value.includes('authentication')) return 401;
   if (value.includes('forbidden') || value.includes('permission')) return 403;
   if (value.includes('server')) return 500;
+  if (value.includes('context_length_exceeded')) return 400;
+  if (value.includes('invalid') || value.includes('bad_request')) return 400;
   return 502;
 }

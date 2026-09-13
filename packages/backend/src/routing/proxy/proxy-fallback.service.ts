@@ -29,6 +29,11 @@ interface ForwardProviderOptions {
   resolveChatBody?: ResolveChatBody;
   stream: boolean;
   sessionKey: string;
+  /**
+   * Scoped replay-cache key (`sessionScope.cacheKey`). The reasoning cache must
+   * read with the same key the response handler wrote with.
+   */
+  reasoningCacheKey?: string;
   providerCacheKey?: string;
   signal?: AbortSignal;
   authType?: string;
@@ -198,6 +203,7 @@ export class ProxyFallbackService {
     /** Dashboard URL embedded in mid-chain M100/M102 credential failure bodies. */
     credentialDashboardUrl?: string,
     providerCacheKey?: string,
+    reasoningCacheKey?: string,
   ): Promise<{
     success: {
       forward: ForwardResult;
@@ -313,6 +319,7 @@ export class ProxyFallbackService {
         resolveChatBody,
         stream,
         sessionKey,
+        reasoningCacheKey,
         providerCacheKey,
         signal,
         agentId,
@@ -664,7 +671,12 @@ export class ProxyFallbackService {
       authType,
       opts.model,
     );
-    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey);
+    // Agent-scope fallback for providers (OpenCode) that need a session id on
+    // every request even when the caller sent no x-session-key. NUL-joined so
+    // distinct (tenant, agent) pairs can never collide before hashing.
+    const agentScopeKey =
+      opts.tenantId && opts.agentId ? `${opts.tenantId}\u0000${opts.agentId}` : undefined;
+    const extraHeaders = buildProviderExtraHeaders(provider, opts.providerCacheKey, agentScopeKey);
 
     // Copilot: exchange the stored GitHub OAuth token for a short-lived API token
     let effectiveKey = opts.apiKey;
@@ -716,7 +728,7 @@ export class ProxyFallbackService {
             );
             resolved = await this.reasoningCache.prepareRequest(
               resolved,
-              opts.sessionKey,
+              opts.reasoningCacheKey ?? opts.sessionKey,
               reasoningEndpointKey,
               forwardModel,
             );
@@ -727,7 +739,7 @@ export class ProxyFallbackService {
       : undefined;
     body = await this.reasoningCache.prepareRequest(
       body,
-      opts.sessionKey,
+      opts.reasoningCacheKey ?? opts.sessionKey,
       reasoningEndpointKey,
       forwardModel,
     );

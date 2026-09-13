@@ -130,6 +130,67 @@ function streamFrom(chunks: Uint8Array[]): ReadableStream<Uint8Array> {
   });
 }
 
+type BuiltKiroRequest = {
+  conversationState: {
+    history: Array<Record<string, unknown>>;
+    currentMessage: {
+      userInputMessage: {
+        content: string;
+        userInputMessageContext?: {
+          tools?: Array<{
+            toolSpecification: {
+              name: string;
+              description: string;
+              inputSchema: { json: Record<string, unknown> };
+            };
+          }>;
+          toolResults?: Array<{
+            toolUseId: string;
+            status: string;
+            content: Array<{ text: string }>;
+          }>;
+        };
+      };
+    };
+  };
+};
+
+function buildKiro(body: Record<string, unknown>): BuiltKiroRequest {
+  return buildKiroChatRequest(body, 'auto') as unknown as BuiltKiroRequest;
+}
+
+function kiroSpecs(request: BuiltKiroRequest) {
+  return (
+    request.conversationState.currentMessage.userInputMessage.userInputMessageContext?.tools ?? []
+  ).map((tool) => tool.toolSpecification);
+}
+
+function kiroToolUses(request: BuiltKiroRequest) {
+  const assistant = request.conversationState.history.find(
+    (turn) => 'assistantResponseMessage' in turn,
+  ) as
+    | {
+        assistantResponseMessage: {
+          content: string;
+          toolUses?: Array<{ toolUseId: string; name: string; input: unknown }>;
+        };
+      }
+    | undefined;
+  return assistant?.assistantResponseMessage;
+}
+
+function sseToolCalls(text: string): Array<Record<string, unknown>> {
+  return text
+    .split('\n')
+    .filter((line) => line.startsWith('data: ') && !line.includes('[DONE]'))
+    .flatMap((line) => {
+      const chunk = JSON.parse(line.slice(6)) as {
+        choices: Array<{ delta: { tool_calls?: Array<Record<string, unknown>> } }>;
+      };
+      return chunk.choices[0].delta.tool_calls ?? [];
+    });
+}
+
 describe('kiro-adapter', () => {
   beforeEach(() => {
     mockFetch.mockReset();
@@ -201,16 +262,11 @@ describe('kiro-adapter', () => {
         history: [
           { userInputMessage: { content: 'First question', origin: 'KIRO_CLI' } },
           { assistantResponseMessage: { content: 'First answer' } },
-          {
-            userInputMessage: {
-              content: 'Tool result tool-1:\n{"ok":true}',
-              origin: 'KIRO_CLI',
-            },
-          },
         ],
         currentMessage: {
           userInputMessage: {
-            content: 'System instructions:\nUse concise answers.\n\nUser:\nSecond question',
+            content:
+              'System instructions:\nUse concise answers.\n\nUser:\nSecond question\n\n[Tool result: {"ok":true}]',
             origin: 'KIRO_CLI',
             modelId: 'auto',
           },
@@ -219,6 +275,159 @@ describe('kiro-adapter', () => {
       },
       agentMode: 'SUPERVISED',
     });
+  });
+
+  it('maps OpenAI tools, tool calls, and tool results onto Kiro tool fields', () => {
+    const request = buildKiroChatRequest(
+      {
+        messages: [
+          { role: 'system', content: 'You can run commands.' },
+          { role: 'user', content: 'List the files.' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              {
+                id: 'call_1',
+                type: 'function',
+                function: { name: 'bash', arguments: '{"command":"ls"}' },
+              },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'call_1', content: 'a.txt\nb.txt' },
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'bash',
+              description: 'Run a shell command.',
+              parameters: {
+                type: 'object',
+                properties: { command: { type: 'string' } },
+                required: ['command'],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+      },
+      'auto',
+    ) as {
+      conversationState: {
+        history: Array<Record<string, unknown>>;
+        currentMessage: {
+          userInputMessage: {
+            content: string;
+            userInputMessageContext: {
+              tools: unknown[];
+              toolResults: unknown[];
+            };
+          };
+        };
+      };
+    };
+
+    expect(request.conversationState.history).toEqual([
+      {
+        userInputMessage: {
+          content: 'System instructions:\nYou can run commands.\n\nUser:\nList the files.',
+          origin: 'KIRO_CLI',
+        },
+      },
+      {
+        assistantResponseMessage: {
+          content: '...',
+          toolUses: [{ toolUseId: 'call_1', name: 'bash', input: { command: 'ls' } }],
+        },
+      },
+    ]);
+
+    const current = request.conversationState.currentMessage.userInputMessage;
+    // A tool result with no new user text must stay empty: fabricating
+    // "continue" (or leaving the system prompt here) makes Kiro read a fresh,
+    // context-free instruction and drop the task. The system prompt moves to the
+    // first user turn (above) so it still reaches the model.
+    expect(current.content).toBe('');
+    expect(current.userInputMessageContext.toolResults).toEqual([
+      { toolUseId: 'call_1', status: 'success', content: [{ text: 'a.txt\nb.txt' }] },
+    ]);
+    expect(current.userInputMessageContext.tools).toEqual([
+      {
+        toolSpecification: {
+          name: 'bash',
+          description: 'Run a shell command.',
+          inputSchema: {
+            json: {
+              type: 'object',
+              properties: { command: { type: 'string' } },
+              required: ['command'],
+            },
+          },
+        },
+      },
+    ]);
+  });
+
+  it('inlines a lone tool result that has no assistant call to pair with', () => {
+    const withSystem = buildKiro({
+      messages: [
+        { role: 'system', content: 'You can run commands.' },
+        { role: 'tool', tool_call_id: 'c1', content: 'hi' },
+      ],
+    });
+    expect(withSystem.conversationState.history).toEqual([]);
+    expect(withSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      'System instructions:\nYou can run commands.\n\nUser:\n[Tool result: hi]',
+    );
+    expect(
+      withSystem.conversationState.currentMessage.userInputMessage.userInputMessageContext
+        ?.toolResults,
+    ).toBeUndefined();
+
+    const withoutSystem = buildKiro({
+      messages: [{ role: 'tool', tool_call_id: 'c1', content: 'hi' }],
+    });
+    expect(withoutSystem.conversationState.history).toEqual([]);
+    expect(withoutSystem.conversationState.currentMessage.userInputMessage.content).toBe(
+      '[Tool result: hi]',
+    );
+  });
+
+  it('sanitizes invalid Kiro tool names and restores them on the response', async () => {
+    const request = buildKiroChatRequest(
+      {
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [
+          { type: 'function', function: { name: 'my.tool', parameters: { type: 'object' } } },
+          { type: 'function', function: { name: '__a..b__', parameters: { type: 'object' } } },
+        ],
+      },
+      'auto',
+    ) as {
+      conversationState: {
+        currentMessage: {
+          userInputMessage: {
+            userInputMessageContext: { tools: Array<{ toolSpecification: { name: string } }> };
+          };
+        };
+      };
+    };
+
+    expect(
+      request.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools.map(
+        (tool) => tool.toolSpecification.name,
+      ),
+    ).toEqual(['my_tool', 'a_b']);
+
+    const source = streamFrom([
+      eventFrame('toolUseEvent', { toolUseId: 'c1', name: 'my_tool', input: '{}', stop: true }),
+    ]);
+    const response = new Response(
+      createKiroOpenAiStream(source, 'auto', new Map([['my_tool', 'my.tool']])),
+    );
+    const text = await response.text();
+    expect(text).toContain('"name":"my.tool"');
   });
 
   it('handles image parts, empty parts, and circular object content defensively', () => {
@@ -359,6 +568,109 @@ describe('kiro-adapter', () => {
     expect(text).toContain('data: [DONE]');
   });
 
+  it('converts Kiro toolUseEvent frames into OpenAI tool_calls', async () => {
+    const source = streamFrom([
+      eventFrame('toolUseEvent', { toolUseId: 'call_1', name: 'bash', input: '{"command":' }),
+      eventFrame('toolUseEvent', { toolUseId: 'call_1', name: 'bash', input: '"ls"}', stop: true }),
+      eventFrame('messageStopEvent', { stopReason: 'tool_use' }),
+    ]);
+
+    const response = new Response(createKiroOpenAiStream(source, 'auto'));
+    const text = await response.text();
+    const chunks = text
+      .split('\n')
+      .filter((line) => line.startsWith('data: ') && !line.includes('[DONE]'))
+      .map(
+        (line) =>
+          JSON.parse(line.slice(6)) as {
+            choices: Array<{
+              delta: {
+                tool_calls?: Array<{
+                  index: number;
+                  id: string;
+                  type: string;
+                  function: { name: string; arguments: string };
+                }>;
+              };
+              finish_reason: string | null;
+            }>;
+          },
+      );
+
+    const toolCalls = chunks.flatMap((chunk) => chunk.choices[0].delta.tool_calls ?? []);
+    expect(toolCalls).toEqual([
+      {
+        index: 0,
+        id: 'call_1',
+        type: 'function',
+        function: { name: 'bash', arguments: '{"command":"ls"}' },
+      },
+    ]);
+    expect(chunks.at(-1)?.choices[0].finish_reason).toBe('tool_calls');
+    expect(text).toContain('data: [DONE]');
+  });
+
+  it('forwards tools and returns Kiro tool calls in the non-streaming completion', async () => {
+    mockFetch.mockResolvedValue(
+      new Response(
+        streamFrom([
+          eventFrame('toolUseEvent', {
+            toolUseId: 'call_1',
+            name: 'read',
+            input: '{"path":"a"}',
+            stop: true,
+          }),
+        ]),
+        { status: 200 },
+      ),
+    );
+
+    const response = await forwardKiroChat({
+      apiKey: 'ksk_test',
+      model: 'auto',
+      body: {
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [{ type: 'function', function: { name: 'read', parameters: { type: 'object' } } }],
+      },
+      stream: false,
+      timeoutMs: 1000,
+    });
+    const json = await response.json();
+
+    const sentBody = JSON.parse(mockFetch.mock.calls[0][1].body as string) as {
+      conversationState: {
+        currentMessage: {
+          userInputMessage: { userInputMessageContext: { tools: unknown[] } };
+        };
+      };
+    };
+    expect(
+      sentBody.conversationState.currentMessage.userInputMessage.userInputMessageContext.tools,
+    ).toEqual([
+      {
+        toolSpecification: {
+          name: 'read',
+          description: 'Tool: read',
+          inputSchema: { json: { type: 'object', properties: {} } },
+        },
+      },
+    ]);
+
+    expect(json.choices[0]).toMatchObject({
+      finish_reason: 'tool_calls',
+      message: {
+        role: 'assistant',
+        tool_calls: [
+          {
+            id: 'call_1',
+            type: 'function',
+            function: { name: 'read', arguments: '{"path":"a"}' },
+          },
+        ],
+      },
+    });
+  });
+
   it('forwards streaming Kiro chat as OpenAI-compatible SSE', async () => {
     mockFetch.mockResolvedValue(
       new Response(streamFrom([eventFrame('assistantResponseEvent', { content: 'hello' })]), {
@@ -435,5 +747,283 @@ describe('kiro-adapter', () => {
 
     expect(response.status).toBe(403);
     expect(await response.text()).toBe('forbidden');
+  });
+
+  describe('tool mapping edge cases', () => {
+    it('normalizes tool names, defaults descriptions, and cleans schemas', () => {
+      const request = buildKiro({
+        messages: [{ role: 'user', content: 'go' }],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'a.b',
+              parameters: {
+                type: 'object',
+                properties: { x: { type: 'string' } },
+                required: ['x', 'missing'],
+                additionalProperties: false,
+              },
+            },
+          },
+          { type: 'function', function: { name: 'a..b', parameters: { type: 'object' } } },
+          { type: 'function', function: { name: '__' } },
+          { type: 'function', function: { name: 'a.b' } },
+          { type: 'function' },
+          null,
+          'nope',
+          { name: 'top.level', description: 'plain' },
+          { function: { name: 'desc', description: 42, parameters: [] } },
+        ],
+      });
+
+      const specs = kiroSpecs(request);
+      expect(specs.map((spec) => spec.name)).toEqual(['a_b', 'a_b_2', 'tool', 'top_level', 'desc']);
+      expect(specs[0].inputSchema.json).toEqual({
+        type: 'object',
+        properties: { x: { type: 'string' } },
+        required: ['x'],
+      });
+      expect(specs[3].description).toBe('plain');
+      expect(specs[4].description).toBe('Tool: desc');
+      expect(specs[4].inputSchema.json).toEqual({ type: 'object', properties: {} });
+    });
+
+    it('parses arguments from objects and JSON, generating missing ids', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'user', content: 'go' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              { id: 'c1', function: { name: 'x', arguments: { a: 1 } } },
+              { function: { name: 'y', arguments: '{"b":2}' } },
+              { function: { name: 'z', arguments: 'not json' } },
+              { function: { name: 'w', arguments: '42' } },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'c1', content: 'r1' },
+          { role: 'tool', tool_call_id: 'call_2', content: 'r2' },
+          { role: 'tool', tool_call_id: 'call_3', content: 'r3' },
+          { role: 'tool', tool_call_id: 'call_4', content: 'r4' },
+        ],
+        tools: [
+          { function: { name: 'x' } },
+          { function: { name: 'y' } },
+          { function: { name: 'z' } },
+          { function: { name: 'w' } },
+        ],
+      });
+
+      expect(kiroToolUses(request)?.toolUses).toEqual([
+        { toolUseId: 'c1', name: 'x', input: { a: 1 } },
+        { toolUseId: 'call_2', name: 'y', input: { b: 2 } },
+        { toolUseId: 'call_3', name: 'z', input: {} },
+        { toolUseId: 'call_4', name: 'w', input: {} },
+      ]);
+      expect(
+        request.conversationState.currentMessage.userInputMessage.userInputMessageContext?.toolResults?.map(
+          (result) => result.toolUseId,
+        ),
+      ).toEqual(['c1', 'call_2', 'call_3', 'call_4']);
+    });
+
+    it('de-duplicates repeated tool-use ids and flattens leftover results', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'user', content: 'go' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [
+              { id: 'dup', function: { name: 't', arguments: '{}' } },
+              { id: 'dup', function: { name: 't', arguments: '{}' } },
+            ],
+          },
+          { role: 'tool', tool_call_id: 'dup', content: 'r1' },
+          { role: 'tool', tool_call_id: 'dup', content: 'r2' },
+          { role: 'tool', tool_call_id: 'dup', content: 'r3' },
+        ],
+        tools: [{ function: { name: 't' } }],
+      });
+
+      expect(kiroToolUses(request)?.toolUses?.map((use) => use.toolUseId)).toEqual([
+        'dup',
+        'dup_2',
+      ]);
+      expect(request.conversationState.currentMessage.userInputMessage.content).toContain(
+        '[Tool result: r3]',
+      );
+    });
+
+    it('falls back to a generated id when a tool-use id has no valid characters', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'user', content: 'go' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [{ id: '***', function: { name: 't', arguments: '{}' } }],
+          },
+          { role: 'tool', tool_call_id: '***', content: 'r' },
+        ],
+        tools: [{ function: { name: 't' } }],
+      });
+
+      expect(kiroToolUses(request)?.toolUses?.[0].toolUseId).toBe('call_1_0');
+    });
+
+    it('merges consecutive assistant messages with their tool calls', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'user', content: 'go' },
+          { role: 'assistant', content: 'thinking' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [{ id: 'c1', function: { name: 't', arguments: '{}' } }],
+          },
+          { role: 'tool', tool_call_id: 'c1', content: 'r' },
+        ],
+        tools: [{ function: { name: 't' } }],
+      });
+
+      expect(kiroToolUses(request)).toMatchObject({
+        content: 'thinking',
+        toolUses: [{ toolUseId: 'c1', name: 't', input: {} }],
+      });
+    });
+
+    it('flattens calls to undeclared tools and their results to text', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'user', content: 'go' },
+          {
+            role: 'assistant',
+            content: null,
+            tool_calls: [{ id: 'c1', function: { name: 'ghost', arguments: '{"a":1}' } }],
+          },
+          { role: 'tool', tool_call_id: 'c1', content: 'r' },
+        ],
+        tools: [{ function: { name: 'other' } }],
+      });
+
+      expect(kiroToolUses(request)?.content).toBe('...');
+      const current = request.conversationState.currentMessage.userInputMessage;
+      expect(current.content).toContain('[Tool call: ghost({"a":1})]');
+      expect(current.content).toContain('[Tool result: r]');
+      expect(current.userInputMessageContext?.toolResults).toBeUndefined();
+    });
+
+    it('synthesizes a current user turn for empty or assistant-bounded conversations', () => {
+      const empty = buildKiro({ messages: [] });
+      expect(empty.conversationState.history).toEqual([]);
+      expect(empty.conversationState.currentMessage.userInputMessage.content).toBe('continue');
+
+      const startsAssistant = buildKiro({
+        messages: [
+          { role: 'assistant', content: 'a' },
+          { role: 'user', content: 'q' },
+        ],
+      });
+      expect(startsAssistant.conversationState.history[0]).toEqual({
+        userInputMessage: { content: 'continue', origin: 'KIRO_CLI' },
+      });
+      expect(startsAssistant.conversationState.currentMessage.userInputMessage.content).toBe('q');
+
+      const endsAssistant = buildKiro({
+        messages: [
+          { role: 'user', content: 'q' },
+          { role: 'assistant', content: 'a' },
+        ],
+      });
+      expect(endsAssistant.conversationState.currentMessage.userInputMessage.content).toBe(
+        'continue',
+      );
+      expect(endsAssistant.conversationState.history).toEqual([
+        { userInputMessage: { content: 'q', origin: 'KIRO_CLI' } },
+        { assistantResponseMessage: { content: 'a' } },
+      ]);
+    });
+
+    it('falls back to a Hello turn for an empty user message', () => {
+      expect(
+        buildKiro({ messages: [{ role: 'user', content: '' }] }).conversationState.currentMessage
+          .userInputMessage.content,
+      ).toBe('Hello');
+
+      expect(
+        buildKiro({
+          messages: [
+            { role: 'system', content: 'Be terse.' },
+            { role: 'user', content: '' },
+          ],
+        }).conversationState.currentMessage.userInputMessage.content,
+      ).toBe('System instructions:\nBe terse.\n\nUser:\nHello');
+    });
+
+    it('folds developer instructions and string/array content parts', () => {
+      const request = buildKiro({
+        messages: [
+          { role: 'developer', content: 'dev rules' },
+          {
+            role: 'user',
+            content: ['line1', { type: 'text', text: 'line2' }, { type: 'image_url' }],
+          },
+        ],
+      });
+
+      expect(request.conversationState.currentMessage.userInputMessage.content).toBe(
+        'System instructions:\ndev rules\n\nUser:\nline1\nline2\n[image omitted]',
+      );
+    });
+
+    it('collects tool-use events from object input, arrays, and nested payloads', async () => {
+      const source = streamFrom([
+        eventFrame('toolUseEvent', { name: 'obj', input: { a: 1 } }),
+        eventFrame('toolUseEvent', { toolUseId: 'skip', input: '{}' }),
+        eventFrame('toolUseEvent', {
+          toolUseEvent: { toolUseId: 'n1', name: 'nested', input: '{"n":1}', stop: true },
+        }),
+        eventFrame('toolUseEvent', [
+          { toolUseId: 'a1', name: 'arr1', input: '{"x":1}' },
+          { toolUseId: 'a2', name: 'arr2', input: '{"y":2}' },
+        ]),
+      ]);
+
+      const response = new Response(createKiroOpenAiStream(source, 'auto'));
+      expect(sseToolCalls(await response.text())).toEqual([
+        {
+          index: 0,
+          id: 'call_1',
+          type: 'function',
+          function: { name: 'obj', arguments: '{"a":1}' },
+        },
+        {
+          index: 1,
+          id: 'n1',
+          type: 'function',
+          function: { name: 'nested', arguments: '{"n":1}' },
+        },
+        { index: 2, id: 'a1', type: 'function', function: { name: 'arr1', arguments: '{"x":1}' } },
+        { index: 3, id: 'a2', type: 'function', function: { name: 'arr2', arguments: '{"y":2}' } },
+      ]);
+    });
+
+    it('surfaces Kiro exception payload variants', async () => {
+      const cases: Array<[Record<string, unknown>, string]> = [
+        [{ errorMessage: 'via-errorMessage' }, 'via-errorMessage'],
+        [{ error: 'via-error' }, 'via-error'],
+        [{}, 'Kiro returned an exception event'],
+      ];
+
+      for (const [payload, message] of cases) {
+        const response = new Response(
+          createKiroOpenAiStream(streamFrom([eventFrame('boom', payload, 'exception')]), 'auto'),
+        );
+        await expect(response.text()).rejects.toThrow(message);
+      }
+    });
   });
 });

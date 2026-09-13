@@ -79,9 +79,9 @@ describe('HttpHealingClient', () => {
       expect((err as HealContractError).status).toBe(401);
     });
 
-    it('sends the x-api-key header when an API key is configured', async () => {
+    it('sends the API key and Manifest version when an API key is configured', async () => {
       fetchSpy.mockResolvedValue(fakeResponse(true, 200, { status: 'no_patch', issueId: 'i' }));
-      const client = new HttpHealingClient('http://x', 1000, 'secret-key');
+      const client = new HttpHealingClient('http://x', 1000, 'secret-key', undefined, '6.19.1');
 
       await client.heal(makeHealRequest(), context);
 
@@ -89,6 +89,7 @@ describe('HttpHealingClient', () => {
       expect(init.headers).toEqual({
         'content-type': 'application/json',
         'x-api-key': 'secret-key',
+        'X-Manifest-Version': '6.19.1',
       });
     });
 
@@ -176,6 +177,7 @@ describe('HttpHealingClient', () => {
       expect(fetchSpy.mock.calls[0][1].headers).toEqual({
         'content-type': 'application/json',
         'x-api-key': 'static-key',
+        'X-Manifest-Version': '6.15.1',
       });
     });
 
@@ -228,6 +230,7 @@ describe('HttpHealingClient', () => {
       expect(init.headers).toEqual({
         'content-type': 'application/json',
         'x-api-key': 'secret-key',
+        'X-Manifest-Version': 'unknown',
       });
     });
 
@@ -294,6 +297,7 @@ describe('HttpHealingClient', () => {
       expect(init.headers).toEqual({
         'content-type': 'application/json',
         'x-api-key': 'secret-key',
+        'X-Manifest-Version': 'unknown',
       });
       expect(JSON.parse(init.body)).toEqual({ observations: batch });
     });
